@@ -20,8 +20,11 @@ class Blockchain {
     }
 
     minePendingTransactions(miningRewardAddress) {
-        // Add mining reward transaction
-        const rewardTransaction = new Transaction(null, miningRewardAddress, this.miningReward);
+        // Calculate total fees from pending transactions
+        const totalFees = this.pendingTransactions.reduce((sum, tx) => sum + tx.fee, 0);
+        
+        // Add mining reward transaction (includes base reward + fees)
+        const rewardTransaction = new Transaction(null, miningRewardAddress, this.miningReward + totalFees);
         this.pendingTransactions.push(rewardTransaction);
 
         // Create new block with pending transactions
@@ -29,6 +32,8 @@ class Blockchain {
         block.mineBlock(this.difficulty);
 
         console.log('Block successfully mined!');
+        console.log(`Miner reward: ${this.miningReward} KENO + ${totalFees} KENO fees = ${this.miningReward + totalFees} KENO total`);
+        
         this.chain.push(block);
         this.pendingTransactions = [];
     }
@@ -42,15 +47,27 @@ class Blockchain {
             throw new Error('Cannot add invalid transaction to chain');
         }
 
-        // Check if sender has enough balance
+        // Check if sender has enough balance (including pending transactions)
         if (transaction.fromAddress !== null) {
-            const walletBalance = this.getBalanceOfAddress(transaction.fromAddress);
-            if (walletBalance < transaction.amount + transaction.fee) {
-                throw new Error('Not enough balance');
+            const availableBalance = this.getAvailableBalance(transaction.fromAddress);
+            if (availableBalance < transaction.amount + transaction.fee) {
+                throw new Error(`Not enough balance. Available: ${availableBalance} KENO, Required: ${transaction.amount + transaction.fee} KENO`);
             }
         }
 
         this.pendingTransactions.push(transaction);
+    }
+
+    getAvailableBalance(address) {
+        // Get confirmed balance from the blockchain
+        const confirmedBalance = this.getBalanceOfAddress(address);
+        
+        // Subtract pending outgoing transactions and fees
+        const pendingOutgoing = this.pendingTransactions
+            .filter(tx => tx.fromAddress === address)
+            .reduce((sum, tx) => sum + tx.amount + tx.fee, 0);
+            
+        return confirmedBalance - pendingOutgoing;
     }
 
     getBalanceOfAddress(address) {
@@ -99,6 +116,12 @@ class Blockchain {
             }
 
             if (currentBlock.previousHash !== previousBlock.hash) {
+                return false;
+            }
+
+            // Verify proof-of-work: block hash must meet difficulty target
+            const target = Array(this.difficulty + 1).join("0");
+            if (currentBlock.hash.substring(0, this.difficulty) !== target) {
                 return false;
             }
         }

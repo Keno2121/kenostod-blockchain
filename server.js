@@ -60,26 +60,40 @@ app.get('/api/transactions/:address', (req, res) => {
     });
 });
 
-// Create a new transaction
+// Create a new transaction (accepts pre-signed transactions)
 app.post('/api/transaction', (req, res) => {
     try {
-        const { fromAddress, toAddress, amount, privateKey, fee = 1 } = req.body;
+        const { fromAddress, toAddress, amount, fee = 1, signature, timestamp } = req.body;
         
-        if (!fromAddress || !toAddress || !amount || !privateKey) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        if (!fromAddress || !toAddress || !amount || !signature) {
+            return res.status(400).json({ error: 'Missing required fields: fromAddress, toAddress, amount, signature' });
         }
 
-        // Create and sign transaction
+        // Create transaction with provided signature
         const transaction = new Transaction(fromAddress, toAddress, amount, fee);
-        const key = ec.keyFromPrivate(privateKey, 'hex');
-        transaction.signTransaction(key);
+        if (timestamp) {
+            transaction.timestamp = timestamp;
+        }
+        transaction.signature = signature;
+
+        // Validate the transaction (including signature)
+        if (!transaction.isValid()) {
+            return res.status(400).json({ error: 'Invalid transaction signature' });
+        }
 
         // Add to blockchain
         kenostodChain.createTransaction(transaction);
 
         res.json({
             message: 'Transaction created successfully',
-            transaction: transaction
+            transactionHash: transaction.calculateHash(),
+            transaction: {
+                fromAddress: transaction.fromAddress,
+                toAddress: transaction.toAddress,
+                amount: transaction.amount,
+                fee: transaction.fee,
+                timestamp: transaction.timestamp
+            }
         });
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -114,8 +128,40 @@ app.post('/api/wallet/create', (req, res) => {
     
     res.json({
         address: newWallet.getAddress(),
-        privateKey: newWallet.getPrivateKey()
+        privateKey: newWallet.getPrivateKey(),
+        warning: 'Store your private key securely! Never share it with anyone.'
     });
+});
+
+// Helper endpoint to sign transactions (for development only)
+app.post('/api/sign', (req, res) => {
+    try {
+        const { fromAddress, toAddress, amount, fee = 1, privateKey } = req.body;
+        
+        if (!fromAddress || !toAddress || !amount || !privateKey) {
+            return res.status(400).json({ error: 'Missing required fields: fromAddress, toAddress, amount, privateKey' });
+        }
+
+        // Create transaction and sign it
+        const transaction = new Transaction(fromAddress, toAddress, amount, fee);
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        transaction.signTransaction(key);
+
+        res.json({
+            message: 'Transaction signed successfully',
+            signedTransaction: {
+                fromAddress: transaction.fromAddress,
+                toAddress: transaction.toAddress,
+                amount: transaction.amount,
+                fee: transaction.fee,
+                timestamp: transaction.timestamp,
+                signature: transaction.signature
+            },
+            note: 'Submit this signed transaction to /api/transaction'
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 });
 
 // Get blockchain stats
@@ -143,25 +189,27 @@ app.get('/', (req, res) => {
             'GET /api/blockchain': 'Get full blockchain data',
             'GET /api/balance/:address': 'Get balance for address',
             'GET /api/transactions/:address': 'Get transactions for address',
-            'POST /api/transaction': 'Create new transaction',
+            'POST /api/transaction': 'Submit pre-signed transaction (requires signature)',
             'POST /api/mine': 'Mine pending transactions',
             'POST /api/wallet/create': 'Create new wallet',
             'GET /api/stats': 'Get blockchain statistics',
-            'GET /api/validate': 'Validate blockchain integrity'
+            'GET /api/validate': 'Validate blockchain integrity',
+            'POST /api/sign': 'Helper endpoint to sign transactions (for development only)'
         },
         testWallets: {
             miner: {
-                address: minerWallet.getAddress(),
-                privateKey: minerWallet.getPrivateKey()
+                address: minerWallet.getAddress()
             },
             wallet1: {
-                address: wallet1.getAddress(),
-                privateKey: wallet1.getPrivateKey()
+                address: wallet1.getAddress()
             },
             wallet2: {
-                address: wallet2.getAddress(),
-                privateKey: wallet2.getPrivateKey()
+                address: wallet2.getAddress()
             }
+        },
+        security: {
+            note: 'Private keys are never exposed through the API for security reasons',
+            transactionFlow: 'Create transaction -> Sign locally -> Submit to /api/transaction'
         }
     });
 });

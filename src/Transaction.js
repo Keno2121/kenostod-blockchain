@@ -10,6 +10,34 @@ class Transaction {
         this.fee = fee;
         this.timestamp = Date.now();
         this.signature = null;
+        
+        // Validate transaction parameters
+        this.validateTransaction();
+    }
+
+    validateTransaction() {
+        // Validate amounts and fees are positive
+        if (this.amount <= 0) {
+            throw new Error('Transaction amount must be positive');
+        }
+        
+        if (this.fee < 0) {
+            throw new Error('Transaction fee cannot be negative');
+        }
+
+        // Prevent self-transfers
+        if (this.fromAddress === this.toAddress) {
+            throw new Error('Cannot send tokens to yourself');
+        }
+
+        // Validate addresses
+        if (this.fromAddress && this.fromAddress.length !== 130) {
+            throw new Error('Invalid from address format');
+        }
+        
+        if (this.toAddress && this.toAddress.length !== 130) {
+            throw new Error('Invalid to address format');
+        }
     }
 
     calculateHash() {
