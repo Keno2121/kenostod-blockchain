@@ -278,3 +278,102 @@ function showError(elementId, message) {
     element.className = 'result error';
     element.innerHTML = `<p>❌ Error: ${message}</p>`;
 }
+
+let pendingTxRefreshInterval = null;
+
+async function loadPendingTransactions() {
+    const address = document.getElementById('pendingAddress').value || document.getElementById('myAddress').value;
+    if (!address) {
+        showError('pendingTxList', 'Please enter an address');
+        if (pendingTxRefreshInterval) {
+            clearInterval(pendingTxRefreshInterval);
+            pendingTxRefreshInterval = null;
+        }
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/pending/${address}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('pendingTxList');
+        
+        if (data.pendingTransactions.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No pending transactions found.</p>';
+            if (pendingTxRefreshInterval) {
+                clearInterval(pendingTxRefreshInterval);
+                pendingTxRefreshInterval = null;
+            }
+            return;
+        }
+        
+        let html = '<h4>Pending Transactions (Auto-refreshing)</h4>';
+        data.pendingTransactions.forEach(tx => {
+            const timeRemainingSeconds = Math.floor(tx.timeRemaining / 1000);
+            const minutes = Math.floor(timeRemainingSeconds / 60);
+            const seconds = timeRemainingSeconds % 60;
+            const timeDisplay = `${minutes}m ${seconds}s`;
+            
+            html += `
+                <div class="transaction-item" style="border-left: 3px solid ${tx.canBeCancelled ? '#ffc107' : '#6c757d'};">
+                    <strong>Hash:</strong> <code style="font-size: 0.9em;">${tx.hash.substring(0, 30)}...</code><br>
+                    <strong>To:</strong> <code>${tx.toAddress.substring(0, 25)}...</code><br>
+                    <strong>Amount:</strong> ${tx.amount} KENO + ${tx.fee} KENO fee<br>
+                    <strong>Time:</strong> ${new Date(tx.timestamp).toLocaleString()}<br>
+                    ${tx.canBeCancelled ? `
+                        <strong style="color: #ffc107;">⏱️ Reversal Window: ${timeDisplay} remaining</strong><br>
+                        <button onclick="cancelTransaction('${tx.hash}', '${address}')" class="btn btn-secondary" style="margin-top: 10px; background: #dc3545;">
+                            🔄 Cancel Transaction
+                        </button>
+                    ` : `
+                        <strong style="color: #6c757d;">🔒 Reversal window expired</strong>
+                    `}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+        
+        if (!pendingTxRefreshInterval) {
+            pendingTxRefreshInterval = setInterval(() => loadPendingTransactions(), 2000);
+        }
+    } catch (error) {
+        showError('pendingTxList', error.message);
+        if (pendingTxRefreshInterval) {
+            clearInterval(pendingTxRefreshInterval);
+            pendingTxRefreshInterval = null;
+        }
+    }
+}
+
+async function cancelTransaction(hash, senderAddress) {
+    if (!confirm('Are you sure you want to cancel this transaction?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/transaction/cancel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transactionHash: hash,
+                senderAddress: senderAddress
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            showError('pendingTxList', data.error);
+            return;
+        }
+        
+        alert('✅ ' + data.message);
+        loadPendingTransactions();
+        loadStats();
+    } catch (error) {
+        showError('pendingTxList', error.message);
+    }
+}

@@ -165,6 +165,48 @@ app.post('/api/sign', (req, res) => {
     }
 });
 
+// Get pending transactions for an address
+app.get('/api/pending/:address', (req, res) => {
+    try {
+        const address = req.params.address;
+        const pending = kenostodChain.getPendingTransactionsForAddress(address);
+        
+        res.json({
+            address: address,
+            pendingTransactions: pending,
+            count: pending.length
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Cancel a pending transaction
+app.post('/api/transaction/cancel', (req, res) => {
+    try {
+        const { transactionHash, senderAddress } = req.body;
+        
+        if (!transactionHash || !senderAddress) {
+            return res.status(400).json({ error: 'Missing required fields: transactionHash, senderAddress' });
+        }
+
+        const cancelledTx = kenostodChain.cancelTransaction(transactionHash, senderAddress);
+        
+        res.json({
+            message: 'Transaction cancelled successfully!',
+            transaction: {
+                hash: transactionHash,
+                fromAddress: cancelledTx.fromAddress,
+                toAddress: cancelledTx.toAddress,
+                amount: cancelledTx.amount,
+                fee: cancelledTx.fee
+            }
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Get blockchain stats
 app.get('/api/stats', (req, res) => {
     res.json(kenostodChain.getChainStats());

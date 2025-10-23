@@ -10,6 +10,9 @@ class Transaction {
         this.fee = fee;
         this.timestamp = Date.now();
         this.signature = null;
+        this.submittedAt = null;
+        this.status = 'pending';
+        this.message = '';
         
         // Validate transaction parameters
         this.validateTransaction();
@@ -64,6 +67,22 @@ class Transaction {
 
         const publicKey = ec.keyFromPublic(this.fromAddress, 'hex');
         return publicKey.verify(this.calculateHash(), this.signature);
+    }
+
+    canBeCancelled() {
+        if (this.status !== 'pending') return false;
+        if (!this.submittedAt) return false;
+        
+        const REVERSAL_WINDOW_MS = 5 * 60 * 1000;
+        const timeSinceSubmission = Date.now() - this.submittedAt;
+        return timeSinceSubmission < REVERSAL_WINDOW_MS;
+    }
+
+    getTimeRemaining() {
+        if (!this.submittedAt) return 0;
+        const REVERSAL_WINDOW_MS = 5 * 60 * 1000;
+        const elapsed = Date.now() - this.submittedAt;
+        return Math.max(0, REVERSAL_WINDOW_MS - elapsed);
     }
 }
 

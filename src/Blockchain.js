@@ -25,10 +25,19 @@ class Blockchain {
         
         // Add mining reward transaction (includes base reward + fees)
         const rewardTransaction = new Transaction(null, miningRewardAddress, this.miningReward + totalFees);
+        rewardTransaction.status = 'confirmed';
+        rewardTransaction.submittedAt = null;
         this.pendingTransactions.push(rewardTransaction);
 
-        // Create new block with pending transactions
-        const block = new Block(Date.now(), this.pendingTransactions, this.getLatestBlock().hash);
+        // Clone transactions and mark as confirmed (prevents cancellation after mining)
+        const transactionsToMine = this.pendingTransactions.map(tx => {
+            const clonedTx = Object.assign(Object.create(Object.getPrototypeOf(tx)), tx);
+            clonedTx.status = 'confirmed';
+            return clonedTx;
+        });
+
+        // Create new block with cloned confirmed transactions
+        const block = new Block(Date.now(), transactionsToMine, this.getLatestBlock().hash);
         block.mineBlock(this.difficulty);
 
         console.log('Block successfully mined!');
@@ -55,7 +64,54 @@ class Blockchain {
             }
         }
 
+        transaction.submittedAt = Date.now();
+        transaction.status = 'pending';
         this.pendingTransactions.push(transaction);
+    }
+
+    cancelTransaction(transactionHash, senderAddress) {
+        const txIndex = this.pendingTransactions.findIndex(tx => tx.calculateHash() === transactionHash);
+        
+        if (txIndex === -1) {
+            throw new Error('Transaction not found in pending pool. It may have already been mined.');
+        }
+
+        const transaction = this.pendingTransactions[txIndex];
+
+        if (transaction.status !== 'pending') {
+            throw new Error('Transaction has already been confirmed and cannot be cancelled');
+        }
+
+        if (transaction.fromAddress !== senderAddress) {
+            throw new Error('Only the sender can cancel their transaction');
+        }
+
+        if (!transaction.canBeCancelled()) {
+            throw new Error('Transaction reversal window has expired (5 minutes maximum)');
+        }
+
+        transaction.status = 'cancelled';
+        this.pendingTransactions.splice(txIndex, 1);
+        
+        return transaction;
+    }
+
+    getPendingTransactionsForAddress(address) {
+        return this.pendingTransactions
+            .filter(tx => tx.fromAddress === address || tx.toAddress === address)
+            .map(tx => ({
+                hash: tx.calculateHash(),
+                fromAddress: tx.fromAddress,
+                toAddress: tx.toAddress,
+                amount: tx.amount,
+                fee: tx.fee,
+                timestamp: tx.timestamp,
+                submittedAt: tx.submittedAt,
+                status: tx.status,
+                message: tx.message,
+                canBeCancelled: tx.canBeCancelled(),
+                timeRemaining: tx.getTimeRemaining()
+            }));
     }
 
     getAvailableBalance(address) {
