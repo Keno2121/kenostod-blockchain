@@ -2,10 +2,28 @@ const API_BASE = '';
 let ec;
 
 function loadApp() {
-    const EC = elliptic.ec;
-    ec = new EC('secp256k1');
-    loadStats();
-    setInterval(loadStats, 10000);
+    try {
+        const EC = elliptic.ec;
+        ec = new EC('secp256k1');
+        console.log('Elliptic library loaded successfully');
+        loadStats();
+        setInterval(loadStats, 10000);
+    } catch (error) {
+        console.error('Failed to load elliptic library:', error);
+        alert('Cryptography library failed to load. Please refresh the page.');
+    }
+}
+
+function ensureECLoaded() {
+    if (!ec) {
+        if (typeof elliptic !== 'undefined') {
+            const EC = elliptic.ec;
+            ec = new EC('secp256k1');
+            console.log('EC initialized on demand');
+        } else {
+            throw new Error('Cryptography library not loaded. Please refresh the page and wait a moment before sending transactions.');
+        }
+    }
 }
 
 function openTab(button, tabName) {
@@ -111,6 +129,8 @@ async function sendTransaction() {
     }
     
     try {
+        ensureECLoaded();
+        
         const timestamp = Date.now();
         const hashTx = CryptoJS.SHA256(fromAddress + toAddress + amount + fee + timestamp + message).toString();
         
