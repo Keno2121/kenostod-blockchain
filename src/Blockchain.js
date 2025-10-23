@@ -208,6 +208,11 @@ class Blockchain {
         
         const result = this.socialRecovery.executeRecovery(requestId);
         
+        const recoveryData = this.socialRecovery.recoveredWallets.get(result.oldAddress);
+        if (recoveryData) {
+            recoveryData.originalBalance = oldBalance;
+        }
+        
         if (oldBalance > 0) {
             const creditTx = new Transaction(null, result.newAddress, oldBalance, 0, `Wallet Recovery: ${oldBalance} KENO recovered from ${result.oldAddress.substring(0, 20)}...`);
             creditTx.status = 'confirmed';
@@ -217,6 +222,7 @@ class Blockchain {
             console.log(`Wallet recovery executed: ${oldBalance} KENO transferred to new address`);
             console.log(`  - Old address ${result.oldAddress.substring(0, 20)}... balance locked (returns 0)`);
             console.log(`  - New address ${result.newAddress.substring(0, 20)}... credited ${oldBalance} KENO`);
+            console.log(`  - Supply tracking: +${oldBalance} minted, +${oldBalance} burned = ${0} net change`);
         }
         
         return result;

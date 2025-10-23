@@ -31,9 +31,12 @@ async function loadStats() {
         document.getElementById('totalBlocks').textContent = data.totalBlocks;
         document.getElementById('totalTransactions').textContent = data.totalTransactions;
         document.getElementById('difficulty').textContent = data.difficulty;
-        document.getElementById('pendingTransactions').textContent = data.pendingTransactions;
-        document.getElementById('isValid').textContent = data.isValid ? '✅ Valid' : '❌ Invalid';
         document.getElementById('miningReward').textContent = `${data.miningReward} KENO`;
+        document.getElementById('isValid').textContent = data.isValid ? '✅ Valid' : '❌ Invalid';
+        
+        if (data.supply) {
+            document.getElementById('circulatingSupply').textContent = `${data.supply.circulatingSupply} KENO`;
+        }
     } catch (error) {
         console.error('Error loading stats:', error);
     }
@@ -99,16 +102,17 @@ async function sendTransaction() {
     const toAddress = document.getElementById('txToAddress').value;
     const amount = parseFloat(document.getElementById('txAmount').value);
     const fee = parseFloat(document.getElementById('txFee').value);
+    const message = document.getElementById('txMessage').value || '';
     const privateKey = document.getElementById('txPrivateKey').value || document.getElementById('myPrivateKey').value;
     
     if (!fromAddress || !toAddress || !amount || !privateKey) {
-        showError('txResult', 'Please fill in all fields');
+        showError('txResult', 'Please fill in all required fields');
         return;
     }
     
     try {
         const timestamp = Date.now();
-        const hashTx = CryptoJS.SHA256(fromAddress + toAddress + amount + fee + timestamp).toString();
+        const hashTx = CryptoJS.SHA256(fromAddress + toAddress + amount + fee + timestamp + message).toString();
         
         const key = ec.keyFromPrivate(privateKey, 'hex');
         
@@ -126,6 +130,7 @@ async function sendTransaction() {
             amount: amount,
             fee: fee,
             timestamp: timestamp,
+            message: message,
             signature: signature
         };
         
@@ -149,13 +154,679 @@ async function sendTransaction() {
             <p><strong>Transaction Hash:</strong> <code>${txData.transactionHash}</code></p>
             <p><strong>Amount:</strong> ${txData.transaction.amount} KENO</p>
             <p><strong>Fee:</strong> ${txData.transaction.fee} KENO</p>
-            <p>✅ Transaction is now pending. Mine a block to confirm it!</p>
+            ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
+            <p>✅ Transaction is pending. You have 5 minutes to cancel it if needed!</p>
             <p style="color: #28a745; margin-top: 10px;">🔒 Transaction signed locally - private key never left your browser!</p>
         `;
         
         loadStats();
     } catch (error) {
         showError('txResult', error.message);
+    }
+}
+
+async function loadPendingTransactions() {
+    const address = document.getElementById('pendingAddress').value;
+    if (!address) {
+        showError('pendingTxList', 'Please enter your address');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/transaction/pending/${address}`);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById('pendingTxList');
+
+        if (data.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No pending transactions found for this address.</p>';
+            return;
+        }
+
+        let html = '<h4>Your Pending Transactions (5-Minute Reversal Window)</h4>';
+        data.forEach(tx => {
+            const timeRemaining = tx.timeRemaining || 0;
+            const seconds = Math.floor(timeRemaining / 1000);
+            const canCancel = tx.canBeCancelled && timeRemaining > 0;
+
+            html += `
+                <div class="transaction-item" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                    <p><strong>To:</strong> ${tx.toAddress.substring(0, 20)}...</p>
+                    <p><strong>Amount:</strong> ${tx.amount} KENO</p>
+                    <p><strong>Time Remaining:</strong> ${canCancel ? `⏱️ ${seconds}s` : '❌ Expired'}</p>
+                    ${tx.message ? `<p><strong>Message:</strong> ${tx.message}</p>` : ''}
+                    ${canCancel ? 
+                        `<button onclick="cancelTransaction('${tx.hash}', '${address}')" class="btn btn-danger">🔄 Cancel Transaction</button>` :
+                        '<p style="color: #888;">Cannot cancel (past 5-minute window)</p>'
+                    }
+                </div>
+            `;
+        });
+
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('pendingTxList', error.message);
+    }
+}
+
+async function cancelTransaction(txHash, senderAddress) {
+    if (!confirm('Are you sure you want to cancel this transaction?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/transaction/cancel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ txHash, senderAddress })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        alert('Transaction cancelled successfully!');
+        loadPendingTransactions();
+        loadStats();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+function toggleScheduleOptions() {
+    const type = document.getElementById('schedType').value;
+    document.getElementById('recurringOptions').style.display = type === 'recurring' ? 'block' : 'none';
+}
+
+async function createScheduledPayment() {
+    const fromAddress = document.getElementById('schedFromAddress').value;
+    const toAddress = document.getElementById('schedToAddress').value;
+    const amount = parseFloat(document.getElementById('schedAmount').value);
+    const fee = parseFloat(document.getElementById('schedFee').value);
+    const type = document.getElementById('schedType').value;
+    const startDate = new Date(document.getElementById('schedStartDate').value).getTime();
+    const privateKey = document.getElementById('schedPrivateKey').value;
+
+    if (!fromAddress || !toAddress || !amount || !privateKey || !startDate) {
+        showError('schedResult', 'Please fill in all required fields');
+        return;
+    }
+
+    let schedule;
+    if (type === 'oneTime') {
+        schedule = {
+            type: 'oneTime',
+            executeAt: startDate
+        };
+    } else {
+        const interval = document.getElementById('schedInterval').value;
+        const occurrences = parseInt(document.getElementById('schedOccurrences').value);
+        schedule = {
+            type: 'recurring',
+            startDate: startDate,
+            interval: interval,
+            maxOccurrences: occurrences
+        };
+    }
+
+    try {
+        const timestamp = Date.now();
+        const hashData = fromAddress + toAddress + amount + fee + JSON.stringify(schedule) + timestamp;
+        const hashTx = CryptoJS.SHA256(hashData).toString();
+
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        const sig = key.sign(hashTx, 'base64');
+        const signature = sig.toDER('hex');
+
+        const scheduledTx = {
+            fromAddress,
+            toAddress,
+            amount,
+            fee,
+            schedule,
+            timestamp,
+            signature
+        };
+
+        const response = await fetch(`${API_BASE}/api/scheduled/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(scheduledTx)
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showError('schedResult', data.error);
+            return;
+        }
+
+        const resultDiv = document.getElementById('schedResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Scheduled Payment Created!</h4>
+            <p><strong>Schedule ID:</strong> <code>${data.scheduleId}</code></p>
+            <p><strong>Type:</strong> ${type}</p>
+            <p>${data.message}</p>
+        `;
+    } catch (error) {
+        showError('schedResult', error.message);
+    }
+}
+
+async function viewScheduledPayments() {
+    const address = document.getElementById('schedViewAddress').value;
+    if (!address) {
+        showError('schedList', 'Please enter your address');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/scheduled/list/${address}`);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById('schedList');
+
+        if (data.scheduled.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No scheduled payments found.</p>';
+            return;
+        }
+
+        let html = '<h4>Your Scheduled Payments</h4>';
+        data.scheduled.forEach(sched => {
+            html += `
+                <div class="transaction-item" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                    <p><strong>To:</strong> ${sched.toAddress.substring(0, 20)}...</p>
+                    <p><strong>Amount:</strong> ${sched.amount} KENO per payment</p>
+                    <p><strong>Type:</strong> ${sched.schedule.type}</p>
+                    <p><strong>Status:</strong> ${sched.status}</p>
+                    ${sched.schedule.type === 'recurring' ? 
+                        `<p><strong>Executed:</strong> ${sched.executionCount}/${sched.schedule.maxOccurrences}</p>` : 
+                        ''}
+                    ${sched.status === 'active' ? 
+                        `<button onclick="cancelScheduledPayment('${sched.id}', '${address}')" class="btn btn-danger">Cancel</button>` :
+                        ''}
+                </div>
+            `;
+        });
+
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('schedList', error.message);
+    }
+}
+
+async function cancelScheduledPayment(scheduleId, address) {
+    if (!confirm('Cancel this scheduled payment?')) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/scheduled/cancel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scheduleId, senderAddress: address })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        alert('Scheduled payment cancelled!');
+        viewScheduledPayments();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function setupRecovery() {
+    const walletAddress = document.getElementById('recoveryWalletAddress').value;
+    const guardianInput = document.getElementById('guardianAddresses').value;
+    const threshold = parseInt(document.getElementById('recoveryThreshold').value);
+
+    if (!walletAddress || !guardianInput) {
+        showError('recoverySetupResult', 'Please fill in all fields');
+        return;
+    }
+
+    const guardians = guardianInput.split(',').map(g => g.trim()).filter(g => g);
+
+    if (guardians.length < 2) {
+        showError('recoverySetupResult', 'Minimum 2 guardians required');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/recovery/setup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walletAddress, guardians, threshold })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showError('recoverySetupResult', data.error);
+            return;
+        }
+
+        const resultDiv = document.getElementById('recoverySetupResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Recovery System Setup!</h4>
+            <p>✅ ${data.message}</p>
+            <p><strong>Guardians:</strong> ${data.guardians.length}</p>
+            <p><strong>Required Approvals:</strong> ${data.threshold}</p>
+        `;
+    } catch (error) {
+        showError('recoverySetupResult', error.message);
+    }
+}
+
+async function initiateRecovery() {
+    const oldAddress = document.getElementById('lostAddress').value;
+    const newAddress = document.getElementById('newAddress').value;
+    const initiatorAddress = document.getElementById('initiatorAddress').value;
+
+    if (!oldAddress || !newAddress || !initiatorAddress) {
+        showError('recoveryInitResult', 'Please fill in all fields');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/recovery/initiate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oldAddress, newAddress, initiatorAddress })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showError('recoveryInitResult', data.error);
+            return;
+        }
+
+        const resultDiv = document.getElementById('recoveryInitResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Recovery Request Initiated!</h4>
+            <p>✅ ${data.message}</p>
+            <p><strong>Request ID:</strong> <code>${data.request.id}</code></p>
+            <p><strong>Required Approvals:</strong> ${data.request.threshold}</p>
+            <p>Guardians have been notified. Request expires in 7 days.</p>
+        `;
+    } catch (error) {
+        showError('recoveryInitResult', error.message);
+    }
+}
+
+async function viewRecoveryRequests() {
+    const guardianAddress = document.getElementById('guardianAddress').value;
+    if (!guardianAddress) {
+        showError('guardianRequests', 'Please enter your guardian address');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/recovery/guardian/${guardianAddress}`);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById('guardianRequests');
+
+        if (data.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No recovery requests found.</p>';
+            return;
+        }
+
+        let html = '<h4>Recovery Requests</h4>';
+        data.forEach(req => {
+            html += `
+                <div class="transaction-item" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                    <p><strong>Request ID:</strong> ${req.id}</p>
+                    <p><strong>Old Address:</strong> ${req.oldAddress.substring(0, 20)}...</p>
+                    <p><strong>New Address:</strong> ${req.newAddress.substring(0, 20)}...</p>
+                    <p><strong>Approvals:</strong> ${req.approvals}/${req.threshold}</p>
+                    <p><strong>Status:</strong> ${req.status}</p>
+                    ${req.status === 'pending' ? `
+                        <button onclick="approveRecovery('${req.id}', '${guardianAddress}')" class="btn btn-primary">Approve</button>
+                        <button onclick="rejectRecovery('${req.id}', '${guardianAddress}')" class="btn btn-danger">Reject</button>
+                    ` : ''}
+                    ${req.status === 'approved' ? `
+                        <button onclick="executeRecovery('${req.id}')" class="btn btn-primary">Execute Recovery</button>
+                    ` : ''}
+                </div>
+            `;
+        });
+
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('guardianRequests', error.message);
+    }
+}
+
+async function approveRecovery(requestId, guardianAddress) {
+    try {
+        const response = await fetch(`${API_BASE}/api/recovery/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId, guardianAddress })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        alert('Recovery request approved!');
+        viewRecoveryRequests();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function rejectRecovery(requestId, guardianAddress) {
+    try {
+        const response = await fetch(`${API_BASE}/api/recovery/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId, guardianAddress })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        alert('Recovery request rejected.');
+        viewRecoveryRequests();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function executeRecovery(requestId) {
+    if (!confirm('Execute wallet recovery? This will transfer funds to the new address.')) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/recovery/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requestId })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        alert('Recovery executed! Funds will be transferred when the next block is mined.');
+        viewRecoveryRequests();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function submitRating() {
+    const txHash = document.getElementById('ratingTxHash').value;
+    const raterAddress = document.getElementById('raterAddress').value;
+    const rating = parseInt(document.getElementById('rating').value);
+    const comment = document.getElementById('ratingComment').value || '';
+
+    if (!txHash || !raterAddress) {
+        showError('ratingResult', 'Please fill in required fields');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/reputation/rate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transactionHash: txHash, raterAddress, rating, comment })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showError('ratingResult', data.error);
+            return;
+        }
+
+        const resultDiv = document.getElementById('ratingResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Rating Submitted!</h4>
+            <p>✅ ${data.message}</p>
+            <p><strong>Your Rating:</strong> ${'⭐'.repeat(rating)}</p>
+        `;
+    } catch (error) {
+        showError('ratingResult', error.message);
+    }
+}
+
+async function checkReputation() {
+    const address = document.getElementById('repAddress').value;
+    if (!address) {
+        showError('repResult', 'Please enter an address');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/reputation/${address}`);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById('repResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Reputation Score</h4>
+            <p><strong>Address:</strong> ${address.substring(0, 20)}...</p>
+            <p><strong>Average Rating:</strong> ${data.averageScore.toFixed(2)} ${'⭐'.repeat(Math.round(data.averageScore))}</p>
+            <p><strong>Total Ratings:</strong> ${data.totalRatings}</p>
+            <p><strong>Trust Level:</strong> ${data.trustLevel}</p>
+            <p><strong>Rating Breakdown:</strong></p>
+            <ul>
+                ${Object.entries(data.breakdown).map(([stars, count]) => `<li>${stars} stars: ${count}</li>`).join('')}
+            </ul>
+        `;
+    } catch (error) {
+        showError('repResult', error.message);
+    }
+}
+
+async function viewTopRated() {
+    try {
+        const response = await fetch(`${API_BASE}/api/reputation/top?limit=10`);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById('topRated');
+
+        if (data.topRated.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No rated addresses yet.</p>';
+            return;
+        }
+
+        let html = '<h4>🏆 Top 10 Most Trusted Addresses</h4><ol>';
+        data.topRated.forEach((item, index) => {
+            html += `
+                <li style="margin: 10px 0;">
+                    <strong>${item.address.substring(0, 20)}...</strong><br>
+                    Average: ${item.averageScore.toFixed(2)} ${'⭐'.repeat(Math.round(item.averageScore))} 
+                    (${item.totalRatings} ratings) - ${item.trustLevel}
+                </li>
+            `;
+        });
+        html += '</ol>';
+
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('topRated', error.message);
+    }
+}
+
+function updateParameterInfo() {
+    const param = document.getElementById('proposalParameter').value;
+    const infoElement = document.getElementById('parameterInfo');
+    
+    if (param === 'miningReward') {
+        infoElement.textContent = 'Enter value between 0 and 1000 KENO';
+    } else if (param === 'difficulty') {
+        infoElement.textContent = 'Enter value between 1 and 10';
+    } else if (param === 'minimumFee') {
+        infoElement.textContent = 'Enter value between 0 and 10 KENO';
+    }
+}
+
+async function createProposal() {
+    const proposerAddress = document.getElementById('proposerAddress').value;
+    const title = document.getElementById('proposalTitle').value;
+    const description = document.getElementById('proposalDescription').value;
+    const parameterName = document.getElementById('proposalParameter').value;
+    const newValue = parseFloat(document.getElementById('proposalValue').value);
+
+    if (!proposerAddress || !title || !description || isNaN(newValue)) {
+        showError('proposalResult', 'Please fill in all fields');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/governance/propose`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ proposerAddress, title, description, parameterName, newValue })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showError('proposalResult', data.error);
+            return;
+        }
+
+        const resultDiv = document.getElementById('proposalResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Proposal Created!</h4>
+            <p>✅ ${data.message}</p>
+            <p><strong>Proposal ID:</strong> ${data.proposal.id}</p>
+            <p><strong>Title:</strong> ${data.proposal.title}</p>
+            <p>Voting period: 7 days</p>
+        `;
+    } catch (error) {
+        showError('proposalResult', error.message);
+    }
+}
+
+async function viewActiveProposals() {
+    try {
+        const response = await fetch(`${API_BASE}/api/governance/proposals/active`);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById('activeProposals');
+
+        if (data.proposals.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No active proposals.</p>';
+            return;
+        }
+
+        let html = '<h4>Active Proposals</h4>';
+        data.proposals.forEach(prop => {
+            const timeLeft = Math.max(0, prop.expiresAt - Date.now());
+            const daysLeft = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
+            const hoursLeft = Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+
+            html += `
+                <div class="transaction-item" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                    <h4>${prop.title}</h4>
+                    <p><strong>ID:</strong> ${prop.id}</p>
+                    <p><strong>Description:</strong> ${prop.description}</p>
+                    <p><strong>Parameter:</strong> ${prop.parameterName}</p>
+                    <p><strong>Current Value:</strong> ${prop.currentValue} → <strong>Proposed:</strong> ${prop.newValue}</p>
+                    <p><strong>Time Remaining:</strong> ${daysLeft}d ${hoursLeft}h</p>
+                    <p><strong>Yes Votes:</strong> ${prop.yesVotingPower} | <strong>No Votes:</strong> ${prop.noVotingPower}</p>
+                    <div style="margin-top: 10px;">
+                        <input type="text" id="voterAddr_${prop.id}" placeholder="Your address" class="input-field" style="margin-bottom: 5px;">
+                        <button onclick="voteOnProposal('${prop.id}', 'yes')" class="btn btn-primary" style="margin-right: 5px;">Vote YES</button>
+                        <button onclick="voteOnProposal('${prop.id}', 'no')" class="btn btn-danger">Vote NO</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('activeProposals', error.message);
+    }
+}
+
+async function voteOnProposal(proposalId, vote) {
+    const voterAddress = document.getElementById(`voterAddr_${proposalId}`).value;
+    
+    if (!voterAddress) {
+        alert('Please enter your address');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/api/governance/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ proposalId, voterAddress, vote })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        alert(`Vote cast: ${vote.toUpperCase()}!`);
+        viewActiveProposals();
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function viewGovernanceStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/governance/stats`);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById('govStats');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Governance Statistics</h4>
+            <p><strong>Total Proposals:</strong> ${data.totalProposals}</p>
+            <p><strong>Active Proposals:</strong> ${data.activeProposals}</p>
+            <p><strong>Approved:</strong> ${data.approvedProposals}</p>
+            <p><strong>Rejected:</strong> ${data.rejectedProposals}</p>
+            <p><strong>Executed:</strong> ${data.executedProposals}</p>
+            <p><strong>Voting Period:</strong> ${data.votingPeriodDays} days</p>
+            <p><strong>Minimum Participation:</strong> ${data.minimumParticipation}</p>
+            <p><strong>Approval Threshold:</strong> ${data.approvalThreshold}</p>
+        `;
+    } catch (error) {
+        showError('govStats', error.message);
     }
 }
 
@@ -221,7 +892,9 @@ async function loadBlockchain() {
                         <div class="transaction-item">
                             <strong>From:</strong> ${tx.fromAddress ? tx.fromAddress.substring(0, 20) + '...' : 'Mining Reward'}<br>
                             <strong>To:</strong> ${tx.toAddress.substring(0, 20)}...<br>
-                            <strong>Amount:</strong> ${tx.amount} KENO
+                            <strong>Amount:</strong> ${tx.amount} KENO<br>
+                            ${tx.message ? `<strong>Message:</strong> ${tx.message}<br>` : ''}
+                            <strong>Hash:</strong> <code>${tx.calculateHash ? tx.calculateHash() : 'N/A'}</code>
                         </div>
                     `).join('')}
                 </div>
@@ -230,7 +903,7 @@ async function loadBlockchain() {
         
         resultDiv.innerHTML = html;
     } catch (error) {
-        resultDiv.innerHTML = `<p class="result error">Error: ${error.message}</p>`;
+        showError('blockchainData', 'Error loading blockchain: ' + error.message);
     }
 }
 
@@ -255,13 +928,14 @@ async function loadTransactions() {
         
         let html = '<h4>Transaction History</h4>';
         data.transactions.forEach(tx => {
-            const isSender = tx.fromAddress === address;
             html += `
                 <div class="transaction-item">
-                    <strong>${isSender ? 'Sent' : 'Received'}:</strong> ${tx.amount} KENO<br>
-                    <strong>${isSender ? 'To' : 'From'}:</strong> <code>${isSender ? tx.toAddress.substring(0, 30) : (tx.fromAddress ? tx.fromAddress.substring(0, 30) : 'Mining Reward')}...</code><br>
+                    <strong>From:</strong> ${tx.fromAddress || 'Mining Reward'}<br>
+                    <strong>To:</strong> ${tx.toAddress}<br>
+                    <strong>Amount:</strong> ${tx.amount} KENO<br>
                     <strong>Fee:</strong> ${tx.fee} KENO<br>
-                    <strong>Time:</strong> ${new Date(tx.timestamp).toLocaleString()}
+                    ${tx.message ? `<strong>Message:</strong> ${tx.message}<br>` : ''}
+                    <strong>Timestamp:</strong> ${new Date(tx.timestamp).toLocaleString()}
                 </div>
             `;
         });
@@ -277,103 +951,4 @@ function showError(elementId, message) {
     const element = document.getElementById(elementId);
     element.className = 'result error';
     element.innerHTML = `<p>❌ Error: ${message}</p>`;
-}
-
-let pendingTxRefreshInterval = null;
-
-async function loadPendingTransactions() {
-    const address = document.getElementById('pendingAddress').value || document.getElementById('myAddress').value;
-    if (!address) {
-        showError('pendingTxList', 'Please enter an address');
-        if (pendingTxRefreshInterval) {
-            clearInterval(pendingTxRefreshInterval);
-            pendingTxRefreshInterval = null;
-        }
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE}/api/pending/${address}`);
-        const data = await response.json();
-        
-        const resultDiv = document.getElementById('pendingTxList');
-        
-        if (data.pendingTransactions.length === 0) {
-            resultDiv.className = 'result';
-            resultDiv.innerHTML = '<p>No pending transactions found.</p>';
-            if (pendingTxRefreshInterval) {
-                clearInterval(pendingTxRefreshInterval);
-                pendingTxRefreshInterval = null;
-            }
-            return;
-        }
-        
-        let html = '<h4>Pending Transactions (Auto-refreshing)</h4>';
-        data.pendingTransactions.forEach(tx => {
-            const timeRemainingSeconds = Math.floor(tx.timeRemaining / 1000);
-            const minutes = Math.floor(timeRemainingSeconds / 60);
-            const seconds = timeRemainingSeconds % 60;
-            const timeDisplay = `${minutes}m ${seconds}s`;
-            
-            html += `
-                <div class="transaction-item" style="border-left: 3px solid ${tx.canBeCancelled ? '#ffc107' : '#6c757d'};">
-                    <strong>Hash:</strong> <code style="font-size: 0.9em;">${tx.hash.substring(0, 30)}...</code><br>
-                    <strong>To:</strong> <code>${tx.toAddress.substring(0, 25)}...</code><br>
-                    <strong>Amount:</strong> ${tx.amount} KENO + ${tx.fee} KENO fee<br>
-                    <strong>Time:</strong> ${new Date(tx.timestamp).toLocaleString()}<br>
-                    ${tx.canBeCancelled ? `
-                        <strong style="color: #ffc107;">⏱️ Reversal Window: ${timeDisplay} remaining</strong><br>
-                        <button onclick="cancelTransaction('${tx.hash}', '${address}')" class="btn btn-secondary" style="margin-top: 10px; background: #dc3545;">
-                            🔄 Cancel Transaction
-                        </button>
-                    ` : `
-                        <strong style="color: #6c757d;">🔒 Reversal window expired</strong>
-                    `}
-                </div>
-            `;
-        });
-        
-        resultDiv.className = 'result success';
-        resultDiv.innerHTML = html;
-        
-        if (!pendingTxRefreshInterval) {
-            pendingTxRefreshInterval = setInterval(() => loadPendingTransactions(), 2000);
-        }
-    } catch (error) {
-        showError('pendingTxList', error.message);
-        if (pendingTxRefreshInterval) {
-            clearInterval(pendingTxRefreshInterval);
-            pendingTxRefreshInterval = null;
-        }
-    }
-}
-
-async function cancelTransaction(hash, senderAddress) {
-    if (!confirm('Are you sure you want to cancel this transaction?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE}/api/transaction/cancel`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                transactionHash: hash,
-                senderAddress: senderAddress
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            showError('pendingTxList', data.error);
-            return;
-        }
-        
-        alert('✅ ' + data.message);
-        loadPendingTransactions();
-        loadStats();
-    } catch (error) {
-        showError('pendingTxList', error.message);
-    }
 }
