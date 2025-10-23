@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const Blockchain = require('./src/Blockchain');
 const Transaction = require('./src/Transaction');
+const ScheduledTransaction = require('./src/ScheduledTransaction');
 const Wallet = require('./src/Wallet');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
@@ -207,6 +208,66 @@ app.post('/api/transaction/cancel', (req, res) => {
     }
 });
 
+// Create scheduled payment
+app.post('/api/scheduled', (req, res) => {
+    try {
+        const { fromAddress, toAddress, amount, fee = 1, schedule, signature } = req.body;
+        
+        if (!fromAddress || !toAddress || !amount || !schedule || !signature) {
+            return res.status(400).json({ error: 'Missing required fields: fromAddress, toAddress, amount, schedule, signature' });
+        }
+
+        const scheduledTx = new ScheduledTransaction(fromAddress, toAddress, amount, fee, schedule);
+        scheduledTx.signature = signature;
+        
+        const scheduleId = kenostodChain.createScheduledTransaction(scheduledTx);
+        
+        res.json({
+            message: 'Scheduled payment created successfully!',
+            scheduleId: scheduleId,
+            schedule: scheduledTx.toJSON()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get scheduled transactions for an address
+app.get('/api/scheduled/:address', (req, res) => {
+    try {
+        const address = req.params.address;
+        const scheduled = kenostodChain.getScheduledTransactionsForAddress(address);
+        
+        res.json({
+            address: address,
+            scheduledTransactions: scheduled,
+            count: scheduled.length
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Cancel scheduled payment
+app.post('/api/scheduled/cancel', (req, res) => {
+    try {
+        const { scheduleId, senderAddress } = req.body;
+        
+        if (!scheduleId || !senderAddress) {
+            return res.status(400).json({ error: 'Missing required fields: scheduleId, senderAddress' });
+        }
+
+        const cancelled = kenostodChain.cancelScheduledTransaction(scheduleId, senderAddress);
+        
+        res.json({
+            message: 'Scheduled payment cancelled successfully!',
+            schedule: cancelled.toJSON()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Get blockchain stats
 app.get('/api/stats', (req, res) => {
     res.json(kenostodChain.getChainStats());
@@ -267,6 +328,15 @@ app.listen(PORT, '0.0.0.0', () => {
         kenostodChain.minePendingTransactions(minerWallet.getAddress());
         console.log(`Miner balance: ${kenostodChain.getBalanceOfAddress(minerWallet.getAddress())} KENO`);
     }, 1000);
+
+    // Start scheduled transaction processor (runs every 30 seconds)
+    setInterval(() => {
+        const executed = kenostodChain.processScheduledTransactions();
+        if (executed.length > 0) {
+            console.log(`Processed ${executed.length} scheduled transactions`);
+        }
+    }, 30000);
+    console.log('Scheduled transaction processor started (runs every 30 seconds)');
 });
 
 module.exports = { app, kenostodChain, minerWallet, wallet1, wallet2 };

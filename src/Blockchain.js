@@ -1,11 +1,13 @@
 const Block = require('./Block');
 const Transaction = require('./Transaction');
+const ScheduledTransaction = require('./ScheduledTransaction');
 
 class Blockchain {
     constructor() {
         this.chain = [this.createGenesisBlock()];
         this.difficulty = 2;
         this.pendingTransactions = [];
+        this.scheduledTransactions = [];
         this.miningReward = 100;
         this.tokenName = 'Kenostod';
         this.tokenSymbol = 'KENO';
@@ -191,11 +193,96 @@ class Blockchain {
             totalTransactions: this.chain.reduce((acc, block) => acc + block.transactions.length, 0),
             difficulty: this.difficulty,
             pendingTransactions: this.pendingTransactions.length,
+            scheduledTransactions: this.scheduledTransactions.filter(st => st.status === 'active').length,
             isValid: this.isChainValid(),
             tokenName: this.tokenName,
             tokenSymbol: this.tokenSymbol,
             miningReward: this.miningReward
         };
+    }
+
+    createScheduledTransaction(scheduledTx) {
+        if (!scheduledTx.fromAddress || !scheduledTx.toAddress) {
+            throw new Error('Scheduled transaction must include from and to address');
+        }
+
+        const balance = this.getBalanceOfAddress(scheduledTx.fromAddress);
+        if (balance < scheduledTx.amount + scheduledTx.fee) {
+            throw new Error(`Insufficient balance. Available: ${balance} KENO, Required: ${scheduledTx.amount + scheduledTx.fee} KENO`);
+        }
+
+        this.scheduledTransactions.push(scheduledTx);
+        console.log(`Scheduled payment created: ${scheduledTx.id}`);
+        return scheduledTx.id;
+    }
+
+    cancelScheduledTransaction(scheduleId, senderAddress) {
+        const scheduled = this.scheduledTransactions.find(st => st.id === scheduleId);
+        
+        if (!scheduled) {
+            throw new Error('Scheduled transaction not found');
+        }
+
+        if (scheduled.fromAddress !== senderAddress) {
+            throw new Error('Only the sender can cancel their scheduled transaction');
+        }
+
+        if (scheduled.status !== 'active') {
+            throw new Error(`Scheduled transaction is ${scheduled.status} and cannot be cancelled`);
+        }
+
+        scheduled.cancel();
+        console.log(`Scheduled payment cancelled: ${scheduleId}`);
+        return scheduled;
+    }
+
+    getScheduledTransactionsForAddress(address) {
+        return this.scheduledTransactions
+            .filter(st => st.fromAddress === address || st.toAddress === address)
+            .map(st => st.toJSON());
+    }
+
+    processScheduledTransactions(signingKey) {
+        const executed = [];
+        
+        for (const scheduled of this.scheduledTransactions) {
+            if (!scheduled.shouldExecute()) continue;
+            
+            try {
+                const balance = this.getAvailableBalance(scheduled.fromAddress);
+                if (balance < scheduled.amount + scheduled.fee) {
+                    console.log(`Skipping scheduled ${scheduled.id}: insufficient balance`);
+                    continue;
+                }
+
+                const tx = scheduled.createTransaction();
+                
+                if (signingKey) {
+                    tx.signTransaction(signingKey);
+                }
+                
+                tx.signature = scheduled.signature;
+                
+                this.createTransaction(tx);
+                scheduled.markExecuted();
+                
+                executed.push({
+                    scheduleId: scheduled.id,
+                    transactionHash: tx.calculateHash(),
+                    amount: tx.amount
+                });
+                
+                console.log(`Executed scheduled payment: ${scheduled.id}`);
+            } catch (error) {
+                console.error(`Error executing scheduled ${scheduled.id}:`, error.message);
+            }
+        }
+        
+        this.scheduledTransactions = this.scheduledTransactions.filter(st => 
+            st.status === 'active' || st.executionCount < st.schedule.maxOccurrences
+        );
+        
+        return executed;
     }
 }
 
