@@ -65,14 +65,14 @@ app.get('/api/transactions/:address', (req, res) => {
 // Create a new transaction (accepts pre-signed transactions)
 app.post('/api/transaction', (req, res) => {
     try {
-        const { fromAddress, toAddress, amount, fee = 1, signature, timestamp } = req.body;
+        const { fromAddress, toAddress, amount, fee = 1, signature, timestamp, message = '' } = req.body;
         
         if (!fromAddress || !toAddress || !amount || !signature) {
             return res.status(400).json({ error: 'Missing required fields: fromAddress, toAddress, amount, signature' });
         }
 
-        // Create transaction with provided signature
-        const transaction = new Transaction(fromAddress, toAddress, amount, fee);
+        // Create transaction with provided signature and message
+        const transaction = new Transaction(fromAddress, toAddress, amount, fee, message);
         if (timestamp) {
             transaction.timestamp = timestamp;
         }
@@ -94,7 +94,8 @@ app.post('/api/transaction', (req, res) => {
                 toAddress: transaction.toAddress,
                 amount: transaction.amount,
                 fee: transaction.fee,
-                timestamp: transaction.timestamp
+                timestamp: transaction.timestamp,
+                message: transaction.message
             }
         });
     } catch (error) {
@@ -268,6 +269,225 @@ app.post('/api/scheduled/cancel', (req, res) => {
     }
 });
 
+// Setup social recovery for a wallet
+app.post('/api/recovery/setup', (req, res) => {
+    try {
+        const { walletAddress, guardians, threshold } = req.body;
+        
+        if (!walletAddress || !guardians || !threshold) {
+            return res.status(400).json({ error: 'Missing required fields: walletAddress, guardians, threshold' });
+        }
+
+        const config = kenostodChain.socialRecovery.setupRecovery(walletAddress, guardians, threshold);
+        
+        res.json({
+            message: 'Social recovery configured successfully!',
+            config: {
+                walletAddress: config.walletAddress,
+                guardians: config.guardians,
+                threshold: config.threshold,
+                createdAt: config.createdAt
+            }
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get recovery configuration for a wallet
+app.get('/api/recovery/:address', (req, res) => {
+    try {
+        const address = req.params.address;
+        const config = kenostodChain.socialRecovery.getRecoveryConfig(address);
+        
+        if (!config) {
+            return res.json({ message: 'No recovery configuration found for this wallet' });
+        }
+        
+        res.json({
+            walletAddress: config.walletAddress,
+            guardians: config.guardians,
+            threshold: config.threshold,
+            active: config.active,
+            createdAt: config.createdAt
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Initiate wallet recovery
+app.post('/api/recovery/initiate', (req, res) => {
+    try {
+        const { oldAddress, newAddress, initiatorAddress } = req.body;
+        
+        if (!oldAddress || !newAddress || !initiatorAddress) {
+            return res.status(400).json({ error: 'Missing required fields: oldAddress, newAddress, initiatorAddress' });
+        }
+
+        const request = kenostodChain.socialRecovery.initiateRecovery(oldAddress, newAddress, initiatorAddress);
+        
+        res.json({
+            message: 'Recovery request initiated! Guardians must now approve.',
+            request: request.toJSON()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Approve recovery request
+app.post('/api/recovery/approve', (req, res) => {
+    try {
+        const { requestId, guardianAddress } = req.body;
+        
+        if (!requestId || !guardianAddress) {
+            return res.status(400).json({ error: 'Missing required fields: requestId, guardianAddress' });
+        }
+
+        const request = kenostodChain.socialRecovery.approveRecovery(requestId, guardianAddress);
+        
+        res.json({
+            message: 'Recovery request approved!',
+            request: request.toJSON()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Reject recovery request
+app.post('/api/recovery/reject', (req, res) => {
+    try {
+        const { requestId, guardianAddress } = req.body;
+        
+        if (!requestId || !guardianAddress) {
+            return res.status(400).json({ error: 'Missing required fields: requestId, guardianAddress' });
+        }
+
+        const request = kenostodChain.socialRecovery.rejectRecovery(requestId, guardianAddress);
+        
+        res.json({
+            message: 'Recovery request rejected.',
+            request: request.toJSON()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Execute wallet recovery
+app.post('/api/recovery/execute', (req, res) => {
+    try {
+        const { requestId } = req.body;
+        
+        if (!requestId) {
+            return res.status(400).json({ error: 'Missing required field: requestId' });
+        }
+
+        const result = kenostodChain.executeWalletRecovery(requestId);
+        
+        res.json({
+            message: result.message + ' Balance will be transferred upon next block mining.',
+            oldAddress: result.oldAddress,
+            newAddress: result.newAddress
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get recovery requests for a guardian
+app.get('/api/recovery/guardian/:address', (req, res) => {
+    try {
+        const address = req.params.address;
+        const requests = kenostodChain.socialRecovery.getRecoveryRequestsForGuardian(address);
+        
+        res.json({
+            guardianAddress: address,
+            pendingRequests: requests,
+            count: requests.length
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Rate a user after a transaction
+app.post('/api/reputation/rate', (req, res) => {
+    try {
+        const { fromAddress, toAddress, score, comment, transactionHash } = req.body;
+        
+        if (!fromAddress || !toAddress || !score) {
+            return res.status(400).json({ error: 'Missing required fields: fromAddress, toAddress, score' });
+        }
+
+        const rating = kenostodChain.reputation.addRating(fromAddress, toAddress, score, comment, transactionHash);
+        
+        res.json({
+            message: 'Rating submitted successfully!',
+            rating: {
+                id: rating.id,
+                score: rating.score,
+                comment: rating.comment,
+                timestamp: rating.timestamp
+            }
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get reputation score for an address
+app.get('/api/reputation/:address', (req, res) => {
+    try {
+        const address = req.params.address;
+        const reputation = kenostodChain.reputation.getReputationScore(address);
+        const trustScore = kenostodChain.reputation.getTrustScore(address);
+        
+        res.json({
+            address: address,
+            averageScore: reputation.averageScore,
+            totalRatings: reputation.totalRatings,
+            breakdown: reputation.breakdown,
+            trustLevel: trustScore
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get ratings for an address
+app.get('/api/reputation/ratings/:address', (req, res) => {
+    try {
+        const address = req.params.address;
+        const ratings = kenostodChain.reputation.getRatingsForAddress(address);
+        
+        res.json({
+            address: address,
+            ratings: ratings,
+            count: ratings.length
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get top rated addresses
+app.get('/api/reputation/top', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const topRated = kenostodChain.reputation.getTopRatedAddresses(limit);
+        
+        res.json({
+            topRated: topRated,
+            count: topRated.length
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Get blockchain stats
 app.get('/api/stats', (req, res) => {
     res.json(kenostodChain.getChainStats());
@@ -337,6 +557,12 @@ app.listen(PORT, '0.0.0.0', () => {
         }
     }, 30000);
     console.log('Scheduled transaction processor started (runs every 30 seconds)');
+
+    // Start recovery request cleanup (runs every hour)
+    setInterval(() => {
+        kenostodChain.socialRecovery.cleanupExpiredRequests();
+    }, 3600000);
+    console.log('Social recovery cleanup started (runs every hour)');
 });
 
 module.exports = { app, kenostodChain, minerWallet, wallet1, wallet2 };

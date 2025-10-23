@@ -1,6 +1,8 @@
 const Block = require('./Block');
 const Transaction = require('./Transaction');
 const ScheduledTransaction = require('./ScheduledTransaction');
+const { SocialRecovery } = require('./SocialRecovery');
+const { ReputationSystem } = require('./Reputation');
 
 class Blockchain {
     constructor() {
@@ -8,6 +10,8 @@ class Blockchain {
         this.difficulty = 2;
         this.pendingTransactions = [];
         this.scheduledTransactions = [];
+        this.socialRecovery = new SocialRecovery();
+        this.reputation = new ReputationSystem();
         this.miningReward = 100;
         this.tokenName = 'Kenostod';
         this.tokenSymbol = 'KENO';
@@ -143,6 +147,10 @@ class Blockchain {
             }
         }
 
+        if (this.socialRecovery.recoveredWallets.has(address)) {
+            return 0;
+        }
+
         return balance;
     }
 
@@ -187,7 +195,56 @@ class Blockchain {
         return true;
     }
 
+    executeWalletRecovery(requestId) {
+        const request = this.socialRecovery.getRecoveryRequest(requestId);
+        if (!request) {
+            throw new Error('Recovery request not found');
+        }
+        
+        const oldBalance = this.getBalanceOfAddress(request.oldAddress);
+        
+        const result = this.socialRecovery.executeRecovery(requestId);
+        
+        if (oldBalance > 0) {
+            const creditTx = new Transaction(null, result.newAddress, oldBalance, 0, `Wallet Recovery: ${oldBalance} KENO recovered from ${result.oldAddress.substring(0, 20)}...`);
+            creditTx.status = 'confirmed';
+            creditTx.submittedAt = null;
+            this.pendingTransactions.push(creditTx);
+            
+            console.log(`Wallet recovery executed: ${oldBalance} KENO transferred to new address`);
+            console.log(`  - Old address ${result.oldAddress.substring(0, 20)}... balance locked (returns 0)`);
+            console.log(`  - New address ${result.newAddress.substring(0, 20)}... credited ${oldBalance} KENO`);
+        }
+        
+        return result;
+    }
+
+    getTotalSupply() {
+        let totalMinted = 0;
+        let totalBurned = 0;
+        
+        for (const block of this.chain) {
+            for (const tx of block.transactions) {
+                if (tx.fromAddress === null) {
+                    totalMinted += tx.amount;
+                }
+            }
+        }
+        
+        for (const [oldAddress, recovery] of this.socialRecovery.recoveredWallets) {
+            totalBurned += recovery.originalBalance;
+        }
+        
+        return {
+            totalMinted,
+            totalBurned,
+            circulatingSupply: totalMinted - totalBurned
+        };
+    }
+
     getChainStats() {
+        const supply = this.getTotalSupply();
+        
         return {
             totalBlocks: this.chain.length,
             totalTransactions: this.chain.reduce((acc, block) => acc + block.transactions.length, 0),
@@ -197,7 +254,8 @@ class Blockchain {
             isValid: this.isChainValid(),
             tokenName: this.tokenName,
             tokenSymbol: this.tokenSymbol,
-            miningReward: this.miningReward
+            miningReward: this.miningReward,
+            supply: supply
         };
     }
 
