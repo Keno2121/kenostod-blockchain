@@ -488,6 +488,96 @@ app.get('/api/reputation/top', (req, res) => {
     }
 });
 
+// Create governance proposal
+app.post('/api/governance/propose', (req, res) => {
+    try {
+        const { proposerAddress, title, description, parameterName, newValue } = req.body;
+        
+        if (!proposerAddress || !title || !description || !parameterName || newValue === undefined) {
+            return res.status(400).json({ error: 'Missing required fields: proposerAddress, title, description, parameterName, newValue' });
+        }
+
+        const proposal = kenostodChain.createGovernanceProposal(proposerAddress, title, description, parameterName, parseFloat(newValue));
+        
+        res.json({
+            message: 'Governance proposal created! Community can now vote.',
+            proposal: proposal
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Vote on governance proposal
+app.post('/api/governance/vote', (req, res) => {
+    try {
+        const { proposalId, voterAddress, vote } = req.body;
+        
+        if (!proposalId || !voterAddress || !vote) {
+            return res.status(400).json({ error: 'Missing required fields: proposalId, voterAddress, vote' });
+        }
+
+        const proposal = kenostodChain.voteOnProposal(proposalId, voterAddress, vote);
+        
+        res.json({
+            message: `Vote cast: ${vote}`,
+            proposal: kenostodChain.governance.getProposal(proposalId)
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get all governance proposals
+app.get('/api/governance/proposals', (req, res) => {
+    try {
+        const proposals = kenostodChain.governance.getAllProposals();
+        res.json({ proposals });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get active governance proposals
+app.get('/api/governance/proposals/active', (req, res) => {
+    try {
+        const proposals = kenostodChain.governance.getActiveProposals();
+        res.json({ proposals });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get specific proposal
+app.get('/api/governance/proposal/:id', (req, res) => {
+    try {
+        const proposal = kenostodChain.governance.getProposal(req.params.id);
+        
+        if (!proposal) {
+            return res.status(404).json({ error: 'Proposal not found' });
+        }
+
+        const stats = kenostodChain.governance.getProposalStats(req.params.id);
+        
+        res.json({
+            proposal,
+            stats
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get governance statistics
+app.get('/api/governance/stats', (req, res) => {
+    try {
+        const stats = kenostodChain.getGovernanceStats();
+        res.json(stats);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Get blockchain stats
 app.get('/api/stats', (req, res) => {
     res.json(kenostodChain.getChainStats());
@@ -563,6 +653,12 @@ app.listen(PORT, '0.0.0.0', () => {
         kenostodChain.socialRecovery.cleanupExpiredRequests();
     }, 3600000);
     console.log('Social recovery cleanup started (runs every hour)');
+
+    // Start governance proposal checker (runs every hour)
+    setInterval(() => {
+        kenostodChain.checkAndExecuteProposals();
+    }, 3600000);
+    console.log('Governance proposal checker started (runs every hour)');
 });
 
 module.exports = { app, kenostodChain, minerWallet, wallet1, wallet2 };

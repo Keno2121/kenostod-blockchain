@@ -3,6 +3,7 @@ const Transaction = require('./Transaction');
 const ScheduledTransaction = require('./ScheduledTransaction');
 const { SocialRecovery } = require('./SocialRecovery');
 const { ReputationSystem } = require('./Reputation');
+const Governance = require('./Governance');
 
 class Blockchain {
     constructor() {
@@ -12,7 +13,9 @@ class Blockchain {
         this.scheduledTransactions = [];
         this.socialRecovery = new SocialRecovery();
         this.reputation = new ReputationSystem();
+        this.governance = new Governance();
         this.miningReward = 100;
+        this.minimumFee = 0;
         this.tokenName = 'Kenostod';
         this.tokenSymbol = 'KENO';
     }
@@ -341,6 +344,65 @@ class Blockchain {
         );
         
         return executed;
+    }
+
+    createGovernanceProposal(proposerAddress, title, description, parameterName, newValue) {
+        const balance = this.getBalanceOfAddress(proposerAddress);
+        if (balance === 0) {
+            throw new Error('Must hold KENO tokens to create a proposal');
+        }
+
+        const proposal = this.governance.createProposal(proposerAddress, title, description, parameterName, newValue);
+        proposal.currentValue = this[parameterName];
+        
+        return proposal;
+    }
+
+    voteOnProposal(proposalId, voterAddress, vote) {
+        const votingPower = this.getBalanceOfAddress(voterAddress);
+        return this.governance.castVote(proposalId, voterAddress, vote, votingPower);
+    }
+
+    checkAndExecuteProposals() {
+        const supply = this.getTotalSupply();
+        const totalSupply = supply.circulatingSupply;
+
+        const activeProposals = this.governance.getActiveProposals();
+        
+        for (const proposal of activeProposals) {
+            this.governance.checkProposalStatus(proposal.id, totalSupply);
+        }
+
+        const approvedProposals = this.governance.getApprovedProposals();
+        
+        for (const proposal of approvedProposals) {
+            try {
+                const oldValue = this[proposal.parameterName];
+                this[proposal.parameterName] = proposal.newValue;
+                this.governance.markProposalExecuted(proposal.id);
+                
+                console.log(`Governance: ${proposal.parameterName} changed from ${oldValue} to ${proposal.newValue}`);
+                console.log(`  Proposal "${proposal.title}" executed successfully`);
+            } catch (error) {
+                console.error(`Failed to execute proposal ${proposal.id}:`, error.message);
+            }
+        }
+    }
+
+    getGovernanceStats() {
+        const proposals = this.governance.getAllProposals();
+        const activeProposals = this.governance.getActiveProposals();
+        
+        return {
+            totalProposals: proposals.length,
+            activeProposals: activeProposals.length,
+            approvedProposals: proposals.filter(p => p.status === 'approved').length,
+            rejectedProposals: proposals.filter(p => p.status === 'rejected').length,
+            executedProposals: proposals.filter(p => p.executed).length,
+            votingPeriodDays: this.governance.votingPeriod / (24 * 60 * 60 * 1000),
+            minimumParticipation: `${(this.governance.minimumParticipation * 100).toFixed(0)}%`,
+            approvalThreshold: `${(this.governance.approvalThreshold * 100).toFixed(0)}%`
+        };
     }
 }
 
