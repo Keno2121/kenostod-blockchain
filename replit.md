@@ -54,13 +54,65 @@ The native KENO token has a fixed mining reward of 100 tokens per block, with ad
 - **Node.js**: JavaScript runtime environment for executing the blockchain application
 - **npm**: Package manager for dependency management and script execution
 
+# Innovative Features (Unique to Kenostod)
+
+## Transaction Reversal Window
+**The "Undo Button" for Blockchain** - A revolutionary safety feature that allows users to cancel pending transactions within a 5-minute grace period before they're mined into a block.
+
+**How it works:**
+- When a transaction is submitted, it enters a "reversal window" for 5 minutes
+- During this time, only the original sender can cancel the transaction
+- Real-time countdown timer shows remaining time
+- Once a transaction is mined into a block, it becomes permanent and cannot be cancelled
+- Prevents accidental sends, typos, and user errors
+
+**Security:** Transactions are cloned and marked as "confirmed" when mined, preventing double-spend attacks. Only pending transactions with status='pending' can be cancelled.
+
+**API Endpoints:**
+- `GET /api/pending/:address` - View cancellable pending transactions
+- `POST /api/transaction/cancel` - Cancel a pending transaction within the reversal window
+
+## Smart Scheduled Payments
+**Programmable Money Flow** - The blockchain industry's first automated recurring payment and future-dated transaction system.
+
+**Features:**
+- **One-time scheduled payments**: Send KENO tokens at a specific future date/time
+- **Recurring payments**: Set up automatic payments that repeat at regular intervals (daily, weekly, monthly, etc.)
+- **Maximum occurrences**: Limit the number of times a recurring payment executes
+- **Automatic execution**: Scheduler runs every 30 seconds to process and execute scheduled transactions
+- **Balance protection**: Skips scheduled payments if insufficient balance is available
+
+**Use Cases:**
+- Salary payments (recurring monthly)
+- Subscription services (recurring weekly/monthly)
+- Delayed rewards or vesting schedules
+- Allowance distributions
+- Automated bill payments
+
+**Security:** Only the sender can cancel their scheduled transactions. Balance is verified before each execution to prevent overdrafts.
+
+**API Endpoints:**
+- `POST /api/scheduled` - Create a new scheduled payment
+- `GET /api/scheduled/:address` - View all scheduled payments for an address
+- `POST /api/scheduled/cancel` - Cancel a scheduled payment
+
+**Schedule Types:**
+- `once`: Execute one time at the specified start time
+- `recurring`: Execute repeatedly at the specified interval until maxOccurrences is reached
+
 # Recent Changes (October 2025)
 
+## Revolutionary Features Implemented
+- **Transaction Reversal Window**: 5-minute grace period to cancel pending transactions
+- **Smart Scheduled Payments**: Recurring and future-dated transactions with automatic execution every 30 seconds
+- **Enhanced blockchain stats**: Now tracks scheduled transactions in addition to pending transactions
+
 ## Web Interface Improvements
-- **Fixed tab navigation**: Updated onclick handlers to pass button element reference (`this`) instead of event object for proper tab switching
-- **Enhanced security**: Implemented client-side transaction signing using elliptic.js from CDN to ensure private keys never leave the browser
-- **Timestamp synchronization**: Server now accepts and preserves client-supplied timestamps for accurate signature validation
-- **Library loading**: Configured proper CDN loading for elliptic.js and crypto-js with initialization callbacks
+- **Pending transaction viewer**: View and cancel your pending transactions with real-time countdown timers
+- **Auto-refresh**: Pending transactions list auto-updates every 2 seconds
+- **Fixed tab navigation**: Updated onclick handlers to pass button element reference for proper tab switching
+- **Enhanced security**: Client-side transaction signing using elliptic.js from CDN
+- **Timestamp synchronization**: Server preserves client-supplied timestamps for accurate signature validation
 
 ## Deployment Configuration
 - Configured for Autoscale deployment to make the blockchain publicly accessible
