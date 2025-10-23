@@ -20,14 +20,18 @@ The system follows a modular blockchain architecture with four main components:
 **Wallet Management**: Wallets are generated using elliptic curve key pairs, where the public key serves as the wallet address and the private key is used for transaction signing.
 
 ## API Layer
-The system provides dual interfaces:
+The system provides three interfaces:
+
+**Web Interface**: Modern web UI with tabbed navigation for wallet management, sending KENO tokens, mining blocks, and exploring the blockchain. Features client-side transaction signing using elliptic.js for enhanced security.
 
 **REST API Server**: Express.js server running on port 5000 with CORS enabled, offering endpoints for blockchain data, balance queries, transaction creation, and mining operations.
 
 **Command Line Interface**: Node.js CLI tool for mining blocks, checking balances, sending tokens, creating wallets, and viewing blockchain statistics.
 
 ## Security Model
-**Digital Signatures**: All transactions (except mining rewards) must be cryptographically signed by the sender's private key to prevent unauthorized transfers.
+**Client-Side Transaction Signing**: The web interface performs all cryptographic operations (transaction hashing and signing) locally in the browser using elliptic.js from CDN. Private keys never leave the user's browser or get transmitted to the server, ensuring maximum security.
+
+**Digital Signatures**: All transactions (except mining rewards) must be cryptographically signed by the sender's private key to prevent unauthorized transfers. The server accepts pre-signed transactions with timestamp preservation to ensure signature validation.
 
 **Transaction Validation**: Multi-layer validation including signature verification, balance checking, address format validation, and prevention of self-transfers.
 
@@ -49,3 +53,15 @@ The native KENO token has a fixed mining reward of 100 tokens per block, with ad
 ## Runtime Environment
 - **Node.js**: JavaScript runtime environment for executing the blockchain application
 - **npm**: Package manager for dependency management and script execution
+
+# Recent Changes (October 2025)
+
+## Web Interface Improvements
+- **Fixed tab navigation**: Updated onclick handlers to pass button element reference (`this`) instead of event object for proper tab switching
+- **Enhanced security**: Implemented client-side transaction signing using elliptic.js from CDN to ensure private keys never leave the browser
+- **Timestamp synchronization**: Server now accepts and preserves client-supplied timestamps for accurate signature validation
+- **Library loading**: Configured proper CDN loading for elliptic.js and crypto-js with initialization callbacks
+
+## Deployment Configuration
+- Configured for Autoscale deployment to make the blockchain publicly accessible
+- Server binds to 0.0.0.0:5000 for external access through Replit's proxy
