@@ -1,16 +1,21 @@
 const API_BASE = '';
 let ec;
 
-function loadApp() {
+function initializeApp() {
     try {
+        if (typeof elliptic === 'undefined') {
+            console.error('Elliptic library not found');
+            setTimeout(initializeApp, 500);
+            return;
+        }
         const EC = elliptic.ec;
         ec = new EC('secp256k1');
-        console.log('Elliptic library loaded successfully');
+        console.log('✅ Cryptography library loaded successfully');
         loadStats();
         setInterval(loadStats, 10000);
     } catch (error) {
-        console.error('Failed to load elliptic library:', error);
-        alert('Cryptography library failed to load. Please refresh the page.');
+        console.error('Failed to initialize:', error);
+        setTimeout(initializeApp, 500);
     }
 }
 
