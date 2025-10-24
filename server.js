@@ -136,8 +136,19 @@ app.post('/api/wallet/create', (req, res) => {
     });
 });
 
-// Simple transaction endpoint (signs and creates transaction server-side)
+// ⚠️ DEVELOPMENT ONLY - DO NOT USE IN PRODUCTION ⚠️
+// This endpoint accepts private keys from clients for convenience in testing
+// It should be DISABLED in production environments
 app.post('/api/transaction/simple', (req, res) => {
+    // Security check: Disable in production
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ 
+            error: 'This endpoint is disabled in production for security reasons',
+            message: 'Private keys should never be sent to a server. Use client-side signing instead.',
+            alternative: 'Use /api/transaction with client-side signed transactions'
+        });
+    }
+    
     try {
         const { fromAddress, toAddress, amount, fee = 1, privateKey, message = '' } = req.body;
         
@@ -189,8 +200,17 @@ app.post('/api/transaction/simple', (req, res) => {
     }
 });
 
-// Helper endpoint to sign transactions (for development only)
+// ⚠️ DEVELOPMENT ONLY - DO NOT USE IN PRODUCTION ⚠️
+// Helper endpoint to sign transactions (for development/testing only)
 app.post('/api/sign', (req, res) => {
+    // Security check: Disable in production
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ 
+            error: 'This endpoint is disabled in production for security reasons',
+            message: 'Private keys should never be sent to a server. Use client-side signing instead.'
+        });
+    }
+    
     try {
         const { fromAddress, toAddress, amount, fee = 1, privateKey } = req.body;
         
@@ -646,6 +666,37 @@ app.get('/api/validate', (req, res) => {
     });
 });
 
+// Additional API endpoints for documentation compatibility
+app.get('/api/chain', (req, res) => {
+    res.json(kenostodChain.chain);
+});
+
+app.get('/api/chain/latest', (req, res) => {
+    res.json(kenostodChain.getLatestBlock());
+});
+
+app.get('/api/chain/height', (req, res) => {
+    res.json({
+        height: kenostodChain.chain.length
+    });
+});
+
+app.get('/api/valid', (req, res) => {
+    res.json({
+        valid: kenostodChain.isChainValid()
+    });
+});
+
+app.get('/api/supply', (req, res) => {
+    res.json(kenostodChain.getTotalSupply());
+});
+
+app.get('/api/difficulty', (req, res) => {
+    res.json({
+        difficulty: kenostodChain.difficulty
+    });
+});
+
 // API documentation endpoint
 app.get('/api', (req, res) => {
     res.json({
@@ -654,9 +705,16 @@ app.get('/api', (req, res) => {
         tokenSymbol: kenostodChain.tokenSymbol,
         endpoints: {
             'GET /api/blockchain': 'Get full blockchain data',
+            'GET /api/chain': 'Get blockchain (alias)',
+            'GET /api/chain/latest': 'Get latest block',
+            'GET /api/chain/height': 'Get blockchain height',
+            'GET /api/valid': 'Check if blockchain is valid',
+            'GET /api/supply': 'Get token supply information',
+            'GET /api/difficulty': 'Get mining difficulty',
             'GET /api/balance/:address': 'Get balance for address',
             'GET /api/transactions/:address': 'Get transactions for address',
             'POST /api/transaction': 'Submit pre-signed transaction (requires signature)',
+            'POST /api/transaction/simple': 'Send transaction (server-side signing)',
             'POST /api/mine': 'Mine pending transactions',
             'POST /api/wallet/create': 'Create new wallet',
             'GET /api/stats': 'Get blockchain statistics',
@@ -684,6 +742,18 @@ app.get('/api', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
+    
+    // Security check: Warn if NODE_ENV is not set for production deployment
+    if (!process.env.NODE_ENV) {
+        console.log('\n⚠️  WARNING: NODE_ENV is not set!');
+        console.log('⚠️  Development endpoints (/api/transaction/simple, /api/sign) are ENABLED');
+        console.log('⚠️  These endpoints accept private keys and should ONLY be used for testing');
+        console.log('⚠️  For production deployment, set NODE_ENV=production to disable them\n');
+    } else if (process.env.NODE_ENV === 'production') {
+        console.log('✅ Running in PRODUCTION mode - development endpoints are disabled');
+    } else {
+        console.log(`ℹ️  Running in ${process.env.NODE_ENV} mode`);
+    }
     
     // Mine the first block to give miner some tokens
     setTimeout(() => {
