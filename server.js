@@ -136,6 +136,59 @@ app.post('/api/wallet/create', (req, res) => {
     });
 });
 
+// Simple transaction endpoint (signs and creates transaction server-side)
+app.post('/api/transaction/simple', (req, res) => {
+    try {
+        const { fromAddress, toAddress, amount, fee = 1, privateKey, message = '' } = req.body;
+        
+        if (!fromAddress || !toAddress || !amount || !privateKey) {
+            return res.status(400).json({ error: 'Missing required fields: fromAddress, toAddress, amount, privateKey' });
+        }
+
+        // Verify private key matches from address
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        const derivedAddress = key.getPublic('hex');
+        
+        if (derivedAddress !== fromAddress) {
+            return res.status(400).json({ error: 'Private key does not match the sender address' });
+        }
+
+        // Create transaction with message and sign it
+        const transaction = new Transaction(fromAddress, toAddress, amount, fee, message);
+        transaction.signTransaction(key);
+
+        // Validate the transaction
+        if (!transaction.isValid()) {
+            return res.status(400).json({ error: 'Invalid transaction' });
+        }
+
+        // Add to blockchain
+        kenostodChain.createTransaction(transaction);
+
+        const reversalTime = 300; // 5 minutes in seconds
+
+        res.json({
+            success: true,
+            message: 'Transaction created successfully! You have 5 minutes to cancel it.',
+            transactionHash: transaction.calculateHash(),
+            transaction: {
+                fromAddress: transaction.fromAddress,
+                toAddress: transaction.toAddress,
+                amount: transaction.amount,
+                fee: transaction.fee,
+                timestamp: transaction.timestamp,
+                message: transaction.message
+            },
+            reversalWindow: {
+                seconds: reversalTime,
+                expiresAt: new Date(Date.now() + reversalTime * 1000).toISOString()
+            }
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Helper endpoint to sign transactions (for development only)
 app.post('/api/sign', (req, res) => {
     try {

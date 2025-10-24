@@ -134,54 +134,39 @@ async function sendTransaction() {
     }
     
     try {
-        ensureECLoaded();
-        
-        const timestamp = Date.now();
-        const hashTx = CryptoJS.SHA256(fromAddress + toAddress + amount + fee + timestamp + message).toString();
-        
-        const key = ec.keyFromPrivate(privateKey, 'hex');
-        
-        if (key.getPublic('hex') !== fromAddress) {
-            showError('txResult', 'Private key does not match the from address!');
-            return;
-        }
-        
-        const sig = key.sign(hashTx, 'base64');
-        const signature = sig.toDER('hex');
-        
-        const signedTransaction = {
-            fromAddress: fromAddress,
-            toAddress: toAddress,
-            amount: amount,
-            fee: fee,
-            timestamp: timestamp,
-            message: message,
-            signature: signature
-        };
-        
-        const txResponse = await fetch(`${API_BASE}/api/transaction`, {
+        // Use simple server-side signing endpoint
+        const response = await fetch(`${API_BASE}/api/transaction/simple`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(signedTransaction)
+            body: JSON.stringify({
+                fromAddress,
+                toAddress,
+                amount,
+                fee,
+                privateKey,
+                message
+            })
         });
+
+        const data = await response.json();
         
-        const txData = await txResponse.json();
-        
-        if (txData.error) {
-            showError('txResult', txData.error);
+        if (data.error) {
+            showError('txResult', data.error);
             return;
         }
         
         const resultDiv = document.getElementById('txResult');
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
-            <h4>Transaction Created Successfully!</h4>
-            <p><strong>Transaction Hash:</strong> <code>${txData.transactionHash}</code></p>
-            <p><strong>Amount:</strong> ${txData.transaction.amount} KENO</p>
-            <p><strong>Fee:</strong> ${txData.transaction.fee} KENO</p>
-            ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
-            <p>✅ Transaction is pending. You have 5 minutes to cancel it if needed!</p>
-            <p style="color: #28a745; margin-top: 10px;">🔒 Transaction signed locally - private key never left your browser!</p>
+            <h4>✅ Transaction Created Successfully!</h4>
+            <p><strong>Transaction Hash:</strong> <code>${data.transactionHash.substring(0, 20)}...</code></p>
+            <p><strong>From:</strong> ${data.transaction.fromAddress.substring(0, 20)}...</p>
+            <p><strong>To:</strong> ${data.transaction.toAddress.substring(0, 20)}...</p>
+            <p><strong>Amount:</strong> ${data.transaction.amount} KENO</p>
+            <p><strong>Fee:</strong> ${data.transaction.fee} KENO</p>
+            ${message ? `<p><strong>Message:</strong> "${message}"</p>` : ''}
+            <p style="color: #ff9800; font-weight: bold; margin-top: 15px;">⏱️ You have 5 MINUTES to cancel this transaction!</p>
+            <p style="color: #666;">Go to "View Pending Transactions" to cancel it before it's mined into a block.</p>
         `;
         
         loadStats();
