@@ -230,7 +230,7 @@ async function cancelTransaction(txHash, senderAddress) {
         const response = await fetch(`${API_BASE}/api/transaction/cancel`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ txHash, senderAddress })
+            body: JSON.stringify({ transactionHash: txHash, senderAddress })
         });
 
         const data = await response.json();
