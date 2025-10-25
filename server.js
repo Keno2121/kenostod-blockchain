@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const https = require('https');
 const Blockchain = require('./src/Blockchain');
 const Transaction = require('./src/Transaction');
 const ScheduledTransaction = require('./src/ScheduledTransaction');
@@ -654,6 +655,97 @@ app.get('/api/governance/stats', (req, res) => {
 // Get blockchain stats
 app.get('/api/stats', (req, res) => {
     res.json(kenostodChain.getChainStats());
+});
+
+// Crypto price cache
+let cryptoPriceCache = {
+    data: null,
+    lastFetch: 0,
+    CACHE_DURATION: 30000
+};
+
+// Get crypto market data for ticker (with caching)
+app.get('/api/crypto-prices', (req, res) => {
+    const now = Date.now();
+    
+    if (cryptoPriceCache.data && (now - cryptoPriceCache.lastFetch) < cryptoPriceCache.CACHE_DURATION) {
+        return res.json(cryptoPriceCache.data);
+    }
+
+    const options = {
+        hostname: 'api.coingecko.com',
+        port: 443,
+        path: '/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true',
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Kenostod-Blockchain/1.0'
+        }
+    };
+
+    const request = https.request(options, (response) => {
+        let data = '';
+
+        response.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        response.on('end', () => {
+            try {
+                const prices = JSON.parse(data);
+                cryptoPriceCache.data = prices;
+                cryptoPriceCache.lastFetch = now;
+                res.json(prices);
+            } catch (error) {
+                if (cryptoPriceCache.data) {
+                    res.json(cryptoPriceCache.data);
+                } else {
+                    res.json({});
+                }
+            }
+        });
+    });
+
+    request.on('error', (error) => {
+        console.error('Crypto price fetch error:', error);
+        if (cryptoPriceCache.data) {
+            res.json(cryptoPriceCache.data);
+        } else {
+            res.json({});
+        }
+    });
+
+    request.end();
+});
+
+// Get recent transactions for ticker
+app.get('/api/recent-transactions', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const allTransactions = [];
+        
+        // Get transactions from recent blocks
+        for (let i = Math.max(0, kenostodChain.chain.length - 5); i < kenostodChain.chain.length; i++) {
+            const block = kenostodChain.chain[i];
+            allTransactions.push(...block.transactions);
+        }
+        
+        // Sort by timestamp (most recent first) and limit
+        const recentTransactions = allTransactions
+            .filter(tx => tx.fromAddress !== null)
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, limit)
+            .map(tx => ({
+                from: tx.fromAddress.substring(0, 8) + '...',
+                to: tx.toAddress.substring(0, 8) + '...',
+                amount: tx.amount,
+                timestamp: tx.timestamp,
+                message: tx.message || ''
+            }));
+        
+        res.json(recentTransactions);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch recent transactions' });
+    }
 });
 
 // Validate blockchain

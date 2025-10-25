@@ -7,6 +7,7 @@ Kenostod is positioned as the first blockchain built for real people, not just d
 # Recent Changes (Latest Updates)
 
 **Date: October 25, 2025**
+- **Live Crypto Ticker**: Real-time scrolling ticker showing Kenostod blockchain activity, recent transactions, and major crypto market data (BTC, ETH, SOL prices with 24h changes)
 - **Professional UI/UX Redesign**: Complete visual overhaul with modern dark theme, gradient effects, smooth animations
 - **Marketing-Ready Landing Page**: Compelling value propositions, competitive positioning, feature showcase cards
 - **Enhanced Typography**: Custom fonts (Inter, Space Grotesk) for professional appearance
@@ -31,7 +32,8 @@ The system employs a modular blockchain architecture with enhanced components:
 
 ## API Layer
 - **Modern Web Interface**: Tabbed UI (Wallet, Send KENO, Scheduled Payments, Social Recovery, Reputation, Governance, Mining, Explorer) with client-side transaction signing using elliptic.js.
-- **REST API Server**: Express.js server (port 5000, CORS enabled) providing 30+ endpoints for blockchain data, transactions, scheduled payments, social recovery, reputation, governance, and mining.
+- **Live Crypto Ticker**: Fixed-position scrolling ticker displaying real-time Kenostod network stats, recent transactions, and crypto market data with auto-refresh every 30 seconds.
+- **REST API Server**: Express.js server (port 5000, CORS enabled) providing 30+ endpoints for blockchain data, transactions, scheduled payments, social recovery, reputation, governance, mining, and crypto market data.
 - **Automated Schedulers**: Background services for scheduled transaction processing (30s), social recovery cleanup (hourly), and governance proposal checking (hourly).
 
 ## Security Model

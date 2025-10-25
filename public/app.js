@@ -13,9 +13,119 @@ function initializeApp() {
         console.log('✅ Cryptography library loaded successfully');
         loadStats();
         setInterval(loadStats, 10000);
+        updateCryptoTicker();
+        setInterval(updateCryptoTicker, 30000);
     } catch (error) {
         console.error('Failed to initialize:', error);
         setTimeout(initializeApp, 500);
+    }
+}
+
+async function updateCryptoTicker() {
+    try {
+        const [statsResponse, pricesResponse, txResponse] = await Promise.all([
+            fetch(`${API_BASE}/api/stats`),
+            fetch(`${API_BASE}/api/crypto-prices`),
+            fetch(`${API_BASE}/api/recent-transactions?limit=5`)
+        ]);
+
+        const stats = await statsResponse.json();
+        const prices = await pricesResponse.json();
+        const recentTx = await txResponse.json();
+
+        let tickerHTML = '';
+
+        // Add Kenostod stats
+        tickerHTML += `
+            <span class="ticker-item">
+                <span class="ticker-emoji">⛓️</span>
+                <span class="ticker-label">KENO Supply:</span>
+                <span class="ticker-value">${stats.supply?.circulatingSupply || 0}</span>
+            </span>
+            <span class="ticker-item">
+                <span class="ticker-emoji">📦</span>
+                <span class="ticker-label">Blocks:</span>
+                <span class="ticker-value">${stats.totalBlocks}</span>
+            </span>
+            <span class="ticker-item">
+                <span class="ticker-emoji">💸</span>
+                <span class="ticker-label">Transactions:</span>
+                <span class="ticker-value">${stats.totalTransactions}</span>
+            </span>
+        `;
+
+        // Add crypto market prices with defensive guards
+        if (prices.bitcoin && prices.bitcoin.usd) {
+            const btcPrice = Number(prices.bitcoin.usd) || 0;
+            const btcChange = Number(prices.bitcoin.usd_24h_change) || 0;
+            tickerHTML += `
+                <span class="ticker-item">
+                    <span class="ticker-emoji">₿</span>
+                    <span class="ticker-label">BTC:</span>
+                    <span class="ticker-value">$${btcPrice.toLocaleString()}</span>
+                    <span class="ticker-value ${btcChange >= 0 ? 'ticker-up' : 'ticker-down'}">
+                        ${btcChange >= 0 ? '↑' : '↓'}${Math.abs(btcChange).toFixed(2)}%
+                    </span>
+                </span>
+            `;
+        }
+
+        if (prices.ethereum && prices.ethereum.usd) {
+            const ethPrice = Number(prices.ethereum.usd) || 0;
+            const ethChange = Number(prices.ethereum.usd_24h_change) || 0;
+            tickerHTML += `
+                <span class="ticker-item">
+                    <span class="ticker-emoji">Ξ</span>
+                    <span class="ticker-label">ETH:</span>
+                    <span class="ticker-value">$${ethPrice.toLocaleString()}</span>
+                    <span class="ticker-value ${ethChange >= 0 ? 'ticker-up' : 'ticker-down'}">
+                        ${ethChange >= 0 ? '↑' : '↓'}${Math.abs(ethChange).toFixed(2)}%
+                    </span>
+                </span>
+            `;
+        }
+
+        if (prices.solana && prices.solana.usd) {
+            const solPrice = Number(prices.solana.usd) || 0;
+            const solChange = Number(prices.solana.usd_24h_change) || 0;
+            tickerHTML += `
+                <span class="ticker-item">
+                    <span class="ticker-emoji">◎</span>
+                    <span class="ticker-label">SOL:</span>
+                    <span class="ticker-value">$${solPrice.toLocaleString()}</span>
+                    <span class="ticker-value ${solChange >= 0 ? 'ticker-up' : 'ticker-down'}">
+                        ${solChange >= 0 ? '↑' : '↓'}${Math.abs(solChange).toFixed(2)}%
+                    </span>
+                </span>
+            `;
+        }
+
+        // Add recent Kenostod transactions
+        if (recentTx && recentTx.length > 0) {
+            recentTx.slice(0, 3).forEach(tx => {
+                tickerHTML += `
+                    <span class="ticker-item">
+                        <span class="ticker-emoji">💰</span>
+                        <span class="ticker-label">${tx.from} → ${tx.to}:</span>
+                        <span class="ticker-value">${tx.amount} KENO</span>
+                    </span>
+                `;
+            });
+        }
+
+        // Create seamless infinite scroll by duplicating content
+        const tickerContent = document.getElementById('tickerContent');
+        tickerContent.innerHTML = tickerHTML + tickerHTML + tickerHTML;
+
+    } catch (error) {
+        console.error('Error updating ticker:', error);
+        document.getElementById('tickerContent').innerHTML = `
+            <span class="ticker-item">
+                <span class="ticker-emoji">⛓️</span>
+                <span class="ticker-label">Kenostod Blockchain</span>
+                <span class="ticker-value">Live</span>
+            </span>
+        `;
     }
 }
 
