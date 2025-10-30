@@ -1080,3 +1080,663 @@ function showError(elementId, message) {
     element.className = 'result error';
     element.innerHTML = `<p>❌ Error: ${message}</p>`;
 }
+
+async function togglePoRVMode() {
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/toggle`, {
+            method: 'POST'
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('porvModeStatus');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>PoRV Mode Updated</h4>
+            <p><strong>Status:</strong> ${data.enabled ? '🧠 PoRV Enabled' : '⛏️ PoW Enabled'}</p>
+            <p>${data.enabled ? 'Mining now requires completing computational jobs for RVTs' : 'Mining uses traditional proof-of-work'}</p>
+        `;
+    } catch (error) {
+        showError('porvModeStatus', error.message);
+    }
+}
+
+async function loadComputationalJobs() {
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/jobs`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('jobsList');
+        
+        if (!data.jobs || data.jobs.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No computational jobs available. Create one in the Enterprise tab!</p>';
+            return;
+        }
+        
+        let html = '<h4>Available Computational Jobs</h4>';
+        data.jobs.forEach(job => {
+            html += `
+                <div class="transaction-item">
+                    <strong>Job ID:</strong> ${job.jobId}<br>
+                    <strong>Type:</strong> ${job.jobType}<br>
+                    <strong>Status:</strong> <span style="color: ${job.status === 'pending' ? '#f39c12' : job.status === 'completed' ? '#3498db' : '#2ecc71'}">${job.status.toUpperCase()}</span><br>
+                    <strong>Upfront Fee:</strong> ${job.upfrontFee} KENO<br>
+                    <strong>Royalty Rate:</strong> ${job.royaltyRate}%<br>
+                    <strong>Client ID:</strong> ${job.clientId}<br>
+                    ${job.rvtId ? `<strong>RVT Issued:</strong> ${job.rvtId}<br>` : ''}
+                    <strong>Created:</strong> ${new Date(job.createdAt).toLocaleString()}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('jobsList', error.message);
+    }
+}
+
+async function minePoRVBlock() {
+    const minerAddress = document.getElementById('porvMinerAddress').value;
+    const jobId = document.getElementById('porvJobId').value;
+    
+    if (!minerAddress) {
+        showError('porvMiningResult', 'Please enter a miner address');
+        return;
+    }
+    
+    const resultDiv = document.getElementById('porvMiningResult');
+    resultDiv.className = 'result';
+    resultDiv.innerHTML = '<p>Mining PoRV block...</p>';
+    
+    try {
+        const url = jobId ? `${API_BASE}/api/porv/mine/${jobId}` : `${API_BASE}/api/porv/mine`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ minerAddress })
+        });
+        const data = await response.json();
+        
+        let html = '<h4>PoRV Block Mined Successfully!</h4>';
+        if (data.job) {
+            html += `
+                <div class="transaction-item">
+                    <strong>Job ID:</strong> ${data.job.jobId}<br>
+                    <strong>Job Type:</strong> ${data.job.jobType}<br>
+                    <strong>Upfront Fee Earned:</strong> ${data.job.upfrontFee} KENO<br>
+                    <strong>Royalty Rate:</strong> ${data.job.royaltyRate}%
+                </div>
+            `;
+        }
+        
+        if (data.rvt) {
+            html += `
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(142, 45, 226, 0.1), rgba(74, 0, 224, 0.1)); border-left: 4px solid #8e2de2;">
+                    <h4>💎 Residual Value Token Issued!</h4>
+                    <strong>RVT ID:</strong> ${data.rvt.rvtId}<br>
+                    <strong>Holder:</strong> ${data.rvt.holderAddress}<br>
+                    <strong>Block Height:</strong> ${data.rvt.blockHeight}<br>
+                    <strong>Status:</strong> ${data.rvt.isActive ? '✅ Active' : '❌ Inactive'}<br>
+                    <p style="margin-top: 10px; color: #8e2de2; font-weight: 600;">
+                        🎉 You now earn perpetual royalties from commercial usage of this computational work!
+                    </p>
+                </div>
+            `;
+        }
+        
+        if (data.block) {
+            html += `
+                <div class="transaction-item">
+                    <strong>Block Hash:</strong> <code>${data.block.hash}</code><br>
+                    <strong>Block Height:</strong> ${data.block.index || 'N/A'}<br>
+                    <strong>Transactions:</strong> ${data.block.transactions?.length || 0}
+                </div>
+            `;
+        }
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('porvMiningResult', error.message);
+    }
+}
+
+async function loadPoRVStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/stats`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('porvStats');
+        let html = '<h4>PoRV System Statistics</h4>';
+        html += `
+            <div class="stats-grid">
+                <div class="transaction-item">
+                    <strong>PoRV Mode:</strong> ${data.enabled ? '🧠 Enabled' : '⛏️ Disabled'}<br>
+                    <strong>Total Jobs:</strong> ${data.totalJobs}<br>
+                    <strong>Pending Jobs:</strong> ${data.pendingJobs}<br>
+                    <strong>Completed Jobs:</strong> ${data.completedJobs}<br>
+                    <strong>Deployed Jobs:</strong> ${data.deployedJobs}
+                </div>
+                <div class="transaction-item">
+                    <strong>Total RVTs:</strong> ${data.totalRVTs}<br>
+                    <strong>Active RVTs:</strong> ${data.activeRVTs}<br>
+                    <strong>Total Royalties Collected:</strong> ${data.totalRoyalties?.toFixed(2) || 0} KENO<br>
+                    <strong>Total Tokens Burned:</strong> ${data.totalBurned?.toFixed(2) || 0} KENO
+                </div>
+            </div>
+        `;
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('porvStats', error.message);
+    }
+}
+
+async function loadMyRVTs() {
+    const holderAddress = document.getElementById('rvtHolderAddress').value;
+    if (!holderAddress) {
+        showError('rvtPortfolioList', 'Please enter your address');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/rvts/holder/${holderAddress}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('rvtPortfolioList');
+        
+        if (!data.rvts || data.rvts.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No RVTs found for this address. Mine a PoRV block to earn one!</p>';
+            return;
+        }
+        
+        let html = `<h4>Your RVT Portfolio (${data.rvts.length} tokens)</h4>`;
+        data.rvts.forEach(rvt => {
+            html += `
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(142, 45, 226, 0.1), rgba(74, 0, 224, 0.1)); border-left: 4px solid #8e2de2;">
+                    <strong>RVT ID:</strong> ${rvt.rvtId}<br>
+                    <strong>Job ID:</strong> ${rvt.jobId}<br>
+                    <strong>Computation Type:</strong> ${rvt.computationType}<br>
+                    <strong>Block Height:</strong> ${rvt.blockHeight}<br>
+                    <strong>Status:</strong> ${rvt.isActive ? '✅ Active (Earning Royalties)' : '❌ Inactive'}<br>
+                    <strong>Issued:</strong> ${new Date(rvt.issuedAt).toLocaleString()}<br>
+                    ${rvt.totalRoyaltiesEarned ? `<strong>Total Royalties Earned:</strong> ${rvt.totalRoyaltiesEarned.toFixed(2)} KENO<br>` : ''}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('rvtPortfolioList', error.message);
+    }
+}
+
+async function loadRVTDetails() {
+    const rvtId = document.getElementById('rvtDetailsId').value;
+    if (!rvtId) {
+        showError('rvtDetailsResult', 'Please enter an RVT ID');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/rvt/${rvtId}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('rvtDetailsResult');
+        let html = '<h4>RVT Details</h4>';
+        html += `
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(142, 45, 226, 0.1), rgba(74, 0, 224, 0.1)); border-left: 4px solid #8e2de2;">
+                <strong>RVT ID:</strong> ${data.rvt.rvtId}<br>
+                <strong>Job ID:</strong> ${data.rvt.jobId}<br>
+                <strong>Holder Address:</strong> ${data.rvt.holderAddress}<br>
+                <strong>Computation Type:</strong> ${data.rvt.computationType}<br>
+                <strong>Block Height:</strong> ${data.rvt.blockHeight}<br>
+                <strong>Status:</strong> ${data.rvt.isActive ? '✅ Active' : '❌ Inactive'}<br>
+                <strong>Issued:</strong> ${new Date(data.rvt.issuedAt).toLocaleString()}<br>
+                ${data.rvt.totalRoyaltiesEarned ? `<strong>Total Royalties Earned:</strong> ${data.rvt.totalRoyaltiesEarned.toFixed(2)} KENO<br>` : ''}
+                ${data.rvt.metadata ? `<strong>Metadata:</strong> ${JSON.stringify(data.rvt.metadata)}<br>` : ''}
+            </div>
+        `;
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('rvtDetailsResult', error.message);
+    }
+}
+
+async function loadAllRVTs() {
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/rvts`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('allRVTsList');
+        
+        if (!data.rvts || data.rvts.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No RVTs have been issued yet.</p>';
+            return;
+        }
+        
+        let html = `<h4>All Issued RVTs (${data.rvts.length} total)</h4>`;
+        data.rvts.forEach(rvt => {
+            html += `
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(142, 45, 226, 0.1), rgba(74, 0, 224, 0.1)); border-left: 4px solid #8e2de2;">
+                    <strong>RVT ID:</strong> ${rvt.rvtId}<br>
+                    <strong>Holder:</strong> ${rvt.holderAddress?.substring(0, 20)}...<br>
+                    <strong>Type:</strong> ${rvt.computationType}<br>
+                    <strong>Status:</strong> ${rvt.isActive ? '✅ Active' : '❌ Inactive'}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('allRVTsList', error.message);
+    }
+}
+
+async function registerEnterpriseClient() {
+    const clientName = document.getElementById('clientName').value;
+    const walletAddress = document.getElementById('clientWalletAddress').value;
+    
+    if (!clientName || !walletAddress) {
+        showError('registerClientResult', 'Please fill in all fields');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/enterprise/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: clientName, walletAddress })
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('registerClientResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Enterprise Client Registered Successfully!</h4>
+            <div class="transaction-item">
+                <strong>Client ID:</strong> ${data.client.clientId}<br>
+                <strong>Name:</strong> ${data.client.name}<br>
+                <strong>Wallet Address:</strong> ${data.client.walletAddress}<br>
+                <strong>Status:</strong> ${data.client.isActive ? '✅ Active' : '❌ Inactive'}<br>
+                <strong>Registered:</strong> ${new Date(data.client.registeredAt).toLocaleString()}<br>
+                <p style="margin-top: 10px; color: #3498db; font-weight: 600;">
+                    Save your Client ID! You'll need it to create computational jobs.
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('registerClientResult', error.message);
+    }
+}
+
+async function createComputationalJob() {
+    const clientId = document.getElementById('jobClientId').value;
+    const jobType = document.getElementById('jobType').value;
+    const parametersStr = document.getElementById('jobParameters').value;
+    const upfrontFee = parseFloat(document.getElementById('jobUpfrontFee').value);
+    const royaltyRate = parseFloat(document.getElementById('jobRoyaltyRate').value);
+    const privateKey = document.getElementById('jobClientPrivateKey').value;
+    
+    if (!clientId || !parametersStr || !upfrontFee || !royaltyRate || !privateKey) {
+        showError('createJobResult', 'Please fill in all fields');
+        return;
+    }
+    
+    try {
+        const parameters = JSON.parse(parametersStr);
+        
+        const clientResponse = await fetch(`${API_BASE}/api/porv/enterprise/client/${clientId}`);
+        const clientData = await clientResponse.json();
+        const clientWallet = clientData.client.walletAddress;
+        
+        const tempJobId = 'TEMP_' + Date.now();
+        const escrowAddress = 'JOB_ESCROW_' + tempJobId;
+        
+        const escrowPayment = await signTransaction(
+            clientWallet,
+            escrowAddress,
+            upfrontFee,
+            1,
+            `Job escrow payment for ${jobType}`,
+            privateKey
+        );
+        
+        const response = await fetch(`${API_BASE}/api/porv/enterprise/job`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clientId,
+                jobType,
+                parameters,
+                upfrontFee,
+                royaltyRate,
+                escrowPaymentTx: escrowPayment
+            })
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('createJobResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Computational Job Created Successfully!</h4>
+            <div class="transaction-item">
+                <strong>Job ID:</strong> ${data.job.jobId}<br>
+                <strong>Type:</strong> ${data.job.jobType}<br>
+                <strong>Status:</strong> ${data.job.status.toUpperCase()}<br>
+                <strong>Upfront Fee:</strong> ${data.job.upfrontFee} KENO (escrowed)<br>
+                <strong>Royalty Rate:</strong> ${data.job.royaltyRate}%<br>
+                <strong>Escrow Address:</strong> ${data.job.escrowAddress}<br>
+                <p style="margin-top: 10px; color: #2ecc71; font-weight: 600;">
+                    ✅ Escrow payment signed and verified! Job is now available for miners.
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('createJobResult', error.message);
+    }
+}
+
+async function recordAPIUsage() {
+    const jobId = document.getElementById('usageJobId').value;
+    const revenue = parseFloat(document.getElementById('usageRevenue').value);
+    const privateKey = document.getElementById('usageClientPrivateKey').value;
+    
+    if (!jobId || !revenue || !privateKey) {
+        showError('usageResult', 'Please fill in all fields');
+        return;
+    }
+    
+    try {
+        const jobResponse = await fetch(`${API_BASE}/api/porv/job/${jobId}`);
+        const jobData = await jobResponse.json();
+        
+        const clientResponse = await fetch(`${API_BASE}/api/porv/enterprise/client/${jobData.job.clientId}`);
+        const clientData = await clientResponse.json();
+        const clientWallet = clientData.client.walletAddress;
+        
+        const royaltyAmount = Math.floor((revenue * jobData.job.royaltyRate) / 100);
+        const royaltyPoolAddress = 'ROYALTY_POOL_' + jobId;
+        
+        const royaltyPayment = await signTransaction(
+            clientWallet,
+            royaltyPoolAddress,
+            royaltyAmount,
+            1,
+            `Royalty payment for ${jobId}`,
+            privateKey
+        );
+        
+        const response = await fetch(`${API_BASE}/api/porv/api-usage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jobId,
+                revenueGenerated: revenue,
+                royaltyPaymentTx: royaltyPayment
+            })
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('usageResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>API Usage Recorded & Royalties Distributed!</h4>
+            <div class="transaction-item">
+                <strong>Revenue:</strong> $${revenue}<br>
+                <strong>Royalty Amount:</strong> ${data.royalty} KENO<br>
+                <strong>Distribution:</strong><br>
+                &nbsp;&nbsp;• Miner (50%): ${data.distribution.minerPayout} KENO<br>
+                &nbsp;&nbsp;• Burned (40%): ${data.distribution.burnAmount} KENO<br>
+                &nbsp;&nbsp;• Treasury (10%): ${data.distribution.treasuryAmount} KENO<br>
+                <p style="margin-top: 10px; color: #2ecc71; font-weight: 600;">
+                    ✅ Royalty payment signed, verified, and automatically distributed!
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('usageResult', error.message);
+    }
+}
+
+async function viewEnterpriseClient() {
+    const clientId = document.getElementById('viewClientId').value;
+    if (!clientId) {
+        showError('clientDashboard', 'Please enter a client ID');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/enterprise/client/${clientId}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('clientDashboard');
+        let html = '<h4>Enterprise Client Dashboard</h4>';
+        html += `
+            <div class="transaction-item">
+                <strong>Client ID:</strong> ${data.client.clientId}<br>
+                <strong>Name:</strong> ${data.client.name}<br>
+                <strong>Wallet Address:</strong> ${data.client.walletAddress}<br>
+                <strong>Status:</strong> ${data.client.isActive ? '✅ Active' : '❌ Inactive'}<br>
+                <strong>Jobs Created:</strong> ${data.client.jobsCreated?.length || 0}<br>
+                <strong>Total Paid:</strong> ${data.client.totalPaid?.toFixed(2) || 0} KENO<br>
+                <strong>Total Royalties:</strong> ${data.client.totalRoyalties?.toFixed(2) || 0} KENO<br>
+                <strong>Registered:</strong> ${new Date(data.client.registeredAt).toLocaleString()}
+            </div>
+        `;
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('clientDashboard', error.message);
+    }
+}
+
+async function viewAllClients() {
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/enterprise/clients`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('allClientsList');
+        
+        if (!data.clients || data.clients.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No enterprise clients registered yet.</p>';
+            return;
+        }
+        
+        let html = `<h4>All Enterprise Clients (${data.clients.length} total)</h4>`;
+        data.clients.forEach(client => {
+            html += `
+                <div class="transaction-item">
+                    <strong>Client ID:</strong> ${client.clientId}<br>
+                    <strong>Name:</strong> ${client.name}<br>
+                    <strong>Jobs:</strong> ${client.jobsCreated?.length || 0}<br>
+                    <strong>Total Paid:</strong> ${client.totalPaid?.toFixed(2) || 0} KENO<br>
+                    <strong>Status:</strong> ${client.isActive ? '✅ Active' : '❌ Inactive'}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('allClientsList', error.message);
+    }
+}
+
+async function loadRoyaltyCollections() {
+    const jobId = document.getElementById('royaltyJobId').value;
+    
+    try {
+        const url = jobId 
+            ? `${API_BASE}/api/porv/royalties/job/${jobId}`
+            : `${API_BASE}/api/porv/royalties`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('royaltyCollectionsList');
+        
+        if (!data.collections || data.collections.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No royalty collections found.</p>';
+            return;
+        }
+        
+        let html = `<h4>Royalty Collections (${data.collections.length} total)</h4>`;
+        data.collections.forEach(collection => {
+            html += `
+                <div class="transaction-item">
+                    <strong>Collection ID:</strong> ${collection.collectionId}<br>
+                    <strong>Job ID:</strong> ${collection.jobId}<br>
+                    <strong>RVT ID:</strong> ${collection.rvtId}<br>
+                    <strong>Amount:</strong> ${collection.amount} KENO<br>
+                    <strong>Source:</strong> ${collection.source}<br>
+                    <strong>Status:</strong> ${collection.distributed ? '✅ Distributed' : '⏳ Pending'}<br>
+                    <strong>Collected:</strong> ${new Date(collection.collectedAt).toLocaleString()}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('royaltyCollectionsList', error.message);
+    }
+}
+
+async function loadBurnStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/burns/stats`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('burnStats');
+        let html = '<h4>Token Burn Statistics</h4>';
+        html += `
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)); border-left: 4px solid #e74c3c;">
+                <strong>Total Burned:</strong> ${data.stats.totalBurned} KENO<br>
+                <strong>Burn Count:</strong> ${data.stats.burnCount} burns<br>
+                <strong>Last Burn:</strong> ${data.stats.lastBurnDate ? new Date(data.stats.lastBurnDate).toLocaleString() : 'Never'}<br>
+                <strong>Burn Wallet:</strong> <code>${data.stats.burnAddress}</code><br>
+                <p style="margin-top: 10px; color: #e74c3c; font-weight: 600;">
+                    🔥 40% of all royalties are permanently burned, reducing total supply!
+                </p>
+            </div>
+        `;
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('burnStats', error.message);
+    }
+}
+
+async function loadBurnHistory() {
+    try {
+        const response = await fetch(`${API_BASE}/api/porv/burns`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('burnHistory');
+        
+        if (!data.burns || data.burns.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No burns recorded yet.</p>';
+            return;
+        }
+        
+        let html = `<h4>Burn History (${data.burns.length} total burns)</h4>`;
+        data.burns.forEach(burn => {
+            html += `
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)); border-left: 4px solid #e74c3c;">
+                    <strong>Burn ID:</strong> ${burn.burnId}<br>
+                    <strong>Amount:</strong> ${burn.amount} KENO<br>
+                    <strong>Source:</strong> ${burn.source}<br>
+                    <strong>Transaction Hash:</strong> <code>${burn.transactionHash || 'N/A'}</code><br>
+                    <strong>Burned:</strong> ${new Date(burn.burnedAt).toLocaleString()}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('burnHistory', error.message);
+    }
+}
+
+async function loadSupplyAnalytics() {
+    try {
+        const statsResponse = await fetch(`${API_BASE}/api/stats`);
+        const statsData = await statsResponse.json();
+        
+        const porvResponse = await fetch(`${API_BASE}/api/porv/stats`);
+        const porvData = await porvResponse.json();
+        
+        const resultDiv = document.getElementById('supplyAnalytics');
+        const totalMinted = statsData.supply?.totalMinted || 0;
+        const totalBurned = porvData.totalBurned || 0;
+        const circulatingSupply = statsData.supply?.circulatingSupply || 0;
+        const burnRate = totalMinted > 0 ? ((totalBurned / totalMinted) * 100).toFixed(2) : 0;
+        
+        let html = '<h4>Supply Analytics</h4>';
+        html += `
+            <div class="stats-grid">
+                <div class="transaction-item">
+                    <strong>Total Minted:</strong> ${totalMinted} KENO<br>
+                    <strong>Total Burned:</strong> ${totalBurned} KENO<br>
+                    <strong>Circulating Supply:</strong> ${circulatingSupply} KENO<br>
+                    <strong>Burn Rate:</strong> ${burnRate}%
+                </div>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                    <h4>Deflationary Impact</h4>
+                    <p>Every royalty payment burns 40% of tokens permanently.</p>
+                    <p>As more AI/ML models generate revenue, more tokens are burned.</p>
+                    <p style="color: #2ecc71; font-weight: 600; margin-top: 10px;">
+                        Result: Decreasing supply + Increasing demand = Higher value! 📈
+                    </p>
+                </div>
+            </div>
+        `;
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('supplyAnalytics', error.message);
+    }
+}
+
+async function signTransaction(fromAddress, toAddress, amount, fee, message, privateKeyHex) {
+    if (!ec) {
+        throw new Error('Elliptic library not initialized');
+    }
+    
+    const keyPair = ec.keyFromPrivate(privateKeyHex, 'hex');
+    const publicKey = keyPair.getPublic('hex');
+    
+    if (publicKey !== fromAddress) {
+        throw new Error('Private key does not match from address');
+    }
+    
+    const timestamp = Date.now();
+    const txData = fromAddress + toAddress + amount + fee + message + timestamp;
+    const hash = CryptoJS.SHA256(txData).toString();
+    const signature = keyPair.sign(hash, 'hex').toDER('hex');
+    
+    return {
+        fromAddress,
+        toAddress,
+        amount,
+        fee,
+        message,
+        timestamp,
+        signature
+    };
+}
