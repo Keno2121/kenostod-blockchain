@@ -4,6 +4,11 @@ const ScheduledTransaction = require('./ScheduledTransaction');
 const { SocialRecovery } = require('./SocialRecovery');
 const { ReputationSystem } = require('./Reputation');
 const Governance = require('./Governance');
+const ResidualValueToken = require('./ResidualValueToken');
+const ComputationalJob = require('./ComputationalJob');
+const RoyaltyPool = require('./RoyaltyPool');
+const BuyAndBurn = require('./BuyAndBurn');
+const { EnterpriseClientManager } = require('./EnterpriseClient');
 
 class Blockchain {
     constructor() {
@@ -18,6 +23,13 @@ class Blockchain {
         this.minimumFee = 0;
         this.tokenName = 'Kenostod';
         this.tokenSymbol = 'KENO';
+        
+        this.royaltyPool = new RoyaltyPool(this);
+        this.buyAndBurn = new BuyAndBurn(this);
+        this.enterpriseClients = new EnterpriseClientManager();
+        this.computationalJobs = new Map();
+        this.residualValueTokens = new Map();
+        this.porvEnabled = true;
     }
 
     createGenesisBlock() {
@@ -244,9 +256,15 @@ class Blockchain {
             totalBurned += recovery.originalBalance;
         }
         
+        const burnAddressBalance = this.getBalanceOfAddress(this.buyAndBurn.burnWalletAddress);
+        totalBurned += burnAddressBalance;
+        
         return {
             totalMinted,
             totalBurned,
+            burnedViaPoRV: burnAddressBalance,
+            burnedViaSocialRecovery: Array.from(this.socialRecovery.recoveredWallets.values())
+                .reduce((sum, r) => sum + r.originalBalance, 0),
             circulatingSupply: totalMinted - totalBurned
         };
     }
@@ -409,6 +427,297 @@ class Blockchain {
             minimumParticipation: `${(this.governance.minimumParticipation * 100).toFixed(0)}%`,
             approvalThreshold: `${(this.governance.approvalThreshold * 100).toFixed(0)}%`
         };
+    }
+
+    createSystemTransaction(fromAddress, toAddress, amount, message = '') {
+        if (fromAddress !== null) {
+            const confirmedBalance = this.getBalanceOfAddress(fromAddress);
+            
+            const pendingInflows = this.pendingTransactions
+                .filter(tx => tx.toAddress === fromAddress && tx.status === 'confirmed')
+                .reduce((sum, tx) => sum + tx.amount, 0);
+            
+            const pendingOutflows = this.pendingTransactions
+                .filter(tx => tx.fromAddress === fromAddress && tx.status === 'confirmed')
+                .reduce((sum, tx) => sum + tx.amount, 0);
+            
+            const availableBalance = confirmedBalance + pendingInflows - pendingOutflows;
+            
+            if (availableBalance < amount) {
+                throw new Error(`System transaction failed: ${fromAddress.substring(0, 20)}... has ${availableBalance} KENO available (${confirmedBalance} confirmed + ${pendingInflows} pending in - ${pendingOutflows} pending out), needs ${amount} KENO`);
+            }
+        }
+
+        const sysTx = new Transaction(fromAddress, toAddress, amount, 0, message, true);
+        sysTx.status = 'confirmed';
+        sysTx.submittedAt = null;
+        return sysTx;
+    }
+
+    createComputationalJobWithSignedPayment(clientId, jobType, parameters, upfrontFee, royaltyRate, escrowPaymentTx) {
+        const client = this.enterpriseClients.getClient(clientId);
+        if (!client) {
+            throw new Error('Enterprise client not found');
+        }
+
+        if (!client.isActive) {
+            throw new Error('Client account is inactive');
+        }
+
+        const job = new ComputationalJob(clientId, jobType, parameters, upfrontFee, royaltyRate);
+        job.escrowAddress = 'JOB_ESCROW_' + job.jobId;
+
+        const tx = new Transaction(
+            escrowPaymentTx.fromAddress,
+            escrowPaymentTx.toAddress,
+            escrowPaymentTx.amount,
+            escrowPaymentTx.fee,
+            escrowPaymentTx.message || ''
+        );
+        tx.timestamp = escrowPaymentTx.timestamp;
+        tx.signature = escrowPaymentTx.signature;
+
+        if (tx.fromAddress !== client.walletAddress) {
+            throw new Error('Escrow payment must come from registered client wallet');
+        }
+
+        if (tx.toAddress !== job.escrowAddress) {
+            throw new Error(`Escrow payment must be sent to ${job.escrowAddress}`);
+        }
+
+        if (tx.amount !== upfrontFee) {
+            throw new Error(`Escrow payment amount (${tx.amount}) must match upfront fee (${upfrontFee})`);
+        }
+
+        if (!tx.isValid()) {
+            throw new Error('Invalid escrow payment signature');
+        }
+
+        const availableBalance = this.getAvailableBalance(client.walletAddress);
+        if (availableBalance < tx.amount + tx.fee) {
+            throw new Error(`Insufficient balance. Client has ${availableBalance} KENO, needs ${tx.amount + tx.fee} KENO`);
+        }
+
+        this.createTransaction(tx);
+        
+        this.computationalJobs.set(job.jobId, job);
+        client.addJob(job.jobId);
+        client.recordPayment(upfrontFee);
+
+        console.log(`💼 New computational job created: ${job.jobId} for ${client.name}`);
+        console.log(`   Type: ${jobType}, Upfront Fee: ${upfrontFee} KENO (escrowed via signed tx), Royalty Rate: ${royaltyRate}%`);
+        console.log(`   ✅ Escrow payment verified and signed by client`);
+
+        return job;
+    }
+
+    minePoRVBlock(minerAddress, jobId = null) {
+        if (!this.porvEnabled) {
+            this.minePendingTransactions(minerAddress);
+            return null;
+        }
+
+        let job = null;
+        let rvt = null;
+
+        if (jobId) {
+            job = this.computationalJobs.get(jobId);
+            if (!job || job.status !== 'pending') {
+                throw new Error('Job not available for mining');
+            }
+            job.assignToMiner(minerAddress);
+        }
+
+        const totalFees = this.pendingTransactions.reduce((sum, tx) => sum + tx.fee, 0);
+
+        const baseRewardTx = new Transaction(null, minerAddress, this.miningReward + totalFees);
+        baseRewardTx.status = 'confirmed';
+        baseRewardTx.submittedAt = null;
+        this.pendingTransactions.push(baseRewardTx);
+
+        if (job) {
+            const escrowReleaseTx = this.createSystemTransaction(job.escrowAddress, minerAddress, job.upfrontFee, `Job ${job.jobId} completion payment`);
+            this.pendingTransactions.push(escrowReleaseTx);
+        }
+
+        const transactionsToMine = this.pendingTransactions.map(tx => {
+            const clonedTx = Object.assign(Object.create(Object.getPrototypeOf(tx)), tx);
+            clonedTx.status = 'confirmed';
+            return clonedTx;
+        });
+
+        const block = new Block(Date.now(), transactionsToMine, this.getLatestBlock().hash);
+        block.mineBlock(this.difficulty);
+
+        console.log('✅ PoRV Block successfully mined!');
+        console.log(`💰 Miner reward: ${this.miningReward} KENO + ${totalFees} KENO fees`);
+
+        if (job) {
+            const outputHash = block.hash.substring(0, 32);
+            job.complete(minerAddress, this.chain.length, outputHash);
+
+            rvt = new ResidualValueToken(
+                job.jobId,
+                minerAddress,
+                this.chain.length,
+                job.jobType,
+                { clientId: job.clientId, jobType: job.jobType }
+            );
+            this.residualValueTokens.set(rvt.rvtId, rvt);
+            this.royaltyPool.assignRVT(minerAddress, rvt.rvtId);
+            job.deploy(rvt.rvtId);
+
+            console.log(`🎫 RVT issued: ${rvt.rvtId}`);
+            console.log(`💎 Job bonus: ${job.upfrontFee} KENO (released from escrow)`);
+            console.log(`📊 Royalty rate: ${job.royaltyRate}% on commercial use`);
+        }
+
+        this.chain.push(block);
+        this.pendingTransactions = [];
+
+        return { job, rvt, block };
+    }
+
+    recordApiUsageWithSignedPayment(jobId, revenueGenerated, royaltyPaymentTx) {
+        const job = this.computationalJobs.get(jobId);
+        if (!job) {
+            throw new Error('Job not found');
+        }
+
+        if (job.status !== 'deployed') {
+            throw new Error('Job must be deployed before usage tracking');
+        }
+
+        const client = this.enterpriseClients.getClient(job.clientId);
+        if (!client) {
+            throw new Error('Client not found');
+        }
+
+        job.recordApiCall(revenueGenerated);
+        
+        const royaltyAmount = job.calculateRoyalty(revenueGenerated);
+        
+        const clientBalance = this.getBalanceOfAddress(client.walletAddress);
+        if (clientBalance < royaltyAmount) {
+            throw new Error(`Client has insufficient balance for royalty payment. Has ${clientBalance} KENO, needs ${royaltyAmount} KENO`);
+        }
+
+        const rvt = this.residualValueTokens.get(job.rvtId);
+        if (!rvt) {
+            throw new Error('RVT not found for this job');
+        }
+
+        const royaltyPoolAddress = 'ROYALTY_POOL_' + job.jobId;
+
+        const tx = new Transaction(
+            royaltyPaymentTx.fromAddress,
+            royaltyPaymentTx.toAddress,
+            royaltyPaymentTx.amount,
+            royaltyPaymentTx.fee,
+            royaltyPaymentTx.message || ''
+        );
+        tx.timestamp = royaltyPaymentTx.timestamp;
+        tx.signature = royaltyPaymentTx.signature;
+
+        if (tx.fromAddress !== client.walletAddress) {
+            throw new Error('Royalty payment must come from registered client wallet');
+        }
+
+        if (tx.toAddress !== royaltyPoolAddress) {
+            throw new Error(`Royalty payment must be sent to ${royaltyPoolAddress}`);
+        }
+
+        if (tx.amount !== royaltyAmount) {
+            throw new Error(`Royalty payment amount (${tx.amount}) must match calculated royalty (${royaltyAmount})`);
+        }
+
+        if (!tx.isValid()) {
+            throw new Error('Invalid royalty payment signature');
+        }
+
+        const availableBalance = this.getAvailableBalance(client.walletAddress);
+        if (availableBalance < tx.amount + tx.fee) {
+            throw new Error(`Insufficient balance. Client has ${availableBalance} KENO, needs ${tx.amount + tx.fee} KENO`);
+        }
+
+        this.createTransaction(tx);
+
+        const collection = this.royaltyPool.collectRoyalty(
+            job.jobId,
+            rvt.rvtId,
+            royaltyAmount,
+            'API_USAGE'
+        );
+
+        const distribution = this.royaltyPool.distributeRoyalty(collection.collectionId, rvt);
+
+        const minerPayoutTx = this.createSystemTransaction(royaltyPoolAddress, distribution.holderAddress, distribution.minerPayout, `RVT royalty distribution (50%)`);
+        const treasuryAddress = 'TREASURY_NETWORK';
+        const treasuryTx = this.createSystemTransaction(royaltyPoolAddress, treasuryAddress, distribution.treasuryAmount, `Treasury allocation (10%)`);
+        const burnTx = this.createSystemTransaction(royaltyPoolAddress, this.buyAndBurn.burnWalletAddress, distribution.burnAmount, `Token burn (40%)`);
+
+        this.pendingTransactions.push(minerPayoutTx, treasuryTx, burnTx);
+        
+        const actualBurn = this.buyAndBurn.executeBurn(distribution.burnAmount, 'ROYALTY_POOL');
+
+        client.recordRoyalty(royaltyAmount);
+
+        console.log(`📈 API usage recorded for ${jobId}`);
+        console.log(`   Revenue: $${revenueGenerated}, Royalty: ${royaltyAmount} KENO (paid via signed tx)`);
+        console.log(`   ✅ Royalty payment verified and signed by client`);
+        console.log(`   Miner payout: ${distribution.minerPayout} KENO (50%)`);
+        console.log(`   Treasury: ${distribution.treasuryAmount} KENO (10%)`);
+        console.log(`   Burned: ${distribution.burnAmount} KENO (40%)`);
+
+        return {
+            job: job.toJSON(),
+            royalty: royaltyAmount,
+            distribution,
+            burnRecord: actualBurn
+        };
+    }
+
+    getPoRVStats() {
+        const jobs = Array.from(this.computationalJobs.values());
+        const rvts = Array.from(this.residualValueTokens.values());
+        
+        return {
+            enabled: this.porvEnabled,
+            totalJobs: jobs.length,
+            pendingJobs: jobs.filter(j => j.status === 'pending').length,
+            completedJobs: jobs.filter(j => j.status === 'completed').length,
+            deployedJobs: jobs.filter(j => j.status === 'deployed').length,
+            totalRVTs: rvts.length,
+            activeRVTs: rvts.filter(r => r.isActive).length,
+            totalApiCalls: jobs.reduce((sum, j) => sum + j.totalApiCalls, 0),
+            totalRevenue: jobs.reduce((sum, j) => sum + j.totalRevenue, 0),
+            royaltyPool: this.royaltyPool.getPoolStats(),
+            buyAndBurn: this.buyAndBurn.getBurnStats(),
+            enterpriseClients: this.enterpriseClients.getStats()
+        };
+    }
+
+    getRVTsForAddress(address) {
+        const rvtIds = this.royaltyPool.getRVTsForAddress(address);
+        return rvtIds.map(id => this.residualValueTokens.get(id)).filter(r => r);
+    }
+
+    getJobDetails(jobId) {
+        const job = this.computationalJobs.get(jobId);
+        if (!job) {
+            throw new Error('Job not found');
+        }
+        return job.toJSON();
+    }
+
+    getAllJobs() {
+        return Array.from(this.computationalJobs.values()).map(j => j.toJSON());
+    }
+
+    getAvailableJobs() {
+        return Array.from(this.computationalJobs.values())
+            .filter(j => j.status === 'pending')
+            .map(j => j.toJSON());
     }
 }
 

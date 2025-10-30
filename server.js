@@ -831,6 +831,190 @@ app.get('/api', (req, res) => {
     });
 });
 
+// ==================== PROOF-OF-RESIDUAL-VALUE (PoRV) ENDPOINTS ====================
+
+// Register enterprise client
+app.post('/api/porv/client/register', (req, res) => {
+    try {
+        const { name, industry, walletAddress } = req.body;
+        
+        if (!name || !industry || !walletAddress) {
+            return res.status(400).json({ error: 'Missing required fields: name, industry, walletAddress' });
+        }
+
+        const client = kenostodChain.enterpriseClients.registerClient(name, industry, walletAddress);
+        res.json({
+            message: 'Enterprise client registered successfully',
+            client: client.toJSON()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get enterprise client details
+app.get('/api/porv/client/:clientId', (req, res) => {
+    try {
+        const client = kenostodChain.enterpriseClients.getClient(req.params.clientId);
+        if (!client) {
+            return res.status(404).json({ error: 'Client not found' });
+        }
+        res.json(client.toJSON());
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get all enterprise clients
+app.get('/api/porv/clients', (req, res) => {
+    res.json({
+        clients: kenostodChain.enterpriseClients.getAllClients().map(c => c.toJSON()),
+        stats: kenostodChain.enterpriseClients.getStats()
+    });
+});
+
+// Create computational job (requires signed escrow payment transaction)
+app.post('/api/porv/job/create', (req, res) => {
+    try {
+        const { clientId, jobType, parameters, upfrontFee, royaltyRate, escrowPaymentTx } = req.body;
+        
+        if (!clientId || !jobType || !upfrontFee || !royaltyRate || !escrowPaymentTx) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: clientId, jobType, upfrontFee, royaltyRate, escrowPaymentTx (signed transaction object)' 
+            });
+        }
+
+        const job = kenostodChain.createComputationalJobWithSignedPayment(
+            clientId,
+            jobType,
+            parameters || {},
+            upfrontFee,
+            royaltyRate,
+            escrowPaymentTx
+        );
+
+        res.json({
+            message: 'Computational job created successfully (escrow payment verified)',
+            job: job.toJSON()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get available jobs for mining
+app.get('/api/porv/jobs/available', (req, res) => {
+    res.json({
+        availableJobs: kenostodChain.getAvailableJobs()
+    });
+});
+
+// Get all jobs
+app.get('/api/porv/jobs', (req, res) => {
+    res.json({
+        jobs: kenostodChain.getAllJobs()
+    });
+});
+
+// Get job details
+app.get('/api/porv/job/:jobId', (req, res) => {
+    try {
+        const job = kenostodChain.getJobDetails(req.params.jobId);
+        res.json(job);
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
+});
+
+// Mine PoRV block (with optional job)
+app.post('/api/porv/mine', (req, res) => {
+    try {
+        const { minerAddress, jobId } = req.body;
+        
+        if (!minerAddress) {
+            return res.status(400).json({ error: 'Miner address is required' });
+        }
+
+        const result = kenostodChain.minePoRVBlock(minerAddress, jobId || null);
+        
+        res.json({
+            message: jobId ? 'PoRV block mined with computational job!' : 'Standard block mined!',
+            minerBalance: kenostodChain.getBalanceOfAddress(minerAddress),
+            blockHeight: kenostodChain.chain.length,
+            job: result && result.job ? result.job.toJSON() : null,
+            rvt: result && result.rvt ? result.rvt.toJSON() : null
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Record API usage (requires signed royalty payment transaction)
+app.post('/api/porv/usage', (req, res) => {
+    try {
+        const { jobId, revenueGenerated, royaltyPaymentTx } = req.body;
+        
+        if (!jobId || revenueGenerated === undefined || !royaltyPaymentTx) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: jobId, revenueGenerated, royaltyPaymentTx (signed transaction object)' 
+            });
+        }
+
+        const result = kenostodChain.recordApiUsageWithSignedPayment(jobId, revenueGenerated, royaltyPaymentTx);
+        
+        res.json({
+            message: 'API usage recorded and royalties distributed (payment verified)',
+            ...result
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get RVTs for an address
+app.get('/api/porv/rvts/:address', (req, res) => {
+    try {
+        const rvts = kenostodChain.getRVTsForAddress(req.params.address);
+        res.json({
+            address: req.params.address,
+            rvtCount: rvts.length,
+            rvts: rvts.map(r => r.toJSON())
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get PoRV statistics
+app.get('/api/porv/stats', (req, res) => {
+    res.json(kenostodChain.getPoRVStats());
+});
+
+// Get royalty pool statistics
+app.get('/api/porv/royalty-pool', (req, res) => {
+    res.json(kenostodChain.royaltyPool.toJSON());
+});
+
+// Get buy-and-burn statistics
+app.get('/api/porv/buy-and-burn', (req, res) => {
+    res.json(kenostodChain.buyAndBurn.toJSON());
+});
+
+// Get royalty history for an RVT
+app.get('/api/porv/royalty/:rvtId', (req, res) => {
+    try {
+        const history = kenostodChain.royaltyPool.getRoyaltyHistory(req.params.rvtId);
+        res.json({
+            rvtId: req.params.rvtId,
+            royaltyCollections: history
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END PoRV ENDPOINTS ====================
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');

@@ -3,7 +3,7 @@ const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
 class Transaction {
-    constructor(fromAddress, toAddress, amount, fee = 0, message = '') {
+    constructor(fromAddress, toAddress, amount, fee = 0, message = '', isSystemTx = false) {
         this.fromAddress = fromAddress;
         this.toAddress = toAddress;
         this.amount = amount;
@@ -13,6 +13,7 @@ class Transaction {
         this.submittedAt = null;
         this.status = 'pending';
         this.message = message;
+        this.isSystemTx = isSystemTx;
         
         // Validate transaction parameters
         this.validateTransaction();
@@ -33,7 +34,11 @@ class Transaction {
             throw new Error('Cannot send tokens to yourself');
         }
 
-        // Validate addresses
+        if (this.isSystemTx) {
+            return;
+        }
+
+        // Validate addresses (skip for system transactions)
         if (this.fromAddress && this.fromAddress.length !== 130) {
             throw new Error('Invalid from address format');
         }
@@ -60,6 +65,9 @@ class Transaction {
     isValid() {
         // Mining reward transactions from null address are valid
         if (this.fromAddress === null) return true;
+
+        // System transactions (escrow, royalty, burn) don't require signatures
+        if (this.isSystemTx) return true;
 
         if (!this.signature || this.signature.length === 0) {
             throw new Error('No signature in this transaction');
