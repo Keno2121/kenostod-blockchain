@@ -10,7 +10,8 @@ Kenostod is positioned as the first blockchain built for real people, not just d
 - **Enhanced Crypto Ticker**: Expanded monitoring to track 10 major cryptocurrencies (BTC, ETH, SOL, ADA, XRP, DOT, DOGE, MATIC, LINK, LTC) with real-time prices, 24h price changes, trading volumes, and market caps from CoinGecko API
 - **Improved Ticker Visuals**: Modern CSS animations with glowing effects, pulsing price indicators, hover states, and smooth scrolling. Enhanced typography with better formatting for crypto prices
 - **Better Data Presentation**: Smart price formatting (full decimals for coins <$1, 2 decimals for coins >$1), volume display with B/M/K suffixes, and color-coded price changes
-- **Reliability Improvements**: Switched to jsdelivr CDN for elliptic library, increased initialization delay for better library loading, 30-second API caching to respect rate limits
+- **Elliptic Library Bundling**: Created UMD browser bundle of elliptic library using Browserify (`public/elliptic.bundle.js`) since CDN versions no longer include browser-ready builds. Bundle is version-controlled and loaded locally for reliable client-side cryptography
+- **Reliability Improvements**: 30-second API caching to respect CoinGecko rate limits, improved error handling in crypto ticker updates
 
 **Date: October 25, 2025**
 - **Live Crypto Ticker**: Real-time scrolling ticker showing Kenostod blockchain activity, recent transactions, and major crypto market data (BTC, ETH, SOL prices with 24h changes)
