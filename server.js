@@ -675,7 +675,7 @@ app.get('/api/crypto-prices', (req, res) => {
     const options = {
         hostname: 'api.coingecko.com',
         port: 443,
-        path: '/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true',
+        path: '/api/v3/simple/price?ids=bitcoin,ethereum,solana,cardano,ripple,polkadot,dogecoin,polygon,chainlink,litecoin&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true',
         method: 'GET',
         headers: {
             'User-Agent': 'Kenostod-Blockchain/1.0'

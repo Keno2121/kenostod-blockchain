@@ -55,50 +55,58 @@ async function updateCryptoTicker() {
         `;
 
         // Add crypto market prices with defensive guards
-        if (prices.bitcoin && prices.bitcoin.usd) {
-            const btcPrice = Number(prices.bitcoin.usd) || 0;
-            const btcChange = Number(prices.bitcoin.usd_24h_change) || 0;
-            tickerHTML += `
-                <span class="ticker-item">
-                    <span class="ticker-emoji">₿</span>
-                    <span class="ticker-label">BTC:</span>
-                    <span class="ticker-value">$${btcPrice.toLocaleString()}</span>
-                    <span class="ticker-value ${btcChange >= 0 ? 'ticker-up' : 'ticker-down'}">
-                        ${btcChange >= 0 ? '↑' : '↓'}${Math.abs(btcChange).toFixed(2)}%
-                    </span>
-                </span>
-            `;
-        }
+        const cryptoList = [
+            { key: 'bitcoin', emoji: '₿', label: 'BTC' },
+            { key: 'ethereum', emoji: 'Ξ', label: 'ETH' },
+            { key: 'solana', emoji: '◎', label: 'SOL' },
+            { key: 'cardano', emoji: '₳', label: 'ADA' },
+            { key: 'ripple', emoji: '✕', label: 'XRP' },
+            { key: 'polkadot', emoji: '●', label: 'DOT' },
+            { key: 'dogecoin', emoji: 'Ð', label: 'DOGE' },
+            { key: 'polygon', emoji: '⬡', label: 'MATIC' },
+            { key: 'chainlink', emoji: '⬢', label: 'LINK' },
+            { key: 'litecoin', emoji: 'Ł', label: 'LTC' }
+        ];
 
-        if (prices.ethereum && prices.ethereum.usd) {
-            const ethPrice = Number(prices.ethereum.usd) || 0;
-            const ethChange = Number(prices.ethereum.usd_24h_change) || 0;
-            tickerHTML += `
-                <span class="ticker-item">
-                    <span class="ticker-emoji">Ξ</span>
-                    <span class="ticker-label">ETH:</span>
-                    <span class="ticker-value">$${ethPrice.toLocaleString()}</span>
-                    <span class="ticker-value ${ethChange >= 0 ? 'ticker-up' : 'ticker-down'}">
-                        ${ethChange >= 0 ? '↑' : '↓'}${Math.abs(ethChange).toFixed(2)}%
+        cryptoList.forEach(crypto => {
+            if (prices[crypto.key] && prices[crypto.key].usd) {
+                const price = Number(prices[crypto.key].usd) || 0;
+                const change = Number(prices[crypto.key].usd_24h_change) || 0;
+                const volume = prices[crypto.key].usd_24h_vol;
+                const marketCap = prices[crypto.key].usd_market_cap;
+                
+                let priceDisplay = price >= 1 
+                    ? `$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` 
+                    : `$${price.toFixed(6)}`;
+                
+                tickerHTML += `
+                    <span class="ticker-item">
+                        <span class="ticker-emoji">${crypto.emoji}</span>
+                        <span class="ticker-label">${crypto.label}:</span>
+                        <span class="ticker-value">${priceDisplay}</span>
+                        <span class="ticker-value ${change >= 0 ? 'ticker-up' : 'ticker-down'}">
+                            ${change >= 0 ? '↑' : '↓'}${Math.abs(change).toFixed(2)}%
+                        </span>
                     </span>
-                </span>
-            `;
-        }
-
-        if (prices.solana && prices.solana.usd) {
-            const solPrice = Number(prices.solana.usd) || 0;
-            const solChange = Number(prices.solana.usd_24h_change) || 0;
-            tickerHTML += `
-                <span class="ticker-item">
-                    <span class="ticker-emoji">◎</span>
-                    <span class="ticker-label">SOL:</span>
-                    <span class="ticker-value">$${solPrice.toLocaleString()}</span>
-                    <span class="ticker-value ${solChange >= 0 ? 'ticker-up' : 'ticker-down'}">
-                        ${solChange >= 0 ? '↑' : '↓'}${Math.abs(solChange).toFixed(2)}%
-                    </span>
-                </span>
-            `;
-        }
+                `;
+                
+                if (volume && crypto.label === 'BTC') {
+                    const volDisplay = volume >= 1e9 
+                        ? `$${(volume / 1e9).toFixed(2)}B` 
+                        : volume >= 1e6 
+                            ? `$${(volume / 1e6).toFixed(2)}M` 
+                            : `$${(volume / 1e3).toFixed(2)}K`;
+                    
+                    tickerHTML += `
+                        <span class="ticker-item">
+                            <span class="ticker-emoji">📊</span>
+                            <span class="ticker-label">BTC 24h Vol:</span>
+                            <span class="ticker-value">${volDisplay}</span>
+                        </span>
+                    `;
+                }
+            }
+        });
 
         // Add recent Kenostod transactions
         if (recentTx && recentTx.length > 0) {
