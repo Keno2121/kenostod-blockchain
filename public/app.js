@@ -1740,3 +1740,429 @@ async function signTransaction(fromAddress, toAddress, amount, fee, message, pri
         signature
     };
 }
+
+async function registerMerchant() {
+    const businessName = document.getElementById('merchantBusinessName').value;
+    const walletAddress = document.getElementById('merchantWalletAddress').value;
+    const contactEmail = document.getElementById('merchantEmail').value;
+    const businessType = document.getElementById('merchantBusinessType').value;
+    
+    if (!businessName || !walletAddress || !contactEmail) {
+        showError('merchantRegisterResult', 'Please fill in all required fields');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/merchant/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ businessName, walletAddress, contactEmail, businessType })
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('merchantRegisterResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Merchant Registered Successfully!</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                <strong>Merchant ID:</strong> ${data.merchant.merchantId}<br>
+                <strong>Business Name:</strong> ${data.merchant.businessName}<br>
+                <strong>Wallet Address:</strong> ${data.merchant.walletAddress}<br>
+                <strong>API Key:</strong> ${data.merchant.apiKey}<br>
+                <strong>Status:</strong> ${data.merchant.isActive ? '✅ Active' : '❌ Inactive'}<br>
+                <p style="margin-top: 10px; color: #2ecc71; font-weight: 600;">
+                    🎉 Your merchant account is ready! Save your Merchant ID and API Key.
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('merchantRegisterResult', error.message);
+    }
+}
+
+async function createPaymentRequest() {
+    const merchantId = document.getElementById('paymentMerchantId').value;
+    const amount = parseFloat(document.getElementById('paymentAmount').value);
+    const currency = document.getElementById('paymentCurrency').value;
+    const description = document.getElementById('paymentDescription').value;
+    const customerEmail = document.getElementById('paymentCustomerEmail').value;
+    
+    if (!merchantId || !amount || !description) {
+        showError('paymentRequestResult', 'Please fill in all required fields');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/payment/request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                merchantId,
+                amount,
+                currency,
+                description,
+                customerEmail
+            })
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('paymentRequestResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Payment Request Created!</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                <strong>Payment ID:</strong> ${data.paymentRequest.paymentRequestId}<br>
+                <strong>Amount (KENO):</strong> ${data.paymentRequest.amountKENO.toFixed(2)} KENO<br>
+                <strong>Amount (USD):</strong> $${data.paymentRequest.amountUSD.toFixed(2)}<br>
+                <strong>Description:</strong> ${data.paymentRequest.description}<br>
+                <strong>Payment URL:</strong> ${data.paymentRequest.paymentUrl}<br>
+                <strong>QR Code String:</strong> <code style="word-break: break-all;">${data.paymentRequest.qrCode.qrString}</code><br>
+                <strong>Expires:</strong> ${new Date(data.paymentRequest.expiresAt).toLocaleString()}<br>
+                <p style="margin-top: 10px; color: #3498db; font-weight: 600;">
+                    📱 Share the payment URL or QR code with your customer!
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('paymentRequestResult', error.message);
+    }
+}
+
+async function viewMerchantStats() {
+    const merchantId = document.getElementById('viewMerchantId').value;
+    if (!merchantId) {
+        showError('merchantDashboardResult', 'Please enter a merchant ID');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/merchant/${merchantId}/stats`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('merchantDashboardResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Merchant Dashboard - ${data.merchant.businessName}</h4>
+            <div class="transaction-item">
+                <h5>Account Information</h5>
+                <strong>Merchant ID:</strong> ${data.merchant.merchantId}<br>
+                <strong>Business Type:</strong> ${data.merchant.businessType}<br>
+                <strong>Wallet:</strong> ${data.merchant.walletAddress}<br>
+                <strong>Email:</strong> ${data.merchant.contactEmail}<br>
+                <strong>Status:</strong> ${data.merchant.isActive ? '✅ Active' : '❌ Inactive'}<br>
+                <strong>Registered:</strong> ${new Date(data.merchant.registeredAt).toLocaleString()}
+            </div>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                <h5>Payment Statistics</h5>
+                <strong>Total Payments:</strong> ${data.totalPayments}<br>
+                <strong>Confirmed:</strong> ${data.confirmedPayments}<br>
+                <strong>Pending:</strong> ${data.pendingPayments}<br>
+                <strong>Last 30 Days:</strong> ${data.recentPayments30Days} payments<br>
+                <strong>Revenue (30 Days):</strong> ${data.recentRevenue30DaysKENO.toFixed(2)} KENO ($${data.recentRevenue30DaysUSD.toFixed(2)})<br>
+                <strong>Average Payment:</strong> ${data.averagePaymentKENO.toFixed(2)} KENO
+            </div>
+        `;
+    } catch (error) {
+        showError('merchantDashboardResult', error.message);
+    }
+}
+
+async function viewAllMerchants() {
+    try {
+        const response = await fetch(`${API_BASE}/api/merchant/list/all`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('allMerchantsResult');
+        
+        if (!data.merchants || data.merchants.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No merchants registered yet.</p>';
+            return;
+        }
+        
+        let html = `<h4>All Registered Merchants (${data.count})</h4>`;
+        data.merchants.forEach(merchant => {
+            html += `
+                <div class="transaction-item">
+                    <strong>Business:</strong> ${merchant.businessName}<br>
+                    <strong>Merchant ID:</strong> ${merchant.merchantId}<br>
+                    <strong>Type:</strong> ${merchant.businessType}<br>
+                    <strong>Payments:</strong> ${merchant.paymentCount || 0}<br>
+                    <strong>Total Revenue:</strong> ${merchant.totalRevenueKENO?.toFixed(2) || 0} KENO<br>
+                    <strong>Status:</strong> ${merchant.isActive ? '✅ Active' : '❌ Inactive'}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('allMerchantsResult', error.message);
+    }
+}
+
+async function viewConversionRates() {
+    try {
+        const response = await fetch(`${API_BASE}/api/payment/conversion-rate`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('conversionRatesResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Current KENO Conversion Rates</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
+                <strong style="font-size: 1.2rem;">1 KENO = $${data.kenoToUSD.toFixed(4)} USD</strong><br>
+                <strong style="font-size: 1.2rem;">1 USD = ${data.usdToKENO.toFixed(4)} KENO</strong><br>
+                <p style="margin-top: 10px; color: #666;">
+                    💡 Rates are automatically applied when creating payment requests in USD
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('conversionRatesResult', error.message);
+    }
+}
+
+async function loadMarketData() {
+    try {
+        const response = await fetch(`${API_BASE}/api/exchange/markets/all`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('marketDataResult');
+        let html = '<h4>KENO Market Data</h4>';
+        
+        for (const [pair, marketData] of Object.entries(data.markets)) {
+            const priceClass = marketData.priceChange24h >= 0 ? 'price-up' : 'price-down';
+            const priceSymbol = marketData.priceChange24h >= 0 ? '▲' : '▼';
+            
+            html += `
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                    <strong style="font-size: 1.2rem;">${pair.replace('_', '/')}</strong><br>
+                    <strong>Last Price:</strong> ${marketData.lastPrice.toFixed(8)}<br>
+                    <strong>24h Change:</strong> <span class="${priceClass}">${priceSymbol} ${marketData.priceChangePercent24h.toFixed(2)}%</span><br>
+                    <strong>24h High:</strong> ${marketData.high24h.toFixed(8)}<br>
+                    <strong>24h Low:</strong> ${marketData.low24h.toFixed(8)}<br>
+                    <strong>24h Volume:</strong> ${marketData.volume24h.toFixed(2)} KENO
+                </div>
+            `;
+        }
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('marketDataResult', error.message);
+    }
+}
+
+async function loadOrderBook() {
+    const pair = document.getElementById('orderBookPair').value;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/exchange/orderbook/${pair}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('orderBookResult');
+        let html = `<h4>Order Book - ${pair.replace('_', '/')}</h4>`;
+        
+        html += '<div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;"><h5>Bids (Buy Orders)</h5>';
+        if (data.bids && data.bids.length > 0) {
+            data.bids.slice(0, 10).forEach(bid => {
+                html += `<div>Price: ${bid.price.toFixed(8)} | Quantity: ${bid.quantity.toFixed(4)} KENO</div>`;
+            });
+        } else {
+            html += '<p>No buy orders</p>';
+        }
+        html += '</div>';
+        
+        html += '<div class="transaction-item" style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)); border-left: 4px solid #e74c3c;"><h5>Asks (Sell Orders)</h5>';
+        if (data.asks && data.asks.length > 0) {
+            data.asks.slice(0, 10).forEach(ask => {
+                html += `<div>Price: ${ask.price.toFixed(8)} | Quantity: ${ask.quantity.toFixed(4)} KENO</div>`;
+            });
+        } else {
+            html += '<p>No sell orders</p>';
+        }
+        html += '</div>';
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('orderBookResult', error.message);
+    }
+}
+
+async function placeOrder() {
+    const userAddress = document.getElementById('tradeWalletAddress').value;
+    const pair = document.getElementById('tradePair').value;
+    const side = document.getElementById('tradeSide').value;
+    const orderType = document.getElementById('tradeOrderType').value;
+    const quantity = parseFloat(document.getElementById('tradeQuantity').value);
+    const price = orderType === 'limit' ? parseFloat(document.getElementById('tradePrice').value) : null;
+    const privateKey = document.getElementById('tradePrivateKey').value;
+    
+    if (!userAddress || !quantity || !privateKey) {
+        showError('placeOrderResult', 'Please fill in all required fields');
+        return;
+    }
+    
+    if (orderType === 'limit' && !price) {
+        showError('placeOrderResult', 'Please enter a limit price');
+        return;
+    }
+    
+    try {
+        const timestamp = Date.now();
+        const orderData = userAddress + pair + side + orderType + quantity + (price || 0) + timestamp;
+        const hash = CryptoJS.SHA256(orderData).toString();
+        
+        const keyPair = ec.keyFromPrivate(privateKey, 'hex');
+        const signature = keyPair.sign(hash, 'hex').toDER('hex');
+        
+        const response = await fetch(`${API_BASE}/api/exchange/order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userAddress,
+                pair,
+                side,
+                orderType,
+                quantity,
+                price,
+                signature,
+                timestamp
+            })
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('placeOrderResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Order Placed Successfully!</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                <strong>Order ID:</strong> ${data.order.orderId}<br>
+                <strong>Pair:</strong> ${data.order.pair.replace('_', '/')}<br>
+                <strong>Side:</strong> ${data.order.side.toUpperCase()}<br>
+                <strong>Type:</strong> ${data.order.orderType}<br>
+                <strong>Quantity:</strong> ${data.order.quantity} KENO<br>
+                ${data.order.price ? `<strong>Price:</strong> ${data.order.price}<br>` : ''}
+                <strong>Status:</strong> ${data.order.status.toUpperCase()}<br>
+                <strong>Filled:</strong> ${data.order.filledQuantity} KENO<br>
+                <p style="margin-top: 10px; color: #3498db; font-weight: 600;">
+                    📊 Your order is ${data.order.status === 'open' ? 'live on the order book' : data.order.status}!
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('placeOrderResult', error.message);
+    }
+}
+
+async function loadRecentTrades() {
+    const pair = document.getElementById('tradesPair').value;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/exchange/trades/${pair}?limit=20`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('recentTradesResult');
+        
+        if (!data.trades || data.trades.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = `<p>No trades yet for ${pair.replace('_', '/')}</p>`;
+            return;
+        }
+        
+        let html = `<h4>Recent Trades - ${pair.replace('_', '/')} (${data.count})</h4>`;
+        data.trades.forEach(trade => {
+            html += `
+                <div class="transaction-item">
+                    <strong>Price:</strong> ${trade.price.toFixed(8)}<br>
+                    <strong>Quantity:</strong> ${trade.quantity.toFixed(4)} KENO<br>
+                    <strong>Total:</strong> ${trade.total.toFixed(8)}<br>
+                    <strong>Time:</strong> ${new Date(trade.timestamp).toLocaleTimeString()}<br>
+                    <strong>Trade ID:</strong> ${trade.tradeId}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('recentTradesResult', error.message);
+    }
+}
+
+async function loadUserOrders() {
+    const userAddress = document.getElementById('userOrdersAddress').value;
+    if (!userAddress) {
+        showError('userOrdersResult', 'Please enter your wallet address');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/exchange/orders/${userAddress}?status=open`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('userOrdersResult');
+        
+        if (!data.orders || data.orders.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No open orders found</p>';
+            return;
+        }
+        
+        let html = `<h4>Your Open Orders (${data.count})</h4>`;
+        data.orders.forEach(order => {
+            html += `
+                <div class="transaction-item">
+                    <strong>Order ID:</strong> ${order.orderId}<br>
+                    <strong>Pair:</strong> ${order.pair.replace('_', '/')}<br>
+                    <strong>Side:</strong> ${order.side.toUpperCase()}<br>
+                    <strong>Price:</strong> ${order.price?.toFixed(8) || 'Market'}<br>
+                    <strong>Quantity:</strong> ${order.quantity} KENO<br>
+                    <strong>Filled:</strong> ${order.filledQuantity} KENO<br>
+                    <strong>Remaining:</strong> ${order.remainingQuantity} KENO<br>
+                    <strong>Status:</strong> ${order.status.toUpperCase()}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('userOrdersResult', error.message);
+    }
+}
+
+async function viewTradingPairs() {
+    try {
+        const response = await fetch(`${API_BASE}/api/exchange/pairs`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('tradingPairsResult');
+        let html = '<h4>Available Trading Pairs</h4>';
+        
+        data.pairs.forEach(pair => {
+            html += `
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
+                    <strong style="font-size: 1.1rem;">${pair.baseAsset}/${pair.quoteAsset}</strong><br>
+                    <strong>Min Order Size:</strong> ${pair.minOrderSize}<br>
+                    <strong>Max Order Size:</strong> ${pair.maxOrderSize.toLocaleString()}<br>
+                    <strong>Trading Fee:</strong> ${(pair.tradingFee * 100).toFixed(2)}%<br>
+                    <strong>Status:</strong> ${pair.isActive ? '✅ Active' : '❌ Inactive'}
+                </div>
+            `;
+        });
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('tradingPairsResult', error.message);
+    }
+}
+
+function togglePriceField() {
+    const orderType = document.getElementById('tradeOrderType').value;
+    const priceField = document.getElementById('tradePriceField');
+    priceField.style.display = orderType === 'limit' ? 'block' : 'none';
+}

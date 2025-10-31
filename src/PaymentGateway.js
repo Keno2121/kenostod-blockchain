@@ -91,6 +91,10 @@ class PaymentGateway {
             throw new Error('Payment request expired');
         }
         
+        if (!transaction.isValid()) {
+            throw new Error('Invalid transaction signature');
+        }
+        
         if (transaction.toAddress !== paymentRequest.merchantWallet) {
             throw new Error('Payment sent to wrong address');
         }
@@ -99,9 +103,18 @@ class PaymentGateway {
             throw new Error('Insufficient payment amount');
         }
         
+        const txHash = transaction.calculateHash();
+        const isInChain = this.blockchain.chain.some(block => 
+            block.transactions.some(tx => tx.calculateHash && tx.calculateHash() === txHash)
+        );
+        
+        if (!isInChain) {
+            throw new Error('Transaction must be confirmed (mined into a block) before payment can be completed. Please wait for the transaction to be mined.');
+        }
+        
         paymentRequest.status = 'completed';
         paymentRequest.completedAt = Date.now();
-        paymentRequest.transactionHash = transaction.hash;
+        paymentRequest.transactionHash = txHash;
         paymentRequest.customerWallet = transaction.fromAddress;
         
         const payment = this.merchantAccount.recordPayment(paymentRequest.merchantId, {

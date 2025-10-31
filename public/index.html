@@ -159,6 +159,8 @@
             <button class="tab-btn" onclick="openTab(this, 'rvtPortfolio')">💎 RVT Portfolio</button>
             <button class="tab-btn" onclick="openTab(this, 'enterprise')">🏢 Enterprise</button>
             <button class="tab-btn" onclick="openTab(this, 'royaltyTracker')">📊 Royalty Tracker</button>
+            <button class="tab-btn" onclick="openTab(this, 'merchant')">💳 Merchant</button>
+            <button class="tab-btn" onclick="openTab(this, 'exchange')">📈 Exchange</button>
             <button class="tab-btn" onclick="openTab(this, 'explorer')">🔍 Explorer</button>
         </div>
 
@@ -467,6 +469,184 @@
                 </div>
                 <button onclick="mineBlock()" class="btn btn-primary">Start Mining</button>
                 <div id="miningResult" class="result"></div>
+            </div>
+        </div>
+
+        <div id="merchant" class="tab-content">
+            <h2>💳 Merchant Payment Gateway</h2>
+            <p class="tab-description">Accept KENO payments for your business with QR codes, invoices, and automatic conversion rates</p>
+            
+            <div class="section">
+                <h3>Register Merchant Account</h3>
+                <div class="form-group">
+                    <label>Business Name:</label>
+                    <input type="text" id="merchantBusinessName" placeholder="Your business name" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Wallet Address:</label>
+                    <input type="text" id="merchantWalletAddress" placeholder="Address to receive payments" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Contact Email:</label>
+                    <input type="email" id="merchantEmail" placeholder="business@example.com" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Business Type:</label>
+                    <select id="merchantBusinessType" class="input-field">
+                        <option value="retail">Retail</option>
+                        <option value="ecommerce">E-Commerce</option>
+                        <option value="services">Services</option>
+                        <option value="saas">SaaS</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button onclick="registerMerchant()" class="btn btn-primary">Register Merchant</button>
+                <div id="merchantRegisterResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>Create Payment Request</h3>
+                <p>Generate a payment link and QR code for customers</p>
+                <div class="form-group">
+                    <label>Merchant ID:</label>
+                    <input type="text" id="paymentMerchantId" placeholder="Your merchant ID" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Amount:</label>
+                    <input type="number" id="paymentAmount" placeholder="Amount" class="input-field" min="0.01" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Currency:</label>
+                    <select id="paymentCurrency" class="input-field">
+                        <option value="USD">USD</option>
+                        <option value="KENO">KENO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <input type="text" id="paymentDescription" placeholder="Product or service description" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Customer Email (Optional):</label>
+                    <input type="email" id="paymentCustomerEmail" placeholder="customer@example.com" class="input-field">
+                </div>
+                <button onclick="createPaymentRequest()" class="btn btn-primary">Create Payment Request</button>
+                <div id="paymentRequestResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>Merchant Dashboard</h3>
+                <input type="text" id="viewMerchantId" placeholder="Merchant ID" class="input-field">
+                <button onclick="viewMerchantStats()" class="btn btn-secondary">View Dashboard</button>
+                <div id="merchantDashboardResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>View All Merchants</h3>
+                <button onclick="viewAllMerchants()" class="btn btn-secondary">View All Merchants</button>
+                <div id="allMerchantsResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>KENO Conversion Rates</h3>
+                <button onclick="viewConversionRates()" class="btn btn-secondary">View Current Rates</button>
+                <div id="conversionRatesResult" class="result"></div>
+            </div>
+        </div>
+
+        <div id="exchange" class="tab-content">
+            <h2>📈 KENO Exchange & Trading</h2>
+            <p class="tab-description">Trade KENO with USD, BTC, and ETH. Place orders and view live market data</p>
+            
+            <div class="section">
+                <h3>Market Overview</h3>
+                <button onclick="loadMarketData()" class="btn btn-primary">Load Market Data</button>
+                <div id="marketDataResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>Order Book</h3>
+                <div class="form-group">
+                    <label>Trading Pair:</label>
+                    <select id="orderBookPair" class="input-field">
+                        <option value="KENO_USD">KENO/USD</option>
+                        <option value="KENO_BTC">KENO/BTC</option>
+                        <option value="KENO_ETH">KENO/ETH</option>
+                    </select>
+                </div>
+                <button onclick="loadOrderBook()" class="btn btn-primary">Load Order Book</button>
+                <div id="orderBookResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>Place Order</h3>
+                <div class="form-group">
+                    <label>Wallet Address:</label>
+                    <input type="text" id="tradeWalletAddress" placeholder="Your wallet address" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Trading Pair:</label>
+                    <select id="tradePair" class="input-field">
+                        <option value="KENO_USD">KENO/USD</option>
+                        <option value="KENO_BTC">KENO/BTC</option>
+                        <option value="KENO_ETH">KENO/ETH</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Side:</label>
+                    <select id="tradeSide" class="input-field">
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Order Type:</label>
+                    <select id="tradeOrderType" class="input-field" onchange="togglePriceField()">
+                        <option value="market">Market Order</option>
+                        <option value="limit">Limit Order</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity (KENO):</label>
+                    <input type="number" id="tradeQuantity" placeholder="Amount to trade" class="input-field" min="0.001" step="0.001">
+                </div>
+                <div class="form-group" id="tradePriceField" style="display:none;">
+                    <label>Price:</label>
+                    <input type="number" id="tradePrice" placeholder="Limit price" class="input-field" min="0.001" step="0.001">
+                </div>
+                <div class="form-group">
+                    <label>Private Key:</label>
+                    <input type="password" id="tradePrivateKey" placeholder="Your private key to sign order" class="input-field">
+                </div>
+                <button onclick="placeOrder()" class="btn btn-primary">Place Order</button>
+                <div id="placeOrderResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>Recent Trades</h3>
+                <div class="form-group">
+                    <label>Trading Pair:</label>
+                    <select id="tradesPair" class="input-field">
+                        <option value="KENO_USD">KENO/USD</option>
+                        <option value="KENO_BTC">KENO/BTC</option>
+                        <option value="KENO_ETH">KENO/ETH</option>
+                    </select>
+                </div>
+                <button onclick="loadRecentTrades()" class="btn btn-primary">Load Trades</button>
+                <div id="recentTradesResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>Your Open Orders</h3>
+                <input type="text" id="userOrdersAddress" placeholder="Your wallet address" class="input-field">
+                <button onclick="loadUserOrders()" class="btn btn-secondary">View My Orders</button>
+                <div id="userOrdersResult" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>Trading Pairs</h3>
+                <button onclick="viewTradingPairs()" class="btn btn-secondary">View All Pairs</button>
+                <div id="tradingPairsResult" class="result"></div>
             </div>
         </div>
 

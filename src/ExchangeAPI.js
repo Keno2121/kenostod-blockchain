@@ -80,8 +80,31 @@ class ExchangeAPI {
             orderType, // 'market' or 'limit'
             quantity,
             price,
-            signature
+            signature,
+            timestamp
         } = orderDetails;
+        
+        if (!signature || !timestamp) {
+            throw new Error('Order signature and timestamp required');
+        }
+        
+        const CryptoJS = require('crypto-js');
+        const EC = require('elliptic').ec;
+        const ec = new EC('secp256k1');
+        
+        try {
+            const orderData = userAddress + pair + side + orderType + quantity + (price || 0) + timestamp;
+            const hash = CryptoJS.SHA256(orderData).toString();
+            
+            const publicKey = ec.keyFromPublic(userAddress, 'hex');
+            const isValid = publicKey.verify(hash, signature);
+            
+            if (!isValid) {
+                throw new Error('Invalid order signature');
+            }
+        } catch (error) {
+            throw new Error('Order signature verification failed: ' + error.message);
+        }
         
         if (!this.tradingPairs.has(pair)) {
             throw new Error('Invalid trading pair');
