@@ -9,6 +9,9 @@ const ComputationalJob = require('./ComputationalJob');
 const RoyaltyPool = require('./RoyaltyPool');
 const BuyAndBurn = require('./BuyAndBurn');
 const { EnterpriseClientManager } = require('./EnterpriseClient');
+const MerchantAccount = require('./MerchantAccount');
+const PaymentGateway = require('./PaymentGateway');
+const ExchangeAPI = require('./ExchangeAPI');
 
 class Blockchain {
     constructor() {
@@ -30,6 +33,10 @@ class Blockchain {
         this.computationalJobs = new Map();
         this.residualValueTokens = new Map();
         this.porvEnabled = true;
+        
+        this.merchantAccount = new MerchantAccount();
+        this.paymentGateway = new PaymentGateway(this, this.merchantAccount);
+        this.exchangeAPI = new ExchangeAPI(this);
     }
 
     createGenesisBlock() {

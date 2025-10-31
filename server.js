@@ -1015,6 +1015,297 @@ app.get('/api/porv/royalty/:rvtId', (req, res) => {
 
 // ==================== END PoRV ENDPOINTS ====================
 
+// ==================== PAYMENT GATEWAY ENDPOINTS ====================
+
+// Register merchant
+app.post('/api/merchant/register', (req, res) => {
+    try {
+        const { businessName, walletAddress, contactEmail, businessType } = req.body;
+        const merchant = kenostodChain.merchantAccount.registerMerchant(businessName, walletAddress, contactEmail, businessType);
+        res.json({ success: true, merchant });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get merchant details
+app.get('/api/merchant/:merchantId', (req, res) => {
+    try {
+        const merchant = kenostodChain.merchantAccount.getMerchant(req.params.merchantId);
+        if (!merchant) {
+            return res.status(404).json({ error: 'Merchant not found' });
+        }
+        res.json({ merchant });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get all merchants
+app.get('/api/merchant/list/all', (req, res) => {
+    try {
+        const merchants = kenostodChain.merchantAccount.getAllMerchants();
+        res.json({ merchants, count: merchants.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get merchant statistics
+app.get('/api/merchant/:merchantId/stats', (req, res) => {
+    try {
+        const stats = kenostodChain.merchantAccount.getMerchantStats(req.params.merchantId);
+        res.json(stats);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Update merchant settings
+app.put('/api/merchant/:merchantId/settings', (req, res) => {
+    try {
+        const merchant = kenostodChain.merchantAccount.updateMerchantSettings(req.params.merchantId, req.body);
+        res.json({ success: true, merchant });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create payment request
+app.post('/api/payment/request', (req, res) => {
+    try {
+        const paymentRequest = kenostodChain.paymentGateway.createPaymentRequest(req.body.merchantId, req.body);
+        res.json({ success: true, paymentRequest });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get payment request
+app.get('/api/payment/request/:paymentRequestId', (req, res) => {
+    try {
+        const paymentRequest = kenostodChain.paymentGateway.getPaymentRequest(req.params.paymentRequestId);
+        if (!paymentRequest) {
+            return res.status(404).json({ error: 'Payment request not found' });
+        }
+        res.json({ paymentRequest });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Process payment
+app.post('/api/payment/process', (req, res) => {
+    try {
+        const { paymentRequestId, signedTransaction } = req.body;
+        
+        const transaction = new Transaction(
+            signedTransaction.fromAddress,
+            signedTransaction.toAddress,
+            signedTransaction.amount,
+            signedTransaction.fee,
+            signedTransaction.message,
+            signedTransaction.signature
+        );
+        transaction.timestamp = signedTransaction.timestamp;
+        
+        if (!transaction.isValid()) {
+            return res.status(400).json({ error: 'Invalid transaction signature' });
+        }
+        
+        kenostodChain.createTransaction(transaction);
+        
+        const result = kenostodChain.paymentGateway.processPayment(paymentRequestId, transaction);
+        
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create invoice
+app.post('/api/payment/invoice', (req, res) => {
+    try {
+        const { merchantId, ...invoiceDetails } = req.body;
+        const invoice = kenostodChain.paymentGateway.createInvoice(merchantId, invoiceDetails);
+        res.json({ success: true, invoice });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get invoice
+app.get('/api/payment/invoice/:invoiceId', (req, res) => {
+    try {
+        const invoice = kenostodChain.paymentGateway.getInvoice(req.params.invoiceId);
+        if (!invoice) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+        res.json({ invoice });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Pay invoice
+app.post('/api/payment/invoice/:invoiceId/pay', (req, res) => {
+    try {
+        const result = kenostodChain.paymentGateway.payInvoice(req.params.invoiceId);
+        res.json({ success: true, ...result });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get conversion rate
+app.get('/api/payment/conversion-rate', (req, res) => {
+    try {
+        const rate = kenostodChain.merchantAccount.conversionRate;
+        res.json({ kenoToUSD: rate, usdToKENO: 1 / rate });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END PAYMENT GATEWAY ENDPOINTS ====================
+
+// ==================== EXCHANGE API ENDPOINTS ====================
+
+// Get trading pairs
+app.get('/api/exchange/pairs', (req, res) => {
+    try {
+        const pairs = kenostodChain.exchangeAPI.getTradingPairs();
+        res.json({ pairs });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get market data
+app.get('/api/exchange/market/:pair?', (req, res) => {
+    try {
+        const pair = req.params.pair || 'KENO_USD';
+        const marketData = kenostodChain.exchangeAPI.getMarketData(pair);
+        if (!marketData) {
+            return res.status(404).json({ error: 'Trading pair not found' });
+        }
+        res.json({ pair, ...marketData });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get all market data
+app.get('/api/exchange/markets/all', (req, res) => {
+    try {
+        const marketData = kenostodChain.exchangeAPI.getAllMarketData();
+        res.json({ markets: marketData });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get order book
+app.get('/api/exchange/orderbook/:pair?', (req, res) => {
+    try {
+        const pair = req.params.pair || 'KENO_USD';
+        const depth = parseInt(req.query.depth) || 20;
+        const orderBook = kenostodChain.exchangeAPI.getOrderBook(pair, depth);
+        res.json(orderBook);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create order
+app.post('/api/exchange/order', (req, res) => {
+    try {
+        const order = kenostodChain.exchangeAPI.createOrder(req.body);
+        res.json({ success: true, order });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Cancel order
+app.delete('/api/exchange/order/:orderId', (req, res) => {
+    try {
+        const { userAddress } = req.body;
+        const order = kenostodChain.exchangeAPI.cancelOrder(req.params.orderId, userAddress);
+        res.json({ success: true, order });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get user orders
+app.get('/api/exchange/orders/:userAddress', (req, res) => {
+    try {
+        const status = req.query.status || null;
+        const orders = kenostodChain.exchangeAPI.getUserOrders(req.params.userAddress, status);
+        res.json({ orders, count: orders.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get recent trades
+app.get('/api/exchange/trades/:pair?', (req, res) => {
+    try {
+        const pair = req.params.pair || 'KENO_USD';
+        const limit = parseInt(req.query.limit) || 50;
+        const trades = kenostodChain.exchangeAPI.getRecentTrades(pair, limit);
+        res.json({ pair, trades, count: trades.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get user trades
+app.get('/api/exchange/trades/user/:userAddress', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 50;
+        const trades = kenostodChain.exchangeAPI.getUserTrades(req.params.userAddress, limit);
+        res.json({ trades, count: trades.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get ticker data
+app.get('/api/exchange/ticker/:pair?', (req, res) => {
+    try {
+        const pair = req.params.pair || 'KENO_USD';
+        const ticker = kenostodChain.exchangeAPI.getTickerData(pair);
+        res.json(ticker);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create deposit address
+app.post('/api/exchange/deposit/address', (req, res) => {
+    try {
+        const { userAddress } = req.body;
+        const depositAddress = kenostodChain.exchangeAPI.createDepositAddress(userAddress);
+        res.json({ success: true, depositAddress });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Process withdrawal
+app.post('/api/exchange/withdrawal', (req, res) => {
+    try {
+        const withdrawal = kenostodChain.exchangeAPI.processWithdrawal(req.body);
+        res.json({ success: true, withdrawal });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END EXCHANGE API ENDPOINTS ====================
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
