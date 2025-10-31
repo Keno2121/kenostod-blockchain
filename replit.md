@@ -4,9 +4,21 @@ Kenostod is a revolutionary Node.js blockchain implementation featuring a native
 
 **PoRV Innovation**: Unlike traditional mining that wastes energy on meaningless hash calculations, Kenostod miners perform high-value AI/ML work for enterprise clients and receive Residual Value Tokens (RVTs) that generate perpetual royalty income from commercial usage. The system includes automated royalty distribution (50% miners, 40% token burn, 10% treasury) and a buy-and-burn deflation mechanism.
 
-The project includes a complete blockchain system with dual consensus modes (PoW/PoRV), wallet functionality, advanced transaction processing, and a professional, market-ready web interface with 45+ REST API endpoints. Kenostod is positioned as the first blockchain built for real people AND real economic value, with features that Bitcoin, Ethereum, and Solana don't have.
+The project includes a complete blockchain system with dual consensus modes (PoW/PoRV), wallet functionality, advanced transaction processing, merchant payment gateway, exchange trading platform, and a professional, market-ready web interface with 75+ REST API endpoints. Kenostod is positioned as the first blockchain built for real people AND real economic value, with features that Bitcoin, Ethereum, and Solana don't have.
 
 # Recent Changes (Latest Updates)
+
+**Date: October 31, 2025 - Payment Gateway & Exchange Launch**
+- **Merchant Payment Gateway**: Complete payment processing system allowing businesses to accept KENO payments for real-world purchases with QR codes, invoices, and automatic USD/KENO conversion
+- **Exchange Trading Platform**: Full order book system with market and limit orders across three trading pairs (KENO/USD, KENO/BTC, KENO/ETH)
+- **Security Architecture**: Production-grade security with confirmed transaction requirements (payments only complete after mining), cryptographic signature verification for all orders, and comprehensive validation preventing spoofing attacks
+- **30+ New API Endpoints**: Merchant registration, payment requests, invoice management, order book, trade execution, market data, deposit/withdrawal
+- **2 New UI Tabs**: Merchant Dashboard (💳) for businesses and Exchange (📈) for traders with complete functionality
+- **QR Code Support**: Automatic kenostod:// protocol URI generation for point-of-sale transactions
+- **Conversion Rates**: Real-time KENO/USD conversion with automatic application in payment requests (1 KENO = $0.50 USD initial rate)
+- **Merchant Analytics**: 30-day revenue tracking, payment statistics, average payment calculations, and business dashboards
+- **Market Data**: 24-hour high/low tracking, volume monitoring, price change percentages for all trading pairs
+- **Order Book Management**: Bid/ask aggregation, depth visualization, automatic order matching, partial fill support
 
 **Date: October 30, 2025 - PoRV Consensus Launch**
 - **Proof-of-Residual-Value (PoRV) Consensus**: Implemented world's first mining system where miners perform valuable AI/ML computations for enterprise clients instead of wasteful hashing
@@ -71,10 +83,35 @@ World's first mining system that generates real economic value instead of wastin
 4. **Royalty Payments**: Client pays royalties via signed transaction → automatic 50/40/10 distribution
 5. **Token Burns**: 40% of royalties permanently burned → total supply decreases → scarcity increases
 
+## Payment Gateway & Exchange
+**Merchant Payment System**:
+- Merchant account registration with API key generation
+- Payment request creation with QR codes (kenostod:// protocol URIs)
+- Invoice generation and management
+- Automatic KENO/USD conversion (configurable rates)
+- Payment confirmation requiring mined transactions (anti-spoofing)
+- 30-day analytics and revenue tracking
+- Merchant dashboards with payment statistics
+
+**Exchange Trading Platform**:
+- Three trading pairs: KENO/USD, KENO/BTC, KENO/ETH
+- Full order book with bid/ask aggregation
+- Market orders (instant execution) and limit orders
+- Cryptographic order signature verification
+- Trade history and user order tracking
+- Market data with 24h high/low/volume
+- Deposit address generation and withdrawal processing
+
+**Security Model**:
+- Payments require confirmed (mined) transactions, preventing cancellation attacks
+- All orders cryptographically signed with timestamp verification
+- Public key verification prevents unauthorized order placement
+- Multi-layer validation: signature, address, amount, expiration, confirmation status
+
 ## API Layer
-- **Modern Web Interface**: Tabbed UI (Wallet, Send KENO, Scheduled Payments, Social Recovery, Reputation, Governance, Mining, Explorer) with client-side transaction signing using elliptic.js.
+- **Modern Web Interface**: Tabbed UI (Wallet, Send KENO, Scheduled Payments, Social Recovery, Reputation, Governance, Mining, PoRV Mining, RVT Portfolio, Enterprise, Royalty Tracker, Merchant, Exchange, Explorer) with client-side transaction signing using elliptic.js.
 - **Live Crypto Ticker**: Fixed-position scrolling ticker displaying real-time Kenostod network stats, recent transactions, and crypto market data with auto-refresh every 30 seconds.
-- **REST API Server**: Express.js server (port 5000, CORS enabled) providing 30+ endpoints for blockchain data, transactions, scheduled payments, social recovery, reputation, governance, mining, and crypto market data.
+- **REST API Server**: Express.js server (port 5000, CORS enabled) providing 75+ endpoints for blockchain data, transactions, scheduled payments, social recovery, reputation, governance, mining, PoRV, payment gateway, exchange, and crypto market data.
 - **Automated Schedulers**: Background services for scheduled transaction processing (30s), social recovery cleanup (hourly), and governance proposal checking (hourly).
 
 ## Security Model
