@@ -126,6 +126,69 @@ app.post('/api/mine', (req, res) => {
     }
 });
 
+// ⚠️ DEVELOPMENT ONLY - Bulk mine multiple blocks to generate initial token supply
+// This endpoint is DISABLED in production to prevent tokenomics manipulation
+app.post('/api/mining/bulk-mine', (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ 
+            error: 'Bulk mining is disabled in production for security reasons',
+            message: 'This endpoint could manipulate tokenomics and is only for development/testing',
+            alternative: 'Use /api/mine to mine blocks individually'
+        });
+    }
+    
+    try {
+        const { minerAddress, numberOfBlocks } = req.body;
+        
+        if (!minerAddress) {
+            return res.status(400).json({ error: 'Miner address is required' });
+        }
+        
+        if (!numberOfBlocks || numberOfBlocks < 1) {
+            return res.status(400).json({ error: 'Number of blocks must be at least 1' });
+        }
+        
+        // Safety limit to prevent crashes
+        if (numberOfBlocks > 200000) {
+            return res.status(400).json({ error: 'Cannot mine more than 200,000 blocks at once' });
+        }
+        
+        console.log(`⚠️  BULK MINING: Creating ${numberOfBlocks} blocks for ${minerAddress}...`);
+        const startTime = Date.now();
+        const startingHeight = kenostodChain.chain.length;
+        const startingBalance = kenostodChain.getBalanceOfAddress(minerAddress);
+        
+        // Mine blocks in batches
+        for (let i = 0; i < numberOfBlocks; i++) {
+            kenostodChain.minePendingTransactions(minerAddress);
+            
+            // Progress logging every 10,000 blocks
+            if ((i + 1) % 10000 === 0) {
+                console.log(`  Progress: ${i + 1}/${numberOfBlocks} blocks mined...`);
+            }
+        }
+        
+        const endTime = Date.now();
+        const finalBalance = kenostodChain.getBalanceOfAddress(minerAddress);
+        const tokensCreated = finalBalance - startingBalance;
+        
+        console.log(`✅ Bulk mining completed: ${numberOfBlocks} blocks in ${((endTime - startTime) / 1000).toFixed(2)}s`);
+        console.log(`   Tokens created: ${tokensCreated} KENO`);
+        
+        res.json({
+            message: `⚠️ DEVELOPMENT ONLY: ${numberOfBlocks} blocks mined successfully`,
+            tokensCreated: tokensCreated,
+            minerBalance: finalBalance,
+            blockHeight: kenostodChain.chain.length,
+            blocksAdded: kenostodChain.chain.length - startingHeight,
+            timeTaken: `${((endTime - startTime) / 1000).toFixed(2)} seconds`,
+            warning: 'This endpoint is disabled in production to protect tokenomics'
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Create a new wallet
 app.post('/api/wallet/create', (req, res) => {
     const newWallet = new Wallet();
