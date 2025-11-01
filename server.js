@@ -16,6 +16,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Serve robots.txt and sitemap.xml for SEO
+app.get('/robots.txt', (req, res) => {
+    res.sendFile(__dirname + '/public/robots.txt');
+});
+
+app.get('/sitemap.xml', (req, res) => {
+    res.sendFile(__dirname + '/public/sitemap.xml');
+});
+
 // Initialize blockchain
 const kenostodChain = new Blockchain();
 
