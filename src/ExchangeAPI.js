@@ -1,8 +1,9 @@
 const crypto = require('crypto');
 
 class ExchangeAPI {
-    constructor(blockchain) {
+    constructor(blockchain, bankingAPI = null) {
         this.blockchain = blockchain;
+        this.bankingAPI = bankingAPI;
         this.orderBook = {
             bids: [], // Buy orders
             asks: []  // Sell orders
@@ -38,11 +39,50 @@ class ExchangeAPI {
         
         this.initializeTradingPairs();
     }
+    
+    setBankingAPI(bankingAPI) {
+        this.bankingAPI = bankingAPI;
+    }
 
     initializeTradingPairs() {
         this.addTradingPair('KENO', 'USD', 0.001, 1000000);
         this.addTradingPair('KENO', 'BTC', 0.00000001, 10);
         this.addTradingPair('KENO', 'ETH', 0.0000001, 100);
+        this.seedOrderBook();
+    }
+    
+    seedOrderBook() {
+        const marketMakerAddress = '04' + 'a'.repeat(128);
+        
+        const buyOrders = [
+            { pair: 'KENO_USD', price: 0.50, quantity: 10000 },
+            { pair: 'KENO_USD', price: 0.49, quantity: 15000 },
+            { pair: 'KENO_USD', price: 0.48, quantity: 20000 },
+            { pair: 'KENO_USD', price: 0.47, quantity: 25000 },
+            { pair: 'KENO_USD', price: 0.46, quantity: 30000 }
+        ];
+        
+        buyOrders.forEach(orderData => {
+            const order = {
+                orderId: 'ORD_SEED_' + crypto.randomBytes(8).toString('hex'),
+                userAddress: marketMakerAddress,
+                pair: orderData.pair,
+                side: 'buy',
+                orderType: 'limit',
+                quantity: orderData.quantity,
+                price: orderData.price,
+                filledQuantity: 0,
+                remainingQuantity: orderData.quantity,
+                status: 'open',
+                createdAt: Date.now(),
+                signature: 'SEED_ORDER'
+            };
+            this.orderBook.bids.push(order);
+        });
+        
+        this.orderBook.bids.sort((a, b) => b.price - a.price);
+        
+        console.log(`📊 Exchange initialized with ${buyOrders.length} market maker buy orders`);
     }
 
     addTradingPair(baseAsset, quoteAsset, minOrderSize, maxOrderSize) {
@@ -204,6 +244,21 @@ class ExchangeAPI {
         if (this.marketData[pair]) {
             this.marketData[pair].lastPrice = price;
             this.marketData[pair].volume24h += quantity;
+        }
+        
+        if (this.bankingAPI && pair.endsWith('_USD')) {
+            const totalUSD = quantity * price;
+            const fee = totalUSD * 0.001;
+            const netUSD = totalUSD - fee;
+            
+            const currentSellerBalance = this.bankingAPI.fiatBalances.get(sellOrder.userAddress) || 0;
+            this.bankingAPI.fiatBalances.set(sellOrder.userAddress, currentSellerBalance + netUSD);
+            
+            const currentBuyerBalance = this.bankingAPI.fiatBalances.get(buyOrder.userAddress) || 0;
+            this.bankingAPI.fiatBalances.set(buyOrder.userAddress, currentBuyerBalance - totalUSD);
+            
+            console.log(`💱 Trade executed: ${sellOrder.userAddress.substring(0, 10)}... sold ${quantity} KENO for $${netUSD.toFixed(2)} (fee: $${fee.toFixed(2)})`);
+            console.log(`   Seller USD balance: $${currentSellerBalance.toFixed(2)} → $${(currentSellerBalance + netUSD).toFixed(2)}`);
         }
         
         return trade;

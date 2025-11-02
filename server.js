@@ -62,6 +62,9 @@ const paypalIntegration = new PayPalIntegration();
 // Initialize merchant incentives
 const merchantIncentives = new MerchantIncentives(kenostodChain);
 
+// Connect banking API to exchange
+kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
+
 // Connect merchant incentives to payment gateway
 kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
 
