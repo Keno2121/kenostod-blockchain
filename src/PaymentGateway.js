@@ -1,9 +1,10 @@
 const crypto = require('crypto');
 
 class PaymentGateway {
-    constructor(blockchain, merchantAccount) {
+    constructor(blockchain, merchantAccount, merchantIncentives = null) {
         this.blockchain = blockchain;
         this.merchantAccount = merchantAccount;
+        this.merchantIncentives = merchantIncentives;
         this.paymentRequests = new Map();
         this.invoices = [];
     }
@@ -129,10 +130,24 @@ class PaymentGateway {
             metadata: paymentRequest.metadata
         });
         
+        let cashbackResult = null;
+        if (this.merchantIncentives) {
+            try {
+                cashbackResult = this.merchantIncentives.applyCashback(
+                    paymentRequest.merchantId,
+                    paymentRequest.amountKENO
+                );
+                console.log(`💰 Cashback applied: ${cashbackResult.cashback} KENO (${(cashbackResult.cashbackRate * 100).toFixed(1)}%)`);
+            } catch (error) {
+                console.error('Error applying cashback:', error.message);
+            }
+        }
+        
         return {
             paymentRequest,
             payment,
-            transaction
+            transaction,
+            cashback: cashbackResult
         };
     }
 

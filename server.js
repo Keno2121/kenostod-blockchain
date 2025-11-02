@@ -8,6 +8,7 @@ const Wallet = require('./src/Wallet');
 const BankingAPI = require('./src/BankingAPI');
 const StripeIntegration = require('./src/StripeIntegration');
 const PayPalIntegration = require('./src/PayPalIntegration');
+const MerchantIncentives = require('./src/MerchantIncentives');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -40,6 +41,12 @@ const wallet2 = new Wallet();
 const bankingAPI = new BankingAPI(kenostodChain);
 const stripeIntegration = new StripeIntegration();
 const paypalIntegration = new PayPalIntegration();
+
+// Initialize merchant incentives
+const merchantIncentives = new MerchantIncentives(kenostodChain);
+
+// Connect merchant incentives to payment gateway
+kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
 
 console.log('Kenostod Blockchain initialized!');
 console.log('Miner address:', minerWallet.getAddress());
@@ -1697,6 +1704,139 @@ app.post('/api/banking/withdrawal/cancel', (req, res) => {
 });
 
 // ==================== END BANKING API ENDPOINTS ====================
+
+// ==================== MERCHANT INCENTIVES API ENDPOINTS ====================
+
+// Stake KENO for merchant benefits
+app.post('/api/merchant/stake', (req, res) => {
+    try {
+        const { merchantId, amount, merchantAddress } = req.body;
+        const result = merchantIncentives.stakeMerchantKENO(merchantId, amount, merchantAddress);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Unstake KENO
+app.post('/api/merchant/unstake', (req, res) => {
+    try {
+        const { merchantId, amount } = req.body;
+        const result = merchantIncentives.unstakeMerchantKENO(merchantId, amount);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Claim staking rewards
+app.post('/api/merchant/rewards/claim', (req, res) => {
+    try {
+        const { merchantId } = req.body;
+        const result = merchantIncentives.claimStakingRewards(merchantId);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Withdraw rewards
+app.post('/api/merchant/rewards/withdraw', (req, res) => {
+    try {
+        const { merchantId, amount } = req.body;
+        const result = merchantIncentives.withdrawRewards(merchantId, amount);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get merchant dashboard with all incentive data
+app.get('/api/merchant/dashboard/:merchantId', (req, res) => {
+    try {
+        const dashboard = merchantIncentives.getMerchantDashboard(req.params.merchantId);
+        res.json(dashboard);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get tier benefits info
+app.get('/api/merchant/tiers', (req, res) => {
+    try {
+        res.json({ tiers: merchantIncentives.tierBenefits });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Calculate potential earnings
+app.post('/api/merchant/calculate-earnings', (req, res) => {
+    try {
+        const { merchantId, monthlySales } = req.body;
+        
+        const fee = merchantIncentives.getTransactionFee(merchantId);
+        const cashbackRate = merchantIncentives.calculateCashbackRate(merchantId);
+        
+        const kenoFees = monthlySales * fee;
+        const usdFees = monthlySales * 0.029;
+        const savings = usdFees - kenoFees;
+        const cashback = monthlySales * cashbackRate;
+        
+        const stake = merchantIncentives.merchantStakes.get(merchantId);
+        let stakingRewards = 0;
+        if (stake) {
+            const tier = merchantIncentives.getMerchantTier(stake.stakedAmount);
+            const apy = merchantIncentives.tierBenefits[tier].stakingAPY;
+            stakingRewards = stake.stakedAmount * apy / 12;
+        }
+        
+        res.json({
+            monthlySales,
+            kenoFees: parseFloat(kenoFees.toFixed(2)),
+            usdFees: parseFloat(usdFees.toFixed(2)),
+            feeSavings: parseFloat(savings.toFixed(2)),
+            cashbackEarned: parseFloat(cashback.toFixed(2)),
+            stakingRewards: parseFloat(stakingRewards.toFixed(2)),
+            totalMonthlyBenefit: parseFloat((savings + cashback + stakingRewards).toFixed(2))
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get global incentive stats
+app.get('/api/merchant/stats', (req, res) => {
+    try {
+        const stats = merchantIncentives.getGlobalStats();
+        res.json(stats);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get available balance (total minus staked)
+app.get('/api/merchant/available-balance/:address', (req, res) => {
+    try {
+        const balance = merchantIncentives.getAvailableBalance(req.params.address);
+        res.json(balance);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Apply cashback to completed payment
+app.post('/api/merchant/payment/cashback', (req, res) => {
+    try {
+        const { merchantId, saleAmount } = req.body;
+        const result = merchantIncentives.applyCashback(merchantId, saleAmount);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END MERCHANT INCENTIVES API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);

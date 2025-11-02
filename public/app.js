@@ -1923,6 +1923,210 @@ async function viewConversionRates() {
     }
 }
 
+async function viewTierBenefits() {
+    try {
+        const response = await fetch(`${API_BASE}/api/merchant/tiers`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('tierBenefitsResult');
+        const tiers = data.tiers;
+        
+        let html = '<h4>Merchant Tier Benefits</h4><div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">';
+        
+        for (const [tierKey, tier] of Object.entries(tiers)) {
+            html += `
+                <div class="transaction-item" style="background: linear-gradient(135deg, ${tier.color}20, ${tier.color}10); border-left: 4px solid ${tier.color};">
+                    <h5 style="color: ${tier.color}; margin-top: 0;">${tier.name} Tier</h5>
+                    <div style="margin: 10px 0;">
+                        <strong>Requirements:</strong> ${tier.minStake.toLocaleString()} - ${tier.maxStake === Infinity ? '∞' : tier.maxStake.toLocaleString()} KENO
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <strong>Benefits:</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            ${tier.perks.map(perk => `<li>${perk}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid ${tier.color}40;">
+                        <strong>Transaction Fee:</strong> ${(tier.transactionFee * 100).toFixed(2)}%<br>
+                        <strong>Cashback:</strong> ${(tier.cashbackRate * 100)}%<br>
+                        <strong>Staking APY:</strong> ${(tier.stakingAPY * 100)}%
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('tierBenefitsResult', error.message);
+    }
+}
+
+async function stakeMerchantKENO() {
+    const merchantId = document.getElementById('stakeMerchantId').value;
+    const amount = parseFloat(document.getElementById('stakeAmount').value);
+    const merchantAddress = document.getElementById('stakeMerchantAddress').value;
+    
+    if (!merchantId || !amount || !merchantAddress) {
+        showError('stakeResult', 'Please fill in all fields');
+        return;
+    }
+    
+    if (amount <= 0) {
+        showError('stakeResult', 'Amount must be positive');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/merchant/stake`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchantId, amount, merchantAddress })
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            showError('stakeResult', data.error);
+            return;
+        }
+        
+        const resultDiv = document.getElementById('stakeResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>KENO Staked Successfully!</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, ${data.stake.tierBenefits.color}20, ${data.stake.tierBenefits.color}10); border-left: 4px solid ${data.stake.tierBenefits.color};">
+                <strong>Amount Staked:</strong> ${amount.toLocaleString()} KENO<br>
+                <strong>Total Staked:</strong> ${data.stake.stakedAmount.toLocaleString()} KENO<br>
+                <strong>Current Tier:</strong> ${data.stake.tier} <span style="color: ${data.stake.tierBenefits.color};">●</span><br>
+                <strong>Transaction Fee:</strong> ${(data.stake.tierBenefits.transactionFee * 100).toFixed(2)}%<br>
+                <strong>Cashback Rate:</strong> ${(data.stake.tierBenefits.cashbackRate * 100)}%<br>
+                <strong>Staking APY:</strong> ${(data.stake.tierBenefits.stakingAPY * 100)}%<br>
+                <p style="margin-top: 10px; color: ${data.stake.tierBenefits.color}; font-weight: 600;">
+                    ${data.message}
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('stakeResult', error.message);
+    }
+}
+
+async function viewMerchantIncentiveDashboard() {
+    const merchantId = document.getElementById('stakeMerchantId').value;
+    
+    if (!merchantId) {
+        showError('stakeResult', 'Please enter your Merchant ID');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/merchant/dashboard/${merchantId}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('stakeResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>Merchant Rewards Dashboard</h4>
+            
+            <div class="transaction-item" style="background: linear-gradient(135deg, ${data.tierBenefits.color}20, ${data.tierBenefits.color}10); border-left: 4px solid ${data.tierBenefits.color};">
+                <h5>Current Tier: ${data.currentTier} <span style="color: ${data.tierBenefits.color};">●</span></h5>
+                <strong>Staked Amount:</strong> ${data.staking.stakedAmount.toLocaleString()} KENO<br>
+                <strong>Staking APY:</strong> ${(data.staking.stakingAPY * 100)}%<br>
+                <strong>Transaction Fee:</strong> ${(data.tierBenefits.transactionFee * 100).toFixed(2)}%<br>
+                <strong>Cashback Rate:</strong> ${(data.tierBenefits.cashbackRate * 100)}%
+            </div>
+            
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                <h5>💰 Earnings Summary</h5>
+                <strong>Available Rewards:</strong> ${data.rewards.available.toFixed(2)} KENO<br>
+                <strong>Pending Staking Rewards:</strong> ${data.rewards.pending.toFixed(2)} KENO<br>
+                <strong>Total Claimed:</strong> ${data.rewards.totalClaimed.toFixed(2)} KENO<br>
+                <strong>Lifetime Earnings:</strong> ${data.rewards.lifetimeEarnings.toFixed(2)} KENO
+            </div>
+            
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(243, 156, 18, 0.1)); border-left: 4px solid #f39c12;">
+                <h5>💎 Savings vs USD</h5>
+                <strong>Your KENO Fee:</strong> ${data.benefits.savingsVsUSD.kenoFee}<br>
+                <strong>Typical USD Fee:</strong> ${data.benefits.savingsVsUSD.usdFee}<br>
+                <strong>Savings:</strong> ${data.benefits.savingsVsUSD.savingsPercent}<br>
+                <strong>On $10K Sales:</strong> Save ${data.benefits.savingsVsUSD.on10kSales}
+            </div>
+            
+            ${data.nextTier ? `
+                <div class="transaction-item">
+                    <h5>🎯 Next Tier: ${data.nextTier.name}</h5>
+                    <strong>Required Stake:</strong> ${data.nextTier.requiredStake.toLocaleString()} KENO<br>
+                    <strong>Need:</strong> ${(data.nextTier.requiredStake - data.staking.stakedAmount).toLocaleString()} more KENO
+                </div>
+            ` : '<div class="transaction-item"><strong>🏆 You\'re at the highest tier!</strong></div>'}
+        `;
+    } catch (error) {
+        showError('stakeResult', error.message);
+    }
+}
+
+async function calculateMerchantEarnings() {
+    const merchantId = document.getElementById('calcMerchantId').value;
+    const monthlySales = parseFloat(document.getElementById('calcMonthlySales').value);
+    
+    if (!monthlySales || monthlySales <= 0) {
+        showError('earningsCalcResult', 'Please enter a valid monthly sales amount');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/merchant/calculate-earnings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchantId: merchantId || null, monthlySales })
+        });
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('earningsCalcResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>💰 Monthly Earnings Calculator</h4>
+            
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                <h5>Monthly Sales: $${monthlySales.toLocaleString()}</h5>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)); border-left: 4px solid #e74c3c;">
+                    <h5>💳 With USD Payments</h5>
+                    <strong>Transaction Fees:</strong> -$${data.usdFees.toFixed(2)}<br>
+                    <strong>Cashback:</strong> $0<br>
+                    <strong>Staking Rewards:</strong> $0<br>
+                    <hr style="margin: 10px 0;">
+                    <strong style="font-size: 1.2rem;">Net Benefit: $0</strong>
+                </div>
+                
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                    <h5>🚀 With KENO Payments</h5>
+                    <strong>Transaction Fees:</strong> -$${data.kenoFees.toFixed(2)}<br>
+                    <strong>Cashback:</strong> +$${data.cashbackEarned.toFixed(2)}<br>
+                    <strong>Staking Rewards:</strong> +$${data.stakingRewards.toFixed(2)}<br>
+                    <hr style="margin: 10px 0;">
+                    <strong style="font-size: 1.2rem; color: #2ecc71;">Net Benefit: +$${data.totalMonthlyBenefit.toFixed(2)}</strong>
+                </div>
+            </div>
+            
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(243, 156, 18, 0.1)); border-left: 4px solid #f39c12;">
+                <h5>💎 Total Advantage</h5>
+                <strong style="font-size: 1.4rem; color: #f39c12;">
+                    You earn $${(data.totalMonthlyBenefit + data.usdFees).toFixed(2)} more per month with KENO!
+                </strong><br>
+                <p style="margin-top: 10px; color: #666;">
+                    That's $${((data.totalMonthlyBenefit + data.usdFees) * 12).toFixed(2)} more per year! 🎉
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        showError('earningsCalcResult', error.message);
+    }
+}
+
 async function loadMarketData() {
     try {
         const response = await fetch(`${API_BASE}/api/exchange/markets/all`);
