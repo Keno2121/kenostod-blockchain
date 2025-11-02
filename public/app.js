@@ -204,10 +204,51 @@ async function createWallet() {
     }
 }
 
+async function importWallet() {
+    const privateKey = document.getElementById('importPrivateKey').value.trim();
+    
+    if (!privateKey) {
+        showError('importWallet', 'Please enter a private key');
+        return;
+    }
+    
+    try {
+        const keyPair = ec.keyFromPrivate(privateKey, 'hex');
+        const publicKey = keyPair.getPublic('hex');
+        
+        const response = await fetch(`${API_BASE}/api/balance/${publicKey}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            showError('importWallet', data.error);
+            return;
+        }
+        
+        useThisWallet(publicKey, privateKey);
+        
+        const resultDiv = document.getElementById('importWallet');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>✅ Wallet Imported Successfully!</h4>
+            <p><strong>Address:</strong> <code>${publicKey.substring(0, 20)}...</code></p>
+            <p><strong>Balance:</strong> ${data.balance} KENO</p>
+            <p style="color: var(--accent-green); margin-top: 10px;">Your wallet is now loaded and ready to use!</p>
+        `;
+        
+        document.getElementById('importPrivateKey').value = '';
+    } catch (error) {
+        showError('importWallet', 'Invalid private key. Please check and try again.');
+    }
+}
+
 function useThisWallet(address, privateKey) {
     document.getElementById('myAddress').value = address;
     document.getElementById('myPrivateKey').value = privateKey;
-    alert('Wallet loaded! You can now use it to send transactions.');
+    
+    document.getElementById('txFromAddress').value = address;
+    document.getElementById('txPrivateKey').value = privateKey;
+    
+    alert('✅ Wallet loaded! You can now use it to send transactions and trade on the exchange.');
 }
 
 async function checkBalance() {
