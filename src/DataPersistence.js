@@ -6,6 +6,7 @@ class DataPersistence {
         this.dataDir = dataDir;
         this.blockchainFile = path.join(dataDir, 'blockchain.json');
         this.walletFile = path.join(dataDir, 'miner_wallet.json');
+        this.fiatBalancesFile = path.join(dataDir, 'fiat_balances.json');
         
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
@@ -87,10 +88,44 @@ class DataPersistence {
         }
     }
 
+    saveFiatBalances(fiatBalancesMap) {
+        try {
+            const data = {
+                balances: Array.from(fiatBalancesMap.entries()),
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(this.fiatBalancesFile, JSON.stringify(data, null, 2));
+            console.log(`✅ Fiat balances saved to disk (${data.balances.length} accounts)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving fiat balances:', error.message);
+            return false;
+        }
+    }
+
+    loadFiatBalances() {
+        try {
+            if (!fs.existsSync(this.fiatBalancesFile)) {
+                console.log('ℹ️  No saved fiat balances found, starting fresh');
+                return null;
+            }
+            
+            const data = JSON.parse(fs.readFileSync(this.fiatBalancesFile, 'utf8'));
+            const balancesMap = new Map(data.balances);
+            console.log(`✅ Loaded fiat balances from disk (${balancesMap.size} accounts, last saved: ${new Date(data.timestamp).toLocaleString()})`);
+            return balancesMap;
+        } catch (error) {
+            console.error('❌ Error loading fiat balances:', error.message);
+            return null;
+        }
+    }
+
     getBackupInfo() {
         const backupInfo = {
             blockchainExists: fs.existsSync(this.blockchainFile),
-            walletExists: fs.existsSync(this.walletFile)
+            walletExists: fs.existsSync(this.walletFile),
+            fiatBalancesExists: fs.existsSync(this.fiatBalancesFile)
         };
 
         if (backupInfo.blockchainExists) {
@@ -103,6 +138,12 @@ class DataPersistence {
             const stats = fs.statSync(this.walletFile);
             backupInfo.walletSize = stats.size;
             backupInfo.walletLastModified = stats.mtime;
+        }
+
+        if (backupInfo.fiatBalancesExists) {
+            const stats = fs.statSync(this.fiatBalancesFile);
+            backupInfo.fiatBalancesSize = stats.size;
+            backupInfo.fiatBalancesLastModified = stats.mtime;
         }
 
         return backupInfo;

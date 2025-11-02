@@ -55,9 +55,15 @@ const wallet1 = new Wallet();
 const wallet2 = new Wallet();
 
 // Initialize banking system
-const bankingAPI = new BankingAPI(kenostodChain);
+const bankingAPI = new BankingAPI(kenostodChain, dataPersistence);
 const stripeIntegration = new StripeIntegration();
 const paypalIntegration = new PayPalIntegration();
+
+// Load saved fiat balances
+const savedFiatBalances = dataPersistence.loadFiatBalances();
+if (savedFiatBalances) {
+    bankingAPI.loadFiatBalances(savedFiatBalances);
+}
 
 // Initialize merchant incentives
 const merchantIncentives = new MerchantIncentives(kenostodChain);
@@ -1656,7 +1662,23 @@ app.post('/api/banking/withdrawal/paypal', async (req, res) => {
 app.get('/api/banking/balance/:walletAddress', (req, res) => {
     try {
         const balance = bankingAPI.getFiatBalance(req.params.walletAddress);
+        console.log(`💰 Balance check for ${req.params.walletAddress.substring(0, 10)}...: $${balance.toFixed(2)}`);
         res.json({ walletAddress: req.params.walletAddress, balance });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/banking/debug/all-balances', (req, res) => {
+    try {
+        const allBalances = [];
+        for (const [address, balance] of bankingAPI.fiatBalances.entries()) {
+            allBalances.push({
+                address: address.substring(0, 20) + '...',
+                balance: balance
+            });
+        }
+        res.json({ count: allBalances.length, balances: allBalances });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

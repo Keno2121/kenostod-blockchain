@@ -257,6 +257,8 @@ class ExchangeAPI {
             const currentBuyerBalance = this.bankingAPI.fiatBalances.get(buyOrder.userAddress) || 0;
             this.bankingAPI.fiatBalances.set(buyOrder.userAddress, currentBuyerBalance - totalUSD);
             
+            this.bankingAPI.saveFiatBalances();
+            
             console.log(`💱 Trade executed: ${sellOrder.userAddress.substring(0, 10)}... sold ${quantity} KENO for $${netUSD.toFixed(2)} (fee: $${fee.toFixed(2)})`);
             console.log(`   Seller USD balance: $${currentSellerBalance.toFixed(2)} → $${(currentSellerBalance + netUSD).toFixed(2)}`);
         }

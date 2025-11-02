@@ -1,8 +1,9 @@
 const crypto = require('crypto');
 
 class BankingAPI {
-    constructor(blockchain) {
+    constructor(blockchain, dataPersistence = null) {
         this.blockchain = blockchain;
+        this.dataPersistence = dataPersistence;
         
         this.accounts = new Map();
         this.deposits = new Map();
@@ -24,6 +25,22 @@ class BankingAPI {
         this.MIN_WITHDRAWAL = 10;
         this.MAX_DEPOSIT = 10000;
         this.MAX_WITHDRAWAL = 10000;
+    }
+    
+    setDataPersistence(dataPersistence) {
+        this.dataPersistence = dataPersistence;
+    }
+    
+    loadFiatBalances(balancesMap) {
+        if (balancesMap) {
+            this.fiatBalances = balancesMap;
+        }
+    }
+    
+    saveFiatBalances() {
+        if (this.dataPersistence) {
+            this.dataPersistence.saveFiatBalances(this.fiatBalances);
+        }
     }
 
     registerAccount(walletAddress, email, fullName) {
