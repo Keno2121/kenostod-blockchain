@@ -732,10 +732,13 @@ class Blockchain {
         
         try {
             this.chain = data.chain.map(blockData => {
-                const block = Object.assign(new Block(), blockData);
-                block.transactions = blockData.transactions.map(txData => 
-                    Object.assign(new Transaction(), txData)
-                );
+                const block = Object.create(Block.prototype);
+                Object.assign(block, blockData);
+                block.transactions = blockData.transactions.map(txData => {
+                    const tx = Object.create(Transaction.prototype);
+                    Object.assign(tx, txData);
+                    return tx;
+                });
                 return block;
             });
             
@@ -744,13 +747,17 @@ class Blockchain {
             this.totalMinted = data.totalMinted || 0;
             this.totalBurned = data.totalBurned || 0;
             
-            this.pendingTransactions = (data.pendingTransactions || []).map(txData =>
-                Object.assign(new Transaction(), txData)
-            );
+            this.pendingTransactions = (data.pendingTransactions || []).map(txData => {
+                const tx = Object.create(Transaction.prototype);
+                Object.assign(tx, txData);
+                return tx;
+            });
             
-            this.scheduledTransactions = (data.scheduledTransactions || []).map(stData =>
-                Object.assign(new ScheduledTransaction(), stData)
-            );
+            this.scheduledTransactions = (data.scheduledTransactions || []).map(stData => {
+                const st = Object.create(ScheduledTransaction.prototype);
+                Object.assign(st, stData);
+                return st;
+            });
             
             if (data.socialRecovery) {
                 this.socialRecovery.guardians = data.socialRecovery.guardians || new Map();
