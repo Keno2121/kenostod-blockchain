@@ -17,6 +17,7 @@ The system utilizes a modular blockchain architecture:
 -   **Advanced Transaction System**: UTXO-style transactions with secp256k1 digital signatures, supporting sender, recipient, amount, fees, optional messages, timestamp validation, and a 5-minute reversal window.
 -   **Dual Consensus Modes**: Switchable between traditional Proof-of-Work (PoW) and Proof-of-Residual-Value (PoRV) mining.
 -   **Wallet Management**: Elliptic curve key pair generation for wallets (public key as address, private key for signing) with a social recovery system.
+-   **Data Persistence**: File-based persistence system (`./data/` directory) storing blockchain state and miner wallet. Blockchain and wallet data automatically saved after mining operations and restored on server restart, ensuring zero data loss across server restarts.
 
 ## Proof-of-Residual-Value (PoRV) Consensus
 A mining system designed to generate real economic value:
