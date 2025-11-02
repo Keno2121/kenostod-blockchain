@@ -726,6 +726,53 @@ class Blockchain {
             .filter(j => j.status === 'pending')
             .map(j => j.toJSON());
     }
+
+    restoreFromData(data) {
+        if (!data) return false;
+        
+        try {
+            this.chain = data.chain.map(blockData => {
+                const block = Object.assign(new Block(), blockData);
+                block.transactions = blockData.transactions.map(txData => 
+                    Object.assign(new Transaction(), txData)
+                );
+                return block;
+            });
+            
+            this.difficulty = data.difficulty || 2;
+            this.miningReward = data.miningReward || 100;
+            this.totalMinted = data.totalMinted || 0;
+            this.totalBurned = data.totalBurned || 0;
+            
+            this.pendingTransactions = (data.pendingTransactions || []).map(txData =>
+                Object.assign(new Transaction(), txData)
+            );
+            
+            this.scheduledTransactions = (data.scheduledTransactions || []).map(stData =>
+                Object.assign(new ScheduledTransaction(), stData)
+            );
+            
+            if (data.socialRecovery) {
+                this.socialRecovery.guardians = data.socialRecovery.guardians || new Map();
+                this.socialRecovery.recoveryRequests = data.socialRecovery.recoveryRequests || new Map();
+            }
+            
+            if (data.reputationSystem) {
+                this.reputation.ratings = data.reputationSystem.ratings || new Map();
+                this.reputation.reputationScores = data.reputationSystem.reputationScores || new Map();
+            }
+            
+            if (data.governance) {
+                this.governance.proposals = data.governance.proposals || [];
+            }
+            
+            console.log(`✅ Blockchain restored: ${this.chain.length} blocks, ${this.totalMinted} KENO minted`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error restoring blockchain:', error.message);
+            return false;
+        }
+    }
 }
 
 module.exports = Blockchain;

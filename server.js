@@ -9,6 +9,7 @@ const BankingAPI = require('./src/BankingAPI');
 const StripeIntegration = require('./src/StripeIntegration');
 const PayPalIntegration = require('./src/PayPalIntegration');
 const MerchantIncentives = require('./src/MerchantIncentives');
+const DataPersistence = require('./src/DataPersistence');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -29,11 +30,27 @@ app.get('/sitemap.xml', (req, res) => {
     res.sendFile(__dirname + '/public/sitemap.xml');
 });
 
-// Initialize blockchain
-const kenostodChain = new Blockchain();
+// Initialize persistence system
+const dataPersistence = new DataPersistence();
 
-// Create some test wallets
-const minerWallet = new Wallet();
+// Initialize blockchain and restore from saved data if exists
+const kenostodChain = new Blockchain();
+const savedBlockchainData = dataPersistence.loadBlockchain();
+if (savedBlockchainData) {
+    kenostodChain.restoreFromData(savedBlockchainData);
+}
+
+// Load or create miner wallet (persistent across restarts)
+let minerWallet;
+const savedWalletData = dataPersistence.loadWallet();
+if (savedWalletData) {
+    minerWallet = Wallet.fromPrivateKey(savedWalletData.privateKey);
+} else {
+    minerWallet = new Wallet();
+    dataPersistence.saveWallet(minerWallet);
+}
+
+// Create test wallets (these are ephemeral for testing)
 const wallet1 = new Wallet();
 const wallet2 = new Wallet();
 
@@ -51,6 +68,7 @@ kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
 console.log('Kenostod Blockchain initialized!');
 console.log('Miner address:', minerWallet.getAddress());
 console.log('Miner private key:', minerWallet.privateKey);
+console.log('Current balance:', kenostodChain.getBalanceOfAddress(minerWallet.getAddress()), 'KENO');
 console.log('Test wallet 1 address:', wallet1.getAddress());
 console.log('Test wallet 2 address:', wallet2.getAddress());
 console.log('Banking system initialized!');
@@ -147,6 +165,8 @@ app.post('/api/mine', (req, res) => {
 
         console.log(`Mining started by ${minerAddress}...`);
         kenostodChain.minePendingTransactions(minerAddress);
+        
+        dataPersistence.saveBlockchain(kenostodChain);
 
         res.json({
             message: 'Block mined successfully!',
@@ -206,6 +226,8 @@ app.post('/api/mining/bulk-mine', (req, res) => {
         
         console.log(`✅ Bulk mining completed: ${numberOfBlocks} blocks in ${((endTime - startTime) / 1000).toFixed(2)}s`);
         console.log(`   Tokens created: ${tokensCreated} KENO`);
+        
+        dataPersistence.saveBlockchain(kenostodChain);
         
         res.json({
             message: `⚠️ DEVELOPMENT ONLY: ${numberOfBlocks} blocks mined successfully`,
