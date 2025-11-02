@@ -50,6 +50,7 @@ kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
 
 console.log('Kenostod Blockchain initialized!');
 console.log('Miner address:', minerWallet.getAddress());
+console.log('Miner private key:', minerWallet.privateKey);
 console.log('Test wallet 1 address:', wallet1.getAddress());
 console.log('Test wallet 2 address:', wallet2.getAddress());
 console.log('Banking system initialized!');
