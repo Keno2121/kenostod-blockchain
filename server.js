@@ -5,6 +5,9 @@ const Blockchain = require('./src/Blockchain');
 const Transaction = require('./src/Transaction');
 const ScheduledTransaction = require('./src/ScheduledTransaction');
 const Wallet = require('./src/Wallet');
+const BankingAPI = require('./src/BankingAPI');
+const StripeIntegration = require('./src/StripeIntegration');
+const PayPalIntegration = require('./src/PayPalIntegration');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -33,10 +36,22 @@ const minerWallet = new Wallet();
 const wallet1 = new Wallet();
 const wallet2 = new Wallet();
 
+// Initialize banking system
+const bankingAPI = new BankingAPI(kenostodChain);
+const stripeIntegration = new StripeIntegration();
+const paypalIntegration = new PayPalIntegration();
+
 console.log('Kenostod Blockchain initialized!');
 console.log('Miner address:', minerWallet.getAddress());
 console.log('Test wallet 1 address:', wallet1.getAddress());
 console.log('Test wallet 2 address:', wallet2.getAddress());
+console.log('Banking system initialized!');
+if (stripeIntegration.isTestMode()) {
+    console.log('⚠️  Stripe running in TEST MODE');
+}
+if (paypalIntegration.isTestMode()) {
+    console.log('⚠️  PayPal running in TEST MODE');
+}
 
 // Routes
 
@@ -1377,6 +1392,311 @@ app.post('/api/exchange/withdrawal', (req, res) => {
 });
 
 // ==================== END EXCHANGE API ENDPOINTS ====================
+
+// ==================== BANKING API ENDPOINTS ====================
+
+// Register banking account
+app.post('/api/banking/register', (req, res) => {
+    try {
+        const { walletAddress, email, fullName } = req.body;
+        const result = bankingAPI.registerAccount(walletAddress, email, fullName);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Add bank account
+app.post('/api/banking/bank-account', (req, res) => {
+    try {
+        const { walletAddress, bankDetails } = req.body;
+        const result = bankingAPI.addBankAccount(walletAddress, bankDetails);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Add PayPal account
+app.post('/api/banking/paypal-account', (req, res) => {
+    try {
+        const { walletAddress, paypalEmail } = req.body;
+        const result = bankingAPI.addPayPalAccount(walletAddress, paypalEmail);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create deposit (Stripe)
+app.post('/api/banking/deposit/stripe', async (req, res) => {
+    try {
+        const { walletAddress, amount } = req.body;
+        
+        const depositResult = bankingAPI.createDeposit(walletAddress, amount, 'stripe');
+        if (!depositResult.success) {
+            return res.status(400).json(depositResult);
+        }
+        
+        const paymentIntent = await stripeIntegration.createPaymentIntent(
+            amount,
+            'usd',
+            { depositId: depositResult.deposit.depositId, walletAddress }
+        );
+        
+        res.json({
+            success: true,
+            deposit: depositResult.deposit,
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create deposit (PayPal)
+app.post('/api/banking/deposit/paypal', async (req, res) => {
+    try {
+        const { walletAddress, amount } = req.body;
+        
+        const depositResult = bankingAPI.createDeposit(walletAddress, amount, 'paypal');
+        if (!depositResult.success) {
+            return res.status(400).json(depositResult);
+        }
+        
+        const order = await paypalIntegration.createOrder(
+            amount,
+            'USD',
+            { depositId: depositResult.deposit.depositId, walletAddress }
+        );
+        
+        res.json({
+            success: true,
+            deposit: depositResult.deposit,
+            orderId: order.id,
+            approveUrl: order.approveUrl
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Confirm Stripe deposit
+app.post('/api/banking/deposit/stripe/confirm', async (req, res) => {
+    try {
+        const { depositId, paymentIntentId } = req.body;
+        
+        const paymentIntent = await stripeIntegration.confirmPaymentIntent(paymentIntentId);
+        
+        if (paymentIntent.status === 'succeeded' || paymentIntent.testMode) {
+            const result = bankingAPI.confirmDeposit(depositId, paymentIntentId);
+            res.json(result);
+        } else {
+            res.status(400).json({ 
+                success: false, 
+                error: `Payment status: ${paymentIntent.status}` 
+            });
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Confirm PayPal deposit
+app.post('/api/banking/deposit/paypal/confirm', async (req, res) => {
+    try {
+        const { depositId, orderId } = req.body;
+        
+        const captureResult = await paypalIntegration.captureOrder(orderId);
+        
+        if (captureResult.status === 'COMPLETED' || captureResult.testMode) {
+            const result = bankingAPI.confirmDeposit(depositId, orderId);
+            res.json(result);
+        } else {
+            res.status(400).json({ 
+                success: false, 
+                error: `PayPal order status: ${captureResult.status}` 
+            });
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create withdrawal (Stripe)
+app.post('/api/banking/withdrawal/stripe', async (req, res) => {
+    try {
+        const { walletAddress, amount, bankAccountId } = req.body;
+        
+        const withdrawalResult = bankingAPI.createWithdrawal(
+            walletAddress, 
+            amount, 
+            'stripe', 
+            { bankAccountId }
+        );
+        
+        if (!withdrawalResult.success) {
+            return res.status(400).json(withdrawalResult);
+        }
+        
+        const payout = await stripeIntegration.createPayout(
+            amount,
+            bankAccountId,
+            'usd',
+            { withdrawalId: withdrawalResult.withdrawal.withdrawalId }
+        );
+        
+        const completeResult = bankingAPI.completeWithdrawal(
+            withdrawalResult.withdrawal.withdrawalId,
+            payout.id
+        );
+        
+        res.json({
+            success: true,
+            withdrawal: completeResult.withdrawal,
+            payoutId: payout.id
+        });
+    } catch (error) {
+        const { walletAddress, amount } = req.body;
+        const withdrawal = Array.from(bankingAPI.withdrawals.values())
+            .find(w => w.walletAddress === walletAddress && w.status === 'pending');
+        
+        if (withdrawal) {
+            bankingAPI.cancelWithdrawal(withdrawal.withdrawalId);
+        }
+        
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Create withdrawal (PayPal)
+app.post('/api/banking/withdrawal/paypal', async (req, res) => {
+    try {
+        const { walletAddress, amount, paypalEmail } = req.body;
+        
+        const withdrawalResult = bankingAPI.createWithdrawal(
+            walletAddress, 
+            amount, 
+            'paypal', 
+            { paypalEmail }
+        );
+        
+        if (!withdrawalResult.success) {
+            return res.status(400).json(withdrawalResult);
+        }
+        
+        const payout = await paypalIntegration.createPayout(
+            paypalEmail,
+            amount,
+            'USD',
+            { 
+                withdrawalId: withdrawalResult.withdrawal.withdrawalId,
+                note: 'Kenostod withdrawal'
+            }
+        );
+        
+        const completeResult = bankingAPI.completeWithdrawal(
+            withdrawalResult.withdrawal.withdrawalId,
+            payout.batch_id
+        );
+        
+        res.json({
+            success: true,
+            withdrawal: completeResult.withdrawal,
+            batchId: payout.batch_id
+        });
+    } catch (error) {
+        const { walletAddress, amount } = req.body;
+        const withdrawal = Array.from(bankingAPI.withdrawals.values())
+            .find(w => w.walletAddress === walletAddress && w.status === 'pending');
+        
+        if (withdrawal) {
+            bankingAPI.cancelWithdrawal(withdrawal.withdrawalId);
+        }
+        
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get fiat balance
+app.get('/api/banking/balance/:walletAddress', (req, res) => {
+    try {
+        const balance = bankingAPI.getFiatBalance(req.params.walletAddress);
+        res.json({ walletAddress: req.params.walletAddress, balance });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get account details
+app.get('/api/banking/account/:walletAddress', (req, res) => {
+    try {
+        const account = bankingAPI.getAccount(req.params.walletAddress);
+        if (!account) {
+            return res.status(404).json({ error: 'Account not found' });
+        }
+        res.json(account);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get deposits
+app.get('/api/banking/deposits/:walletAddress', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 50;
+        const deposits = bankingAPI.getDeposits(req.params.walletAddress, limit);
+        res.json({ deposits, count: deposits.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get withdrawals
+app.get('/api/banking/withdrawals/:walletAddress', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 50;
+        const withdrawals = bankingAPI.getWithdrawals(req.params.walletAddress, limit);
+        res.json({ withdrawals, count: withdrawals.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get all transactions
+app.get('/api/banking/transactions/:walletAddress', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 100;
+        const transactions = bankingAPI.getTransactions(req.params.walletAddress, limit);
+        res.json({ transactions, count: transactions.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get banking stats
+app.get('/api/banking/stats', (req, res) => {
+    try {
+        const stats = bankingAPI.getStats();
+        res.json(stats);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Cancel withdrawal
+app.post('/api/banking/withdrawal/cancel', (req, res) => {
+    try {
+        const { withdrawalId } = req.body;
+        const result = bankingAPI.cancelWithdrawal(withdrawalId);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END BANKING API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);

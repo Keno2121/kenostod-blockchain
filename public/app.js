@@ -2166,3 +2166,380 @@ function togglePriceField() {
     const priceField = document.getElementById('tradePriceField');
     priceField.style.display = orderType === 'limit' ? 'block' : 'none';
 }
+
+async function registerBankingAccount() {
+    try {
+        const walletAddress = document.getElementById('bankingWalletAddress').value;
+        const email = document.getElementById('bankingEmail').value;
+        const fullName = document.getElementById('bankingFullName').value;
+
+        if (!walletAddress || !email || !fullName) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/banking/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walletAddress, email, fullName })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            const resultDiv = document.getElementById('registerBankingResult');
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <h4>✅ Banking Account Registered!</h4>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                    <strong>Wallet:</strong> ${data.account.walletAddress}<br>
+                    <strong>Email:</strong> ${data.account.email}<br>
+                    <strong>Name:</strong> ${data.account.fullName}<br>
+                    <strong>Registered:</strong> ${new Date(data.account.registeredAt).toLocaleString()}
+                </div>
+            `;
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showError('registerBankingResult', error.message);
+    }
+}
+
+async function depositStripe() {
+    try {
+        const walletAddress = document.getElementById('stripeDepositWallet').value;
+        const amount = parseFloat(document.getElementById('stripeDepositAmount').value);
+
+        if (!walletAddress || !amount || amount < 10) {
+            alert('Please enter wallet address and amount ($10 minimum)');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/banking/deposit/stripe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walletAddress, amount })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            const confirmResponse = await fetch(`${API_BASE}/api/banking/deposit/stripe/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    depositId: data.deposit.depositId,
+                    paymentIntentId: data.paymentIntentId
+                })
+            });
+
+            const confirmData = await confirmResponse.json();
+
+            if (confirmData.success) {
+                const resultDiv = document.getElementById('stripeDepositResult');
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h4>✅ Deposit Completed!</h4>
+                    <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                        <strong>Deposit ID:</strong> ${confirmData.deposit.depositId}<br>
+                        <strong>Amount:</strong> $${confirmData.deposit.amount.toFixed(2)}<br>
+                        <strong>Fee:</strong> $${confirmData.deposit.fee.toFixed(2)}<br>
+                        <strong>Net Amount:</strong> $${confirmData.deposit.netAmount.toFixed(2)}<br>
+                        <strong>New Balance:</strong> $${confirmData.newBalance.toFixed(2)}<br>
+                        <strong>Status:</strong> ${confirmData.deposit.status.toUpperCase()}<br>
+                        ${data.paymentIntentId.includes('test') ? '<br><strong>⚠️ TEST MODE:</strong> No real payment processed' : ''}
+                    </div>
+                `;
+            } else {
+                throw new Error(confirmData.error);
+            }
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showError('stripeDepositResult', error.message);
+    }
+}
+
+async function depositPayPal() {
+    try {
+        const walletAddress = document.getElementById('paypalDepositWallet').value;
+        const amount = parseFloat(document.getElementById('paypalDepositAmount').value);
+
+        if (!walletAddress || !amount || amount < 10) {
+            alert('Please enter wallet address and amount ($10 minimum)');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/banking/deposit/paypal`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walletAddress, amount })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            const confirmResponse = await fetch(`${API_BASE}/api/banking/deposit/paypal/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    depositId: data.deposit.depositId,
+                    orderId: data.orderId
+                })
+            });
+
+            const confirmData = await confirmResponse.json();
+
+            if (confirmData.success) {
+                const resultDiv = document.getElementById('paypalDepositResult');
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h4>✅ PayPal Deposit Completed!</h4>
+                    <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                        <strong>Deposit ID:</strong> ${confirmData.deposit.depositId}<br>
+                        <strong>Amount:</strong> $${confirmData.deposit.amount.toFixed(2)}<br>
+                        <strong>Fee:</strong> $${confirmData.deposit.fee.toFixed(2)}<br>
+                        <strong>Net Amount:</strong> $${confirmData.deposit.netAmount.toFixed(2)}<br>
+                        <strong>New Balance:</strong> $${confirmData.newBalance.toFixed(2)}<br>
+                        <strong>Status:</strong> ${confirmData.deposit.status.toUpperCase()}<br>
+                        ${data.orderId.includes('PAYPAL') ? '<br><strong>⚠️ TEST MODE:</strong> No real payment processed' : ''}
+                    </div>
+                `;
+            } else {
+                throw new Error(confirmData.error);
+            }
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showError('paypalDepositResult', error.message);
+    }
+}
+
+async function withdrawStripe() {
+    try {
+        const walletAddress = document.getElementById('stripeWithdrawWallet').value;
+        const amount = parseFloat(document.getElementById('stripeWithdrawAmount').value);
+        const accountHolderName = document.getElementById('bankAccountName').value;
+        const routingNumber = document.getElementById('bankRoutingNumber').value;
+        const accountNumber = document.getElementById('bankAccountNumber').value;
+        const accountType = document.getElementById('bankAccountType').value;
+
+        if (!walletAddress || !amount || !accountHolderName || !routingNumber || !accountNumber) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        if (amount < 10) {
+            alert('Minimum withdrawal is $10');
+            return;
+        }
+
+        const resultDiv = document.getElementById('stripeWithdrawResult');
+        resultDiv.className = 'result';
+        resultDiv.innerHTML = '<p>Processing withdrawal...</p>';
+
+        const response = await fetch(`${API_BASE}/api/banking/withdrawal/stripe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                walletAddress,
+                amount,
+                bankAccountId: `ba_test_${Date.now()}`
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <h4>✅ Withdrawal Completed!</h4>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.1)); border-left: 4px solid #e67e22;">
+                    <strong>Withdrawal ID:</strong> ${data.withdrawal.withdrawalId}<br>
+                    <strong>Amount:</strong> $${data.withdrawal.amount.toFixed(2)}<br>
+                    <strong>Fee:</strong> $${data.withdrawal.fee.toFixed(2)}<br>
+                    <strong>Total Deducted:</strong> $${data.withdrawal.totalAmount.toFixed(2)}<br>
+                    <strong>Payout ID:</strong> ${data.payoutId}<br>
+                    <strong>Status:</strong> ${data.withdrawal.status.toUpperCase()}<br>
+                    <strong>Bank Account:</strong> ****${accountNumber.slice(-4)}<br>
+                    ${data.payoutId.includes('test') ? '<br><strong>⚠️ TEST MODE:</strong> No real payout processed' : ''}
+                </div>
+            `;
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showError('stripeWithdrawResult', error.message);
+    }
+}
+
+async function withdrawPayPal() {
+    try {
+        const walletAddress = document.getElementById('paypalWithdrawWallet').value;
+        const amount = parseFloat(document.getElementById('paypalWithdrawAmount').value);
+        const paypalEmail = document.getElementById('paypalWithdrawEmail').value;
+
+        if (!walletAddress || !amount || !paypalEmail) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        if (amount < 10) {
+            alert('Minimum withdrawal is $10');
+            return;
+        }
+
+        const resultDiv = document.getElementById('paypalWithdrawResult');
+        resultDiv.className = 'result';
+        resultDiv.innerHTML = '<p>Processing PayPal withdrawal...</p>';
+
+        const response = await fetch(`${API_BASE}/api/banking/withdrawal/paypal`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walletAddress, amount, paypalEmail })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <h4>✅ PayPal Withdrawal Completed!</h4>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
+                    <strong>Withdrawal ID:</strong> ${data.withdrawal.withdrawalId}<br>
+                    <strong>Amount:</strong> $${data.withdrawal.amount.toFixed(2)}<br>
+                    <strong>Fee:</strong> $${data.withdrawal.fee.toFixed(2)}<br>
+                    <strong>Total Deducted:</strong> $${data.withdrawal.totalAmount.toFixed(2)}<br>
+                    <strong>Batch ID:</strong> ${data.batchId}<br>
+                    <strong>Status:</strong> ${data.withdrawal.status.toUpperCase()}<br>
+                    <strong>PayPal Email:</strong> ${paypalEmail}<br>
+                    ${data.batchId.includes('BATCH') ? '<br><strong>⚠️ TEST MODE:</strong> No real payout processed' : ''}
+                </div>
+            `;
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showError('paypalWithdrawResult', error.message);
+    }
+}
+
+async function checkFiatBalance() {
+    try {
+        const walletAddress = document.getElementById('checkFiatBalanceWallet').value;
+
+        if (!walletAddress) {
+            alert('Please enter wallet address');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/banking/balance/${walletAddress}`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('fiatBalanceResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>💵 USD Balance</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                <strong>Wallet:</strong> ${data.walletAddress}<br>
+                <strong>Balance:</strong> <span style="font-size: 1.5rem; color: #2ecc71;">$${data.balance.toFixed(2)}</span>
+            </div>
+        `;
+    } catch (error) {
+        showError('fiatBalanceResult', error.message);
+    }
+}
+
+async function viewBankingHistory() {
+    try {
+        const walletAddress = document.getElementById('bankingHistoryWallet').value;
+
+        if (!walletAddress) {
+            alert('Please enter wallet address');
+            return;
+        }
+
+        const [depositsRes, withdrawalsRes, transactionsRes] = await Promise.all([
+            fetch(`${API_BASE}/api/banking/deposits/${walletAddress}`),
+            fetch(`${API_BASE}/api/banking/withdrawals/${walletAddress}`),
+            fetch(`${API_BASE}/api/banking/transactions/${walletAddress}`)
+        ]);
+
+        const [depositsData, withdrawalsData, transactionsData] = await Promise.all([
+            depositsRes.json(),
+            withdrawalsRes.json(),
+            transactionsRes.json()
+        ]);
+
+        const resultDiv = document.getElementById('bankingHistoryResult');
+        let html = '<h4>💳 Banking History</h4>';
+
+        if (depositsData.deposits && depositsData.deposits.length > 0) {
+            html += '<h5>Recent Deposits</h5>';
+            depositsData.deposits.slice(0, 5).forEach(dep => {
+                html += `
+                    <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                        <strong>ID:</strong> ${dep.depositId}<br>
+                        <strong>Amount:</strong> $${dep.amount.toFixed(2)}<br>
+                        <strong>Net:</strong> $${dep.netAmount.toFixed(2)}<br>
+                        <strong>Method:</strong> ${dep.method.toUpperCase()}<br>
+                        <strong>Status:</strong> ${dep.status.toUpperCase()}<br>
+                        <strong>Date:</strong> ${new Date(dep.createdAt).toLocaleString()}
+                    </div>
+                `;
+            });
+        }
+
+        if (withdrawalsData.withdrawals && withdrawalsData.withdrawals.length > 0) {
+            html += '<h5>Recent Withdrawals</h5>';
+            withdrawalsData.withdrawals.slice(0, 5).forEach(wd => {
+                html += `
+                    <div class="transaction-item" style="background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.1)); border-left: 4px solid #e67e22;">
+                        <strong>ID:</strong> ${wd.withdrawalId}<br>
+                        <strong>Amount:</strong> $${wd.amount.toFixed(2)}<br>
+                        <strong>Total:</strong> $${wd.totalAmount.toFixed(2)}<br>
+                        <strong>Method:</strong> ${wd.method.toUpperCase()}<br>
+                        <strong>Status:</strong> ${wd.status.toUpperCase()}<br>
+                        <strong>Date:</strong> ${new Date(wd.createdAt).toLocaleString()}
+                    </div>
+                `;
+            });
+        }
+
+        if ((!depositsData.deposits || depositsData.deposits.length === 0) &&
+            (!withdrawalsData.withdrawals || withdrawalsData.withdrawals.length === 0)) {
+            html += '<p>No banking history found</p>';
+        }
+
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = html;
+    } catch (error) {
+        showError('bankingHistoryResult', error.message);
+    }
+}
+
+async function viewBankingStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/banking/stats`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('bankingStatsResult');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>📊 Banking Statistics</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                <strong>Total Accounts:</strong> ${data.totalAccounts}<br>
+                <strong>Total Deposits:</strong> $${data.totalDeposits.toFixed(2)}<br>
+                <strong>Completed Deposits:</strong> ${data.completedDeposits}<br>
+                <strong>Total Withdrawals:</strong> $${data.totalWithdrawals.toFixed(2)}<br>
+                <strong>Completed Withdrawals:</strong> ${data.completedWithdrawals}<br>
+                <strong>Net Flow:</strong> <span style="color: ${data.netFlow >= 0 ? '#2ecc71' : '#e74c3c'};">$${data.netFlow.toFixed(2)}</span>
+            </div>
+        `;
+    } catch (error) {
+        showError('bankingStatsResult', error.message);
+    }
+}
