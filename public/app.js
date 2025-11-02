@@ -248,6 +248,9 @@ function useThisWallet(address, privateKey) {
     document.getElementById('txFromAddress').value = address;
     document.getElementById('txPrivateKey').value = privateKey;
     
+    document.getElementById('tradeWalletAddress').value = address;
+    document.getElementById('tradePrivateKey').value = privateKey;
+    
     alert('✅ Wallet loaded! You can now use it to send transactions and trade on the exchange.');
 }
 
@@ -2410,6 +2413,32 @@ function togglePriceField() {
     const orderType = document.getElementById('tradeOrderType').value;
     const priceField = document.getElementById('tradePriceField');
     priceField.style.display = orderType === 'limit' ? 'block' : 'none';
+}
+
+function selectTradeSide(side) {
+    document.getElementById('tradeSide').value = side;
+    
+    const buyBtn = document.getElementById('buyBtn');
+    const sellBtn = document.getElementById('sellBtn');
+    const display = document.getElementById('tradeSideDisplay');
+    
+    if (side === 'buy') {
+        buyBtn.style.opacity = '1';
+        buyBtn.style.transform = 'scale(1.05)';
+        sellBtn.style.opacity = '0.5';
+        sellBtn.style.transform = 'scale(1)';
+        display.style.background = 'rgba(46, 204, 113, 0.1)';
+        display.style.color = 'var(--accent-green)';
+        display.innerHTML = '✅ Selected: BUY KENO';
+    } else {
+        sellBtn.style.opacity = '1';
+        sellBtn.style.transform = 'scale(1.05)';
+        buyBtn.style.opacity = '0.5';
+        buyBtn.style.transform = 'scale(1)';
+        display.style.background = 'rgba(231, 76, 60, 0.1)';
+        display.style.color = '#e74c3c';
+        display.innerHTML = '✅ Selected: SELL KENO';
+    }
 }
 
 async function registerBankingAccount() {
