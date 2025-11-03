@@ -7,11 +7,17 @@ class StripeIntegration {
             console.warn('STRIPE_SECRET_KEY not set. Stripe integration will use test mode.');
             this.apiKey = 'sk_test_demo';
             this.testMode = true;
+        } else if (this.apiKey.startsWith('sk_test_')) {
+            this.testMode = true;
+            console.log('✅ Stripe configured in TEST MODE (using test key)');
         } else {
             this.testMode = false;
+            console.log('✅ Stripe configured in LIVE MODE');
         }
         
-        this.stripe = require('stripe')(this.apiKey);
+        if (!this.testMode) {
+            this.stripe = require('stripe')(this.apiKey);
+        }
     }
 
     async createPaymentIntent(amount, currency = 'usd', metadata = {}) {
@@ -63,6 +69,7 @@ class StripeIntegration {
 
     async createPayout(amount, destination, currency = 'usd', metadata = {}) {
         if (this.testMode) {
+            console.log(`💳 TEST MODE: Simulating payout of $${amount} to ${destination}`);
             return {
                 id: `po_test_${Date.now()}`,
                 amount: Math.round(amount * 100),
@@ -70,7 +77,8 @@ class StripeIntegration {
                 status: 'paid',
                 destination,
                 metadata,
-                testMode: true
+                testMode: true,
+                message: '⚠️ TEST MODE: No real payout processed'
             };
         }
 
