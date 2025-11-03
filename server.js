@@ -1531,6 +1531,7 @@ app.post('/api/banking/deposit/stripe/confirm', async (req, res) => {
         
         if (paymentIntent.status === 'succeeded' || paymentIntent.testMode) {
             const result = bankingAPI.confirmDeposit(depositId, paymentIntentId);
+            dataPersistence.saveFiatBalances(bankingAPI.fiatBalances);
             res.json(result);
         } else {
             res.status(400).json({ 
@@ -1552,6 +1553,7 @@ app.post('/api/banking/deposit/paypal/confirm', async (req, res) => {
         
         if (captureResult.status === 'COMPLETED' || captureResult.testMode) {
             const result = bankingAPI.confirmDeposit(depositId, orderId);
+            dataPersistence.saveFiatBalances(bankingAPI.fiatBalances);
             res.json(result);
         } else {
             res.status(400).json({ 
@@ -1591,6 +1593,8 @@ app.post('/api/banking/withdrawal/stripe', async (req, res) => {
             withdrawalResult.withdrawal.withdrawalId,
             payout.id
         );
+        
+        dataPersistence.saveFiatBalances(bankingAPI.fiatBalances);
         
         res.json({
             success: true,
@@ -1640,6 +1644,8 @@ app.post('/api/banking/withdrawal/paypal', async (req, res) => {
             withdrawalResult.withdrawal.withdrawalId,
             payout.batch_id
         );
+        
+        dataPersistence.saveFiatBalances(bankingAPI.fiatBalances);
         
         res.json({
             success: true,
