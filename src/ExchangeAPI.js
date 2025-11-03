@@ -156,6 +156,38 @@ class ExchangeAPI {
             throw new Error(`Order size must be between ${pairInfo.minOrderSize} and ${pairInfo.maxOrderSize}`);
         }
         
+        if (side === 'buy' && pair.endsWith('_USD') && this.bankingAPI) {
+            const userBalance = this.bankingAPI.getFiatBalance(userAddress);
+            const oppositeBook = this.orderBook.asks;
+            
+            if (orderType === 'market' && oppositeBook.length > 0) {
+                let estimatedCost = 0;
+                let remainingQty = quantity;
+                
+                for (const ask of oppositeBook) {
+                    if (remainingQty <= 0) break;
+                    const fillQty = Math.min(remainingQty, ask.remainingQuantity);
+                    estimatedCost += fillQty * ask.price;
+                    remainingQty -= fillQty;
+                }
+                
+                const fee = estimatedCost * 0.001;
+                const totalRequired = estimatedCost + fee;
+                
+                if (userBalance < totalRequired) {
+                    throw new Error(`Insufficient USD balance. Required: $${totalRequired.toFixed(2)}, Available: $${userBalance.toFixed(2)}`);
+                }
+            } else if (orderType === 'limit' && price) {
+                const estimatedCost = quantity * price;
+                const fee = estimatedCost * 0.001;
+                const totalRequired = estimatedCost + fee;
+                
+                if (userBalance < totalRequired) {
+                    throw new Error(`Insufficient USD balance. Required: $${totalRequired.toFixed(2)}, Available: $${userBalance.toFixed(2)}`);
+                }
+            }
+        }
+        
         const order = {
             orderId: 'ORD_' + crypto.randomBytes(16).toString('hex'),
             userAddress,
