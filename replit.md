@@ -6,6 +6,17 @@ The project encompasses a complete blockchain system with dual consensus modes (
 
 # Recent Changes
 
+## November 4, 2025 - Withdrawal System Simplification (Stripe Direct Payout)
+- **Implemented**: Simplified withdrawal system for personal use - funds go directly to Stripe-connected bank account
+- **Changes**: 
+  - Removed individual bank account management (no longer needed)
+  - Stripe payouts now send to the account owner's connected bank automatically
+  - Simplified frontend UI - only requires wallet address and amount
+  - Balance is saved immediately before Stripe call to prevent double-payout on server crash
+  - Error handling restores balance and saves if Stripe payout fails
+- **Known Limitation**: System is optimized for personal use. Edge case: if server crashes mid-withdrawal, manual reconciliation may be needed. For production with multiple users, would need full crash-recovery and Stripe reconciliation system.
+- **Files Modified**: src/StripeIntegration.js, src/BankingAPI.js, server.js, public/app.js, public/index.html
+
 ## November 4, 2025 - Critical Balance Persistence Bug Fix
 - **Fixed**: USD balances being reset to $0.00 on page reload despite correct disk persistence
 - **Root Cause**: BankingAPI.registerAccount() unconditionally overwrote fiatBalances with 0, erasing loaded balances when frontend re-registered accounts after page refresh
