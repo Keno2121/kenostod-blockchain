@@ -134,7 +134,8 @@ class StripeIntegration {
 
     async validateWebhook(payload, signature, webhookSecret) {
         if (this.testMode) {
-            return JSON.parse(payload);
+            const payloadString = Buffer.isBuffer(payload) ? payload.toString('utf8') : payload;
+            return JSON.parse(payloadString);
         }
 
         try {
@@ -146,6 +147,177 @@ class StripeIntegration {
             return event;
         } catch (error) {
             throw new Error(`Webhook signature verification failed: ${error.message}`);
+        }
+    }
+
+    async createProduct(name, description = '') {
+        if (this.testMode) {
+            return {
+                id: `prod_test_${Date.now()}`,
+                object: 'product',
+                name,
+                description,
+                testMode: true
+            };
+        }
+
+        try {
+            const product = await this.stripe.products.create({
+                name,
+                description
+            });
+            return product;
+        } catch (error) {
+            throw new Error(`Stripe product creation failed: ${error.message}`);
+        }
+    }
+
+    async createPrice(productId, amount, currency = 'usd', interval = 'month') {
+        if (this.testMode) {
+            return {
+                id: `price_test_${Date.now()}`,
+                object: 'price',
+                product: productId,
+                unit_amount: Math.round(amount * 100),
+                currency,
+                recurring: { interval },
+                testMode: true
+            };
+        }
+
+        try {
+            const price = await this.stripe.prices.create({
+                product: productId,
+                unit_amount: Math.round(amount * 100),
+                currency,
+                recurring: { interval }
+            });
+            return price;
+        } catch (error) {
+            throw new Error(`Stripe price creation failed: ${error.message}`);
+        }
+    }
+
+    async createCheckoutSession(priceId, successUrl, cancelUrl, customerEmail = null, metadata = {}) {
+        if (this.testMode) {
+            return {
+                id: `cs_test_${Date.now()}`,
+                url: `https://checkout.stripe.com/test/${Date.now()}`,
+                testMode: true,
+                message: '⚠️ TEST MODE: This is a simulated checkout session'
+            };
+        }
+
+        try {
+            const sessionParams = {
+                mode: 'subscription',
+                line_items: [{
+                    price: priceId,
+                    quantity: 1
+                }],
+                success_url: successUrl,
+                cancel_url: cancelUrl,
+                metadata
+            };
+
+            if (customerEmail) {
+                sessionParams.customer_email = customerEmail;
+            }
+
+            const session = await this.stripe.checkout.sessions.create(sessionParams);
+            return session;
+        } catch (error) {
+            throw new Error(`Stripe checkout session creation failed: ${error.message}`);
+        }
+    }
+
+    async createCustomerPortalSession(customerId, returnUrl) {
+        if (this.testMode) {
+            return {
+                url: `https://billing.stripe.com/test/${Date.now()}`,
+                testMode: true,
+                message: '⚠️ TEST MODE: This is a simulated portal session'
+            };
+        }
+
+        try {
+            const session = await this.stripe.billingPortal.sessions.create({
+                customer: customerId,
+                return_url: returnUrl
+            });
+            return session;
+        } catch (error) {
+            throw new Error(`Stripe customer portal session creation failed: ${error.message}`);
+        }
+    }
+
+    async retrieveSubscription(subscriptionId) {
+        if (this.testMode) {
+            return {
+                id: subscriptionId,
+                status: 'active',
+                testMode: true
+            };
+        }
+
+        try {
+            const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+            return subscription;
+        } catch (error) {
+            throw new Error(`Stripe subscription retrieval failed: ${error.message}`);
+        }
+    }
+
+    async cancelSubscription(subscriptionId) {
+        if (this.testMode) {
+            return {
+                id: subscriptionId,
+                status: 'canceled',
+                testMode: true
+            };
+        }
+
+        try {
+            const subscription = await this.stripe.subscriptions.cancel(subscriptionId);
+            return subscription;
+        } catch (error) {
+            throw new Error(`Stripe subscription cancellation failed: ${error.message}`);
+        }
+    }
+
+    async listProducts() {
+        if (this.testMode) {
+            return {
+                data: [],
+                testMode: true
+            };
+        }
+
+        try {
+            const products = await this.stripe.products.list({ limit: 100 });
+            return products;
+        } catch (error) {
+            throw new Error(`Stripe product list failed: ${error.message}`);
+        }
+    }
+
+    async listPrices(productId = null) {
+        if (this.testMode) {
+            return {
+                data: [],
+                testMode: true
+            };
+        }
+
+        try {
+            const params = { limit: 100 };
+            if (productId) {
+                params.product = productId;
+            }
+            const prices = await this.stripe.prices.list(params);
+            return prices;
+        } catch (error) {
+            throw new Error(`Stripe price list failed: ${error.message}`);
         }
     }
 

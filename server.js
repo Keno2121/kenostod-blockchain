@@ -19,6 +19,50 @@ const PORT = 5000;
 
 // Middleware
 app.use(cors());
+
+// Stripe webhook must be BEFORE express.json() to preserve raw body for signature verification
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+        console.warn('⚠️  STRIPE_WEBHOOK_SECRET not set. Webhook validation disabled.');
+        return res.json({ received: true });
+    }
+
+    try {
+        const event = await stripeIntegration.validateWebhook(req.body, sig, webhookSecret);
+
+        switch (event.type) {
+            case 'checkout.session.completed':
+                console.log('✅ Subscription checkout completed:', event.data.object.id);
+                break;
+            case 'customer.subscription.created':
+                console.log('✅ Subscription created:', event.data.object.id);
+                break;
+            case 'customer.subscription.updated':
+                console.log('🔄 Subscription updated:', event.data.object.id);
+                break;
+            case 'customer.subscription.deleted':
+                console.log('❌ Subscription cancelled:', event.data.object.id);
+                break;
+            case 'invoice.payment_succeeded':
+                console.log('💰 Payment succeeded:', event.data.object.id);
+                break;
+            case 'invoice.payment_failed':
+                console.log('⚠️  Payment failed:', event.data.object.id);
+                break;
+            default:
+                console.log(`Unhandled webhook event: ${event.type}`);
+        }
+
+        res.json({ received: true });
+    } catch (error) {
+        console.error('Webhook error:', error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -1760,6 +1804,104 @@ app.post('/api/banking/withdrawal/cancel', (req, res) => {
 });
 
 // ==================== END BANKING API ENDPOINTS ====================
+
+// ==================== STRIPE SUBSCRIPTION API ENDPOINTS ====================
+
+app.post('/api/stripe/create-checkout-session', async (req, res) => {
+    try {
+        const { priceId, plan, customerEmail } = req.body;
+        
+        if (!priceId) {
+            return res.status(400).json({ error: 'priceId is required' });
+        }
+
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.headers['x-forwarded-host'] || req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+        
+        const successUrl = `${baseUrl}/?subscription=success&plan=${plan || 'unknown'}`;
+        const cancelUrl = `${baseUrl}/?subscription=cancelled`;
+
+        const session = await stripeIntegration.createCheckoutSession(
+            priceId,
+            successUrl,
+            cancelUrl,
+            customerEmail,
+            { plan }
+        );
+
+        res.json({ 
+            url: session.url,
+            sessionId: session.id,
+            testMode: session.testMode || false
+        });
+    } catch (error) {
+        console.error('Checkout session error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/stripe/create-portal-session', async (req, res) => {
+    try {
+        const { customerId } = req.body;
+        
+        if (!customerId) {
+            return res.status(400).json({ error: 'customerId is required' });
+        }
+
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.headers['x-forwarded-host'] || req.get('host');
+        const returnUrl = `${protocol}://${host}/`;
+
+        const session = await stripeIntegration.createCustomerPortalSession(customerId, returnUrl);
+
+        res.json({ 
+            url: session.url,
+            testMode: session.testMode || false
+        });
+    } catch (error) {
+        console.error('Portal session error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/stripe/products', async (req, res) => {
+    try {
+        const products = await stripeIntegration.listProducts();
+        res.json(products);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/stripe/prices/:productId?', async (req, res) => {
+    try {
+        const prices = await stripeIntegration.listPrices(req.params.productId);
+        res.json(prices);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/stripe/subscription/:subscriptionId', async (req, res) => {
+    try {
+        const subscription = await stripeIntegration.retrieveSubscription(req.params.subscriptionId);
+        res.json(subscription);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/stripe/subscription/:subscriptionId/cancel', async (req, res) => {
+    try {
+        const subscription = await stripeIntegration.cancelSubscription(req.params.subscriptionId);
+        res.json(subscription);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END STRIPE SUBSCRIPTION API ENDPOINTS ====================
 
 // ==================== MERCHANT INCENTIVES API ENDPOINTS ====================
 

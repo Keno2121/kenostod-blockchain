@@ -1109,7 +1109,7 @@
                         <li>✅ Video tutorials</li>
                         <li>✅ Email support</li>
                     </ul>
-                    <button class="btn btn-primary" onclick="alert('Payment integration coming soon! Contact: kenostod@blockchain.edu')">Subscribe Now</button>
+                    <button class="btn btn-primary" onclick="subscribeToplan('student', 15)" id="studentSubscribeBtn">Subscribe Now</button>
                 </div>
                 
                 <div class="pricing-card">
@@ -1123,7 +1123,7 @@
                         <li>✅ API documentation</li>
                         <li>✅ 1-on-1 mentoring</li>
                     </ul>
-                    <button class="btn btn-secondary" onclick="alert('Payment integration coming soon! Contact: kenostod@blockchain.edu')">Subscribe Now</button>
+                    <button class="btn btn-secondary" onclick="subscribeToplan('professional', 35)" id="professionalSubscribeBtn">Subscribe Now</button>
                 </div>
             </div>
             
@@ -1141,6 +1141,69 @@
             setTimeout(initializeApp, 2000);
         });
         
+        const STRIPE_PRICE_IDS = {
+            student: 'price_STUDENT_MONTHLY_15',
+            professional: 'price_PROFESSIONAL_MONTHLY_35'
+        };
+
+        async function subscribeToplan(plan, amount) {
+            const priceId = STRIPE_PRICE_IDS[plan];
+            
+            if (!priceId || priceId.includes('STUDENT') || priceId.includes('PROFESSIONAL')) {
+                alert('⚠️ Stripe products not configured yet!\n\n' +
+                      'To enable subscriptions:\n' +
+                      '1. Go to dashboard.stripe.com\n' +
+                      '2. Create products for "Student" ($15/mo) and "Professional" ($35/mo)\n' +
+                      '3. Update STRIPE_PRICE_IDS in index.html with real price IDs\n' +
+                      '4. Set up webhook endpoint in Stripe dashboard\n\n' +
+                      'Need help? Contact: kenostod@blockchain.edu');
+                return;
+            }
+
+            const button = document.getElementById(`${plan}SubscribeBtn`);
+            const originalText = button.textContent;
+            button.textContent = 'Loading...';
+            button.disabled = true;
+
+            try {
+                const email = prompt('Enter your email address for subscription:');
+                if (!email) {
+                    throw new Error('Email is required');
+                }
+
+                const response = await fetch('/api/stripe/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        priceId: priceId,
+                        plan: plan,
+                        customerEmail: email
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create checkout session');
+                }
+
+                if (data.testMode) {
+                    alert('⚠️ TEST MODE: ' + data.message);
+                    return;
+                }
+
+                window.location.href = data.url;
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error('Subscription error:', error);
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
         function showPricingModal() {
             document.getElementById('pricingModal').style.display = 'flex';
         }
@@ -1155,6 +1218,20 @@
                 modal.style.display = 'none';
             }
         }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const subscription = urlParams.get('subscription');
+            const plan = urlParams.get('plan');
+
+            if (subscription === 'success') {
+                alert('🎉 Subscription Successful!\n\nWelcome to the ' + (plan || 'Premium') + ' plan!\nYou now have full access to all features.');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (subscription === 'cancelled') {
+                alert('❌ Subscription Cancelled\n\nNo payment was processed. Feel free to try again anytime!');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
     </script>
 </body>
 </html>
