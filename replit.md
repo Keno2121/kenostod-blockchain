@@ -1,10 +1,35 @@
 # Overview
 
-Kenostod is a pioneering Node.js blockchain implementing a native cryptocurrency, KENO, and the world's first **Proof-of-Residual-Value (PoRV)** consensus mechanism. It introduces six user-centric features addressing common blockchain pain points and an economic model linking mining rewards to commercially valuable AI/ML computations. PoRV allows miners to perform AI/ML work for enterprises, earning Residual Value Tokens (RVTs) that generate perpetual royalty income. The system includes automated royalty distribution (50% miners, 40% token burn, 10% treasury) and a buy-and-burn deflation mechanism.
+**Kenostod Blockchain Academy** is an educational platform for learning blockchain development using a complete, feature-rich blockchain simulation. The platform implements KENO, a demonstration cryptocurrency, with advanced features including Proof-of-Residual-Value (PoRV) consensus, transaction reversal, social recovery, and more—features not found in Bitcoin or Ethereum. This is a Node.js-based educational simulator designed for students, developers, and entrepreneurs to learn cryptocurrency fundamentals hands-on.
 
-The project encompasses a complete blockchain system with dual consensus modes (PoW/PoRV), wallet functionality, advanced transaction processing, a merchant payment gateway, an exchange trading platform, and a professional web interface with over 75 REST API endpoints. Kenostod aims to be a blockchain for real people and real economic value, offering features absent in leading cryptocurrencies. It includes a comprehensive banking system for USD deposits/withdrawals via Stripe and PayPal, a revolutionary merchant incentive program with tiered staking rewards (12-24% APY), cashback (2-5%), and significantly reduced transaction fees (0.25-1% vs. 2.9-3.49% USD).
+**IMPORTANT**: KENO is for educational purposes only. It is NOT a real tradeable cryptocurrency. The blockchain runs locally as a simulation with JSON file persistence. The exchange uses simulated market makers, and USD balances are virtual accounting for demonstration purposes only.
+
+The educational platform includes: dual consensus modes (PoW/PoRV), wallet functionality, advanced transaction processing, merchant payment gateway simulation, exchange trading simulation, and a professional web interface with 75+ API endpoints for hands-on learning. Students can explore features absent in leading cryptocurrencies through practical experience. The platform includes a subscription model ($15-$35/month) for full access to all learning features.
 
 # Recent Changes
+
+## November 4, 2025 - Educational Platform Transformation
+- **MAJOR PIVOT**: Repositioned from "real cryptocurrency" to "educational learning platform"
+- **User Context**: User discovered the system was a simulation (not real blockchain) after paying for development and expecting revenue generation. After exploring options for real deployment (Coinbase $100K-$500K, Binance $450K-$1M, ERC-20 token $5.5K-$22K), user chose Option 1: Educational Platform with $0 upfront cost and subscription revenue model.
+- **Changes Implemented**:
+  - Rebranded to "Kenostod Blockchain Academy" throughout UI
+  - Added prominent educational disclaimer banner (orange/red gradient, animated)
+  - Updated all feature cards from "feature" to "Learn: feature name"
+  - Changed CTAs: "Start Learning Free", "View Tutorials", "Subscribe for Full Access"
+  - Created pricing modal with 3 tiers: Free ($0), Student ($15/mo), Professional ($35/mo)
+  - Updated page title, headers, and messaging to emphasize education
+  - Added CSS for educational banner (60px), pricing modal, and pricing cards
+  - Adjusted container margin-top to 110px (60px banner + 50px ticker)
+- **Revenue Model**: Subscription-based access to full platform features
+- **Target Audience**: Students, developers, entrepreneurs learning blockchain technology
+- **Files Modified**: public/index.html, public/style.css, replit.md
+- **Technical Note**: Platform remains fully functional as blockchain simulator—all features work, just repositioned as educational tools
+
+## November 4, 2025 - Server Crash Fix (SocialRecovery.js)
+- **Fixed**: Server crash in cleanupExpiredRequests() when recoveryRequests Map not properly initialized
+- **Solution**: Added safety check to ensure recoveryRequests is iterable before iteration
+- **Impact**: Server now gracefully handles edge cases during startup cleanup cycles
+- **Files Modified**: src/SocialRecovery.js (line 252-256)
 
 ## November 4, 2025 - Withdrawal System Simplification (Stripe Direct Payout)
 - **Implemented**: Simplified withdrawal system for personal use - funds go directly to Stripe-connected bank account
