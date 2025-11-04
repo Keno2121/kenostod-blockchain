@@ -247,6 +247,10 @@ class SocialRecovery {
 
     cleanupExpiredRequests() {
         let cleaned = 0;
+        if (!this.recoveryRequests || !(this.recoveryRequests instanceof Map)) {
+            console.log('⚠️  Recovery requests not initialized, skipping cleanup');
+            return 0;
+        }
         for (const [requestId, request] of this.recoveryRequests) {
             if (request.isExpired() && request.status === 'pending') {
                 request.status = 'expired';
@@ -254,7 +258,7 @@ class SocialRecovery {
             }
         }
         if (cleaned > 0) {
-            console.log(`Cleaned up ${cleaned} expired recovery requests`);
+            console.log(`🧹 Cleaned up ${cleaned} expired recovery requests`);
         }
         return cleaned;
     }
