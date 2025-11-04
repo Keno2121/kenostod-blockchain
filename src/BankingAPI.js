@@ -206,7 +206,7 @@ class BankingAPI {
         };
     }
 
-    createWithdrawal(walletAddress, amount, method, destination) {
+    createWithdrawal(walletAddress, amount, method, destination = null) {
         if (amount < this.MIN_WITHDRAWAL) {
             return { success: false, error: `Minimum withdrawal is $${this.MIN_WITHDRAWAL}` };
         }
@@ -246,7 +246,7 @@ class BankingAPI {
             fee: parseFloat(fee.toFixed(2)),
             totalAmount: parseFloat(totalRequired.toFixed(2)),
             method,
-            destination,
+            destination: destination || 'stripe_connected_account',
             status: 'pending',
             createdAt: Date.now(),
             completedAt: null,
@@ -255,7 +255,9 @@ class BankingAPI {
 
         this.withdrawals.set(withdrawalId, withdrawal);
 
+        // Deduct balance and save immediately to prevent double-payout if server crashes
         this.fiatBalances.set(walletAddress, currentBalance - totalRequired);
+        this.saveFiatBalances();
 
         const transactionId = `TXN-${this.transactionIdCounter++}`;
         const transaction = {
@@ -321,8 +323,12 @@ class BankingAPI {
 
         withdrawal.status = 'cancelled';
 
+        // Restore the balance that was deducted
         const currentBalance = this.fiatBalances.get(withdrawal.walletAddress) || 0;
         this.fiatBalances.set(withdrawal.walletAddress, currentBalance + withdrawal.totalAmount);
+        
+        // Save immediately to prevent balance loss on restart
+        this.saveFiatBalances();
 
         const transaction = this.transactions.get(withdrawal.transactionId);
         if (transaction) {

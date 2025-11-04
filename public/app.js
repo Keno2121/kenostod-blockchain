@@ -2596,12 +2596,8 @@ async function withdrawStripe() {
     try {
         const walletAddress = document.getElementById('stripeWithdrawWallet').value;
         const amount = parseFloat(document.getElementById('stripeWithdrawAmount').value);
-        const accountHolderName = document.getElementById('bankAccountName').value;
-        const routingNumber = document.getElementById('bankRoutingNumber').value;
-        const accountNumber = document.getElementById('bankAccountNumber').value;
-        const accountType = document.getElementById('bankAccountType').value;
 
-        if (!walletAddress || !amount || !accountHolderName || !routingNumber || !accountNumber) {
+        if (!walletAddress || !amount) {
             alert('Please fill in all fields');
             return;
         }
@@ -2620,8 +2616,7 @@ async function withdrawStripe() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 walletAddress,
-                amount,
-                bankAccountId: `ba_test_${Date.now()}`
+                amount
             })
         });
 
@@ -2638,8 +2633,8 @@ async function withdrawStripe() {
                     <strong>Total Deducted:</strong> $${data.withdrawal.totalAmount.toFixed(2)}<br>
                     <strong>Payout ID:</strong> ${data.payoutId}<br>
                     <strong>Status:</strong> ${data.withdrawal.status.toUpperCase()}<br>
-                    <strong>Bank Account:</strong> ****${accountNumber.slice(-4)}<br>
-                    ${data.payoutId.includes('test') ? '<br><strong>⚠️ TEST MODE:</strong> No real payout processed' : ''}
+                    <strong>Destination:</strong> Your Stripe-connected bank account<br>
+                    ${data.payoutId && data.payoutId.includes('test') ? '<br><strong>⚠️ TEST MODE:</strong> No real payout processed' : '<br><strong>💰 LIVE MODE:</strong> Real money sent to your bank!'}
                 </div>
             `;
         } else {

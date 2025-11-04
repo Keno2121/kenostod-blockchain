@@ -67,15 +67,15 @@ class StripeIntegration {
         }
     }
 
-    async createPayout(amount, destination, currency = 'usd', metadata = {}) {
+    async createPayout(amount, destination = null, currency = 'usd', metadata = {}) {
         if (this.testMode) {
-            console.log(`💳 TEST MODE: Simulating payout of $${amount} to ${destination}`);
+            console.log(`💳 TEST MODE: Simulating payout of $${amount}`);
             return {
                 id: `po_test_${Date.now()}`,
                 amount: Math.round(amount * 100),
                 currency,
                 status: 'paid',
-                destination,
+                destination: destination || 'default',
                 metadata,
                 testMode: true,
                 message: '⚠️ TEST MODE: No real payout processed'
@@ -83,13 +83,18 @@ class StripeIntegration {
         }
 
         try {
-            const payout = await this.stripe.payouts.create({
+            // In live mode, payouts go to the Stripe account's connected bank account
+            // The destination parameter is not needed (and often not supported)
+            const payoutParams = {
                 amount: Math.round(amount * 100),
                 currency,
-                destination,
-                metadata
-            });
+                metadata,
+                method: 'standard'
+            };
 
+            const payout = await this.stripe.payouts.create(payoutParams);
+            
+            console.log(`✅ Stripe payout created: $${amount} → your connected bank account`);
             return payout;
         } catch (error) {
             throw new Error(`Stripe payout failed: ${error.message}`);

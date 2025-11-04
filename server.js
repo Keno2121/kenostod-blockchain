@@ -1569,22 +1569,24 @@ app.post('/api/banking/deposit/paypal/confirm', async (req, res) => {
 // Create withdrawal (Stripe)
 app.post('/api/banking/withdrawal/stripe', async (req, res) => {
     try {
-        const { walletAddress, amount, bankAccountId } = req.body;
+        const { walletAddress, amount } = req.body;
         
+        // Create withdrawal (destination not needed - goes to Stripe-connected bank account)
         const withdrawalResult = bankingAPI.createWithdrawal(
             walletAddress, 
             amount, 
             'stripe', 
-            { bankAccountId }
+            null
         );
         
         if (!withdrawalResult.success) {
             return res.status(400).json(withdrawalResult);
         }
         
+        // Create payout to Stripe-connected bank account
         const payout = await stripeIntegration.createPayout(
             amount,
-            bankAccountId,
+            null,
             'usd',
             { withdrawalId: withdrawalResult.withdrawal.withdrawalId }
         );
