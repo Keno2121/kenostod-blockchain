@@ -4,6 +4,15 @@ Kenostod is a pioneering Node.js blockchain implementing a native cryptocurrency
 
 The project encompasses a complete blockchain system with dual consensus modes (PoW/PoRV), wallet functionality, advanced transaction processing, a merchant payment gateway, an exchange trading platform, and a professional web interface with over 75 REST API endpoints. Kenostod aims to be a blockchain for real people and real economic value, offering features absent in leading cryptocurrencies. It includes a comprehensive banking system for USD deposits/withdrawals via Stripe and PayPal, a revolutionary merchant incentive program with tiered staking rewards (12-24% APY), cashback (2-5%), and significantly reduced transaction fees (0.25-1% vs. 2.9-3.49% USD).
 
+# Recent Changes
+
+## November 4, 2025 - Critical Balance Persistence Bug Fix
+- **Fixed**: USD balances being reset to $0.00 on page reload despite correct disk persistence
+- **Root Cause**: BankingAPI.registerAccount() unconditionally overwrote fiatBalances with 0, erasing loaded balances when frontend re-registered accounts after page refresh
+- **Solution**: Modified registerAccount() to preserve existing balances - only initializes to 0 for genuinely new wallets
+- **Impact**: USD balances now persist correctly across page reloads and server restarts
+- **Files Modified**: src/BankingAPI.js (lines 68-71)
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

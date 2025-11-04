@@ -61,7 +61,11 @@ class BankingAPI {
         };
 
         this.accounts.set(walletAddress, account);
-        this.fiatBalances.set(walletAddress, 0);
+        
+        // Preserve existing balance if loaded from disk, otherwise initialize to 0
+        if (!this.fiatBalances.has(walletAddress)) {
+            this.fiatBalances.set(walletAddress, 0);
+        }
 
         return {
             success: true,
