@@ -1,6 +1,14 @@
 const API_BASE = '';
 let ec;
 
+// Mobile Menu Toggle
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) {
+        mobileMenu.classList.toggle('active');
+    }
+}
+
 function initializeApp() {
     try {
         if (typeof elliptic === 'undefined') {
