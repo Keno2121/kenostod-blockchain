@@ -17,6 +17,22 @@ The system employs a modular blockchain architecture with a block structure cont
 ## Proof-of-Residual-Value (PoRV) Consensus
 PoRV is a mining system designed to generate real economic value through Residual Value Tokens (RVTs). RVTs are royalty-generating NFTs awarded to miners for completing AI/ML computations. Enterprise clients submit computational tasks with fees and royalty rates, which are escrowed on-chain. Royalties from commercial usage are automatically distributed: 50% to RVT holders, 40% token burn, and 10% to the treasury. This includes a buy-and-burn deflationary mechanism for the KENO token.
 
+### PoRV Technology Licensing System
+PoRV is proprietary technology protected by a mandatory profit-sharing licensing system. Any external platform implementing PoRV for commercial purposes must pay 10% of gross revenue to the technology creator. The licensing system includes:
+
+- **License Registration API**: External platforms register via `/api/porv/license/register` with company details and wallet address
+- **Multi-Layer Payment Verification**: Automatic enforcement of creator royalties through:
+  - Payment amount verification (must be ≥10% of revenue)
+  - Recipient address verification (hardcoded creator address)
+  - Cryptographic signature validation (prevents forgery)
+  - On-chain submission (immutable audit trail)
+- **License Status Management**: Three-state lifecycle (pending → active → suspended) with API-level enforcement
+- **Compliance Tracking**: Real-time monitoring of revenue, royalties paid, and compliance percentage per license
+- **Usage Reporting**: Licensed platforms report revenue via `/api/porv/license/report-usage` with signed payment transactions
+- **Enforcement Mechanisms**: License suspension for non-compliance, legal action for unlicensed usage
+
+This system ensures fair profit-sharing (creator receives 10%, platform keeps 90%) while protecting revolutionary PoRV technology and incentivizing widespread adoption. Technical documentation available in `PORV_LICENSING_TECHNICAL_DOCS.md`. Licensing UI accessible at `/porv-licensing.html`.
+
 ## Payment Gateway & Exchange
 The platform includes a merchant payment system with features like registration, API key generation, QR code-based payments, invoice management, automatic KENO/USD conversion, and a 4-tier incentive program. An exchange trading platform supports KENO/USD, KENO/BTC, and KENO/ETH pairs with a full order book, market and limit orders, cryptographic order signature verification, and trade history. Security is maintained through confirmed transactions, cryptographic signing, public key verification, and multi-layer validation. USD deposit/withdrawal functionality is integrated via Stripe and PayPal.
 
