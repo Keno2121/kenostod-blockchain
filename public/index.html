@@ -1136,6 +1136,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="elliptic.bundle.js"></script>
+    <script src="iap-handler.js"></script>
     <script src="app.js"></script>
     <script>
         window.addEventListener('load', function() {
@@ -1147,26 +1148,39 @@
             professional: 'price_1SPnwEETJYdWSfBaPFLKu9WUsS'
         };
 
-        async function subscribeToplan(plan, amount) {
-            const priceId = STRIPE_PRICE_IDS[plan];
-            
-            if (!priceId || priceId.includes('STUDENT') || priceId.includes('PROFESSIONAL')) {
-                alert('⚠️ Stripe products not configured yet!\n\n' +
-                      'To enable subscriptions:\n' +
-                      '1. Go to dashboard.stripe.com\n' +
-                      '2. Create products for "Student" ($15/mo) and "Professional" ($35/mo)\n' +
-                      '3. Update STRIPE_PRICE_IDS in index.html with real price IDs\n' +
-                      '4. Set up webhook endpoint in Stripe dashboard\n\n' +
-                      'Need help? Contact: kenostod@blockchain.edu');
-                return;
-            }
+        const GOOGLE_PLAY_PRODUCT_IDS = {
+            student: 'kenostod_student_monthly',
+            professional: 'kenostod_professional_monthly'
+        };
 
+        async function subscribeToplan(plan, amount) {
             const button = document.getElementById(`${plan}SubscribeBtn`);
             const originalText = button.textContent;
             button.textContent = 'Loading...';
             button.disabled = true;
 
             try {
+                // Check if we're on Android app - use Google Play Billing
+                if (window.iapHandler && window.iapHandler.isAndroid) {
+                    const productId = GOOGLE_PLAY_PRODUCT_IDS[plan];
+                    await window.iapHandler.purchaseSubscription(productId);
+                    return;
+                }
+
+                // Otherwise use Stripe (website)
+                const priceId = STRIPE_PRICE_IDS[plan];
+                
+                if (!priceId || priceId.includes('STUDENT') || priceId.includes('PROFESSIONAL')) {
+                    alert('⚠️ Stripe products not configured yet!\n\n' +
+                          'To enable subscriptions:\n' +
+                          '1. Go to dashboard.stripe.com\n' +
+                          '2. Create products for "Student" ($15/mo) and "Professional" ($35/mo)\n' +
+                          '3. Update STRIPE_PRICE_IDS in index.html with real price IDs\n' +
+                          '4. Set up webhook endpoint in Stripe dashboard\n\n' +
+                          'Need help? Contact: kenostod@blockchain.edu');
+                    return;
+                }
+
                 const email = prompt('Enter your email address for subscription:');
                 if (!email) {
                     throw new Error('Email is required');
