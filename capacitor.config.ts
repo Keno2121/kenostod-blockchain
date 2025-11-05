@@ -5,14 +5,12 @@ const config: CapacitorConfig = {
   appName: 'Kenostod Academy',
   webDir: 'public',
   server: {
-    androidScheme: 'https',
-    cleartext: true,
-    allowNavigation: ['*']
+    androidScheme: 'https'
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: true
+    webContentsDebuggingEnabled: false
   }
 };
 
