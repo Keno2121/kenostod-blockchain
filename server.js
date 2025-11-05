@@ -1192,6 +1192,237 @@ app.get('/api/porv/royalty/:rvtId', (req, res) => {
     }
 });
 
+// ==================== PoRV LICENSING & PROFIT-SHARING SYSTEM ====================
+
+// PoRV Technology License Registry
+// Tracks external platforms using PoRV technology and enforces profit-sharing
+const porvLicenses = [];
+const PORV_CREATOR_ADDRESS = '04ec760c787ea85d7d73181dfdd5b8bc87dc94793ec929c09db6b43276ddb8900b204d9a22158d053feb56c1e2a9f08037251e3bd19e0d468e63eff1ee55e6f89e'; // Platform creator address
+const CREATOR_ROYALTY_PERCENTAGE = 10; // 10% of all PoRV profits go to creator
+
+// Register for PoRV Technology License
+app.post('/api/porv/license/register', (req, res) => {
+    try {
+        const { platformName, companyName, contactEmail, walletAddress, agreedToTerms } = req.body;
+        
+        if (!platformName || !companyName || !contactEmail || !walletAddress || !agreedToTerms) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: platformName, companyName, contactEmail, walletAddress, agreedToTerms' 
+            });
+        }
+
+        if (!agreedToTerms) {
+            return res.status(400).json({ 
+                error: 'You must agree to PoRV licensing terms which require profit-sharing' 
+            });
+        }
+
+        const licenseId = `PORV-LIC-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+        
+        const license = {
+            licenseId,
+            platformName,
+            companyName,
+            contactEmail,
+            walletAddress,
+            issuedAt: new Date().toISOString(),
+            status: 'pending', // pending -> active -> suspended
+            agreedToTerms: true,
+            creatorRoyaltyRate: CREATOR_ROYALTY_PERCENTAGE,
+            totalRevenue: 0,
+            creatorRoyaltiesPaid: 0,
+            usageHistory: []
+        };
+
+        porvLicenses.push(license);
+
+        res.json({
+            message: 'PoRV Technology License application submitted',
+            license,
+            terms: {
+                creatorRoyaltyRate: `${CREATOR_ROYALTY_PERCENTAGE}%`,
+                creatorAddress: PORV_CREATOR_ADDRESS,
+                requirement: 'All platforms using PoRV technology must pay 10% of gross revenue to the PoRV creator',
+                enforcement: 'Automatic on-chain royalty distribution required for each profitable transaction',
+                violation: 'License suspension and legal action for non-compliance'
+            }
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Report PoRV usage and pay creator royalties (REQUIRED for licensed platforms)
+app.post('/api/porv/license/report-usage', (req, res) => {
+    try {
+        const { licenseId, revenueGenerated, royaltyPaymentTx } = req.body;
+        
+        if (!licenseId || revenueGenerated === undefined || !royaltyPaymentTx) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: licenseId, revenueGenerated, royaltyPaymentTx (signed transaction to creator)' 
+            });
+        }
+
+        const license = porvLicenses.find(l => l.licenseId === licenseId);
+        
+        if (!license) {
+            return res.status(404).json({ error: 'License not found. Register first at /api/porv/license/register' });
+        }
+
+        if (license.status !== 'active') {
+            return res.status(403).json({ 
+                error: `License status: ${license.status}. Only active licenses can report usage.` 
+            });
+        }
+
+        // Verify royalty payment transaction
+        const creatorRoyaltyDue = revenueGenerated * (CREATOR_ROYALTY_PERCENTAGE / 100);
+        
+        if (royaltyPaymentTx.amount < creatorRoyaltyDue) {
+            return res.status(400).json({ 
+                error: `Insufficient creator royalty payment. Required: ${creatorRoyaltyDue} KENO, Provided: ${royaltyPaymentTx.amount} KENO` 
+            });
+        }
+
+        if (royaltyPaymentTx.toAddress !== PORV_CREATOR_ADDRESS) {
+            return res.status(400).json({ 
+                error: `Invalid payment recipient. Creator royalties must go to: ${PORV_CREATOR_ADDRESS}` 
+            });
+        }
+
+        // Verify and submit the transaction
+        const tx = kenostodChain.createTransactionFromObject(royaltyPaymentTx);
+        if (!tx.isValid()) {
+            return res.status(400).json({ error: 'Invalid transaction signature for royalty payment' });
+        }
+
+        kenostodChain.addTransaction(tx);
+
+        // Record usage
+        license.totalRevenue += revenueGenerated;
+        license.creatorRoyaltiesPaid += creatorRoyaltyDue;
+        license.usageHistory.push({
+            timestamp: new Date().toISOString(),
+            revenue: revenueGenerated,
+            creatorRoyalty: creatorRoyaltyDue,
+            transactionHash: tx.calculateHash()
+        });
+
+        res.json({
+            message: 'PoRV usage reported and creator royalties paid successfully',
+            license: {
+                licenseId: license.licenseId,
+                platformName: license.platformName,
+                totalRevenue: license.totalRevenue,
+                totalCreatorRoyalties: license.creatorRoyaltiesPaid,
+                complianceStatus: 'compliant'
+            },
+            payment: {
+                creatorRoyaltyPaid: creatorRoyaltyDue,
+                transactionHash: tx.calculateHash(),
+                creatorAddress: PORV_CREATOR_ADDRESS
+            }
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get license information
+app.get('/api/porv/license/:licenseId', (req, res) => {
+    const license = porvLicenses.find(l => l.licenseId === req.params.licenseId);
+    
+    if (!license) {
+        return res.status(404).json({ error: 'License not found' });
+    }
+
+    res.json({
+        license,
+        compliance: {
+            expectedCreatorRoyaltyRate: `${CREATOR_ROYALTY_PERCENTAGE}%`,
+            totalRevenue: license.totalRevenue,
+            creatorRoyaltiesPaid: license.creatorRoyaltiesPaid,
+            compliancePercentage: license.totalRevenue > 0 
+                ? ((license.creatorRoyaltiesPaid / license.totalRevenue) * 100).toFixed(2) + '%'
+                : 'N/A'
+        }
+    });
+});
+
+// Get all PoRV licenses (for creator/admin)
+app.get('/api/porv/licenses', (req, res) => {
+    res.json({
+        totalLicenses: porvLicenses.length,
+        activeLicenses: porvLicenses.filter(l => l.status === 'active').length,
+        totalRevenueGenerated: porvLicenses.reduce((sum, l) => sum + l.totalRevenue, 0),
+        totalCreatorRoyalties: porvLicenses.reduce((sum, l) => sum + l.creatorRoyaltiesPaid, 0),
+        licenses: porvLicenses.map(l => ({
+            licenseId: l.licenseId,
+            platformName: l.platformName,
+            companyName: l.companyName,
+            status: l.status,
+            totalRevenue: l.totalRevenue,
+            creatorRoyaltiesPaid: l.creatorRoyaltiesPaid,
+            issuedAt: l.issuedAt
+        }))
+    });
+});
+
+// Approve pending license (for creator/admin)
+app.post('/api/porv/license/:licenseId/approve', (req, res) => {
+    const license = porvLicenses.find(l => l.licenseId === req.params.licenseId);
+    
+    if (!license) {
+        return res.status(404).json({ error: 'License not found' });
+    }
+
+    if (license.status !== 'pending') {
+        return res.status(400).json({ error: `License is already ${license.status}` });
+    }
+
+    license.status = 'active';
+    license.approvedAt = new Date().toISOString();
+
+    res.json({
+        message: 'PoRV license approved successfully',
+        license
+    });
+});
+
+// Get PoRV licensing terms
+app.get('/api/porv/license/terms', (req, res) => {
+    res.json({
+        technology: 'Proof-of-Residual-Value (PoRV) Consensus System',
+        creator: 'Kenostod Blockchain Academy',
+        creatorAddress: PORV_CREATOR_ADDRESS,
+        licensing: {
+            type: 'Commercial License with Mandatory Profit-Sharing',
+            creatorRoyaltyRate: `${CREATOR_ROYALTY_PERCENTAGE}%`,
+            requirement: 'All platforms implementing PoRV technology must share profits with the creator',
+            payment: 'Automatic on-chain royalty payments required for each profitable use',
+            enforcement: 'Smart contract enforcement + legal agreements'
+        },
+        terms: [
+            `Pay ${CREATOR_ROYALTY_PERCENTAGE}% of all gross revenue generated using PoRV technology to creator`,
+            'Report all usage via /api/porv/license/report-usage endpoint',
+            'Maintain active license status through compliance',
+            'Credit Kenostod Blockchain Academy as PoRV technology creator',
+            'License can be suspended for non-compliance',
+            'Legal action may be taken for unlicensed usage or non-payment'
+        ],
+        benefits: [
+            'Access to revolutionary PoRV consensus algorithm',
+            'RVT (Residual Value Token) system with perpetual royalties',
+            'Built-in buy-and-burn deflationary mechanism',
+            'Technical support and documentation',
+            'Updates and improvements to PoRV technology'
+        ],
+        registration: 'POST /api/porv/license/register'
+    });
+});
+
+// ==================== END PoRV LICENSING ====================
+
 // ==================== END PoRV ENDPOINTS ====================
 
 // ==================== PAYMENT GATEWAY ENDPOINTS ====================
