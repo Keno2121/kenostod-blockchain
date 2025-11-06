@@ -4,6 +4,25 @@ Kenostod Blockchain Academy is an educational platform featuring a comprehensive
 
 The platform offers dual consensus modes (PoW/PoRV), full wallet functionality, advanced transaction processing, a simulated merchant payment gateway, and an exchange trading simulation. It includes a professional web interface with over 75 API endpoints for interactive learning and operates on a subscription model for full feature access. KENO is strictly for educational purposes; it is not a real tradeable cryptocurrency, and all financial simulations (exchange, USD balances) are virtual.
 
+# Recent Changes (November 2025)
+
+**Comprehensive Courses Section Added:**
+- Added detailed course curriculum section with descriptions of all 15 interactive blockchain features
+- Each course includes:
+  - "What You'll Learn" - Technical implementation details
+  - "Real-World Application" - Practical use cases and market relevance
+  - Skill tags highlighting key competencies
+- Featured courses (⭐ NEW/REVOLUTIONARY) highlight unique innovations:
+  - Transaction Reversal System
+  - Smart Scheduled Payments
+  - Social Recovery System
+  - Decentralized Reputation System
+  - Community Governance
+  - Proof-of-Residual-Value Mining (REVOLUTIONARY)
+- Professional styling with gradient backgrounds, hover effects, and responsive design
+- Call-to-action section linking to subscription plans
+- Accessible via navigation menu and anchor link (#courses)
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
