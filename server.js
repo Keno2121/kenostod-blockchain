@@ -38,22 +38,113 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
         switch (event.type) {
             case 'checkout.session.completed':
                 console.log('✅ Subscription checkout completed:', event.data.object.id);
+                
+                if (organizationManager && event.data.object.metadata?.organization_id) {
+                    const orgId = event.data.object.metadata.organization_id;
+                    const customerId = event.data.object.customer;
+                    const subscriptionId = event.data.object.subscription;
+                    
+                    try {
+                        await organizationManager.updateStripeInfo(orgId, customerId, subscriptionId);
+                        console.log(`✅ Updated Stripe info for organization ${orgId}`);
+                    } catch (err) {
+                        console.error(`Error updating organization ${orgId}:`, err.message);
+                    }
+                }
                 break;
+                
             case 'customer.subscription.created':
                 console.log('✅ Subscription created:', event.data.object.id);
+                
+                if (organizationManager && event.data.object.metadata?.organization_id) {
+                    const orgId = event.data.object.metadata.organization_id;
+                    
+                    try {
+                        await organizationManager.updateSubscriptionStatus(orgId, 'active');
+                        console.log(`✅ Activated subscription for organization ${orgId}`);
+                    } catch (err) {
+                        console.error(`Error activating organization ${orgId}:`, err.message);
+                    }
+                }
                 break;
+                
             case 'customer.subscription.updated':
                 console.log('🔄 Subscription updated:', event.data.object.id);
+                
+                if (organizationManager && event.data.object.metadata?.organization_id) {
+                    const orgId = event.data.object.metadata.organization_id;
+                    const status = event.data.object.status;
+                    
+                    try {
+                        await organizationManager.updateSubscriptionStatus(orgId, status);
+                        console.log(`✅ Updated subscription status to '${status}' for organization ${orgId}`);
+                    } catch (err) {
+                        console.error(`Error updating organization ${orgId}:`, err.message);
+                    }
+                }
                 break;
+                
             case 'customer.subscription.deleted':
                 console.log('❌ Subscription cancelled:', event.data.object.id);
+                
+                if (organizationManager && event.data.object.metadata?.organization_id) {
+                    const orgId = event.data.object.metadata.organization_id;
+                    
+                    try {
+                        await organizationManager.updateSubscriptionStatus(orgId, 'cancelled');
+                        console.log(`✅ Cancelled subscription for organization ${orgId}`);
+                    } catch (err) {
+                        console.error(`Error cancelling organization ${orgId}:`, err.message);
+                    }
+                }
                 break;
+                
             case 'invoice.payment_succeeded':
                 console.log('💰 Payment succeeded:', event.data.object.id);
+                
+                if (organizationManager && event.data.object.subscription) {
+                    const subscriptionId = event.data.object.subscription;
+                    
+                    try {
+                        const result = await dbConnection.query(
+                            'SELECT id FROM organizations WHERE stripe_subscription_id = $1',
+                            [subscriptionId]
+                        );
+                        
+                        if (result.rows.length > 0) {
+                            const orgId = result.rows[0].id;
+                            await organizationManager.updateSubscriptionStatus(orgId, 'active');
+                            console.log(`✅ Payment confirmed for organization ${orgId}`);
+                        }
+                    } catch (err) {
+                        console.error(`Error confirming payment for subscription ${subscriptionId}:`, err.message);
+                    }
+                }
                 break;
+                
             case 'invoice.payment_failed':
                 console.log('⚠️  Payment failed:', event.data.object.id);
+                
+                if (organizationManager && event.data.object.subscription) {
+                    const subscriptionId = event.data.object.subscription;
+                    
+                    try {
+                        const result = await dbConnection.query(
+                            'SELECT id FROM organizations WHERE stripe_subscription_id = $1',
+                            [subscriptionId]
+                        );
+                        
+                        if (result.rows.length > 0) {
+                            const orgId = result.rows[0].id;
+                            await organizationManager.updateSubscriptionStatus(orgId, 'past_due');
+                            console.log(`⚠️  Payment failed for organization ${orgId}, status set to past_due`);
+                        }
+                    } catch (err) {
+                        console.error(`Error updating organization for subscription ${subscriptionId}:`, err.message);
+                    }
+                }
                 break;
+                
             default:
                 console.log(`Unhandled webhook event: ${event.type}`);
         }
@@ -2581,6 +2672,44 @@ app.post('/api/organization/:id/subscription/status', async (req, res) => {
         });
     } catch (error) {
         console.error('Error updating subscription status:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Create Stripe checkout session for corporate subscription
+app.post('/api/organization/:id/checkout', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { successUrl, cancelUrl, priceId } = req.body;
+        const organizationId = req.params.id;
+
+        const organization = await organizationManager.getOrganization(organizationId);
+        if (!organization) {
+            return res.status(404).json({ error: 'Organization not found' });
+        }
+
+        const checkoutSession = await stripeIntegration.createCheckoutSession({
+            priceId: priceId || 'price_corporate_base',
+            successUrl: successUrl || `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/success`,
+            cancelUrl: cancelUrl || `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/cancel`,
+            customerEmail: organization.owner_email,
+            metadata: {
+                organization_id: organizationId,
+                organization_name: organization.name,
+                total_seats: organization.total_seats
+            }
+        });
+
+        res.json({
+            success: true,
+            checkoutUrl: checkoutSession.url,
+            sessionId: checkoutSession.id
+        });
+    } catch (error) {
+        console.error('Error creating checkout session:', error);
         res.status(500).json({ error: error.message });
     }
 });
