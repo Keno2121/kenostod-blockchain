@@ -23,6 +23,16 @@ The platform offers dual consensus modes (PoW/PoRV), full wallet functionality, 
 - Call-to-action section linking to subscription plans
 - Accessible via navigation menu and anchor link (#courses)
 
+**Pricing Modal Enhanced:**
+- Fixed non-working "Get Started" and "View Subscription Plans" buttons
+- Updated pricing modal with specific feature breakdowns:
+  - **Free Tier**: 3 basic features (wallet, explorer, basic mining)
+  - **Student Plan ($15/mo)**: 12 interactive features including Transaction Reversal, Scheduled Payments, and Social Recovery
+  - **Professional Plan ($35/mo)**: All 15 features + Graduate Mining Program eligibility, priority support, mentoring, and certification
+- Clear visual distinction showing exactly what's included vs. locked in each tier
+- Bundled most educational content into paid tiers for better value proposition
+- Added footer clarifying both plans include unlimited course access, simulators, and API docs
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
