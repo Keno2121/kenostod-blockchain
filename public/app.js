@@ -1,5 +1,211 @@
 const API_BASE = '';
 let ec;
+let currentLanguage = localStorage.getItem('language') || 'en';
+
+const translations = {
+    en: {
+        'nav.logo': 'Kenostod Academy',
+        'nav.subtitle': 'Blockchain Education Platform',
+        'nav.courses': 'Courses',
+        'nav.features': 'Features',
+        'nav.docs': 'Documentation',
+        'nav.stats': 'Live Stats',
+        'nav.cta': 'Get Started',
+        'hero.title': 'Master <span class="highlight">Blockchain Technology</span><br>Through Hands-On Learning',
+        'hero.subtitle': 'The Complete Educational Platform for Future Blockchain Developers',
+        'hero.tagline': 'Learn by doing with our comprehensive blockchain simulator featuring advanced concepts like <strong>Proof-of-Residual-Value consensus</strong>, <strong>transaction reversal</strong>, <strong>social recovery</strong>, and more. Perfect for students, developers, and entrepreneurs building their Web3 expertise in a safe, educational environment.',
+        'hero.cta.free': 'Start Learning Free',
+        'hero.cta.docs': 'View Documentation',
+        'hero.cta.unlock': 'Unlock Full Access',
+        'features.title': '✨ Platform Features',
+        'features.subtitle': 'Everything you need to master blockchain development',
+        'features.cta.title': 'Ready to Start Learning?',
+        'features.cta.subtitle': 'Join thousands of students mastering the next generation of blockchain technology',
+        'features.cta.button': 'View Subscription Plans',
+        'courses.title': '📚 Complete Course Curriculum',
+        'courses.subtitle': 'Master 15 revolutionary blockchain features not found in Bitcoin or Ethereum',
+        'courses.intro': 'Each course includes hands-on simulation, real-world use cases, and practical exercises. These cutting-edge features represent the future of blockchain technology—learn them here first!',
+        'ticker.supply': 'KENO Supply:',
+        'ticker.blocks': 'Blocks:',
+        'ticker.transactions': 'Transactions:'
+    },
+    es: {
+        'nav.logo': 'Academia Kenostod',
+        'nav.subtitle': 'Plataforma de Educación Blockchain',
+        'nav.courses': 'Cursos',
+        'nav.features': 'Características',
+        'nav.docs': 'Documentación',
+        'nav.stats': 'Estadísticas en Vivo',
+        'nav.cta': 'Comenzar',
+        'hero.title': 'Domina la <span class="highlight">Tecnología Blockchain</span><br>Mediante Aprendizaje Práctico',
+        'hero.subtitle': 'La Plataforma Educativa Completa para Futuros Desarrolladores Blockchain',
+        'hero.tagline': 'Aprende haciendo con nuestro simulador blockchain integral que incluye conceptos avanzados como <strong>consenso Proof-of-Residual-Value</strong>, <strong>reversión de transacciones</strong>, <strong>recuperación social</strong>, y más. Perfecto para estudiantes, desarrolladores y emprendedores que construyen su experiencia Web3 en un entorno educativo seguro.',
+        'hero.cta.free': 'Comenzar Gratis',
+        'hero.cta.docs': 'Ver Documentación',
+        'hero.cta.unlock': 'Desbloquear Acceso Completo',
+        'features.title': '✨ Características de la Plataforma',
+        'features.subtitle': 'Todo lo que necesitas para dominar el desarrollo blockchain',
+        'features.cta.title': '¿Listo para Comenzar a Aprender?',
+        'features.cta.subtitle': 'Únete a miles de estudiantes dominando la próxima generación de tecnología blockchain',
+        'features.cta.button': 'Ver Planes de Suscripción',
+        'courses.title': '📚 Plan de Estudios Completo',
+        'courses.subtitle': 'Domina 15 características blockchain revolucionarias que no se encuentran en Bitcoin o Ethereum',
+        'courses.intro': '¡Cada curso incluye simulación práctica, casos de uso del mundo real y ejercicios prácticos. Estas características de vanguardia representan el futuro de la tecnología blockchain, apréndalas aquí primero!',
+        'ticker.supply': 'Suministro KENO:',
+        'ticker.blocks': 'Bloques:',
+        'ticker.transactions': 'Transacciones:'
+    },
+    zh: {
+        'nav.logo': 'Kenostod学院',
+        'nav.subtitle': '区块链教育平台',
+        'nav.courses': '课程',
+        'nav.features': '功能',
+        'nav.docs': '文档',
+        'nav.stats': '实时统计',
+        'nav.cta': '开始使用',
+        'hero.title': '通过实践学习<br>掌握<span class="highlight">区块链技术</span>',
+        'hero.subtitle': '未来区块链开发者的完整教育平台',
+        'hero.tagline': '通过我们全面的区块链模拟器边做边学，包含<strong>剩余价值证明共识</strong>、<strong>交易撤销</strong>、<strong>社交恢复</strong>等高级概念。非常适合在安全的教育环境中构建Web3专业知识的学生、开发人员和企业家。',
+        'hero.cta.free': '免费开始学习',
+        'hero.cta.docs': '查看文档',
+        'hero.cta.unlock': '解锁完整访问',
+        'features.title': '✨ 平台功能',
+        'features.subtitle': '掌握区块链开发所需的一切',
+        'features.cta.title': '准备好开始学习了吗？',
+        'features.cta.subtitle': '加入数千名正在掌握下一代区块链技术的学生',
+        'features.cta.button': '查看订阅计划',
+        'courses.title': '📚 完整课程体系',
+        'courses.subtitle': '掌握比特币或以太坊中找不到的15个革命性区块链功能',
+        'courses.intro': '每门课程都包括实践模拟、实际应用案例和实践练习。这些尖端功能代表了区块链技术的未来——首先在这里学习！',
+        'ticker.supply': 'KENO供应量：',
+        'ticker.blocks': '区块：',
+        'ticker.transactions': '交易：'
+    },
+    hi: {
+        'nav.logo': 'केनोस्टॉड अकादमी',
+        'nav.subtitle': 'ब्लॉकचेन शिक्षा मंच',
+        'nav.courses': 'पाठ्यक्रम',
+        'nav.features': 'विशेषताएं',
+        'nav.docs': 'दस्तावेज़ीकरण',
+        'nav.stats': 'लाइव आंकड़े',
+        'nav.cta': 'शुरू करें',
+        'hero.title': 'व्यावहारिक शिक्षा के माध्यम से<br><span class="highlight">ब्लॉकचेन प्रौद्योगिकी</span> में महारत हासिल करें',
+        'hero.subtitle': 'भविष्य के ब्लॉकचेन डेवलपर्स के लिए पूर्ण शैक्षिक मंच',
+        'hero.tagline': 'हमारे व्यापक ब्लॉकचेन सिम्युलेटर के साथ करके सीखें जिसमें <strong>Proof-of-Residual-Value सर्वसम्मति</strong>, <strong>लेनदेन उलटना</strong>, <strong>सामाजिक पुनर्प्राप्ति</strong>, और अधिक जैसी उन्नत अवधारणाएं शामिल हैं। सुरक्षित शैक्षिक वातावरण में अपनी Web3 विशेषज्ञता का निर्माण करने वाले छात्रों, डेवलपर्स और उद्यमियों के लिए एकदम सही।',
+        'hero.cta.free': 'मुफ्त में सीखना शुरू करें',
+        'hero.cta.docs': 'दस्तावेज़ देखें',
+        'hero.cta.unlock': 'पूर्ण पहुंच अनलॉक करें',
+        'features.title': '✨ प्लेटफॉर्म विशेषताएं',
+        'features.subtitle': 'ब्लॉकचेन विकास में महारत हासिल करने के लिए आपको जो कुछ भी चाहिए',
+        'features.cta.title': 'सीखना शुरू करने के लिए तैयार हैं?',
+        'features.cta.subtitle': 'ब्लॉकचेन प्रौद्योगिकी की अगली पीढ़ी में महारत हासिल करने वाले हजारों छात्रों के साथ जुड़ें',
+        'features.cta.button': 'सदस्यता योजनाएं देखें',
+        'courses.title': '📚 पूर्ण पाठ्यक्रम',
+        'courses.subtitle': 'Bitcoin या Ethereum में नहीं पाई जाने वाली 15 क्रांतिकारी ब्लॉकचेन सुविधाओं में महारत हासिल करें',
+        'courses.intro': 'प्रत्येक पाठ्यक्रम में व्यावहारिक सिमुलेशन, वास्तविक दुनिया के उपयोग के मामले और व्यावहारिक अभ्यास शामिल हैं। ये अत्याधुनिक सुविधाएं ब्लॉकचेन प्रौद्योगिकी के भविष्य का प्रतिनिधित्व करती हैं—उन्हें यहां पहले सीखें!',
+        'ticker.supply': 'KENO आपूर्ति:',
+        'ticker.blocks': 'ब्लॉक:',
+        'ticker.transactions': 'लेनदेन:'
+    },
+    pt: {
+        'nav.logo': 'Academia Kenostod',
+        'nav.subtitle': 'Plataforma de Educação Blockchain',
+        'nav.courses': 'Cursos',
+        'nav.features': 'Recursos',
+        'nav.docs': 'Documentação',
+        'nav.stats': 'Estatísticas ao Vivo',
+        'nav.cta': 'Começar',
+        'hero.title': 'Domine a <span class="highlight">Tecnologia Blockchain</span><br>Através de Aprendizagem Prática',
+        'hero.subtitle': 'A Plataforma Educacional Completa para Futuros Desenvolvedores Blockchain',
+        'hero.tagline': 'Aprenda fazendo com nosso simulador blockchain abrangente apresentando conceitos avançados como <strong>consenso Proof-of-Residual-Value</strong>, <strong>reversão de transações</strong>, <strong>recuperação social</strong> e muito mais. Perfeito para estudantes, desenvolvedores e empreendedores construindo sua experiência Web3 em um ambiente educacional seguro.',
+        'hero.cta.free': 'Começar a Aprender Grátis',
+        'hero.cta.docs': 'Ver Documentação',
+        'hero.cta.unlock': 'Desbloquear Acesso Completo',
+        'features.title': '✨ Recursos da Plataforma',
+        'features.subtitle': 'Tudo que você precisa para dominar o desenvolvimento blockchain',
+        'features.cta.title': 'Pronto para Começar a Aprender?',
+        'features.cta.subtitle': 'Junte-se a milhares de estudantes dominando a próxima geração da tecnologia blockchain',
+        'features.cta.button': 'Ver Planos de Assinatura',
+        'courses.title': '📚 Currículo Completo do Curso',
+        'courses.subtitle': 'Domine 15 recursos blockchain revolucionários não encontrados no Bitcoin ou Ethereum',
+        'courses.intro': 'Cada curso inclui simulação prática, casos de uso do mundo real e exercícios práticos. Esses recursos de ponta representam o futuro da tecnologia blockchain—aprenda-os aqui primeiro!',
+        'ticker.supply': 'Fornecimento KENO:',
+        'ticker.blocks': 'Blocos:',
+        'ticker.transactions': 'Transações:'
+    },
+    fr: {
+        'nav.logo': 'Académie Kenostod',
+        'nav.subtitle': 'Plateforme d\'Éducation Blockchain',
+        'nav.courses': 'Cours',
+        'nav.features': 'Fonctionnalités',
+        'nav.docs': 'Documentation',
+        'nav.stats': 'Statistiques en Direct',
+        'nav.cta': 'Commencer',
+        'hero.title': 'Maîtrisez la <span class="highlight">Technologie Blockchain</span><br>par l\'Apprentissage Pratique',
+        'hero.subtitle': 'La Plateforme Éducative Complète pour les Futurs Développeurs Blockchain',
+        'hero.tagline': 'Apprenez en pratiquant avec notre simulateur blockchain complet présentant des concepts avancés comme le <strong>consensus Proof-of-Residual-Value</strong>, <strong>l\'inversion de transactions</strong>, <strong>la récupération sociale</strong>, et plus encore. Parfait pour les étudiants, développeurs et entrepreneurs développant leur expertise Web3 dans un environnement éducatif sûr.',
+        'hero.cta.free': 'Commencer Gratuitement',
+        'hero.cta.docs': 'Voir la Documentation',
+        'hero.cta.unlock': 'Débloquer l\'Accès Complet',
+        'features.title': '✨ Fonctionnalités de la Plateforme',
+        'features.subtitle': 'Tout ce dont vous avez besoin pour maîtriser le développement blockchain',
+        'features.cta.title': 'Prêt à Commencer à Apprendre?',
+        'features.cta.subtitle': 'Rejoignez des milliers d\'étudiants maîtrisant la prochaine génération de technologie blockchain',
+        'features.cta.button': 'Voir les Plans d\'Abonnement',
+        'courses.title': '📚 Programme de Cours Complet',
+        'courses.subtitle': 'Maîtrisez 15 fonctionnalités blockchain révolutionnaires introuvables dans Bitcoin ou Ethereum',
+        'courses.intro': 'Chaque cours comprend une simulation pratique, des cas d\'utilisation réels et des exercices pratiques. Ces fonctionnalités de pointe représentent l\'avenir de la technologie blockchain—apprenez-les ici en premier!',
+        'ticker.supply': 'Approvisionnement KENO:',
+        'ticker.blocks': 'Blocs:',
+        'ticker.transactions': 'Transactions:'
+    }
+};
+
+function switchLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('language', lang);
+    
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            element.innerHTML = translations[lang][key];
+        }
+    });
+    
+    const langText = document.getElementById('currentLangText');
+    const langNames = {
+        en: 'English',
+        es: 'Español',
+        zh: '中文',
+        hi: 'हिन्दी',
+        pt: 'Português',
+        fr: 'Français'
+    };
+    if (langText) {
+        langText.textContent = langNames[lang];
+    }
+    
+    updateCryptoTicker();
+}
+
+function toggleLanguageDropdown() {
+    const dropdown = document.getElementById('languageDropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+    }
+}
+
+window.onclick = function(event) {
+    if (!event.target.matches('.lang-btn') && !event.target.matches('.current-lang')) {
+        const dropdowns = document.getElementsByClassName('lang-dropdown-content');
+        for (let i = 0; i < dropdowns.length; i++) {
+            const openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+};
 
 // Mobile Menu Toggle
 function toggleMobileMenu() {
@@ -19,6 +225,7 @@ function initializeApp() {
         const EC = elliptic.ec;
         ec = new EC('secp256k1');
         console.log('✅ Cryptography library loaded successfully');
+        switchLanguage(currentLanguage);
         loadStats();
         setInterval(loadStats, 10000);
         updateCryptoTicker();
@@ -44,20 +251,24 @@ async function updateCryptoTicker() {
         let tickerHTML = '';
 
         // Add Kenostod stats
+        const supplyLabel = translations[currentLanguage]['ticker.supply'] || 'KENO Supply:';
+        const blocksLabel = translations[currentLanguage]['ticker.blocks'] || 'Blocks:';
+        const txLabel = translations[currentLanguage]['ticker.transactions'] || 'Transactions:';
+        
         tickerHTML += `
             <span class="ticker-item">
                 <span class="ticker-emoji">⛓️</span>
-                <span class="ticker-label">KENO Supply:</span>
+                <span class="ticker-label">${supplyLabel}</span>
                 <span class="ticker-value">${stats.supply?.circulatingSupply || 0}</span>
             </span>
             <span class="ticker-item">
                 <span class="ticker-emoji">📦</span>
-                <span class="ticker-label">Blocks:</span>
+                <span class="ticker-label">${blocksLabel}</span>
                 <span class="ticker-value">${stats.totalBlocks}</span>
             </span>
             <span class="ticker-item">
                 <span class="ticker-emoji">💸</span>
-                <span class="ticker-label">Transactions:</span>
+                <span class="ticker-label">${txLabel}</span>
                 <span class="ticker-value">${stats.totalTransactions}</span>
             </span>
         `;
