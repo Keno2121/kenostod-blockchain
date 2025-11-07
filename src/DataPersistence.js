@@ -7,6 +7,10 @@ class DataPersistence {
         this.blockchainFile = path.join(dataDir, 'blockchain.json');
         this.walletFile = path.join(dataDir, 'miner_wallet.json');
         this.fiatBalancesFile = path.join(dataDir, 'fiat_balances.json');
+        this.organizationsFile = path.join(dataDir, 'organizations.json');
+        this.organizationMembersFile = path.join(dataDir, 'organization_members.json');
+        this.teamSubscriptionsFile = path.join(dataDir, 'team_subscriptions.json');
+        this.learningProgressFile = path.join(dataDir, 'learning_progress.json');
         
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
@@ -121,11 +125,147 @@ class DataPersistence {
         }
     }
 
+    saveOrganizations(organizationsMap) {
+        try {
+            const data = {
+                organizations: Array.from(organizationsMap.entries()),
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(this.organizationsFile, JSON.stringify(data, null, 2));
+            console.log(`✅ Organizations saved to disk (${data.organizations.length} orgs)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving organizations:', error.message);
+            return false;
+        }
+    }
+
+    loadOrganizations() {
+        try {
+            if (!fs.existsSync(this.organizationsFile)) {
+                console.log('ℹ️  No saved organizations found, starting fresh');
+                return new Map();
+            }
+            
+            const data = JSON.parse(fs.readFileSync(this.organizationsFile, 'utf8'));
+            const organizationsMap = new Map(data.organizations);
+            console.log(`✅ Loaded organizations from disk (${organizationsMap.size} orgs, last saved: ${new Date(data.timestamp).toLocaleString()})`);
+            return organizationsMap;
+        } catch (error) {
+            console.error('❌ Error loading organizations:', error.message);
+            return new Map();
+        }
+    }
+
+    saveOrganizationMembers(membersMap) {
+        try {
+            const data = {
+                members: Array.from(membersMap.entries()),
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(this.organizationMembersFile, JSON.stringify(data, null, 2));
+            console.log(`✅ Organization members saved to disk (${data.members.length} members)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving organization members:', error.message);
+            return false;
+        }
+    }
+
+    loadOrganizationMembers() {
+        try {
+            if (!fs.existsSync(this.organizationMembersFile)) {
+                console.log('ℹ️  No saved organization members found, starting fresh');
+                return new Map();
+            }
+            
+            const data = JSON.parse(fs.readFileSync(this.organizationMembersFile, 'utf8'));
+            const membersMap = new Map(data.members);
+            console.log(`✅ Loaded organization members from disk (${membersMap.size} members, last saved: ${new Date(data.timestamp).toLocaleString()})`);
+            return membersMap;
+        } catch (error) {
+            console.error('❌ Error loading organization members:', error.message);
+            return new Map();
+        }
+    }
+
+    saveTeamSubscriptions(subscriptionsMap) {
+        try {
+            const data = {
+                subscriptions: Array.from(subscriptionsMap.entries()),
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(this.teamSubscriptionsFile, JSON.stringify(data, null, 2));
+            console.log(`✅ Team subscriptions saved to disk (${data.subscriptions.length} subscriptions)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving team subscriptions:', error.message);
+            return false;
+        }
+    }
+
+    loadTeamSubscriptions() {
+        try {
+            if (!fs.existsSync(this.teamSubscriptionsFile)) {
+                console.log('ℹ️  No saved team subscriptions found, starting fresh');
+                return new Map();
+            }
+            
+            const data = JSON.parse(fs.readFileSync(this.teamSubscriptionsFile, 'utf8'));
+            const subscriptionsMap = new Map(data.subscriptions);
+            console.log(`✅ Loaded team subscriptions from disk (${subscriptionsMap.size} subscriptions, last saved: ${new Date(data.timestamp).toLocaleString()})`);
+            return subscriptionsMap;
+        } catch (error) {
+            console.error('❌ Error loading team subscriptions:', error.message);
+            return new Map();
+        }
+    }
+
+    saveLearningProgress(progressMap) {
+        try {
+            const data = {
+                progress: Array.from(progressMap.entries()),
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(this.learningProgressFile, JSON.stringify(data, null, 2));
+            console.log(`✅ Learning progress saved to disk (${data.progress.length} records)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving learning progress:', error.message);
+            return false;
+        }
+    }
+
+    loadLearningProgress() {
+        try {
+            if (!fs.existsSync(this.learningProgressFile)) {
+                console.log('ℹ️  No saved learning progress found, starting fresh');
+                return new Map();
+            }
+            
+            const data = JSON.parse(fs.readFileSync(this.learningProgressFile, 'utf8'));
+            const progressMap = new Map(data.progress);
+            console.log(`✅ Loaded learning progress from disk (${progressMap.size} records, last saved: ${new Date(data.timestamp).toLocaleString()})`);
+            return progressMap;
+        } catch (error) {
+            console.error('❌ Error loading learning progress:', error.message);
+            return new Map();
+        }
+    }
+
     getBackupInfo() {
         const backupInfo = {
             blockchainExists: fs.existsSync(this.blockchainFile),
             walletExists: fs.existsSync(this.walletFile),
-            fiatBalancesExists: fs.existsSync(this.fiatBalancesFile)
+            fiatBalancesExists: fs.existsSync(this.fiatBalancesFile),
+            organizationsExists: fs.existsSync(this.organizationsFile),
+            organizationMembersExists: fs.existsSync(this.organizationMembersFile),
+            teamSubscriptionsExists: fs.existsSync(this.teamSubscriptionsFile),
+            learningProgressExists: fs.existsSync(this.learningProgressFile)
         };
 
         if (backupInfo.blockchainExists) {
@@ -144,6 +284,30 @@ class DataPersistence {
             const stats = fs.statSync(this.fiatBalancesFile);
             backupInfo.fiatBalancesSize = stats.size;
             backupInfo.fiatBalancesLastModified = stats.mtime;
+        }
+
+        if (backupInfo.organizationsExists) {
+            const stats = fs.statSync(this.organizationsFile);
+            backupInfo.organizationsSize = stats.size;
+            backupInfo.organizationsLastModified = stats.mtime;
+        }
+
+        if (backupInfo.organizationMembersExists) {
+            const stats = fs.statSync(this.organizationMembersFile);
+            backupInfo.organizationMembersSize = stats.size;
+            backupInfo.organizationMembersLastModified = stats.mtime;
+        }
+
+        if (backupInfo.teamSubscriptionsExists) {
+            const stats = fs.statSync(this.teamSubscriptionsFile);
+            backupInfo.teamSubscriptionsSize = stats.size;
+            backupInfo.teamSubscriptionsLastModified = stats.mtime;
+        }
+
+        if (backupInfo.learningProgressExists) {
+            const stats = fs.statSync(this.learningProgressFile);
+            backupInfo.learningProgressSize = stats.size;
+            backupInfo.learningProgressLastModified = stats.mtime;
         }
 
         return backupInfo;

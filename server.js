@@ -11,6 +11,8 @@ const StripeIntegration = require('./src/StripeIntegration');
 const PayPalIntegration = require('./src/PayPalIntegration');
 const MerchantIncentives = require('./src/MerchantIncentives');
 const DataPersistence = require('./src/DataPersistence');
+const DatabaseConnection = require('./src/DatabaseConnection');
+const OrganizationManager = require('./src/OrganizationManager');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -127,6 +129,22 @@ kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
 
 // Connect merchant incentives to payment gateway
 kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
+
+// Initialize PostgreSQL database for corporate/team plans
+let dbConnection;
+let organizationManager;
+
+(async () => {
+    try {
+        dbConnection = new DatabaseConnection();
+        await dbConnection.initializeSchema();
+        organizationManager = new OrganizationManager(dbConnection);
+        console.log('✅ Organization Manager initialized');
+    } catch (error) {
+        console.error('❌ Error initializing database:', error.message);
+        console.log('⚠️  Corporate/Team Plans features disabled');
+    }
+})();
 
 console.log('Kenostod Blockchain initialized!');
 console.log('Miner address:', minerWallet.getAddress());
@@ -2275,6 +2293,314 @@ app.post('/api/merchant/payment/cashback', (req, res) => {
 });
 
 // ==================== END MERCHANT INCENTIVES API ENDPOINTS ====================
+
+// ==================== CORPORATE/TEAM PLANS API ENDPOINTS ====================
+
+// Create a new organization
+app.post('/api/organization/create', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { name, ownerEmail, ownerWalletAddress, companyType, totalSeats, monthlyPrice } = req.body;
+
+        if (!name || !ownerEmail) {
+            return res.status(400).json({ error: 'Missing required fields: name, ownerEmail' });
+        }
+
+        const organization = await organizationManager.createOrganization({
+            name,
+            ownerEmail,
+            ownerWalletAddress,
+            companyType,
+            totalSeats,
+            monthlyPrice
+        });
+
+        res.json({
+            success: true,
+            message: 'Organization created successfully',
+            organization
+        });
+    } catch (error) {
+        console.error('Error creating organization:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get organization by ID
+app.get('/api/organization/:id', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const organization = await organizationManager.getOrganization(req.params.id);
+
+        if (!organization) {
+            return res.status(404).json({ error: 'Organization not found' });
+        }
+
+        res.json(organization);
+    } catch (error) {
+        console.error('Error fetching organization:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get organizations by owner email
+app.get('/api/organization/owner/:email', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const organizations = await organizationManager.getOrganizationByOwnerEmail(req.params.email);
+        res.json(organizations);
+    } catch (error) {
+        console.error('Error fetching organizations:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Invite a member to organization
+app.post('/api/organization/:id/invite', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { userEmail, role } = req.body;
+
+        if (!userEmail) {
+            return res.status(400).json({ error: 'Missing required field: userEmail' });
+        }
+
+        const member = await organizationManager.inviteMember(req.params.id, userEmail, role);
+
+        res.json({
+            success: true,
+            message: 'Member invited successfully',
+            member
+        });
+    } catch (error) {
+        console.error('Error inviting member:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Accept organization invite
+app.post('/api/organization/invite/:memberId/accept', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { walletAddress } = req.body;
+
+        if (!walletAddress) {
+            return res.status(400).json({ error: 'Missing required field: walletAddress' });
+        }
+
+        const member = await organizationManager.acceptInvite(req.params.memberId, walletAddress);
+
+        if (!member) {
+            return res.status(404).json({ error: 'Invite not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Invite accepted successfully',
+            member
+        });
+    } catch (error) {
+        console.error('Error accepting invite:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get organization members
+app.get('/api/organization/:id/members', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const members = await organizationManager.getOrganizationMembers(req.params.id);
+        res.json(members);
+    } catch (error) {
+        console.error('Error fetching members:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Remove member from organization
+app.delete('/api/organization/:organizationId/member/:memberId', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        await organizationManager.removeMember(req.params.organizationId, req.params.memberId);
+
+        res.json({
+            success: true,
+            message: 'Member removed successfully'
+        });
+    } catch (error) {
+        console.error('Error removing member:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get team learning progress
+app.get('/api/organization/:id/progress', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const progress = await organizationManager.getTeamProgress(req.params.id);
+        res.json(progress);
+    } catch (error) {
+        console.error('Error fetching team progress:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get member learning progress
+app.get('/api/organization/member/:memberId/progress', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const progress = await organizationManager.getMemberProgress(req.params.memberId);
+        res.json(progress);
+    } catch (error) {
+        console.error('Error fetching member progress:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update learning progress
+app.post('/api/organization/progress/update', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { organizationId, memberId, walletAddress, courseName, completionPercentage, timeSpentMinutes, quizScore } = req.body;
+
+        if (!organizationId || !memberId || !courseName) {
+            return res.status(400).json({ error: 'Missing required fields: organizationId, memberId, courseName' });
+        }
+
+        const progress = await organizationManager.updateLearningProgress({
+            organizationId,
+            memberId,
+            walletAddress,
+            courseName,
+            completionPercentage: completionPercentage || 0,
+            timeSpentMinutes: timeSpentMinutes || 0,
+            quizScore
+        });
+
+        res.json({
+            success: true,
+            message: 'Learning progress updated',
+            progress
+        });
+    } catch (error) {
+        console.error('Error updating progress:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Calculate bulk discount pricing
+app.post('/api/organization/pricing/calculate', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { totalSeats } = req.body;
+
+        if (!totalSeats || totalSeats < 1) {
+            return res.status(400).json({ error: 'Invalid seat count' });
+        }
+
+        const pricing = await organizationManager.calculateBulkDiscount(totalSeats);
+        res.json(pricing);
+    } catch (error) {
+        console.error('Error calculating pricing:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update Stripe subscription info
+app.post('/api/organization/:id/stripe', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { stripeCustomerId, stripeSubscriptionId } = req.body;
+
+        await organizationManager.updateStripeInfo(req.params.id, stripeCustomerId, stripeSubscriptionId);
+
+        res.json({
+            success: true,
+            message: 'Stripe info updated successfully'
+        });
+    } catch (error) {
+        console.error('Error updating Stripe info:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update subscription status
+app.post('/api/organization/:id/subscription/status', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const { status } = req.body;
+
+        if (!status) {
+            return res.status(400).json({ error: 'Missing required field: status' });
+        }
+
+        await organizationManager.updateSubscriptionStatus(req.params.id, status);
+
+        res.json({
+            success: true,
+            message: 'Subscription status updated successfully'
+        });
+    } catch (error) {
+        console.error('Error updating subscription status:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all organizations (admin endpoint)
+app.get('/api/organizations/all', async (req, res) => {
+    try {
+        if (!organizationManager) {
+            return res.status(503).json({ error: 'Organization management not available' });
+        }
+
+        const organizations = await organizationManager.getAllOrganizations();
+        res.json(organizations);
+    } catch (error) {
+        console.error('Error fetching all organizations:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== END CORPORATE/TEAM PLANS API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
