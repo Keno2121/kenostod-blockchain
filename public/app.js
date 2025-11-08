@@ -3492,3 +3492,64 @@ async function loadAllLicenses() {
         showError('allLicensesData', error.message);
     }
 }
+
+async function purchaseLicense() {
+    try {
+        const organizationName = document.getElementById('licensePurchaseOrgName').value;
+        const contactEmail = document.getElementById('licensePurchaseEmail').value;
+        const customDomain = document.getElementById('licensePurchaseDomain').value;
+        const tier = document.getElementById('licensePurchaseTier').value;
+        
+        if (!organizationName || !contactEmail || !tier) {
+            alert('Please fill in organization name, contact email, and select a tier');
+            return;
+        }
+        
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(contactEmail)) {
+            alert('Please enter a valid email address');
+            return;
+        }
+        
+        const resultDiv = document.getElementById('licensePurchaseResult');
+        resultDiv.className = 'result';
+        resultDiv.innerHTML = '<p>Creating Stripe checkout session...</p>';
+        
+        const response = await fetch(`${API_BASE}/api/revenue/license/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                organizationName,
+                tier,
+                contactEmail,
+                customDomain: customDomain || undefined
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.checkoutUrl) {
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <h4>✅ Checkout Session Created!</h4>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
+                    <strong>Organization:</strong> ${organizationName}<br>
+                    <strong>Tier:</strong> ${tier}<br>
+                    <strong>Monthly Price:</strong> $${data.monthlyPrice}/month<br>
+                    <strong>Contact Email:</strong> ${contactEmail}<br><br>
+                    <p style="margin-top: 10px;">Redirecting to Stripe checkout...</p>
+                </div>
+            `;
+            
+            // Redirect to Stripe checkout
+            setTimeout(() => {
+                window.location.href = data.checkoutUrl;
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Failed to create checkout session');
+        }
+    } catch (error) {
+        showError('licensePurchaseResult', error.message);
+    }
+}
