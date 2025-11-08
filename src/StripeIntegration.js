@@ -217,7 +217,11 @@ class StripeIntegration {
                 }],
                 success_url: successUrl,
                 cancel_url: cancelUrl,
-                metadata
+                metadata,
+                // CRITICAL: Propagate metadata to subscription for webhook processing
+                subscription_data: {
+                    metadata: metadata
+                }
             };
 
             if (customerEmail) {

@@ -3021,17 +3021,62 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
             case 'customer.subscription.created':
             case 'customer.subscription.updated': {
                 const subscription = event.data.object;
+                const metadata = subscription.metadata;
                 
-                // Update license status in database
+                // Update license status in database (try by subscription ID first, then by metadata)
                 if (dbConnection) {
-                    await dbConnection.query(`
+                    let updated = false;
+                    
+                    // Try to find and update by subscription ID
+                    const result = await dbConnection.query(`
                         UPDATE white_label_licenses 
-                        SET status = $1, updated_at = CURRENT_TIMESTAMP
+                        SET status = $1, stripe_subscription_id = $2, updated_at = CURRENT_TIMESTAMP
                         WHERE stripe_subscription_id = $2
+                        RETURNING id
                     `, [subscription.status === 'active' ? 'active' : 'inactive', subscription.id]);
+                    
+                    updated = result.rowCount > 0;
+                    
+                    // FALLBACK: If not found by subscription ID and we have metadata, create license
+                    if (!updated && metadata && metadata.organizationName) {
+                        console.log(`⚠️  License not found for subscription ${subscription.id}, creating from metadata`);
+                        
+                        const result = revenueTracker.createLicense({
+                            organizationName: metadata.organizationName,
+                            tier: metadata.tier,
+                            contactEmail: subscription.customer_email || 'unknown@email.com',
+                            customDomain: metadata.customDomain || '',
+                            stripeSubscriptionId: subscription.id
+                        });
+                        
+                        const license = result.license;
+                        await dbConnection.query(`
+                            INSERT INTO white_label_licenses (
+                                license_id, license_key, organization_name, tier, contact_email, 
+                                custom_domain, monthly_price, status, stripe_subscription_id, 
+                                stripe_customer_id, total_revenue, expires_at
+                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                            ON CONFLICT (stripe_subscription_id) DO UPDATE SET
+                                status = EXCLUDED.status,
+                                updated_at = CURRENT_TIMESTAMP
+                        `, [
+                            license.licenseId, license.licenseKey, license.organizationName, 
+                            license.tier, license.contactEmail, license.customDomain, 
+                            license.monthlyPrice, subscription.status === 'active' ? 'active' : 'inactive', 
+                            subscription.id, subscription.customer, license.totalRevenue, 
+                            new Date(license.expiresAt)
+                        ]);
+                        
+                        console.log(`✅ License created from metadata for ${metadata.organizationName}`);
+                        updated = true;
+                    }
+                    
+                    if (updated) {
+                        console.log(`✅ Subscription ${subscription.id} status: ${subscription.status}`);
+                    } else {
+                        console.error(`❌ Failed to update license for subscription ${subscription.id} - no subscription ID match and no metadata`);
+                    }
                 }
-                
-                console.log(`✅ Subscription ${subscription.id} status: ${subscription.status}`);
                 break;
             }
             
