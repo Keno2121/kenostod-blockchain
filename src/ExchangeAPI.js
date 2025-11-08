@@ -93,7 +93,7 @@ class ExchangeAPI {
             minOrderSize,
             maxOrderSize,
             isActive: true,
-            tradingFee: 0.001 // 0.1% trading fee
+            tradingFee: 0.005 // 0.5% trading fee (platform revenue)
         });
     }
 
@@ -171,7 +171,7 @@ class ExchangeAPI {
                     remainingQty -= fillQty;
                 }
                 
-                const fee = estimatedCost * 0.001;
+                const fee = estimatedCost * 0.005; // 0.5% trading fee
                 const totalRequired = estimatedCost + fee;
                 
                 if (userBalance < totalRequired) {
@@ -179,7 +179,7 @@ class ExchangeAPI {
                 }
             } else if (orderType === 'limit' && price) {
                 const estimatedCost = quantity * price;
-                const fee = estimatedCost * 0.001;
+                const fee = estimatedCost * 0.005; // 0.5% trading fee
                 const totalRequired = estimatedCost + fee;
                 
                 if (userBalance < totalRequired) {
@@ -256,6 +256,8 @@ class ExchangeAPI {
     executeTrade(tradeDetails) {
         const { buyOrder, sellOrder, quantity, price } = tradeDetails;
         
+        const TRADING_FEE_RATE = 0.005; // 0.5% platform trading fee
+        
         const trade = {
             tradeId: 'TRD_' + crypto.randomBytes(12).toString('hex'),
             pair: buyOrder.pair,
@@ -266,7 +268,7 @@ class ExchangeAPI {
             quantity,
             price,
             total: quantity * price,
-            fee: (quantity * price) * 0.001,
+            fee: (quantity * price) * TRADING_FEE_RATE,
             timestamp: Date.now()
         };
         
@@ -280,7 +282,7 @@ class ExchangeAPI {
         
         if (this.bankingAPI && pair.endsWith('_USD')) {
             const totalUSD = quantity * price;
-            const fee = totalUSD * 0.001;
+            const fee = totalUSD * TRADING_FEE_RATE;
             const netUSD = totalUSD - fee;
             
             const currentSellerBalance = this.bankingAPI.fiatBalances.get(sellOrder.userAddress) || 0;
@@ -293,6 +295,21 @@ class ExchangeAPI {
             
             console.log(`💱 Trade executed: ${sellOrder.userAddress.substring(0, 10)}... sold ${quantity} KENO for $${netUSD.toFixed(2)} (fee: $${fee.toFixed(2)})`);
             console.log(`   Seller USD balance: $${currentSellerBalance.toFixed(2)} → $${(currentSellerBalance + netUSD).toFixed(2)}`);
+        }
+        
+        // Record trading fee in revenue tracker
+        if (this.revenueTracker) {
+            try {
+                this.revenueTracker.recordTradingFee({
+                    buyerAddress: buyOrder.userAddress,
+                    sellerAddress: sellOrder.userAddress,
+                    quantity,
+                    price,
+                    pair
+                });
+            } catch (error) {
+                console.error('Error recording trading fee:', error.message);
+            }
         }
         
         return trade;

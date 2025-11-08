@@ -10,6 +10,7 @@ const BankingAPI = require('./src/BankingAPI');
 const StripeIntegration = require('./src/StripeIntegration');
 const PayPalIntegration = require('./src/PayPalIntegration');
 const MerchantIncentives = require('./src/MerchantIncentives');
+const RevenueTracker = require('./src/RevenueTracker');
 const DataPersistence = require('./src/DataPersistence');
 const DatabaseConnection = require('./src/DatabaseConnection');
 const OrganizationManager = require('./src/OrganizationManager');
@@ -215,11 +216,18 @@ if (savedFiatBalances) {
 // Initialize merchant incentives
 const merchantIncentives = new MerchantIncentives(kenostodChain);
 
+// Initialize revenue tracker for all revenue streams
+const revenueTracker = new RevenueTracker();
+
 // Connect banking API to exchange
 kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
 
 // Connect merchant incentives to payment gateway
 kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
+
+// Connect revenue tracker to payment gateway and exchange
+kenostodChain.paymentGateway.revenueTracker = revenueTracker;
+kenostodChain.exchangeAPI.revenueTracker = revenueTracker;
 
 // Initialize PostgreSQL database for corporate/team plans
 let dbConnection;
@@ -2730,6 +2738,203 @@ app.get('/api/organizations/all', async (req, res) => {
 });
 
 // ==================== END CORPORATE/TEAM PLANS API ENDPOINTS ====================
+
+// ==================== REVENUE GENERATION API ENDPOINTS ====================
+
+// ===== MERCHANT GATEWAY FEES (2.5%) =====
+
+// Record merchant transaction and collect platform fee
+app.post('/api/revenue/merchant/transaction', (req, res) => {
+    try {
+        const { merchantId, transactionAmount, merchantAddress } = req.body;
+        
+        if (!merchantId || !transactionAmount || !merchantAddress) {
+            return res.status(400).json({ error: 'Missing required fields: merchantId, transactionAmount, merchantAddress' });
+        }
+        
+        const result = revenueTracker.recordMerchantTransaction(merchantId, transactionAmount, merchantAddress);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get merchant fee report
+app.get('/api/revenue/merchant/:merchantId/report', (req, res) => {
+    try {
+        const report = revenueTracker.getMerchantFeeReport(req.params.merchantId);
+        res.json(report);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ===== EXCHANGE TRADING FEES (0.5%) =====
+
+// Record trading fee (called by exchange after successful trade)
+app.post('/api/revenue/exchange/trade-fee', (req, res) => {
+    try {
+        const { buyerAddress, sellerAddress, quantity, price, pair } = req.body;
+        
+        if (!buyerAddress || !sellerAddress || !quantity || !price || !pair) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        const result = revenueTracker.recordTradingFee({ buyerAddress, sellerAddress, quantity, price, pair });
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get user trading fees report
+app.get('/api/revenue/exchange/:userAddress/fees', (req, res) => {
+    try {
+        const report = revenueTracker.getUserTradingFees(req.params.userAddress);
+        res.json(report);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ===== WHITE-LABEL LICENSING =====
+
+// Create new white-label license
+app.post('/api/revenue/license/create', async (req, res) => {
+    try {
+        const { organizationName, tier, contactEmail, customDomain, stripeSubscriptionId } = req.body;
+        
+        if (!organizationName || !tier || !contactEmail) {
+            return res.status(400).json({ error: 'Missing required fields: organizationName, tier, contactEmail' });
+        }
+        
+        const result = revenueTracker.createLicense({ organizationName, tier, contactEmail, customDomain, stripeSubscriptionId });
+        
+        // Save to database if available
+        if (dbConnection) {
+            const license = result.license;
+            await dbConnection.query(`
+                INSERT INTO white_label_licenses (
+                    license_id, license_key, organization_name, tier, contact_email, 
+                    custom_domain, monthly_price, status, stripe_subscription_id, 
+                    total_revenue, expires_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            `, [
+                license.licenseId, license.licenseKey, license.organizationName, 
+                license.tier, license.contactEmail, license.customDomain, 
+                license.monthlyPrice, license.status, license.stripeSubscriptionId,
+                license.totalRevenue, new Date(license.expiresAt)
+            ]);
+        }
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Error creating license:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Validate license key
+app.post('/api/revenue/license/validate', (req, res) => {
+    try {
+        const { licenseKey } = req.body;
+        
+        if (!licenseKey) {
+            return res.status(400).json({ error: 'License key required' });
+        }
+        
+        const result = revenueTracker.validateLicense(licenseKey);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Record license payment
+app.post('/api/revenue/license/:licenseId/payment', async (req, res) => {
+    try {
+        const { amount, paymentId } = req.body;
+        
+        if (!amount || !paymentId) {
+            return res.status(400).json({ error: 'Missing required fields: amount, paymentId' });
+        }
+        
+        const result = revenueTracker.recordLicensePayment(req.params.licenseId, amount, paymentId);
+        
+        // Save payment to database if available
+        if (dbConnection) {
+            const period = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            await dbConnection.query(`
+                INSERT INTO license_payments (license_id, payment_id, amount, period)
+                VALUES ($1, $2, $3, $4)
+            `, [req.params.licenseId, paymentId, amount, period]);
+            
+            await dbConnection.query(`
+                UPDATE white_label_licenses 
+                SET total_revenue = total_revenue + $1, updated_at = CURRENT_TIMESTAMP
+                WHERE license_id = $2
+            `, [amount, req.params.licenseId]);
+        }
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Error recording payment:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get license report
+app.get('/api/revenue/license/:licenseId/report', (req, res) => {
+    try {
+        const report = revenueTracker.getLicenseReport(req.params.licenseId);
+        res.json(report);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get all licenses (admin)
+app.get('/api/revenue/licenses/all', (req, res) => {
+    try {
+        const licenses = revenueTracker.getAllLicenses();
+        res.json(licenses);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get white-label pricing tiers
+app.get('/api/revenue/license/pricing', (req, res) => {
+    try {
+        res.json(revenueTracker.config.whiteLabel);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ===== REVENUE ANALYTICS & REPORTING =====
+
+// Get global revenue report (all streams)
+app.get('/api/revenue/report/global', (req, res) => {
+    try {
+        const report = revenueTracker.getGlobalRevenueReport();
+        res.json(report);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get revenue breakdown by source
+app.get('/api/revenue/report/breakdown', (req, res) => {
+    try {
+        const breakdown = revenueTracker.getRevenueBreakdown();
+        res.json(breakdown);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END REVENUE GENERATION API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);

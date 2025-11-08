@@ -3265,3 +3265,230 @@ async function viewBankingStats() {
         showError('bankingStatsResult', error.message);
     }
 }
+
+// ==================== REVENUE DASHBOARD FUNCTIONS ====================
+
+async function loadGlobalRevenue() {
+    try {
+        const response = await fetch(`${API_BASE}/api/revenue/report/global`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('globalRevenueData');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>💰 Total Platform Revenue</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(142, 68, 173, 0.15)); border-left: 4px solid #9b59b6; padding: 20px;">
+                <div style="font-size: 2rem; font-weight: 700; color: #9b59b6; margin-bottom: 15px;">$${data.summary.totalRevenue}</div>
+                <strong style="font-size: 1.1rem;">Revenue Streams:</strong><br>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px;">
+                    <strong>💳 Merchant Gateway:</strong> $${data.summary.merchantGatewayRevenue} (2.5% fee)<br>
+                    <strong>📈 Exchange Trading:</strong> $${data.summary.tradingRevenue} (0.5% fee)<br>
+                    <strong>🏢 White-Label Licensing:</strong> $${data.summary.licensingRevenue}<br>
+                </div>
+                <strong style="font-size: 1.1rem; color: #2ecc71;">💵 Monthly Recurring Revenue:</strong> $${data.summary.monthlyRecurringRevenue}<br>
+                <strong style="color: var(--text-muted);">📊 Projected Annual Revenue:</strong> $${data.projections.projectedAnnualRevenue}
+            </div>
+            
+            <h4 style="margin-top: 20px;">📊 Revenue Statistics</h4>
+            <div class="transaction-item">
+                <strong>Merchant Gateway:</strong><br>
+                &nbsp;&nbsp;• Total Merchants: ${data.merchants.total}<br>
+                &nbsp;&nbsp;• Total Transactions: ${data.merchants.totalTransactions}<br>
+                &nbsp;&nbsp;• Avg Fee/Transaction: $${data.merchants.averageFeePerTransaction}<br><br>
+                
+                <strong>Exchange Trading:</strong><br>
+                &nbsp;&nbsp;• Total Traders: ${data.exchange.totalTraders}<br>
+                &nbsp;&nbsp;• Total Trades: ${data.exchange.totalTrades}<br>
+                &nbsp;&nbsp;• Avg Fee/Trade: $${data.exchange.averageFeePerTrade}<br><br>
+                
+                <strong>White-Label Licensing:</strong><br>
+                &nbsp;&nbsp;• Total Licenses: ${data.licensing.totalLicenses}<br>
+                &nbsp;&nbsp;• Active Licenses: ${data.licensing.activeLicenses}<br>
+                &nbsp;&nbsp;• Basic Tier: ${data.licensing.basicLicenses}<br>
+                &nbsp;&nbsp;• Professional Tier: ${data.licensing.professionalLicenses}<br>
+                &nbsp;&nbsp;• Enterprise Tier: ${data.licensing.enterpriseLicenses}
+            </div>
+        `;
+    } catch (error) {
+        showError('globalRevenueData', error.message);
+    }
+}
+
+async function loadRevenueBreakdown() {
+    try {
+        const response = await fetch(`${API_BASE}/api/revenue/report/breakdown`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('revenueBreakdown');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>📊 Revenue Breakdown</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                    <strong>💳 Merchant Gateway</strong><br>
+                    Revenue: $${data.merchantGateway.revenue}<br>
+                    Percentage: ${data.merchantGateway.percentage}<br>
+                    Fee Rate: ${data.merchantGateway.feeRate}
+                </div>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                    <strong>📈 Exchange Trading</strong><br>
+                    Revenue: $${data.exchangeTrading.revenue}<br>
+                    Percentage: ${data.exchangeTrading.percentage}<br>
+                    Fee Rate: ${data.exchangeTrading.feeRate}
+                </div>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
+                    <strong>🏢 White-Label Licensing</strong><br>
+                    Revenue: $${data.whiteLabelLicensing.revenue}<br>
+                    Percentage: ${data.whiteLabelLicensing.percentage}<br>
+                    Tiers: ${data.whiteLabelLicensing.tiers}
+                </div>
+            </div>
+            <div class="transaction-item" style="margin-top: 15px; text-align: center; background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.1)); border-left: 4px solid #e67e22;">
+                <strong style="font-size: 1.3rem;">Total Platform Revenue: $${data.total}</strong>
+            </div>
+        `;
+    } catch (error) {
+        showError('revenueBreakdown', error.message);
+    }
+}
+
+async function loadMerchantRevenue() {
+    try {
+        const merchantId = document.getElementById('merchantRevenueId').value;
+        if (!merchantId) {
+            alert('Please enter a merchant ID');
+            return;
+        }
+        
+        const response = await fetch(`${API_BASE}/api/revenue/merchant/${merchantId}/report`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('merchantRevenueData');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>💳 Merchant Revenue Report: ${data.merchantId}</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
+                <strong>Total Transactions:</strong> ${data.totalTransactions}<br>
+                <strong>Total Gross:</strong> $${data.totalGross}<br>
+                <strong>Platform Fees Collected:</strong> $${data.totalFees} (${data.feePercentage})<br>
+                <strong>Net to Merchant:</strong> $${data.totalNet}
+            </div>
+            <h5 style="margin-top: 15px;">Recent Transactions (Last 50)</h5>
+            ${data.transactions.slice(0, 10).map(tx => `
+                <div class="transaction-item">
+                    <strong>ID:</strong> ${tx.transactionId}<br>
+                    <strong>Gross:</strong> $${tx.grossAmount.toFixed(2)} → 
+                    <strong>Fee:</strong> $${tx.platformFee.toFixed(2)} → 
+                    <strong>Net:</strong> $${tx.netAmount.toFixed(2)}<br>
+                    <strong>Date:</strong> ${new Date(tx.timestamp).toLocaleString()}
+                </div>
+            `).join('')}
+        `;
+    } catch (error) {
+        showError('merchantRevenueData', error.message);
+    }
+}
+
+async function loadTradingFees() {
+    try {
+        const address = document.getElementById('tradingFeesAddress').value;
+        if (!address) {
+            alert('Please enter a user address');
+            return;
+        }
+        
+        const response = await fetch(`${API_BASE}/api/revenue/exchange/${address}/fees`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('tradingFeesData');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>📈 Trading Fees Report</h4>
+            <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
+                <strong>User:</strong> ${data.userAddress.substring(0, 20)}...<br>
+                <strong>Total Trades:</strong> ${data.totalTrades}<br>
+                <strong>Total Volume:</strong> $${data.totalVolume}<br>
+                <strong>Total Fees Paid:</strong> $${data.totalFees} (${data.feePercentage})
+            </div>
+            <h5 style="margin-top: 15px;">Recent Trades (Last 50)</h5>
+            ${data.trades.slice(0, 10).map(trade => `
+                <div class="transaction-item">
+                    <strong>${trade.side.toUpperCase()}:</strong> ${trade.quantity} @ $${trade.price}<br>
+                    <strong>Pair:</strong> ${trade.pair} | <strong>Value:</strong> $${trade.tradeValue.toFixed(2)}<br>
+                    <strong>Fee:</strong> $${trade.tradingFee.toFixed(2)}<br>
+                    <strong>Date:</strong> ${new Date(trade.timestamp).toLocaleString()}
+                </div>
+            `).join('')}
+        `;
+    } catch (error) {
+        showError('tradingFeesData', error.message);
+    }
+}
+
+async function loadLicensePricing() {
+    try {
+        const response = await fetch(`${API_BASE}/api/revenue/license/pricing`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('licensePricingData');
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>🏢 White-Label Licensing Tiers</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(169, 169, 169, 0.2)); border-left: 4px solid silver;">
+                    <h5 style="color: silver; margin: 0 0 10px 0;">BASIC</h5>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: silver; margin-bottom: 10px;">$${data.BASIC.price}/mo</div>
+                    <strong>Features:</strong><br>
+                    ${data.BASIC.features.map(f => `• ${f}<br>`).join('')}
+                </div>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.2)); border-left: 4px solid #3498db;">
+                    <h5 style="color: #3498db; margin: 0 0 10px 0;">PROFESSIONAL</h5>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #3498db; margin-bottom: 10px;">$${data.PROFESSIONAL.price}/mo</div>
+                    <strong>Features:</strong><br>
+                    ${data.PROFESSIONAL.features.map(f => `• ${f}<br>`).join('')}
+                </div>
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(142, 68, 173, 0.2)); border-left: 4px solid #9b59b6;">
+                    <h5 style="color: #9b59b6; margin: 0 0 10px 0;">ENTERPRISE</h5>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #9b59b6; margin-bottom: 10px;">$${data.ENTERPRISE.price}/mo</div>
+                    <strong>Features:</strong><br>
+                    ${data.ENTERPRISE.features.map(f => `• ${f}<br>`).join('')}
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        showError('licensePricingData', error.message);
+    }
+}
+
+async function loadAllLicenses() {
+    try {
+        const response = await fetch(`${API_BASE}/api/revenue/licenses/all`);
+        const data = await response.json();
+        
+        const resultDiv = document.getElementById('allLicensesData');
+        
+        if (!data || data.length === 0) {
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = '<p>No licenses created yet</p>';
+            return;
+        }
+        
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+            <h4>🏢 All White-Label Licenses (${data.length})</h4>
+            ${data.map(license => `
+                <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
+                    <strong>Organization:</strong> ${license.organizationName}<br>
+                    <strong>License ID:</strong> ${license.licenseId}<br>
+                    <strong>Tier:</strong> <span style="color: #9b59b6; font-weight: 700;">${license.tier}</span><br>
+                    <strong>Monthly Price:</strong> $${license.monthlyPrice}/mo<br>
+                    <strong>Total Revenue:</strong> $${license.totalRevenue}<br>
+                    <strong>Status:</strong> <span style="color: ${license.status === 'active' ? '#2ecc71' : '#e74c3c'};">${license.status.toUpperCase()}</span><br>
+                    <strong>Created:</strong> ${license.createdAt}
+                </div>
+            `).join('')}
+        `;
+    } catch (error) {
+        showError('allLicensesData', error.message);
+    }
+}

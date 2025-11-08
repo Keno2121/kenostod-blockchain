@@ -109,6 +109,49 @@ class DatabaseConnection {
                 CREATE INDEX IF NOT EXISTS idx_learning_progress_member_id ON learning_progress(member_id);
             `);
 
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS white_label_licenses (
+                    id SERIAL PRIMARY KEY,
+                    license_id VARCHAR(255) UNIQUE NOT NULL,
+                    license_key VARCHAR(255) UNIQUE NOT NULL,
+                    organization_name VARCHAR(255) NOT NULL,
+                    tier VARCHAR(50) NOT NULL,
+                    contact_email VARCHAR(255) NOT NULL,
+                    custom_domain VARCHAR(255),
+                    monthly_price DECIMAL(10, 2) NOT NULL,
+                    status VARCHAR(50) DEFAULT 'active',
+                    stripe_customer_id VARCHAR(255),
+                    stripe_subscription_id VARCHAR(255),
+                    total_revenue DECIMAL(12, 2) DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS license_payments (
+                    id SERIAL PRIMARY KEY,
+                    license_id VARCHAR(255) REFERENCES white_label_licenses(license_id) ON DELETE CASCADE,
+                    payment_id VARCHAR(255) UNIQUE NOT NULL,
+                    amount DECIMAL(10, 2) NOT NULL,
+                    period VARCHAR(100),
+                    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_licenses_org_name ON white_label_licenses(organization_name);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_licenses_tier ON white_label_licenses(tier);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_license_payments_license_id ON license_payments(license_id);
+            `);
+
             console.log('✅ Database schema initialized successfully');
             return true;
         } catch (error) {
