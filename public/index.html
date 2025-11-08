@@ -1642,6 +1642,32 @@
                     </ul>
                     <button class="btn btn-secondary" onclick="subscribeToplan('professional', 35)" id="professionalSubscribeBtn">Go Pro - $35/mo</button>
                 </div>
+
+                <div class="pricing-card featured">
+                    <div class="popular-badge">🏢 BEST FOR TEAMS</div>
+                    <h3>Corporate/Team Plans</h3>
+                    <div class="price">$200<span>/month</span></div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin: 10px 0;">Train your entire team (10 seats)</p>
+                    <ul class="features-list">
+                        <li><strong>Enterprise Features:</strong></li>
+                        <li>✅ All Professional Plan Features</li>
+                        <li>✅ <strong>10 Team Member Seats Included</strong></li>
+                        <li>✅ <strong>Team Management Dashboard</strong></li>
+                        <li>✅ <strong>Learning Progress Tracking</strong></li>
+                        <li>✅ <strong>Course Completion Analytics</strong></li>
+                        <li>✅ <strong>Invite/Remove Members</strong></li>
+                        <li>✅ <strong>Compliance Reporting</strong></li>
+                        <li style="margin-top: 10px;"><strong>Volume Discounts:</strong></li>
+                        <li>💰 20-49 seats: <strong>10% off</strong> ($18/seat)</li>
+                        <li>💰 50-99 seats: <strong>20% off</strong> ($16/seat)</li>
+                        <li>💰 100+ seats: <strong>30% off</strong> ($14/seat)</li>
+                        <li style="margin-top: 8px;"><strong>Ideal For:</strong></li>
+                        <li>🏢 Corporate Training Programs</li>
+                        <li>🎓 Universities & Bootcamps</li>
+                        <li>🚀 Web3 Companies</li>
+                    </ul>
+                    <button class="btn btn-primary" onclick="showCorporatePricing()">Get Team Pricing</button>
+                </div>
             </div>
             
             <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(37, 99, 235, 0.05); border-radius: 12px;">
@@ -1750,6 +1776,65 @@
         
         function closePricingModal() {
             document.getElementById('pricingModal').style.display = 'none';
+        }
+
+        function showCorporatePricing() {
+            const email = prompt('Enter your company email to receive team pricing details:');
+            if (!email || !email.includes('@')) {
+                alert('Please provide a valid email address.');
+                return;
+            }
+            
+            const seats = prompt('How many team members do you want to train? (Minimum: 10)', '10');
+            const seatCount = parseInt(seats);
+            
+            if (!seatCount || seatCount < 10) {
+                alert('Team plans require a minimum of 10 seats.');
+                return;
+            }
+            
+            // Calculate pricing with volume discounts
+            let pricePerSeat = 20;
+            let discount = 0;
+            if (seatCount >= 100) {
+                pricePerSeat = 14;
+                discount = 30;
+            } else if (seatCount >= 50) {
+                pricePerSeat = 16;
+                discount = 20;
+            } else if (seatCount >= 20) {
+                pricePerSeat = 18;
+                discount = 10;
+            }
+            
+            const monthlyTotal = seatCount * pricePerSeat;
+            const savings = seatCount * (20 - pricePerSeat);
+            
+            let message = `🏢 Corporate Team Plan Quote\n\n`;
+            message += `Team Size: ${seatCount} seats\n`;
+            message += `Price per Seat: $${pricePerSeat}/month`;
+            if (discount > 0) {
+                message += ` (${discount}% volume discount!)`;
+            }
+            message += `\n\nMonthly Total: $${monthlyTotal.toFixed(2)}`;
+            if (savings > 0) {
+                message += `\nYou Save: $${savings.toFixed(2)}/month`;
+            }
+            message += `\n\n✅ Includes:\n• Team management dashboard\n• Learning progress analytics\n• Compliance reporting\n• All professional features\n\n`;
+            message += `📧 We'll send detailed pricing and next steps to:\n${email}`;
+            
+            alert(message);
+            
+            // Log for follow-up (in real implementation, this would call an API)
+            console.log('Corporate pricing inquiry:', {
+                email,
+                seats: seatCount,
+                pricePerSeat,
+                monthlyTotal,
+                discount
+            });
+            
+            alert('✅ Thank you! Our team will contact you within 24 hours with your custom pricing and onboarding details.');
         }
         
         window.onclick = function(event) {
