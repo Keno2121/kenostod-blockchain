@@ -132,6 +132,161 @@ Universities and large enterprises receive significant volume discounts, making 
 - SSO/SAML authentication (corporate identity providers)
 - Custom branding (white-label for institutions)
 
+## Additional Revenue Systems (Multi-Stream Business Model)
+
+### Overview
+Three additional revenue generators complement the corporate/team plans, creating a diversified business model with recurring and transaction-based income streams. Combined revenue potential: $100K+/year from institutional clients, plus continuous passive income from merchant and trading fees.
+
+### Revenue Generator #3: Merchant Payment Gateway Fees (2.5%)
+
+**Business Model:** Platform earns 2.5% fee on all merchant transactions processed through the payment gateway.
+
+**Implementation:**
+- Centralized `RevenueTracker` class manages all fee tracking with PostgreSQL persistence
+- Automatic fee calculation and deduction on every merchant payment
+- Real-time revenue tracking per merchant and globally
+- Merchant tier pricing (Basic/Professional/Enterprise) with custom fee structures
+
+**Database Architecture:**
+```sql
+revenue_transactions table:
+- id, revenue_source ('merchant_gateway' | 'exchange_trading' | 'white_label_licensing')
+- merchant_id, transaction_id, gross_amount, platform_fee, net_amount
+- user_address, timestamp, metadata (JSON)
+```
+
+**API Endpoints (6 total):**
+1. `POST /api/revenue/merchant/transaction` - Record merchant fee
+2. `GET /api/revenue/merchant/:merchantId/report` - Merchant revenue report
+3. `GET /api/revenue/merchant/all` - Global merchant fee analytics
+4. Plus integration with existing merchant payment endpoints
+
+**Revenue Metrics:**
+- Total transactions processed
+- Average fee per transaction
+- Total gross revenue vs. net to merchants
+- Top performing merchants
+
+### Revenue Generator #4: Exchange Trading Fees (0.5%)
+
+**Business Model:** Platform earns 0.5% fee on all buy/sell trades executed on the exchange.
+
+**Implementation:**
+- Integrated directly into `ExchangeAPI.js` - automatic fee collection on every trade
+- Fee rate increased from 0.1% to 0.5% for optimal revenue generation
+- Fees tracked per user and globally in `RevenueTracker`
+- Trading fee analytics by trading pair (KENO/USD, KENO/BTC, KENO/ETH)
+
+**Fee Calculation:**
+```javascript
+Trade Value = Quantity × Price
+Trading Fee = Trade Value × 0.005 (0.5%)
+Platform Revenue += Trading Fee
+```
+
+**API Endpoints (4 total):**
+1. `POST /api/revenue/exchange/trade` - Record trading fee (auto-called on each trade)
+2. `GET /api/revenue/exchange/:address/fees` - User trading fee history
+3. `GET /api/revenue/exchange/all` - Global trading fee analytics
+4. Plus integration with existing exchange endpoints
+
+**Revenue Metrics:**
+- Total trades executed
+- Total trading volume (USD)
+- Average fee per trade
+- Trading fees by pair (KENO/USD, KENO/BTC, KENO/ETH)
+- Top traders by volume
+
+### Revenue Generator #7: White-Label Licensing ($500-$5,000/month)
+
+**Business Model:** Institutions can license the entire blockchain platform technology stack for their own branded educational programs.
+
+**Pricing Tiers:**
+- **BASIC ($500/month):** Custom branding, 5 domains, email support
+- **PROFESSIONAL ($2,000/month):** Unlimited domains, priority support, API access, custom features
+- **ENTERPRISE ($5,000/month):** Full customization, source code access, white-label mobile apps, dedicated support
+
+**Database Architecture (PostgreSQL):**
+```sql
+white_label_licenses table:
+- id (serial PK), organization_name, license_id (UUID), tier, status
+- monthly_price (decimal), total_revenue, features (JSON array)
+- stripe_customer_id, stripe_subscription_id, license_key
+- is_active (boolean), created_at, updated_at, expires_at
+
+license_payments table:
+- id (serial PK), license_id (FK), amount, payment_method
+- stripe_payment_id, status, payment_date, billing_period_start/end
+- created_at
+```
+
+**API Endpoints (9 total):**
+1. `POST /api/revenue/license/create` - Create new license (with Stripe integration)
+2. `GET /api/revenue/license/:licenseId` - License details
+3. `POST /api/revenue/license/:licenseId/validate` - Validate license key
+4. `POST /api/revenue/license/:licenseId/payment` - Record payment
+5. `GET /api/revenue/license/:licenseId/payments` - Payment history
+6. `GET /api/revenue/license/pricing` - Show pricing tiers
+7. `POST /api/revenue/license/:licenseId/upgrade` - Upgrade tier
+8. `POST /api/revenue/license/:licenseId/cancel` - Cancel license
+9. `GET /api/revenue/licenses/all` - Admin: All licenses
+
+**Features by Tier:**
+- License key generation and validation
+- Domain whitelisting and verification
+- Custom branding asset management
+- API rate limiting per tier
+- Stripe recurring billing integration
+- Automatic revenue tracking
+
+**Security:**
+- Cryptographically secure license key generation (UUID v4)
+- License validation middleware for white-label endpoints
+- Domain verification to prevent unauthorized usage
+- Stripe webhook integration for automatic payment tracking
+
+### Unified Revenue Analytics Dashboard
+
+**Global Revenue Reporting:**
+- Comprehensive analytics UI (`Revenue` tab) showing all income streams
+- Real-time MRR (Monthly Recurring Revenue) and ARR (Annual Recurring Revenue) calculations
+- Revenue breakdown by source with percentages
+- Projected annual revenue based on current growth
+
+**API Endpoints (3 global reporting):**
+1. `GET /api/revenue/report/global` - Complete platform revenue overview
+2. `GET /api/revenue/report/breakdown` - Revenue by source percentages
+3. `GET /api/revenue/report/monthly` - Monthly revenue trends
+
+**Metrics Tracked:**
+- Total Revenue (all sources combined)
+- Merchant Gateway Revenue (2.5% fees)
+- Exchange Trading Revenue (0.5% fees)
+- White-Label Licensing Revenue (MRR from subscriptions)
+- Monthly Recurring Revenue (MRR)
+- Projected Annual Revenue
+
+**Revenue Dashboard UI Features:**
+- Real-time revenue totals with visual breakdowns
+- Revenue stream comparison charts
+- Merchant-specific revenue reports
+- User trading fee history
+- White-label license management
+- MRR/ARR projections for business planning
+
+### Business Impact
+**Revenue Diversification Strategy:**
+1. **Subscription Revenue:** Corporate Plans ($100K+/year) + White-Label Licensing ($6K-$60K+/year per client)
+2. **Transaction Fees:** Merchant Gateway (2.5%) + Exchange Trading (0.5%)
+3. **Scalability:** All revenue streams scale automatically with platform growth
+4. **Predictable Income:** MRR from subscriptions + variable income from transaction fees
+
+**Target Market:**
+- Universities and coding bootcamps (white-label for blockchain courses)
+- Enterprise training programs (corporate plans + white-label)
+- Fintech companies (white-label for internal blockchain training)
+- Web3 startups (custom branded blockchain simulators)
+
 # External Dependencies
 
 -   **elliptic**: For secp256k1 elliptic curve cryptography.
