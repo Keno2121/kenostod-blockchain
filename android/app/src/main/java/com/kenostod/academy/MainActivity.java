@@ -59,9 +59,10 @@ public class MainActivity extends BridgeActivity {
                 }
                 
                 if (targetHash != null) {
+                    final String finalTargetHash = targetHash;
                     if (bridge != null && bridge.getWebView() != null && bridge.getWebView().getUrl() != null) {
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            navigateToHash(targetHash);
+                            navigateToHash(finalTargetHash);
                         }, 500);
                     } else {
                         pendingDeepLinkHash = targetHash;
