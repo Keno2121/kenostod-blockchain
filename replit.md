@@ -2,6 +2,8 @@
 
 Kenostod Blockchain Academy is an educational platform featuring a comprehensive blockchain simulator with a demonstration cryptocurrency, KENO. It introduces advanced concepts like Proof-of-Residual-Value (PoRV) consensus, transaction reversal, and social recovery. Built with Node.js, the platform offers hands-on experience in cryptocurrency fundamentals, including dual consensus modes (PoW/PoRV), full wallet functionality, advanced transaction processing, a simulated merchant payment gateway, and an exchange trading simulation. The professional web interface provides over 75 API endpoints. KENO is strictly for educational, virtual financial simulations. Recent multi-language support expands its global reach. New corporate/team plans with PostgreSQL-backed management and Stripe integration target B2B growth and offer scalable solutions for institutional training.
 
+**KENO Token Launch (In Development):** An ERC-20/BEP-20 token ICO infrastructure is being developed to transition KENO from educational simulation to real cryptocurrency with actual market value. Target raise: $1.3M-$13M over 6-month timeline. Smart contracts deployed on BSC for low-cost transactions.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
