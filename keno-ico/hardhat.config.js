@@ -1,5 +1,12 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
+
+// Read private key from Replit Secrets (more secure than .env)
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
+if (!PRIVATE_KEY) {
+  console.warn("⚠️  WARNING: PRIVATE_KEY not found in Replit Secrets!");
+  console.warn("Add your private key to Replit Secrets before deploying.");
+}
 
 module.exports = {
   solidity: {
@@ -12,23 +19,25 @@ module.exports = {
     }
   },
   networks: {
-    // BSC Mainnet - Use for production launch
+    // BSC Mainnet - Use for production launch (~$5-10 cost)
     bsc: {
       url: "https://bsc-dataseed.binance.org/",
       chainId: 56,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+      gasPrice: 3000000000 // 3 Gwei
     },
     // BSC Testnet - Use for testing (FREE testnet BNB!)
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
       chainId: 97,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
+      gasPrice: 10000000000 // 10 Gwei for testnet
     },
-    // Ethereum Mainnet - Alternative option (higher gas fees)
+    // Ethereum Mainnet - Alternative option (higher gas fees ~$200-400)
     ethereum: {
-      url: process.env.RPC_URL || "https://eth.llamarpc.com",
+      url: "https://eth.llamarpc.com",
       chainId: 1,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : []
     }
   },
   etherscan: {
