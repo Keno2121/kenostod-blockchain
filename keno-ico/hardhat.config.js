@@ -19,6 +19,12 @@ module.exports = {
     }
   },
   networks: {
+    // Sepolia Testnet - Use for testing (FREE testnet ETH!)
+    sepolia: {
+      url: "https://rpc.sepolia.org",
+      chainId: 11155111,
+      accounts: PRIVATE_KEY ? [PRIVATE_KEY] : []
+    },
     // BSC Mainnet - Use for production launch (~$5-10 cost)
     bsc: {
       url: "https://bsc-dataseed.binance.org/",
@@ -26,7 +32,7 @@ module.exports = {
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       gasPrice: 3000000000 // 3 Gwei
     },
-    // BSC Testnet - Use for testing (FREE testnet BNB!)
+    // BSC Testnet - Alternative testing option
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
       chainId: 97,
