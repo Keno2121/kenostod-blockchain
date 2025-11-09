@@ -1,10 +1,11 @@
 package com.kenostod.academy;
 
-import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.JSObject;
+import android.content.Intent;
 
 @CapacitorPlugin(name = "ICOPlugin")
 public class ICOPlugin extends Plugin {
@@ -13,8 +14,6 @@ public class ICOPlugin extends Plugin {
     public void isAndroidApp(PluginCall call) {
         JSObject ret = new JSObject();
         ret.put("isAndroid", true);
-        ret.put("appVersion", "1.0");
-        ret.put("icoEnabled", true);
         call.resolve(ret);
     }
 
@@ -32,30 +31,27 @@ public class ICOPlugin extends Plugin {
 
     @PluginMethod
     public void getKenoBalance(PluginCall call) {
-        String walletAddress = call.getString("walletAddress");
-        
-        if (walletAddress == null || walletAddress.isEmpty()) {
-            call.reject("Wallet address is required");
-            return;
-        }
+        String address = call.getString("address");
         
         JSObject ret = new JSObject();
-        ret.put("address", walletAddress);
+        ret.put("success", true);
         ret.put("balance", "0");
-        ret.put("message", "Balance check requires Web3 connection");
+        ret.put("address", address);
+        ret.put("message", "This is a placeholder. Implement actual balance checking via API.");
+        
         call.resolve(ret);
     }
 
     @PluginMethod
     public void shareICO(PluginCall call) {
-        String message = call.getString("message", "Join the KENO Token ICO!");
+        String message = call.getString("message", "Join the KENO ICO!");
         String url = call.getString("url", "https://kenostodblockchain.com");
         
-        android.content.Intent shareIntent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, message + " " + url);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, message + "\n" + url);
         
-        android.content.Intent chooser = android.content.Intent.createChooser(shareIntent, "Share KENO ICO");
+        Intent chooser = Intent.createChooser(shareIntent, "Share KENO ICO");
         getBridge().getActivity().startActivity(chooser);
         
         JSObject ret = new JSObject();
@@ -66,9 +62,11 @@ public class ICOPlugin extends Plugin {
     @PluginMethod
     public void checkICOStatus(PluginCall call) {
         JSObject ret = new JSObject();
-        ret.put("icoActive", true);
-        ret.put("phase", "public_sale");
-        ret.put("appReady", true);
+        ret.put("success", true);
+        ret.put("phase", "presale");
+        ret.put("pricePerToken", "0.01");
+        ret.put("message", "Presale is active");
+        
         call.resolve(ret);
     }
 }
