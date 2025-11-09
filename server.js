@@ -3217,7 +3217,13 @@ app.listen(PORT, '0.0.0.0', () => {
 
     // Start governance proposal checker (runs every hour)
     setInterval(() => {
-        kenostodChain.checkAndExecuteProposals();
+        try {
+            if (kenostodChain && kenostodChain.governance && kenostodChain.governance.proposals instanceof Map) {
+                kenostodChain.checkAndExecuteProposals();
+            }
+        } catch (error) {
+            console.error('Error in governance checker:', error.message);
+        }
     }, 3600000);
     console.log('Governance proposal checker started (runs every hour)');
 });

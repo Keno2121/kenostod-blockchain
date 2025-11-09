@@ -615,6 +615,10 @@ function openTab(button, tabName) {
     
     document.getElementById(tabName).classList.add('active');
     button.classList.add('active');
+    
+    setTimeout(() => {
+        switchLanguage(currentLanguage);
+    }, 100);
 }
 
 async function loadStats() {
