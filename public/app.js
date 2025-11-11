@@ -827,6 +827,22 @@ const translations = {
     }
 };
 
+function renderCourseSkills(lang) {
+    document.querySelectorAll('[data-skills]').forEach(element => {
+        const key = element.getAttribute('data-skills');
+        if (translations[lang] && Array.isArray(translations[lang][key])) {
+            const skills = translations[lang][key];
+            element.innerHTML = '';
+            skills.forEach(skill => {
+                const skillTag = document.createElement('span');
+                skillTag.className = 'skill-tag';
+                skillTag.textContent = skill;
+                element.appendChild(skillTag);
+            });
+        }
+    });
+}
+
 function switchLanguage(lang) {
     currentLanguage = lang;
     localStorage.setItem('language', lang);
@@ -837,6 +853,8 @@ function switchLanguage(lang) {
             element.innerHTML = translations[lang][key];
         }
     });
+    
+    renderCourseSkills(lang);
     
     const langText = document.getElementById('currentLangText');
     const langNames = {
