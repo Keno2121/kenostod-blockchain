@@ -51,6 +51,40 @@ Institutions can license the platform technology for their own branded education
 ### Unified Revenue Analytics Dashboard
 A comprehensive UI and API endpoints provide global revenue reporting, including MRR, ARR, and breakdowns by source, with real-time tracking and projections.
 
+## ICO Marketing Campaign (Nov 11, 2025)
+A comprehensive marketing campaign launched to support the KENO Token ICO and drive investor acquisition. The campaign includes professional email templates, dedicated landing pages, video content strategies, and press release frameworks targeting crypto investors, educational institutions, and media outlets.
+
+### Email Marketing Templates
+**File:** MARKETING_EMAIL_TEMPLATES.md - Six professional email templates with audience segmentation: investor outreach, partnership pitches, student recruitment, press/media outreach, and VIP whitelist invitations. Includes subject line optimization, CTA placement best practices, and personalization guidelines.
+
+### Web Landing Pages
+- **ICO Campaign Landing Page** (`public/ico-campaign.html`): Conversion-optimized landing page featuring hero section with live sale status, stats bar, revolutionary features showcase (transaction reversal, PoRV mining, RVT NFTs), pricing comparison table, ICO timeline/roadmap, FAQ section, and multiple strategic CTAs. Fully responsive design with custom styling.
+- **ICO Purchase Interface** (`public/ico.html`): Functional presale platform with MetaMask wallet integration, live ICO statistics (total raised, tokens sold, current price, phase), BNB-to-KENO conversion calculator, transaction status tracking, and sale information panel. Connects to deployed BSC smart contracts.
+- **Feature Comparison Chart** (`public/comparison.html`): Professional competitive analysis comparing KENO against 4 major competitors across 30+ features. Includes print/PDF export and social sharing capabilities.
+
+### Video Content Strategy
+**File:** YOUTUBE_VIDEO_SCRIPTS.md - Complete YouTube video production guide for non-technical creators including equipment recommendations, filming setup instructions, and four fully scripted videos:
+1. **Main ICO Announcement** (4 min): Scene-by-scene script covering problem statement, KENO solution, investment opportunity, social proof, and CTAs
+2. **60-Second Teaser**: Social media optimized viral promo for Instagram, TikTok, Twitter
+3. **How to Buy Tutorial** (6 min): Step-by-step MetaMask setup, BSC network configuration, BNB purchase, and ICO participation guide
+4. **Deep Dive** (9 min): Technical explanation of PoRV mining, transaction reversal, tokenomics, and real-world utility for educated crypto investors
+
+Includes editing checklists, thumbnail design tips, video description templates, recording schedules, and performance tracking metrics.
+
+### Press Release Templates
+**File:** PRESS_RELEASE_TEMPLATES.md - Six AP-style press release templates for different ICO stages and milestones:
+1. **ICO Launch Announcement**: Private sale opening with transaction reversal and PoRV mining introduction
+2. **Funding Milestone Achievement**: Celebrate capital raise targets ($500K, $1M, $5M+)
+3. **Strategic Partnership Announcement**: University/corporate partnerships and integrations
+4. **Product/Feature Launch**: RVT NFT marketplace, mobile app, new platform features
+5. **Pre-ICO/Whitelist Opening**: Build anticipation for private sale with exclusive bonus
+6. **Exchange Listing Announcement**: CEX listings (Binance, Coinbase, etc.)
+
+Includes journalist outreach strategy, distribution channel recommendations (crypto news wires, direct media contact), press calendar, success metrics, and pre-publication checklist.
+
+### Campaign Distribution Strategy
+Multi-channel approach combining email marketing (MailChimp/SendGrid), social media (Twitter/X, LinkedIn, Instagram, TikTok), paid advertising (crypto-targeted campaigns), press release distribution (Bitcoin PR Buzz, CryptoPresRelease, PR Newswire), direct journalist outreach (CoinTelegraph, CoinDesk, Decrypt), and community engagement (Reddit, Telegram, Discord).
+
 # External Dependencies
 
 -   **elliptic**: For secp256k1 elliptic curve cryptography.
