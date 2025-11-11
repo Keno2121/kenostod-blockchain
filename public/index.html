@@ -665,6 +665,7 @@
 
         <div class="tabs">
             <button class="tab-btn active" onclick="openTab(this, 'wallet')">💼 Wallet</button>
+            <button class="tab-btn" onclick="openTab(this, 'ico')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600;">🚀 Invest in KENO ICO</button>
             <button class="tab-btn" onclick="openTab(this, 'transaction')">💸 Send KENO</button>
             <button class="tab-btn" onclick="openTab(this, 'scheduled')">⏰ Scheduled Payments</button>
             <button class="tab-btn" onclick="openTab(this, 'recovery')">🔐 Social Recovery</button>
@@ -721,6 +722,129 @@
                     <label>Private Key:</label>
                     <input type="password" id="myPrivateKey" placeholder="Your private key (keep secure!)" class="input-field">
                     <small>Save these securely! They are never sent to the server except when signing transactions.</small>
+                </div>
+            </div>
+        </div>
+
+        <div id="ico" class="tab-content">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; margin-bottom: 30px; color: white;">
+                <h2 style="margin: 0 0 10px 0; font-size: 2.2rem;">🚀 KENO Token ICO - Now Live!</h2>
+                <p style="margin: 0; font-size: 1.1rem; opacity: 0.95;">
+                    Invest in the future of blockchain education. KENO is now a real cryptocurrency on Binance Smart Chain!
+                </p>
+            </div>
+
+            <div class="alert alert-info" style="margin-bottom: 25px; padding: 20px; border-left: 4px solid #667eea;">
+                <h3 style="margin: 0 0 10px 0; color: #667eea;">📋 Important Information</h3>
+                <ul style="margin: 5px 0; padding-left: 20px; line-height: 1.8;">
+                    <li><strong>Network:</strong> Binance Smart Chain (BSC) Mainnet</li>
+                    <li><strong>Token Address:</strong> <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 3px; font-size: 0.9em;">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</code></li>
+                    <li><strong>Presale Address:</strong> <code style="background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 3px; font-size: 0.9em;">0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0</code></li>
+                    <li><strong>View on BSCScan:</strong> <a href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" style="color: #667eea;">KENO Token</a> | <a href="https://bscscan.com/address/0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0" target="_blank" style="color: #667eea;">Presale Contract</a></li>
+                </ul>
+            </div>
+
+            <div id="statusMessage" class="alert" style="display: none; margin-bottom: 20px;"></div>
+
+            <div class="section" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 25px; border-radius: 12px; margin-bottom: 25px;">
+                <h3 style="margin-top: 0;">📊 Live Sale Statistics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">Sale Phase</div>
+                        <div id="salePhase" style="font-size: 1.4rem; font-weight: 700; color: #667eea;">Loading...</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">Current Price</div>
+                        <div id="currentPrice" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">Loading...</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">Tokens Sold</div>
+                        <div id="tokensSold" style="font-size: 1.4rem; font-weight: 700; color: #8b5cf6;">Loading...</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">BNB Raised</div>
+                        <div id="bnbRaised" style="font-size: 1.4rem; font-weight: 700; color: #f59e0b;">Loading...</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">USD Raised</div>
+                        <div id="usdRaised" style="font-size: 1.4rem; font-weight: 700; color: #10b981;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div id="connectBtn" style="text-align: center; margin: 30px 0;">
+                    <button onclick="connectWallet()" class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        🦊 Connect MetaMask to Invest
+                    </button>
+                    <p style="margin-top: 15px; color: #666; font-size: 0.95rem;">
+                        Don't have MetaMask? <a href="https://metamask.io/download/" target="_blank" style="color: #667eea; font-weight: 600;">Install it here</a>
+                    </p>
+                </div>
+
+                <div id="walletInfo" style="display: none;">
+                    <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                        <h3 style="margin: 0 0 15px 0; color: #10b981;">✅ Wallet Connected</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div>
+                                <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">Your Address</div>
+                                <div id="walletAddress" style="font-family: 'Courier New', monospace; font-weight: 600; color: #333;"></div>
+                            </div>
+                            <div>
+                                <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">BNB Balance</div>
+                                <div id="userBalance" style="font-weight: 700; color: #f59e0b; font-size: 1.1rem;">0 BNB</div>
+                            </div>
+                            <div>
+                                <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">KENO Balance</div>
+                                <div id="kenoBalance" style="font-weight: 700; color: #8b5cf6; font-size: 1.1rem;">0 KENO</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="buySection" class="section">
+                        <h3>💰 Purchase KENO Tokens</h3>
+                        <div class="form-group">
+                            <label>Amount to Invest (BNB):</label>
+                            <input type="number" id="bnbAmount" placeholder="0.1" class="input-field" min="0.1" step="0.01" oninput="calculateTokens()">
+                            <small style="color: #666;">Minimum: 0.1 BNB | Maximum varies by sale phase</small>
+                        </div>
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600;">You will receive:</span>
+                                <span id="tokenAmount" style="font-size: 1.5rem; font-weight: 700; color: #667eea;">0</span>
+                                <span style="font-weight: 600;">KENO</span>
+                            </div>
+                        </div>
+                        <button onclick="buyTokens()" class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            🚀 Buy KENO Tokens
+                        </button>
+                        <div id="txHash" style="margin-top: 15px; text-align: center; color: #667eea; font-weight: 600;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning" style="margin-top: 30px; padding: 20px; background: #fef3c7; border-left: 4px solid #f59e0b;">
+                <h3 style="margin: 0 0 10px 0; color: #d97706;">⚠️ Investment Disclaimer</h3>
+                <p style="margin: 0; line-height: 1.6; color: #78350f;">
+                    <strong>Important:</strong> Cryptocurrency investments carry significant risk. The KENO token is a real cryptocurrency on Binance Smart Chain, but it is primarily designed as an educational platform. 
+                    Please invest only what you can afford to lose. This is not financial advice. DYOR (Do Your Own Research). 
+                    Token values can be volatile and may decrease. Ensure you understand smart contract risks before investing.
+                </p>
+            </div>
+
+            <div class="section" style="margin-top: 25px;">
+                <h3>📚 ICO Details</h3>
+                <div style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #e5e7eb;">
+                    <ul style="line-height: 2; color: #374151;">
+                        <li><strong>Total Supply:</strong> 1,000,000,000 KENO</li>
+                        <li><strong>ICO Allocation:</strong> 300,000,000 KENO (30%)</li>
+                        <li><strong>Private Sale:</strong> Nov 11, 2025 - Dec 11, 2025 (30 days)</li>
+                        <li><strong>Private Sale Price:</strong> 0.0000416 BNB per KENO (~$0.000024 USD)</li>
+                        <li><strong>Public Sale:</strong> Dec 12, 2025 - Feb 10, 2026 (60 days)</li>
+                        <li><strong>Public Sale Price:</strong> 0.0000520 BNB per KENO (~$0.000030 USD)</li>
+                        <li><strong>Token Distribution:</strong> Immediately after presale ends</li>
+                        <li><strong>Listing:</strong> PancakeSwap DEX (post-ICO)</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -1781,6 +1905,8 @@
     <script src="elliptic.bundle.js"></script>
     <script src="iap-handler.js"></script>
     <script src="android-bridge.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script src="ico.js"></script>
     <script src="app.js"></script>
     <script>
         window.addEventListener('load', function() {
