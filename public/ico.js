@@ -129,7 +129,7 @@ async function loadSaleInfo() {
         document.getElementById('currentPrice').textContent = 
             ethers.utils.formatEther(currentPrice) + ' BNB';
         document.getElementById('tokensSold').textContent = 
-            (parseInt(totalSold) / 1e18).toLocaleString() + ' KENO';
+            parseFloat(ethers.utils.formatEther(totalSold)).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
         document.getElementById('bnbRaised').textContent = 
             parseFloat(ethers.utils.formatEther(totalRaised)).toFixed(2) + ' BNB';
         
@@ -163,7 +163,7 @@ async function loadUserBalance() {
         
         const kenoBalance = await kenoContract.balanceOf(userAddress);
         document.getElementById('kenoBalance').textContent = 
-            (parseInt(kenoBalance) / 1e18).toLocaleString() + ' KENO';
+            parseFloat(ethers.utils.formatEther(kenoBalance)).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
             
     } catch (error) {
         console.error('Failed to load balance:', error);
@@ -178,6 +178,11 @@ async function calculateTokens() {
         return;
     }
     
+    if (!presaleContract) {
+        document.getElementById('tokenAmount').textContent = '0';
+        return;
+    }
+    
     try {
         const isPrivateSaleActive = await presaleContract.isPrivateSaleActive();
         const price = isPrivateSaleActive ? 
@@ -188,7 +193,7 @@ async function calculateTokens() {
         const tokens = bnbWei.mul(ethers.utils.parseEther('1')).div(price);
         
         document.getElementById('tokenAmount').textContent = 
-            (parseInt(tokens) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 0 });
+            parseFloat(ethers.utils.formatEther(tokens)).toLocaleString(undefined, { maximumFractionDigits: 0 });
             
     } catch (error) {
         console.error('Calculation error:', error);
