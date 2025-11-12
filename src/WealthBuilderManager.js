@@ -1,0 +1,527 @@
+const crypto = require('crypto');
+
+class WealthBuilderManager {
+    constructor(db) {
+        this.db = db;
+    }
+
+    async awardCourseCompletion(walletAddress, email, courseName) {
+        const rewardAmount = 250.0;
+        
+        try {
+            const result = await this.db.query(`
+                INSERT INTO student_rewards (
+                    user_wallet_address, 
+                    user_email, 
+                    reward_type, 
+                    reward_amount, 
+                    course_name, 
+                    description, 
+                    status
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING *
+            `, [
+                walletAddress,
+                email,
+                'course_completion',
+                rewardAmount,
+                courseName,
+                `Completed course: ${courseName}`,
+                'available'
+            ]);
+
+            await this.checkRVTEligibility(walletAddress, email);
+            
+            return {
+                success: true,
+                reward: result.rows[0],
+                message: `🎉 Congratulations! You earned ${rewardAmount} KENO for completing ${courseName}!`
+            };
+        } catch (error) {
+            console.error('❌ Error awarding course completion:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async checkRVTEligibility(walletAddress, email) {
+        try {
+            const result = await this.db.query(`
+                SELECT COUNT(*) as courses_completed
+                FROM student_rewards
+                WHERE user_wallet_address = $1 AND reward_type = 'course_completion'
+            `, [walletAddress]);
+
+            const coursesCompleted = parseInt(result.rows[0].courses_completed);
+
+            if (coursesCompleted === 5) {
+                await this.distributeRVTNFT(walletAddress, email, 'Bronze RVT', 0.25, 'Completed 5 courses');
+            } else if (coursesCompleted === 10) {
+                await this.distributeRVTNFT(walletAddress, email, 'Silver RVT', 0.50, 'Completed 10 courses');
+            } else if (coursesCompleted === 16) {
+                await this.distributeRVTNFT(walletAddress, email, 'Gold RVT', 1.00, 'Completed all 16 courses');
+            }
+
+            return coursesCompleted;
+        } catch (error) {
+            console.error('❌ Error checking RVT eligibility:', error.message);
+            return 0;
+        }
+    }
+
+    async distributeRVTNFT(walletAddress, email, nftType, royaltyPercentage, reason) {
+        try {
+            const nftId = `RVT-${crypto.randomBytes(16).toString('hex')}`;
+            
+            const metadata = {
+                type: nftType,
+                royalty_rate: royaltyPercentage,
+                issued_date: new Date().toISOString(),
+                reason: reason
+            };
+
+            const result = await this.db.query(`
+                INSERT INTO rvt_nft_distributions (
+                    nft_id,
+                    recipient_wallet,
+                    recipient_email,
+                    nft_type,
+                    royalty_percentage,
+                    reason,
+                    metadata
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING *
+            `, [
+                nftId,
+                walletAddress,
+                email,
+                nftType,
+                royaltyPercentage,
+                reason,
+                JSON.stringify(metadata)
+            ]);
+
+            return {
+                success: true,
+                nft: result.rows[0],
+                message: `🏆 Congratulations! You earned a ${nftType} NFT with ${royaltyPercentage}% perpetual royalties!`
+            };
+        } catch (error) {
+            console.error('❌ Error distributing RVT NFT:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async applyForScholarship(applicationData) {
+        try {
+            const result = await this.db.query(`
+                INSERT INTO scholarship_applications (
+                    applicant_name,
+                    applicant_email,
+                    country,
+                    age,
+                    current_income_usd,
+                    education_level,
+                    motivation_statement,
+                    financial_need_statement,
+                    career_goals
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+            `, [
+                applicationData.name,
+                applicationData.email,
+                applicationData.country,
+                applicationData.age,
+                applicationData.currentIncome,
+                applicationData.educationLevel,
+                applicationData.motivation,
+                applicationData.financialNeed,
+                applicationData.careerGoals
+            ]);
+
+            return {
+                success: true,
+                application: result.rows[0],
+                message: '✅ Scholarship application submitted successfully! We will review within 7 days.'
+            };
+        } catch (error) {
+            console.error('❌ Error submitting scholarship application:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async reviewScholarshipApplication(applicationId, status, reviewerName, notes) {
+        try {
+            const updateField = status === 'approved' ? 'approved_at' : 'rejected_at';
+            
+            const result = await this.db.query(`
+                UPDATE scholarship_applications
+                SET application_status = $1,
+                    reviewed_by = $2,
+                    review_notes = $3,
+                    ${updateField} = CURRENT_TIMESTAMP
+                WHERE id = $4
+                RETURNING *
+            `, [status, reviewerName, notes, applicationId]);
+
+            return {
+                success: true,
+                application: result.rows[0],
+                message: `Application ${status}`
+            };
+        } catch (error) {
+            console.error('❌ Error reviewing scholarship:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async createJobListing(jobData) {
+        try {
+            const jobId = `JOB-${crypto.randomBytes(8).toString('hex')}`;
+            
+            const result = await this.db.query(`
+                INSERT INTO job_listings (
+                    job_id,
+                    company_name,
+                    job_title,
+                    job_type,
+                    location,
+                    remote_allowed,
+                    salary_min,
+                    salary_max,
+                    salary_currency,
+                    description,
+                    requirements,
+                    apply_url,
+                    apply_email,
+                    posted_by,
+                    expires_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                RETURNING *
+            `, [
+                jobId,
+                jobData.companyName,
+                jobData.jobTitle,
+                jobData.jobType,
+                jobData.location,
+                jobData.remoteAllowed,
+                jobData.salaryMin,
+                jobData.salaryMax,
+                jobData.salaryCurrency || 'USD',
+                jobData.description,
+                jobData.requirements,
+                jobData.applyUrl,
+                jobData.applyEmail,
+                jobData.postedBy,
+                jobData.expiresAt
+            ]);
+
+            return {
+                success: true,
+                job: result.rows[0],
+                message: 'Job posted successfully!'
+            };
+        } catch (error) {
+            console.error('❌ Error creating job listing:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async getActiveJobs() {
+        try {
+            const result = await this.db.query(`
+                SELECT * FROM job_listings
+                WHERE status = 'active' AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+                ORDER BY created_at DESC
+            `);
+
+            return {
+                success: true,
+                jobs: result.rows
+            };
+        } catch (error) {
+            console.error('❌ Error fetching jobs:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async applyForJob(applicationData) {
+        try {
+            const result = await this.db.query(`
+                INSERT INTO job_applications (
+                    job_id,
+                    applicant_wallet,
+                    applicant_email,
+                    applicant_name,
+                    resume_url,
+                    cover_letter,
+                    portfolio_url
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                RETURNING *
+            `, [
+                applicationData.jobId,
+                applicationData.walletAddress,
+                applicationData.email,
+                applicationData.name,
+                applicationData.resumeUrl,
+                applicationData.coverLetter,
+                applicationData.portfolioUrl
+            ]);
+
+            return {
+                success: true,
+                application: result.rows[0],
+                message: '✅ Job application submitted successfully!'
+            };
+        } catch (error) {
+            console.error('❌ Error submitting job application:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async generateReferralCode(walletAddress, email) {
+        try {
+            const referralCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+            
+            const result = await this.db.query(`
+                INSERT INTO referrals (
+                    referrer_wallet,
+                    referrer_email,
+                    referred_email,
+                    referral_code,
+                    reward_amount
+                ) VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT (referral_code) DO NOTHING
+                RETURNING *
+            `, [
+                walletAddress,
+                email,
+                '',
+                referralCode,
+                100.0
+            ]);
+
+            if (result.rows.length === 0) {
+                return this.generateReferralCode(walletAddress, email);
+            }
+
+            return {
+                success: true,
+                referralCode: referralCode,
+                message: 'Referral code generated!'
+            };
+        } catch (error) {
+            console.error('❌ Error generating referral code:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async processReferral(referralCode, newUserEmail) {
+        try {
+            const result = await this.db.query(`
+                UPDATE referrals
+                SET referred_email = $1,
+                    referred_joined = true
+                WHERE referral_code = $2 AND referred_email = ''
+                RETURNING *
+            `, [newUserEmail, referralCode]);
+
+            if (result.rows.length > 0) {
+                return {
+                    success: true,
+                    referral: result.rows[0],
+                    message: 'Referral processed! Referrer will earn 100 KENO once you complete your first course.'
+                };
+            } else {
+                return {
+                    success: false,
+                    error: 'Invalid or already used referral code'
+                };
+            }
+        } catch (error) {
+            console.error('❌ Error processing referral:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async completeReferralReward(referralCode) {
+        try {
+            const result = await this.db.query(`
+                UPDATE referrals
+                SET referred_completed_course = true,
+                    reward_claimed = true,
+                    claimed_at = CURRENT_TIMESTAMP
+                WHERE referral_code = $1
+                RETURNING *
+            `, [referralCode]);
+
+            if (result.rows.length > 0) {
+                const referral = result.rows[0];
+                
+                await this.db.query(`
+                    INSERT INTO student_rewards (
+                        user_wallet_address,
+                        user_email,
+                        reward_type,
+                        reward_amount,
+                        description,
+                        status
+                    ) VALUES ($1, $2, $3, $4, $5, $6)
+                `, [
+                    referral.referrer_wallet,
+                    referral.referrer_email,
+                    'referral',
+                    referral.reward_amount,
+                    `Referral reward for bringing ${referral.referred_email}`,
+                    'available'
+                ]);
+
+                return {
+                    success: true,
+                    message: 'Referral reward processed!'
+                };
+            }
+
+            return { success: false, error: 'Referral not found' };
+        } catch (error) {
+            console.error('❌ Error completing referral reward:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async calculateWealthSnapshot(walletAddress, email) {
+        try {
+            const rewardsResult = await this.db.query(`
+                SELECT COALESCE(SUM(reward_amount), 0) as total_rewards
+                FROM student_rewards
+                WHERE user_wallet_address = $1 AND status = 'available'
+            `, [walletAddress]);
+
+            const rvtResult = await this.db.query(`
+                SELECT COALESCE(SUM(total_royalties_earned), 0) as total_rvt_royalties,
+                       COUNT(*) as rvt_count
+                FROM rvt_nft_distributions
+                WHERE recipient_wallet = $1
+            `, [walletAddress]);
+
+            const referralResult = await this.db.query(`
+                SELECT COALESCE(SUM(reward_amount), 0) as total_referrals
+                FROM referrals
+                WHERE referrer_wallet = $1 AND reward_claimed = true
+            `, [walletAddress]);
+
+            const coursesResult = await this.db.query(`
+                SELECT COUNT(DISTINCT course_name) as courses_completed
+                FROM student_rewards
+                WHERE user_wallet_address = $1 AND reward_type = 'course_completion'
+            `, [walletAddress]);
+
+            const totalRewards = parseFloat(rewardsResult.rows[0].total_rewards);
+            const totalRvtRoyalties = parseFloat(rvtResult.rows[0].total_rvt_royalties);
+            const totalReferrals = parseFloat(referralResult.rows[0].total_referrals);
+            const coursesCompleted = parseInt(coursesResult.rows[0].courses_completed);
+
+            const totalKeno = totalRewards + totalRvtRoyalties + totalReferrals;
+            const estimatedUSD = totalKeno * 0.05;
+
+            await this.db.query(`
+                INSERT INTO wealth_snapshots (
+                    user_wallet,
+                    user_email,
+                    total_keno_balance,
+                    total_rewards_earned,
+                    total_rvt_royalties,
+                    total_referral_earnings,
+                    courses_completed,
+                    estimated_net_worth_usd
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [
+                walletAddress,
+                email,
+                totalKeno,
+                totalRewards,
+                totalRvtRoyalties,
+                totalReferrals,
+                coursesCompleted,
+                estimatedUSD
+            ]);
+
+            return {
+                success: true,
+                wealth: {
+                    totalKeno,
+                    totalRewards,
+                    totalRvtRoyalties,
+                    totalReferrals,
+                    coursesCompleted,
+                    estimatedUSD,
+                    rvtNFTs: parseInt(rvtResult.rows[0].rvt_count)
+                }
+            };
+        } catch (error) {
+            console.error('❌ Error calculating wealth snapshot:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async getScholarshipApplications(status = null) {
+        try {
+            let query = 'SELECT * FROM scholarship_applications';
+            let params = [];
+            
+            if (status) {
+                query += ' WHERE application_status = $1';
+                params.push(status);
+            }
+            
+            query += ' ORDER BY created_at DESC';
+            
+            const result = await this.db.query(query, params);
+
+            return {
+                success: true,
+                applications: result.rows
+            };
+        } catch (error) {
+            console.error('❌ Error fetching scholarships:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async getUserRewards(walletAddress) {
+        try {
+            const result = await this.db.query(`
+                SELECT * FROM student_rewards
+                WHERE user_wallet_address = $1
+                ORDER BY created_at DESC
+            `, [walletAddress]);
+
+            return {
+                success: true,
+                rewards: result.rows
+            };
+        } catch (error) {
+            console.error('❌ Error fetching user rewards:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async getUserRVTNFTs(walletAddress) {
+        try {
+            const result = await this.db.query(`
+                SELECT * FROM rvt_nft_distributions
+                WHERE recipient_wallet = $1
+                ORDER BY distributed_at DESC
+            `, [walletAddress]);
+
+            return {
+                success: true,
+                nfts: result.rows
+            };
+        } catch (error) {
+            console.error('❌ Error fetching RVT NFTs:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+}
+
+module.exports = WealthBuilderManager;
