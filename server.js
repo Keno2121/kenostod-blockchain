@@ -3233,19 +3233,27 @@ app.get('/api/wealth/rewards/:walletAddress', async (req, res) => {
     }
 });
 
-// Submit scholarship application
-app.post('/api/wealth/scholarships/apply', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+// Submit scholarship application (SECURED: Rate Limited)
+app.post('/api/wealth/scholarships/apply', 
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.scholarshipApplicationLimiter(req, res, next);
+    },
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+        }
+        
+        try {
+            const result = await wealthBuilderManager.applyForScholarship(req.body);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-    
-    try {
-        const result = await wealthBuilderManager.applyForScholarship(req.body);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+);
 
 // Get scholarship applications (admin)
 app.get('/api/wealth/scholarships', async (req, res) => {
@@ -3310,64 +3318,97 @@ app.get('/api/wealth/jobs', async (req, res) => {
     }
 });
 
-// Apply for a job
-app.post('/api/wealth/jobs/apply', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+// Apply for a job (SECURED: Rate Limited + Duplicate Prevention)
+app.post('/api/wealth/jobs/apply', 
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.jobApplicationLimiter(req, res, next);
+    },
+    (req, res, next) => securityMiddleware.checkDuplicateJobApplication(req, res, next),
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+        }
+        
+        try {
+            const result = await wealthBuilderManager.applyForJob(req.body);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-    
-    try {
-        const result = await wealthBuilderManager.applyForJob(req.body);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+);
 
-// Generate referral code
-app.post('/api/wealth/referrals/generate', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+// Generate referral code (SECURED: Rate Limited)
+app.post('/api/wealth/referrals/generate', 
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.referralLimiter(req, res, next);
+    },
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+        }
+        
+        try {
+            const { walletAddress, email } = req.body;
+            const result = await wealthBuilderManager.generateReferralCode(walletAddress, email);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-    
-    try {
-        const { walletAddress, email } = req.body;
-        const result = await wealthBuilderManager.generateReferralCode(walletAddress, email);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+);
 
-// Process referral signup
-app.post('/api/wealth/referrals/process', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+// Process referral signup (SECURED: Rate Limited)
+app.post('/api/wealth/referrals/process', 
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.referralLimiter(req, res, next);
+    },
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+        }
+        
+        try {
+            const { referralCode, newUserEmail } = req.body;
+            const result = await wealthBuilderManager.processReferral(referralCode, newUserEmail);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-    
-    try {
-        const { referralCode, newUserEmail } = req.body;
-        const result = await wealthBuilderManager.processReferral(referralCode, newUserEmail);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+);
 
-// Complete referral reward (when referred user completes first course)
-app.post('/api/wealth/referrals/complete', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+// Complete referral reward (when referred user completes first course) (SECURED: Rate Limited)
+app.post('/api/wealth/referrals/complete', 
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.referralLimiter(req, res, next);
+    },
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+        }
+        
+        try {
+            const { referralCode } = req.body;
+            const result = await wealthBuilderManager.completeReferralReward(referralCode);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-    
-    try {
-        const { referralCode } = req.body;
-        const result = await wealthBuilderManager.completeReferralReward(referralCode);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+);
 
 // Get user's RVT NFTs
 app.get('/api/wealth/rvt/:walletAddress', async (req, res) => {
