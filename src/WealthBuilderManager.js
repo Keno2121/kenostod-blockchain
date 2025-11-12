@@ -58,7 +58,9 @@ class WealthBuilderManager {
             } else if (coursesCompleted === 10) {
                 await this.distributeRVTNFT(walletAddress, email, 'Silver RVT', 0.50, 'Completed 10 courses');
             } else if (coursesCompleted === 16) {
-                await this.distributeRVTNFT(walletAddress, email, 'Gold RVT', 1.00, 'Completed all 16 courses');
+                await this.distributeRVTNFT(walletAddress, email, 'Gold RVT', 1.00, 'Completed all 16 blockchain courses');
+            } else if (coursesCompleted === 21) {
+                await this.distributeRVTNFT(walletAddress, email, 'Platinum RVT', 2.00, 'Completed all 21 courses (blockchain + financial literacy)');
             }
 
             return coursesCompleted;
