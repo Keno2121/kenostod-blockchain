@@ -170,6 +170,22 @@ class DatabaseConnection {
             `);
 
             await this.query(`
+                CREATE TABLE IF NOT EXISTS course_progress (
+                    id SERIAL PRIMARY KEY,
+                    user_wallet_address VARCHAR(255) NOT NULL,
+                    course_id INTEGER NOT NULL,
+                    quiz_score INTEGER,
+                    time_spent_seconds INTEGER,
+                    modules_completed INTEGER,
+                    completion_verified BOOLEAN DEFAULT false,
+                    verified_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_wallet_address, course_id)
+                );
+            `);
+
+            await this.query(`
                 CREATE TABLE IF NOT EXISTS scholarship_applications (
                     id SERIAL PRIMARY KEY,
                     applicant_name VARCHAR(255) NOT NULL,
@@ -184,9 +200,25 @@ class DatabaseConnection {
                     application_status VARCHAR(50) DEFAULT 'pending',
                     reviewed_by VARCHAR(255),
                     review_notes TEXT,
+                    verification_score INTEGER DEFAULT 0,
+                    documents_verified BOOLEAN DEFAULT false,
                     approved_at TIMESTAMP,
                     rejected_at TIMESTAMP,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS scholarship_documents (
+                    id SERIAL PRIMARY KEY,
+                    application_id INTEGER REFERENCES scholarship_applications(id) ON DELETE CASCADE,
+                    document_type VARCHAR(100) NOT NULL,
+                    document_url VARCHAR(500),
+                    document_hash VARCHAR(255),
+                    verification_status VARCHAR(50) DEFAULT 'pending',
+                    verified_by VARCHAR(255),
+                    verified_at TIMESTAMP,
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             `);
 

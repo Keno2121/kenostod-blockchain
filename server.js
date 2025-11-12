@@ -15,6 +15,7 @@ const DataPersistence = require('./src/DataPersistence');
 const DatabaseConnection = require('./src/DatabaseConnection');
 const OrganizationManager = require('./src/OrganizationManager');
 const WealthBuilderManager = require('./src/WealthBuilderManager');
+const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -234,6 +235,7 @@ kenostodChain.exchangeAPI.revenueTracker = revenueTracker;
 let dbConnection;
 let organizationManager;
 let wealthBuilderManager;
+let securityMiddleware;
 
 (async () => {
     try {
@@ -241,8 +243,10 @@ let wealthBuilderManager;
         await dbConnection.initializeSchema();
         organizationManager = new OrganizationManager(dbConnection);
         wealthBuilderManager = new WealthBuilderManager(dbConnection);
+        securityMiddleware = new SecurityMiddleware(dbConnection);
         console.log('✅ Organization Manager initialized');
         console.log('✅ Wealth Builder Manager initialized');
+        console.log('✅ Security Middleware initialized');
     } catch (error) {
         console.error('❌ Error initializing database:', error.message);
         console.log('⚠️  Corporate/Team Plans and Wealth Builder features disabled');
@@ -3183,28 +3187,37 @@ app.get('/api/revenue/report/breakdown', (req, res) => {
 
 // ==================== WEALTH BUILDER PROGRAM API ENDPOINTS ====================
 
-// Award course completion reward
-app.post('/api/wealth/rewards/course-complete', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
-    }
-    
-    try {
-        const { walletAddress, email, courseName, courseId } = req.body;
-        
-        if (!courseId) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'courseId is required to prevent duplicate rewards' 
-            });
+// Award course completion reward (SECURED: Rate Limited + Course Progress Verification)
+app.post('/api/wealth/rewards/course-complete', 
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.courseCompletionLimiter(req, res, next);
+    },
+    (req, res, next) => securityMiddleware.trackCourseProgress(req, res, next),
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
         }
         
-        const result = await wealthBuilderManager.awardCourseCompletion(walletAddress, email, courseName, courseId);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        try {
+            const { walletAddress, email, courseName, courseId } = req.body;
+            
+            if (!courseId) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'courseId is required to prevent duplicate rewards' 
+                });
+            }
+            
+            const result = await wealthBuilderManager.awardCourseCompletion(walletAddress, email, courseName, courseId);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-});
+);
 
 // Get user's rewards
 app.get('/api/wealth/rewards/:walletAddress', async (req, res) => {
