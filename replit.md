@@ -5,7 +5,7 @@ Kenostod Blockchain Academy is an educational platform featuring a comprehensive
 **KENO Token Launch (LIVE ON BSC MAINNET - Deployed Nov 10, 2025):** KENO is now a real ERC-20/BEP-20 cryptocurrency on Binance Smart Chain! Smart contracts successfully deployed:
 - **KENO Token:** 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 - **Presale Contract:** 0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0
-- **Private Sale:** Starts Nov 11, 2025 | **Public Sale:** Starts Dec 12, 2025
+- **Private Sale:** Starts Nov 18, 2025 | **Public Sale:** Starts Dec 19, 2025
 - **Target Raise:** $1.3M-$13M over 6-month ICO timeline
 - **Deployment Cost:** ~$4.50 in BNB on BSC mainnet
 - **Status:** Live and ready for investments | View on BSCScan

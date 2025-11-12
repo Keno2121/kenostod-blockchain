@@ -104,9 +104,9 @@
 **SCRIPT:**
 > "Here's the investment opportunity:
 >
-> Our private sale launches November 11th, 2025 - that's NOW. You can buy KENO tokens for just ONE CENT each - $0.01 per token. Plus, you get a 20% bonus.
+> Our private sale launches November 18th, 2025 - that's SOON. You can buy KENO tokens for just ONE CENT each - $0.01 per token. Plus, you get a 20% bonus.
 >
-> When we hit public sale on December 12th, the price jumps to 5 cents. That's a 5X return for early investors - in just one month.
+> When we hit public sale on December 19th, the price jumps to 5 cents. That's a 5X return for early investors - in just one month.
 >
 > We're raising between $1.3 million and $13 million over the next 6 months. Smart contracts are already deployed and verified on BSCScan.
 >
