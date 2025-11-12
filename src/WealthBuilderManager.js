@@ -5,10 +5,35 @@ class WealthBuilderManager {
         this.db = db;
     }
 
-    async awardCourseCompletion(walletAddress, email, courseName) {
+    async awardCourseCompletion(walletAddress, email, courseName, courseId) {
         const rewardAmount = 250.0;
         
         try {
+            const validCourseIds = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+            const parsedCourseId = parseInt(courseId);
+            
+            if (!validCourseIds.includes(parsedCourseId)) {
+                return { 
+                    success: false, 
+                    error: `Invalid course ID: ${courseId}. Must be between 1-21.` 
+                };
+            }
+
+            const existingCompletion = await this.db.query(`
+                SELECT id FROM student_rewards 
+                WHERE user_wallet_address = $1 
+                AND reward_type = 'course_completion' 
+                AND course_id = $2
+            `, [walletAddress, parsedCourseId]);
+
+            if (existingCompletion.rows.length > 0) {
+                return { 
+                    success: false, 
+                    error: `Course ${courseId} already completed. Cannot claim reward twice.`,
+                    courseId: parsedCourseId 
+                };
+            }
+
             const result = await this.db.query(`
                 INSERT INTO student_rewards (
                     user_wallet_address, 
@@ -16,9 +41,10 @@ class WealthBuilderManager {
                     reward_type, 
                     reward_amount, 
                     course_name, 
+                    course_id,
                     description, 
                     status
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING *
             `, [
                 walletAddress,
@@ -26,6 +52,7 @@ class WealthBuilderManager {
                 'course_completion',
                 rewardAmount,
                 courseName,
+                parsedCourseId,
                 `Completed course: ${courseName}`,
                 'available'
             ]);

@@ -160,10 +160,12 @@ class DatabaseConnection {
                     reward_type VARCHAR(50) NOT NULL,
                     reward_amount DECIMAL(18, 8) NOT NULL,
                     course_name VARCHAR(255),
+                    course_id INTEGER,
                     description TEXT,
                     status VARCHAR(50) DEFAULT 'pending',
                     claimed_at TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_wallet_address, course_id)
                 );
             `);
 

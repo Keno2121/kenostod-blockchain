@@ -3190,8 +3190,16 @@ app.post('/api/wealth/rewards/course-complete', async (req, res) => {
     }
     
     try {
-        const { walletAddress, email, courseName } = req.body;
-        const result = await wealthBuilderManager.awardCourseCompletion(walletAddress, email, courseName);
+        const { walletAddress, email, courseName, courseId } = req.body;
+        
+        if (!courseId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'courseId is required to prevent duplicate rewards' 
+            });
+        }
+        
+        const result = await wealthBuilderManager.awardCourseCompletion(walletAddress, email, courseName, courseId);
         res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
