@@ -12,10 +12,7 @@ class SecurityMiddleware {
             max: 10,
             message: 'Too many course completions. Maximum 10 per hour. Please try again later.',
             standardHeaders: true,
-            legacyHeaders: false,
-            keyGenerator: (req) => {
-                return req.body.walletAddress || req.ip;
-            }
+            legacyHeaders: false
         });
 
         this.scholarshipApplicationLimiter = rateLimit({
@@ -23,10 +20,7 @@ class SecurityMiddleware {
             max: 3,
             message: 'Maximum 3 scholarship applications per day. Please try again tomorrow.',
             standardHeaders: true,
-            legacyHeaders: false,
-            keyGenerator: (req) => {
-                return req.body.applicant_email || req.ip;
-            }
+            legacyHeaders: false
         });
 
         this.jobApplicationLimiter = rateLimit({
@@ -34,10 +28,7 @@ class SecurityMiddleware {
             max: 20,
             message: 'Maximum 20 job applications per day. Please try again tomorrow.',
             standardHeaders: true,
-            legacyHeaders: false,
-            keyGenerator: (req) => {
-                return req.body.applicant_wallet || req.ip;
-            }
+            legacyHeaders: false
         });
 
         this.referralLimiter = rateLimit({
@@ -45,10 +36,7 @@ class SecurityMiddleware {
             max: 50,
             message: 'Maximum 50 referrals per day. Please try again tomorrow.',
             standardHeaders: true,
-            legacyHeaders: false,
-            keyGenerator: (req) => {
-                return req.body.referrerWallet || req.ip;
-            }
+            legacyHeaders: false
         });
 
         this.generalApiLimiter = rateLimit({
