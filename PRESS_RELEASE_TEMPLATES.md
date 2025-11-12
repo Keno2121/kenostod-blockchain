@@ -51,7 +51,7 @@ Website: [your-website-url]
 
 ---
 
-**[CITY, STATE] – [Current Date]** – Kenostod Blockchain Academy today announced the launch of its KENO Token Initial Coin Offering (ICO), introducing the first educational blockchain with transaction reversal capabilities and Proof-of-Residual-Value (PoRV) mining. The private sale opens November 11, 2025, offering tokens at $0.01 with a 20% early investor bonus.
+**[CITY, STATE] – [Current Date]** – Kenostod Blockchain Academy today announced the launch of its KENO Token Initial Coin Offering (ICO), introducing the first educational blockchain with transaction reversal capabilities and Proof-of-Residual-Value (PoRV) mining. The private sale opens November 18, 2025, offering tokens at $0.01 with a 20% early investor bonus.
 
 KENO Token addresses critical pain points in the cryptocurrency ecosystem, including irreversible transactions that cost users over $4 billion annually in lost funds and traditional mining that consumes energy without generating economic value. The platform's proprietary technology allows users to reverse mistaken transactions within a 5-minute window while enabling miners to earn passive royalty income through real AI/ML computations funded by enterprise clients.
 
@@ -61,8 +61,8 @@ The Kenostod ecosystem features wallet infrastructure, a decentralized exchange 
 
 **ICO Structure and Tokenomics:**
 
-- **Private Sale:** November 11 - December 11, 2025 | $0.01/KENO + 20% bonus
-- **Public Sale:** December 12, 2025 - April 11, 2026 | $0.05/KENO
+- **Private Sale:** November 18 - December 18, 2025 | $0.01/KENO + 20% bonus
+- **Public Sale:** December 19, 2025 - April 19, 2026 | $0.05/KENO
 - **Target Raise:** $1.3M - $13M USD
 - **Blockchain:** Binance Smart Chain (BEP-20)
 - **Verified Contracts:** Available on BSCScan

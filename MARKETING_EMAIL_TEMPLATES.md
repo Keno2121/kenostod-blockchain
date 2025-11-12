@@ -32,7 +32,7 @@ KENO is not just another learn-to-earn platform. We've built the world's first e
 • Token: KENO (ERC-20/BEP-20 on Binance Smart Chain)
 • Target Raise: $1.3M - $13M
 • Private Sale: NOW OPEN (whitelisted investors, 20% bonus)
-• Public Sale: December 12, 2025
+• Public Sale: December 19, 2025
 • Verified Contracts: Live on BSCScan
 
 **Why KENO Stands Out:**
@@ -230,7 +230,7 @@ Available in English, Spanish, Chinese, Hindi, Portuguese, and French
 • Trade on exchange or use for real payments
 
 **Limited Time ICO Bonus:**
-Join before December 12 and get:
+Join before December 19 and get:
 ✓ 10 free KENO tokens to start
 ✓ Early access to PoRV mining
 ✓ Exclusive whitelist status for future airdrops
@@ -292,7 +292,7 @@ Kenostod Blockchain Academy has launched KENO Token, a cryptocurrency backed by 
 
 2. **$1.3M-$13M ICO:**
    - Private sale now open on Binance Smart Chain
-   - Public sale begins December 12, 2025
+   - Public sale begins December 19, 2025
    - Verified smart contracts live on BSCScan
 
 3. **Massive Market Opportunity:**
