@@ -50,12 +50,12 @@ class SecurityMiddleware {
 
     verifyWalletSignature(req, res, next) {
         try {
-            const { walletAddress, message, signature, timestamp } = req.body;
+            const { walletAddress, action, signature, timestamp } = req.body;
 
-            if (!walletAddress || !message || !signature || !timestamp) {
+            if (!walletAddress || !action || !signature || !timestamp) {
                 return res.status(400).json({
                     success: false,
-                    error: 'Missing required authentication fields: walletAddress, message, signature, timestamp'
+                    error: 'Missing required authentication fields: walletAddress, action, signature, timestamp'
                 });
             }
 
@@ -78,7 +78,8 @@ class SecurityMiddleware {
             }
 
             try {
-                const messageHash = crypto.createHash('sha256').update(message).digest();
+                const expectedMessage = this.generateAuthMessage(walletAddress, action, timestamp);
+                const messageHash = crypto.createHash('sha256').update(expectedMessage).digest();
                 const key = ec.keyFromPublic(walletAddress, 'hex');
                 const isValid = key.verify(messageHash, signature);
 
@@ -90,6 +91,7 @@ class SecurityMiddleware {
                 }
 
                 req.verifiedWallet = walletAddress;
+                req.verifiedAction = action;
                 next();
             } catch (signatureError) {
                 console.error('Signature verification error:', signatureError.message);
@@ -225,6 +227,7 @@ class SecurityMiddleware {
 
     getCourseCompletionGuards() {
         return [
+            (req, res, next) => this.verifyWalletSignature(req, res, next),
             (req, res, next) => this.courseCompletionLimiter(req, res, next),
             (req, res, next) => this.trackCourseProgress(req, res, next)
         ];
@@ -232,12 +235,14 @@ class SecurityMiddleware {
 
     getScholarshipGuards() {
         return [
+            (req, res, next) => this.verifyWalletSignature(req, res, next),
             (req, res, next) => this.scholarshipApplicationLimiter(req, res, next)
         ];
     }
 
     getJobApplicationGuards() {
         return [
+            (req, res, next) => this.verifyWalletSignature(req, res, next),
             (req, res, next) => this.jobApplicationLimiter(req, res, next),
             (req, res, next) => this.checkDuplicateJobApplication(req, res, next)
         ];
@@ -245,6 +250,7 @@ class SecurityMiddleware {
 
     getReferralGuards() {
         return [
+            (req, res, next) => this.verifyWalletSignature(req, res, next),
             (req, res, next) => this.referralLimiter(req, res, next)
         ];
     }
