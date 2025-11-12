@@ -14,6 +14,7 @@ const RevenueTracker = require('./src/RevenueTracker');
 const DataPersistence = require('./src/DataPersistence');
 const DatabaseConnection = require('./src/DatabaseConnection');
 const OrganizationManager = require('./src/OrganizationManager');
+const WealthBuilderManager = require('./src/WealthBuilderManager');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -229,19 +230,22 @@ kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
 kenostodChain.paymentGateway.revenueTracker = revenueTracker;
 kenostodChain.exchangeAPI.revenueTracker = revenueTracker;
 
-// Initialize PostgreSQL database for corporate/team plans
+// Initialize PostgreSQL database for corporate/team plans and wealth builder
 let dbConnection;
 let organizationManager;
+let wealthBuilderManager;
 
 (async () => {
     try {
         dbConnection = new DatabaseConnection();
         await dbConnection.initializeSchema();
         organizationManager = new OrganizationManager(dbConnection);
+        wealthBuilderManager = new WealthBuilderManager(dbConnection);
         console.log('✅ Organization Manager initialized');
+        console.log('✅ Wealth Builder Manager initialized');
     } catch (error) {
         console.error('❌ Error initializing database:', error.message);
-        console.log('⚠️  Corporate/Team Plans features disabled');
+        console.log('⚠️  Corporate/Team Plans and Wealth Builder features disabled');
     }
 })();
 
@@ -3176,6 +3180,205 @@ app.get('/api/revenue/report/breakdown', (req, res) => {
 });
 
 // ==================== END REVENUE GENERATION API ENDPOINTS ====================
+
+// ==================== WEALTH BUILDER PROGRAM API ENDPOINTS ====================
+
+// Award course completion reward
+app.post('/api/wealth/rewards/course-complete', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const { walletAddress, email, courseName } = req.body;
+        const result = await wealthBuilderManager.awardCourseCompletion(walletAddress, email, courseName);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get user's rewards
+app.get('/api/wealth/rewards/:walletAddress', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const result = await wealthBuilderManager.getUserRewards(req.params.walletAddress);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Submit scholarship application
+app.post('/api/wealth/scholarships/apply', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const result = await wealthBuilderManager.applyForScholarship(req.body);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get scholarship applications (admin)
+app.get('/api/wealth/scholarships', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const status = req.query.status;
+        const result = await wealthBuilderManager.getScholarshipApplications(status);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Review scholarship application (admin)
+app.post('/api/wealth/scholarships/review', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const { applicationId, status, reviewerName, notes } = req.body;
+        const result = await wealthBuilderManager.reviewScholarshipApplication(
+            applicationId, 
+            status, 
+            reviewerName, 
+            notes
+        );
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Create job listing (admin/companies)
+app.post('/api/wealth/jobs/create', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const result = await wealthBuilderManager.createJobListing(req.body);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get active job listings
+app.get('/api/wealth/jobs', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const result = await wealthBuilderManager.getActiveJobs();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Apply for a job
+app.post('/api/wealth/jobs/apply', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const result = await wealthBuilderManager.applyForJob(req.body);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Generate referral code
+app.post('/api/wealth/referrals/generate', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const { walletAddress, email } = req.body;
+        const result = await wealthBuilderManager.generateReferralCode(walletAddress, email);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Process referral signup
+app.post('/api/wealth/referrals/process', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const { referralCode, newUserEmail } = req.body;
+        const result = await wealthBuilderManager.processReferral(referralCode, newUserEmail);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Complete referral reward (when referred user completes first course)
+app.post('/api/wealth/referrals/complete', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const { referralCode } = req.body;
+        const result = await wealthBuilderManager.completeReferralReward(referralCode);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get user's RVT NFTs
+app.get('/api/wealth/rvt/:walletAddress', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const result = await wealthBuilderManager.getUserRVTNFTs(req.params.walletAddress);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get wealth snapshot/dashboard
+app.get('/api/wealth/dashboard/:walletAddress', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const { walletAddress } = req.params;
+        const email = req.query.email || '';
+        const result = await wealthBuilderManager.calculateWealthSnapshot(walletAddress, email);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== END WEALTH BUILDER PROGRAM API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
