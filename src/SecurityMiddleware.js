@@ -1,7 +1,5 @@
 const rateLimit = require('express-rate-limit');
-const crypto = require('crypto');
-const EC = require('elliptic').ec;
-const ec = new EC('secp256k1');
+const { ethers } = require('ethers');
 
 class SecurityMiddleware {
     constructor(db) {
@@ -79,11 +77,10 @@ class SecurityMiddleware {
 
             try {
                 const expectedMessage = this.generateAuthMessage(walletAddress, action, timestamp);
-                const messageHash = crypto.createHash('sha256').update(expectedMessage).digest();
-                const key = ec.keyFromPublic(walletAddress, 'hex');
-                const isValid = key.verify(messageHash, signature);
-
-                if (!isValid) {
+                
+                const recoveredAddress = ethers.verifyMessage(expectedMessage, signature);
+                
+                if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
                     return res.status(401).json({
                         success: false,
                         error: 'Invalid signature. You do not own this wallet address.'

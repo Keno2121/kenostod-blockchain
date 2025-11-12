@@ -284,6 +284,12 @@
         <div class="wealth-header">
             <h1>🌟 Wealth Builder Program</h1>
             <p>Build generational wealth through blockchain education and passive income</p>
+            <div style="margin-top: 20px;">
+                <button id="connectMetaMaskBtn" onclick="initializeWealthBuilder()" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: #667eea; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s;">
+                    🦊 Connect MetaMask to Get Started
+                </button>
+                <div id="walletStatus" style="margin-top: 15px; font-size: 0.95rem; opacity: 0.9;"></div>
+            </div>
         </div>
 
         <div id="wealthStats" class="wealth-stats-grid">
@@ -455,6 +461,100 @@
         let currentWallet = '';
         let currentEmail = '';
         let userReferralCode = '';
+        let isMetaMaskConnected = false;
+
+        async function connectMetaMask() {
+            if (!window.ethereum) {
+                alert('❌ MetaMask not detected!\n\nPlease install MetaMask browser extension to use the Wealth Builder Program.\n\nVisit: https://metamask.io/');
+                return false;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                currentWallet = accounts[0];
+                isMetaMaskConnected = true;
+                console.log('✅ MetaMask connected:', currentWallet);
+                return true;
+            } catch (error) {
+                console.error('MetaMask connection failed:', error);
+                alert('Failed to connect to MetaMask. Please try again.');
+                return false;
+            }
+        }
+
+        async function signMessageWithMetaMask(action) {
+            if (!isMetaMaskConnected || !currentWallet) {
+                alert('Please connect MetaMask first');
+                return null;
+            }
+
+            const timestamp = Date.now();
+            const message = `Kenostod Blockchain Academy\nAction: ${action}\nWallet: ${currentWallet}\nTimestamp: ${timestamp}`;
+
+            try {
+                const msgHex = '0x' + Array.from(new TextEncoder().encode(message))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join('');
+
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [msgHex, currentWallet]
+                });
+
+                return {
+                    walletAddress: currentWallet,
+                    action,
+                    signature,
+                    timestamp,
+                    message
+                };
+            } catch (error) {
+                if (error.code === 4001) {
+                    alert('Signature rejected. You must sign the message to proceed.');
+                } else {
+                    console.error('Signing error:', error);
+                    alert('Failed to sign message. Please try again.');
+                }
+                return null;
+            }
+        }
+
+        async function authenticatedFetch(url, options = {}, action) {
+            const authPayload = await signMessageWithMetaMask(action);
+            if (!authPayload) {
+                throw new Error('Authentication cancelled');
+            }
+
+            const body = options.body ? JSON.parse(options.body) : {};
+            const authenticatedBody = {
+                ...body,
+                ...authPayload
+            };
+
+            const authenticatedOptions = {
+                ...options,
+                body: JSON.stringify(authenticatedBody)
+            };
+
+            const response = await fetch(url, authenticatedOptions);
+            const data = await response.json();
+
+            if (response.status === 429) {
+                alert('⏰ Rate Limit Exceeded\n\n' + (data.message || 'Too many requests. Please wait before trying again.'));
+                throw new Error('Rate limit exceeded');
+            }
+
+            if (response.status === 401) {
+                alert('🔒 Authentication Failed\n\n' + (data.error || 'Invalid signature. Please try again.'));
+                throw new Error('Authentication failed');
+            }
+
+            if (!response.ok && data.error) {
+                throw new Error(data.error);
+            }
+
+            return { response, data };
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -464,15 +564,37 @@
             event.target.classList.add('active');
         }
 
-        async function loadWealthDashboard() {
-            const params = new URLSearchParams(window.location.search);
-            currentWallet = params.get('wallet') || '';
-            currentEmail = params.get('email') || '';
+        async function initializeWealthBuilder() {
+            const connectBtn = document.getElementById('connectMetaMaskBtn');
+            const statusDiv = document.getElementById('walletStatus');
 
+            statusDiv.textContent = 'Connecting to MetaMask...';
+            connectBtn.disabled = true;
+
+            const connected = await connectMetaMask();
+            
+            if (connected) {
+                connectBtn.textContent = '✅ Connected';
+                connectBtn.style.background = '#10b981';
+                connectBtn.style.color = 'white';
+                statusDiv.textContent = `Wallet: ${currentWallet.substring(0,6)}...${currentWallet.substring(38)}`;
+                
+                await loadWealthDashboard();
+            } else {
+                connectBtn.disabled = false;
+                connectBtn.textContent = '🦊 Try Again';
+                statusDiv.textContent = 'Connection failed. Please try again.';
+            }
+        }
+
+        async function loadWealthDashboard() {
             if (!currentWallet) {
-                alert('Please provide a wallet address in the URL: ?wallet=YOUR_WALLET');
+                console.error('No wallet connected');
                 return;
             }
+
+            const params = new URLSearchParams(window.location.search);
+            currentEmail = params.get('email') || '';
 
             try {
                 const response = await fetch(`/api/wealth/dashboard/${currentWallet}?email=${currentEmail}`);
@@ -552,12 +674,15 @@
 
         async function loadReferralCode() {
             try {
-                const response = await fetch('/api/wealth/referrals/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ walletAddress: currentWallet, email: currentEmail })
-                });
-                const data = await response.json();
+                const { data } = await authenticatedFetch(
+                    '/api/wealth/referrals/generate',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ referrerWallet: currentWallet, email: currentEmail })
+                    },
+                    'Generate Referral Code'
+                );
 
                 if (data.success) {
                     userReferralCode = data.referralCode;
@@ -567,7 +692,7 @@
                     document.getElementById('referralLink').value = referralLink;
                 }
             } catch (error) {
-                console.error('Error loading referral code:', error);
+                console.error('Error loading referral code:', error.message);
             }
         }
 
@@ -581,43 +706,62 @@
             e.preventDefault();
 
             const applicationData = {
-                name: document.getElementById('scholarshipName').value,
-                email: document.getElementById('scholarshipEmail').value,
+                applicant_wallet: currentWallet,
+                applicant_email: document.getElementById('scholarshipEmail').value,
+                applicant_name: document.getElementById('scholarshipName').value,
                 country: document.getElementById('scholarshipCountry').value,
                 age: parseInt(document.getElementById('scholarshipAge').value) || null,
-                currentIncome: parseFloat(document.getElementById('scholarshipIncome').value) || 0,
-                educationLevel: document.getElementById('scholarshipEducation').value,
+                current_income: parseFloat(document.getElementById('scholarshipIncome').value) || 0,
+                education_level: document.getElementById('scholarshipEducation').value,
                 motivation: document.getElementById('scholarshipMotivation').value,
-                financialNeed: document.getElementById('scholarshipFinancial').value,
-                careerGoals: document.getElementById('scholarshipGoals').value
+                financial_need_description: document.getElementById('scholarshipFinancial').value,
+                career_goals: document.getElementById('scholarshipGoals').value
             };
 
             try {
-                const response = await fetch('/api/wealth/scholarships/apply', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(applicationData)
-                });
-
-                const data = await response.json();
+                const { data } = await authenticatedFetch(
+                    '/api/wealth/scholarships/apply',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(applicationData)
+                    },
+                    'Apply for Scholarship'
+                );
 
                 if (data.success) {
                     document.getElementById('scholarshipResult').innerHTML = `
-                        <div class="alert alert-success" style="margin-top: 20px;">
+                        <div class="alert alert-success" style="margin-top: 20px; padding: 15px; background: #d1fae5; border-left: 4px solid #10b981; border-radius: 8px;">
                             <strong>✅ Application Submitted Successfully!</strong><br>
                             ${data.message}
                         </div>
                     `;
                     document.getElementById('scholarshipForm').reset();
-                } else {
-                    alert('Error: ' + data.error);
                 }
             } catch (error) {
-                alert('Error submitting application. Please try again.');
+                document.getElementById('scholarshipResult').innerHTML = `
+                    <div class="alert alert-error" style="margin-top: 20px; padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
+                        <strong>❌ Submission Failed</strong><br>
+                        ${error.message}
+                    </div>
+                `;
             }
         });
 
-        window.addEventListener('DOMContentLoaded', loadWealthDashboard);
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadJobListings();
+            
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) {
+                        location.reload();
+                    } else if (accounts[0] !== currentWallet) {
+                        currentWallet = accounts[0];
+                        loadWealthDashboard();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
