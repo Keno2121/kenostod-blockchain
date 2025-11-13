@@ -175,11 +175,13 @@ async function calculateTokens() {
     
     if (!bnbAmount || parseFloat(bnbAmount) <= 0) {
         document.getElementById('tokenAmount').textContent = '0';
+        updateBonusCalculator(0, false);
         return;
     }
     
     if (!presaleContract) {
         document.getElementById('tokenAmount').textContent = '0';
+        updateBonusCalculator(0, false);
         return;
     }
     
@@ -192,12 +194,39 @@ async function calculateTokens() {
         const bnbWei = ethers.utils.parseEther(bnbAmount);
         const tokens = bnbWei.mul(ethers.utils.parseEther('1')).div(price);
         
+        const totalTokens = parseFloat(ethers.utils.formatEther(tokens));
         document.getElementById('tokenAmount').textContent = 
-            parseFloat(ethers.utils.formatEther(tokens)).toLocaleString(undefined, { maximumFractionDigits: 0 });
+            totalTokens.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        
+        updateBonusCalculator(totalTokens, isPrivateSaleActive);
             
     } catch (error) {
         console.error('Calculation error:', error);
     }
+}
+
+function updateBonusCalculator(totalTokens, isPrivateSale) {
+    if (!isPrivateSale) {
+        document.getElementById('bonusCalculator').style.display = 'none';
+        return;
+    }
+    
+    document.getElementById('bonusCalculator').style.display = 'block';
+    
+    const baseTokens = totalTokens / 1.2;
+    const bonusTokens = totalTokens - baseTokens;
+    
+    document.getElementById('baseTokens').textContent = 
+        baseTokens.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
+    document.getElementById('bonusTokens').textContent = 
+        '+' + bonusTokens.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
+    document.getElementById('totalValue').textContent = 
+        totalTokens.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
+    
+    const publicSalePrice = 0.05;
+    const bonusValueUSD = bonusTokens * publicSalePrice;
+    document.getElementById('bonusUSD').textContent = 
+        '$' + bonusValueUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 async function buyTokens() {

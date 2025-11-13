@@ -10,16 +10,18 @@
 
 ---
 
-## Template 1: Investor Outreach - Initial Contact
+## Template 1: Investor Outreach - Initial Contact (URGENT - Nov 18 Deadline)
 
-**Subject Line:** Revolutionary Educational Blockchain - $1.3M-$13M ICO Now Live
+**Subject Line:** ⏰ LAST CHANCE: 20% Bonus Ends Nov 18 - KENO Token Private Sale
 
 **Email Body:**
 
 ```
 Hi [First Name],
 
-I'm reaching out because I believe KENO Token represents a unique investment opportunity in the blockchain education space.
+⏰ URGENT: The KENO Token private sale ends in just 6 DAYS (November 18, 2025).
+
+This is your final opportunity to secure 20% bonus tokens before they're gone forever.
 
 KENO is not just another learn-to-earn platform. We've built the world's first educational blockchain with revolutionary features that solve real problems:
 
@@ -28,11 +30,13 @@ KENO is not just another learn-to-earn platform. We've built the world's first e
 🎓 Complete blockchain simulator with 16 comprehensive courses in 6 languages
 🔒 Social recovery system and guardian-based wallet protection
 
-**ICO Details:**
+**🚨 DEADLINE APPROACHING:**
+• Private Sale Ends: November 18, 2025 (6 days left!)
+• Current Bonus: 20% extra tokens
+• After Nov 18: NO BONUS + Higher prices
+• Public Sale: December 19, 2025
 • Token: KENO (ERC-20/BEP-20 on Binance Smart Chain)
 • Target Raise: $1.3M - $13M
-• Private Sale: NOW OPEN (whitelisted investors, 20% bonus)
-• Public Sale: December 19, 2025
 • Verified Contracts: Live on BSCScan
 
 **Why KENO Stands Out:**
@@ -45,10 +49,13 @@ Unlike BitDegree, Coinbase Learn & Earn, or PEDAGOG, KENO offers:
 **Compare for yourself:**
 [Link to comparison chart]
 
-**Investment Opportunity:**
-We're currently in private sale with exclusive pricing for early investors. I'd love to schedule a 15-minute call to discuss how KENO fits your portfolio.
+**⚡ ACT NOW - Limited Time:**
+With only 6 days left, this is your LAST CHANCE to:
+✓ Lock in 20% bonus tokens (worth thousands at scale)
+✓ Get early PoRV mining access
+✓ Join at the lowest price point ever
 
-Are you available this week for a brief conversation?
+Don't let this opportunity slip away. Can we schedule a quick 15-minute call TODAY to get you onboarded before the deadline?
 
 Best regards,
 [Your Name]
