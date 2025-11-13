@@ -115,24 +115,28 @@ async function switchToBSC() {
 
 async function loadSaleInfo() {
     try {
-        const isPrivateSaleActive = await presaleContract.isPrivateSaleActive();
-        const isPublicSaleActive = await presaleContract.isPublicSaleActive();
+        // Get presale status (returns object with all status fields)
+        const status = await presaleContract.getPresaleStatus();
         const isPaused = await presaleContract.paused();
         
         const privateSalePrice = await presaleContract.PRIVATE_SALE_PRICE();
         const publicSalePrice = await presaleContract.PUBLIC_SALE_PRICE();
-        const totalSold = await presaleContract.tokensSold();
-        const totalRaised = await presaleContract.bnbRaised();
+        const totalPrivate = await presaleContract.totalTokensSoldPrivate();
+        const totalPublic = await presaleContract.totalTokensSoldPublic();
+        const totalRaised = await presaleContract.totalEthRaised();
+        
+        // Calculate total tokens sold
+        const totalSold = totalPrivate.add(totalPublic);
         
         let currentPhase = 'Not Started';
         let currentPrice = publicSalePrice;
         
         if (isPaused) {
             currentPhase = 'Paused';
-        } else if (isPrivateSaleActive) {
+        } else if (status.privateSaleActive) {
             currentPhase = 'Private Sale';
             currentPrice = privateSalePrice;
-        } else if (isPublicSaleActive) {
+        } else if (status.publicSaleActive) {
             currentPhase = 'Public Sale';
             currentPrice = publicSalePrice;
         }
@@ -155,7 +159,7 @@ async function loadSaleInfo() {
             document.getElementById('presaleClosed').innerHTML = 
                 '<h3>⏸️ Presale Paused</h3><p>The presale is currently paused. Please check back later.</p>';
             document.getElementById('presaleForm').style.display = 'none';
-        } else if (!isPrivateSaleActive && !isPublicSaleActive) {
+        } else if (!status.privateSaleActive && !status.publicSaleActive) {
             document.getElementById('presaleClosed').style.display = 'block';
             const privateSaleStart = await presaleContract.privateSaleStart();
             const startDate = new Date(parseInt(privateSaleStart) * 1000);
@@ -208,8 +212,8 @@ async function calculateTokens() {
     }
     
     try {
-        const isPrivateSaleActive = await presaleContract.isPrivateSaleActive();
-        const price = isPrivateSaleActive ? 
+        const status = await presaleContract.getPresaleStatus();
+        const price = status.privateSaleActive ? 
             await presaleContract.PRIVATE_SALE_PRICE() :
             await presaleContract.PUBLIC_SALE_PRICE();
         
@@ -220,7 +224,7 @@ async function calculateTokens() {
         document.getElementById('kenoAmount').textContent = 
             totalTokens.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
         
-        updateBonusCalculator(totalTokens, isPrivateSaleActive);
+        updateBonusCalculator(totalTokens, status.privateSaleActive);
         
         // Enable/disable buy button based on validation
         const buyBtn = document.getElementById('buyButton');
@@ -369,7 +373,16 @@ function showError(message) {
     updateStatus('❌ ' + message, 'danger');
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function initializeICOPage() {
+    // Wait for ethers.js to be available
+    if (typeof ethers === 'undefined') {
+        console.error('ethers.js not loaded yet, retrying...');
+        setTimeout(initializeICOPage, 100);
+        return;
+    }
+    
+    console.log('✅ ethers.js loaded, initializing ICO page...');
+    
     await loadABIs();
     
     // Wire up Connect Wallet button
@@ -404,4 +417,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             await loadSaleInfo();
         }
     }, 30000);
-});
+}
+
+document.addEventListener('DOMContentLoaded', initializeICOPage);
