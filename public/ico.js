@@ -206,7 +206,11 @@ async function calculateTokens() {
 }
 
 function updateBonusCalculator(totalTokens, isPrivateSale) {
-    if (!isPrivateSale) {
+    const privateSaleEnd = new Date('November 18, 2025 23:59:59 UTC').getTime();
+    const now = Date.now();
+    const privateSaleActive = isPrivateSale && (now < privateSaleEnd);
+    
+    if (!privateSaleActive) {
         document.getElementById('bonusCalculator').style.display = 'none';
         return;
     }
