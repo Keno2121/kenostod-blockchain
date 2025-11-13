@@ -375,13 +375,13 @@ function showError(message) {
 
 async function initializeICOPage() {
     // Wait for ethers.js to be available
-    if (typeof ethers === 'undefined') {
-        console.error('ethers.js not loaded yet, retrying...');
-        setTimeout(initializeICOPage, 100);
+    if (typeof ethers === 'undefined' || typeof ethers.providers === 'undefined') {
+        console.log('⏳ Waiting for ethers.js to load...');
+        setTimeout(initializeICOPage, 200);
         return;
     }
     
-    console.log('✅ ethers.js loaded, initializing ICO page...');
+    console.log('✅ ethers.js loaded successfully!');
     
     await loadABIs();
     
@@ -419,4 +419,18 @@ async function initializeICOPage() {
     }, 30000);
 }
 
-document.addEventListener('DOMContentLoaded', initializeICOPage);
+// Use both DOMContentLoaded and window.onload for better mobile support
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeICOPage);
+} else {
+    // DOM already loaded
+    initializeICOPage();
+}
+
+// Fallback for mobile browsers
+window.addEventListener('load', function() {
+    if (typeof ethers === 'undefined') {
+        console.log('⚠️ Retrying initialization after window load...');
+        setTimeout(initializeICOPage, 500);
+    }
+});
