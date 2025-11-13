@@ -71,6 +71,34 @@ This initiative aims to reduce global poverty through blockchain education and p
 ### Multilingual Support:
 Financial literacy courses translated to English and Spanish (covers 80%+ of users). Navigation links added to main website.
 
+## Chat History System (✅ COMPLETED - November 13, 2025)
+A comprehensive chat history feature allows users to save and review their conversations on the platform.
+
+**IMPLEMENTATION STATUS:** Fully operational with 2-table PostgreSQL database, 6 REST API endpoints, and professional frontend interface at `/chat-history.html`.
+
+### Features:
+- **Conversation Management:** Create, view, update, and delete chat conversations
+- **Message Storage:** Save user messages, assistant responses, and system messages with timestamps
+- **User Association:** Link conversations to users via email or wallet address
+- **Professional UI:** Two-panel layout with conversations list and message display
+- **Real-time Updates:** Conversations automatically update when new messages are added
+- **Search & Filter:** Find conversations by user email or wallet address
+
+### Database Schema (2 tables):
+1. `chat_conversations` - Stores conversation metadata (id, user info, title, timestamps)
+2. `chat_messages` - Stores individual messages (id, conversation_id, role, content, timestamp)
+
+### API Endpoints (6 endpoints):
+- `POST /api/chat/conversations` - Create new conversation
+- `POST /api/chat/conversations/:id/messages` - Add message to conversation
+- `GET /api/chat/conversations` - Get all conversations for a user
+- `GET /api/chat/conversations/:id` - Get specific conversation with messages
+- `PUT /api/chat/conversations/:id` - Update conversation title
+- `DELETE /api/chat/conversations/:id` - Delete conversation
+
+### Navigation:
+Chat History link added to main navigation menu (desktop and mobile) at `/chat-history.html`.
+
 ## Revenue Systems
 The platform generates revenue from:
 - **Merchant Payment Gateway Fees:** 2.5% on transactions.

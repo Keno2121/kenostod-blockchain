@@ -335,7 +335,36 @@ class DatabaseConnection {
                 CREATE INDEX IF NOT EXISTS idx_wealth_snapshots_wallet ON wealth_snapshots(user_wallet);
             `);
 
-            console.log('✅ Database schema initialized successfully (including Wealth Builder Program)');
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS chat_conversations (
+                    id SERIAL PRIMARY KEY,
+                    user_wallet_address VARCHAR(255),
+                    user_email VARCHAR(255),
+                    conversation_title VARCHAR(500),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS chat_messages (
+                    id SERIAL PRIMARY KEY,
+                    conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,
+                    message_role VARCHAR(50) NOT NULL,
+                    message_content TEXT NOT NULL,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_chat_conversations_wallet ON chat_conversations(user_wallet_address);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation ON chat_messages(conversation_id);
+            `);
+
+            console.log('✅ Database schema initialized successfully (including Wealth Builder Program & Chat History)');
             return true;
         } catch (error) {
             console.error('❌ Error initializing database schema:', error.message);

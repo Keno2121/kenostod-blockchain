@@ -3442,6 +3442,188 @@ app.get('/api/wealth/dashboard/:walletAddress', async (req, res) => {
 
 // ==================== END WEALTH BUILDER PROGRAM API ENDPOINTS ====================
 
+// ==================== CHAT HISTORY API ENDPOINTS ====================
+
+// Create a new chat conversation
+app.post('/api/chat/conversations', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { userWalletAddress, userEmail, conversationTitle } = req.body;
+        
+        const result = await dbConnection.query(`
+            INSERT INTO chat_conversations (user_wallet_address, user_email, conversation_title)
+            VALUES ($1, $2, $3)
+            RETURNING *
+        `, [userWalletAddress || null, userEmail || null, conversationTitle || 'Untitled Conversation']);
+        
+        res.json({ success: true, conversation: result.rows[0] });
+    } catch (error) {
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Add a message to a conversation
+app.post('/api/chat/conversations/:conversationId/messages', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { conversationId } = req.params;
+        const { messageRole, messageContent } = req.body;
+        
+        if (!messageRole || !messageContent) {
+            return res.status(400).json({ error: 'messageRole and messageContent are required' });
+        }
+        
+        const messageResult = await dbConnection.query(`
+            INSERT INTO chat_messages (conversation_id, message_role, message_content)
+            VALUES ($1, $2, $3)
+            RETURNING *
+        `, [conversationId, messageRole, messageContent]);
+        
+        await dbConnection.query(`
+            UPDATE chat_conversations 
+            SET updated_at = CURRENT_TIMESTAMP 
+            WHERE id = $1
+        `, [conversationId]);
+        
+        res.json({ success: true, message: messageResult.rows[0] });
+    } catch (error) {
+        console.error('Error adding message:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all conversations for a user
+app.get('/api/chat/conversations', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { userWalletAddress, userEmail } = req.query;
+        
+        let query = 'SELECT * FROM chat_conversations WHERE 1=1';
+        const params = [];
+        
+        if (userWalletAddress) {
+            params.push(userWalletAddress);
+            query += ` AND user_wallet_address = $${params.length}`;
+        }
+        
+        if (userEmail) {
+            params.push(userEmail);
+            query += ` AND user_email = $${params.length}`;
+        }
+        
+        query += ' ORDER BY updated_at DESC';
+        
+        const result = await dbConnection.query(query, params);
+        
+        res.json({ success: true, conversations: result.rows });
+    } catch (error) {
+        console.error('Error fetching conversations:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get a specific conversation with all its messages
+app.get('/api/chat/conversations/:conversationId', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { conversationId } = req.params;
+        
+        const conversationResult = await dbConnection.query(`
+            SELECT * FROM chat_conversations WHERE id = $1
+        `, [conversationId]);
+        
+        if (conversationResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
+        
+        const messagesResult = await dbConnection.query(`
+            SELECT * FROM chat_messages 
+            WHERE conversation_id = $1 
+            ORDER BY timestamp ASC
+        `, [conversationId]);
+        
+        res.json({
+            success: true,
+            conversation: conversationResult.rows[0],
+            messages: messagesResult.rows
+        });
+    } catch (error) {
+        console.error('Error fetching conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete a conversation
+app.delete('/api/chat/conversations/:conversationId', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { conversationId } = req.params;
+        
+        const result = await dbConnection.query(`
+            DELETE FROM chat_conversations WHERE id = $1 RETURNING *
+        `, [conversationId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
+        
+        res.json({ success: true, message: 'Conversation deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update conversation title
+app.put('/api/chat/conversations/:conversationId', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { conversationId } = req.params;
+        const { conversationTitle } = req.body;
+        
+        if (!conversationTitle) {
+            return res.status(400).json({ error: 'conversationTitle is required' });
+        }
+        
+        const result = await dbConnection.query(`
+            UPDATE chat_conversations 
+            SET conversation_title = $1, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = $2 
+            RETURNING *
+        `, [conversationTitle, conversationId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Conversation not found' });
+        }
+        
+        res.json({ success: true, conversation: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== END CHAT HISTORY API ENDPOINTS ====================
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
