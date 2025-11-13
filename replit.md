@@ -2,6 +2,13 @@
 
 Kenostod Blockchain Academy is an educational platform centered around a comprehensive blockchain simulator and a demonstration cryptocurrency, KENO. It educates users on advanced blockchain concepts including Proof-of-Residual-Value (PoRV) consensus, transaction reversal, and social recovery. Built with Node.js, the platform offers hands-on experience with cryptocurrency fundamentals, dual consensus modes (PoW/PoRV), full wallet functionality, advanced transaction processing, a simulated merchant payment gateway, and an exchange trading simulation. KENO is now a real ERC-20/BEP-20 token on the Binance Smart Chain, with an ongoing ICO. The platform also includes a B2B system for corporate/team training, a multi-language UI, and a "Wealth Builder Program" aimed at poverty reduction through blockchain education and passive income opportunities.
 
+## Custom Domain
+**Production URL:** https://kenostodblockchain.com (purchased from Replit)
+- Domain automatically connects via Replit Deployments → Domains tab
+- SSL/HTTPS certificate provisioned automatically by Replit
+- API documentation base URL updated to reflect custom domain
+- Stripe callback URLs use `REPLIT_DEV_DOMAIN` environment variable (auto-updates on domain connection)
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
