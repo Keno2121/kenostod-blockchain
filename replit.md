@@ -99,6 +99,42 @@ A comprehensive chat history feature allows users to save and review their conve
 ### Navigation:
 Chat History link added to main navigation menu (desktop and mobile) at `/chat-history.html`.
 
+## Legal & Licensing System (✅ COMPLETED - November 13, 2025)
+Comprehensive legal framework to protect intellectual property and enable commercial licensing.
+
+**IMPLEMENTATION STATUS:** Fully operational legal pages, copyright notices, database schema for API licensing, and commercial licensing portal.
+
+### Features:
+- **Terms of Service Page:** Complete legal terms at `/terms-of-service.html` protecting all proprietary features
+- **Commercial Licensing Page:** Professional licensing portal at `/licensing.html` with pricing tiers and contact forms
+- **Copyright Footers:** Added to all pages (index, wealth-builder, chat-history, docs) with IP protection notices
+- **API Licensing Database:** PostgreSQL tables for managing commercial API licenses and usage tracking
+
+### Protected Features Listed:
+- Proof-of-Residual-Value (PoRV) Consensus
+- Residual Value Token (RVT) System
+- Wealth Builder Program
+- Social Recovery System
+- Transaction Reversal
+- Merchant Payment Gateway
+- All APIs and documentation
+
+### Database Schema (2 tables):
+1. `api_licenses` - Commercial API license management (key, company, type, rate limits, expiration)
+2. `api_usage_logs` - API request tracking and usage monitoring
+
+### Licensing Tiers:
+- **Startup License:** 1-2 features, up to 10K users, email support
+- **Enterprise License:** 3-5 features, up to 100K users, priority support, white-label
+- **Custom License:** All features, unlimited users, 24/7 support, source code access
+
+### Copyright Notice:
+All pages now include footer with:
+- Copyright © 2025 Kenostod Blockchain Academy
+- Links to Terms of Service, Licensing, and Privacy Policy
+- Clear statement of protected intellectual property
+- Call-to-action for commercial licensing
+
 ## Revenue Systems
 The platform generates revenue from:
 - **Merchant Payment Gateway Fees:** 2.5% on transactions.

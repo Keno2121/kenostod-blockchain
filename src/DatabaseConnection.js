@@ -364,7 +364,51 @@ class DatabaseConnection {
                 CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation ON chat_messages(conversation_id);
             `);
 
-            console.log('✅ Database schema initialized successfully (including Wealth Builder Program & Chat History)');
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS api_licenses (
+                    id SERIAL PRIMARY KEY,
+                    license_key VARCHAR(255) UNIQUE NOT NULL,
+                    company_name VARCHAR(255) NOT NULL,
+                    contact_email VARCHAR(255) NOT NULL,
+                    contact_wallet VARCHAR(255),
+                    license_type VARCHAR(50) NOT NULL,
+                    features_allowed TEXT[],
+                    status VARCHAR(50) DEFAULT 'active',
+                    rate_limit INTEGER DEFAULT 1000,
+                    requests_made INTEGER DEFAULT 0,
+                    monthly_price DECIMAL(10, 2),
+                    expires_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    notes TEXT
+                );
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS api_usage_logs (
+                    id SERIAL PRIMARY KEY,
+                    license_key VARCHAR(255) REFERENCES api_licenses(license_key) ON DELETE CASCADE,
+                    endpoint VARCHAR(255) NOT NULL,
+                    method VARCHAR(10) NOT NULL,
+                    ip_address VARCHAR(50),
+                    response_status INTEGER,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_api_licenses_key ON api_licenses(license_key);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_api_licenses_email ON api_licenses(contact_email);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_api_usage_license ON api_usage_logs(license_key);
+            `);
+
+            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History & API Licensing)');
             return true;
         } catch (error) {
             console.error('❌ Error initializing database schema:', error.message);
