@@ -4,6 +4,7 @@ const KENO_TOKEN_ADDRESS = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
 const PRESALE_CONTRACT_ADDRESS = '0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0';
 
 let web3Provider = null;
+let readOnlyProvider = null;
 let kenoContract = null;
 let presaleContract = null;
 let userAddress = null;
@@ -19,6 +20,14 @@ async function loadABIs() {
         presaleABI = await presaleResponse.json();
         
         console.log('✅ Contract ABIs loaded');
+        
+        // Initialize read-only provider for viewing stats without wallet connection
+        readOnlyProvider = new ethers.providers.JsonRpcProvider(BSC_RPC_URL);
+        presaleContract = new ethers.Contract(PRESALE_CONTRACT_ADDRESS, presaleABI, readOnlyProvider);
+        
+        // Load stats immediately (no wallet required)
+        await loadSaleInfo();
+        
     } catch (error) {
         console.error('Failed to load ABIs:', error);
         showError('Failed to load contract interfaces');
@@ -43,13 +52,16 @@ async function connectWallet() {
         web3Provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = web3Provider.getSigner();
         
+        // Upgrade to signer-backed contracts (for transactions)
         kenoContract = new ethers.Contract(KENO_TOKEN_ADDRESS, kenoABI, signer);
         presaleContract = new ethers.Contract(PRESALE_CONTRACT_ADDRESS, presaleABI, signer);
         
         document.getElementById('walletAddress').textContent = 
             userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-        document.getElementById('connectBtn').style.display = 'none';
+        document.getElementById('connectWallet').style.display = 'none';
         document.getElementById('walletInfo').style.display = 'block';
+        document.getElementById('presaleForm').style.display = 'block';
+        document.getElementById('notConnected').style.display = 'none';
         
         updateStatus('Wallet connected successfully!', 'success');
         
@@ -127,26 +139,34 @@ async function loadSaleInfo() {
         
         document.getElementById('salePhase').textContent = currentPhase;
         document.getElementById('currentPrice').textContent = 
-            ethers.utils.formatEther(currentPrice) + ' BNB';
+            parseFloat(ethers.utils.formatEther(currentPrice)).toFixed(6) + ' BNB';
         document.getElementById('tokensSold').textContent = 
-            parseFloat(ethers.utils.formatEther(totalSold)).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
-        document.getElementById('bnbRaised').textContent = 
-            parseFloat(ethers.utils.formatEther(totalRaised)).toFixed(2) + ' BNB';
+            (parseFloat(ethers.utils.formatEther(totalSold)) / 1000000).toFixed(2) + 'M';
         
+        const bnbRaised = parseFloat(ethers.utils.formatEther(totalRaised));
         const bnbPrice = await getBNBPrice();
-        const usdRaised = parseFloat(ethers.utils.formatEther(totalRaised)) * bnbPrice;
-        document.getElementById('usdRaised').textContent = 
+        const usdRaised = bnbRaised * bnbPrice;
+        document.getElementById('totalRaised').textContent = 
             '$' + usdRaised.toLocaleString(undefined, { maximumFractionDigits: 0 });
         
+        // Show/hide form based on sale status
         if (isPaused) {
-            document.getElementById('buySection').innerHTML = 
-                '<div class="alert alert-warning">⏸️ The presale is currently paused. Please check back later.</div>';
+            document.getElementById('presaleClosed').style.display = 'block';
+            document.getElementById('presaleClosed').innerHTML = 
+                '<h3>⏸️ Presale Paused</h3><p>The presale is currently paused. Please check back later.</p>';
+            document.getElementById('presaleForm').style.display = 'none';
         } else if (!isPrivateSaleActive && !isPublicSaleActive) {
+            document.getElementById('presaleClosed').style.display = 'block';
             const privateSaleStart = await presaleContract.privateSaleStart();
             const startDate = new Date(parseInt(privateSaleStart) * 1000);
-            document.getElementById('buySection').innerHTML = 
-                '<div class="alert alert-info">⏰ Private sale starts on ' + 
-                startDate.toLocaleString() + '</div>';
+            document.getElementById('presaleClosed').innerHTML = 
+                '<h3>⏰ Coming Soon</h3><p>Private sale starts on ' + 
+                startDate.toLocaleString() + '</p>';
+            document.getElementById('presaleForm').style.display = 'none';
+        } else {
+            // Sale is active - show the form and hide closed message
+            document.getElementById('presaleClosed').style.display = 'none';
+            document.getElementById('presaleForm').style.display = 'block';
         }
         
     } catch (error) {
@@ -158,12 +178,8 @@ async function loadSaleInfo() {
 async function loadUserBalance() {
     try {
         const balance = await web3Provider.getBalance(userAddress);
-        document.getElementById('userBalance').textContent = 
-            parseFloat(ethers.utils.formatEther(balance)).toFixed(4) + ' BNB';
-        
-        const kenoBalance = await kenoContract.balanceOf(userAddress);
-        document.getElementById('kenoBalance').textContent = 
-            parseFloat(ethers.utils.formatEther(kenoBalance)).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
+        document.getElementById('walletBalance').textContent = 
+            parseFloat(ethers.utils.formatEther(balance)).toFixed(4);
             
     } catch (error) {
         console.error('Failed to load balance:', error);
@@ -174,14 +190,20 @@ async function calculateTokens() {
     const bnbAmount = document.getElementById('bnbAmount').value;
     
     if (!bnbAmount || parseFloat(bnbAmount) <= 0) {
-        document.getElementById('tokenAmount').textContent = '0';
+        document.getElementById('kenoAmount').textContent = '0 KENO';
         updateBonusCalculator(0, false);
+        // Disable buy button when input is empty/invalid
+        const buyBtn = document.getElementById('buyButton');
+        if (buyBtn) buyBtn.disabled = true;
         return;
     }
     
     if (!presaleContract) {
-        document.getElementById('tokenAmount').textContent = '0';
+        document.getElementById('kenoAmount').textContent = '0 KENO';
         updateBonusCalculator(0, false);
+        // Disable buy button when contract not loaded
+        const buyBtn = document.getElementById('buyButton');
+        if (buyBtn) buyBtn.disabled = true;
         return;
     }
     
@@ -195,10 +217,17 @@ async function calculateTokens() {
         const tokens = bnbWei.mul(ethers.utils.parseEther('1')).div(price);
         
         const totalTokens = parseFloat(ethers.utils.formatEther(tokens));
-        document.getElementById('tokenAmount').textContent = 
-            totalTokens.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        document.getElementById('kenoAmount').textContent = 
+            totalTokens.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
         
         updateBonusCalculator(totalTokens, isPrivateSaleActive);
+        
+        // Enable/disable buy button based on validation
+        const buyBtn = document.getElementById('buyButton');
+        if (buyBtn) {
+            const isValid = bnbAmount && parseFloat(bnbAmount) >= 0.01 && parseFloat(bnbAmount) <= 2;
+            buyBtn.disabled = !isValid;
+        }
             
     } catch (error) {
         console.error('Calculation error:', error);
@@ -273,8 +302,9 @@ async function buyTokens() {
         const tx = await presaleContract.buyTokens({ value: bnbWei });
         
         updateStatus('Transaction submitted! Waiting for confirmation...', 'info');
-        document.getElementById('txHash').innerHTML = 
+        document.getElementById('transactionStatus').innerHTML = 
             `<a href="https://bscscan.com/tx/${tx.hash}" target="_blank">View on BSCScan</a>`;
+        document.getElementById('transactionStatus').style.display = 'block';
         
         const receipt = await tx.wait();
         
@@ -284,7 +314,7 @@ async function buyTokens() {
         await loadUserBalance();
         
         document.getElementById('bnbAmount').value = '';
-        document.getElementById('tokenAmount').textContent = '0';
+        document.getElementById('kenoAmount').textContent = '0 KENO';
         
     } catch (error) {
         console.error('Purchase error:', error);
@@ -321,9 +351,11 @@ function handleAccountsChanged(accounts) {
 }
 
 function updateStatus(message, type) {
-    const statusDiv = document.getElementById('statusMessage');
+    const statusDiv = document.getElementById('transactionStatus');
+    if (!statusDiv) return;
+    
     statusDiv.textContent = message;
-    statusDiv.className = 'alert alert-' + type;
+    statusDiv.className = 'tx-status alert alert-' + type;
     statusDiv.style.display = 'block';
     
     if (type === 'success') {
@@ -340,6 +372,25 @@ function showError(message) {
 document.addEventListener('DOMContentLoaded', async () => {
     await loadABIs();
     
+    // Wire up Connect Wallet button
+    const connectBtn = document.getElementById('connectWallet');
+    if (connectBtn) {
+        connectBtn.addEventListener('click', connectWallet);
+    }
+    
+    // Wire up BNB amount input for real-time calculation
+    const bnbInput = document.getElementById('bnbAmount');
+    if (bnbInput) {
+        bnbInput.addEventListener('input', calculateTokens);
+    }
+    
+    // Wire up Buy button
+    const buyBtn = document.getElementById('buyButton');
+    if (buyBtn) {
+        buyBtn.addEventListener('click', buyTokens);
+    }
+    
+    // Auto-connect if already connected
     if (typeof window.ethereum !== 'undefined') {
         const accounts = await window.ethereum.request({ method: 'eth_accounts' });
         if (accounts.length > 0) {
@@ -347,8 +398,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     
+    // Refresh stats every 30 seconds (works with or without wallet connection)
     setInterval(async () => {
-        if (userAddress) {
+        if (presaleContract) {
             await loadSaleInfo();
         }
     }, 30000);
