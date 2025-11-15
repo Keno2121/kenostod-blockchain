@@ -1960,6 +1960,11 @@
                     throw new Error('Email is required');
                 }
 
+                console.log('Creating checkout session for:', plan, priceId);
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
                 const response = await fetch('/api/stripe/create-checkout-session', {
                     method: 'POST',
                     headers: {
@@ -1969,9 +1974,11 @@
                         priceId: priceId,
                         plan: plan,
                         customerEmail: email
-                    })
+                    }),
+                    signal: controller.signal
                 });
 
+                clearTimeout(timeoutId);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -1983,9 +1990,14 @@
                     return;
                 }
 
+                console.log('Redirecting to Stripe checkout:', data.url);
                 window.location.href = data.url;
             } catch (error) {
-                alert('Error: ' + error.message);
+                if (error.name === 'AbortError') {
+                    alert('⏰ Request timed out. Please check your internet connection and try again.');
+                } else {
+                    alert('Error: ' + error.message);
+                }
                 console.error('Subscription error:', error);
             } finally {
                 button.textContent = originalText;
