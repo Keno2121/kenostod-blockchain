@@ -4013,6 +4013,9 @@ async function purchaseLicense() {
         resultDiv.className = 'result';
         resultDiv.innerHTML = '<p>Creating Stripe checkout session...</p>';
         
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        
         const response = await fetch(`${API_BASE}/api/revenue/license/checkout`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -4021,9 +4024,11 @@ async function purchaseLicense() {
                 tier,
                 contactEmail,
                 customDomain: customDomain || undefined
-            })
+            }),
+            signal: controller.signal
         });
         
+        clearTimeout(timeoutId);
         const data = await response.json();
         
         if (data.success && data.checkoutUrl) {
@@ -4047,6 +4052,10 @@ async function purchaseLicense() {
             throw new Error(data.error || 'Failed to create checkout session');
         }
     } catch (error) {
-        showError('licensePurchaseResult', error.message);
+        if (error.name === 'AbortError') {
+            showError('licensePurchaseResult', '⏰ Request timed out. Please check your internet connection and try again.');
+        } else {
+            showError('licensePurchaseResult', error.message);
+        }
     }
 }

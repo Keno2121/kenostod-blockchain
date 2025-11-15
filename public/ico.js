@@ -114,19 +114,35 @@ async function switchToBSC() {
 }
 
 async function loadSaleInfo() {
+    if (!presaleContract) {
+        console.log('⚠️ Presale contract not initialized yet');
+        showPresaleUnavailable();
+        return;
+    }
+    
     try {
-        // Get presale status (returns object with all status fields)
-        const status = await presaleContract.getPresaleStatus();
-        const isPaused = await presaleContract.paused();
+        console.log('📊 Loading sale information...');
         
+        // Get presale status (returns object with all status fields)
+        console.log('📡 Fetching presale status...');
+        const status = await presaleContract.getPresaleStatus();
+        console.log('✅ Status:', status);
+        
+        console.log('📡 Fetching isPaused...');
+        const isPaused = await presaleContract.paused();
+        console.log('✅ isPaused:', isPaused);
+        
+        console.log('📡 Fetching prices...');
         const privateSalePrice = await presaleContract.PRIVATE_SALE_PRICE();
         const publicSalePrice = await presaleContract.PUBLIC_SALE_PRICE();
         const totalPrivate = await presaleContract.totalTokensSoldPrivate();
         const totalPublic = await presaleContract.totalTokensSoldPublic();
         const totalRaised = await presaleContract.totalEthRaised();
+        console.log('✅ All data fetched successfully');
         
         // Calculate total tokens sold
         const totalSold = totalPrivate.add(totalPublic);
+        console.log('💰 Total sold:', totalSold.toString());
         
         let currentPhase = 'Not Started';
         let currentPrice = publicSalePrice;
@@ -141,17 +157,25 @@ async function loadSaleInfo() {
             currentPrice = publicSalePrice;
         }
         
+        console.log('📈 Current phase:', currentPhase);
+        console.log('💵 Current price:', currentPrice.toString());
+        
+        console.log('🖼️ Updating DOM elements...');
         document.getElementById('salePhase').textContent = currentPhase;
         document.getElementById('currentPrice').textContent = 
             parseFloat(ethers.utils.formatEther(currentPrice)).toFixed(6) + ' BNB';
         document.getElementById('tokensSold').textContent = 
             (parseFloat(ethers.utils.formatEther(totalSold)) / 1000000).toFixed(2) + 'M';
         
+        console.log('💲 Fetching BNB price...');
         const bnbRaised = parseFloat(ethers.utils.formatEther(totalRaised));
         const bnbPrice = await getBNBPrice();
+        console.log('✅ BNB price:', bnbPrice);
         const usdRaised = bnbRaised * bnbPrice;
         document.getElementById('totalRaised').textContent = 
             '$' + usdRaised.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        
+        console.log('✅ Sale info loaded and displayed successfully!');
         
         // Show/hide form based on sale status
         if (isPaused) {
@@ -174,8 +198,37 @@ async function loadSaleInfo() {
         }
         
     } catch (error) {
-        console.error('Failed to load sale info:', error);
-        showError('Failed to load sale information');
+        console.log('ℹ️ Could not load sale information (this is normal if MetaMask is not installed or network is unavailable)');
+        showPresaleUnavailable(error);
+    }
+}
+
+function showPresaleUnavailable(error) {
+    // Show user-friendly message instead of spamming console errors
+    const statusElements = ['salePhase', 'currentPrice', 'tokensSold', 'totalRaised'];
+    statusElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = '--';
+    });
+    
+    const presaleClosed = document.getElementById('presaleClosed');
+    if (presaleClosed) {
+        presaleClosed.style.display = 'block';
+        presaleClosed.innerHTML = `
+            <h3>🌐 Network Connection Required</h3>
+            <p>Unable to load presale information. This could be because:</p>
+            <ul style="text-align: left; margin: 15px auto; max-width: 400px;">
+                <li>You need to install <a href="https://metamask.io/download/" target="_blank" style="color: #f2a900; text-decoration: underline;">MetaMask</a></li>
+                <li>Your internet connection is unavailable</li>
+                <li>The BSC network is temporarily unreachable</li>
+            </ul>
+            <p>To participate in the ICO, please install MetaMask and connect to Binance Smart Chain.</p>
+        `;
+    }
+    
+    const presaleForm = document.getElementById('presaleForm');
+    if (presaleForm) {
+        presaleForm.style.display = 'none';
     }
 }
 
