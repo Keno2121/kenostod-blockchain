@@ -3471,9 +3471,10 @@ app.post('/api/graduates/generate-id', async (req, res) => {
         const completedCount = parseInt(completionCheck.rows[0]?.completed_courses || 0);
         const kenoEarned = parseFloat(completionCheck.rows[0]?.total_keno_earned || 0);
         
+        // Require at least 21 courses (>= allows for future curriculum expansion)
         if (completedCount < 21) {
             return res.status(403).json({ 
-                error: 'Must complete all 21 courses to become a graduate',
+                error: 'Must complete at least 21 courses to become a graduate',
                 coursesCompleted: completedCount,
                 coursesRemaining: 21 - completedCount
             });
