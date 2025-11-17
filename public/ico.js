@@ -75,8 +75,12 @@ async function connectWallet() {
         console.error('Connection error:', error);
         if (error.code === 4001) {
             showError('Connection rejected. Please approve the connection in MetaMask.');
+        } else if (error.code === -32603 || error.message?.includes('No active wallet')) {
+            showError('⚠️ MetaMask is locked or not set up.\n\n1. Open MetaMask extension\n2. Unlock your wallet with your password\n3. Click "Connect Wallet" button again');
+        } else if (error.code === -32002) {
+            showError('MetaMask connection request already pending. Please check your MetaMask extension.');
         } else {
-            showError('Failed to connect wallet: ' + error.message);
+            showError('Failed to connect wallet: ' + (error.message || 'Unknown error') + '\n\nPlease make sure:\n• MetaMask is unlocked\n• You have an account created\n• Try refreshing the page');
         }
     }
 }
@@ -411,7 +415,9 @@ function updateStatus(message, type) {
     const statusDiv = document.getElementById('transactionStatus');
     if (!statusDiv) return;
     
-    statusDiv.textContent = message;
+    // Convert newlines to HTML line breaks
+    const htmlMessage = message.replace(/\n/g, '<br>');
+    statusDiv.innerHTML = htmlMessage;
     statusDiv.className = 'tx-status alert alert-' + type;
     statusDiv.style.display = 'block';
     
@@ -424,6 +430,12 @@ function updateStatus(message, type) {
 
 function showError(message) {
     updateStatus('❌ ' + message, 'danger');
+    
+    // Also scroll to the error message so user sees it
+    const statusDiv = document.getElementById('transactionStatus');
+    if (statusDiv) {
+        statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 async function initializeICOPage() {

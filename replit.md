@@ -18,6 +18,12 @@ A merchant payment gateway facilitates registration, API keys, QR code payments,
 ## API Layer & UI/UX
 The platform features a modern, responsive web interface with a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange, including a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 75 endpoints. The UI supports multi-language internationalization (6 languages) and persistent user preferences. Key UX improvements include a custom modal-based free trial guided tour and a streamlined email collection for subscriptions, which redirects to Stripe in a new tab to avoid iframe security issues. The platform also includes a "Graduate Club Recognition System" for users who complete all 21 courses, offering exclusive privileges and a unique blockchain-verified Graduate ID.
 
+### Recent Fixes (November 17, 2025)
+- **Connect Wallet Error Handling**: Improved MetaMask connection error messages with specific troubleshooting steps for locked wallets (error code -32603), pending requests (error code -32002), and missing accounts. Error messages use HTML formatting with line breaks for readability and auto-scroll to visibility.
+- **MetaMask Button**: Fixed broken `connectWallet()` function on main page by redirecting to dedicated ICO page (`/ico.html`).
+- **Live Sale Statistics**: Replaced perpetual "Loading..." placeholders with static ICO information (Private Sale, $0.01/KENO, deadline, bonus).
+- **Subscription Flow**: Fixed Stripe redirect hanging by opening checkout in new tab instead of iframe redirect. Added loading overlay and pop-up blocker fallback.
+
 ## Security Model
 Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, transparent token supply tracking, and PoRV security with cryptographically signed payments. The Wealth Builder program incorporates robust security measures such as wallet signature authentication, replay attack protection, rate limiting, and server-side course verification.
 
