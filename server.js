@@ -218,6 +218,9 @@ if (savedFiatBalances) {
 // Load ICO purchases
 let icoPurchases = dataPersistence.loadICOPurchases();
 
+// Temporary storage for pending PayPal orders with wallet addresses
+const pendingPayPalOrders = new Map();
+
 // Helper function to log ICO purchase
 function logICOPurchase(purchaseData) {
     icoPurchases.unshift(purchaseData); // Add to beginning
@@ -2289,7 +2292,7 @@ app.get('/api/paypal/config', (req, res) => {
 
 app.post('/api/paypal/create-order', async (req, res) => {
     try {
-        const { amount } = req.body;
+        const { amount, walletAddress } = req.body;
         
         // Check if PayPal is configured
         if (paypalIntegration.isTestMode()) {
@@ -2307,6 +2310,21 @@ app.post('/api/paypal/create-order', async (req, res) => {
             });
         }
         
+        // Validate wallet address
+        if (!walletAddress || typeof walletAddress !== 'string') {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Wallet address is required' 
+            });
+        }
+        
+        if (!walletAddress.startsWith('04') || walletAddress.length < 130) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid KENO wallet address format' 
+            });
+        }
+        
         // Enforce ICO pricing tiers
         const validTiers = [50, 100, 250, 500, 1000];
         if (!validTiers.includes(amount)) {
@@ -2318,6 +2336,13 @@ app.post('/api/paypal/create-order', async (req, res) => {
         
         const order = await paypalIntegration.createOrder(amount, 'USD', {
             depositId: `ICO-${Date.now()}`
+        });
+        
+        // Store wallet address with order ID for later use
+        pendingPayPalOrders.set(order.id, {
+            walletAddress,
+            amount,
+            timestamp: Date.now()
         });
         
         res.json({
@@ -2363,27 +2388,70 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
             });
         }
         
+        // Get pending order data (wallet address)
+        const pendingOrder = pendingPayPalOrders.get(orderId);
+        if (!pendingOrder) {
+            return res.status(400).json({
+                success: false,
+                error: 'Order not found or expired. Please try again.'
+            });
+        }
+        
         const capture = await paypalIntegration.captureOrder(orderId);
         
-        // Log the ICO purchase
+        // Calculate tokens
         const purchaseAmount = parseFloat(capture.amount.value);
-        const tokens = purchaseAmount * 10; // $1 = 10 KENO base
+        const tokens = purchaseAmount * 100; // $1 = 100 KENO base (at $0.01 per token)
         const bonusTokens = tokens * 0.20; // 20% bonus
         const totalTokens = tokens + bonusTokens;
         
+        // Send KENO tokens to buyer's wallet
+        let tokensSent = false;
+        let txHash = null;
+        try {
+            const tx = new Transaction(
+                minerWallet.getAddress(),
+                pendingOrder.walletAddress,
+                totalTokens,
+                `ICO Purchase - Order ${orderId}`
+            );
+            tx.signTransaction(minerWallet.keyPair);
+            
+            const validationResult = kenostodChain.validateTransaction(tx);
+            if (validationResult.valid) {
+                kenostodChain.addTransaction(tx);
+                tokensSent = true;
+                txHash = tx.calculateHash();
+                console.log(`✅ Sent ${totalTokens} KENO to ${pendingOrder.walletAddress.slice(0, 10)}...`);
+            } else {
+                console.error(`❌ Transaction validation failed: ${validationResult.error}`);
+            }
+        } catch (txError) {
+            console.error('Error sending tokens:', txError);
+        }
+        
+        // Log the ICO purchase with wallet address
         logICOPurchase({
             orderId: capture.id,
             amount: purchaseAmount,
             tokens: totalTokens,
+            walletAddress: pendingOrder.walletAddress,
+            txHash: txHash,
+            tokensSent: tokensSent,
             timestamp: new Date().toISOString()
         });
+        
+        // Clean up pending order
+        pendingPayPalOrders.delete(orderId);
         
         res.json({
             success: true,
             orderId: capture.id,
             status: capture.status,
             amount: capture.amount,
-            tokens: totalTokens
+            tokens: totalTokens,
+            tokensSent: tokensSent,
+            txHash: txHash
         });
     } catch (error) {
         console.error('PayPal capture-order error:', {

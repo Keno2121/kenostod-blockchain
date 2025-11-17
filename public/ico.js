@@ -563,10 +563,57 @@ async function loadPayPalSDK() {
     }
 }
 
+function validateWalletAddress() {
+    const walletInput = document.getElementById('kenoWalletAddress');
+    const errorDiv = document.getElementById('walletAddressError');
+    const continueBtn = document.getElementById('continueToPayPalBtn');
+    
+    const address = walletInput.value.trim();
+    
+    if (!address) {
+        errorDiv.style.display = 'none';
+        continueBtn.disabled = false;
+        return false;
+    }
+    
+    if (address.length < 130 || !address.startsWith('04')) {
+        errorDiv.textContent = '❌ Invalid wallet address. KENO addresses start with "04" and are 130 characters long.';
+        errorDiv.style.display = 'block';
+        walletInput.style.borderColor = '#dc2626';
+        continueBtn.disabled = true;
+        return false;
+    }
+    
+    errorDiv.style.display = 'none';
+    walletInput.style.borderColor = '#10b981';
+    continueBtn.disabled = false;
+    return true;
+}
+
+function showWalletHelp() {
+    document.getElementById('walletHelpSection').style.display = 'block';
+}
+
+function hideWalletHelp() {
+    document.getElementById('walletHelpSection').style.display = 'none';
+}
+
 async function proceedToPayPal() {
     const continueBtn = document.getElementById('continueToPayPalBtn');
     const buttonContainer = document.getElementById('paypal-button-container');
     const successMessage = document.getElementById('paypal-success-message');
+    const walletAddress = document.getElementById('kenoWalletAddress').value.trim();
+    
+    if (!walletAddress) {
+        alert('⚠️ Please enter your KENO wallet address before continuing.');
+        document.getElementById('kenoWalletAddress').focus();
+        return;
+    }
+    
+    if (!validateWalletAddress()) {
+        alert('⚠️ Please enter a valid KENO wallet address.');
+        return;
+    }
     
     try {
         continueBtn.disabled = true;
@@ -587,6 +634,7 @@ async function proceedToPayPal() {
         }
         
         const amount = parseFloat(document.getElementById('easyBuyAmount').value);
+        const walletAddress = document.getElementById('kenoWalletAddress').value.trim();
         
         window.paypal.Buttons({
             createOrder: async function() {
@@ -596,7 +644,10 @@ async function proceedToPayPal() {
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ amount: amount })
+                        body: JSON.stringify({ 
+                            amount: amount,
+                            walletAddress: walletAddress
+                        })
                     });
                     
                     const data = await response.json();
@@ -641,6 +692,8 @@ async function proceedToPayPal() {
                         <p style="margin: 8px 0;"><strong>Amount Paid:</strong> $${amount.toFixed(2)} USD</p>
                         <p style="margin: 8px 0;"><strong>KENO Tokens:</strong> ${totalTokens.toLocaleString()} KENO</p>
                         <p style="margin: 8px 0; color: #10b981;"><strong>Bonus:</strong> +${bonusTokens.toLocaleString()} KENO (20%)</p>
+                        <p style="margin: 8px 0;"><strong>Wallet:</strong> ${walletAddress.slice(0, 10)}...${walletAddress.slice(-8)}</p>
+                        ${captureData.tokensSent ? '<p style="margin: 8px 0; color: #10b981;">✅ Tokens sent to your wallet!</p>' : ''}
                     `;
                     
                     console.log('✅ Payment captured successfully:', captureData);
