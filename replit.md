@@ -60,9 +60,10 @@ An exclusive elite community and recognition system for students who complete al
 **Access:** `https://kenostodblockchain.com/graduate-club.html`
 
 **The Graduate Symbol:**
-- Visual Design: Emerald green circle with shield icon, gold "21" prominently displayed, "KENOSTOD" text
-- Where Displayed: LinkedIn, email signatures, business cards, physical pins/jewelry, phone screens
-- Meaning: Completion, protection, breaking poverty cycles
+- **The Kenostod logo shield itself is the graduate symbol** - not a separate design
+- Graduates earn the right to display the official green Kenostod shield logo everywhere
+- Where Displayed: LinkedIn profiles, email signatures, business cards, physical pins/jewelry, phone screens
+- Meaning: Completion, protection, breaking poverty cycles through mastery of all 21 courses
 
 **The Secret Greeting:**
 - Greeting: "Shield Up" (one graduate says)
