@@ -487,3 +487,53 @@ window.addEventListener('load', function() {
         setTimeout(initializeICOPage, 500);
     }
 });
+
+// UI Navigation Functions for Easy Buy / Crypto Buy
+function showEasyBuy() {
+    // Hide options, show Easy Buy section
+    document.getElementById('purchaseOptionsContainer').style.display = 'none';
+    document.getElementById('easyBuySection').style.display = 'block';
+    document.getElementById('cryptoBuySection').style.display = 'none';
+    updateEasyBuyPreview(); // Initialize preview
+}
+
+function showCryptoBuy() {
+    // Hide options, show Crypto Buy section
+    document.getElementById('purchaseOptionsContainer').style.display = 'none';
+    document.getElementById('easyBuySection').style.display = 'none';
+    document.getElementById('cryptoBuySection').style.display = 'block';
+}
+
+function showOptions() {
+    // Go back to main options
+    document.getElementById('purchaseOptionsContainer').style.display = 'block';
+    document.getElementById('easyBuySection').style.display = 'none';
+    document.getElementById('cryptoBuySection').style.display = 'none';
+}
+
+function updateEasyBuyPreview() {
+    const amount = parseInt(document.getElementById('easyBuyAmount').value);
+    const tokenPrice = 0.01; // $0.01 per KENO
+    
+    // Calculate base tokens
+    const baseTokens = amount / tokenPrice; // e.g., $100 / $0.01 = 10,000 KENO
+    const bonusTokens = baseTokens * 0.20; // 20% bonus
+    const totalTokens = baseTokens + bonusTokens;
+    
+    // Update preview
+    document.getElementById('payingAmount').textContent = '$' + amount.toFixed(2);
+    document.getElementById('baseKenoAmount').textContent = baseTokens.toLocaleString() + ' KENO';
+    document.getElementById('bonusKenoAmount').textContent = '+' + bonusTokens.toLocaleString() + ' KENO';
+    document.getElementById('totalKenoAmount').textContent = totalTokens.toLocaleString() + ' KENO';
+}
+
+function proceedToPayPal() {
+    alert('🚧 PayPal Integration Coming Soon!\n\nThe PayPal checkout is currently being set up. For now, please use the Crypto Wallet option or contact support@kenostodblockchain.com to arrange a direct purchase.\n\nThank you for your patience!');
+}
+
+// Make functions globally available
+window.showEasyBuy = showEasyBuy;
+window.showCryptoBuy = showCryptoBuy;
+window.showOptions = showOptions;
+window.updateEasyBuyPreview = updateEasyBuyPreview;
+window.proceedToPayPal = proceedToPayPal;
