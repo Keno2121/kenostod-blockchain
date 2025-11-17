@@ -409,6 +409,29 @@ class DatabaseConnection {
             `);
 
             await this.query(`
+                CREATE TABLE IF NOT EXISTS kenostod_graduates (
+                    id SERIAL PRIMARY KEY,
+                    graduate_id VARCHAR(50) UNIQUE NOT NULL,
+                    wallet_address VARCHAR(255) UNIQUE NOT NULL,
+                    user_email VARCHAR(255),
+                    completion_date TIMESTAMP NOT NULL,
+                    total_courses INTEGER DEFAULT 21,
+                    keno_earned DECIMAL(18, 8) DEFAULT 0,
+                    rvt_nft_tier VARCHAR(50) DEFAULT 'Platinum',
+                    certificate_hash VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_graduates_wallet ON kenostod_graduates(wallet_address);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_graduates_id ON kenostod_graduates(graduate_id);
+            `);
+
+            await this.query(`
                 CREATE TABLE IF NOT EXISTS graduate_merchandise_orders (
                     id SERIAL PRIMARY KEY,
                     order_id VARCHAR(255) UNIQUE NOT NULL,
