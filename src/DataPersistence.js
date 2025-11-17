@@ -11,6 +11,7 @@ class DataPersistence {
         this.organizationMembersFile = path.join(dataDir, 'organization_members.json');
         this.teamSubscriptionsFile = path.join(dataDir, 'team_subscriptions.json');
         this.learningProgressFile = path.join(dataDir, 'learning_progress.json');
+        this.icoPurchasesFile = path.join(dataDir, 'ico_purchases.json');
         
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
@@ -257,6 +258,38 @@ class DataPersistence {
         }
     }
 
+    saveICOPurchases(purchases) {
+        try {
+            const data = {
+                purchases,
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(this.icoPurchasesFile, JSON.stringify(data, null, 2));
+            console.log(`✅ ICO purchases saved to disk (${purchases.length} purchases)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving ICO purchases:', error.message);
+            return false;
+        }
+    }
+
+    loadICOPurchases() {
+        try {
+            if (!fs.existsSync(this.icoPurchasesFile)) {
+                console.log('ℹ️  No saved ICO purchases found, starting fresh');
+                return [];
+            }
+            
+            const data = JSON.parse(fs.readFileSync(this.icoPurchasesFile, 'utf8'));
+            console.log(`✅ Loaded ICO purchases from disk (${data.purchases.length} purchases, last saved: ${new Date(data.timestamp).toLocaleString()})`);
+            return data.purchases;
+        } catch (error) {
+            console.error('❌ Error loading ICO purchases:', error.message);
+            return [];
+        }
+    }
+
     getBackupInfo() {
         const backupInfo = {
             blockchainExists: fs.existsSync(this.blockchainFile),
@@ -265,7 +298,8 @@ class DataPersistence {
             organizationsExists: fs.existsSync(this.organizationsFile),
             organizationMembersExists: fs.existsSync(this.organizationMembersFile),
             teamSubscriptionsExists: fs.existsSync(this.teamSubscriptionsFile),
-            learningProgressExists: fs.existsSync(this.learningProgressFile)
+            learningProgressExists: fs.existsSync(this.learningProgressFile),
+            icoPurchasesExists: fs.existsSync(this.icoPurchasesFile)
         };
 
         if (backupInfo.blockchainExists) {

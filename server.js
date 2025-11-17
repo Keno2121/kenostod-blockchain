@@ -215,6 +215,16 @@ if (savedFiatBalances) {
     bankingAPI.loadFiatBalances(savedFiatBalances);
 }
 
+// Load ICO purchases
+let icoPurchases = dataPersistence.loadICOPurchases();
+
+// Helper function to log ICO purchase
+function logICOPurchase(purchaseData) {
+    icoPurchases.unshift(purchaseData); // Add to beginning
+    dataPersistence.saveICOPurchases(icoPurchases);
+    console.log(`💰 ICO Purchase: ${purchaseData.tokens} KENO for $${purchaseData.amount}`);
+}
+
 // Initialize merchant incentives
 const merchantIncentives = new MerchantIncentives(kenostodChain);
 
@@ -2355,11 +2365,25 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
         
         const capture = await paypalIntegration.captureOrder(orderId);
         
+        // Log the ICO purchase
+        const purchaseAmount = parseFloat(capture.amount.value);
+        const tokens = purchaseAmount * 10; // $1 = 10 KENO base
+        const bonusTokens = tokens * 0.20; // 20% bonus
+        const totalTokens = tokens + bonusTokens;
+        
+        logICOPurchase({
+            orderId: capture.id,
+            amount: purchaseAmount,
+            tokens: totalTokens,
+            timestamp: new Date().toISOString()
+        });
+        
         res.json({
             success: true,
             orderId: capture.id,
             status: capture.status,
-            amount: capture.amount
+            amount: capture.amount,
+            tokens: totalTokens
         });
     } catch (error) {
         console.error('PayPal capture-order error:', {
@@ -2378,6 +2402,15 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
             error: error.message || 'Failed to capture PayPal payment. Please try again.'
         });
     }
+});
+
+// Get ICO purchases (admin dashboard)
+app.get('/api/ico/purchases', (req, res) => {
+    res.json({
+        success: true,
+        purchases: icoPurchases,
+        total: icoPurchases.length
+    });
 });
 
 // ==================== END PAYPAL API ENDPOINTS ====================
