@@ -48,6 +48,32 @@ A complete PayPal Smart Payment Buttons integration enables non-crypto users to 
 ## API Layer & UI/UX
 A modern, responsive web interface features a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange. It includes a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 75 endpoints. The UI supports multi-language internationalization (6 languages) with persistent user preferences, including full translation of all 16 educational courses. The platform utilizes a professional Emerald Green & Gold Luxury logo for brand identity, with favicon and Apple Touch Icon support.
 
+### Free Trial & Subscription UX Improvements (✅ COMPLETED - November 17, 2025)
+Enhanced subscription page with professional guided tour and streamlined email collection.
+
+**Free Trial Guided Tour:**
+- Sequential navigation through all 3 free features (Wallet, Blockchain Explorer, Mining)
+- Visual highlighting with green glow and borders on free feature tabs
+- Interactive confirm() dialogs guide users step-by-step through each feature
+- Users can skip tour and explore independently
+- Clear explanation of what each free feature offers
+- Highlights auto-remove after 3 seconds
+
+**Subscription Flow Improvements:**
+- Replaced browser prompt() with professional inline email collection modal
+- HTML5 email validation with regex pattern enforcement
+- Clean modal UI with "Continue to Secure Checkout" and "Cancel" buttons
+- Modal closes before Stripe redirect for smooth transition
+- No confusing browser embed warnings
+- Clear "🔒 Secure checkout via Stripe" messaging
+
+**Technical Details:**
+- `startFreeTrial()` function programmatically activates tabs using `openTab()`
+- Email modal form with proper validation (`handleEmailSubmit()`)
+- Smooth modal transitions (300ms delays)
+- State management for subscription plan/button tracking
+- Eliminates unprofessional prompt() UX that triggered Replit embed warnings
+
 ## Security Model
 Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, and transparent token supply tracking. PoRV security ensures cryptographically signed payments. The Wealth Builder program incorporates robust security measures such as wallet signature authentication, replay attack protection, rate limiting, server-side course verification, and database duplicate prevention.
 
