@@ -40,8 +40,18 @@ A comprehensive chat history feature allows users to save and review conversatio
 ## Legal & Licensing System
 This system provides a legal framework for intellectual property protection and commercial licensing, including Terms of Service, a Commercial Licensing portal, copyright footers, and PostgreSQL tables for managing commercial API licenses and usage tracking.
 
+## Graduate Merchandise Fulfillment System
+A complete merchandise request and fulfillment system for verified Kenostod Graduates who completed all 21 courses. Features include:
+- **Graduate Verification**: Authoritative verification checks `kenostod_graduates` table to ensure only verified graduates can request merchandise
+- **Merchandise Request Form** (`/graduate-merchandise.html`): Frontend form with wallet-based authentication, graduate eligibility verification, item selection (pins, ID cards, hoodies, rings, certificates, phone cases), shipping information collection, and order cost calculation (free items + discounted paid items for graduates)
+- **Admin Management Panel** (`/admin-merchandise.html`): Secure admin interface with authentication (ADMIN_KEY or ADMIN_WALLETS), real-time order dashboard, status tracking (pending → processing → shipped → delivered), CSV export for fulfillment partners, and Printful integration support
+- **Security Features**: Admin endpoint authentication via SecurityMiddleware, comprehensive input validation and sanitization (XSS prevention), SQL injection protection (parameterized queries), graduate status verification, and status whitelist validation
+- **Database Schema**: `kenostod_graduates` table stores verified graduates, `graduate_merchandise_orders` table tracks all orders with full shipping details, order status, tracking numbers, and Printful integration fields
+- **API Endpoints**: 4 RESTful endpoints for eligibility checking, order submission, admin order retrieval, and status updates
+- **Integration**: Supports Printful API for automated print-on-demand fulfillment (manual or automated order placement)
+
 ## Revenue Systems
-Revenue is generated from merchant payment gateway fees (2.5%), exchange trading fees (0.5%), and white-label licensing (tiered monthly fees). A unified analytics dashboard provides global revenue reporting.
+Revenue is generated from merchant payment gateway fees (2.5%), exchange trading fees (0.5%), white-label licensing (tiered monthly fees), and graduate merchandise sales. A unified analytics dashboard provides global revenue reporting.
 
 # External Dependencies
 
