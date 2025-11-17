@@ -408,7 +408,47 @@ class DatabaseConnection {
                 CREATE INDEX IF NOT EXISTS idx_api_usage_license ON api_usage_logs(license_key);
             `);
 
-            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History & API Licensing)');
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS graduate_merchandise_orders (
+                    id SERIAL PRIMARY KEY,
+                    order_id VARCHAR(255) UNIQUE NOT NULL,
+                    user_wallet_address VARCHAR(255) NOT NULL,
+                    user_email VARCHAR(255),
+                    graduate_name VARCHAR(255) NOT NULL,
+                    graduate_id VARCHAR(50),
+                    shipping_address_line1 VARCHAR(500) NOT NULL,
+                    shipping_address_line2 VARCHAR(500),
+                    shipping_city VARCHAR(255) NOT NULL,
+                    shipping_state VARCHAR(255),
+                    shipping_postal_code VARCHAR(50) NOT NULL,
+                    shipping_country VARCHAR(100) NOT NULL,
+                    phone_number VARCHAR(50),
+                    items_requested JSON NOT NULL,
+                    order_status VARCHAR(50) DEFAULT 'pending',
+                    order_notes TEXT,
+                    printful_order_id VARCHAR(255),
+                    tracking_number VARCHAR(255),
+                    estimated_total_cost DECIMAL(10, 2),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    processed_at TIMESTAMP,
+                    shipped_at TIMESTAMP,
+                    delivered_at TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_merch_orders_wallet ON graduate_merchandise_orders(user_wallet_address);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_merch_orders_status ON graduate_merchandise_orders(order_status);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_merch_orders_created ON graduate_merchandise_orders(created_at);
+            `);
+
+            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History, API Licensing & Graduate Merchandise)');
             return true;
         } catch (error) {
             console.error('❌ Error initializing database schema:', error.message);
