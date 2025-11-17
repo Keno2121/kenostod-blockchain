@@ -15,12 +15,35 @@ The system features a modular blockchain secured by SHA-256 Proof-of-Work, suppo
 ## Transaction & Financial Systems
 A merchant payment gateway offers registration, API keys, QR code payments, invoicing, KENO/USD conversion, and a 4-tier incentive program. An exchange platform supports KENO/USD, KENO/BTC, and KENO/ETH pairs with a full order book, market/limit orders, and cryptographic order signature verification. Security relies on confirmed transactions, cryptographic signing, and multi-layer validation. The KENO token has an adjustable default mining reward of 100 tokens per block plus transaction fees.
 
-### PayPal ICO Purchase Integration (✅ COMPLETED - November 17, 2025)
-A complete PayPal Smart Payment Buttons integration enables non-crypto users to purchase KENO tokens with credit cards or PayPal balance. Features dual-path purchase flow: EASY (PayPal/credit card - recommended for beginners) and ADVANCED (crypto wallet with MetaMask/BNB). Implements server-side tier validation ($50, $100, $250, $500, $1000), order creation/capture with @paypal/checkout-server-sdk, and comprehensive error handling with button state restoration. Gold "Buy KENO ICO" button prominently displayed in main navigation (desktop and mobile). Includes dynamic PayPal SDK loading, success messaging with order details and token calculations (base + 20% bonus), and sandbox/live environment support. API endpoints: GET /api/paypal/config, POST /api/paypal/create-order, POST /api/paypal/capture-order/:orderId. Credentials stored securely as environment variables (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET). 
+### PayPal ICO Purchase Integration with Automatic Token Delivery (✅ COMPLETED - November 17, 2025)
+A complete PayPal Smart Payment Buttons integration enables non-crypto users to purchase KENO tokens with credit cards or PayPal balance. Features dual-path purchase flow: EASY (PayPal/credit card - recommended for beginners) and ADVANCED (crypto wallet with MetaMask/BNB). 
 
-**Admin Dashboard:** Real-time ICO purchase tracking available at `/admin-ico-purchases.html`. Displays total purchases, revenue, tokens sold, and recent purchase details with auto-refresh. All purchases logged to `data/ico_purchases.json` for persistence. PayPal also sends automatic email notifications to the business account for every transaction.
+**Key Features:**
+- **Wallet Address Collection:** Customers provide their KENO wallet address before checkout with validation (must start with "04" and be 130 characters)
+- **Automatic Token Delivery:** Upon successful PayPal payment capture, tokens are automatically sent to customer's wallet via blockchain transaction
+- **Tier Validation:** Server-side enforcement of pricing tiers ($50, $100, $250, $500, $1000)
+- **Instant Mining:** Transaction is immediately mined and confirmed on the blockchain
+- **Transaction Tracking:** Each purchase includes blockchain transaction hash for verification
 
-**Email Notifications Note:** SendGrid integration was considered but not implemented due to authorization issues. Admin dashboard provides real-time monitoring, and PayPal sends automatic payment notifications to the business email account, making dedicated email integration unnecessary.
+**Technical Implementation:**
+- Pending order storage with wallet address (Map-based, in-memory)
+- Server-side validation of wallet address format before order creation
+- Blockchain transaction creation using minerWallet to send tokens
+- Immediate mining via `minePendingTransactions()` for instant delivery
+- Comprehensive error handling with detailed logging and status tracking
+- Purchase persistence with wallet address, transaction hash, and delivery status
+
+**API Endpoints:**
+- `GET /api/paypal/config` - Returns PayPal client ID and mode
+- `POST /api/paypal/create-order` - Creates PayPal order and validates wallet address
+- `POST /api/paypal/capture-order/:orderId` - Captures payment and sends KENO tokens automatically
+- `GET /api/ico/purchases` - Returns all ICO purchase records for admin dashboard
+
+**Admin Dashboard:** Real-time ICO purchase tracking available at `/admin-ico-purchases.html`. Displays total purchases, revenue, tokens sold, wallet addresses, and token delivery status with auto-refresh. All purchases logged to `data/ico_purchases.json` for persistence. PayPal also sends automatic email notifications to the business account for every transaction.
+
+**Security:** Wallet address validation on both frontend and backend, pending order expiration via Map cleanup, server-side tier enforcement, cryptographic transaction signing.
+
+**Credentials:** Stored securely as environment variables (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_MODE).
 
 ## API Layer & UI/UX
 A modern, responsive web interface features a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange. It includes a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 75 endpoints. The UI supports multi-language internationalization (6 languages) with persistent user preferences, including full translation of all 16 educational courses. The platform utilizes a professional Emerald Green & Gold Luxury logo for brand identity, with favicon and Apple Touch Icon support.
