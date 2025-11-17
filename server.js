@@ -16,6 +16,8 @@ const DatabaseConnection = require('./src/DatabaseConnection');
 const OrganizationManager = require('./src/OrganizationManager');
 const WealthBuilderManager = require('./src/WealthBuilderManager');
 const SecurityMiddleware = require('./src/SecurityMiddleware');
+const EmailService = require('./src/EmailService');
+const PrintfulIntegration = require('./src/PrintfulIntegration');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -250,6 +252,9 @@ let organizationManager;
 let wealthBuilderManager;
 let securityMiddleware;
 
+// Initialize Printful integration
+const printfulIntegration = new PrintfulIntegration();
+
 (async () => {
     try {
         dbConnection = new DatabaseConnection();
@@ -260,11 +265,51 @@ let securityMiddleware;
         console.log('✅ Organization Manager initialized');
         console.log('✅ Wealth Builder Manager initialized');
         console.log('✅ Security Middleware initialized');
+        
+        await initializeTestGraduate();
     } catch (error) {
         console.error('❌ Error initializing database:', error.message);
         console.log('⚠️  Corporate/Team Plans and Wealth Builder features disabled');
     }
 })();
+
+async function initializeTestGraduate() {
+    if (!dbConnection) {
+        return;
+    }
+    
+    try {
+        const testWallet = '0xTEST1234567890ABCDEF1234567890ABCDEF1234';
+        
+        const existingGraduate = await dbConnection.query(
+            'SELECT * FROM kenostod_graduates WHERE wallet_address = $1',
+            [testWallet]
+        );
+        
+        if (existingGraduate.rows.length === 0) {
+            await dbConnection.query(`
+                INSERT INTO kenostod_graduates 
+                (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier)
+                VALUES 
+                ('KG-20250101-TEST', $1, 'test.graduate@kenostod.com', '2025-01-01', 21, 5250, 'Platinum')
+            `, [testWallet]);
+            
+            console.log('\n🎓 Test Graduate Account Created!');
+            console.log('   Wallet: 0xTEST1234567890ABCDEF1234567890ABCDEF1234');
+            console.log('   Graduate ID: KG-20250101-TEST');
+            console.log('   Email: test.graduate@kenostod.com');
+            console.log('   ');
+            console.log('   To test merchandise system:');
+            console.log('   1. Use this wallet address in the request form');
+            console.log('   2. System will recognize it as a verified graduate');
+            console.log('   3. Submit test orders to see the full flow\n');
+        } else {
+            console.log('✅ Test graduate account already exists (KG-20250101-TEST)');
+        }
+    } catch (error) {
+        console.error('⚠️  Error creating test graduate:', error.message);
+    }
+}
 
 console.log('Kenostod Blockchain initialized!');
 console.log('Miner address:', minerWallet.getAddress());
@@ -4156,7 +4201,7 @@ app.put('/api/graduate/merchandise/orders/:orderId', (req, res, next) => {
     
     try {
         const { orderId } = req.params;
-        const { status, orderNotes, trackingNumber, printfulOrderId } = req.body;
+        const { status, orderNotes, trackingNumber, printfulOrderId, autoPrintful } = req.body;
         
         // Validate required fields
         if (!status) {
@@ -4182,10 +4227,46 @@ app.put('/api/graduate/merchandise/orders/:orderId', (req, res, next) => {
             });
         }
         
+        // Get current order data before updating
+        const currentOrderResult = await dbConnection.query(
+            'SELECT * FROM graduate_merchandise_orders WHERE order_id = $1',
+            [orderId]
+        );
+        
+        if (currentOrderResult.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'Order not found' 
+            });
+        }
+        
+        const currentOrder = currentOrderResult.rows[0];
+        
+        // Handle autoPrintful - create Printful order if requested
+        let printfulResult = null;
+        let finalPrintfulOrderId = printfulOrderId;
+        
+        if (autoPrintful === true && printfulIntegration.isConfigured()) {
+            try {
+                console.log(`🖨️  Creating Printful order for ${orderId}...`);
+                printfulResult = await printfulIntegration.createPrintfulOrder(currentOrder);
+                finalPrintfulOrderId = printfulResult.printfulOrderId;
+                console.log(`✅ Printful order created: ${finalPrintfulOrderId}`);
+            } catch (printfulError) {
+                console.error('❌ Printful order creation failed:', printfulError.message);
+                return res.status(500).json({
+                    success: false,
+                    error: `Printful integration failed: ${printfulError.message}`
+                });
+            }
+        } else if (autoPrintful === true && !printfulIntegration.isConfigured()) {
+            console.warn('⚠️  autoPrintful requested but PRINTFUL_API_KEY not configured');
+        }
+        
         // Sanitize all text inputs to prevent XSS
         const sanitizedOrderNotes = orderNotes ? securityMiddleware.sanitizeText(orderNotes, 1000) : null;
         const sanitizedTrackingNumber = trackingNumber ? securityMiddleware.sanitizeText(trackingNumber, 100) : null;
-        const sanitizedPrintfulOrderId = printfulOrderId ? securityMiddleware.sanitizeText(printfulOrderId, 50) : null;
+        const sanitizedPrintfulOrderId = finalPrintfulOrderId ? securityMiddleware.sanitizeText(finalPrintfulOrderId, 50) : null;
         
         // Update timestamp fields based on status
         let timestampField = '';
@@ -4229,22 +4310,126 @@ app.put('/api/graduate/merchandise/orders/:orderId', (req, res, next) => {
             RETURNING *
         `, params);
         
-        if (result.rows.length === 0) {
+        const updatedOrder = result.rows[0];
+        
+        console.log(`🔒 Admin updated order ${orderId} to status: ${status}`);
+        
+        // Send email notifications based on status change
+        let emailResult = null;
+        try {
+            if (status === 'shipped' && currentOrder.order_status !== 'shipped') {
+                emailResult = await EmailService.sendOrderShippedEmail(updatedOrder);
+            } else if (status === 'delivered' && currentOrder.order_status !== 'delivered') {
+                emailResult = await EmailService.sendOrderDeliveredEmail(updatedOrder);
+            }
+        } catch (emailError) {
+            console.error('⚠️  Email notification failed (non-critical):', emailError.message);
+        }
+        
+        res.json({
+            success: true,
+            order: updatedOrder,
+            message: 'Order updated successfully',
+            emailSent: emailResult ? true : false,
+            printfulOrder: printfulResult ? {
+                printfulOrderId: printfulResult.printfulOrderId,
+                estimatedShippingDate: printfulResult.estimatedShippingDate
+            } : null
+        });
+    } catch (error) {
+        console.error('Error updating merchandise order:', error.message);
+        res.status(500).json({ 
+            success: false,
+            error: error.message 
+        });
+    }
+});
+
+// Get Printful order status (ADMIN ONLY) - Optional endpoint for syncing Printful status
+app.get('/api/graduate/merchandise/printful-status/:orderId', (req, res, next) => {
+    if (!securityMiddleware) {
+        return res.status(503).json({ error: 'Security features currently unavailable' });
+    }
+    securityMiddleware.requireAdmin(req, res, next);
+}, async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    if (!printfulIntegration.isConfigured()) {
+        return res.status(503).json({ 
+            success: false,
+            error: 'Printful integration not configured. Set PRINTFUL_API_KEY environment variable.' 
+        });
+    }
+    
+    try {
+        const { orderId } = req.params;
+        
+        const orderResult = await dbConnection.query(
+            'SELECT * FROM graduate_merchandise_orders WHERE order_id = $1',
+            [orderId]
+        );
+        
+        if (orderResult.rows.length === 0) {
             return res.status(404).json({ 
                 success: false,
                 error: 'Order not found' 
             });
         }
         
-        console.log(`🔒 Admin updated order ${orderId} to status: ${status}`);
+        const order = orderResult.rows[0];
+        
+        if (!order.printful_order_id) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'No Printful order ID associated with this order' 
+            });
+        }
+        
+        console.log(`🔍 Fetching Printful status for order ${orderId} (Printful ID: ${order.printful_order_id})`);
+        
+        const printfulStatus = await printfulIntegration.getOrderStatus(order.printful_order_id);
+        
+        let shouldUpdateTracking = false;
+        const updates = [];
+        const params = [];
+        let paramIndex = 1;
+        
+        if (printfulStatus.trackingNumber && printfulStatus.trackingNumber !== order.tracking_number) {
+            updates.push(`tracking_number = $${paramIndex}`);
+            params.push(printfulStatus.trackingNumber);
+            paramIndex++;
+            shouldUpdateTracking = true;
+        }
+        
+        if (printfulStatus.status === 'shipped' && order.order_status !== 'shipped') {
+            updates.push(`order_status = $${paramIndex}`);
+            params.push('shipped');
+            paramIndex++;
+            updates.push('shipped_at = CURRENT_TIMESTAMP');
+            shouldUpdateTracking = true;
+        }
+        
+        if (shouldUpdateTracking && updates.length > 0) {
+            params.push(orderId);
+            await dbConnection.query(`
+                UPDATE graduate_merchandise_orders
+                SET ${updates.join(', ')}
+                WHERE order_id = $${paramIndex}
+            `, params);
+            
+            console.log(`✅ Updated local order ${orderId} with Printful tracking info`);
+        }
         
         res.json({
             success: true,
-            order: result.rows[0],
-            message: 'Order updated successfully'
+            printfulStatus: printfulStatus,
+            localOrderUpdated: shouldUpdateTracking,
+            message: shouldUpdateTracking ? 'Order updated with Printful tracking info' : 'Order is already up to date'
         });
     } catch (error) {
-        console.error('Error updating merchandise order:', error.message);
+        console.error('Error fetching Printful status:', error.message);
         res.status(500).json({ 
             success: false,
             error: error.message 
