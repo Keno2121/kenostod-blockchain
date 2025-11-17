@@ -1910,6 +1910,39 @@
         </div>
     </div>
 
+    <!-- Email Collection Modal -->
+    <div id="emailModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" onclick="closeEmailModal()">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px;">📧 Enter Your Email</h2>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">You'll be redirected to secure Stripe checkout</p>
+            
+            <form id="emailForm" onsubmit="handleEmailSubmit(event)" style="padding: 0 20px;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">Email Address</label>
+                    <input type="email" id="emailInput" required 
+                           placeholder="your.email@example.com"
+                           style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;"
+                           pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">
+                        ✅ Your email will only be used for subscription management
+                    </p>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">
+                    Continue to Secure Checkout 🔒
+                </button>
+                <button type="button" onclick="closeEmailModal()" class="btn btn-outline" style="width: 100%;">
+                    Cancel
+                </button>
+            </form>
+            
+            <p style="text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 0.85rem;">
+                🔒 Payment processed securely by Stripe
+            </p>
+        </div>
+    </div>
+
     <!-- Pricing Modal -->
     <div id="pricingModal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -1923,7 +1956,7 @@
                     <div class="price">$0<span>/month</span></div>
                     <p style="color: var(--text-muted); font-size: 0.9rem; margin: 10px 0;">Try before you buy</p>
                     <ul class="features-list">
-                        <li><strong>3 Basic Features:</strong></li>
+                        <li><strong>3 Free Features:</strong></li>
                         <li>✅ Wallet Management</li>
                         <li>✅ View Blockchain Explorer</li>
                         <li>✅ Basic PoW Mining</li>
@@ -1935,7 +1968,8 @@
                         <li>❌ Exchange Trading</li>
                         <li>❌ All Other Advanced Features</li>
                     </ul>
-                    <button class="btn btn-outline" onclick="alert('You are on the free plan! Upgrade to unlock all features.')">Current Plan</button>
+                    <button class="btn btn-primary" onclick="startFreeTrial()">Start Free Trial Now</button>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px;">✨ No credit card • No signup required</p>
                 </div>
                 
                 <div class="pricing-card featured">
@@ -1959,7 +1993,8 @@
                         <li>✅ Email Support</li>
                         <li style="margin-top: 8px; color: var(--text-muted);"><em>Locked: PoRV Mining, Governance, Reputation</em></li>
                     </ul>
-                    <button class="btn btn-primary" onclick="subscribeToplan('student', 15)" id="studentSubscribeBtn">Start Learning - $15/mo</button>
+                    <button class="btn btn-primary" onclick="subscribeToplan('student', 15)" id="studentSubscribeBtn">Subscribe - $15/month</button>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px;">🔒 Secure checkout via Stripe</p>
                 </div>
                 
                 <div class="pricing-card">
@@ -1982,7 +2017,8 @@
                         <li>🎁 1-on-1 Mentoring Sessions</li>
                         <li>🎁 Certificate of Completion</li>
                     </ul>
-                    <button class="btn btn-secondary" onclick="subscribeToplan('professional', 35)" id="professionalSubscribeBtn">Go Pro - $35/mo</button>
+                    <button class="btn btn-secondary" onclick="subscribeToplan('professional', 35)" id="professionalSubscribeBtn">Subscribe - $35/month</button>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px;">🔒 Secure checkout via Stripe</p>
                 </div>
 
                 <div class="pricing-card featured">
@@ -2047,39 +2083,76 @@
             professional: 'kenostod_professional_monthly'
         };
 
+        let currentSubscriptionPlan = null;
+        let currentSubscriptionButton = null;
+
         async function subscribeToplan(plan, amount) {
             const button = document.getElementById(`${plan}SubscribeBtn`);
+            
+            // Check if we're on Android app - use Google Play Billing
+            if (window.iapHandler && window.iapHandler.isAndroid) {
+                const productId = GOOGLE_PLAY_PRODUCT_IDS[plan];
+                await window.iapHandler.purchaseSubscription(productId);
+                return;
+            }
+
+            // Otherwise use Stripe (website)
+            const priceId = STRIPE_PRICE_IDS[plan];
+            
+            if (!priceId || priceId.includes('STUDENT') || priceId.includes('PROFESSIONAL')) {
+                alert('⚠️ Stripe products not configured yet!\n\n' +
+                      'To enable subscriptions:\n' +
+                      '1. Go to dashboard.stripe.com\n' +
+                      '2. Create products for "Student" ($15/mo) and "Professional" ($35/mo)\n' +
+                      '3. Update STRIPE_PRICE_IDS in index.html with real price IDs\n' +
+                      '4. Set up webhook endpoint in Stripe dashboard\n\n' +
+                      'Need help? Contact: kenostod@blockchain.edu');
+                return;
+            }
+
+            // Store plan and button for later use
+            currentSubscriptionPlan = plan;
+            currentSubscriptionButton = button;
+            
+            // Show email modal instead of prompt
+            closePricingModal();
+            setTimeout(() => {
+                showEmailModal();
+            }, 300);
+        }
+
+        function showEmailModal() {
+            document.getElementById('emailModal').style.display = 'flex';
+            document.getElementById('emailInput').focus();
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+            document.getElementById('emailForm').reset();
+        }
+
+        async function handleEmailSubmit(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('emailInput').value.trim();
+            const plan = currentSubscriptionPlan;
+            const button = currentSubscriptionButton;
+            const priceId = STRIPE_PRICE_IDS[plan];
+            
+            if (!email || !plan || !button) {
+                alert('Error: Missing subscription information');
+                return;
+            }
+
             const originalText = button.textContent;
-            button.textContent = 'Loading...';
+            button.textContent = '🔒 Processing...';
             button.disabled = true;
+            
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
 
             try {
-                // Check if we're on Android app - use Google Play Billing
-                if (window.iapHandler && window.iapHandler.isAndroid) {
-                    const productId = GOOGLE_PLAY_PRODUCT_IDS[plan];
-                    await window.iapHandler.purchaseSubscription(productId);
-                    return;
-                }
-
-                // Otherwise use Stripe (website)
-                const priceId = STRIPE_PRICE_IDS[plan];
-                
-                if (!priceId || priceId.includes('STUDENT') || priceId.includes('PROFESSIONAL')) {
-                    alert('⚠️ Stripe products not configured yet!\n\n' +
-                          'To enable subscriptions:\n' +
-                          '1. Go to dashboard.stripe.com\n' +
-                          '2. Create products for "Student" ($15/mo) and "Professional" ($35/mo)\n' +
-                          '3. Update STRIPE_PRICE_IDS in index.html with real price IDs\n' +
-                          '4. Set up webhook endpoint in Stripe dashboard\n\n' +
-                          'Need help? Contact: kenostod@blockchain.edu');
-                    return;
-                }
-
-                const email = prompt('Enter your email address for subscription:');
-                if (!email) {
-                    throw new Error('Email is required');
-                }
-
                 console.log('Creating checkout session for:', plan, priceId);
 
                 const controller = new AbortController();
@@ -2111,6 +2184,11 @@
                 }
 
                 console.log('Redirecting to Stripe checkout:', data.url);
+                
+                // Close email modal
+                closeEmailModal();
+                
+                // Redirect to Stripe checkout
                 window.location.href = data.url;
             } catch (error) {
                 if (error.name === 'AbortError') {
@@ -2119,6 +2197,9 @@
                     alert('Error: ' + error.message);
                 }
                 console.error('Subscription error:', error);
+                
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Continue to Secure Checkout 🔒';
             } finally {
                 button.textContent = originalText;
                 button.disabled = false;
@@ -2131,6 +2212,122 @@
         
         function closePricingModal() {
             document.getElementById('pricingModal').style.display = 'none';
+        }
+
+        function startFreeTrial() {
+            closePricingModal();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Highlight the 3 free feature tabs
+            setTimeout(() => {
+                const walletBtn = document.querySelector('.tab-btn[onclick*="wallet"]');
+                const explorerBtn = document.querySelector('.tab-btn[onclick*="explorer"]');
+                const miningBtn = document.querySelector('.tab-btn[onclick*="mining"]');
+                
+                // Open Wallet tab first
+                if (walletBtn && typeof openTab === 'function') {
+                    openTab(walletBtn, 'wallet');
+                }
+                
+                // Highlight all 3 free tabs
+                const freeFeatureTabs = [walletBtn, explorerBtn, miningBtn];
+                freeFeatureTabs.forEach(tab => {
+                    if (tab) {
+                        tab.style.transition = 'all 0.3s ease';
+                        tab.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.7)';
+                        tab.style.border = '2px solid #10b981';
+                    }
+                });
+                
+                // Show welcome message
+                setTimeout(() => {
+                    const continueToExplorer = confirm(
+                        '🎉 Welcome to Your Free Trial!\n\n' +
+                        'You now have access to 3 FREE features:\n\n' +
+                        '✅ Wallet Management (CURRENT TAB)\n' +
+                        '   • Create and manage your crypto wallet\n' +
+                        '   • Generate new addresses & check balance\n\n' +
+                        '✅ Blockchain Explorer (highlighted tab above)\n' +
+                        '   • View all transactions and blocks\n' +
+                        '   • Search blockchain history\n\n' +
+                        '✅ Basic PoW Mining (highlighted tab above)\n' +
+                        '   • Learn how mining works\n' +
+                        '   • Mine KENO tokens\n\n' +
+                        'The 3 free tabs are highlighted in GREEN above.\n\n' +
+                        'Click OK to tour the Blockchain Explorer next, or Cancel to explore on your own.'
+                    );
+                    
+                    if (continueToExplorer && explorerBtn) {
+                        // Show Explorer tab
+                        openTab(explorerBtn, 'explorer');
+                        
+                        setTimeout(() => {
+                            const continueToMining = confirm(
+                                '🔍 Blockchain Explorer\n\n' +
+                                'This is where you can:\n' +
+                                '• View all blocks in the blockchain\n' +
+                                '• See all transactions\n' +
+                                '• Search for specific addresses\n\n' +
+                                'Click OK to see the Mining feature next, or Cancel to explore on your own.'
+                            );
+                            
+                            if (continueToMining && miningBtn) {
+                                // Show Mining tab
+                                openTab(miningBtn, 'mining');
+                                
+                                setTimeout(() => {
+                                    alert(
+                                        '⛏️ Mining Feature\n\n' +
+                                        'This is where you can:\n' +
+                                        '• Mine new KENO tokens\n' +
+                                        '• Learn how Proof-of-Work works\n' +
+                                        '• See mining rewards\n\n' +
+                                        'Remember: The 3 GREEN highlighted tabs are your FREE features!\n\n' +
+                                        '💡 Upgrade to unlock 12+ advanced features:\n' +
+                                        '• Transaction Reversal\n' +
+                                        '• Social Recovery\n' +
+                                        '• PoRV Mining & RVT Royalties\n' +
+                                        '• And much more!\n\n' +
+                                        'Click "Get Started" button anytime to upgrade!'
+                                    );
+                                    
+                                    // Remove highlights after tour
+                                    setTimeout(() => {
+                                        freeFeatureTabs.forEach(tab => {
+                                            if (tab) {
+                                                tab.style.boxShadow = '';
+                                                tab.style.border = '';
+                                            }
+                                        });
+                                    }, 3000);
+                                }, 500);
+                            } else {
+                                // Remove highlights if they cancel
+                                setTimeout(() => {
+                                    freeFeatureTabs.forEach(tab => {
+                                        if (tab) {
+                                            tab.style.boxShadow = '';
+                                            tab.style.border = '';
+                                        }
+                                    });
+                                }, 3000);
+                            }
+                        }, 500);
+                    } else {
+                        // Remove highlights if they cancel
+                        setTimeout(() => {
+                            freeFeatureTabs.forEach(tab => {
+                                if (tab) {
+                                    tab.style.boxShadow = '';
+                                    tab.style.border = '';
+                                }
+                            });
+                        }, 3000);
+                    }
+                }, 300);
+            }, 500);
         }
 
         function showCorporatePricing() {
