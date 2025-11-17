@@ -1,4 +1,4 @@
-const paypal = require('@paypal/paypal-server-sdk');
+const checkoutNodeJssdk = require('@paypal/checkout-server-sdk');
 
 class PayPalIntegration {
     constructor(clientId = null, clientSecret = null) {
@@ -12,16 +12,10 @@ class PayPalIntegration {
             this.testMode = false;
             
             const environment = process.env.PAYPAL_MODE === 'live' 
-                ? paypal.Environment.Production 
-                : paypal.Environment.Sandbox;
+                ? new checkoutNodeJssdk.core.LiveEnvironment(this.clientId, this.clientSecret)
+                : new checkoutNodeJssdk.core.SandboxEnvironment(this.clientId, this.clientSecret);
             
-            this.client = paypal.client({
-                clientCredentialsAuthCredentials: {
-                    oAuthClientId: this.clientId,
-                    oAuthClientSecret: this.clientSecret
-                },
-                environment: environment
-            });
+            this.client = new checkoutNodeJssdk.core.PayPalHttpClient(environment);
         }
     }
 
@@ -41,22 +35,21 @@ class PayPalIntegration {
         }
 
         try {
-            const request = {
-                body: {
-                    intent: 'CAPTURE',
-                    purchase_units: [
-                        {
-                            amount: {
-                                currency_code: currency,
-                                value: amount.toFixed(2)
-                            },
-                            custom_id: metadata.depositId || ''
-                        }
-                    ]
-                }
-            };
+            const request = new checkoutNodeJssdk.orders.OrdersCreateRequest();
+            request.prefer("return=representation");
+            request.requestBody({
+                intent: 'CAPTURE',
+                purchase_units: [{
+                    amount: {
+                        currency_code: currency,
+                        value: amount.toFixed(2)
+                    },
+                    custom_id: metadata.depositId || ''
+                }]
+            });
 
-            const { result } = await this.client.orders.ordersCreate(request);
+            const response = await this.client.execute(request);
+            const result = response.result;
             
             const approveUrl = result.links?.find(link => link.rel === 'approve')?.href;
 
@@ -85,11 +78,12 @@ class PayPalIntegration {
         }
 
         try {
-            const request = {
-                id: orderId
-            };
+            const request = new checkoutNodeJssdk.orders.OrdersCaptureRequest(orderId);
+            request.prefer("return=representation");
+            request.requestBody({});
 
-            const { result } = await this.client.orders.ordersCapture(request);
+            const response = await this.client.execute(request);
+            const result = response.result;
 
             return {
                 id: result.id,
@@ -164,12 +158,9 @@ class PayPalIntegration {
         }
 
         try {
-            const request = {
-                id: orderId
-            };
-
-            const { result } = await this.client.orders.ordersGet(request);
-            return result;
+            const request = new checkoutNodeJssdk.orders.OrdersGetRequest(orderId);
+            const response = await this.client.execute(request);
+            return response.result;
         } catch (error) {
             throw new Error(`PayPal order retrieval failed: ${error.message}`);
         }

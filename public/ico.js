@@ -527,8 +527,158 @@ function updateEasyBuyPreview() {
     document.getElementById('totalKenoAmount').textContent = totalTokens.toLocaleString() + ' KENO';
 }
 
-function proceedToPayPal() {
-    alert('🚧 PayPal Integration Coming Soon!\n\nThe PayPal checkout is currently being set up. For now, please use the Crypto Wallet option or contact support@kenostodblockchain.com to arrange a direct purchase.\n\nThank you for your patience!');
+let paypalLoaded = false;
+let paypalButtonsRendered = false;
+
+async function loadPayPalSDK() {
+    if (paypalLoaded) return true;
+    
+    try {
+        const response = await fetch('/api/paypal/config');
+        const config = await response.json();
+        
+        if (!config.clientId || config.clientId === 'test') {
+            console.warn('PayPal not configured, using test mode');
+            alert('⚠️ PayPal is running in test mode. Please configure PAYPAL_CLIENT_ID environment variable for live transactions.');
+            return false;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = `https://www.paypal.com/sdk/js?client-id=${config.clientId}&currency=USD`;
+            script.onload = () => {
+                paypalLoaded = true;
+                console.log('✅ PayPal SDK loaded');
+                resolve(true);
+            };
+            script.onerror = () => {
+                console.error('❌ Failed to load PayPal SDK');
+                reject(new Error('Failed to load PayPal SDK'));
+            };
+            document.head.appendChild(script);
+        });
+    } catch (error) {
+        console.error('Error loading PayPal config:', error);
+        return false;
+    }
+}
+
+async function proceedToPayPal() {
+    const continueBtn = document.getElementById('continueToPayPalBtn');
+    const buttonContainer = document.getElementById('paypal-button-container');
+    const successMessage = document.getElementById('paypal-success-message');
+    
+    try {
+        continueBtn.disabled = true;
+        continueBtn.textContent = 'Loading PayPal...';
+        
+        const loaded = await loadPayPalSDK();
+        if (!loaded) {
+            continueBtn.disabled = false;
+            continueBtn.textContent = 'Continue to PayPal Checkout →';
+            return;
+        }
+        
+        continueBtn.style.display = 'none';
+        buttonContainer.style.display = 'block';
+        
+        if (paypalButtonsRendered) {
+            return;
+        }
+        
+        const amount = parseFloat(document.getElementById('easyBuyAmount').value);
+        
+        window.paypal.Buttons({
+            createOrder: async function() {
+                try {
+                    const response = await fetch('/api/paypal/create-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ amount: amount })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to create order');
+                    }
+                    
+                    return data.orderId;
+                } catch (error) {
+                    console.error('Error creating PayPal order:', error);
+                    alert('Failed to create PayPal order. Please try again.');
+                    throw error;
+                }
+            },
+            
+            onApprove: async function(data) {
+                try {
+                    const response = await fetch(`/api/paypal/capture-order/${data.orderID}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const captureData = await response.json();
+                    
+                    if (!captureData.success) {
+                        throw new Error(captureData.error || 'Failed to capture payment');
+                    }
+                    
+                    buttonContainer.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    
+                    const tokenPrice = 0.01;
+                    const baseTokens = amount / tokenPrice;
+                    const bonusTokens = baseTokens * 0.20;
+                    const totalTokens = baseTokens + bonusTokens;
+                    
+                    document.getElementById('order-details').innerHTML = `
+                        <p style="margin: 8px 0;"><strong>Order ID:</strong> ${captureData.orderId}</p>
+                        <p style="margin: 8px 0;"><strong>Amount Paid:</strong> $${amount.toFixed(2)} USD</p>
+                        <p style="margin: 8px 0;"><strong>KENO Tokens:</strong> ${totalTokens.toLocaleString()} KENO</p>
+                        <p style="margin: 8px 0; color: #10b981;"><strong>Bonus:</strong> +${bonusTokens.toLocaleString()} KENO (20%)</p>
+                    `;
+                    
+                    console.log('✅ Payment captured successfully:', captureData);
+                } catch (error) {
+                    console.error('Error capturing PayPal payment:', error);
+                    alert('Payment capture failed. Please contact support with your transaction ID.');
+                }
+            },
+            
+            onError: function(err) {
+                console.error('PayPal button error:', err);
+                alert('An error occurred with PayPal. Please try again or use the crypto wallet option.');
+                
+                continueBtn.style.display = 'block';
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Continue to PayPal Checkout →';
+                buttonContainer.style.display = 'none';
+            },
+            
+            onCancel: function() {
+                console.log('PayPal payment cancelled by user');
+                continueBtn.style.display = 'block';
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Continue to PayPal Checkout →';
+                buttonContainer.style.display = 'none';
+            }
+        }).render('#paypal-button-container');
+        
+        paypalButtonsRendered = true;
+        
+    } catch (error) {
+        console.error('Error initializing PayPal:', error);
+        alert('Failed to initialize PayPal. Please try again or contact support.');
+        continueBtn.style.display = 'block';
+        continueBtn.disabled = false;
+        continueBtn.textContent = 'Continue to PayPal Checkout →';
+        buttonContainer.style.display = 'none';
+    }
 }
 
 // Make functions globally available

@@ -2268,6 +2268,63 @@ app.post('/api/stripe/subscription/:subscriptionId/cancel', async (req, res) => 
 
 // ==================== END STRIPE SUBSCRIPTION API ENDPOINTS ====================
 
+// ==================== PAYPAL API ENDPOINTS ====================
+
+app.get('/api/paypal/config', (req, res) => {
+    res.json({
+        clientId: process.env.PAYPAL_CLIENT_ID || 'test',
+        testMode: paypalIntegration.isTestMode()
+    });
+});
+
+app.post('/api/paypal/create-order', async (req, res) => {
+    try {
+        const { amount } = req.body;
+        
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ error: 'Valid amount is required' });
+        }
+        
+        const order = await paypalIntegration.createOrder(amount, 'USD', {
+            depositId: `ICO-${Date.now()}`
+        });
+        
+        res.json({
+            success: true,
+            orderId: order.id,
+            status: order.status,
+            approveUrl: order.approveUrl
+        });
+    } catch (error) {
+        console.error('PayPal order creation error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        
+        if (!orderId) {
+            return res.status(400).json({ error: 'Order ID is required' });
+        }
+        
+        const capture = await paypalIntegration.captureOrder(orderId);
+        
+        res.json({
+            success: true,
+            orderId: capture.id,
+            status: capture.status,
+            amount: capture.amount
+        });
+    } catch (error) {
+        console.error('PayPal order capture error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==================== END PAYPAL API ENDPOINTS ====================
+
 // ==================== MERCHANT INCENTIVES API ENDPOINTS ====================
 
 // Stake KENO for merchant benefits
