@@ -16,16 +16,18 @@ class PayPalIntegration {
         this.clientSecret = clientSecret || process.env.PAYPAL_CLIENT_SECRET;
         
         if (!this.clientId || !this.clientSecret) {
-            console.warn('PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET not set. PayPal integration will use test mode.');
+            console.warn('⚠️  PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET not set. PayPal integration will use test mode.');
             this.testMode = true;
         } else {
             this.testMode = false;
             
-            const environment = process.env.PAYPAL_MODE === 'live' 
+            const isLive = process.env.PAYPAL_MODE === 'live';
+            const environment = isLive
                 ? new checkoutNodeJssdk.core.LiveEnvironment(this.clientId, this.clientSecret)
                 : new checkoutNodeJssdk.core.SandboxEnvironment(this.clientId, this.clientSecret);
             
             this.client = new checkoutNodeJssdk.core.PayPalHttpClient(environment);
+            console.log(`✅ PayPal configured in ${isLive ? 'LIVE' : 'SANDBOX'} MODE`);
         }
     }
 
