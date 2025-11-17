@@ -2416,18 +2416,19 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
                 `ICO Purchase - Order ${orderId}`
             );
             tx.signTransaction(minerWallet.keyPair);
+            txHash = tx.calculateHash();
             
-            const validationResult = kenostodChain.validateTransaction(tx);
-            if (validationResult.valid) {
-                kenostodChain.addTransaction(tx);
-                tokensSent = true;
-                txHash = tx.calculateHash();
-                console.log(`✅ Sent ${totalTokens} KENO to ${pendingOrder.walletAddress.slice(0, 10)}...`);
-            } else {
-                console.error(`❌ Transaction validation failed: ${validationResult.error}`);
-            }
+            // Add transaction to pending transactions
+            kenostodChain.createTransaction(tx);
+            
+            // Mine the block to confirm the transaction immediately
+            await kenostodChain.minePendingTransactions(minerWallet.getAddress());
+            
+            tokensSent = true;
+            console.log(`✅ Sent ${totalTokens} KENO to ${pendingOrder.walletAddress.slice(0, 10)}... (TX: ${txHash.slice(0, 16)}...)`);
         } catch (txError) {
-            console.error('Error sending tokens:', txError);
+            console.error(`❌ Error sending tokens: ${txError.message}`);
+            txHash = null;
         }
         
         // Log the ICO purchase with wallet address
