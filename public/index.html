@@ -2199,17 +2199,70 @@
 
                 console.log('Redirecting to Stripe checkout:', data.url);
                 
-                // Close email modal
+                // Close email modal and show loading message
                 closeEmailModal();
                 
-                // Redirect to Stripe checkout
-                window.location.href = data.url;
+                // Show loading overlay
+                const loadingOverlay = document.createElement('div');
+                loadingOverlay.id = 'stripeLoadingOverlay';
+                loadingOverlay.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+                                background: rgba(0, 0, 0, 0.9); z-index: 10000; 
+                                display: flex; align-items: center; justify-content: center;">
+                        <div style="background: white; padding: 40px; border-radius: 16px; 
+                                    text-align: center; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                            <div style="width: 64px; height: 64px; border: 6px solid #e5e7eb; 
+                                        border-top-color: #10b981; border-radius: 50%; 
+                                        margin: 0 auto 20px; animation: spin 1s linear infinite;"></div>
+                            <h2 style="margin: 0 0 15px 0; color: #111827; font-size: 1.5rem;">
+                                Redirecting to Stripe Checkout...
+                            </h2>
+                            <p style="margin: 0; color: #6b7280; font-size: 1rem; line-height: 1.6;">
+                                Please wait while we securely redirect you to complete your purchase.
+                            </p>
+                            <p style="margin: 20px 0 0 0; color: #10b981; font-weight: 600;">
+                                🔒 Secure Payment Processing
+                            </p>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes spin {
+                            to { transform: rotate(360deg); }
+                        }
+                    </style>
+                `;
+                document.body.appendChild(loadingOverlay);
+                
+                // Small delay to show loading message, then redirect
+                setTimeout(() => {
+                    // Try to break out of iframe if in one (Replit preview)
+                    if (window.top !== window.self) {
+                        window.top.location.href = data.url;
+                    } else {
+                        window.location.href = data.url;
+                    }
+                }, 800);
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    alert('⏰ Request timed out. Please check your internet connection and try again.');
-                } else {
-                    alert('Error: ' + error.message);
-                }
+                // Show error modal instead of alert
+                const errorModal = document.createElement('div');
+                errorModal.className = 'modal';
+                errorModal.style.display = 'flex';
+                errorModal.innerHTML = `
+                    <div class="modal-content" style="max-width: 500px;">
+                        <h2 style="text-align: center; color: #dc2626; margin-bottom: 20px;">
+                            ${error.name === 'AbortError' ? '⏰ Request Timeout' : '❌ Subscription Error'}
+                        </h2>
+                        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px; line-height: 1.6;">
+                            ${error.name === 'AbortError' 
+                                ? 'The request timed out. Please check your internet connection and try again.' 
+                                : error.message}
+                        </p>
+                        <button onclick="this.closest('.modal').remove()" class="btn btn-primary" style="width: 100%;">
+                            Close
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(errorModal);
                 console.error('Subscription error:', error);
                 
                 submitBtn.disabled = false;

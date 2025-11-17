@@ -65,8 +65,10 @@ Enhanced subscription page with professional guided tour and streamlined email c
 - Professional inline email collection modal (replaced browser prompt)
 - HTML5 email validation with regex pattern enforcement
 - Clean modal UI with "Continue to Secure Checkout" and "Cancel" buttons
-- Modal closes before Stripe redirect for smooth transition
+- Beautiful loading overlay with spinner during Stripe redirect
+- **Iframe breakout redirect** (`window.top.location.href`) ensures Stripe checkout loads properly
 - **No confusing browser embed warnings**
+- Error handling via custom modals (no alert() dialogs)
 - Clear "🔒 Secure checkout via Stripe" messaging
 
 **Technical Details:**
