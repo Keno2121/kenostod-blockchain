@@ -3444,21 +3444,56 @@ app.get('/api/wealth/dashboard/:walletAddress', async (req, res) => {
 
 // ==================== GRADUATE CLUB API ENDPOINTS ====================
 
-// Generate Graduate ID and certificate
+// Generate Graduate ID and certificate (INTERNAL USE ONLY - called after verified completion)
 app.post('/api/graduates/generate-id', async (req, res) => {
-    if (!wealthBuilderManager) {
+    if (!wealthBuilderManager || !dbConnection) {
         return res.status(503).json({ error: 'Graduate features currently unavailable' });
     }
     
     try {
-        const { walletAddress, email, completedCourses } = req.body;
+        const { walletAddress, email } = req.body;
         
-        if (!walletAddress || completedCourses !== 21) {
-            return res.status(400).json({ 
-                error: 'Must complete all 21 courses to generate Graduate ID' 
+        if (!walletAddress) {
+            return res.status(400).json({ error: 'Wallet address required' });
+        }
+        
+        // SECURITY: Verify the user actually completed all 21 courses
+        const completionCheck = await dbConnection.query(`
+            SELECT 
+                COUNT(DISTINCT course_name) as completed_courses,
+                SUM(reward_amount) as total_keno_earned
+            FROM student_rewards
+            WHERE user_wallet_address = $1 
+            AND reward_type = 'course_completion'
+            AND status = 'claimed'
+        `, [walletAddress]);
+        
+        const completedCount = parseInt(completionCheck.rows[0]?.completed_courses || 0);
+        const kenoEarned = parseFloat(completionCheck.rows[0]?.total_keno_earned || 0);
+        
+        if (completedCount < 21) {
+            return res.status(403).json({ 
+                error: 'Must complete all 21 courses to become a graduate',
+                coursesCompleted: completedCount,
+                coursesRemaining: 21 - completedCount
             });
         }
         
+        // Check if already a graduate
+        const existingGrad = await dbConnection.query(`
+            SELECT graduate_id FROM kenostod_graduates WHERE wallet_address = $1
+        `, [walletAddress]);
+        
+        if (existingGrad.rows.length > 0) {
+            return res.json({ 
+                success: true,
+                alreadyGraduate: true,
+                graduateId: existingGrad.rows[0].graduate_id,
+                message: 'You are already a Kenostod Graduate!'
+            });
+        }
+        
+        // Generate Graduate ID
         const completionDate = new Date();
         const dateStr = completionDate.toISOString().slice(0, 10).replace(/-/g, '');
         const addressHash = walletAddress.slice(-4).toUpperCase();
@@ -3467,8 +3502,24 @@ app.post('/api/graduates/generate-id', async (req, res) => {
         
         const certHash = require('crypto')
             .createHash('sha256')
-            .update(`${walletAddress}${dateStr}${completedCourses}`)
+            .update(`${walletAddress}${dateStr}${completedCount}`)
             .digest('hex');
+        
+        // Insert graduate record
+        await dbConnection.query(`
+            INSERT INTO kenostod_graduates 
+            (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier, certificate_hash)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [
+            graduateId,
+            walletAddress,
+            email || null,
+            completionDate,
+            21,
+            Math.round(kenoEarned),
+            'Platinum',
+            certHash
+        ]);
         
         const graduate = {
             graduateId,
@@ -3476,7 +3527,7 @@ app.post('/api/graduates/generate-id', async (req, res) => {
             email,
             completionDate: completionDate.toISOString(),
             totalCourses: 21,
-            kenoEarned: 5250,
+            kenoEarned: Math.round(kenoEarned),
             rvtNFT: 'Platinum',
             royaltyRate: 0.02,
             certificateHash: certHash,
@@ -3484,26 +3535,9 @@ app.post('/api/graduates/generate-id', async (req, res) => {
             status: 'verified'
         };
         
-        await dbConnection.query(`
-            INSERT INTO kenostod_graduates 
-            (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier, certificate_hash)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            ON CONFLICT (wallet_address) 
-            DO UPDATE SET 
-                completion_date = EXCLUDED.completion_date,
-                certificate_hash = EXCLUDED.certificate_hash
-        `, [
-            graduateId,
-            walletAddress,
-            email || null,
-            completionDate,
-            21,
-            5250,
-            'Platinum',
-            certHash
-        ]);
+        console.log(`🎓 New Graduate! ${graduateId} - Wallet: ${walletAddress.slice(0, 8)}...`);
         
-        res.json({ success: true, graduate });
+        res.json({ success: true, graduate, message: 'Welcome to the Kenostod Graduate Club!' });
     } catch (error) {
         console.error('Error generating graduate ID:', error.message);
         res.status(500).json({ error: error.message });
