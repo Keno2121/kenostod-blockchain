@@ -1,6 +1,6 @@
 # Overview
 
-Kenostod Blockchain Academy is an educational platform featuring a blockchain simulator and a demonstration cryptocurrency, KENO. It educates users on advanced blockchain concepts including Proof-of-Residual-Value (PoRV) consensus, transaction reversal, and social recovery. Built with Node.js, the platform offers hands-on experience with cryptocurrency fundamentals, dual consensus modes (PoW/PoRV), full wallet functionality, advanced transaction processing, a simulated merchant payment gateway, and an exchange trading simulation. KENO is a real ERC-20/BEP-20 token on the Binance Smart Chain with an ongoing ICO. The platform also includes a B2B system for corporate training, a multi-language UI, and a "Wealth Builder Program" aimed at poverty reduction through blockchain education and passive income opportunities. The project's vision is to act as a "shield that protects one and their generations from the afflictions of poverty," breaking cycles of economic hardship.
+Kenostod Blockchain Academy is an educational platform featuring a blockchain simulator and a demonstration cryptocurrency, KENO. It aims to educate users on advanced blockchain concepts like Proof-of-Residual-Value (PoRV), transaction reversal, and social recovery. The platform offers hands-on experience with cryptocurrency fundamentals, including dual consensus modes (PoW/PoRV), full wallet functionality, advanced transaction processing, a simulated merchant payment gateway, and an exchange trading simulation. KENO is a real ERC-20/BEP-20 token on the Binance Smart Chain with an ongoing ICO. The project's vision is to break cycles of economic hardship by providing blockchain education and passive income opportunities, acting as a "shield that protects one and their generations from the afflictions of poverty."
 
 # User Preferences
 
@@ -10,99 +10,31 @@ Design preferences: Professional, appealing, fun; market-ready for ROI growth an
 # System Architecture
 
 ## Core Blockchain & Consensus
-The system features a modular blockchain secured by SHA-256 Proof-of-Work, supporting UTXO-style transactions with secp256k1 digital signatures. It includes a 5-minute transaction reversal window and a social recovery system. Dual consensus modes, Proof-of-Work and Proof-of-Residual-Value (PoRV), are implemented. PoRV generates value via Residual Value Tokens (RVTs) through AI/ML computations funded by enterprise clients, creating a deflationary mechanism for KENO. Data persistence is file-based for security.
+The system utilizes a modular blockchain with SHA-256 Proof-of-Work, UTXO-style transactions, secp256k1 digital signatures, a 5-minute transaction reversal window, and a social recovery system. It supports dual consensus modes: Proof-of-Work and Proof-of-Residual-Value (PoRV), where PoRV generates value through Residual Value Tokens (RVTs) via AI/ML computations, creating a deflationary mechanism for KENO. Data persistence is file-based for enhanced security.
 
 ## Transaction & Financial Systems
-A merchant payment gateway offers registration, API keys, QR code payments, invoicing, KENO/USD conversion, and a 4-tier incentive program. An exchange platform supports KENO/USD, KENO/BTC, and KENO/ETH pairs with a full order book, market/limit orders, and cryptographic order signature verification. Security relies on confirmed transactions, cryptographic signing, and multi-layer validation. The KENO token has an adjustable default mining reward of 100 tokens per block plus transaction fees.
-
-### PayPal ICO Purchase Integration with Automatic Token Delivery (✅ COMPLETED - November 17, 2025)
-A complete PayPal Smart Payment Buttons integration enables non-crypto users to purchase KENO tokens with credit cards or PayPal balance. Features dual-path purchase flow: EASY (PayPal/credit card - recommended for beginners) and ADVANCED (crypto wallet with MetaMask/BNB). 
-
-**Key Features:**
-- **Wallet Address Collection:** Customers provide their KENO wallet address before checkout with validation (must start with "04" and be 130 characters)
-- **Automatic Token Delivery:** Upon successful PayPal payment capture, tokens are automatically sent to customer's wallet via blockchain transaction
-- **Tier Validation:** Server-side enforcement of pricing tiers ($50, $100, $250, $500, $1000)
-- **Instant Mining:** Transaction is immediately mined and confirmed on the blockchain
-- **Transaction Tracking:** Each purchase includes blockchain transaction hash for verification
-
-**Technical Implementation:**
-- Pending order storage with wallet address (Map-based, in-memory)
-- Server-side validation of wallet address format before order creation
-- Blockchain transaction creation using minerWallet to send tokens
-- Immediate mining via `minePendingTransactions()` for instant delivery
-- Comprehensive error handling with detailed logging and status tracking
-- Purchase persistence with wallet address, transaction hash, and delivery status
-
-**API Endpoints:**
-- `GET /api/paypal/config` - Returns PayPal client ID and mode
-- `POST /api/paypal/create-order` - Creates PayPal order and validates wallet address
-- `POST /api/paypal/capture-order/:orderId` - Captures payment and sends KENO tokens automatically
-- `GET /api/ico/purchases` - Returns all ICO purchase records for admin dashboard
-
-**Admin Dashboard:** Real-time ICO purchase tracking available at `/admin-ico-purchases.html`. Displays total purchases, revenue, tokens sold, wallet addresses, and token delivery status with auto-refresh. All purchases logged to `data/ico_purchases.json` for persistence. PayPal also sends automatic email notifications to the business account for every transaction.
-
-**Security:** Wallet address validation on both frontend and backend, pending order expiration via Map cleanup, server-side tier enforcement, cryptographic transaction signing.
-
-**Credentials:** Stored securely as environment variables (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_MODE).
+A merchant payment gateway facilitates registration, API keys, QR code payments, invoicing, KENO/USD conversion, and a 4-tier incentive program. An exchange platform supports KENO/USD, KENO/BTC, and KENO/ETH pairs with a full order book and market/limit orders, secured by cryptographic order signature verification. The KENO token has an adjustable default mining reward of 100 tokens per block plus transaction fees. The platform integrates PayPal for ICO purchases, allowing non-crypto users to buy KENO tokens with automatic token delivery to validated wallet addresses. This includes server-side tier enforcement, instant mining, and comprehensive transaction tracking.
 
 ## API Layer & UI/UX
-A modern, responsive web interface features a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange. It includes a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 75 endpoints. The UI supports multi-language internationalization (6 languages) with persistent user preferences, including full translation of all 16 educational courses. The platform utilizes a professional Emerald Green & Gold Luxury logo for brand identity, with favicon and Apple Touch Icon support.
-
-### Free Trial & Subscription UX Improvements (✅ COMPLETED - November 17, 2025)
-Enhanced subscription page with professional guided tour and streamlined email collection. **Completely eliminates confusing browser dialogs and embedded page warnings.**
-
-**Free Trial Guided Tour:**
-- **Custom modal-based tour** (NO browser alert/confirm dialogs)
-- Sequential navigation through all 3 free features (Wallet, Blockchain Explorer, Mining)
-- Visual highlighting with green glow and borders on free feature tabs
-- Beautiful step-by-step tour with "Next" and "Skip Tour" buttons
-- Rich HTML content with color-coded feature explanations
-- Users can skip tour at any point and explore independently
-- Highlights auto-remove after 3 seconds
-- **Zero confusing "embedded page" warnings**
-
-**Subscription Flow Improvements:**
-- Professional inline email collection modal (replaced browser prompt)
-- HTML5 email validation with regex pattern enforcement
-- Clean modal UI with "Continue to Secure Checkout" and "Cancel" buttons
-- Beautiful loading overlay with spinner during Stripe redirect
-- **New tab redirect** (`window.open()`) opens Stripe checkout in new tab to avoid iframe security restrictions
-- Confirmation modal shows success with fallback link if pop-up blocked
-- **No confusing browser embed warnings**
-- Error handling via custom modals (no alert() dialogs)
-- Clear "🔒 Secure checkout via Stripe" messaging
-
-**Technical Details:**
-- Custom tour modal system with step management (`showTourStep()`, `nextTourStep()`)
-- `startFreeTrial()` function programmatically activates tabs using `openTab()`
-- Email modal form with proper validation (`handleEmailSubmit()`)
-- Smooth modal transitions (300ms delays)
-- State management for subscription plan/button tracking and tour steps
-- **Eliminates ALL browser dialogs (alert/confirm/prompt) that triggered Replit warnings**
+The platform features a modern, responsive web interface with a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange, including a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 75 endpoints. The UI supports multi-language internationalization (6 languages) and persistent user preferences. Key UX improvements include a custom modal-based free trial guided tour and a streamlined email collection for subscriptions, which redirects to Stripe in a new tab to avoid iframe security issues. The platform also includes a "Graduate Club Recognition System" for users who complete all 21 courses, offering exclusive privileges and a unique blockchain-verified Graduate ID.
 
 ## Security Model
-Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, and transparent token supply tracking. PoRV security ensures cryptographically signed payments. The Wealth Builder program incorporates robust security measures such as wallet signature authentication, replay attack protection, rate limiting, server-side course verification, and database duplicate prevention.
+Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, transparent token supply tracking, and PoRV security with cryptographically signed payments. The Wealth Builder program incorporates robust security measures such as wallet signature authentication, replay attack protection, rate limiting, and server-side course verification.
 
 ## Corporate/Team Plans (B2B Revenue System)
-This enterprise-grade system targets corporate training, universities, and coding bootcamps. It uses a PostgreSQL-backed database for managing organizations, members, and learning progress. A comprehensive REST API facilitates client onboarding, member invitation, progress tracking, and subscription management. Stripe integration handles subscription billing and webhooks.
+This enterprise-grade system, targeting corporate training and universities, uses a PostgreSQL database for managing organizations, members, and learning progress. A comprehensive REST API facilitates client onboarding, member invitation, progress tracking, and subscription management, with Stripe integration for billing and webhooks.
 
 ## Wealth Builder Program
-This initiative aims to reduce global poverty through blockchain education and passive income opportunities. Features include a student rewards system (KENO per course), tiered perpetual royalty NFTs (RVT) awarded at milestones, a scholarship fund, a career center, a referral program, a wealth tracker dashboard, and financial literacy courses. It uses a 7-table PostgreSQL database.
+This program aims to reduce poverty through blockchain education and passive income. It includes a student rewards system (KENO per course), tiered perpetual royalty NFTs (RVT), a scholarship fund, a career center, a referral program, a wealth tracker dashboard, and financial literacy courses, all backed by a 7-table PostgreSQL database.
 
 ## Chat History System
-A comprehensive chat history feature allows users to save and review their conversations. It includes conversation management, message storage, user association, a professional UI, real-time updates, and search/filter capabilities. It is backed by a 2-table PostgreSQL database and 6 REST API endpoints.
+A comprehensive chat history feature allows users to save and review conversations, offering message storage, user association, a professional UI, real-time updates, and search/filter capabilities, supported by a 2-table PostgreSQL database and 6 REST API endpoints.
 
 ## Legal & Licensing System
-This system provides a comprehensive legal framework for intellectual property protection and commercial licensing. It includes a Terms of Service page, a Commercial Licensing portal with pricing tiers, copyright footers on all pages, and PostgreSQL tables for managing commercial API licenses and usage tracking. Protected features include PoRV, RVT System, Wealth Builder Program, Social Recovery, Transaction Reversal, Merchant Payment Gateway, and all APIs.
+This system provides a legal framework for intellectual property protection and commercial licensing, including Terms of Service, a Commercial Licensing portal, copyright footers, and PostgreSQL tables for managing commercial API licenses and usage tracking.
 
 ## Revenue Systems
-The platform generates revenue from merchant payment gateway fees (2.5%), exchange trading fees (0.5%), and white-label licensing (tiered monthly fees). A unified analytics dashboard provides global revenue reporting.
-
-## ICO Marketing Campaign
-A multi-channel marketing campaign supports the KENO Token ICO, including email marketing, web landing pages, video content, and press release templates.
-
-## Course Curriculum Backoffice
-An admin interface (`/backoffice.html`) provides a comprehensive view of all 21 courses, including detailed modules, learning objectives, knowledge checks, skills assessments, real-world applications, and hands-on projects.
+Revenue is generated from merchant payment gateway fees (2.5%), exchange trading fees (0.5%), and white-label licensing (tiered monthly fees). A unified analytics dashboard provides global revenue reporting.
 
 # External Dependencies
 
@@ -115,62 +47,4 @@ An admin interface (`/backoffice.html`) provides a comprehensive view of all 21 
 -   **Stripe**: For corporate plan subscription management and billing.
 -   **PayPal**: For USD deposit/withdrawal integration.
 -   **CoinGecko API**: For real-time crypto market data.
--   **PostgreSQL**: For corporate/team plan, Wealth Builder Program, and Chat History System data persistence.
-## Graduate Club Recognition System (✅ COMPLETED - November 17, 2025)
-An exclusive elite community and recognition system for students who complete all 21 courses.
-
-**Access:** `https://kenostodblockchain.com/graduate-club.html`
-
-**The Graduate Symbol:**
-- **The Kenostod logo shield itself is the graduate symbol** - not a separate design
-- Graduates earn the right to display the official green Kenostod shield logo everywhere
-- Where Displayed: LinkedIn profiles, email signatures, business cards, physical pins/jewelry, phone screens
-- Meaning: Completion, protection, breaking poverty cycles through mastery of all 21 courses
-
-**The Secret Greeting:**
-- Greeting: "Shield Up" (one graduate says)
-- Response: "Generation Protected" (other graduate responds)
-- Secret Handshake: Tap index finger twice on other person's wrist during handshake
-- Purpose: Instant recognition between graduates who crossed paths
-
-**Graduate ID System:**
-- Format: `KG-YYYYMMDD-XXXX` (e.g., KG-20250315-7A4B)
-- Components: KG (Kenostod Graduate) + completion date + last 4 chars of wallet address
-- Unique, blockchain-verified, permanent identifier
-
-**Graduate Privileges:**
-1. **Platinum RVT NFT**: 2% perpetual royalties ($500-$5,000/month potential)
-2. **5,250 KENO**: Total rewards from 21 courses (current value: $525+)
-3. **Digital Certificate**: Official certificate with unique ID and blockchain verification
-4. **Graduate Network**: Private Slack/Discord channel for worldwide connections
-5. **Ambassador Program**: 10% commission on referrals + franchise priority
-6. **Speaking Opportunities**: Featured in marketing, podcasts, conferences
-7. **Physical Badge Kit**: FREE gold-plated pin + ID card (shipped worldwide)
-8. **Job Board Priority**: Exclusive blockchain job postings from partner companies
-
-**Physical Merchandise:**
-- Graduate Pin: $29 (FREE for graduates)
-- ID Card: $15 (FREE for graduates)
-- Graduate Hoodie: $65 ($45 for graduates)
-- Shield Ring: $89 ($69 for graduates)
-- Framed Certificate: $149 ($99 for graduates)
-- Phone Case: $35 ($25 for graduates)
-
-**API Endpoints:**
-- `POST /api/graduates/generate-id` - Generate unique Graduate ID upon completion
-- `GET /api/graduates/verify/:identifier` - Verify graduate status by ID or wallet
-- `GET /api/graduates/leaderboard` - Get top 100 graduates ordered by completion date
-
-**Database:**
-- Table: `kenostod_graduates` (PostgreSQL)
-- Fields: graduate_id, wallet_address, completion_date, total_courses, keno_earned, rvt_nft_tier, certificate_hash
-- Indexes: wallet_address, graduate_id, completion_date
-
-**Files:**
-- `/public/graduate-club.html` - Complete Graduate Club page
-- `/migrations/007_kenostod_graduates_table.sql` - Database schema
-- `GRADUATE_CLUB_GUIDE.md` - Implementation & marketing guide
-
-**Navigation:**
-- Added to main navigation (desktop & mobile): 🎓 Graduate Club
-- Positioned after Wealth Builder for logical feature grouping
+-   **PostgreSQL**: For corporate/team plan, Wealth Builder Program, Chat History System, and Graduate Club data persistence.
