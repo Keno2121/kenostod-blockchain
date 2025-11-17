@@ -2235,12 +2235,45 @@
                 
                 // Small delay to show loading message, then redirect
                 setTimeout(() => {
-                    // Try to break out of iframe if in one (Replit preview)
-                    if (window.top !== window.self) {
-                        window.top.location.href = data.url;
-                    } else {
-                        window.location.href = data.url;
-                    }
+                    // Remove loading overlay
+                    const overlay = document.getElementById('stripeLoadingOverlay');
+                    if (overlay) overlay.remove();
+                    
+                    // Open Stripe in new tab (works better in iframes)
+                    const stripeWindow = window.open(data.url, '_blank');
+                    
+                    // Show success message
+                    const confirmModal = document.createElement('div');
+                    confirmModal.className = 'modal';
+                    confirmModal.style.display = 'flex';
+                    confirmModal.innerHTML = `
+                        <div class="modal-content" style="max-width: 500px;">
+                            <h2 style="text-align: center; color: #10b981; margin-bottom: 20px;">
+                                ✅ Stripe Checkout Opened!
+                            </h2>
+                            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+                                The secure Stripe checkout page has opened in a new tab.
+                            </p>
+                            ${!stripeWindow ? `
+                                <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                                    <p style="margin: 0; color: #92400e; font-size: 0.95rem;">
+                                        ⚠️ <strong>Pop-up blocked?</strong><br>
+                                        Click the button below to open checkout:
+                                    </p>
+                                </div>
+                                <a href="${data.url}" target="_blank" class="btn btn-primary" style="width: 100%; margin-bottom: 10px; text-decoration: none; display: block; text-align: center;">
+                                    Open Stripe Checkout 🔒
+                                </a>
+                            ` : ''}
+                            <button onclick="this.closest('.modal').remove()" class="btn btn-outline" style="width: 100%;">
+                                Close
+                            </button>
+                            <p style="text-align: center; margin-top: 20px; color: #10b981; font-size: 0.9rem;">
+                                🔒 Complete your purchase in the Stripe tab
+                            </p>
+                        </div>
+                    `;
+                    document.body.appendChild(confirmModal);
                 }, 800);
             } catch (error) {
                 // Show error modal instead of alert
