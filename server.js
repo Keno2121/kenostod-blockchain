@@ -3442,6 +3442,150 @@ app.get('/api/wealth/dashboard/:walletAddress', async (req, res) => {
 
 // ==================== END WEALTH BUILDER PROGRAM API ENDPOINTS ====================
 
+// ==================== GRADUATE CLUB API ENDPOINTS ====================
+
+// Generate Graduate ID and certificate
+app.post('/api/graduates/generate-id', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Graduate features currently unavailable' });
+    }
+    
+    try {
+        const { walletAddress, email, completedCourses } = req.body;
+        
+        if (!walletAddress || completedCourses !== 21) {
+            return res.status(400).json({ 
+                error: 'Must complete all 21 courses to generate Graduate ID' 
+            });
+        }
+        
+        const completionDate = new Date();
+        const dateStr = completionDate.toISOString().slice(0, 10).replace(/-/g, '');
+        const addressHash = walletAddress.slice(-4).toUpperCase();
+        
+        const graduateId = `KG-${dateStr}-${addressHash}`;
+        
+        const certHash = require('crypto')
+            .createHash('sha256')
+            .update(`${walletAddress}${dateStr}${completedCourses}`)
+            .digest('hex');
+        
+        const graduate = {
+            graduateId,
+            walletAddress,
+            email,
+            completionDate: completionDate.toISOString(),
+            totalCourses: 21,
+            kenoEarned: 5250,
+            rvtNFT: 'Platinum',
+            royaltyRate: 0.02,
+            certificateHash: certHash,
+            verificationUrl: `https://kenostodblockchain.com/verify/${graduateId}`,
+            status: 'verified'
+        };
+        
+        await dbConnection.query(`
+            INSERT INTO kenostod_graduates 
+            (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier, certificate_hash)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (wallet_address) 
+            DO UPDATE SET 
+                completion_date = EXCLUDED.completion_date,
+                certificate_hash = EXCLUDED.certificate_hash
+        `, [
+            graduateId,
+            walletAddress,
+            email || null,
+            completionDate,
+            21,
+            5250,
+            'Platinum',
+            certHash
+        ]);
+        
+        res.json({ success: true, graduate });
+    } catch (error) {
+        console.error('Error generating graduate ID:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Verify graduate status
+app.get('/api/graduates/verify/:identifier', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { identifier } = req.params;
+        let result;
+        
+        if (identifier.startsWith('KG-')) {
+            result = await dbConnection.query(`
+                SELECT * FROM kenostod_graduates WHERE graduate_id = $1
+            `, [identifier]);
+        } else {
+            result = await dbConnection.query(`
+                SELECT * FROM kenostod_graduates WHERE wallet_address = $1
+            `, [identifier]);
+        }
+        
+        if (result.rows.length === 0) {
+            return res.json({ isGraduate: false, message: 'No graduate record found' });
+        }
+        
+        const graduate = result.rows[0];
+        res.json({
+            isGraduate: true,
+            graduateId: graduate.graduate_id,
+            walletAddress: graduate.wallet_address,
+            completionDate: graduate.completion_date,
+            totalCourses: graduate.total_courses,
+            kenoEarned: graduate.keno_earned,
+            rvtNFT: graduate.rvt_nft_tier,
+            certificateHash: graduate.certificate_hash,
+            verifiedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error verifying graduate:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get graduate leaderboard
+app.get('/api/graduates/leaderboard', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const result = await dbConnection.query(`
+            SELECT 
+                graduate_id,
+                LEFT(wallet_address, 8) || '...' as wallet_preview,
+                completion_date,
+                total_courses,
+                keno_earned,
+                rvt_nft_tier,
+                created_at
+            FROM kenostod_graduates
+            ORDER BY completion_date ASC
+            LIMIT 100
+        `);
+        
+        res.json({ 
+            success: true, 
+            totalGraduates: result.rows.length,
+            graduates: result.rows 
+        });
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== END GRADUATE CLUB API ENDPOINTS ====================
+
 // ==================== CHAT HISTORY API ENDPOINTS ====================
 
 // Create a new chat conversation
