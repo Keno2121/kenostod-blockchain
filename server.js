@@ -2281,6 +2281,14 @@ app.post('/api/paypal/create-order', async (req, res) => {
     try {
         const { amount } = req.body;
         
+        // Check if PayPal is configured
+        if (paypalIntegration.isTestMode()) {
+            return res.status(503).json({
+                success: false,
+                error: 'PayPal is not configured. Please contact support.'
+            });
+        }
+        
         // Validate amount is a number
         if (!amount || typeof amount !== 'number' || amount <= 0) {
             return res.status(400).json({ 
@@ -2309,10 +2317,19 @@ app.post('/api/paypal/create-order', async (req, res) => {
             approveUrl: order.approveUrl
         });
     } catch (error) {
-        console.error('PayPal order creation error:', error);
-        res.status(400).json({ 
+        console.error('PayPal create-order error:', {
+            endpoint: '/api/paypal/create-order',
+            statusCode: error.statusCode,
+            name: error.name,
+            message: error.message
+        });
+        
+        // Determine appropriate status code
+        const statusCode = error.statusCode || 502;
+        
+        res.status(statusCode).json({ 
             success: false,
-            error: error.message 
+            error: error.message || 'Failed to create PayPal order. Please try again.'
         });
     }
 });
@@ -2321,8 +2338,19 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
     try {
         const { orderId } = req.params;
         
+        // Check if PayPal is configured
+        if (paypalIntegration.isTestMode()) {
+            return res.status(503).json({
+                success: false,
+                error: 'PayPal is not configured. Please contact support.'
+            });
+        }
+        
         if (!orderId) {
-            return res.status(400).json({ error: 'Order ID is required' });
+            return res.status(400).json({ 
+                success: false,
+                error: 'Order ID is required' 
+            });
         }
         
         const capture = await paypalIntegration.captureOrder(orderId);
@@ -2334,8 +2362,21 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
             amount: capture.amount
         });
     } catch (error) {
-        console.error('PayPal order capture error:', error);
-        res.status(400).json({ error: error.message });
+        console.error('PayPal capture-order error:', {
+            endpoint: '/api/paypal/capture-order',
+            orderId: req.params.orderId,
+            statusCode: error.statusCode,
+            name: error.name,
+            message: error.message
+        });
+        
+        // Determine appropriate status code
+        const statusCode = error.statusCode || 502;
+        
+        res.status(statusCode).json({ 
+            success: false,
+            error: error.message || 'Failed to capture PayPal payment. Please try again.'
+        });
     }
 });
 
