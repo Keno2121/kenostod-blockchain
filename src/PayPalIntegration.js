@@ -21,17 +21,7 @@ class PayPalIntegration {
 
     async createOrder(amount, currency = 'USD', metadata = {}) {
         if (this.testMode) {
-            return {
-                id: `PAYPAL-${Date.now()}`,
-                status: 'CREATED',
-                amount: {
-                    currency_code: currency,
-                    value: amount.toFixed(2)
-                },
-                metadata,
-                testMode: true,
-                approveUrl: `https://www.sandbox.paypal.com/checkoutnow?token=PAYPAL-${Date.now()}`
-            };
+            throw new Error('PayPal is not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables.');
         }
 
         try {
@@ -60,21 +50,20 @@ class PayPalIntegration {
                 approveUrl
             };
         } catch (error) {
-            throw new Error(`PayPal order creation failed: ${error.message}`);
+            // Preserve full PayPal error details for debugging
+            const paypalError = {
+                message: error.message || 'PayPal order creation failed',
+                statusCode: error.statusCode,
+                name: error.name,
+                details: error.message
+            };
+            throw new Error(JSON.stringify(paypalError));
         }
     }
 
     async captureOrder(orderId) {
         if (this.testMode) {
-            return {
-                id: orderId,
-                status: 'COMPLETED',
-                amount: {
-                    currency_code: 'USD',
-                    value: '100.00'
-                },
-                testMode: true
-            };
+            throw new Error('PayPal is not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables.');
         }
 
         try {
@@ -91,7 +80,14 @@ class PayPalIntegration {
                 amount: result.purchase_units[0].payments.captures[0].amount
             };
         } catch (error) {
-            throw new Error(`PayPal order capture failed: ${error.message}`);
+            // Preserve full PayPal error details for debugging
+            const paypalError = {
+                message: error.message || 'PayPal order capture failed',
+                statusCode: error.statusCode,
+                name: error.name,
+                details: error.message
+            };
+            throw new Error(JSON.stringify(paypalError));
         }
     }
 
@@ -150,11 +146,7 @@ class PayPalIntegration {
 
     async getOrderDetails(orderId) {
         if (this.testMode) {
-            return {
-                id: orderId,
-                status: 'COMPLETED',
-                testMode: true
-            };
+            throw new Error('PayPal is not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables.');
         }
 
         try {
@@ -162,7 +154,14 @@ class PayPalIntegration {
             const response = await this.client.execute(request);
             return response.result;
         } catch (error) {
-            throw new Error(`PayPal order retrieval failed: ${error.message}`);
+            // Preserve full PayPal error details for debugging
+            const paypalError = {
+                message: error.message || 'PayPal order retrieval failed',
+                statusCode: error.statusCode,
+                name: error.name,
+                details: error.message
+            };
+            throw new Error(JSON.stringify(paypalError));
         }
     }
 

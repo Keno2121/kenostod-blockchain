@@ -2281,8 +2281,21 @@ app.post('/api/paypal/create-order', async (req, res) => {
     try {
         const { amount } = req.body;
         
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ error: 'Valid amount is required' });
+        // Validate amount is a number
+        if (!amount || typeof amount !== 'number' || amount <= 0) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Valid numeric amount is required' 
+            });
+        }
+        
+        // Enforce ICO pricing tiers
+        const validTiers = [50, 100, 250, 500, 1000];
+        if (!validTiers.includes(amount)) {
+            return res.status(400).json({ 
+                success: false,
+                error: `Invalid amount. Please select one of: ${validTiers.map(t => '$' + t).join(', ')}` 
+            });
         }
         
         const order = await paypalIntegration.createOrder(amount, 'USD', {
@@ -2297,7 +2310,10 @@ app.post('/api/paypal/create-order', async (req, res) => {
         });
     } catch (error) {
         console.error('PayPal order creation error:', error);
-        res.status(400).json({ error: error.message });
+        res.status(400).json({ 
+            success: false,
+            error: error.message 
+        });
     }
 });
 

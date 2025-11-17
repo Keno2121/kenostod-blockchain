@@ -654,10 +654,11 @@ async function proceedToPayPal() {
                 console.error('PayPal button error:', err);
                 alert('An error occurred with PayPal. Please try again or use the crypto wallet option.');
                 
+                // Restore button state
+                buttonContainer.style.display = 'none';
                 continueBtn.style.display = 'block';
                 continueBtn.disabled = false;
                 continueBtn.textContent = 'Continue to PayPal Checkout →';
-                buttonContainer.style.display = 'none';
             },
             
             onCancel: function() {
