@@ -3837,6 +3837,278 @@ app.get('/api/graduates/leaderboard', async (req, res) => {
 
 // ==================== END GRADUATE CLUB API ENDPOINTS ====================
 
+// ==================== GRADUATE MERCHANDISE API ENDPOINTS ====================
+
+// Check if user is eligible for graduate merchandise (completed 21 courses)
+app.get('/api/graduate/check-eligibility/:wallet', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { wallet } = req.params;
+        
+        // Check if user is a verified graduate
+        const graduateCheck = await dbConnection.query(`
+            SELECT graduate_id, completion_date, total_courses, keno_earned, rvt_nft_tier
+            FROM kenostod_graduates
+            WHERE wallet_address = $1
+        `, [wallet]);
+        
+        if (graduateCheck.rows.length > 0) {
+            const graduate = graduateCheck.rows[0];
+            return res.json({
+                eligible: true,
+                isGraduate: true,
+                graduateId: graduate.graduate_id,
+                completionDate: graduate.completion_date,
+                totalCourses: graduate.total_courses,
+                kenoEarned: graduate.keno_earned,
+                rvtNFT: graduate.rvt_nft_tier
+            });
+        }
+        
+        // Check course completion status
+        const completionCheck = await dbConnection.query(`
+            SELECT 
+                COUNT(DISTINCT course_id) as completed_courses
+            FROM course_progress
+            WHERE user_wallet_address = $1 
+            AND completion_verified = true
+        `, [wallet]);
+        
+        const completedCount = parseInt(completionCheck.rows[0]?.completed_courses || 0);
+        
+        res.json({
+            eligible: completedCount >= 21,
+            isGraduate: false,
+            coursesCompleted: completedCount,
+            coursesRemaining: Math.max(0, 21 - completedCount),
+            message: completedCount >= 21 
+                ? 'Congratulations! You are eligible for graduate merchandise.' 
+                : `Complete ${21 - completedCount} more course(s) to unlock graduate merchandise.`
+        });
+    } catch (error) {
+        console.error('Error checking eligibility:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Submit graduate merchandise order
+app.post('/api/graduate/merchandise/order', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const {
+            userWalletAddress,
+            userEmail,
+            graduateName,
+            shippingAddress,
+            phoneNumber,
+            itemsRequested
+        } = req.body;
+        
+        // Validate required fields
+        if (!userWalletAddress || !graduateName || !shippingAddress || !itemsRequested) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        // Verify graduate status
+        const graduateCheck = await dbConnection.query(`
+            SELECT graduate_id FROM kenostod_graduates WHERE wallet_address = $1
+        `, [userWalletAddress]);
+        
+        if (graduateCheck.rows.length === 0) {
+            return res.status(403).json({ 
+                error: 'You must be a verified graduate to request merchandise. Complete all 21 courses first.' 
+            });
+        }
+        
+        const graduateId = graduateCheck.rows[0].graduate_id;
+        
+        // Generate unique order ID
+        const orderId = `MO-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        
+        // Calculate estimated cost
+        const itemPrices = {
+            'pin': 0,        // Free for graduates
+            'id_card': 0,    // Free for graduates
+            'hoodie': 45,    // Discounted for graduates
+            'ring': 69,      // Discounted
+            'certificate': 99, // Discounted
+            'phone_case': 25  // Discounted
+        };
+        
+        let estimatedCost = 0;
+        itemsRequested.forEach(item => {
+            const price = itemPrices[item.itemType] || 0;
+            estimatedCost += price * (item.quantity || 1);
+        });
+        
+        // Insert order into database
+        const result = await dbConnection.query(`
+            INSERT INTO graduate_merchandise_orders (
+                order_id,
+                user_wallet_address,
+                user_email,
+                graduate_name,
+                graduate_id,
+                shipping_address_line1,
+                shipping_address_line2,
+                shipping_city,
+                shipping_state,
+                shipping_postal_code,
+                shipping_country,
+                phone_number,
+                items_requested,
+                estimated_total_cost,
+                order_status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING *
+        `, [
+            orderId,
+            userWalletAddress,
+            userEmail || null,
+            graduateName,
+            graduateId,
+            shippingAddress.line1,
+            shippingAddress.line2 || null,
+            shippingAddress.city,
+            shippingAddress.state || null,
+            shippingAddress.postalCode,
+            shippingAddress.country,
+            phoneNumber || null,
+            JSON.stringify(itemsRequested),
+            estimatedCost,
+            'pending'
+        ]);
+        
+        console.log(`📦 New merchandise order: ${orderId} from ${graduateId}`);
+        
+        res.json({
+            success: true,
+            order: result.rows[0],
+            message: 'Your merchandise order has been submitted successfully! You will receive an email when it ships.'
+        });
+    } catch (error) {
+        console.error('Error submitting merchandise order:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all merchandise orders (ADMIN ONLY)
+app.get('/api/graduate/merchandise/orders', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const status = req.query.status || 'all';
+        
+        let query = `
+            SELECT 
+                o.*,
+                g.completion_date
+            FROM graduate_merchandise_orders o
+            LEFT JOIN kenostod_graduates g ON o.graduate_id = g.graduate_id
+        `;
+        
+        if (status !== 'all') {
+            query += ` WHERE o.order_status = $1`;
+        }
+        
+        query += ` ORDER BY o.created_at DESC`;
+        
+        const params = status !== 'all' ? [status] : [];
+        const result = await dbConnection.query(query, params);
+        
+        res.json({
+            success: true,
+            totalOrders: result.rows.length,
+            orders: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching merchandise orders:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update merchandise order status (ADMIN ONLY)
+app.put('/api/graduate/merchandise/orders/:orderId', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { orderId } = req.params;
+        const { status, orderNotes, trackingNumber, printfulOrderId } = req.body;
+        
+        if (!status) {
+            return res.status(400).json({ error: 'Status is required' });
+        }
+        
+        // Update timestamp fields based on status
+        let timestampField = '';
+        if (status === 'processing') timestampField = 'processed_at = CURRENT_TIMESTAMP';
+        if (status === 'shipped') timestampField = 'shipped_at = CURRENT_TIMESTAMP';
+        if (status === 'delivered') timestampField = 'delivered_at = CURRENT_TIMESTAMP';
+        
+        const updates = ['order_status = $1'];
+        const params = [status];
+        let paramIndex = 2;
+        
+        if (orderNotes) {
+            updates.push(`order_notes = $${paramIndex}`);
+            params.push(orderNotes);
+            paramIndex++;
+        }
+        
+        if (trackingNumber) {
+            updates.push(`tracking_number = $${paramIndex}`);
+            params.push(trackingNumber);
+            paramIndex++;
+        }
+        
+        if (printfulOrderId) {
+            updates.push(`printful_order_id = $${paramIndex}`);
+            params.push(printfulOrderId);
+            paramIndex++;
+        }
+        
+        if (timestampField) {
+            updates.push(timestampField);
+        }
+        
+        params.push(orderId);
+        
+        const result = await dbConnection.query(`
+            UPDATE graduate_merchandise_orders
+            SET ${updates.join(', ')}
+            WHERE order_id = $${paramIndex}
+            RETURNING *
+        `, params);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+        
+        console.log(`📦 Order ${orderId} updated to status: ${status}`);
+        
+        res.json({
+            success: true,
+            order: result.rows[0],
+            message: 'Order updated successfully'
+        });
+    } catch (error) {
+        console.error('Error updating merchandise order:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== END GRADUATE MERCHANDISE API ENDPOINTS ====================
+
 // ==================== CHAT HISTORY API ENDPOINTS ====================
 
 // Create a new chat conversation
