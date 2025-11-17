@@ -321,6 +321,10 @@
             <button class="filter-btn" onclick="filterOrders('shipped')">Shipped</button>
             <button class="filter-btn" onclick="filterOrders('delivered')">Delivered</button>
             <div style="flex: 1;"></div>
+            <label style="display: flex; align-items: center; gap: 8px; margin-right: 16px; cursor: pointer;" title="Graduates receive emails when orders ship/deliver">
+                <input type="checkbox" id="emailNotificationsToggle" checked onchange="saveEmailPreference()">
+                <span style="font-size: 0.9rem;">📧 Send email notifications</span>
+            </label>
             <button class="btn-export" onclick="exportToCSV()">📥 Export to CSV</button>
         </div>
 
@@ -356,7 +360,12 @@
             <div id="orderDetails"></div>
 
             <div style="border-top: 2px solid var(--bg-gray); margin-top: 32px; padding-top: 32px;">
-                <h3 style="color: var(--text-dark); margin-bottom: 20px;">Update Order Status</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: var(--text-dark); margin: 0;">Update Order Status</h3>
+                    <button id="sendToPrintfulBtn" class="btn-view" style="background: #7c3aed; display: none;" onclick="sendToPrintful()">
+                        🖨️ Send to Printful
+                    </button>
+                </div>
 
                 <div class="form-group">
                     <label for="updateStatus">Status</label>
@@ -653,6 +662,13 @@
             document.getElementById('printfulOrderId').value = order.printful_order_id || '';
             document.getElementById('orderNotes').value = order.order_notes || '';
 
+            const sendToPrintfulBtn = document.getElementById('sendToPrintfulBtn');
+            if (!order.printful_order_id && (order.order_status === 'pending' || order.order_status === 'processing')) {
+                sendToPrintfulBtn.style.display = 'block';
+            } else {
+                sendToPrintfulBtn.style.display = 'none';
+            }
+
             document.getElementById('orderModal').style.display = 'block';
         }
 
@@ -698,6 +714,56 @@
             } catch (error) {
                 console.error('Error updating order:', error);
                 alert('❌ Failed to update order. Please try again.');
+            }
+        }
+
+        async function sendToPrintful() {
+            if (!currentOrderId) return;
+
+            const confirmSend = confirm('🖨️ Send this order to Printful for fulfillment?\n\nThis will:\n- Create a Printful order\n- Update status to "processing"\n- Begin the fulfillment process');
+            
+            if (!confirmSend) return;
+
+            try {
+                const response = await fetch(`/api/graduate/merchandise/orders/${currentOrderId}/send-to-printful`, {
+                    method: 'POST',
+                    headers: getAdminHeaders()
+                });
+
+                const result = await response.json();
+
+                if (response.status === 403 || response.status === 401) {
+                    handleAuthError();
+                    return;
+                }
+
+                if (result.success) {
+                    alert(`✅ Order sent to Printful successfully!\n\nPrintful Order ID: ${result.printfulOrderId}\nEstimated Ship Date: ${result.estimatedShippingDate || 'TBD'}`);
+                    closeModal();
+                    loadOrders();
+                } else {
+                    alert(`❌ Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error sending to Printful:', error);
+                alert('❌ Failed to send order to Printful. Please try again.');
+            }
+        }
+
+        function saveEmailPreference() {
+            const toggle = document.getElementById('emailNotificationsToggle');
+            localStorage.setItem('emailNotificationsEnabled', toggle.checked);
+            console.log(`📧 Email notifications ${toggle.checked ? 'enabled' : 'disabled'}`);
+        }
+
+        function loadEmailPreference() {
+            const saved = localStorage.getItem('emailNotificationsEnabled');
+            const toggle = document.getElementById('emailNotificationsToggle');
+            
+            if (saved !== null) {
+                toggle.checked = saved === 'true';
+            } else {
+                toggle.checked = true;
             }
         }
 
@@ -748,6 +814,7 @@
 
         window.addEventListener('load', () => {
             if (checkAdminAuth()) {
+                loadEmailPreference();
                 loadOrders();
             }
         });

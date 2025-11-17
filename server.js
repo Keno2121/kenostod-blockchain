@@ -289,9 +289,9 @@ async function initializeTestGraduate() {
         if (existingGraduate.rows.length === 0) {
             await dbConnection.query(`
                 INSERT INTO kenostod_graduates 
-                (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier)
+                (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier, certificate_hash)
                 VALUES 
-                ('KG-20250101-TEST', $1, 'test.graduate@kenostod.com', '2025-01-01', 21, 5250, 'Platinum')
+                ('KG-20250101-TEST', $1, 'test.graduate@kenostod.com', '2025-01-01', 21, 5250, 'Platinum', 'test-cert-hash-KG-20250101-TEST')
             `, [testWallet]);
             
             console.log('\n🎓 Test Graduate Account Created!');
@@ -322,6 +322,14 @@ if (stripeIntegration.isTestMode()) {
 }
 if (paypalIntegration.isTestMode()) {
     console.log('⚠️  PayPal running in TEST MODE');
+}
+console.log('\n📦 Graduate Merchandise System:');
+console.log('   ✅ Email notifications enabled (Replit Mail)');
+console.log('   ✅ Printful integration available' + (printfulIntegration.isConfigured() ? ' (configured)' : ' (needs PRINTFUL_API_KEY)'));
+console.log('   ✅ Admin panel: /admin-merchandise.html');
+if (process.env.NODE_ENV !== 'production') {
+    console.log('   🧪 Test Graduate Endpoint: POST /api/dev/create-test-graduate');
+    console.log('      Use this to create test graduate accounts for testing merchandise orders');
 }
 
 // Routes
@@ -4430,6 +4438,230 @@ app.get('/api/graduate/merchandise/printful-status/:orderId', (req, res, next) =
         });
     } catch (error) {
         console.error('Error fetching Printful status:', error.message);
+        res.status(500).json({ 
+            success: false,
+            error: error.message 
+        });
+    }
+});
+
+// Send order to Printful for fulfillment (ADMIN ONLY)
+app.post('/api/graduate/merchandise/orders/:orderId/send-to-printful', (req, res, next) => {
+    if (!securityMiddleware) {
+        return res.status(503).json({ error: 'Security features currently unavailable' });
+    }
+    securityMiddleware.requireAdmin(req, res, next);
+}, async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    if (!printfulIntegration.isConfigured()) {
+        return res.status(503).json({ 
+            success: false,
+            error: 'Printful integration not configured. Please set PRINTFUL_API_KEY environment variable.' 
+        });
+    }
+    
+    try {
+        const { orderId } = req.params;
+        
+        const orderResult = await dbConnection.query(
+            'SELECT * FROM graduate_merchandise_orders WHERE order_id = $1',
+            [orderId]
+        );
+        
+        if (orderResult.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'Order not found' 
+            });
+        }
+        
+        const order = orderResult.rows[0];
+        
+        if (order.printful_order_id) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Order already sent to Printful',
+                printfulOrderId: order.printful_order_id
+            });
+        }
+        
+        if (order.order_status !== 'pending' && order.order_status !== 'processing') {
+            return res.status(400).json({ 
+                success: false,
+                error: `Cannot send order to Printful. Current status: ${order.order_status}`
+            });
+        }
+        
+        console.log(`🖨️  Sending order ${orderId} to Printful...`);
+        
+        const printfulResult = await printfulIntegration.createPrintfulOrder(order);
+        
+        await dbConnection.query(`
+            UPDATE graduate_merchandise_orders
+            SET printful_order_id = $1,
+                order_status = 'processing',
+                processed_at = CURRENT_TIMESTAMP
+            WHERE order_id = $2
+        `, [printfulResult.printfulOrderId, orderId]);
+        
+        console.log(`✅ Order ${orderId} sent to Printful successfully (Printful ID: ${printfulResult.printfulOrderId})`);
+        
+        res.json({
+            success: true,
+            message: 'Order sent to Printful successfully',
+            printfulOrderId: printfulResult.printfulOrderId,
+            estimatedShippingDate: printfulResult.estimatedShippingDate,
+            status: printfulResult.status,
+            costs: printfulResult.costs
+        });
+    } catch (error) {
+        console.error('Error sending order to Printful:', error.message);
+        res.status(500).json({ 
+            success: false,
+            error: `Failed to send order to Printful: ${error.message}` 
+        });
+    }
+});
+
+// Printful webhook endpoint for shipping updates
+app.post('/api/webhooks/printful', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const webhookData = req.body;
+        
+        console.log('📬 Received Printful webhook:', webhookData.type || 'unknown type');
+        
+        if (webhookData.type === 'package_shipped') {
+            const printfulOrderId = webhookData.data?.order?.id;
+            const trackingNumber = webhookData.data?.shipment?.tracking_number;
+            const trackingUrl = webhookData.data?.shipment?.tracking_url;
+            
+            if (!printfulOrderId) {
+                console.warn('⚠️  Printful webhook missing order ID');
+                return res.status(400).json({ error: 'Missing order ID in webhook data' });
+            }
+            
+            const orderResult = await dbConnection.query(
+                'SELECT * FROM graduate_merchandise_orders WHERE printful_order_id = $1',
+                [printfulOrderId.toString()]
+            );
+            
+            if (orderResult.rows.length === 0) {
+                console.warn(`⚠️  No local order found for Printful ID: ${printfulOrderId}`);
+                return res.status(404).json({ error: 'Order not found' });
+            }
+            
+            const order = orderResult.rows[0];
+            
+            await dbConnection.query(`
+                UPDATE graduate_merchandise_orders
+                SET order_status = 'shipped',
+                    tracking_number = $1,
+                    shipped_at = CURRENT_TIMESTAMP
+                WHERE order_id = $2
+            `, [trackingNumber || null, order.order_id]);
+            
+            console.log(`✅ Updated order ${order.order_id} to shipped status (tracking: ${trackingNumber})`);
+            
+            const updatedOrderResult = await dbConnection.query(
+                'SELECT * FROM graduate_merchandise_orders WHERE order_id = $1',
+                [order.order_id]
+            );
+            const updatedOrder = updatedOrderResult.rows[0];
+            
+            try {
+                if (updatedOrder.user_email) {
+                    await EmailService.sendOrderShippedEmail(updatedOrder);
+                    console.log(`📧 Shipped notification email sent for order ${order.order_id}`);
+                }
+            } catch (emailError) {
+                console.error('⚠️  Email notification failed (non-critical):', emailError.message);
+            }
+        } else if (webhookData.type === 'package_returned') {
+            const printfulOrderId = webhookData.data?.order?.id;
+            
+            if (printfulOrderId) {
+                await dbConnection.query(`
+                    UPDATE graduate_merchandise_orders
+                    SET order_notes = COALESCE(order_notes || E'\n', '') || 'Package returned by carrier - ' || CURRENT_TIMESTAMP
+                    WHERE printful_order_id = $1
+                `, [printfulOrderId.toString()]);
+                
+                console.log(`⚠️  Package returned for Printful order ${printfulOrderId}`);
+            }
+        }
+        
+        res.json({ received: true });
+    } catch (error) {
+        console.error('Error processing Printful webhook:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Create test graduate account (DEVELOPMENT ONLY)
+app.post('/api/dev/create-test-graduate', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ 
+            error: 'This endpoint is only available in development mode',
+            message: 'Test graduate creation is disabled in production for security'
+        });
+    }
+    
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const testGraduateId = 'KG-TEST-0001';
+        const testWalletAddress = wallet1.getAddress();
+        const testEmail = 'test@kenostod.com';
+        
+        const existingGraduate = await dbConnection.query(
+            'SELECT * FROM kenostod_graduates WHERE graduate_id = $1',
+            [testGraduateId]
+        );
+        
+        if (existingGraduate.rows.length > 0) {
+            console.log('✅ Test graduate already exists, returning existing record');
+            return res.json({
+                success: true,
+                message: 'Test graduate already exists',
+                graduate: existingGraduate.rows[0],
+                alreadyExists: true
+            });
+        }
+        
+        const result = await dbConnection.query(`
+            INSERT INTO kenostod_graduates 
+            (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier, certificate_hash)
+            VALUES ($1, $2, $3, CURRENT_TIMESTAMP, 21, 5250, 'Platinum', $4)
+            RETURNING *
+        `, [testGraduateId, testWalletAddress, testEmail, `test-cert-hash-${testGraduateId}`]);
+        
+        const newGraduate = result.rows[0];
+        
+        console.log(`🎓 Test graduate created successfully: ${testGraduateId}`);
+        console.log(`   Wallet: ${testWalletAddress}`);
+        console.log(`   Email: ${testEmail}`);
+        
+        res.json({
+            success: true,
+            message: 'Test graduate created successfully',
+            graduate: newGraduate,
+            instructions: {
+                walletAddress: testWalletAddress,
+                email: testEmail,
+                usage: 'Use this wallet address in the merchandise request form to test the system'
+            }
+        });
+    } catch (error) {
+        console.error('Error creating test graduate:', error.message);
         res.status(500).json({ 
             success: false,
             error: error.message 
