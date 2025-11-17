@@ -222,6 +222,86 @@ class SecurityMiddleware {
         return `Kenostod Blockchain Academy\nAction: ${action}\nWallet: ${walletAddress}\nTimestamp: ${timestamp}`;
     }
 
+    requireAdmin(req, res, next) {
+        try {
+            const adminKey = req.headers['x-admin-key'] || req.query.adminKey || req.body.adminKey;
+            const adminWallets = process.env.ADMIN_WALLETS ? process.env.ADMIN_WALLETS.split(',').map(w => w.toLowerCase().trim()) : [];
+            
+            if (!adminKey && adminWallets.length === 0) {
+                console.warn('⚠️  No admin authentication configured. Set ADMIN_KEY or ADMIN_WALLETS environment variable.');
+                return res.status(503).json({
+                    success: false,
+                    error: 'Admin authentication not configured. Please contact system administrator.'
+                });
+            }
+
+            if (process.env.ADMIN_KEY && adminKey === process.env.ADMIN_KEY) {
+                req.isAdmin = true;
+                return next();
+            }
+
+            const providedWallet = req.headers['x-admin-wallet'] || req.query.adminWallet || req.body.adminWallet;
+            if (providedWallet && adminWallets.includes(providedWallet.toLowerCase())) {
+                req.isAdmin = true;
+                req.adminWallet = providedWallet;
+                return next();
+            }
+
+            console.warn(`⚠️  Unauthorized admin access attempt from IP: ${req.ip}`);
+            return res.status(403).json({
+                success: false,
+                error: 'Access denied. Admin privileges required.'
+            });
+        } catch (error) {
+            console.error('Admin authentication error:', error.message);
+            return res.status(500).json({
+                success: false,
+                error: 'Authentication failed.'
+            });
+        }
+    }
+
+    sanitizeText(text, maxLength = 500) {
+        if (!text) return '';
+        
+        let sanitized = String(text).trim();
+        
+        sanitized = sanitized
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;')
+            .replace(/\//g, '&#x2F;');
+        
+        if (sanitized.length > maxLength) {
+            sanitized = sanitized.substring(0, maxLength);
+        }
+        
+        return sanitized;
+    }
+
+    validateEmail(email) {
+        if (!email) return true;
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailRegex.test(email) && email.length <= 254;
+    }
+
+    validatePhoneNumber(phone) {
+        if (!phone) return true;
+        const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
+        return phoneRegex.test(phone) && phone.length <= 20;
+    }
+
+    validateWalletAddress(address) {
+        if (!address) return false;
+        return /^0x[a-fA-F0-9]{40}$/.test(address);
+    }
+
+    validateStatus(status) {
+        const validStatuses = ['pending', 'processing', 'shipped', 'delivered'];
+        return validStatuses.includes(status);
+    }
+
     getCourseCompletionGuards() {
         return [
             (req, res, next) => this.verifyWalletSignature(req, res, next),

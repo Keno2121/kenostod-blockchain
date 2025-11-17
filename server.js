@@ -3900,6 +3900,10 @@ app.post('/api/graduate/merchandise/order', async (req, res) => {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
     
+    if (!securityMiddleware) {
+        return res.status(503).json({ error: 'Security features currently unavailable' });
+    }
+    
     try {
         const {
             userWalletAddress,
@@ -3912,21 +3916,107 @@ app.post('/api/graduate/merchandise/order', async (req, res) => {
         
         // Validate required fields
         if (!userWalletAddress || !graduateName || !shippingAddress || !itemsRequested) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-        
-        // Verify graduate status
-        const graduateCheck = await dbConnection.query(`
-            SELECT graduate_id FROM kenostod_graduates WHERE wallet_address = $1
-        `, [userWalletAddress]);
-        
-        if (graduateCheck.rows.length === 0) {
-            return res.status(403).json({ 
-                error: 'You must be a verified graduate to request merchandise. Complete all 21 courses first.' 
+            return res.status(400).json({ 
+                success: false,
+                error: 'Missing required fields: userWalletAddress, graduateName, shippingAddress, itemsRequested' 
             });
         }
         
-        const graduateId = graduateCheck.rows[0].graduate_id;
+        // Validate wallet address format
+        if (!securityMiddleware.validateWalletAddress(userWalletAddress)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid wallet address format. Must be a valid Ethereum address (0x...)' 
+            });
+        }
+        
+        // Validate email if provided
+        if (userEmail && !securityMiddleware.validateEmail(userEmail)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid email address format' 
+            });
+        }
+        
+        // Validate phone number if provided
+        if (phoneNumber && !securityMiddleware.validatePhoneNumber(phoneNumber)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid phone number format' 
+            });
+        }
+        
+        // Validate shipping address structure
+        if (!shippingAddress.line1 || !shippingAddress.city || !shippingAddress.postalCode || !shippingAddress.country) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Incomplete shipping address. Required: line1, city, postalCode, country' 
+            });
+        }
+        
+        // Validate items requested
+        if (!Array.isArray(itemsRequested) || itemsRequested.length === 0) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Items requested must be a non-empty array' 
+            });
+        }
+        
+        const validItemTypes = ['pin', 'id_card', 'hoodie', 'ring', 'certificate', 'phone_case'];
+        for (const item of itemsRequested) {
+            if (!item.itemType || !validItemTypes.includes(item.itemType)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: `Invalid item type. Must be one of: ${validItemTypes.join(', ')}` 
+                });
+            }
+            if (!item.quantity || item.quantity < 1 || item.quantity > 10) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Item quantity must be between 1 and 10' 
+                });
+            }
+        }
+        
+        // Sanitize all text inputs
+        const sanitizedGraduateName = securityMiddleware.sanitizeText(graduateName, 100);
+        const sanitizedEmail = userEmail ? securityMiddleware.sanitizeText(userEmail, 254) : null;
+        const sanitizedPhone = phoneNumber ? securityMiddleware.sanitizeText(phoneNumber, 20) : null;
+        const sanitizedLine1 = securityMiddleware.sanitizeText(shippingAddress.line1, 200);
+        const sanitizedLine2 = shippingAddress.line2 ? securityMiddleware.sanitizeText(shippingAddress.line2, 200) : null;
+        const sanitizedCity = securityMiddleware.sanitizeText(shippingAddress.city, 100);
+        const sanitizedState = shippingAddress.state ? securityMiddleware.sanitizeText(shippingAddress.state, 100) : null;
+        const sanitizedPostalCode = securityMiddleware.sanitizeText(shippingAddress.postalCode, 20);
+        const sanitizedCountry = securityMiddleware.sanitizeText(shippingAddress.country, 100);
+        
+        // Verify graduate status - authoritative check against kenostod_graduates table
+        const graduateCheck = await dbConnection.query(`
+            SELECT graduate_id, completion_date, total_courses 
+            FROM kenostod_graduates 
+            WHERE wallet_address = $1
+        `, [userWalletAddress.toLowerCase()]);
+        
+        if (graduateCheck.rows.length === 0) {
+            return res.status(403).json({ 
+                success: false,
+                error: 'You must be a verified graduate to request merchandise. Complete all 21 courses and claim your graduation status first.',
+                requiresGraduation: true
+            });
+        }
+        
+        const graduate = graduateCheck.rows[0];
+        
+        // Verify they completed all 21 courses
+        if (graduate.total_courses < 21) {
+            return res.status(403).json({ 
+                success: false,
+                error: `You must complete all 21 courses to request merchandise. You have completed ${graduate.total_courses} courses.`,
+                coursesCompleted: graduate.total_courses,
+                coursesRequired: 21
+            });
+        }
+        
+        const graduateId = graduate.graduate_id;
         
         // Generate unique order ID
         const orderId = `MO-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -3947,7 +4037,7 @@ app.post('/api/graduate/merchandise/order', async (req, res) => {
             estimatedCost += price * (item.quantity || 1);
         });
         
-        // Insert order into database
+        // Insert order into database (using sanitized inputs)
         const result = await dbConnection.query(`
             INSERT INTO graduate_merchandise_orders (
                 order_id,
@@ -3969,17 +4059,17 @@ app.post('/api/graduate/merchandise/order', async (req, res) => {
             RETURNING *
         `, [
             orderId,
-            userWalletAddress,
-            userEmail || null,
-            graduateName,
+            userWalletAddress.toLowerCase(),
+            sanitizedEmail,
+            sanitizedGraduateName,
             graduateId,
-            shippingAddress.line1,
-            shippingAddress.line2 || null,
-            shippingAddress.city,
-            shippingAddress.state || null,
-            shippingAddress.postalCode,
-            shippingAddress.country,
-            phoneNumber || null,
+            sanitizedLine1,
+            sanitizedLine2,
+            sanitizedCity,
+            sanitizedState,
+            sanitizedPostalCode,
+            sanitizedCountry,
+            sanitizedPhone,
             JSON.stringify(itemsRequested),
             estimatedCost,
             'pending'
@@ -3999,13 +4089,26 @@ app.post('/api/graduate/merchandise/order', async (req, res) => {
 });
 
 // Get all merchandise orders (ADMIN ONLY)
-app.get('/api/graduate/merchandise/orders', async (req, res) => {
+app.get('/api/graduate/merchandise/orders', (req, res, next) => {
+    if (!securityMiddleware) {
+        return res.status(503).json({ error: 'Security features currently unavailable' });
+    }
+    securityMiddleware.requireAdmin(req, res, next);
+}, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
     
     try {
         const status = req.query.status || 'all';
+        
+        // Validate status parameter if provided
+        if (status !== 'all' && !securityMiddleware.validateStatus(status)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid status filter. Must be one of: pending, processing, shipped, delivered, all' 
+            });
+        }
         
         let query = `
             SELECT 
@@ -4024,6 +4127,8 @@ app.get('/api/graduate/merchandise/orders', async (req, res) => {
         const params = status !== 'all' ? [status] : [];
         const result = await dbConnection.query(query, params);
         
+        console.log(`🔒 Admin accessed merchandise orders (${result.rows.length} orders)`);
+        
         res.json({
             success: true,
             totalOrders: result.rows.length,
@@ -4031,12 +4136,20 @@ app.get('/api/graduate/merchandise/orders', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching merchandise orders:', error.message);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+            success: false,
+            error: error.message 
+        });
     }
 });
 
 // Update merchandise order status (ADMIN ONLY)
-app.put('/api/graduate/merchandise/orders/:orderId', async (req, res) => {
+app.put('/api/graduate/merchandise/orders/:orderId', (req, res, next) => {
+    if (!securityMiddleware) {
+        return res.status(503).json({ error: 'Security features currently unavailable' });
+    }
+    securityMiddleware.requireAdmin(req, res, next);
+}, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
@@ -4045,9 +4158,34 @@ app.put('/api/graduate/merchandise/orders/:orderId', async (req, res) => {
         const { orderId } = req.params;
         const { status, orderNotes, trackingNumber, printfulOrderId } = req.body;
         
+        // Validate required fields
         if (!status) {
-            return res.status(400).json({ error: 'Status is required' });
+            return res.status(400).json({ 
+                success: false,
+                error: 'Status is required' 
+            });
         }
+        
+        // Validate order ID format
+        if (!orderId || !orderId.startsWith('MO-')) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid order ID format' 
+            });
+        }
+        
+        // Validate status value - ONLY allow these specific values
+        if (!securityMiddleware.validateStatus(status)) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Invalid status. Must be one of: pending, processing, shipped, delivered' 
+            });
+        }
+        
+        // Sanitize all text inputs to prevent XSS
+        const sanitizedOrderNotes = orderNotes ? securityMiddleware.sanitizeText(orderNotes, 1000) : null;
+        const sanitizedTrackingNumber = trackingNumber ? securityMiddleware.sanitizeText(trackingNumber, 100) : null;
+        const sanitizedPrintfulOrderId = printfulOrderId ? securityMiddleware.sanitizeText(printfulOrderId, 50) : null;
         
         // Update timestamp fields based on status
         let timestampField = '';
@@ -4059,21 +4197,21 @@ app.put('/api/graduate/merchandise/orders/:orderId', async (req, res) => {
         const params = [status];
         let paramIndex = 2;
         
-        if (orderNotes) {
+        if (sanitizedOrderNotes !== null) {
             updates.push(`order_notes = $${paramIndex}`);
-            params.push(orderNotes);
+            params.push(sanitizedOrderNotes);
             paramIndex++;
         }
         
-        if (trackingNumber) {
+        if (sanitizedTrackingNumber !== null) {
             updates.push(`tracking_number = $${paramIndex}`);
-            params.push(trackingNumber);
+            params.push(sanitizedTrackingNumber);
             paramIndex++;
         }
         
-        if (printfulOrderId) {
+        if (sanitizedPrintfulOrderId !== null) {
             updates.push(`printful_order_id = $${paramIndex}`);
-            params.push(printfulOrderId);
+            params.push(sanitizedPrintfulOrderId);
             paramIndex++;
         }
         
@@ -4083,6 +4221,7 @@ app.put('/api/graduate/merchandise/orders/:orderId', async (req, res) => {
         
         params.push(orderId);
         
+        // Using parameterized query to prevent SQL injection
         const result = await dbConnection.query(`
             UPDATE graduate_merchandise_orders
             SET ${updates.join(', ')}
@@ -4091,10 +4230,13 @@ app.put('/api/graduate/merchandise/orders/:orderId', async (req, res) => {
         `, params);
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Order not found' });
+            return res.status(404).json({ 
+                success: false,
+                error: 'Order not found' 
+            });
         }
         
-        console.log(`📦 Order ${orderId} updated to status: ${status}`);
+        console.log(`🔒 Admin updated order ${orderId} to status: ${status}`);
         
         res.json({
             success: true,
@@ -4103,7 +4245,10 @@ app.put('/api/graduate/merchandise/orders/:orderId', async (req, res) => {
         });
     } catch (error) {
         console.error('Error updating merchandise order:', error.message);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+            success: false,
+            error: error.message 
+        });
     }
 });
 

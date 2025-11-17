@@ -396,11 +396,68 @@
         let allOrders = [];
         let currentFilter = 'all';
         let currentOrderId = null;
+        let adminKey = null;
+        let adminWallet = null;
+
+        function checkAdminAuth() {
+            adminKey = localStorage.getItem('adminKey');
+            adminWallet = localStorage.getItem('adminWallet');
+            
+            if (!adminKey && !adminWallet) {
+                const key = prompt('🔒 Admin Authentication Required\n\nPlease enter your admin key or leave blank to use wallet address:');
+                
+                if (!key) {
+                    const wallet = prompt('Enter your admin wallet address (0x...):');
+                    if (!wallet || !wallet.startsWith('0x')) {
+                        alert('Invalid admin credentials. Access denied.');
+                        window.location.href = '/backoffice.html';
+                        return false;
+                    }
+                    adminWallet = wallet;
+                    localStorage.setItem('adminWallet', wallet);
+                } else {
+                    adminKey = key;
+                    localStorage.setItem('adminKey', key);
+                }
+            }
+            
+            return true;
+        }
+
+        function getAdminHeaders() {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            if (adminKey) {
+                headers['X-Admin-Key'] = adminKey;
+            } else if (adminWallet) {
+                headers['X-Admin-Wallet'] = adminWallet;
+            }
+            
+            return headers;
+        }
+
+        function handleAuthError() {
+            alert('⚠️ Admin authentication failed. Please re-enter your credentials.');
+            localStorage.removeItem('adminKey');
+            localStorage.removeItem('adminWallet');
+            adminKey = null;
+            adminWallet = null;
+            window.location.reload();
+        }
 
         async function loadOrders() {
             try {
-                const response = await fetch('/api/graduate/merchandise/orders');
+                const response = await fetch('/api/graduate/merchandise/orders', {
+                    headers: getAdminHeaders()
+                });
                 const data = await response.json();
+                
+                if (response.status === 403 || response.status === 401) {
+                    handleAuthError();
+                    return;
+                }
                 
                 if (data.success) {
                     allOrders = data.orders;
@@ -615,7 +672,7 @@
             try {
                 const response = await fetch(`/api/graduate/merchandise/orders/${currentOrderId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAdminHeaders(),
                     body: JSON.stringify({
                         status,
                         trackingNumber: trackingNumber || undefined,
@@ -625,6 +682,11 @@
                 });
 
                 const result = await response.json();
+
+                if (response.status === 403 || response.status === 401) {
+                    handleAuthError();
+                    return;
+                }
 
                 if (result.success) {
                     alert('✅ Order updated successfully!');
@@ -684,7 +746,11 @@
             window.URL.revokeObjectURL(url);
         }
 
-        window.addEventListener('load', loadOrders);
+        window.addEventListener('load', () => {
+            if (checkAdminAuth()) {
+                loadOrders();
+            }
+        });
 
         setInterval(loadOrders, 30000);
     </script>
