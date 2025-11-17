@@ -1,5 +1,15 @@
 const checkoutNodeJssdk = require('@paypal/checkout-server-sdk');
 
+class PayPalError extends Error {
+    constructor(message, statusCode = null, name = null, details = null) {
+        super(message);
+        this.name = 'PayPalError';
+        this.statusCode = statusCode;
+        this.paypalName = name;
+        this.details = details;
+    }
+}
+
 class PayPalIntegration {
     constructor(clientId = null, clientSecret = null) {
         this.clientId = clientId || process.env.PAYPAL_CLIENT_ID;
@@ -51,13 +61,12 @@ class PayPalIntegration {
             };
         } catch (error) {
             // Preserve full PayPal error details for debugging
-            const paypalError = {
-                message: error.message || 'PayPal order creation failed',
-                statusCode: error.statusCode,
-                name: error.name,
-                details: error.message
-            };
-            throw new Error(JSON.stringify(paypalError));
+            throw new PayPalError(
+                error.message || 'PayPal order creation failed',
+                error.statusCode,
+                error.name,
+                error.details || error.message
+            );
         }
     }
 
@@ -81,13 +90,12 @@ class PayPalIntegration {
             };
         } catch (error) {
             // Preserve full PayPal error details for debugging
-            const paypalError = {
-                message: error.message || 'PayPal order capture failed',
-                statusCode: error.statusCode,
-                name: error.name,
-                details: error.message
-            };
-            throw new Error(JSON.stringify(paypalError));
+            throw new PayPalError(
+                error.message || 'PayPal order capture failed',
+                error.statusCode,
+                error.name,
+                error.details || error.message
+            );
         }
     }
 
@@ -155,13 +163,12 @@ class PayPalIntegration {
             return response.result;
         } catch (error) {
             // Preserve full PayPal error details for debugging
-            const paypalError = {
-                message: error.message || 'PayPal order retrieval failed',
-                statusCode: error.statusCode,
-                name: error.name,
-                details: error.message
-            };
-            throw new Error(JSON.stringify(paypalError));
+            throw new PayPalError(
+                error.message || 'PayPal order retrieval failed',
+                error.statusCode,
+                error.name,
+                error.details || error.message
+            );
         }
     }
 
