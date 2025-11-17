@@ -1910,6 +1910,20 @@
         </div>
     </div>
 
+    <!-- Free Trial Tour Modal -->
+    <div id="tourModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 id="tourTitle" style="text-align: center; margin-bottom: 20px;">🎉 Welcome to Your Free Trial!</h2>
+            <div id="tourContent" style="padding: 20px; text-align: center;">
+                <!-- Dynamic content goes here -->
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">
+                <button id="tourSkipBtn" onclick="skipTour()" class="btn btn-outline">Skip Tour</button>
+                <button id="tourNextBtn" onclick="nextTourStep()" class="btn btn-primary">Next →</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Email Collection Modal -->
     <div id="emailModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 500px;">
@@ -2214,26 +2228,28 @@
             document.getElementById('pricingModal').style.display = 'none';
         }
 
+        let tourStep = 0;
+        let tourTabs = {};
+
         function startFreeTrial() {
             closePricingModal();
             
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            // Highlight the 3 free feature tabs
+            // Find the 3 free feature tabs
             setTimeout(() => {
-                const walletBtn = document.querySelector('.tab-btn[onclick*="wallet"]');
-                const explorerBtn = document.querySelector('.tab-btn[onclick*="explorer"]');
-                const miningBtn = document.querySelector('.tab-btn[onclick*="mining"]');
+                tourTabs.wallet = document.querySelector('.tab-btn[onclick*="wallet"]');
+                tourTabs.explorer = document.querySelector('.tab-btn[onclick*="explorer"]');
+                tourTabs.mining = document.querySelector('.tab-btn[onclick*="mining"]');
                 
                 // Open Wallet tab first
-                if (walletBtn && typeof openTab === 'function') {
-                    openTab(walletBtn, 'wallet');
+                if (tourTabs.wallet && typeof openTab === 'function') {
+                    openTab(tourTabs.wallet, 'wallet');
                 }
                 
                 // Highlight all 3 free tabs
-                const freeFeatureTabs = [walletBtn, explorerBtn, miningBtn];
-                freeFeatureTabs.forEach(tab => {
+                [tourTabs.wallet, tourTabs.explorer, tourTabs.mining].forEach(tab => {
                     if (tab) {
                         tab.style.transition = 'all 0.3s ease';
                         tab.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.7)';
@@ -2241,93 +2257,139 @@
                     }
                 });
                 
-                // Show welcome message
-                setTimeout(() => {
-                    const continueToExplorer = confirm(
-                        '🎉 Welcome to Your Free Trial!\n\n' +
-                        'You now have access to 3 FREE features:\n\n' +
-                        '✅ Wallet Management (CURRENT TAB)\n' +
-                        '   • Create and manage your crypto wallet\n' +
-                        '   • Generate new addresses & check balance\n\n' +
-                        '✅ Blockchain Explorer (highlighted tab above)\n' +
-                        '   • View all transactions and blocks\n' +
-                        '   • Search blockchain history\n\n' +
-                        '✅ Basic PoW Mining (highlighted tab above)\n' +
-                        '   • Learn how mining works\n' +
-                        '   • Mine KENO tokens\n\n' +
-                        'The 3 free tabs are highlighted in GREEN above.\n\n' +
-                        'Click OK to tour the Blockchain Explorer next, or Cancel to explore on your own.'
-                    );
-                    
-                    if (continueToExplorer && explorerBtn) {
-                        // Show Explorer tab
-                        openTab(explorerBtn, 'explorer');
-                        
-                        setTimeout(() => {
-                            const continueToMining = confirm(
-                                '🔍 Blockchain Explorer\n\n' +
-                                'This is where you can:\n' +
-                                '• View all blocks in the blockchain\n' +
-                                '• See all transactions\n' +
-                                '• Search for specific addresses\n\n' +
-                                'Click OK to see the Mining feature next, or Cancel to explore on your own.'
-                            );
-                            
-                            if (continueToMining && miningBtn) {
-                                // Show Mining tab
-                                openTab(miningBtn, 'mining');
-                                
-                                setTimeout(() => {
-                                    alert(
-                                        '⛏️ Mining Feature\n\n' +
-                                        'This is where you can:\n' +
-                                        '• Mine new KENO tokens\n' +
-                                        '• Learn how Proof-of-Work works\n' +
-                                        '• See mining rewards\n\n' +
-                                        'Remember: The 3 GREEN highlighted tabs are your FREE features!\n\n' +
-                                        '💡 Upgrade to unlock 12+ advanced features:\n' +
-                                        '• Transaction Reversal\n' +
-                                        '• Social Recovery\n' +
-                                        '• PoRV Mining & RVT Royalties\n' +
-                                        '• And much more!\n\n' +
-                                        'Click "Get Started" button anytime to upgrade!'
-                                    );
-                                    
-                                    // Remove highlights after tour
-                                    setTimeout(() => {
-                                        freeFeatureTabs.forEach(tab => {
-                                            if (tab) {
-                                                tab.style.boxShadow = '';
-                                                tab.style.border = '';
-                                            }
-                                        });
-                                    }, 3000);
-                                }, 500);
-                            } else {
-                                // Remove highlights if they cancel
-                                setTimeout(() => {
-                                    freeFeatureTabs.forEach(tab => {
-                                        if (tab) {
-                                            tab.style.boxShadow = '';
-                                            tab.style.border = '';
-                                        }
-                                    });
-                                }, 3000);
-                            }
-                        }, 500);
-                    } else {
-                        // Remove highlights if they cancel
-                        setTimeout(() => {
-                            freeFeatureTabs.forEach(tab => {
-                                if (tab) {
-                                    tab.style.boxShadow = '';
-                                    tab.style.border = '';
-                                }
-                            });
-                        }, 3000);
-                    }
-                }, 300);
+                // Start tour
+                tourStep = 0;
+                showTourStep();
             }, 500);
+        }
+
+        function showTourStep() {
+            const modal = document.getElementById('tourModal');
+            const title = document.getElementById('tourTitle');
+            const content = document.getElementById('tourContent');
+            const nextBtn = document.getElementById('tourNextBtn');
+            
+            const steps = [
+                {
+                    title: '🎉 Welcome to Your Free Trial!',
+                    content: `
+                        <p style="font-size: 1.1rem; margin-bottom: 20px;">You now have access to <strong>3 FREE features</strong>:</p>
+                        <div style="text-align: left; max-width: 500px; margin: 0 auto;">
+                            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #10b981;">
+                                <strong style="color: #10b981;">✅ Wallet Management (CURRENT TAB)</strong>
+                                <ul style="margin: 10px 0 0 20px; color: #065f46;">
+                                    <li>Create and manage your crypto wallet</li>
+                                    <li>Generate new addresses & check balance</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #10b981;">
+                                <strong style="color: #10b981;">✅ Blockchain Explorer</strong>
+                                <ul style="margin: 10px 0 0 20px; color: #065f46;">
+                                    <li>View all transactions and blocks</li>
+                                    <li>Search blockchain history</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+                                <strong style="color: #10b981;">✅ Basic PoW Mining</strong>
+                                <ul style="margin: 10px 0 0 20px; color: #065f46;">
+                                    <li>Learn how mining works</li>
+                                    <li>Mine KENO tokens</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p style="margin-top: 20px; color: #059669; font-weight: 600;">The 3 free tabs are highlighted in GREEN above! ⬆️</p>
+                    `,
+                    nextText: 'Tour Blockchain Explorer →'
+                },
+                {
+                    title: '🔍 Blockchain Explorer',
+                    content: `
+                        <p style="font-size: 1.1rem; margin-bottom: 20px;">You're now viewing the <strong>Blockchain Explorer</strong> tab!</p>
+                        <div style="text-align: left; max-width: 500px; margin: 0 auto; background: #f0f9ff; padding: 20px; border-radius: 12px;">
+                            <h4 style="color: #0284c7; margin-top: 0;">What you can do here:</h4>
+                            <ul style="margin: 15px 0 0 20px; color: #075985; line-height: 1.8;">
+                                <li>View all blocks in the blockchain</li>
+                                <li>See all transactions</li>
+                                <li>Search for specific addresses</li>
+                                <li>Explore the complete transaction history</li>
+                            </ul>
+                        </div>
+                        <p style="margin-top: 20px; font-size: 0.95rem; color: #6b7280;">This is one of your <strong>FREE features</strong> - no subscription needed!</p>
+                    `,
+                    nextText: 'Tour Mining →'
+                },
+                {
+                    title: '⛏️ Mining Feature',
+                    content: `
+                        <p style="font-size: 1.1rem; margin-bottom: 20px;">You're now viewing the <strong>Mining</strong> tab!</p>
+                        <div style="text-align: left; max-width: 500px; margin: 0 auto; background: #fef3c7; padding: 20px; border-radius: 12px;">
+                            <h4 style="color: #d97706; margin-top: 0;">What you can do here:</h4>
+                            <ul style="margin: 15px 0 0 20px; color: #92400e; line-height: 1.8;">
+                                <li>Mine new KENO tokens</li>
+                                <li>Learn how Proof-of-Work works</li>
+                                <li>See mining rewards</li>
+                                <li>Understand blockchain consensus</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+                            <h4 style="margin-top: 0;">💡 Ready for More?</h4>
+                            <p style="margin: 10px 0;">Upgrade to unlock <strong>12+ advanced features</strong>:</p>
+                            <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                                <li>Transaction Reversal</li>
+                                <li>Social Recovery</li>
+                                <li>PoRV Mining & RVT Royalties</li>
+                                <li>And much more!</li>
+                            </ul>
+                        </div>
+                        <p style="margin-top: 20px; font-weight: 600; color: #10b981;">The 3 GREEN highlighted tabs are your FREE features!</p>
+                        <p style="font-size: 0.95rem; color: #6b7280; margin-top: 10px;">Click "Get Started" button anytime to upgrade!</p>
+                    `,
+                    nextText: 'Start Exploring! ✨'
+                }
+            ];
+            
+            if (tourStep < steps.length) {
+                const step = steps[tourStep];
+                title.innerHTML = step.title;
+                content.innerHTML = step.content;
+                nextBtn.textContent = step.nextText;
+                modal.style.display = 'flex';
+            } else {
+                closeTour();
+            }
+        }
+
+        function nextTourStep() {
+            tourStep++;
+            
+            // Navigate to the appropriate tab
+            if (tourStep === 1 && tourTabs.explorer && typeof openTab === 'function') {
+                openTab(tourTabs.explorer, 'explorer');
+                setTimeout(showTourStep, 300);
+            } else if (tourStep === 2 && tourTabs.mining && typeof openTab === 'function') {
+                openTab(tourTabs.mining, 'mining');
+                setTimeout(showTourStep, 300);
+            } else {
+                showTourStep();
+            }
+        }
+
+        function skipTour() {
+            closeTour();
+        }
+
+        function closeTour() {
+            document.getElementById('tourModal').style.display = 'none';
+            
+            // Remove highlights after 3 seconds
+            setTimeout(() => {
+                [tourTabs.wallet, tourTabs.explorer, tourTabs.mining].forEach(tab => {
+                    if (tab) {
+                        tab.style.boxShadow = '';
+                        tab.style.border = '';
+                    }
+                });
+            }, 3000);
         }
 
         function showCorporatePricing() {
