@@ -18,7 +18,21 @@ A merchant payment gateway facilitates registration, API keys, QR code payments,
 ## API Layer & UI/UX
 The platform features a modern, responsive web interface with a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange, including a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 75 endpoints. The UI supports multi-language internationalization (6 languages) and persistent user preferences. Key UX improvements include a custom modal-based free trial guided tour and a streamlined email collection for subscriptions, which redirects to Stripe in a new tab to avoid iframe security issues. The platform also includes a "Graduate Club Recognition System" for users who complete all 21 courses, offering exclusive privileges and a unique blockchain-verified Graduate ID.
 
-### Recent Fixes (November 17, 2025)
+### Recent Updates (November 2025)
+
+#### November 18, 2025
+- **ICO Timeline Updated**: Private Sale start date moved from November 18 to November 28, 2025 (Black Friday). All dates adjusted:
+  - Private Sale: Nov 28 - Dec 28, 2025 (30 days, 20% bonus)
+  - Public Sale: Dec 29, 2025 - Feb 27, 2026 (60 days)
+  - Updated across all pages: index.html, ico.html, ico-campaign.html
+  - Countdown timers reconfigured for new launch date
+- **Printful Integration Activated**: Graduate Merchandise system now connected to Printful API for automated order fulfillment
+  - One-click "Send to Printful" in admin panel
+  - Automatic tracking number updates via webhooks
+  - Email notifications via Replit Mail when orders ship/deliver
+- **Email Notifications System**: Graduates receive automated emails for merchandise shipments and deliveries using Replit Mail integration
+
+#### November 17, 2025
 - **Graduate Club Shield Visualization**: Transformed shield from static cropped image to prominent standalone 3D rotating animation. Shield now rotates continuously as if being admired from all sides (360° Y-axis rotation with subtle X-axis tilt). Features CSS 3D transforms with perspective, enhanced glow effects, pulsing reflection background, and mobile-responsive scaling. Animation creates professional, eye-catching centerpiece for Graduate Club recognition page.
 - **Connect Wallet Error Handling**: Improved MetaMask connection error messages with specific troubleshooting steps for locked wallets (error code -32603), pending requests (error code -32002), and missing accounts. Error messages use HTML formatting with line breaks for readability and auto-scroll to visibility.
 - **MetaMask Button**: Fixed broken `connectWallet()` function on main page by redirecting to dedicated ICO page (`/ico.html`).
