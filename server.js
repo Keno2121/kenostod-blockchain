@@ -220,6 +220,9 @@ if (savedFiatBalances) {
 // Load ICO purchases
 let icoPurchases = dataPersistence.loadICOPurchases();
 
+// Load and storage for pre-order sell orders (scheduled for future execution)
+global.preOrderSellOrders = dataPersistence.loadPreOrders();
+
 // Temporary storage for pending PayPal orders with wallet addresses
 const pendingPayPalOrders = new Map();
 
@@ -2534,6 +2537,476 @@ app.get('/api/ico/purchases', (req, res) => {
         total: icoPurchases.length
     });
 });
+
+// ==================== ICO INVESTMENT TRACKER & ANALYTICS ====================
+
+// Get user's ICO purchases and analytics
+app.get('/api/ico/my-investments/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        
+        const userPurchases = icoPurchases.filter(p => 
+            p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        
+        if (userPurchases.length === 0) {
+            return res.json({
+                success: true,
+                purchases: [],
+                analytics: {
+                    totalInvested: 0,
+                    totalTokens: 0,
+                    currentValue: 0,
+                    profit: 0,
+                    roi: 0
+                }
+            });
+        }
+        
+        const totalInvested = userPurchases.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const totalTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+        
+        const now = new Date();
+        const publicSaleStart = new Date('2025-12-29T00:00:00Z');
+        const currentPrice = now >= publicSaleStart ? 0.05 : 0.01;
+        
+        const currentValue = totalTokens * currentPrice;
+        const profit = currentValue - totalInvested;
+        const roi = totalInvested > 0 ? ((profit / totalInvested) * 100) : 0;
+        
+        res.json({
+            success: true,
+            purchases: userPurchases,
+            analytics: {
+                totalInvested: parseFloat(totalInvested.toFixed(2)),
+                totalTokens: parseFloat(totalTokens.toFixed(2)),
+                currentPrice: currentPrice,
+                currentValue: parseFloat(currentValue.toFixed(2)),
+                profit: parseFloat(profit.toFixed(2)),
+                roi: parseFloat(roi.toFixed(2)),
+                pricePhase: now >= publicSaleStart ? 'Public Sale' : 'Private Sale',
+                nextPriceChange: now >= publicSaleStart ? null : publicSaleStart.toISOString()
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get smart sell recommendations
+app.get('/api/ico/sell-recommendations/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        
+        const userPurchases = icoPurchases.filter(p => 
+            p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        
+        const totalTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+        
+        if (totalTokens === 0) {
+            return res.json({
+                success: false,
+                error: 'No KENO tokens found for this wallet'
+            });
+        }
+        
+        const orderBook = kenostodChain.exchangeAPI.getOrderBook('KENO_USD', 10);
+        const marketData = kenostodChain.exchangeAPI.getMarketData('KENO_USD');
+        
+        const bestBidPrice = orderBook.bids.length > 0 ? orderBook.bids[0].price : 0.50;
+        const bestBidQuantity = orderBook.bids.length > 0 ? orderBook.bids[0].quantity : 0;
+        
+        const tradingFee = 0.005;
+        const grossRevenue = totalTokens * bestBidPrice;
+        const tradingFeeAmount = grossRevenue * tradingFee;
+        const netRevenue = grossRevenue - tradingFeeAmount;
+        
+        const stripeFee = (netRevenue * 0.029) + 0.30;
+        const paypalFee = (netRevenue * 0.0349) + 0.49;
+        
+        const netAfterStripe = netRevenue - stripeFee;
+        const netAfterPayPal = netRevenue - paypalFee;
+        
+        res.json({
+            success: true,
+            tokens: totalTokens,
+            recommendations: {
+                bestBidPrice: bestBidPrice,
+                bestBidQuantity: bestBidQuantity,
+                marketPrice: marketData?.lastPrice || 0.50,
+                canSellImmediately: bestBidQuantity >= totalTokens,
+                grossRevenue: parseFloat(grossRevenue.toFixed(2)),
+                tradingFee: parseFloat(tradingFeeAmount.toFixed(2)),
+                netRevenue: parseFloat(netRevenue.toFixed(2)),
+                bankWithdrawal: {
+                    stripe: {
+                        fee: parseFloat(stripeFee.toFixed(2)),
+                        netAmount: parseFloat(netAfterStripe.toFixed(2))
+                    },
+                    paypal: {
+                        fee: parseFloat(paypalFee.toFixed(2)),
+                        netAmount: parseFloat(netAfterPayPal.toFixed(2))
+                    }
+                },
+                optimalStrategy: bestBidQuantity >= totalTokens ? 'Sell all tokens now at market price' : 'Place limit order and wait for buyers'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// One-click cash-out: Sell KENO + Withdraw to Bank
+app.post('/api/ico/one-click-cashout', async (req, res) => {
+    try {
+        const { walletAddress, privateKey, withdrawalMethod, withdrawalDestination } = req.body;
+        
+        const userPurchases = icoPurchases.filter(p => 
+            p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        
+        const totalTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+        
+        if (totalTokens === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'No KENO tokens to sell'
+            });
+        }
+        
+        const CryptoJS = require('crypto-js');
+        const EC = require('elliptic').ec;
+        const ec = new EC('secp256k1');
+        
+        const timestamp = Date.now();
+        const orderData = walletAddress + 'KENO_USD' + 'sell' + 'market' + totalTokens + 0 + timestamp;
+        const hash = CryptoJS.SHA256(orderData).toString();
+        
+        const keyPair = ec.keyFromPrivate(privateKey, 'hex');
+        const signature = keyPair.sign(hash);
+        const signatureHex = signature.toDER('hex');
+        
+        const sellOrder = kenostodChain.exchangeAPI.createOrder({
+            userAddress: walletAddress,
+            pair: 'KENO_USD',
+            side: 'sell',
+            orderType: 'market',
+            quantity: totalTokens,
+            price: null,
+            signature: signatureHex,
+            timestamp: timestamp
+        });
+        
+        const usdBalance = bankingAPI.fiatBalances.get(walletAddress) || 0;
+        
+        let withdrawalResult;
+        if (withdrawalMethod === 'stripe') {
+            withdrawalResult = bankingAPI.createWithdrawal(walletAddress, usdBalance, 'stripe', null);
+            
+            if (withdrawalResult.success) {
+                const payout = await stripeIntegration.createPayout(
+                    withdrawalResult.withdrawal.amount,
+                    null,
+                    'usd',
+                    { withdrawalId: withdrawalResult.withdrawal.withdrawalId }
+                );
+                
+                bankingAPI.completeWithdrawal(withdrawalResult.withdrawal.withdrawalId, payout.id);
+            }
+        } else if (withdrawalMethod === 'paypal') {
+            withdrawalResult = bankingAPI.createWithdrawal(walletAddress, usdBalance, 'paypal', { paypalEmail: withdrawalDestination });
+            
+            if (withdrawalResult.success) {
+                const payout = await paypalIntegration.createPayout(
+                    withdrawalResult.withdrawal.amount,
+                    withdrawalDestination,
+                    'USD',
+                    { withdrawalId: withdrawalResult.withdrawal.withdrawalId }
+                );
+                
+                bankingAPI.completeWithdrawal(withdrawalResult.withdrawal.withdrawalId, payout.batch_id);
+            }
+        }
+        
+        res.json({
+            success: true,
+            sellOrder: sellOrder,
+            withdrawal: withdrawalResult,
+            summary: {
+                tokensSold: totalTokens,
+                usdReceived: usdBalance,
+                withdrawalAmount: withdrawalResult?.withdrawal?.amount || 0,
+                withdrawalFee: withdrawalResult?.withdrawal?.fee || 0,
+                netAmount: withdrawalResult?.withdrawal?.amount - withdrawalResult?.withdrawal?.fee || 0
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Create pre-order sell order (scheduled for future date)
+app.post('/api/ico/create-preorder', (req, res) => {
+    try {
+        const { walletAddress, tokens, targetPrice, executeDate } = req.body;
+        
+        const preOrder = {
+            id: `PRE-${Date.now()}`,
+            walletAddress: walletAddress,
+            tokens: parseFloat(tokens),
+            targetPrice: parseFloat(targetPrice),
+            executeDate: new Date(executeDate),
+            status: 'pending',
+            createdAt: new Date()
+        };
+        
+        if (!preOrderSellOrders) {
+            global.preOrderSellOrders = [];
+        }
+        
+        preOrderSellOrders.push(preOrder);
+        
+        dataPersistence.savePreOrders(preOrderSellOrders);
+        
+        res.json({
+            success: true,
+            preOrder: preOrder,
+            message: `Pre-order created! Will execute on ${new Date(executeDate).toLocaleDateString()}`
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get user's pre-orders
+app.get('/api/ico/preorders/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        
+        if (!global.preOrderSellOrders) {
+            global.preOrderSellOrders = [];
+        }
+        
+        const userPreOrders = preOrderSellOrders.filter(p => 
+            p.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        
+        res.json({
+            success: true,
+            preOrders: userPreOrders
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Send email notification to ICO investor (Dec 29 Public Sale launch)
+app.post('/api/ico/send-notification', async (req, res) => {
+    try {
+        const { walletAddress } = req.body;
+        
+        const userPurchases = icoPurchases.filter(p => 
+            p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        
+        if (userPurchases.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'No ICO purchases found for this wallet'
+            });
+        }
+        
+        const totalInvested = userPurchases.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const totalTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+        
+        const privateSalePrice = 0.01;
+        const publicSalePrice = 0.05;
+        const valueAtPrivate = totalTokens * privateSalePrice;
+        const valueAtPublic = totalTokens * publicSalePrice;
+        const profit = valueAtPublic - totalInvested;
+        const roi = totalInvested > 0 ? ((profit / totalInvested) * 100) : 0;
+        
+        const recipientEmail = userPurchases[0].email || req.body.email;
+        
+        if (!recipientEmail) {
+            return res.status(400).json({
+                success: false,
+                error: 'No email address found. Please provide email in request body'
+            });
+        }
+        
+        const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+        .content { padding: 40px 30px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+        .stat-card { background: #f3f4f6; padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-label { font-size: 14px; color: #6b7280; margin-bottom: 8px; }
+        .stat-value { font-size: 24px; font-weight: 700; color: #111827; }
+        .stat-value.green { color: #10b981; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 20px 0; }
+        .footer { background-color: #f9fafb; padding: 30px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 KENO Public Sale is Live!</h1>
+            <p style="color: #fff; margin: 10px 0 0 0; font-size: 18px;">Your tokens just increased 5x in value!</p>
+        </div>
+        
+        <div class="content">
+            <h2 style="color: #111827; margin-top: 0;">Congratulations, Early Investor!</h2>
+            
+            <p style="color: #4b5563; line-height: 1.6;">
+                The KENO Public Sale has officially launched on <strong>December 29, 2025</strong>, and your Private Sale investment has significantly increased in value!
+            </p>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Your Investment</div>
+                    <div class="stat-value">$${totalInvested.toFixed(2)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total KENO</div>
+                    <div class="stat-value">${totalTokens.toFixed(2)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Current Value</div>
+                    <div class="stat-value green">$${valueAtPublic.toFixed(2)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Your Profit</div>
+                    <div class="stat-value green">+$${profit.toFixed(2)} (${roi.toFixed(0)}%)</div>
+                </div>
+            </div>
+            
+            <h3 style="color: #111827;">What You Can Do Now:</h3>
+            
+            <ul style="color: #4b5563; line-height: 1.8;">
+                <li><strong>Hold:</strong> Keep your KENO for long-term growth</li>
+                <li><strong>Sell:</strong> Cash out your profit via our exchange</li>
+                <li><strong>Trade:</strong> Trade KENO/USD, KENO/BTC, or KENO/ETH</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://kenostodblockchain.com/ico-dashboard.html" class="cta-button">
+                    💎 View My Investment Dashboard
+                </a>
+            </div>
+            
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
+                <strong style="color: #92400e;">💡 Smart Tip:</strong>
+                <p style="color: #92400e; margin: 8px 0 0 0;">Check your Investment Dashboard for personalized sell recommendations and one-click cash-out options!</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Kenostod Blockchain Academy</strong></p>
+            <p>Breaking cycles of economic hardship through blockchain education</p>
+            <p style="margin-top: 20px;">
+                <a href="https://kenostodblockchain.com" style="color: #667eea; text-decoration: none;">Visit Website</a> | 
+                <a href="https://kenostodblockchain.com/ico-dashboard.html" style="color: #667eea; text-decoration: none;">Investment Dashboard</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+        
+        const emailResult = await emailService.sendEmail(
+            recipientEmail,
+            '🎉 Your KENO Investment Just Increased 5x!',
+            emailHtml
+        );
+        
+        if (!emailResult.success) {
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to send email: ' + emailResult.error
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Email notification sent successfully',
+            email: recipientEmail,
+            analytics: {
+                totalInvested,
+                totalTokens,
+                currentValue: valueAtPublic,
+                profit,
+                roi
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Send notifications to ALL ICO investors (admin only)
+app.post('/api/ico/notify-all-investors', async (req, res) => {
+    try {
+        const investors = new Map();
+        
+        icoPurchases.forEach(purchase => {
+            if (purchase.walletAddress && purchase.email) {
+                if (!investors.has(purchase.walletAddress)) {
+                    investors.set(purchase.walletAddress, {
+                        email: purchase.email,
+                        walletAddress: purchase.walletAddress
+                    });
+                }
+            }
+        });
+        
+        const results = [];
+        
+        for (const [walletAddress, investor] of investors.entries()) {
+            try {
+                const response = await fetch('http://localhost:5000/api/ico/send-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: walletAddress,
+                        email: investor.email
+                    })
+                });
+                
+                const data = await response.json();
+                results.push({
+                    email: investor.email,
+                    success: data.success
+                });
+            } catch (error) {
+                results.push({
+                    email: investor.email,
+                    success: false,
+                    error: error.message
+                });
+            }
+        }
+        
+        res.json({
+            success: true,
+            message: `Sent notifications to ${results.filter(r => r.success).length} out of ${results.length} investors`,
+            results: results
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ==================== END ICO INVESTMENT TRACKER & ANALYTICS ====================
 
 // ==================== END PAYPAL API ENDPOINTS ====================
 

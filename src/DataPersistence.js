@@ -12,6 +12,7 @@ class DataPersistence {
         this.teamSubscriptionsFile = path.join(dataDir, 'team_subscriptions.json');
         this.learningProgressFile = path.join(dataDir, 'learning_progress.json');
         this.icoPurchasesFile = path.join(dataDir, 'ico_purchases.json');
+        this.preOrdersFile = path.join(dataDir, 'pre_order_sell_orders.json');
         
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
@@ -286,6 +287,38 @@ class DataPersistence {
             return data.purchases;
         } catch (error) {
             console.error('❌ Error loading ICO purchases:', error.message);
+            return [];
+        }
+    }
+
+    savePreOrders(preOrders) {
+        try {
+            const data = {
+                preOrders,
+                timestamp: Date.now()
+            };
+            
+            fs.writeFileSync(this.preOrdersFile, JSON.stringify(data, null, 2));
+            console.log(`✅ Pre-order sell orders saved to disk (${preOrders.length} orders)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving pre-orders:', error.message);
+            return false;
+        }
+    }
+
+    loadPreOrders() {
+        try {
+            if (!fs.existsSync(this.preOrdersFile)) {
+                console.log('ℹ️  No saved pre-orders found, starting fresh');
+                return [];
+            }
+            
+            const data = JSON.parse(fs.readFileSync(this.preOrdersFile, 'utf8'));
+            console.log(`✅ Loaded pre-order sell orders from disk (${data.preOrders.length} orders, last saved: ${new Date(data.timestamp).toLocaleString()})`);
+            return data.preOrders;
+        } catch (error) {
+            console.error('❌ Error loading pre-orders:', error.message);
             return [];
         }
     }
