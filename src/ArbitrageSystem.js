@@ -1,11 +1,13 @@
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 const SHA256 = require('crypto-js/sha256');
+const BinanceAPI = require('./BinanceAPI');
 
 class ArbitrageSystem {
     constructor(blockchain, dataPersistence) {
         this.blockchain = blockchain;
         this.dataPersistence = dataPersistence;
+        this.binanceAPI = new BinanceAPI();
         
         this.flashLoans = new Map();
         this.activeLoans = new Map();
@@ -427,16 +429,31 @@ class ArbitrageSystem {
     }
 
     startOpportunityDetector() {
-        setInterval(() => {
-            const mockPrices = {
-                'Kenostod Exchange': 0.05 + (Math.random() * 0.01 - 0.005),
-                'Binance': 0.05 + (Math.random() * 0.01 - 0.005),
-                'Coinbase': 0.05 + (Math.random() * 0.01 - 0.005),
-                'KuCoin': 0.05 + (Math.random() * 0.01 - 0.005)
-            };
-            
-            this.detectArbitrageOpportunities(mockPrices);
+        // Initial load
+        this.updateOpportunitiesFromBinance();
+        
+        // Update every 30 seconds with real Binance data
+        setInterval(async () => {
+            await this.updateOpportunitiesFromBinance();
         }, 30000);
+    }
+
+    async updateOpportunitiesFromBinance() {
+        try {
+            const opportunities = await this.binanceAPI.generateArbitrageOpportunities();
+            
+            if (opportunities && opportunities.length > 0) {
+                this.arbitrageOpportunities = opportunities.map(opp => ({
+                    ...opp,
+                    timestamp: Date.now()
+                }));
+                
+                console.log(`✅ Updated ${opportunities.length} arbitrage opportunities from real Binance prices`);
+            }
+        } catch (error) {
+            console.error('⚠️  Error updating opportunities from Binance:', error.message);
+            // Keep existing opportunities if update fails
+        }
     }
 
     generateLoanId() {

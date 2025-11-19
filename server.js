@@ -5479,6 +5479,84 @@ app.get('/api/arbitrage/opportunities', (req, res) => {
     }
 });
 
+// Real-time Binance API endpoints
+app.get('/api/market/prices', generalLimiter, async (req, res) => {
+    try {
+        const prices = await arbitrageSystem.binanceAPI.getPrices();
+        res.json({ 
+            success: true, 
+            prices,
+            source: 'binance-api',
+            lastUpdate: arbitrageSystem.binanceAPI.lastUpdate
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch market prices',
+            message: error.message 
+        });
+    }
+});
+
+app.get('/api/market/price/:symbol', generalLimiter, async (req, res) => {
+    try {
+        const { symbol } = req.params;
+        const price = await arbitrageSystem.binanceAPI.getPrice(symbol.toUpperCase());
+        
+        if (price === null) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Symbol not found' 
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            symbol: symbol.toUpperCase(),
+            price,
+            source: 'binance-api'
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch price' 
+        });
+    }
+});
+
+app.get('/api/market/stats/:symbol', generalLimiter, async (req, res) => {
+    try {
+        const { symbol } = req.params;
+        const stats = await arbitrageSystem.binanceAPI.get24hrStats(symbol.toUpperCase());
+        res.json({ 
+            success: true, 
+            stats,
+            source: 'binance-api'
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch 24hr stats' 
+        });
+    }
+});
+
+app.get('/api/market/health', async (req, res) => {
+    try {
+        const health = await arbitrageSystem.binanceAPI.healthCheck();
+        res.json({ 
+            success: true, 
+            ...health 
+        });
+    } catch (error) {
+        res.json({ 
+            success: false, 
+            status: 'error',
+            error: error.message 
+        });
+    }
+});
+
 app.get('/api/arbitrage/leaderboard', (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
