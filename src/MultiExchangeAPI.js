@@ -21,7 +21,7 @@ class MultiExchangeAPI {
             XRP: { binance: 'XRPUSDT', coinbase: 'XRP-USD', kraken: 'XRPUSD', kucoin: 'XRP-USDT' },
             SOL: { binance: 'SOLUSDT', coinbase: 'SOL-USD', kraken: 'SOLUSD', kucoin: 'SOL-USDT' },
             DOT: { binance: 'DOTUSDT', coinbase: 'DOT-USD', kraken: 'DOTUSD', kucoin: 'DOT-USDT' },
-            MATIC: { binance: 'MATICUSDT', coinbase: 'MATIC-USD', kraken: 'MATICUSD', kucoin: 'MATIC-USDT' },
+            MATIC: { binance: 'MATICUSDT', coinbase: 'MATIC-USD', kucoin: 'MATIC-USDT' },
             LTC: { binance: 'LTCUSDT', coinbase: 'LTC-USD', kraken: 'LTCUSD', kucoin: 'LTC-USDT' }
         };
     }
