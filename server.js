@@ -1355,6 +1355,30 @@ app.get('/api/porv/job/:jobId', (req, res) => {
     }
 });
 
+// Toggle PoRV/PoW mode
+app.post('/api/porv/toggle', (req, res) => {
+    try {
+        kenostodChain.porvEnabled = !kenostodChain.porvEnabled;
+        res.json({
+            success: true,
+            enabled: kenostodChain.porvEnabled,
+            message: kenostodChain.porvEnabled 
+                ? 'PoRV mode enabled - Mining now requires completing computational jobs for RVTs' 
+                : 'PoW mode enabled - Mining uses traditional proof-of-work'
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get PoRV mode status
+app.get('/api/porv/status', (req, res) => {
+    res.json({
+        enabled: kenostodChain.porvEnabled,
+        mode: kenostodChain.porvEnabled ? 'PoRV' : 'PoW'
+    });
+});
+
 // Mine PoRV block (with optional job)
 app.post('/api/porv/mine', (req, res) => {
     try {
