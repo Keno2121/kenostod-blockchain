@@ -19,6 +19,7 @@ const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
+const ArbitrageSystem = require('./src/ArbitrageSystem');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -239,6 +240,9 @@ const merchantIncentives = new MerchantIncentives(kenostodChain);
 
 // Initialize revenue tracker for all revenue streams
 const revenueTracker = new RevenueTracker();
+
+// Initialize KENO Arbitrage Revolution System
+const arbitrageSystem = new ArbitrageSystem(kenostodChain, dataPersistence);
 
 // Connect banking API to exchange
 kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
@@ -5379,6 +5383,185 @@ app.post('/api/support/quick-question', async (req, res) => {
 });
 
 // ==================== END AI CUSTOMER SUPPORT API ENDPOINTS ====================
+
+// ==================== KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
+
+app.post('/api/arbitrage/flash-loan/create', (req, res) => {
+    try {
+        const { walletAddress, amount, purpose } = req.body;
+        
+        if (!walletAddress || !amount) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Wallet address and amount are required' 
+            });
+        }
+        
+        const result = arbitrageSystem.createFlashLoan(walletAddress, amount, purpose || 'Arbitrage trading');
+        res.json(result);
+    } catch (error) {
+        console.error('Flash loan creation error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to create flash loan',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/arbitrage/flash-loan/repay', (req, res) => {
+    try {
+        const { walletAddress, loanId, profit } = req.body;
+        
+        if (!walletAddress || !loanId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Wallet address and loan ID are required' 
+            });
+        }
+        
+        const result = arbitrageSystem.repayFlashLoan(walletAddress, loanId, profit || 0);
+        res.json(result);
+    } catch (error) {
+        console.error('Flash loan repayment error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to repay flash loan',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/arbitrage/opportunities', (req, res) => {
+    try {
+        const opportunities = arbitrageSystem.getOpportunities();
+        res.json({ 
+            success: true, 
+            opportunities,
+            count: opportunities.length 
+        });
+    } catch (error) {
+        console.error('Opportunities fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch arbitrage opportunities',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/arbitrage/leaderboard', (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const leaderboard = arbitrageSystem.getLeaderboard(limit);
+        
+        res.json({ 
+            success: true, 
+            leaderboard,
+            total: leaderboard.length 
+        });
+    } catch (error) {
+        console.error('Leaderboard fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch leaderboard',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/arbitrage/profile/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const profile = arbitrageSystem.getTraderProfile(walletAddress);
+        
+        if (!profile) {
+            return res.json({ 
+                success: false, 
+                error: 'Trader profile not found' 
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            profile 
+        });
+    } catch (error) {
+        console.error('Profile fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch trader profile',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/arbitrage/events', (req, res) => {
+    try {
+        const events = arbitrageSystem.getUpcomingEvents();
+        res.json({ 
+            success: true, 
+            events,
+            count: events.length 
+        });
+    } catch (error) {
+        console.error('Events fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch events',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/arbitrage/stats', (req, res) => {
+    try {
+        const stats = arbitrageSystem.getStats();
+        res.json({ 
+            success: true, 
+            stats 
+        });
+    } catch (error) {
+        console.error('Stats fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch statistics',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/arbitrage/bridge/transfer', (req, res) => {
+    try {
+        const { walletAddress, fromExchange, toExchange, amount, signature } = req.body;
+        
+        if (!walletAddress || !fromExchange || !toExchange || !amount) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing required parameters' 
+            });
+        }
+        
+        const result = arbitrageSystem.createBridgeTransfer(
+            walletAddress, 
+            fromExchange, 
+            toExchange, 
+            amount, 
+            signature
+        );
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Bridge transfer error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to create bridge transfer',
+            details: error.message 
+        });
+    }
+});
+
+// ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);

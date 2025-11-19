@@ -379,6 +379,36 @@ class DataPersistence {
 
         return backupInfo;
     }
+
+    save(key, data) {
+        try {
+            const filename = path.join(this.dataDir, `${key}.json`);
+            const dataWithTimestamp = {
+                ...data,
+                lastSaved: new Date().toISOString()
+            };
+            fs.writeFileSync(filename, JSON.stringify(dataWithTimestamp, null, 2));
+            console.log(`✅ Saved ${key} to disk`);
+            return true;
+        } catch (error) {
+            console.error(`❌ Error saving ${key}:`, error.message);
+            return false;
+        }
+    }
+
+    load(key) {
+        try {
+            const filename = path.join(this.dataDir, `${key}.json`);
+            if (!fs.existsSync(filename)) {
+                return null;
+            }
+            const data = JSON.parse(fs.readFileSync(filename, 'utf8'));
+            return data;
+        } catch (error) {
+            console.error(`❌ Error loading ${key}:`, error.message);
+            return null;
+        }
+    }
 }
 
 module.exports = DataPersistence;

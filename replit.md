@@ -21,9 +21,32 @@ The platform features a modern, responsive web interface with a tabbed UI for Wa
 ## AI Customer Support
 An AI-powered chatbot provides 24/7 technical support for students using OpenAI GPT-4o-mini via Replit AI Integrations. The floating chat widget appears on all major pages and assists with wallet creation, transactions, mining, ICO purchases, blockchain concepts, and platform features. Features include multi-turn conversations, quick question buttons, typing indicators, and a professional mobile-responsive UI. Backend powered by 2 REST API endpoints.
 
+## KENO Arbitrage Revolution™ (Patent-Pending)
+World's first arbitrage-native cryptocurrency with revolutionary features:
+- **Flash Arbitrage Loans (FAL™)**: Zero-fee instant loans (100-10,000 KENO) with 5-minute repayment window, no collateral required
+- **Arbitrage Incentive Protocol (AIP™)**: 0.5% bonus rewards for profitable arbitrage trades
+- **Reputation-Based Loan Limits**: Dynamic credit scoring with Bronze/Silver/Gold/Platinum tiers (1.5x to 5x multipliers)
+- **Performance Tracking**: Global leaderboard, NFT achievement badges, trader profiles with statistics
+- **Scheduled Events**: Twice-daily arbitrage competitions with prize pools
+- **Cross-Exchange Settlement Bridge**: Cryptographic proof system for transfers (in development)
+- **IP Protection**: Comprehensive patent-pending protection, trademarked names, copyright on algorithms
+- **Educational Dashboard**: Real-time opportunities, one-click loan management, analytics
+**NOTE**: Current implementation uses simulated arbitrage opportunities for educational/demo purposes. Bridge transfers and real exchange integration planned for production release.
+
 ### Recent Updates (November 2025)
 
 #### November 19, 2025
+- **KENO Arbitrage Revolution™ System** (Patent-Pending): Launched world's first arbitrage-native cryptocurrency features
+  - Flash Arbitrage Loans (FAL™): Zero-fee instant loans (100-10,000 KENO), 5-minute repayment window
+  - Arbitrage Incentive Protocol (AIP™): 0.5% bonus rewards for profitable arbitrage
+  - Reputation-Based Loan Limits: Bronze→Silver→Gold→Platinum tiers (1.5x to 5x loan multipliers)
+  - Performance Tracking: Global leaderboard, NFT achievement badges, trader statistics
+  - Scheduled Arbitrage Events: Twice-daily competitions (every 12 hours)
+  - Professional Dashboard: Real-time opportunities, loan management, analytics at `/arbitrage.html`
+  - IP Protection: Comprehensive patent, trademark & copyright documentation at `/arbitrage-ip-protection.html`
+  - Educational Demo: Uses simulated opportunities; production will integrate real exchange APIs
+  - 8 new REST API endpoints: flash loans, opportunities, leaderboard, profiles, events, stats, bridge
+  - Prominent navigation: Pulsing green button on desktop/mobile menus
 - **AI Customer Support System**: Integrated AI-powered chatbot for 24/7 student support using Replit AI Integrations (OpenAI GPT-4o-mini)
   - Floating chat widget appears on all major pages (index, ICO, ICO Dashboard, Black Friday promo)
   - Knowledgeable about all Kenostod features: wallets, transactions, mining, ICO, PoRV, social recovery, Graduate Club
