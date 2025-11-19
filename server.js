@@ -27,6 +27,10 @@ const ec = new EC('secp256k1');
 const app = express();
 const PORT = 5000;
 
+// CRITICAL: Enable trust proxy for Replit deployment (behind reverse proxy)
+// This allows rate limiting to correctly identify users via X-Forwarded-For header
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 
