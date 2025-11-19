@@ -18,6 +18,7 @@ const WealthBuilderManager = require('./src/WealthBuilderManager');
 const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
+const AISupport = require('./src/AISupport');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -257,6 +258,9 @@ let securityMiddleware;
 
 // Initialize Printful integration
 const printfulIntegration = new PrintfulIntegration();
+
+// Initialize AI Support
+const aiSupport = new AISupport();
 
 (async () => {
     try {
@@ -5325,6 +5329,56 @@ app.put('/api/chat/conversations/:conversationId', async (req, res) => {
 });
 
 // ==================== END CHAT HISTORY API ENDPOINTS ====================
+
+// ==================== AI CUSTOMER SUPPORT API ENDPOINTS ====================
+
+app.post('/api/support/chat', async (req, res) => {
+    try {
+        const { messages } = req.body;
+        
+        if (!messages || !Array.isArray(messages)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Messages array is required' 
+            });
+        }
+        
+        const response = await aiSupport.chat(messages);
+        res.json(response);
+    } catch (error) {
+        console.error('AI Support chat error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to get AI response',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/support/quick-question', async (req, res) => {
+    try {
+        const { question } = req.body;
+        
+        if (!question) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Question is required' 
+            });
+        }
+        
+        const response = await aiSupport.quickAnswer(question);
+        res.json(response);
+    } catch (error) {
+        console.error('AI Support quick question error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to get AI response',
+            details: error.message 
+        });
+    }
+});
+
+// ==================== END AI CUSTOMER SUPPORT API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);

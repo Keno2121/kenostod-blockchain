@@ -16,9 +16,27 @@ The system utilizes a modular blockchain with SHA-256 Proof-of-Work, UTXO-style 
 A merchant payment gateway facilitates registration, API keys, QR code payments, invoicing, KENO/USD conversion, and a 4-tier incentive program. An exchange platform supports KENO/USD, KENO/BTC, and KENO/ETH pairs with a full order book and market/limit orders, secured by cryptographic order signature verification. The KENO token has an adjustable default mining reward of 100 tokens per block plus transaction fees. The platform integrates PayPal for ICO purchases, allowing non-crypto users to buy KENO tokens with automatic token delivery to validated wallet addresses. This includes server-side tier enforcement, instant mining, and comprehensive transaction tracking.
 
 ## API Layer & UI/UX
-The platform features a modern, responsive web interface with a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange, including a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 75 endpoints. The UI supports multi-language internationalization (6 languages) and persistent user preferences. Key UX improvements include a custom modal-based free trial guided tour and a streamlined email collection for subscriptions, which redirects to Stripe in a new tab to avoid iframe security issues. The platform also includes a "Graduate Club Recognition System" for users who complete all 21 courses, offering exclusive privileges and a unique blockchain-verified Graduate ID.
+The platform features a modern, responsive web interface with a tabbed UI for Wallet, Send KENO, Scheduled Payments, Mining, and Exchange, including a dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server exposes over 80 endpoints. The UI supports multi-language internationalization (6 languages) and persistent user preferences. Key UX improvements include a custom modal-based free trial guided tour and a streamlined email collection for subscriptions, which redirects to Stripe in a new tab to avoid iframe security issues. The platform also includes a "Graduate Club Recognition System" for users who complete all 21 courses, offering exclusive privileges and a unique blockchain-verified Graduate ID.
+
+## AI Customer Support
+An AI-powered chatbot provides 24/7 technical support for students using OpenAI GPT-4o-mini via Replit AI Integrations. The floating chat widget appears on all major pages and assists with wallet creation, transactions, mining, ICO purchases, blockchain concepts, and platform features. Features include multi-turn conversations, quick question buttons, typing indicators, and a professional mobile-responsive UI. Backend powered by 2 REST API endpoints.
 
 ### Recent Updates (November 2025)
+
+#### November 19, 2025
+- **AI Customer Support System**: Integrated AI-powered chatbot for 24/7 student support using Replit AI Integrations (OpenAI GPT-4o-mini)
+  - Floating chat widget appears on all major pages (index, ICO, ICO Dashboard, Black Friday promo)
+  - Knowledgeable about all Kenostod features: wallets, transactions, mining, ICO, PoRV, social recovery, Graduate Club
+  - Quick question buttons for common inquiries (wallet creation, buying KENO, ICO details, transaction reversal)
+  - Maintains conversation history during session for contextual responses
+  - Professional UI with typing indicators, smooth animations, mobile-responsive design
+  - API endpoints: `/api/support/chat` (multi-turn conversations), `/api/support/quick-question` (single questions)
+- **Black Friday Promotional Page**: Created `/black-friday-sale.html` with countdown timer to Nov 28 launch
+  - Highlights Private Sale pricing ($0.01/KENO + 20% bonus) vs Public Sale ($0.05)
+  - 500% ROI potential calculator, 6 benefit cards, quick questions section
+  - Prominent red pulsing navigation buttons on desktop and mobile menus
+  - Automatic countdown update to "SALE IS LIVE" when Nov 28 arrives
+- **ICO Investment Dashboard Navigation**: Added "💎 My Investments" link to mobile menu for easy access to investment tracking
 
 #### November 18, 2025
 - **ICO Timeline Updated**: Private Sale start date moved from November 18 to November 28, 2025 (Black Friday). All dates adjusted:
