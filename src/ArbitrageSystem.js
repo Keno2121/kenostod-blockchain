@@ -1,13 +1,13 @@
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 const SHA256 = require('crypto-js/sha256');
-const BinanceAPI = require('./BinanceAPI');
+const CoinGeckoAPI = require('./CoinGeckoAPI');
 
 class ArbitrageSystem {
     constructor(blockchain, dataPersistence) {
         this.blockchain = blockchain;
         this.dataPersistence = dataPersistence;
-        this.binanceAPI = new BinanceAPI();
+        this.coinGeckoAPI = new CoinGeckoAPI();
         
         this.flashLoans = new Map();
         this.activeLoans = new Map();
@@ -430,17 +430,17 @@ class ArbitrageSystem {
 
     startOpportunityDetector() {
         // Initial load
-        this.updateOpportunitiesFromBinance();
+        this.updateOpportunitiesFromCoinGecko();
         
-        // Update every 30 seconds with real Binance data
+        // Update every 60 seconds with real CoinGecko data
         setInterval(async () => {
-            await this.updateOpportunitiesFromBinance();
-        }, 30000);
+            await this.updateOpportunitiesFromCoinGecko();
+        }, 60000);
     }
 
-    async updateOpportunitiesFromBinance() {
+    async updateOpportunitiesFromCoinGecko() {
         try {
-            const opportunities = await this.binanceAPI.generateArbitrageOpportunities();
+            const opportunities = await this.coinGeckoAPI.generateArbitrageOpportunities();
             
             if (opportunities && opportunities.length > 0) {
                 this.arbitrageOpportunities = opportunities.map(opp => ({
@@ -448,10 +448,10 @@ class ArbitrageSystem {
                     timestamp: Date.now()
                 }));
                 
-                console.log(`✅ Updated ${opportunities.length} arbitrage opportunities from real Binance prices`);
+                console.log(`✅ Updated ${opportunities.length} arbitrage opportunities from REAL CoinGecko market prices`);
             }
         } catch (error) {
-            console.error('⚠️  Error updating opportunities from Binance:', error.message);
+            console.error('⚠️  Error updating opportunities from CoinGecko:', error.message);
             // Keep existing opportunities if update fails
         }
     }

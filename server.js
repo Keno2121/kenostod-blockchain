@@ -5479,15 +5479,15 @@ app.get('/api/arbitrage/opportunities', (req, res) => {
     }
 });
 
-// Real-time Binance API endpoints
+// Real-time CoinGecko API endpoints
 app.get('/api/market/prices', generalLimiter, async (req, res) => {
     try {
-        const prices = await arbitrageSystem.binanceAPI.getPrices();
+        const prices = await arbitrageSystem.coinGeckoAPI.getPrices();
         res.json({ 
             success: true, 
             prices,
-            source: 'binance-api',
-            lastUpdate: arbitrageSystem.binanceAPI.lastUpdate
+            source: 'coingecko-api',
+            lastUpdate: arbitrageSystem.coinGeckoAPI.lastUpdate
         });
     } catch (error) {
         res.status(500).json({ 
@@ -5501,7 +5501,7 @@ app.get('/api/market/prices', generalLimiter, async (req, res) => {
 app.get('/api/market/price/:symbol', generalLimiter, async (req, res) => {
     try {
         const { symbol } = req.params;
-        const price = await arbitrageSystem.binanceAPI.getPrice(symbol.toUpperCase());
+        const price = await arbitrageSystem.coinGeckoAPI.getPrice(symbol.toUpperCase());
         
         if (price === null) {
             return res.status(404).json({ 
@@ -5514,7 +5514,7 @@ app.get('/api/market/price/:symbol', generalLimiter, async (req, res) => {
             success: true, 
             symbol: symbol.toUpperCase(),
             price,
-            source: 'binance-api'
+            source: 'coingecko-api'
         });
     } catch (error) {
         res.status(500).json({ 
@@ -5524,26 +5524,9 @@ app.get('/api/market/price/:symbol', generalLimiter, async (req, res) => {
     }
 });
 
-app.get('/api/market/stats/:symbol', generalLimiter, async (req, res) => {
-    try {
-        const { symbol } = req.params;
-        const stats = await arbitrageSystem.binanceAPI.get24hrStats(symbol.toUpperCase());
-        res.json({ 
-            success: true, 
-            stats,
-            source: 'binance-api'
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: 'Failed to fetch 24hr stats' 
-        });
-    }
-});
-
 app.get('/api/market/health', async (req, res) => {
     try {
-        const health = await arbitrageSystem.binanceAPI.healthCheck();
+        const health = await arbitrageSystem.coinGeckoAPI.healthCheck();
         res.json({ 
             success: true, 
             ...health 
