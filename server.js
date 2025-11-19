@@ -1688,6 +1688,45 @@ app.post('/api/merchant/register', (req, res) => {
     }
 });
 
+// Get all merchants (specific route - must be before :merchantId)
+app.get('/api/merchant/list/all', (req, res) => {
+    try {
+        const merchants = kenostodChain.merchantAccount.getAllMerchants();
+        res.json({ merchants, count: merchants.length });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get tier benefits info (specific route - must be before :merchantId)
+app.get('/api/merchant/tiers', (req, res) => {
+    try {
+        res.json({ tiers: merchantIncentives.tierBenefits });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get global incentive stats (specific route - must be before :merchantId)
+app.get('/api/merchant/stats', (req, res) => {
+    try {
+        const stats = merchantIncentives.getGlobalStats();
+        res.json(stats);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get available balance (specific route - must be before :merchantId)
+app.get('/api/merchant/available-balance/:address', (req, res) => {
+    try {
+        const balance = merchantIncentives.getAvailableBalance(req.params.address);
+        res.json(balance);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Get merchant details
 app.get('/api/merchant/:merchantId', (req, res) => {
     try {
@@ -1696,16 +1735,6 @@ app.get('/api/merchant/:merchantId', (req, res) => {
             return res.status(404).json({ error: 'Merchant not found' });
         }
         res.json({ merchant });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Get all merchants
-app.get('/api/merchant/list/all', (req, res) => {
-    try {
-        const merchants = kenostodChain.merchantAccount.getAllMerchants();
-        res.json({ merchants, count: merchants.length });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -3122,15 +3151,6 @@ app.get('/api/merchant/dashboard/:merchantId', (req, res) => {
     }
 });
 
-// Get tier benefits info
-app.get('/api/merchant/tiers', (req, res) => {
-    try {
-        res.json({ tiers: merchantIncentives.tierBenefits });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
 // Calculate potential earnings
 app.post('/api/merchant/calculate-earnings', (req, res) => {
     try {
@@ -3161,26 +3181,6 @@ app.post('/api/merchant/calculate-earnings', (req, res) => {
             stakingRewards: parseFloat(stakingRewards.toFixed(2)),
             totalMonthlyBenefit: parseFloat((savings + cashback + stakingRewards).toFixed(2))
         });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Get global incentive stats
-app.get('/api/merchant/stats', (req, res) => {
-    try {
-        const stats = merchantIncentives.getGlobalStats();
-        res.json(stats);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Get available balance (total minus staked)
-app.get('/api/merchant/available-balance/:address', (req, res) => {
-    try {
-        const balance = merchantIncentives.getAvailableBalance(req.params.address);
-        res.json(balance);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
