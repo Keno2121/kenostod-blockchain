@@ -128,6 +128,28 @@ class OnboardingTutorial {
             this.modal.style.top = '50%';
             this.modal.style.left = '50%';
             this.modal.style.transform = 'translate(-50%, -50%)';
+        } else if (step.position === 'bottom') {
+            if (step.target) {
+                const targetElement = document.querySelector(step.target);
+                if (targetElement) {
+                    const rect = targetElement.getBoundingClientRect();
+                    this.modal.style.top = (rect.bottom + 20) + 'px';
+                    this.modal.style.left = '50%';
+                    this.modal.style.transform = 'translateX(-50%)';
+                } else {
+                    this.modal.style.top = '50%';
+                    this.modal.style.left = '50%';
+                    this.modal.style.transform = 'translate(-50%, -50%)';
+                }
+            } else {
+                this.modal.style.top = '50%';
+                this.modal.style.left = '50%';
+                this.modal.style.transform = 'translate(-50%, -50%)';
+            }
+        } else {
+            this.modal.style.top = '50%';
+            this.modal.style.left = '50%';
+            this.modal.style.transform = 'translate(-50%, -50%)';
         }
 
         document.body.appendChild(this.modal);
