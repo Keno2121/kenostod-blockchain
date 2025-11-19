@@ -1424,6 +1424,19 @@ app.post('/api/porv/usage', (req, res) => {
     }
 });
 
+// Get all RVTs (must be before :address route)
+app.get('/api/porv/rvts', (req, res) => {
+    try {
+        const rvts = Array.from(kenostodChain.residualValueTokens.values());
+        res.json({
+            totalRVTs: rvts.length,
+            rvts: rvts.map(r => r.toJSON())
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Get RVTs for an address
 app.get('/api/porv/rvts/:address', (req, res) => {
     try {
