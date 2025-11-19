@@ -2967,7 +2967,7 @@ async function viewTierBenefits() {
                 <div class="transaction-item" style="background: linear-gradient(135deg, ${tier.color}20, ${tier.color}10); border-left: 4px solid ${tier.color};">
                     <h5 style="color: ${tier.color}; margin-top: 0;">${tier.name} Tier</h5>
                     <div style="margin: 10px 0;">
-                        <strong>Requirements:</strong> ${tier.minStake.toLocaleString()} - ${tier.maxStake === Infinity ? '∞' : tier.maxStake.toLocaleString()} KENO
+                        <strong>Requirements:</strong> ${tier.minStake.toLocaleString()} - ${(tier.maxStake === null || tier.maxStake === Infinity) ? '∞' : tier.maxStake.toLocaleString()} KENO
                     </div>
                     <div style="margin: 10px 0;">
                         <strong>Benefits:</strong>
