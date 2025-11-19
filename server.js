@@ -378,12 +378,27 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Routes
 
-// Get blockchain info
+// Get blockchain info (with pagination support)
 app.get('/api/blockchain', (req, res) => {
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
+    
+    const totalBlocks = kenostodChain.chain.length;
+    const startIndex = Math.max(0, totalBlocks - offset - limit);
+    const endIndex = totalBlocks - offset;
+    
+    const paginatedChain = kenostodChain.chain.slice(startIndex, endIndex).reverse();
+    
     res.json({
-        chain: kenostodChain.chain,
+        chain: paginatedChain,
         stats: kenostodChain.getChainStats(),
-        pendingTransactions: kenostodChain.pendingTransactions
+        pendingTransactions: kenostodChain.pendingTransactions,
+        pagination: {
+            total: totalBlocks,
+            limit: limit,
+            offset: offset,
+            showing: paginatedChain.length
+        }
     });
 });
 

@@ -2003,19 +2003,44 @@ async function mineBlock() {
     }
 }
 
-async function loadBlockchain() {
+let currentBlockPage = 0;
+const blocksPerPage = 50;
+
+async function loadBlockchain(offset = 0) {
     const resultDiv = document.getElementById('blockchainData');
     resultDiv.innerHTML = '<p class="loading">Loading blockchain...</p>';
     
     try {
-        const response = await fetch(`${API_BASE}/api/blockchain`);
+        const response = await fetch(`${API_BASE}/api/blockchain?limit=${blocksPerPage}&offset=${offset}`);
         const data = await response.json();
         
-        let html = '';
+        currentBlockPage = offset;
+        
+        let html = `
+            <div style="margin-bottom: 20px; padding: 15px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <strong>📊 Showing blocks ${data.pagination.total - offset - data.pagination.showing} to ${data.pagination.total - offset}</strong> 
+                <span style="color: #64748b;">(Total: ${data.pagination.total.toLocaleString()} blocks)</span>
+            </div>
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+                <button onclick="loadBlockchain(${Math.max(0, offset - blocksPerPage)})" 
+                        class="btn btn-secondary" 
+                        ${offset === 0 ? 'disabled' : ''}>
+                    ← Previous ${blocksPerPage}
+                </button>
+                <span style="color: #64748b;">Page ${Math.floor(offset / blocksPerPage) + 1} of ${Math.ceil(data.pagination.total / blocksPerPage)}</span>
+                <button onclick="loadBlockchain(${offset + blocksPerPage})" 
+                        class="btn btn-secondary"
+                        ${offset + blocksPerPage >= data.pagination.total ? 'disabled' : ''}>
+                    Next ${blocksPerPage} →
+                </button>
+            </div>
+        `;
+        
         data.chain.forEach((block, index) => {
+            const blockNumber = data.pagination.total - offset - data.chain.length + index;
             html += `
                 <div class="block-item">
-                    <h4>Block #${index}</h4>
+                    <h4>Block #${blockNumber}</h4>
                     <p><strong>Hash:</strong> <code>${block.hash}</code></p>
                     <p><strong>Previous Hash:</strong> <code>${block.previousHash}</code></p>
                     <p><strong>Timestamp:</strong> ${new Date(block.timestamp).toLocaleString()}</p>
@@ -2027,7 +2052,6 @@ async function loadBlockchain() {
                             <strong>To:</strong> ${tx.toAddress.substring(0, 20)}...<br>
                             <strong>Amount:</strong> ${tx.amount} KENO<br>
                             ${tx.message ? `<strong>Message:</strong> ${tx.message}<br>` : ''}
-                            <strong>Hash:</strong> <code>${tx.calculateHash ? tx.calculateHash() : 'N/A'}</code>
                         </div>
                     `).join('')}
                 </div>
