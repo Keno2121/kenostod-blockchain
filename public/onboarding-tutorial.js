@@ -65,7 +65,7 @@ class OnboardingTutorial {
 
     start() {
         if (localStorage.getItem('kenostod_tutorial_completed')) {
-            const restart = confirm('You've already completed the tutorial. Would you like to see it again?');
+            const restart = confirm("You've already completed the tutorial. Would you like to see it again?");
             if (!restart) return;
         }
         
