@@ -2,6 +2,19 @@
 
 Kenostod Blockchain Academy is an educational platform offering a blockchain simulator and a demonstration cryptocurrency, KENO. It aims to educate users on advanced blockchain concepts such as Proof-of-Residual-Value (PoRV), transaction reversal, and social recovery. The platform provides hands-on experience with cryptocurrency fundamentals, including dual consensus modes (PoW/PoRV), full wallet functionality, advanced transaction processing, a simulated merchant payment gateway, and an exchange trading simulation. KENO is a real ERC-20/BEP-20 token on the Binance Smart Chain with an ongoing ICO. The project's vision is to provide blockchain education and passive income opportunities to combat economic hardship.
 
+## Future Vision: Real Trading Platform (Option 3)
+
+**NOTE FOR FUTURE INVESTMENT**: When financially feasible, the platform will evolve into a licensed real trading platform with:
+- **Regulatory Compliance**: Full financial licenses (MSB, MTL, SEC registration)
+- **Actual Trade Execution**: Real cryptocurrency trading and arbitrage execution
+- **KYC/AML Integration**: Complete identity verification and anti-money laundering systems
+- **Insurance & Security**: Custody insurance, cold storage, institutional-grade security
+- **Real Profit Potential**: Users can actually execute arbitrage trades and earn real money
+- **Estimated Investment Needed**: $200,000 - $500,000 for licenses, compliance, legal, insurance
+- **Timeline**: To be determined based on revenue growth from educational platform
+
+For now, the platform focuses on **world-class blockchain education** using real market data to teach concepts, with revenue from subscriptions, ICO, and corporate training.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -22,7 +35,11 @@ The platform offers a modern, responsive web interface with a tabbed UI for vari
 An AI-powered chatbot provides 24/7 technical support for students using OpenAI GPT-4o-mini via Replit AI Integrations. The floating chat widget assists with wallet creation, transactions, mining, ICO purchases, blockchain concepts, and platform features, supporting multi-turn conversations and quick question buttons.
 
 ## KENO Arbitrage Revolution™ (Patent-Pending)
-This system introduces the world's first arbitrage-native cryptocurrency with features like Flash Arbitrage Loans (FAL™) for instant, zero-fee loans, an Arbitrage Incentive Protocol (AIP™) for bonus rewards, and reputation-based loan limits. It includes performance tracking (leaderboard, NFT badges), scheduled arbitrage competitions, and an educational dashboard. Current implementation uses simulated opportunities for demo purposes, with real exchange integration planned.
+This system introduces an arbitrage-native educational cryptocurrency with features like Flash Arbitrage Loans (FAL™) for instant, zero-fee loans, an Arbitrage Incentive Protocol (AIP™) for bonus rewards, and reputation-based loan limits. It includes performance tracking (leaderboard, NFT badges), scheduled arbitrage competitions, and an educational dashboard. 
+
+**Current Implementation (November 2025)**: Multi-exchange API integration fetches REAL prices from Binance, Coinbase, Kraken, KuCoin, and Huobi exchanges. The system calculates genuine arbitrage opportunities based on actual cross-exchange price differences. All arbitrage activities are **educational only** - no actual trading or money movement occurs. Students learn real arbitrage strategies using live market data.
+
+**Planned Enhancement (Option 3)**: When regulatory licenses and compliance infrastructure are in place, the platform will enable actual trade execution with real profit potential (see Future Vision above).
 
 ## Security Model
 Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, transparent token supply tracking, PoRV security with cryptographically signed payments, wallet signature authentication, replay attack protection, rate limiting, CSRF protection, input validation, and server-side course verification.
