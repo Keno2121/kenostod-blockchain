@@ -1117,19 +1117,30 @@ function openTab(button, tabName) {
 async function loadStats() {
     try {
         const response = await fetch(`${API_BASE}/api/stats`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         
-        document.getElementById('totalBlocks').textContent = data.totalBlocks;
-        document.getElementById('totalTransactions').textContent = data.totalTransactions;
-        document.getElementById('difficulty').textContent = data.difficulty;
-        document.getElementById('miningReward').textContent = `${data.miningReward} KENO`;
-        document.getElementById('isValid').textContent = data.isValid ? '✅ Valid' : '❌ Invalid';
+        const totalBlocksEl = document.getElementById('totalBlocks');
+        const totalTransactionsEl = document.getElementById('totalTransactions');
+        const difficultyEl = document.getElementById('difficulty');
+        const miningRewardEl = document.getElementById('miningReward');
+        const isValidEl = document.getElementById('isValid');
+        const circulatingSupplyEl = document.getElementById('circulatingSupply');
         
-        if (data.supply) {
-            document.getElementById('circulatingSupply').textContent = `${data.supply.circulatingSupply} KENO`;
+        if (totalBlocksEl) totalBlocksEl.textContent = data.totalBlocks.toLocaleString();
+        if (totalTransactionsEl) totalTransactionsEl.textContent = data.totalTransactions.toLocaleString();
+        if (difficultyEl) difficultyEl.textContent = data.difficulty;
+        if (miningRewardEl) miningRewardEl.textContent = `${data.miningReward} KENO`;
+        if (isValidEl) isValidEl.textContent = data.isValid ? '✅ Valid' : '❌ Invalid';
+        
+        if (data.supply && circulatingSupplyEl) {
+            circulatingSupplyEl.textContent = `${data.supply.circulatingSupply.toLocaleString()} KENO`;
         }
     } catch (error) {
         console.error('Error loading stats:', error);
+        console.error('Error details:', error.message);
     }
 }
 
