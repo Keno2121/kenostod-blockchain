@@ -5657,6 +5657,273 @@ app.post('/api/arbitrage/bridge/transfer', (req, res) => {
 
 // ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
 
+// ==================== ICO INVESTOR DASHBOARD API ENDPOINTS ====================
+
+app.get('/api/ico/investor-stats', async (req, res) => {
+    try {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const stats = await dbConnection.query(
+            'SELECT * FROM investment_statistics WHERE stat_date = CURRENT_DATE LIMIT 1'
+        );
+
+        const investors = await dbConnection.query(
+            'SELECT COUNT(*) as total FROM ico_investors'
+        );
+
+        const raised = await dbConnection.query(
+            'SELECT SUM(investment_amount_usd) as total FROM ico_investors'
+        );
+
+        const tokens = await dbConnection.query(
+            'SELECT SUM(tokens_purchased) as total FROM ico_investors'
+        );
+
+        const investors24h = await dbConnection.query(
+            'SELECT COUNT(*) as count FROM ico_investors WHERE created_at >= NOW() - INTERVAL \'24 hours\''
+        );
+
+        const raised24h = await dbConnection.query(
+            'SELECT SUM(investment_amount_usd) as amount FROM ico_investors WHERE created_at >= NOW() - INTERVAL \'24 hours\''
+        );
+
+        const recentInvestments = await dbConnection.query(
+            'SELECT investment_amount_usd as amount, tokens_purchased as tokens, sale_phase as type, created_at as timestamp FROM ico_investors ORDER BY created_at DESC LIMIT 10'
+        );
+
+        const kycVerified = await dbConnection.query(
+            'SELECT COUNT(*) as count FROM kyc_verifications WHERE verification_status = \'verified\''
+        );
+
+        const totalRaised = parseFloat(raised.rows[0]?.total || 0);
+        const totalInvestors = parseInt(investors.rows[0]?.total || 0);
+        const tokensSold = parseFloat(tokens.rows[0]?.total || 0);
+        const investors24hCount = parseInt(investors24h.rows[0]?.count || 0);
+        const raised24hAmount = parseFloat(raised24h.rows[0]?.amount || 0);
+
+        const privateSaleDate = new Date('2025-11-28T00:00:00Z');
+        const now = new Date();
+        const currentPhase = now < privateSaleDate ? 'upcoming' : 'private';
+        const currentPrice = currentPhase === 'private' ? 0.01 : 0.05;
+
+        const raised24hPercent = totalRaised > 0 ? ((raised24hAmount / totalRaised) * 100).toFixed(2) : 0;
+
+        res.json({
+            totalRaised: totalRaised,
+            totalInvestors: totalInvestors,
+            tokensSold: tokensSold,
+            currentPrice: currentPrice,
+            goal: 500000,
+            raised24h: raised24hPercent,
+            investors24h: investors24hCount,
+            circulatingSupply: tokensSold,
+            holders: totalInvestors,
+            transactions24h: investors24hCount,
+            recentInvestments: recentInvestments.rows.map(inv => ({
+                amount: parseFloat(inv.amount),
+                tokens: parseFloat(inv.tokens),
+                type: inv.type === 'private' ? 'Private Sale' : 'Public Sale',
+                timestamp: inv.timestamp
+            }))
+        });
+    } catch (error) {
+        console.error('Error fetching investor stats:', error);
+        res.json({
+            totalRaised: 0,
+            totalInvestors: 0,
+            tokensSold: 0,
+            currentPrice: 0.01,
+            goal: 500000,
+            raised24h: 0,
+            investors24h: 0,
+            circulatingSupply: 0,
+            holders: 0,
+            transactions24h: 0,
+            recentInvestments: []
+        });
+    }
+});
+
+app.post('/api/ico/record-investment', async (req, res) => {
+    try {
+        const {
+            walletAddress,
+            email,
+            investmentAmount,
+            tokensPurchased,
+            tokenPrice,
+            paymentMethod,
+            transactionHash,
+            salePhase,
+            bonusPercentage,
+            bonusTokens,
+            referralCode
+        } = req.body;
+
+        if (!walletAddress || !investmentAmount || !tokensPurchased) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing required fields' 
+            });
+        }
+
+        const investorId = `INV-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        await dbConnection.query(
+            `INSERT INTO ico_investors (
+                investor_id, wallet_address, email, investment_amount_usd, 
+                tokens_purchased, token_price_usd, payment_method, transaction_hash,
+                sale_phase, bonus_percentage, bonus_tokens, referral_code, ip_address
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+            [
+                investorId,
+                walletAddress,
+                email,
+                investmentAmount,
+                tokensPurchased,
+                tokenPrice,
+                paymentMethod || 'crypto',
+                transactionHash || null,
+                salePhase || 'private',
+                bonusPercentage || 20,
+                bonusTokens || 0,
+                referralCode || null,
+                req.ip
+            ]
+        );
+
+        await dbConnection.query(
+            `INSERT INTO investment_statistics (
+                stat_date, total_raised_usd, total_investors, total_tokens_sold
+            ) VALUES (CURRENT_DATE, $1, 1, $2)
+            ON CONFLICT (stat_date) DO UPDATE SET
+                total_raised_usd = investment_statistics.total_raised_usd + $1,
+                total_investors = investment_statistics.total_investors + 1,
+                total_tokens_sold = investment_statistics.total_tokens_sold + $2,
+                updated_at = CURRENT_TIMESTAMP`,
+            [investmentAmount, tokensPurchased]
+        );
+
+        res.json({ 
+            success: true, 
+            investorId,
+            message: 'Investment recorded successfully' 
+        });
+    } catch (error) {
+        console.error('Error recording investment:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to record investment',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/ico/kyc/submit', async (req, res) => {
+    try {
+        const {
+            walletAddress,
+            email,
+            fullName,
+            dateOfBirth,
+            nationality,
+            countryOfResidence,
+            addressLine1,
+            addressLine2,
+            city,
+            stateProvince,
+            postalCode,
+            phoneNumber,
+            governmentIdType,
+            governmentIdNumber
+        } = req.body;
+
+        if (!walletAddress || !email || !fullName) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing required KYC fields' 
+            });
+        }
+
+        const verificationId = `KYC-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        await dbConnection.query(
+            `INSERT INTO kyc_verifications (
+                verification_id, wallet_address, email, full_name, date_of_birth,
+                nationality, country_of_residence, address_line1, address_line2,
+                city, state_province, postal_code, phone_number,
+                government_id_type, government_id_number, verification_status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+            [
+                verificationId,
+                walletAddress,
+                email,
+                fullName,
+                dateOfBirth || null,
+                nationality || null,
+                countryOfResidence || null,
+                addressLine1 || null,
+                addressLine2 || null,
+                city || null,
+                stateProvince || null,
+                postalCode || null,
+                phoneNumber || null,
+                governmentIdType || null,
+                governmentIdNumber || null,
+                'pending'
+            ]
+        );
+
+        res.json({ 
+            success: true, 
+            verificationId,
+            message: 'KYC verification submitted. Our team will review within 24 hours.' 
+        });
+    } catch (error) {
+        console.error('Error submitting KYC:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to submit KYC verification',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/ico/kyc/status/:walletAddress', async (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+
+        const result = await dbConnection.query(
+            'SELECT verification_status, verified_at, rejected_reason FROM kyc_verifications WHERE wallet_address = $1 ORDER BY created_at DESC LIMIT 1',
+            [walletAddress]
+        );
+
+        if (result.rows.length === 0) {
+            return res.json({ 
+                status: 'not_submitted',
+                message: 'No KYC verification found for this wallet' 
+            });
+        }
+
+        const kyc = result.rows[0];
+        res.json({ 
+            status: kyc.verification_status,
+            verifiedAt: kyc.verified_at,
+            rejectedReason: kyc.rejected_reason 
+        });
+    } catch (error) {
+        console.error('Error fetching KYC status:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch KYC status' 
+        });
+    }
+});
+
+// ==================== END ICO INVESTOR DASHBOARD API ENDPOINTS ====================
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');

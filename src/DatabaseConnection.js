@@ -471,7 +471,113 @@ class DatabaseConnection {
                 CREATE INDEX IF NOT EXISTS idx_merch_orders_created ON graduate_merchandise_orders(created_at);
             `);
 
-            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History, API Licensing & Graduate Merchandise)');
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS ico_investors (
+                    id SERIAL PRIMARY KEY,
+                    investor_id VARCHAR(255) UNIQUE NOT NULL,
+                    wallet_address VARCHAR(255) NOT NULL,
+                    email VARCHAR(255),
+                    investment_amount_usd DECIMAL(18, 2) NOT NULL,
+                    tokens_purchased DECIMAL(18, 8) NOT NULL,
+                    token_price_usd DECIMAL(18, 8) NOT NULL,
+                    payment_method VARCHAR(50),
+                    transaction_hash VARCHAR(255),
+                    sale_phase VARCHAR(50) DEFAULT 'private',
+                    bonus_percentage DECIMAL(5, 2) DEFAULT 0,
+                    bonus_tokens DECIMAL(18, 8) DEFAULT 0,
+                    referral_code VARCHAR(50),
+                    kyc_status VARCHAR(50) DEFAULT 'pending',
+                    accredited_investor BOOLEAN DEFAULT false,
+                    country VARCHAR(100),
+                    ip_address VARCHAR(50),
+                    investment_status VARCHAR(50) DEFAULT 'completed',
+                    vesting_schedule VARCHAR(100),
+                    tokens_claimed DECIMAL(18, 8) DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS kyc_verifications (
+                    id SERIAL PRIMARY KEY,
+                    verification_id VARCHAR(255) UNIQUE NOT NULL,
+                    investor_id VARCHAR(255) REFERENCES ico_investors(investor_id) ON DELETE CASCADE,
+                    wallet_address VARCHAR(255) NOT NULL,
+                    email VARCHAR(255) NOT NULL,
+                    full_name VARCHAR(255) NOT NULL,
+                    date_of_birth DATE,
+                    nationality VARCHAR(100),
+                    country_of_residence VARCHAR(100),
+                    address_line1 VARCHAR(500),
+                    address_line2 VARCHAR(500),
+                    city VARCHAR(255),
+                    state_province VARCHAR(255),
+                    postal_code VARCHAR(50),
+                    phone_number VARCHAR(50),
+                    government_id_type VARCHAR(50),
+                    government_id_number VARCHAR(255),
+                    id_document_url VARCHAR(500),
+                    selfie_photo_url VARCHAR(500),
+                    proof_of_address_url VARCHAR(500),
+                    accredited_investor_doc_url VARCHAR(500),
+                    verification_status VARCHAR(50) DEFAULT 'pending',
+                    verification_provider VARCHAR(100),
+                    provider_verification_id VARCHAR(255),
+                    risk_score INTEGER DEFAULT 0,
+                    aml_status VARCHAR(50) DEFAULT 'pending',
+                    rejected_reason TEXT,
+                    verified_by VARCHAR(255),
+                    verified_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS investment_statistics (
+                    id SERIAL PRIMARY KEY,
+                    stat_date DATE DEFAULT CURRENT_DATE,
+                    total_raised_usd DECIMAL(18, 2) DEFAULT 0,
+                    total_investors INTEGER DEFAULT 0,
+                    total_tokens_sold DECIMAL(18, 8) DEFAULT 0,
+                    new_investors_24h INTEGER DEFAULT 0,
+                    raised_24h_usd DECIMAL(18, 2) DEFAULT 0,
+                    average_investment_usd DECIMAL(18, 2) DEFAULT 0,
+                    kyc_verified_count INTEGER DEFAULT 0,
+                    kyc_pending_count INTEGER DEFAULT 0,
+                    private_sale_raised DECIMAL(18, 2) DEFAULT 0,
+                    public_sale_raised DECIMAL(18, 2) DEFAULT 0,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(stat_date)
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_ico_investors_wallet ON ico_investors(wallet_address);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_ico_investors_email ON ico_investors(email);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_ico_investors_created ON ico_investors(created_at);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_kyc_verifications_wallet ON kyc_verifications(wallet_address);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_kyc_verifications_status ON kyc_verifications(verification_status);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_investment_stats_date ON investment_statistics(stat_date);
+            `);
+
+            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History, API Licensing, Graduate Merchandise & ICO Investors)');
             return true;
         } catch (error) {
             console.error('❌ Error initializing database schema:', error.message);
