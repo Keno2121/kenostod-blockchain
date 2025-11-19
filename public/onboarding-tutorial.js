@@ -124,41 +124,24 @@ class OnboardingTutorial {
             </div>
         `;
 
-        if (step.position === 'center') {
-            this.modal.style.top = '50%';
-            this.modal.style.left = '50%';
-            this.modal.style.transform = 'translate(-50%, -50%)';
-        } else if (step.position === 'bottom') {
-            if (step.target) {
-                const targetElement = document.querySelector(step.target);
-                if (targetElement) {
-                    const rect = targetElement.getBoundingClientRect();
-                    this.modal.style.top = (rect.bottom + 20) + 'px';
-                    this.modal.style.left = '50%';
-                    this.modal.style.transform = 'translateX(-50%)';
-                } else {
-                    this.modal.style.top = '50%';
-                    this.modal.style.left = '50%';
-                    this.modal.style.transform = 'translate(-50%, -50%)';
-                }
-            } else {
-                this.modal.style.top = '50%';
-                this.modal.style.left = '50%';
-                this.modal.style.transform = 'translate(-50%, -50%)';
-            }
-        } else {
-            this.modal.style.top = '50%';
-            this.modal.style.left = '50%';
-            this.modal.style.transform = 'translate(-50%, -50%)';
-        }
+        // Always center the modal for better visibility
+        this.modal.style.top = '50%';
+        this.modal.style.left = '50%';
+        this.modal.style.transform = 'translate(-50%, -50%)';
 
         document.body.appendChild(this.modal);
 
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideIn {
-                from { opacity: 0; transform: translate(-50%, -40%); }
-                to { opacity: 1; transform: translate(-50%, -50%); }
+                from { 
+                    opacity: 0; 
+                    transform: translate(-50%, -50%) scale(0.9);
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translate(-50%, -50%) scale(1);
+                }
             }
             .tutorial-btn-primary {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
