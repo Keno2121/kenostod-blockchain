@@ -217,6 +217,10 @@ app.get('/sitemap.xml', (req, res) => {
     res.sendFile(__dirname + '/public/sitemap.xml');
 });
 
+app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
+    res.sendFile(__dirname + '/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt');
+});
+
 // Initialize persistence system
 const dataPersistence = new DataPersistence();
 
