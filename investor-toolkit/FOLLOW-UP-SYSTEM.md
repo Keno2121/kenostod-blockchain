@@ -42,7 +42,7 @@ Best regards,
 [Your Name]
 Founder, Kenostod Blockchain Academy
 
-📧 moheazy81@gmail.com
+📧 kenostod@gmail.com
 🌐 kenostodblockchain.com
 📍 Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 ```

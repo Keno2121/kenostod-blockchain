@@ -202,7 +202,7 @@ Create a spreadsheet to track:
 **Your Credentials (copy-paste ready):**
 
 ```
-Email: moheazy81@gmail.com
+Email: kenostod@gmail.com
 Website: kenostodblockchain.com
 Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 BscScan: https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
