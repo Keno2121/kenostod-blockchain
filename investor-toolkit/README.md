@@ -4,6 +4,27 @@
 
 ---
 
+## 🚨 **URGENT: START HERE (Nov 28 Deadline!)**
+
+⏰ **Private sale launches in 8 days!** Traditional angel networks take 2-6 months to decide. You need CRYPTO-FOCUSED investors who can move in 1-2 weeks.
+
+### **📍 YOUR IMMEDIATE ACTION FILES:**
+
+1. **URGENT-BUYERS-ONLY.md** ⭐ **OPEN THIS FIRST!** ⭐
+   - 10 crypto investors who can decide within 1-2 weeks
+   - Binance Labs, Satoshi Angels, Alumni Ventures Blockchain, etc.
+   - Email templates specifically for these investors
+   - Skip the slow traditional angels
+   
+2. **URGENT-TRACKER-UPDATED.html** 📊
+   - Visual tracker with ONLY fast-moving crypto investors
+   - Priority levels (contact TODAY vs this week)
+   - 8-day action plan to Nov 28 launch
+
+**⏰ ACTION NOW:** Open URGENT-BUYERS-ONLY.md and contact the first 4 investors TODAY!
+
+---
+
 ## 📁 WHAT'S INCLUDED
 
 ### 1. **PITCH-DECK.html**
