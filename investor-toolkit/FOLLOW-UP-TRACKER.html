@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Follow-Up Tracker | KENO Token Investors</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .countdown {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .day-card {
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .day-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .task-list {
+            list-style: none;
+        }
+        
+        .task-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .task-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .task-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+        
+        .priority-high {
+            border-left-color: #dc2626;
+        }
+        
+        .priority-medium {
+            border-left-color: #f59e0b;
+        }
+        
+        .priority-low {
+            border-left-color: #10b981;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-pending {
+            background: #6b7280;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        
+        .status-sent {
+            background: #3b82f6;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        
+        .status-responded {
+            background: #10b981;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        
+        .status-scheduled {
+            background: #f59e0b;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        
+        .action-needed {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .action-needed h3 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📅 Follow-Up Tracker</h1>
+    <div class="subtitle">Stay organized and never miss a follow-up!</div>
+    
+    <div class="countdown" id="countdown">
+        ⏰ 7 DAYS UNTIL PRIVATE SALE LAUNCH (Nov 28, 2025)
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalContacted">5</div>
+            <div class="stat-label">Investors Contacted</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="awaitingResponse">5</div>
+            <div class="stat-label">Awaiting Response</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="responded">0</div>
+            <div class="stat-label">Responded</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="callsScheduled">0</div>
+            <div class="stat-label">Calls Scheduled</div>
+        </div>
+    </div>
+    
+    <div class="action-needed">
+        <h3>🚨 TODAY'S PRIORITY ACTIONS:</h3>
+        <ul style="margin-left: 20px; color: #78350f; line-height: 2;">
+            <li><strong>Check emails</strong> for responses from yesterday's 5 contacts</li>
+            <li><strong>Send 4 more emails</strong> (DCG, Draper Dragon, Boost VC, Coinbase Ventures)</li>
+            <li><strong>Try Satoshi Angels</strong> via their website contact form</li>
+            <li><strong>Update this tracker</strong> after each action</li>
+        </ul>
+    </div>
+    
+    <!-- 7-DAY FOLLOW-UP SCHEDULE -->
+    <h2 style="color: #2c3e50; margin: 40px 0 20px;">📆 7-Day Follow-Up Schedule</h2>
+    
+    <div class="schedule-grid">
+        <!-- Day 1 -->
+        <div class="day-card">
+            <div class="day-header">DAY 1 - Nov 21 (TODAY) ✓</div>
+            <ul class="task-list">
+                <li class="task-item priority-high completed">
+                    <input type="checkbox" checked disabled>
+                    <span>Send initial emails to 5 investors</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Log all contacts in tracker</span>
+                </li>
+                <li class="task-item priority-medium">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Save pitch deck as PDF</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Day 2 -->
+        <div class="day-card">
+            <div class="day-header">DAY 2 - Nov 22 (TOMORROW)</div>
+            <ul class="task-list">
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Send Email #1: Digital Currency Group</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Send Email #2: Draper Dragon</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Send Email #3: Boost VC</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Send Email #4: Coinbase Ventures</span>
+                </li>
+                <li class="task-item priority-medium">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Check for responses from Day 1 emails</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Day 3 -->
+        <div class="day-card">
+            <div class="day-header">DAY 3 - Nov 23</div>
+            <ul class="task-list">
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Follow up with Binance Labs if no response</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Follow up with Alumni Ventures if no response</span>
+                </li>
+                <li class="task-item priority-medium">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Respond to any investor questions</span>
+                </li>
+                <li class="task-item priority-low">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Reach out on LinkedIn to non-responders</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Day 4 -->
+        <div class="day-card">
+            <div class="day-header">DAY 4 - Nov 24</div>
+            <ul class="task-list">
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Send polite follow-up to all Day 2 contacts</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Schedule any requested investor calls</span>
+                </li>
+                <li class="task-item priority-medium">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Prepare for upcoming investor calls</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Day 5 -->
+        <div class="day-card">
+            <div class="day-header">DAY 5 - Nov 25</div>
+            <ul class="task-list">
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Conduct scheduled investor calls</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Send thank you emails after calls</span>
+                </li>
+                <li class="task-item priority-medium">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Update tracker with call notes</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Day 6 -->
+        <div class="day-card">
+            <div class="day-header">DAY 6 - Nov 26</div>
+            <ul class="task-list">
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Final follow-up to interested investors</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Send "Last chance 20% bonus" emails</span>
+                </li>
+                <li class="task-item priority-medium">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Prepare investment agreements (SAFT)</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Day 7 -->
+        <div class="day-card">
+            <div class="day-header">DAY 7 - Nov 27</div>
+            <ul class="task-list">
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Confirm all committed investors</span>
+                </li>
+                <li class="task-item priority-high">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Test ICO payment flow</span>
+                </li>
+                <li class="task-item priority-medium">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Prepare launch announcement</span>
+                </li>
+                <li class="task-item priority-low">
+                    <input type="checkbox" onchange="updateProgress()">
+                    <span>Get good sleep before launch day!</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- INVESTOR TRACKING TABLE -->
+    <h2 style="color: #2c3e50; margin: 40px 0 20px;">📊 Investor Contact Tracking</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Investor</th>
+                <th>Contacted</th>
+                <th>Status</th>
+                <th>Follow-Up Date</th>
+                <th>Next Action</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Binance Labs</strong></td>
+                <td>Nov 21</td>
+                <td><span class="status-sent">SENT</span></td>
+                <td>Nov 23</td>
+                <td>Follow up if no response</td>
+                <td>BSC ecosystem fund - perfect fit!</td>
+            </tr>
+            <tr>
+                <td><strong>Alumni Ventures Blockchain</strong></td>
+                <td>Nov 21</td>
+                <td><span class="status-sent">SENT</span></td>
+                <td>Nov 23</td>
+                <td>Follow up if no response</td>
+                <td>11,000+ accredited investors</td>
+            </tr>
+            <tr>
+                <td><strong>Blockchain Coinvestors</strong></td>
+                <td>Nov 21</td>
+                <td><span class="status-sent">SENT</span></td>
+                <td>Nov 23</td>
+                <td>Follow up if no response</td>
+                <td>400+ global crypto investors</td>
+            </tr>
+            <tr>
+                <td><strong>Outlier Ventures</strong></td>
+                <td>Nov 21</td>
+                <td><span class="status-sent">SENT</span></td>
+                <td>Nov 23</td>
+                <td>Follow up if no response</td>
+                <td>Blockchain accelerator</td>
+            </tr>
+            <tr>
+                <td><strong>Pantera Capital</strong></td>
+                <td>Nov 21</td>
+                <td><span class="status-sent">SENT</span></td>
+                <td>Nov 24</td>
+                <td>Follow up if no response</td>
+                <td>Major crypto VC - high bar</td>
+            </tr>
+            <tr>
+                <td><strong>Satoshi Angels</strong></td>
+                <td>-</td>
+                <td><span class="status-pending">PENDING</span></td>
+                <td>Nov 22</td>
+                <td>Contact via website form</td>
+                <td>India's largest crypto angels</td>
+            </tr>
+            <tr>
+                <td><strong>Digital Currency Group</strong></td>
+                <td>-</td>
+                <td><span class="status-pending">PENDING</span></td>
+                <td>Nov 22</td>
+                <td>Send initial email</td>
+                <td>200+ crypto portfolio companies</td>
+            </tr>
+            <tr>
+                <td><strong>Draper Dragon</strong></td>
+                <td>-</td>
+                <td><span class="status-pending">PENDING</span></td>
+                <td>Nov 22</td>
+                <td>Send initial email</td>
+                <td>Asia/emerging markets focus</td>
+            </tr>
+            <tr>
+                <td><strong>Boost VC</strong></td>
+                <td>-</td>
+                <td><span class="status-pending">PENDING</span></td>
+                <td>Nov 22</td>
+                <td>Submit accelerator app</td>
+                <td>300+ blockchain companies</td>
+            </tr>
+            <tr>
+                <td><strong>Coinbase Ventures</strong></td>
+                <td>-</td>
+                <td><span class="status-pending">PENDING</span></td>
+                <td>Nov 22</td>
+                <td>Send initial email</td>
+                <td>Strategic investor - education angle</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div style="text-align: center; margin: 40px 0;">
+        <button class="btn" onclick="window.print()">🖨️ Print Schedule</button>
+        <button class="btn" onclick="exportToCSV()">📥 Export to CSV</button>
+        <button class="btn" onclick="location.reload()">🔄 Refresh</button>
+    </div>
+    
+    <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-top: 40px;">
+        <h3 style="color: #2c3e50; margin-bottom: 15px;">💡 Follow-Up Best Practices:</h3>
+        <ul style="color: #666; line-height: 2; margin-left: 20px;">
+            <li><strong>Wait 3-5 days</strong> before first follow-up (don't be pushy)</li>
+            <li><strong>Keep it brief:</strong> "Following up on my previous email about KENO token..."</li>
+            <li><strong>Add value:</strong> Share new traction, press, or updates</li>
+            <li><strong>Use different channels:</strong> Email → LinkedIn → Twitter</li>
+            <li><strong>Know when to stop:</strong> After 3 follow-ups with no response, move on</li>
+            <li><strong>Track everything:</strong> Use this tracker to stay organized!</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function updateProgress() {
+        // Simple progress tracking
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        let completed = 0;
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                completed++;
+                cb.closest('.task-item').classList.add('completed');
+            } else {
+                cb.closest('.task-item').classList.remove('completed');
+            }
+        });
+        console.log(`Progress: ${completed}/${checkboxes.length} tasks completed`);
+    }
+    
+    function exportToCSV() {
+        alert('CSV export feature: Copy the table data manually for now, or use the URGENT-TRACKER-UPDATED.html file which has full export capabilities!');
+    }
+    
+    // Update countdown daily
+    function updateCountdown() {
+        const launchDate = new Date('2025-11-28');
+        const today = new Date();
+        const daysLeft = Math.ceil((launchDate - today) / (1000 * 60 * 60 * 24));
+        document.getElementById('countdown').innerHTML = `⏰ ${daysLeft} DAYS UNTIL PRIVATE SALE LAUNCH (Nov 28, 2025)`;
+    }
+    
+    updateCountdown();
+</script>
+
+</body>
+</html>
