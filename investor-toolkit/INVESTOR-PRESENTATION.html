@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenostod Blockchain Academy - Investor Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            overflow: hidden;
+        }
+        
+        .slides-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .slide.active {
+            display: flex;
+        }
+        
+        .slide h1 {
+            font-size: 4em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .slide h2 {
+            font-size: 3em;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .slide h3 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        
+        .slide p {
+            font-size: 1.5em;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto 30px;
+        }
+        
+        .slide ul {
+            font-size: 1.5em;
+            line-height: 2.2;
+            text-align: left;
+            max-width: 900px;
+            list-style: none;
+        }
+        
+        .slide ul li {
+            margin: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+        
+        .slide ul li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 40px auto;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.15);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 40px auto;
+            text-align: left;
+        }
+        
+        .revenue-streams {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin: 40px auto;
+            max-width: 1200px;
+        }
+        
+        .revenue-box {
+            background: rgba(255,255,255,0.15);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .revenue-box h4 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        .revenue-box p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .cta-box {
+            background: rgba(255,255,255,0.2);
+            padding: 50px;
+            border-radius: 20px;
+            margin-top: 40px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .cta-box h3 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .cta-box p {
+            font-size: 1.8em;
+            margin: 15px 0;
+        }
+        
+        .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+        
+        .btn {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn:hover {
+            background: rgba(255,255,255,0.5);
+            transform: scale(1.05);
+        }
+        
+        .slide-number {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            font-size: 1.2em;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 1.2em;
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        table {
+            width: 100%;
+            max-width: 1000px;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 20px;
+            text-align: center;
+            font-size: 1.3em;
+        }
+        
+        th {
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .problem-icon {
+            font-size: 5em;
+            margin-bottom: 30px;
+        }
+        
+        .gradient-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .gradient-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .gradient-4 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .gradient-5 {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        @media print {
+            .controls, .slide-number, .logo {
+                display: none;
+            }
+            
+            .slide {
+                page-break-after: always;
+                display: flex !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="logo">KENOSTOD</div>
+<div class="slide-number" id="slideNumber">1 / 15</div>
+
+<div class="slides-container">
+    
+    <!-- SLIDE 1: COVER -->
+    <div class="slide active gradient-1">
+        <h1>🎓 KENOSTOD BLOCKCHAIN ACADEMY</h1>
+        <p style="font-size: 2.5em; margin: 40px 0;">The World's First Educational Platform Where Students <span class="highlight">Earn Real Cryptocurrency</span> While Learning Blockchain</p>
+        <p style="font-size: 1.8em; opacity: 0.9;">Private Sale: Nov 28 - Dec 28, 2025</p>
+        <p style="font-size: 1.8em; opacity: 0.9;">$0.01/KENO + 20% Bonus</p>
+    </div>
+    
+    <!-- SLIDE 2: THE PROBLEM -->
+    <div class="slide gradient-2">
+        <div class="problem-icon">⚠️</div>
+        <h2>The Problem</h2>
+        <div class="two-column">
+            <div>
+                <h3>🌍 Global Skills Gap</h3>
+                <ul>
+                    <li>10,000+ unfilled blockchain jobs globally</li>
+                    <li>60% of Africa's unemployed are youth</li>
+                    <li>Traditional education is expensive and inaccessible</li>
+                    <li>No practical, hands-on blockchain training</li>
+                </ul>
+            </div>
+            <div>
+                <h3>💰 Economic Hardship</h3>
+                <ul>
+                    <li>20%+ youth unemployment in emerging markets</li>
+                    <li>Students need income while learning</li>
+                    <li>Crypto adoption high, but education low</li>
+                    <li>No pathway from learning to earning</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SLIDE 3: THE SOLUTION -->
+    <div class="slide gradient-3">
+        <h2>Our Solution: Learn → Earn → Career</h2>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-number">21</div>
+                <div class="stat-label">Comprehensive Blockchain Courses</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">💰</div>
+                <div class="stat-label">Students Earn KENO Tokens</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">🚀</div>
+                <div class="stat-label">Direct Career Placement</div>
+            </div>
+        </div>
+        <p style="font-size: 1.8em; margin-top: 40px;">Students pay $10-20/month but earn KENO tokens worth MORE than their subscription</p>
+        <p style="font-size: 1.5em; opacity: 0.9;">Plus graduate job placement in blockchain companies</p>
+    </div>
+    
+    <!-- SLIDE 4: MARKET OPPORTUNITY -->
+    <div class="slide gradient-4">
+        <h2>🌍 Massive Market Opportunity</h2>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-number">$41.2B</div>
+                <div class="stat-label">Blockchain Education Market by 2030</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">500M+</div>
+                <div class="stat-label">Students in Target Markets</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">350M+</div>
+                <div class="stat-label">Crypto Users in Africa, Brazil, Asia</div>
+            </div>
+        </div>
+        <h3 style="margin-top: 50px;">Primary Target Markets:</h3>
+        <p style="font-size: 1.8em;">🇿🇦 Africa • 🇧🇷 Brazil • 🇮🇳 India • 🇮🇩 SE Asia</p>
+        <p style="font-size: 1.3em; opacity: 0.9; margin-top: 20px;">(Excluding US/Canada for regulatory compliance)</p>
+    </div>
+    
+    <!-- SLIDE 5: BUSINESS MODEL -->
+    <div class="slide gradient-5">
+        <h2>💼 7 Revenue Streams (Not Speculation-Dependent)</h2>
+        <div class="revenue-streams">
+            <div class="revenue-box">
+                <h4>1️⃣ Student Subscriptions</h4>
+                <p>$10-20/month per student</p>
+            </div>
+            <div class="revenue-box">
+                <h4>2️⃣ B2B Corporate Training</h4>
+                <p>Enterprise blockchain education</p>
+            </div>
+            <div class="revenue-box">
+                <h4>3️⃣ Transaction Fees</h4>
+                <p>0.5% on exchange trades</p>
+            </div>
+            <div class="revenue-box">
+                <h4>4️⃣ Merchant Gateway Fees</h4>
+                <p>2.5% on merchant payments</p>
+            </div>
+            <div class="revenue-box">
+                <h4>5️⃣ White-Label Licensing</h4>
+                <p>Platform licensing to institutions</p>
+            </div>
+            <div class="revenue-box">
+                <h4>6️⃣ Graduate Merchandise</h4>
+                <p>Branded items for graduates</p>
+            </div>
+            <div class="revenue-box">
+                <h4>7️⃣ Premium Features</h4>
+                <p>Advanced tools & certifications</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SLIDE 6: WHAT WE'VE BUILT -->
+    <div class="slide gradient-1">
+        <h2>✅ What We've Built (Live & Working)</h2>
+        <div class="two-column">
+            <div>
+                <h3>🎓 Educational Platform</h3>
+                <ul>
+                    <li>21 comprehensive courses</li>
+                    <li>Interactive blockchain simulator</li>
+                    <li>Live wallet & transaction system</li>
+                    <li>Mining & consensus mechanisms</li>
+                    <li>Career center & job placement</li>
+                </ul>
+            </div>
+            <div>
+                <h3>💻 Technical Infrastructure</h3>
+                <ul>
+                    <li>BEP-20 token on BSC (verified)</li>
+                    <li>PostgreSQL database</li>
+                    <li>Stripe & PayPal integration</li>
+                    <li>OpenAI-powered support</li>
+                    <li>Multi-language support (6 languages)</li>
+                </ul>
+            </div>
+        </div>
+        <p style="font-size: 1.8em; margin-top: 40px;">🌐 <strong>Live Now:</strong> kenostodblockchain.com</p>
+    </div>
+    
+    <!-- SLIDE 7: KENO TOKEN -->
+    <div class="slide gradient-2">
+        <h2>🪙 KENO Token: Real, Verified, Tradeable</h2>
+        <div class="cta-box" style="margin-top: 0;">
+            <p style="font-size: 1.3em; word-break: break-all;">Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</p>
+            <p style="font-size: 1.3em;">✅ Verified on BscScan</p>
+        </div>
+        <div class="stats-grid" style="margin-top: 40px;">
+            <div class="stat-box">
+                <div class="stat-number">1B</div>
+                <div class="stat-label">Total Supply</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">30%</div>
+                <div class="stat-label">ICO Allocation</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">55%</div>
+                <div class="stat-label">Treasury Reserve</div>
+            </div>
+        </div>
+        <table style="margin-top: 40px;">
+            <tr>
+                <th>Allocation</th>
+                <th>Percentage</th>
+                <th>Tokens</th>
+            </tr>
+            <tr>
+                <td>ICO (Public + Private)</td>
+                <td>30%</td>
+                <td>300M</td>
+            </tr>
+            <tr>
+                <td>Treasury Reserve</td>
+                <td>55%</td>
+                <td>550M</td>
+            </tr>
+            <tr>
+                <td>Team & Development</td>
+                <td>10%</td>
+                <td>100M</td>
+            </tr>
+            <tr>
+                <td>Marketing & Partnerships</td>
+                <td>5%</td>
+                <td>50M</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- SLIDE 8: ICO STRUCTURE -->
+    <div class="slide gradient-3">
+        <h2>💰 ICO Investment Opportunity</h2>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-number">$0.01</div>
+                <div class="stat-label">Private Sale Price<br>(Nov 28-Dec 28)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">+20%</div>
+                <div class="stat-label">Bonus Tokens<br>(Private Sale Only)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$0.05</div>
+                <div class="stat-label">Public Sale Price<br>(Dec 29-Feb 27)</div>
+            </div>
+        </div>
+        <div class="cta-box">
+            <h3>5x Return Potential</h3>
+            <p>Private Sale → Public Sale</p>
+            <p style="font-size: 1.5em; margin-top: 30px;">Invest $10,000 → Get 1.2M KENO</p>
+            <p style="font-size: 1.5em;">Public Sale Value: $60,000</p>
+        </div>
+    </div>
+    
+    <!-- SLIDE 9: TRACTION -->
+    <div class="slide gradient-4">
+        <h2>📊 Traction & Proof Points</h2>
+        <ul style="text-align: center; padding: 0;">
+            <li>✅ <strong>Live Platform:</strong> Fully functional at kenostodblockchain.com</li>
+            <li>✅ <strong>Verified Contract:</strong> BscScan verified BEP-20 token</li>
+            <li>✅ <strong>21 Courses Ready:</strong> Complete curriculum built</li>
+            <li>✅ <strong>B2B Ready:</strong> Corporate training program operational</li>
+            <li>✅ <strong>Payment Integration:</strong> Stripe, PayPal, crypto payments</li>
+            <li>✅ <strong>AI Support:</strong> OpenAI-powered 24/7 student assistance</li>
+            <li>✅ <strong>Multi-Language:</strong> 6 languages (English, Spanish, Portuguese, Hindi, Chinese, French)</li>
+            <li>✅ <strong>Graduate System:</strong> Job placement & career center live</li>
+        </ul>
+    </div>
+    
+    <!-- SLIDE 10: FINANCIALS -->
+    <div class="slide gradient-5">
+        <h2>💵 Financial Projections (Conservative)</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Year 1</th>
+                <th>Year 2</th>
+                <th>Year 3</th>
+            </tr>
+            <tr>
+                <td>Students</td>
+                <td>10,000</td>
+                <td>50,000</td>
+                <td>100,000</td>
+            </tr>
+            <tr>
+                <td>Avg. Revenue/Student</td>
+                <td>$15/mo</td>
+                <td>$16/mo</td>
+                <td>$17/mo</td>
+            </tr>
+            <tr>
+                <td>Subscription Revenue</td>
+                <td>$1.8M</td>
+                <td>$9.6M</td>
+                <td>$20.4M</td>
+            </tr>
+            <tr>
+                <td>B2B Revenue</td>
+                <td>$200K</td>
+                <td>$1.2M</td>
+                <td>$3M</td>
+            </tr>
+            <tr>
+                <td>Total Revenue</td>
+                <td><strong>$2M</strong></td>
+                <td><strong>$10.8M</strong></td>
+                <td><strong>$23.4M</strong></td>
+            </tr>
+        </table>
+        <p style="font-size: 1.3em; margin-top: 30px; opacity: 0.9;">Plus transaction fees, licensing, merchandise revenue</p>
+    </div>
+    
+    <!-- SLIDE 11: COMPETITIVE ADVANTAGE -->
+    <div class="slide gradient-1">
+        <h2>🏆 Why We'll Win</h2>
+        <div class="two-column">
+            <div>
+                <h3>🎯 Unique Positioning</h3>
+                <ul>
+                    <li><strong>Only</strong> platform where students earn crypto</li>
+                    <li>Real BEP-20 token (not points)</li>
+                    <li>Hands-on blockchain simulator</li>
+                    <li>Job placement built-in</li>
+                    <li>Emerging markets focus</li>
+                </ul>
+            </div>
+            <div>
+                <h3>⚡ Execution Advantage</h3>
+                <ul>
+                    <li>Live product (not vaporware)</li>
+                    <li>Verified smart contract</li>
+                    <li>Multi-revenue model</li>
+                    <li>B2B + B2C dual approach</li>
+                    <li>Regulatory compliance built-in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="cta-box" style="margin-top: 50px;">
+            <h3>No Direct Competitors</h3>
+            <p style="font-size: 1.5em;">Coursera, Udemy, LinkedIn Learning don't offer crypto earning</p>
+            <p style="font-size: 1.5em;">Crypto platforms don't offer comprehensive education</p>
+        </div>
+    </div>
+    
+    <!-- SLIDE 12: USE OF FUNDS -->
+    <div class="slide gradient-2">
+        <h2>💼 Use of Funds</h2>
+        <div class="revenue-streams">
+            <div class="revenue-box">
+                <h4>30% - Marketing & Growth</h4>
+                <p>User acquisition in Africa, Brazil, Asia<br>Influencer partnerships<br>Social media campaigns</p>
+            </div>
+            <div class="revenue-box">
+                <h4>25% - Product Development</h4>
+                <p>New courses & features<br>Mobile app development<br>Platform improvements</p>
+            </div>
+            <div class="revenue-box">
+                <h4>20% - Team Expansion</h4>
+                <p>Hire developers & educators<br>Customer support team<br>Sales & BD roles</p>
+            </div>
+            <div class="revenue-box">
+                <h4>15% - Operations</h4>
+                <p>Infrastructure costs<br>Legal & compliance<br>Office & admin</p>
+            </div>
+            <div class="revenue-box">
+                <h4>10% - Liquidity & Exchange</h4>
+                <p>Exchange listings<br>Liquidity pools<br>Market making</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SLIDE 13: ROADMAP -->
+    <div class="slide gradient-3">
+        <h2>🗺️ 12-Month Roadmap</h2>
+        <div class="two-column">
+            <div>
+                <h3>Q1 2026 (Now - Mar)</h3>
+                <ul>
+                    <li>Complete Private Sale ($3M target)</li>
+                    <li>Complete Public Sale ($15M target)</li>
+                    <li>Exchange listings (2-3 CEXs)</li>
+                    <li>Launch marketing campaigns</li>
+                </ul>
+                <h3 style="margin-top: 40px;">Q2 2026 (Apr - Jun)</h3>
+                <ul>
+                    <li>Reach 10,000 students</li>
+                    <li>Launch mobile app (iOS/Android)</li>
+                    <li>10 B2B corporate clients</li>
+                    <li>Expand to 10 languages</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Q3 2026 (Jul - Sep)</h3>
+                <ul>
+                    <li>Reach 30,000 students</li>
+                    <li>Launch advanced courses (DeFi, NFTs)</li>
+                    <li>Strategic partnerships</li>
+                    <li>First graduate job placements</li>
+                </ul>
+                <h3 style="margin-top: 40px;">Q4 2026 (Oct - Dec)</h3>
+                <ul>
+                    <li>Reach 50,000 students</li>
+                    <li>White-label licensing program</li>
+                    <li>Regional offices (Africa, Brazil)</li>
+                    <li>$10M+ annual revenue run rate</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SLIDE 14: THE ASK -->
+    <div class="slide gradient-4">
+        <h2>💰 Investment Opportunity</h2>
+        <div class="cta-box" style="background: rgba(255,255,255,0.3); max-width: 900px;">
+            <h3 style="font-size: 3em;">We're Raising:</h3>
+            <p style="font-size: 3.5em; margin: 30px 0;"><strong>$3M Private Sale</strong></p>
+            <p style="font-size: 2em;">$0.01/KENO + 20% Bonus</p>
+            <p style="font-size: 1.5em; opacity: 0.9; margin-top: 20px;">Nov 28 - Dec 28, 2025</p>
+        </div>
+        <div class="stats-grid" style="margin-top: 60px;">
+            <div class="stat-box">
+                <div class="stat-number">5x</div>
+                <div class="stat-label">Return Potential<br>(Private → Public)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$41B</div>
+                <div class="stat-label">Market Opportunity<br>by 2030</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">500M+</div>
+                <div class="stat-label">Target Students<br>Globally</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SLIDE 15: CONTACT -->
+    <div class="slide gradient-5">
+        <h1>Let's Build the Future of Blockchain Education</h1>
+        <div class="cta-box" style="margin-top: 60px; max-width: 1000px;">
+            <h3 style="font-size: 2.5em; margin-bottom: 40px;">Contact Us</h3>
+            <p style="font-size: 2em; margin: 20px 0;">📧 kenostod@gmail.com</p>
+            <p style="font-size: 2em; margin: 20px 0;">🌐 kenostodblockchain.com</p>
+            <p style="font-size: 1.5em; margin: 30px 0; word-break: break-all;">📍 Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</p>
+            <p style="font-size: 1.3em; margin: 30px 0;">🔗 BscScan: bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</p>
+        </div>
+        <p style="font-size: 2.5em; margin-top: 60px;"><strong>🎓 Empowering the World Through Blockchain Education</strong></p>
+    </div>
+
+</div>
+
+<div class="controls">
+    <button class="btn" id="prevBtn">← Previous</button>
+    <button class="btn" id="nextBtn">Next →</button>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const slideNumber = document.getElementById('slideNumber');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    function showSlide(n) {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (n + totalSlides) % totalSlides;
+        slides[currentSlide].classList.add('active');
+        slideNumber.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    }
+    
+    function nextSlide() {
+        showSlide(currentSlide + 1);
+    }
+    
+    function prevSlide() {
+        showSlide(currentSlide - 1);
+    }
+    
+    // Button controls
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+    
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            prevSlide();
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            showSlide(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            showSlide(totalSlides - 1);
+        }
+    });
+    
+    // Touch controls for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        if (touchEndX < touchStartX - 50) {
+            nextSlide();
+        }
+        if (touchEndX > touchStartX + 50) {
+            prevSlide();
+        }
+    }
+    
+    // Click on slide to advance (except on controls)
+    document.querySelectorAll('.slide').forEach(slide => {
+        slide.addEventListener('click', (e) => {
+            if (!e.target.closest('.controls')) {
+                nextSlide();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
