@@ -19,7 +19,7 @@ For now, the platform focuses on **world-class blockchain education** using real
 
 Preferred communication style: Simple, everyday language.
 Design preferences: Professional, appealing, fun; market-ready for ROI growth and scalability.
-Contact email: kenostod@gmail.com (updated from moheazy81@gmail.com)
+Contact email: kenostod21@gmail.com (updated from moheazy81@gmail.com, then from kenostod@gmail.com)
 
 # System Architecture
 

@@ -191,7 +191,7 @@ We're **not** dependent on token price speculation:
 ## 📧 CONTACT INFORMATION
 
 **Founder:** [Your Name]  
-**Email:** kenostod@gmail.com  
+**Email:** kenostod21@gmail.com  
 **Website:** kenostodblockchain.com  
 **Contract:** 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E  
 **BscScan:** https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E  
@@ -226,4 +226,4 @@ Before you invest, verify:
 
 **🚀 Let's bring blockchain education to the world—together.**
 
-**Schedule your intro call:** kenostod@gmail.com
+**Schedule your intro call:** kenostod21@gmail.com

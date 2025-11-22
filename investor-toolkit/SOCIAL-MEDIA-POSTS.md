@@ -348,7 +348,7 @@ Private Sale: Nov 28 | Link in bio
 [4:30-5:00] CLOSE
 > "This isn't just an investment—it's a chance to be part of something that empowers millions of people globally.
 >
-> If you're interested, visit kenostodblockchain.com for our full investor materials, pitch deck, and FAQ. Or email me directly at kenostod@gmail.com.
+> If you're interested, visit kenostodblockchain.com for our full investor materials, pitch deck, and FAQ. Or email me directly at kenostod21@gmail.com.
 >
 > The Private Sale launches in 7 days. Don't miss the 20% bonus—it's only available until December 28.
 >

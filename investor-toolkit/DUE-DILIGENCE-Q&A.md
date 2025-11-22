@@ -384,7 +384,7 @@ $2M raise = 50+ months runway (profitability before capital runs out)
 
 ---
 
-**Questions we haven't covered?** Email kenostod@gmail.com - we respond within 24 hours.
+**Questions we haven't covered?** Email kenostod21@gmail.com - we respond within 24 hours.
 
 **Ready to invest?** Let's schedule a call to discuss terms: [Calendar link]
 

@@ -79,7 +79,7 @@ Best regards,
 [Your Name]
 Founder, Kenostod Blockchain Academy
 
-📧 kenostod@gmail.com
+📧 kenostod21@gmail.com
 🌐 kenostodblockchain.com
 📍 Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 🔗 Verify: https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
@@ -179,7 +179,7 @@ Best regards,
 [Your Name]
 Founder, Kenostod Blockchain Academy
 
-📧 kenostod@gmail.com
+📧 kenostod21@gmail.com
 🌐 kenostodblockchain.com
 📍 Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 🔗 BscScan: https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
@@ -275,7 +275,7 @@ Atenciosamente,
 [Seu Nome]
 Fundador, Kenostod Blockchain Academy
 
-📧 kenostod@gmail.com
+📧 kenostod21@gmail.com
 🌐 kenostodblockchain.com
 📍 Contrato: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 🔗 BscScan: https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
@@ -363,7 +363,7 @@ Best regards,
 [Your Name]
 Founder, Kenostod Blockchain Academy
 
-📧 kenostod@gmail.com
+📧 kenostod21@gmail.com
 🌐 kenostodblockchain.com
 📍 Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 🔗 BscScan: https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E

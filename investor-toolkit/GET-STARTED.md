@@ -67,7 +67,7 @@ Best regards,
 [Your Name]
 Founder, Kenostod Blockchain Academy
 
-📧 kenostod@gmail.com
+📧 kenostod21@gmail.com
 🌐 kenostodblockchain.com
 📍 Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 ```
@@ -108,7 +108,7 @@ Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 
 Best,
 [Your Name]
-kenostod@gmail.com
+kenostod21@gmail.com
 ```
 
 ---
@@ -148,7 +148,7 @@ May I send you our complete pitch deck?
 
 Obrigado! (Thank you!)
 [Your Name]
-kenostod@gmail.com
+kenostod21@gmail.com
 ```
 
 ---
@@ -195,7 +195,7 @@ Would you be available for an intro call?
 Best regards,
 [Your Name]
 Founder, Kenostod Blockchain Academy
-kenostod@gmail.com
+kenostod21@gmail.com
 ```
 
 ---
@@ -236,7 +236,7 @@ Website: kenostodblockchain.com
 Seeking: $500K-2M in private sale round
 Use of Funds: Marketing (40%), Development (25%), Exchange Listings (15%), Team (10%), Legal (10%)
 
-Contact: kenostod@gmail.com
+Contact: kenostod21@gmail.com
 ```
 
 ---
@@ -355,7 +355,7 @@ Add this to all your emails:
 ```
 [Your Name]
 Founder & CEO, Kenostod Blockchain Academy
-📧 kenostod@gmail.com
+📧 kenostod21@gmail.com
 🌐 kenostodblockchain.com
 📍 Verified Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 🔗 https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E

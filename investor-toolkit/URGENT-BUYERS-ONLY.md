@@ -55,7 +55,7 @@ Can we schedule a 20-minute call this week?
 
 Best regards,
 [Your Name]
-kenostod@gmail.com
+kenostod21@gmail.com
 ```
 
 ---
@@ -115,7 +115,7 @@ Could we schedule a presentation for your investment committee?
 Best regards,
 [Your Name]
 Founder, Kenostod Blockchain Academy
-kenostod@gmail.com
+kenostod21@gmail.com
 kenostodblockchain.com
 ```
 
@@ -177,7 +177,7 @@ May I send our complete pitch deck?
 
 Best regards,
 [Your Name]
-kenostod@gmail.com
+kenostod21@gmail.com
 ```
 
 ---
@@ -234,7 +234,7 @@ Would you be interested in reviewing our materials?
 
 Best regards,
 [Your Name]
-kenostod@gmail.com
+kenostod21@gmail.com
 kenostodblockchain.com
 ```
 
@@ -293,7 +293,7 @@ May I send our pitch deck?
 
 Best regards,
 [Your Name]
-kenostod@gmail.com
+kenostod21@gmail.com
 ```
 
 ---
@@ -428,7 +428,7 @@ Can we schedule a call this week?
 
 Best regards,
 [Your Name]
-kenostod@gmail.com
+kenostod21@gmail.com
 kenostodblockchain.com
 ```
 

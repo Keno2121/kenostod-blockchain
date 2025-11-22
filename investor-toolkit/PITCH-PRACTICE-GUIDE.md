@@ -320,7 +320,7 @@
 ### **SLIDE 15: CONTACT (30 seconds)**
 
 **What to Say:**
-> "I'd love to answer your questions and discuss how we can work together. You can reach me at kenostod@gmail.com, test our platform yourself at kenostodblockchain.com, and verify our token contract on BscScan right now.
+> "I'd love to answer your questions and discuss how we can work together. You can reach me at kenostod21@gmail.com, test our platform yourself at kenostodblockchain.com, and verify our token contract on BscScan right now.
 >
 > Let's build the future of blockchain education together. Thank you!"
 
