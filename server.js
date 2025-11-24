@@ -10,6 +10,9 @@ const Wallet = require('./src/Wallet');
 const BankingAPI = require('./src/BankingAPI');
 const StripeIntegration = require('./src/StripeIntegration');
 const PayPalIntegration = require('./src/PayPalIntegration');
+const { runMigrations } = require('stripe-replit-sync');
+const { getStripeSync } = require('./src/stripeClient');
+const WebhookHandlers = require('./src/webhookHandlers');
 const MerchantIncentives = require('./src/MerchantIncentives');
 const RevenueTracker = require('./src/RevenueTracker');
 const DataPersistence = require('./src/DataPersistence');
@@ -34,7 +37,83 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(cors());
 
-// Stripe webhook must be BEFORE express.json() to preserve raw body for signature verification
+// ==================== STRIPE INITIALIZATION ====================
+// Initialize Stripe with managed webhooks and database sync
+async function initializeStripe() {
+    try {
+        if (!process.env.DATABASE_URL) {
+            console.warn('⚠️  DATABASE_URL not set - Stripe integration skipped');
+            return;
+        }
+
+        console.log('🔄 Initializing Stripe integration...');
+        
+        // 1. Run migrations to create stripe schema
+        await runMigrations({ 
+            databaseUrl: process.env.DATABASE_URL,
+            schema: 'stripe'
+        });
+        console.log('✅ Stripe schema ready');
+
+        // 2. Get StripeSync instance
+        const stripeSync = await getStripeSync();
+
+        // 3. Set up managed webhook
+        console.log('📧 Setting up Stripe managed webhook...');
+        const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}`;
+        const { webhook, uuid } = await stripeSync.findOrCreateManagedWebhook(
+            `${webhookBaseUrl}/api/stripe/webhook`,
+            {
+                enabled_events: ['*'],
+                description: 'Kenostod Blockchain Academy - Managed webhook',
+            }
+        );
+        console.log(`✅ Webhook configured (UUID: ${uuid})`);
+
+        // 4. Start syncing Stripe data in background
+        stripeSync.syncBackfill()
+            .then(() => console.log('✅ Stripe data synced'))
+            .catch(err => console.error('❌ Error syncing Stripe data:', err.message));
+
+    } catch (error) {
+        console.error('❌ Stripe initialization error:', error.message);
+    }
+}
+
+// Initialize Stripe asynchronously (will complete in background)
+// Don't await here - let server start first
+initializeStripe().catch(err => console.error('Stripe init error:', err));
+
+// ==================== STRIPE WEBHOOK ROUTE ====================
+// Stripe webhook must be BEFORE express.json() to preserve raw body
+app.post(
+    '/api/stripe/webhook/:uuid',
+    express.raw({ type: 'application/json' }),
+    async (req, res) => {
+        try {
+            const signature = req.headers['stripe-signature'];
+            if (!signature) {
+                return res.status(400).json({ error: 'Missing stripe-signature' });
+            }
+
+            if (!Buffer.isBuffer(req.body)) {
+                console.error('❌ Webhook error: Body is not a Buffer');
+                return res.status(500).json({ error: 'Webhook processing error' });
+            }
+
+            const sig = Array.isArray(signature) ? signature[0] : signature;
+            const { uuid } = req.params;
+            
+            await WebhookHandlers.processWebhook(req.body, sig, uuid);
+            res.status(200).json({ received: true });
+        } catch (error) {
+            console.error('❌ Webhook error:', error.message);
+            res.status(400).json({ error: 'Webhook processing error' });
+        }
+    }
+);
+
+// Legacy webhook route (for backward compatibility)
 app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
