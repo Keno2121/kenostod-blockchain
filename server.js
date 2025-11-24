@@ -12,6 +12,7 @@ const StripeIntegration = require('./src/StripeIntegration');
 const PayPalIntegration = require('./src/PayPalIntegration');
 const { runMigrations } = require('stripe-replit-sync');
 const { getStripeSync } = require('./src/stripeClient');
+const stripeService = require('./src/stripeService');
 const WebhookHandlers = require('./src/webhookHandlers');
 const MerchantIncentives = require('./src/MerchantIncentives');
 const RevenueTracker = require('./src/RevenueTracker');
@@ -2461,18 +2462,29 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         const successUrl = `${baseUrl}/?subscription=success&plan=${plan || 'unknown'}`;
         const cancelUrl = `${baseUrl}/?subscription=cancelled`;
 
-        const session = await stripeIntegration.createCheckoutSession(
+        // Create or get customer
+        let customer;
+        if (customerEmail) {
+            try {
+                customer = await stripeService.createCustomer(customerEmail, `user-${Date.now()}`);
+            } catch (err) {
+                console.error('Customer creation error:', err);
+                customer = { id: null };
+            }
+        }
+
+        // Create checkout session
+        const session = await stripeService.createCheckoutSession(
+            customer?.id,
             priceId,
             successUrl,
-            cancelUrl,
-            customerEmail,
-            { plan }
+            cancelUrl
         );
 
         res.json({ 
             url: session.url,
             sessionId: session.id,
-            testMode: session.testMode || false
+            testMode: process.env.STRIPE_MODE === 'test'
         });
     } catch (error) {
         console.error('Checkout session error:', error);
@@ -2492,11 +2504,11 @@ app.post('/api/stripe/create-portal-session', async (req, res) => {
         const host = req.headers['x-forwarded-host'] || req.get('host');
         const returnUrl = `${protocol}://${host}/`;
 
-        const session = await stripeIntegration.createCustomerPortalSession(customerId, returnUrl);
+        const session = await stripeService.createCustomerPortalSession(customerId, returnUrl);
 
         res.json({ 
             url: session.url,
-            testMode: session.testMode || false
+            testMode: process.env.STRIPE_MODE === 'test'
         });
     } catch (error) {
         console.error('Portal session error:', error);
