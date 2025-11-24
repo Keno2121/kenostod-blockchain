@@ -2127,14 +2127,35 @@
         }
     </script>
     <script>
+        // Dynamic Stripe price fetching
+        let STRIPE_PRICE_IDS = {
+            student: null,
+            professional: null
+        };
+
+        async function loadStripePrices() {
+            try {
+                const response = await fetch('/api/stripe/get-price-ids');
+                if (!response.ok) throw new Error('Failed to load prices');
+                
+                const priceIds = await response.json();
+                STRIPE_PRICE_IDS.student = priceIds.student;
+                STRIPE_PRICE_IDS.professional = priceIds.professional;
+                
+                console.log('✅ Stripe prices loaded:', STRIPE_PRICE_IDS);
+            } catch (error) {
+                console.error('Failed to load Stripe prices:', error);
+                // Fallback to new sandbox prices
+                STRIPE_PRICE_IDS.student = 'price_1SX1x1BMJMAmd04Cp1Aeq6TM';
+                STRIPE_PRICE_IDS.professional = 'price_1SX1x1BMJMAmd04CG9J97tmG';
+                console.log('✅ Using fallback Stripe prices:', STRIPE_PRICE_IDS);
+            }
+        }
+
         window.addEventListener('load', function() {
+            loadStripePrices();
             setTimeout(initializeApp, 2000);
         });
-        
-        const STRIPE_PRICE_IDS = {
-            student: 'price_1SPntIETJYdWSfBayehEA35J',
-            professional: 'price_1SPnwEETJYdWSfBaPFLKu9WU'
-        };
 
         const GOOGLE_PLAY_PRODUCT_IDS = {
             student: 'kenostod_student_monthly',

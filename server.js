@@ -2516,10 +2516,55 @@ app.post('/api/stripe/create-portal-session', async (req, res) => {
     }
 });
 
+// Initialize or get subscription products and prices
+app.post('/api/stripe/init-subscriptions', async (req, res) => {
+    try {
+        const products = await stripeService.ensureSubscriptionProducts();
+        res.json({ 
+            success: true, 
+            products,
+            message: 'Subscription products initialized'
+        });
+    } catch (error) {
+        console.error('Subscription init error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get current subscription price IDs
+app.get('/api/stripe/get-price-ids', async (req, res) => {
+    try {
+        const products = await stripeService.ensureSubscriptionProducts();
+        res.json({
+            student: products.student.price.id,
+            professional: products.professional.price.id
+        });
+    } catch (error) {
+        console.error('Get price IDs error:', error);
+        // Fallback to hardcoded prices for sandbox
+        res.json({
+            student: 'price_1SX1x1BMJMAmd04Cp1Aeq6TM',
+            professional: 'price_1SX1x1BMJMAmd04CG9J97tmG'
+        });
+    }
+});
+
+app.get('/api/stripe/subscription-prices', async (req, res) => {
+    try {
+        const prices = await stripeService.listPrices();
+        // Filter for active subscription prices
+        const subscriptionPrices = prices.filter(p => p.type === 'recurring' && p.status === 'active');
+        res.json(subscriptionPrices);
+    } catch (error) {
+        console.error('List prices error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
 app.get('/api/stripe/products', async (req, res) => {
     try {
-        const products = await stripeIntegration.listProducts();
-        res.json(products);
+        const prices = await stripeService.listPrices();
+        res.json(prices);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -2527,7 +2572,7 @@ app.get('/api/stripe/products', async (req, res) => {
 
 app.get('/api/stripe/prices/:productId?', async (req, res) => {
     try {
-        const prices = await stripeIntegration.listPrices(req.params.productId);
+        const prices = await stripeService.listPrices();
         res.json(prices);
     } catch (error) {
         res.status(400).json({ error: error.message });
