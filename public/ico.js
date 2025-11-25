@@ -588,15 +588,27 @@ function validateWalletAddress() {
         return false;
     }
     
-    if (address.length < 130 || !address.startsWith('04')) {
-        errorDiv.textContent = '❌ Invalid wallet address. KENO addresses start with "04" and are 130 characters long.';
+    // Accept BSC/MetaMask addresses (0x prefix, 42 chars) OR Kenostod simulator addresses (04 prefix, 130 chars)
+    const isBscAddress = address.startsWith('0x') && address.length === 42 && /^0x[a-fA-F0-9]{40}$/.test(address);
+    const isKenostodAddress = address.startsWith('04') && address.length === 130 && /^04[a-fA-F0-9]{128}$/.test(address);
+    
+    if (!isBscAddress && !isKenostodAddress) {
+        errorDiv.innerHTML = '❌ Invalid wallet address. Please enter:<br>• <strong>MetaMask/BSC address</strong> (starts with "0x", 42 characters) - <em>Recommended for real tokens</em><br>• <strong>OR</strong> Kenostod simulator address (starts with "04", 130 characters)';
         errorDiv.style.display = 'block';
         walletInput.style.borderColor = '#dc2626';
         continueBtn.disabled = true;
         return false;
     }
     
-    errorDiv.style.display = 'none';
+    // Show confirmation of address type
+    if (isBscAddress) {
+        errorDiv.innerHTML = '✅ Valid BSC/MetaMask address detected - Your real KENO tokens will be sent here!';
+        errorDiv.style.color = '#10b981';
+    } else {
+        errorDiv.innerHTML = '✅ Valid Kenostod simulator address detected';
+        errorDiv.style.color = '#10b981';
+    }
+    errorDiv.style.display = 'block';
     walletInput.style.borderColor = '#10b981';
     continueBtn.disabled = false;
     return true;
