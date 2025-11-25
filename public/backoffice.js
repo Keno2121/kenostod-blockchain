@@ -2489,8 +2489,152 @@ function showCourseCompletionNotification(courseId, courseTitle) {
     document.body.appendChild(modal);
 }
 
+// Load Graduate Club content
+function loadGraduateClub() {
+    const content = document.getElementById('course-content');
+    
+    // Update active state
+    document.querySelectorAll('.course-nav button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('graduate-btn').style.background = 'linear-gradient(135deg, #047857, #065f46)';
+    
+    let html = `
+        <div class="course-header-section" style="background: linear-gradient(135deg, #064e3b 0%, #10b981 50%, #064e3b 100%); color: white; padding: 40px; border-radius: 12px; margin-bottom: 40px;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 12px;">🎓 Welcome to the Graduate Club</h2>
+            <p style="font-size: 1.1rem; opacity: 0.95;">You've completed all 21 courses and earned your place in the elite Kenostod community</p>
+        </div>
+
+        <div class="section-block">
+            <h3>🏆 Your Achievement</h3>
+            <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 12px; padding: 32px; text-align: center; margin: 20px 0;">
+                <div style="font-size: 80px; margin-bottom: 16px;">🎓</div>
+                <div style="font-size: 28px; font-weight: 800; color: #064e3b; margin-bottom: 8px;">Kenostod Graduate</div>
+                <div style="font-size: 16px; color: #059669;">Verified on Blockchain</div>
+                <div style="font-size: 14px; color: #10b981; margin-top: 12px;">Certificate ID: KENO-GRAD-2025-${Math.random().toString(36).substr(2, 9).toUpperCase()}</div>
+            </div>
+        </div>
+
+        <div class="section-block">
+            <h3>💰 Your Rewards</h3>
+            <div style="background: #f0f9ff; border-left: 4px solid var(--primary-blue); padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <div style="margin-bottom: 16px;">
+                    <div style="font-weight: 700; margin-bottom: 4px;">Total KENO Earned</div>
+                    <div style="font-size: 32px; font-weight: 800; color: var(--primary-blue);">5,250 KENO</div>
+                    <div style="font-size: 13px; color: #6b7280;">250 KENO × 21 courses completed</div>
+                </div>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid var(--accent-orange); padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <div style="margin-bottom: 16px;">
+                    <div style="font-weight: 700; margin-bottom: 4px;">Platinum RVT NFT</div>
+                    <div style="font-size: 18px; color: var(--accent-orange); margin-bottom: 8px;">🏆 Unlocked</div>
+                    <div style="font-size: 13px; color: #6b7280;">2% perpetual PoRV royalties on all network activity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-block">
+            <h3>🌟 Graduate Privileges</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">🚀</div>
+                    <h4 style="margin-bottom: 8px; font-weight: 700;">Priority Access</h4>
+                    <p style="font-size: 13px; color: #6b7280;">First access to new features, advanced trading tools, and exclusive courses</p>
+                </div>
+                
+                <div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">👥</div>
+                    <h4 style="margin-bottom: 8px; font-weight: 700;">Graduate Network</h4>
+                    <p style="font-size: 13px; color: #6b7280;">Connect with 100+ verified graduates for mentorship and opportunities</p>
+                </div>
+                
+                <div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">💎</div>
+                    <h4 style="margin-bottom: 8px; font-weight: 700;">VIP Support</h4>
+                    <p style="font-size: 13px; color: #6b7280;">Priority support with dedicated account managers for advanced questions</p>
+                </div>
+                
+                <div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">💼</div>
+                    <h4 style="margin-bottom: 8px; font-weight: 700;">Career Opportunities</h4>
+                    <p style="font-size: 13px; color: #6b7280;">Access to exclusive job board featuring blockchain companies</p>
+                </div>
+                
+                <div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">🎁</div>
+                    <h4 style="margin-bottom: 8px; font-weight: 700;">Exclusive Merchandise</h4>
+                    <p style="font-size: 13px; color: #6b7280;">Limited edition Graduate Club merchandise and limited collectibles</p>
+                </div>
+                
+                <div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 24px;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">📊</div>
+                    <h4 style="margin-bottom: 8px; font-weight: 700;">Advanced Analytics</h4>
+                    <p style="font-size: 13px; color: #6b7280;">Deep insights into your KENO portfolio and trading performance</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-block">
+            <h3>🎯 What's Next?</h3>
+            <div style="background: #f8fafc; border-left: 4px solid var(--primary-blue); padding: 24px; border-radius: 8px;">
+                <h4 style="margin-bottom: 12px; color: var(--primary-blue);">Your Journey Continues</h4>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">✅ <strong>Advanced Blockchain Workshops</strong> - Master cutting-edge DeFi protocols</li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">✅ <strong>Community Governance</strong> - Vote on network direction and policies</li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">✅ <strong>Mentorship Program</strong> - Mentor new students and earn rewards</li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">✅ <strong>Real Trading Operations</strong> - When Phase 3 launches (2027+)</li>
+                    <li style="padding: 12px 0;">✅ <strong>Scholarship Fund Access</strong> - Help sponsor next generation of blockchain developers</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 24px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 12px;">
+            <p style="font-size: 1.1rem; font-weight: 700; color: #1e40af; margin-bottom: 16px;">
+                🎉 Congratulations on becoming a Kenostod Graduate!
+            </p>
+            <p style="color: #1e40af; margin-bottom: 20px;">
+                You're now part of an elite community transforming blockchain education into opportunity.
+            </p>
+            <a href="/graduate-club.html" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; transition: all 0.3s;">
+                View Full Graduate Club →
+            </a>
+        </div>
+    `;
+    
+    content.innerHTML = html;
+    content.scrollTop = 0;
+}
+
+// Check if all courses are completed and show Graduate Club button
+function checkGraduateStatus() {
+    const completedCourses = parseInt(localStorage.getItem('completedCourses') || '0');
+    const graduateSection = document.getElementById('graduate-club-section');
+    
+    if (completedCourses >= 21 && graduateSection) {
+        graduateSection.style.display = 'block';
+    }
+}
+
+// Update completion count when course is completed
+function markCourseCompleted(courseId) {
+    let completed = JSON.parse(localStorage.getItem('completedCoursesList') || '[]');
+    if (!completed.includes(courseId)) {
+        completed.push(courseId);
+        localStorage.setItem('completedCoursesList', JSON.stringify(completed));
+        localStorage.setItem('completedCourses', completed.length.toString());
+    }
+    checkGraduateStatus();
+}
+
+// Update complete course function
+const originalCompleteCourse = window.completeCourse;
+window.completeCourse = function(courseId) {
+    markCourseCompleted(courseId);
+    originalCompleteCourse(courseId);
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     renderCourseNav();
     loadCourse(1);
+    checkGraduateStatus();
 });
