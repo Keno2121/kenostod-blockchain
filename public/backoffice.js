@@ -2443,48 +2443,156 @@ function showCourseCompletionNotification(courseId, courseTitle) {
     rewardBox.appendChild(kenoText);
     rewardBox.appendChild(kenoDesc);
     
-    const messageEl = document.createElement('div');
-    messageEl.style.cssText = `
-        font-size: 14px;
-        color: #6b7280;
-        line-height: 1.6;
-        margin: 20px 0;
-    `;
-    messageEl.textContent = 'Keep going! Complete all 21 courses to unlock the Graduate Club and earn additional rewards.';
+    // Check if this is the final course (graduation!)
+    const isGraduation = courseId === 21;
     
-    const progressEl = document.createElement('div');
-    progressEl.style.cssText = `
-        font-size: 13px;
-        color: #9ca3af;
-        margin: 16px 0;
-    `;
-    progressEl.textContent = `Course ${courseId}/21 completed`;
-    
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = 'Next Course →';
-    closeBtn.style.cssText = `
-        background: linear-gradient(135deg, #2563eb, #1e40af);
-        color: white;
-        border: none;
-        padding: 14px 32px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 15px;
-        font-weight: 700;
-        transition: all 0.2s;
-        width: 100%;
-        margin-top: 16px;
-    `;
-    closeBtn.onmouseover = () => closeBtn.style.transform = 'translateY(-2px)';
-    closeBtn.onmouseout = () => closeBtn.style.transform = 'translateY(0)';
-    closeBtn.onclick = () => modal.remove();
-    
-    box.appendChild(titleEl);
-    box.appendChild(courseNameEl);
-    box.appendChild(rewardBox);
-    box.appendChild(messageEl);
-    box.appendChild(progressEl);
-    box.appendChild(closeBtn);
+    if (isGraduation) {
+        // GRADUATION CELEBRATION!
+        titleEl.textContent = '🎓 CONGRATULATIONS!';
+        titleEl.style.fontSize = '36px';
+        titleEl.style.color = '#065f46';
+        
+        const graduationMsg = document.createElement('div');
+        graduationMsg.style.cssText = `
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 20px;
+        `;
+        graduationMsg.textContent = 'You\'ve Completed All 21 Courses!';
+        
+        const celebrationBox = document.createElement('div');
+        celebrationBox.style.cssText = `
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 3px solid #d97706;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            text-align: center;
+        `;
+        
+        const celebrations = document.createElement('div');
+        celebrations.style.cssText = `
+            font-size: 60px;
+            margin-bottom: 16px;
+            animation: bounce 0.6s ease-in-out infinite;
+        `;
+        celebrations.textContent = '🎓✨🎉';
+        
+        const gradDetails = document.createElement('div');
+        gradDetails.style.cssText = `
+            font-size: 16px;
+            font-weight: 700;
+            color: #b45309;
+            margin-bottom: 12px;
+        `;
+        gradDetails.textContent = 'Kenostod Graduate';
+        
+        const totalReward = document.createElement('div');
+        totalReward.style.cssText = `
+            font-size: 14px;
+            color: #92400e;
+            margin-bottom: 8px;
+        `;
+        totalReward.textContent = '5,250 KENO Total Earned (250 × 21 courses)';
+        
+        celebrationBox.appendChild(celebrations);
+        celebrationBox.appendChild(gradDetails);
+        celebrationBox.appendChild(totalReward);
+        
+        const messageEl = document.createElement('div');
+        messageEl.style.cssText = `
+            font-size: 15px;
+            color: #059669;
+            line-height: 1.6;
+            margin: 20px 0;
+            font-weight: 600;
+        `;
+        messageEl.textContent = 'You\'re now part of an elite community! Access exclusive benefits, networking, and opportunities.';
+        
+        const clubBtn = document.createElement('button');
+        clubBtn.textContent = '🎓 View Graduate Club →';
+        clubBtn.style.cssText = `
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 16px;
+        `;
+        clubBtn.onmouseover = () => clubBtn.style.transform = 'translateY(-2px)';
+        clubBtn.onmouseout = () => clubBtn.style.transform = 'translateY(0)';
+        clubBtn.onclick = () => {
+            modal.remove();
+            loadGraduateClub();
+        };
+        
+        box.appendChild(titleEl);
+        box.appendChild(courseNameEl);
+        box.appendChild(rewardBox);
+        box.appendChild(celebrationBox);
+        box.appendChild(messageEl);
+        box.appendChild(clubBtn);
+        
+        // Add bounce animation
+        const bounceStyle = document.createElement('style');
+        bounceStyle.textContent = `
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+        `;
+        document.head.appendChild(bounceStyle);
+    } else {
+        // Regular course completion
+        const messageEl = document.createElement('div');
+        messageEl.style.cssText = `
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+            margin: 20px 0;
+        `;
+        messageEl.textContent = 'Keep going! Complete all 21 courses to unlock the Graduate Club and earn additional rewards.';
+        
+        const progressEl = document.createElement('div');
+        progressEl.style.cssText = `
+            font-size: 13px;
+            color: #9ca3af;
+            margin: 16px 0;
+        `;
+        progressEl.textContent = `Course ${courseId}/21 completed`;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'Next Course →';
+        closeBtn.style.cssText = `
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 16px;
+        `;
+        closeBtn.onmouseover = () => closeBtn.style.transform = 'translateY(-2px)';
+        closeBtn.onmouseout = () => closeBtn.style.transform = 'translateY(0)';
+        closeBtn.onclick = () => modal.remove();
+        
+        box.appendChild(titleEl);
+        box.appendChild(courseNameEl);
+        box.appendChild(rewardBox);
+        box.appendChild(messageEl);
+        box.appendChild(progressEl);
+        box.appendChild(closeBtn);
+    }
     modal.appendChild(box);
     document.body.appendChild(modal);
 }
