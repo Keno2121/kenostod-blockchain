@@ -627,17 +627,36 @@
             currentEmail = params.get('email') || '';
 
             try {
+                // First try to get API data
                 const response = await fetch(`/api/wealth/dashboard/${currentWallet}?email=${currentEmail}`);
                 const data = await response.json();
 
-                if (data.success) {
-                    const wealth = data.wealth;
-                    document.getElementById('totalKeno').textContent = wealth.totalKeno.toFixed(2);
-                    document.getElementById('totalRewards').textContent = wealth.totalRewards.toFixed(2);
-                    document.getElementById('totalRvt').textContent = wealth.totalRvtRoyalties.toFixed(2);
-                    document.getElementById('totalReferrals').textContent = wealth.totalReferrals.toFixed(2);
-                    document.getElementById('coursesCompleted').textContent = wealth.coursesCompleted;
-                    document.getElementById('estimatedUSD').textContent = '$' + wealth.estimatedUSD.toFixed(2);
+                let wealth = data.success ? data.wealth : null;
+
+                // If no API data, use localStorage data from backoffice course completions
+                if (!wealth || wealth.coursesCompleted === 0) {
+                    const completedCourses = parseInt(localStorage.getItem('completedCourses') || '0');
+                    const completedList = JSON.parse(localStorage.getItem('completedCoursesList') || '[]');
+                    
+                    if (completedCourses > 0) {
+                        wealth = wealth || {};
+                        wealth.coursesCompleted = completedCourses;
+                        wealth.totalKeno = completedCourses * 250; // 250 KENO per course
+                        wealth.totalRewards = wealth.totalRewards || 0;
+                        wealth.totalRvtRoyalties = wealth.totalRvtRoyalties || 0;
+                        wealth.totalReferrals = wealth.totalReferrals || 0;
+                        wealth.estimatedUSD = wealth.totalKeno * 0.01; // Rough estimate at $0.01 per KENO (ICO price)
+                        console.log('✅ Synced from backoffice:', wealth.coursesCompleted, 'courses completed =', wealth.totalKeno, 'KENO');
+                    }
+                }
+
+                if (wealth) {
+                    document.getElementById('totalKeno').textContent = (wealth.totalKeno || 0).toFixed(2);
+                    document.getElementById('totalRewards').textContent = (wealth.totalRewards || 0).toFixed(2);
+                    document.getElementById('totalRvt').textContent = (wealth.totalRvtRoyalties || 0).toFixed(2);
+                    document.getElementById('totalReferrals').textContent = (wealth.totalReferrals || 0).toFixed(2);
+                    document.getElementById('coursesCompleted').textContent = wealth.coursesCompleted || 0;
+                    document.getElementById('estimatedUSD').textContent = '$' + (wealth.estimatedUSD || 0).toFixed(2);
                 }
 
                 await loadRVTNFTs();
@@ -645,6 +664,16 @@
                 await loadReferralCode();
             } catch (error) {
                 console.error('Error loading wealth dashboard:', error);
+                
+                // Fallback to localStorage if API fails
+                const completedCourses = parseInt(localStorage.getItem('completedCourses') || '0');
+                if (completedCourses > 0) {
+                    const totalKeno = completedCourses * 250;
+                    document.getElementById('totalKeno').textContent = totalKeno.toFixed(2);
+                    document.getElementById('coursesCompleted').textContent = completedCourses;
+                    document.getElementById('estimatedUSD').textContent = '$' + (totalKeno * 0.01).toFixed(2);
+                    console.log('✅ Using localStorage fallback:', completedCourses, 'courses =', totalKeno, 'KENO');
+                }
             }
         }
 
