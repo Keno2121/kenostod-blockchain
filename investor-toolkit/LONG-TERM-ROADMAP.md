@@ -343,7 +343,7 @@ Launch live Flash Arbitrage Loans where graduates execute actual trades and earn
 
 ### 2. Security Risk
 - **Risk:** Smart contract vulnerabilities, exchange hacks
-- **Mitigation:** Professional audits, insurance coverage, multi-sig wallets
+- **Mitigation:** Professional audits, insurancex4dxx3333 Eder de dx̌xzzza ef fcoverage, multi-sig wallets
 
 ### 3. Market Risk
 - **Risk:** Crypto market downturn, arbitrage opportunities decrease

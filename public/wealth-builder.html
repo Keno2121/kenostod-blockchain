@@ -465,10 +465,33 @@
         let userReferralCode = '';
         let isMetaMaskConnected = false;
 
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
         async function connectMetaMask() {
+            const isMobile = isMobileDevice();
+            
             if (!window.ethereum) {
-                alert('❌ MetaMask not detected!\n\nPlease install MetaMask browser extension to use the Wealth Builder Program.\n\nVisit: https://metamask.io/');
-                return false;
+                if (isMobile) {
+                    // On mobile without MetaMask detected - try deep link
+                    const currentUrl = encodeURIComponent(window.location.href);
+                    const deepLink = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+                    
+                    alert(
+                        '🦊 MetaMask Mobile Not Detected\n\n' +
+                        'You have MetaMask installed! Let\'s connect through the app.\n\n' +
+                        'Click OK to open MetaMask and authorize the connection.'
+                    );
+                    
+                    // Try to open MetaMask app
+                    window.location.href = deepLink;
+                    return false;
+                } else {
+                    // On desktop without MetaMask extension
+                    alert('❌ MetaMask not detected!\n\nPlease install MetaMask:\n- Browser Extension: https://metamask.io/\n- Or use MetaMask Mobile App: https://metamask.io/download/');
+                    return false;
+                }
             }
 
             try {
@@ -479,7 +502,12 @@
                 return true;
             } catch (error) {
                 console.error('MetaMask connection failed:', error);
-                alert('Failed to connect to MetaMask. Please try again.');
+                
+                if (isMobile) {
+                    alert('Connection failed. Please try:\n1. Make sure you\'re using MetaMask Mobile app\n2. Or try opening this page directly in MetaMask\'s built-in browser');
+                } else {
+                    alert('Failed to connect to MetaMask. Please try again.');
+                }
                 return false;
             }
         }
