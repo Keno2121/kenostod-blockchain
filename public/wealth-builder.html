@@ -735,6 +735,16 @@
         document.getElementById('scholarshipForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            if (!currentWallet || !isMetaMaskConnected) {
+                document.getElementById('scholarshipResult').innerHTML = `
+                    <div class="alert alert-error" style="margin-top: 20px; padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
+                        <strong>❌ Please Connect Your Wallet First</strong><br>
+                        Click "Connect MetaMask to Get Started" at the top to connect your wallet before applying for a scholarship.
+                    </div>
+                `;
+                return;
+            }
+
             const applicationData = {
                 applicant_wallet: currentWallet,
                 applicant_email: document.getElementById('scholarshipEmail').value,
@@ -772,7 +782,7 @@
                 document.getElementById('scholarshipResult').innerHTML = `
                     <div class="alert alert-error" style="margin-top: 20px; padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
                         <strong>❌ Submission Failed</strong><br>
-                        ${error.message}
+                        ${error.message || 'An error occurred. Please try again.'}
                     </div>
                 `;
             }
