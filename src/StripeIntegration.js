@@ -221,6 +221,15 @@ class StripeIntegration {
                 // CRITICAL: Propagate metadata to subscription for webhook processing
                 subscription_data: {
                     metadata: metadata
+                },
+                // Kenostod branding configuration
+                locale: 'auto',
+                ui_mode: 'embedded',
+                redirect_on_completion: 'if_required',
+                custom_text: {
+                    submit: {
+                        message: 'Subscribe to Kenostod Academy'
+                    }
                 }
             };
 

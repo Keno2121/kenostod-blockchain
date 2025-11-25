@@ -22,6 +22,15 @@ class StripeService {
       mode: 'subscription',
       success_url: successUrl,
       cancel_url: cancelUrl,
+      // Stripe branding configuration
+      locale: 'auto',
+      ui_mode: 'embedded',
+      redirect_on_completion: 'if_required',
+      custom_text: {
+        submit: {
+          message: 'Subscribe to Kenostod Academy'
+        }
+      }
     });
   }
 
