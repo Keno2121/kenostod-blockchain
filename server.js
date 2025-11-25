@@ -2636,10 +2636,14 @@ app.post('/api/paypal/create-order', async (req, res) => {
             });
         }
         
-        if (!walletAddress.startsWith('04') || walletAddress.length < 130) {
+        // Accept BSC/MetaMask addresses (0x prefix, 42 chars) OR Kenostod simulator addresses (04 prefix, 130 chars)
+        const isBscAddress = walletAddress.startsWith('0x') && walletAddress.length === 42 && /^0x[a-fA-F0-9]{40}$/.test(walletAddress);
+        const isKenostodAddress = walletAddress.startsWith('04') && walletAddress.length === 130 && /^04[a-fA-F0-9]{128}$/.test(walletAddress);
+        
+        if (!isBscAddress && !isKenostodAddress) {
             return res.status(400).json({ 
                 success: false,
-                error: 'Invalid KENO wallet address format' 
+                error: 'Invalid wallet address format. Use MetaMask/BSC address (0x...) or Kenostod simulator address (04...)' 
             });
         }
         
