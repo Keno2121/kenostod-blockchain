@@ -5903,7 +5903,7 @@ app.get('/api/ico/investor-stats', async (req, res) => {
         );
 
         const tokens = await dbConnection.query(
-            'SELECT SUM(tokens_purchased) as total FROM ico_investors'
+            'SELECT SUM(tokens_purchased + COALESCE(bonus_tokens, 0)) as total FROM ico_investors'
         );
 
         const investors24h = await dbConnection.query(
