@@ -2764,6 +2764,35 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
             timestamp: new Date().toISOString()
         });
         
+        // Also save to database for Investor Dashboard
+        try {
+            const investorId = `INV-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Date.now().toString().slice(-4)}`;
+            await dbConnection.query(
+                `INSERT INTO ico_investors (
+                    investor_id, wallet_address, email, investment_amount_usd, tokens_purchased,
+                    bonus_tokens, sale_phase, payment_method, transaction_hash, investment_status,
+                    token_price_usd, bonus_percentage
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+                [
+                    investorId,
+                    pendingOrder.walletAddress,
+                    pendingOrder.email || 'paypal@purchase.com',
+                    purchaseAmount,
+                    tokens,
+                    bonusTokens,
+                    'private',
+                    'paypal',
+                    txHash || capture.id,
+                    'completed',
+                    0.01,
+                    20
+                ]
+            );
+            console.log(`📊 ICO purchase saved to database for investor dashboard (${investorId})`);
+        } catch (dbError) {
+            console.error(`⚠️ Database insert error (purchase still valid):`, dbError.message);
+        }
+        
         // Clean up pending order
         pendingPayPalOrders.delete(orderId);
         
