@@ -40,6 +40,9 @@ app.use(cors());
 
 // ==================== STRIPE INITIALIZATION ====================
 // Initialize Stripe with managed webhooks and database sync
+// This runs AFTER the server starts to avoid blocking deployment
+let stripeInitialized = false;
+
 async function initializeStripe() {
     try {
         if (!process.env.DATABASE_URL) {
@@ -76,14 +79,14 @@ async function initializeStripe() {
             .then(() => console.log('✅ Stripe data synced'))
             .catch(err => console.error('❌ Error syncing Stripe data:', err.message));
 
+        stripeInitialized = true;
     } catch (error) {
         console.error('❌ Stripe initialization error:', error.message);
+        console.log('⚠️  Server continues running without Stripe sync - payments still work');
     }
 }
 
-// Initialize Stripe asynchronously (will complete in background)
-// Don't await here - let server start first
-initializeStripe().catch(err => console.error('Stripe init error:', err));
+// Stripe will be initialized after server starts (see app.listen callback)
 
 // ==================== STRIPE WEBHOOK ROUTE ====================
 // Stripe webhook must be BEFORE express.json() to preserve raw body
@@ -6169,6 +6172,11 @@ app.listen(PORT, '0.0.0.0', () => {
     } else {
         console.log(`ℹ️  Running in ${process.env.NODE_ENV} mode`);
     }
+    
+    // Initialize Stripe AFTER server starts (so deployment sees port open quickly)
+    setTimeout(() => {
+        initializeStripe().catch(err => console.error('Stripe init error:', err));
+    }, 2000);
     
     // Mine the first block to give miner some tokens
     setTimeout(() => {
