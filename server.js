@@ -304,11 +304,18 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 // Initialize persistence system
 const dataPersistence = new DataPersistence();
 
-// Initialize blockchain and restore from saved data if exists
+// Initialize blockchain (data will be restored after server starts for faster startup)
 const kenostodChain = new Blockchain();
-const savedBlockchainData = dataPersistence.loadBlockchain();
-if (savedBlockchainData) {
-    kenostodChain.restoreFromData(savedBlockchainData);
+let blockchainRestored = false;
+
+// Defer blockchain restoration to after server starts (for faster deployment)
+function restoreBlockchainData() {
+    if (blockchainRestored) return;
+    const savedBlockchainData = dataPersistence.loadBlockchain();
+    if (savedBlockchainData) {
+        kenostodChain.restoreFromData(savedBlockchainData);
+    }
+    blockchainRestored = true;
 }
 
 // Load or create miner wallet (persistent across restarts)
@@ -6152,6 +6159,11 @@ app.get('/api/ico/kyc/status/:walletAddress', async (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
+    
+    // CRITICAL: Restore blockchain data AFTER port is open (for faster deployment)
+    console.log('🔄 Loading blockchain data...');
+    restoreBlockchainData();
+    console.log('✅ Blockchain data loaded');
     
     // Security check: Warn if NODE_ENV is not set for production deployment
     if (!process.env.NODE_ENV) {
