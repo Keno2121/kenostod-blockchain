@@ -74,10 +74,9 @@ async function initializeStripe() {
         );
         console.log(`✅ Webhook configured (UUID: ${uuid})`);
 
-        // 4. Start syncing Stripe data in background
-        stripeSync.syncBackfill()
-            .then(() => console.log('✅ Stripe data synced'))
-            .catch(err => console.error('❌ Error syncing Stripe data:', err.message));
+        // 4. Skip Stripe data sync on startup (takes too long for deployment)
+        // Payments still work without sync - sync happens on-demand
+        console.log('ℹ️  Stripe data sync deferred (runs on-demand only)');
 
         stripeInitialized = true;
     } catch (error) {
@@ -6141,10 +6140,11 @@ app.listen(PORT, '0.0.0.0', () => {
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
     
-    // Initialize Stripe AFTER server starts (so deployment sees port open quickly)
+    // Initialize Stripe MUCH later to ensure deployment health checks pass first
+    // Payments work without Stripe init, so this is safe to delay
     setTimeout(() => {
         initializeStripe().catch(err => console.error('Stripe init error:', err));
-    }, 2000);
+    }, 30000);
     
     // Start scheduled transaction processor (runs every 30 seconds)
     // Will work once kenostodChain is initialized
