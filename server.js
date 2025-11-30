@@ -310,32 +310,47 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 });
 
 // Initialize persistence system
-const dataPersistence = new DataPersistence();
+let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
 
-// Initialize blockchain and restore from saved data if exists
-const kenostodChain = new Blockchain();
-const savedBlockchainData = dataPersistence.loadBlockchain();
-if (savedBlockchainData) {
-    kenostodChain.restoreFromData(savedBlockchainData);
+try {
+    dataPersistence = new DataPersistence();
+
+    // Initialize blockchain and restore from saved data if exists
+    kenostodChain = new Blockchain();
+    const savedBlockchainData = dataPersistence.loadBlockchain();
+    if (savedBlockchainData) {
+        kenostodChain.restoreFromData(savedBlockchainData);
+    }
+
+    // Load or create miner wallet (persistent across restarts)
+    const savedWalletData = dataPersistence.loadWallet();
+    if (savedWalletData) {
+        minerWallet = Wallet.fromPrivateKey(savedWalletData.privateKey);
+    } else {
+        minerWallet = new Wallet();
+        dataPersistence.saveWallet(minerWallet);
+    }
+
+    // Create test wallets (these are ephemeral for testing)
+    wallet1 = new Wallet();
+    wallet2 = new Wallet();
+
+    // Initialize banking system
+    bankingAPI = new BankingAPI(kenostodChain, dataPersistence);
+    stripeIntegration = new StripeIntegration();
+} catch (error) {
+    console.error('❌ Error during core initialization:', error.message);
+    console.log('⚠️  Attempting to start server anyway...');
+    
+    // Provide fallback initialization to prevent crashes
+    dataPersistence = dataPersistence || {};
+    kenostodChain = kenostodChain || {};
+    minerWallet = minerWallet || { getAddress: () => '0x' };
+    wallet1 = wallet1 || {};
+    wallet2 = wallet2 || {};
+    bankingAPI = bankingAPI || {};
+    stripeIntegration = stripeIntegration || {};
 }
-
-// Load or create miner wallet (persistent across restarts)
-let minerWallet;
-const savedWalletData = dataPersistence.loadWallet();
-if (savedWalletData) {
-    minerWallet = Wallet.fromPrivateKey(savedWalletData.privateKey);
-} else {
-    minerWallet = new Wallet();
-    dataPersistence.saveWallet(minerWallet);
-}
-
-// Create test wallets (these are ephemeral for testing)
-const wallet1 = new Wallet();
-const wallet2 = new Wallet();
-
-// Initialize banking system
-const bankingAPI = new BankingAPI(kenostodChain, dataPersistence);
-const stripeIntegration = new StripeIntegration();
 const paypalIntegration = new PayPalIntegration();
 
 // Load saved fiat balances
