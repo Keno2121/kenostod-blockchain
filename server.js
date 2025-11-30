@@ -367,6 +367,20 @@ async function initializeBlockchainSystems() {
         printfulIntegration = new PrintfulIntegration();
         aiSupport = new AISupport();
         
+        // Initialize PostgreSQL database (non-blocking - do it after blockchain loads)
+        try {
+            dbConnection = new DatabaseConnection();
+            await dbConnection.initializeSchema();
+            organizationManager = new OrganizationManager(dbConnection);
+            wealthBuilderManager = new WealthBuilderManager(dbConnection);
+            securityMiddleware = new SecurityMiddleware(dbConnection);
+            console.log('✅ Database initialized');
+            await initializeTestGraduate();
+        } catch (error) {
+            console.error('⚠️  Database initialization failed:', error.message);
+            console.log('   Continuing without database features...');
+        }
+        
         // Log startup messages
         console.log('Kenostod Blockchain initialized!');
         console.log('Miner address:', minerWallet.getAddress());
