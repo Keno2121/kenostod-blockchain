@@ -309,120 +309,90 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
     res.sendFile(__dirname + '/KENO-CONTRACT-FINAL.txt');
 });
 
-// Initialize persistence system
+// STUB VARIABLES - will be initialized after port opens
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
+let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem;
+let icoPurchases = [], pendingPayPalOrders = new Map();
+let dbConnection, organizationManager, wealthBuilderManager, securityMiddleware;
+let printfulIntegration, aiSupport;
 
-try {
-    dataPersistence = new DataPersistence();
-
-    // Initialize blockchain and restore from saved data if exists
-    kenostodChain = new Blockchain();
-    const savedBlockchainData = dataPersistence.loadBlockchain();
-    if (savedBlockchainData) {
-        kenostodChain.restoreFromData(savedBlockchainData);
-    }
-
-    // Load or create miner wallet (persistent across restarts)
-    const savedWalletData = dataPersistence.loadWallet();
-    if (savedWalletData) {
-        minerWallet = Wallet.fromPrivateKey(savedWalletData.privateKey);
-    } else {
-        minerWallet = new Wallet();
-        dataPersistence.saveWallet(minerWallet);
-    }
-
-    // Create test wallets (these are ephemeral for testing)
-    wallet1 = new Wallet();
-    wallet2 = new Wallet();
-
-    // Initialize banking system
-    bankingAPI = new BankingAPI(kenostodChain, dataPersistence);
-    stripeIntegration = new StripeIntegration();
-} catch (error) {
-    console.error('❌ Error during core initialization:', error.message);
-    console.log('⚠️  Attempting to start server anyway...');
-    
-    // Provide fallback initialization to prevent crashes
-    dataPersistence = dataPersistence || {};
-    kenostodChain = kenostodChain || {};
-    minerWallet = minerWallet || { getAddress: () => '0x' };
-    wallet1 = wallet1 || {};
-    wallet2 = wallet2 || {};
-    bankingAPI = bankingAPI || {};
-    stripeIntegration = stripeIntegration || {};
-}
-const paypalIntegration = new PayPalIntegration();
-
-// Load saved fiat balances
-const savedFiatBalances = dataPersistence.loadFiatBalances();
-if (savedFiatBalances) {
-    bankingAPI.loadFiatBalances(savedFiatBalances);
-}
-
-// Load ICO purchases
-let icoPurchases = dataPersistence.loadICOPurchases();
-
-// Load and storage for pre-order sell orders (scheduled for future execution)
-global.preOrderSellOrders = dataPersistence.loadPreOrders();
-
-// Temporary storage for pending PayPal orders with wallet addresses
-const pendingPayPalOrders = new Map();
-
-// Helper function to log ICO purchase
-function logICOPurchase(purchaseData) {
-    icoPurchases.unshift(purchaseData); // Add to beginning
-    dataPersistence.saveICOPurchases(icoPurchases);
-    console.log(`💰 ICO Purchase: ${purchaseData.tokens} KENO for $${purchaseData.amount}`);
-}
-
-// Initialize merchant incentives
-const merchantIncentives = new MerchantIncentives(kenostodChain);
-
-// Initialize revenue tracker for all revenue streams
-const revenueTracker = new RevenueTracker();
-
-// Initialize KENO Arbitrage Revolution System
-const arbitrageSystem = new ArbitrageSystem(kenostodChain, dataPersistence);
-
-// Connect banking API to exchange
-kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
-
-// Connect merchant incentives to payment gateway
-kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
-
-// Connect revenue tracker to payment gateway and exchange
-kenostodChain.paymentGateway.revenueTracker = revenueTracker;
-kenostodChain.exchangeAPI.revenueTracker = revenueTracker;
-
-// Initialize PostgreSQL database for corporate/team plans and wealth builder
-let dbConnection;
-let organizationManager;
-let wealthBuilderManager;
-let securityMiddleware;
-
-// Initialize Printful integration
-const printfulIntegration = new PrintfulIntegration();
-
-// Initialize AI Support
-const aiSupport = new AISupport();
-
-(async () => {
+// Initialize blockchain and systems AFTER port opens
+async function initializeBlockchainSystems() {
     try {
-        dbConnection = new DatabaseConnection();
-        await dbConnection.initializeSchema();
-        organizationManager = new OrganizationManager(dbConnection);
-        wealthBuilderManager = new WealthBuilderManager(dbConnection);
-        securityMiddleware = new SecurityMiddleware(dbConnection);
-        console.log('✅ Organization Manager initialized');
-        console.log('✅ Wealth Builder Manager initialized');
-        console.log('✅ Security Middleware initialized');
+        // Initialize persistence
+        dataPersistence = new DataPersistence();
         
-        await initializeTestGraduate();
+        // Initialize blockchain
+        kenostodChain = new Blockchain();
+        const savedBlockchainData = dataPersistence.loadBlockchain();
+        if (savedBlockchainData) {
+            kenostodChain.restoreFromData(savedBlockchainData);
+        }
+        
+        // Initialize wallets
+        const savedWalletData = dataPersistence.loadWallet();
+        if (savedWalletData) {
+            minerWallet = Wallet.fromPrivateKey(savedWalletData.privateKey);
+        } else {
+            minerWallet = new Wallet();
+            dataPersistence.saveWallet(minerWallet);
+        }
+        wallet1 = new Wallet();
+        wallet2 = new Wallet();
+        
+        // Initialize integrations
+        bankingAPI = new BankingAPI(kenostodChain, dataPersistence);
+        stripeIntegration = new StripeIntegration();
+        paypalIntegration = new PayPalIntegration();
+        
+        // Load fiat balances and ICO purchases
+        const savedFiatBalances = dataPersistence.loadFiatBalances();
+        if (savedFiatBalances) {
+            bankingAPI.loadFiatBalances(savedFiatBalances);
+        }
+        icoPurchases = dataPersistence.loadICOPurchases();
+        global.preOrderSellOrders = dataPersistence.loadPreOrders();
+        
+        // Initialize business logic
+        merchantIncentives = new MerchantIncentives(kenostodChain);
+        revenueTracker = new RevenueTracker();
+        arbitrageSystem = new ArbitrageSystem(kenostodChain, dataPersistence);
+        
+        // Connect systems
+        kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
+        kenostodChain.paymentGateway.merchantIncentives = merchantIncentives;
+        kenostodChain.paymentGateway.revenueTracker = revenueTracker;
+        kenostodChain.exchangeAPI.revenueTracker = revenueTracker;
+        
+        // Initialize utilities
+        printfulIntegration = new PrintfulIntegration();
+        aiSupport = new AISupport();
+        
+        // Log startup messages
+        console.log('Kenostod Blockchain initialized!');
+        console.log('Miner address:', minerWallet.getAddress());
+        console.log('Current balance:', kenostodChain.getBalanceOfAddress(minerWallet.getAddress()), 'KENO');
+        console.log('Test wallet 1 address:', wallet1.getAddress());
+        console.log('Test wallet 2 address:', wallet2.getAddress());
+        console.log('Banking system initialized!');
+        if (stripeIntegration.isTestMode()) {
+            console.log('⚠️  Stripe running in TEST MODE');
+        }
+        if (paypalIntegration.isTestMode()) {
+            console.log('⚠️  PayPal running in TEST MODE');
+        }
+        console.log('\n📦 Graduate Merchandise System:');
+        console.log('   ✅ Email notifications enabled (Replit Mail)');
+        console.log('   ✅ Printful integration available' + (printfulIntegration.isConfigured() ? ' (configured)' : ' (needs PRINTFUL_API_KEY)'));
+        console.log('   ✅ Admin panel: /admin-merchandise.html');
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('   🧪 Test Graduate Endpoint: POST /api/dev/create-test-graduate');
+            console.log('      Use this to create test graduate accounts for testing merchandise orders');
+        }
     } catch (error) {
-        console.error('❌ Error initializing database:', error.message);
-        console.log('⚠️  Corporate/Team Plans and Wealth Builder features disabled');
+        console.error('❌ Error initializing blockchain systems:', error.message);
     }
-})();
+}
 
 async function initializeTestGraduate() {
     if (!dbConnection) {
@@ -460,27 +430,6 @@ async function initializeTestGraduate() {
     } catch (error) {
         console.error('⚠️  Error creating test graduate:', error.message);
     }
-}
-
-console.log('Kenostod Blockchain initialized!');
-console.log('Miner address:', minerWallet.getAddress());
-console.log('Current balance:', kenostodChain.getBalanceOfAddress(minerWallet.getAddress()), 'KENO');
-console.log('Test wallet 1 address:', wallet1.getAddress());
-console.log('Test wallet 2 address:', wallet2.getAddress());
-console.log('Banking system initialized!');
-if (stripeIntegration.isTestMode()) {
-    console.log('⚠️  Stripe running in TEST MODE');
-}
-if (paypalIntegration.isTestMode()) {
-    console.log('⚠️  PayPal running in TEST MODE');
-}
-console.log('\n📦 Graduate Merchandise System:');
-console.log('   ✅ Email notifications enabled (Replit Mail)');
-console.log('   ✅ Printful integration available' + (printfulIntegration.isConfigured() ? ' (configured)' : ' (needs PRINTFUL_API_KEY)'));
-console.log('   ✅ Admin panel: /admin-merchandise.html');
-if (process.env.NODE_ENV !== 'production') {
-    console.log('   🧪 Test Graduate Endpoint: POST /api/dev/create-test-graduate');
-    console.log('      Use this to create test graduate accounts for testing merchandise orders');
 }
 
 // Routes
@@ -6188,44 +6137,52 @@ app.listen(PORT, '0.0.0.0', () => {
         console.log(`ℹ️  Running in ${process.env.NODE_ENV} mode`);
     }
     
+    // CRITICAL: Initialize blockchain systems immediately (async - won't block port)
+    // This includes loading blockchain, wallets, and mining genesis block
+    initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
+    
     // Initialize Stripe AFTER server starts (so deployment sees port open quickly)
     setTimeout(() => {
         initializeStripe().catch(err => console.error('Stripe init error:', err));
     }, 2000);
     
-    // Mine the first block to give miner some tokens
-    setTimeout(() => {
-        console.log('Mining genesis block...');
-        kenostodChain.minePendingTransactions(minerWallet.getAddress());
-        console.log(`Miner balance: ${kenostodChain.getBalanceOfAddress(minerWallet.getAddress())} KENO`);
-    }, 1000);
-
     // Start scheduled transaction processor (runs every 30 seconds)
-    setInterval(() => {
-        const executed = kenostodChain.processScheduledTransactions();
-        if (executed.length > 0) {
-            console.log(`Processed ${executed.length} scheduled transactions`);
-        }
-    }, 30000);
-    console.log('Scheduled transaction processor started (runs every 30 seconds)');
+    // Will work once kenostodChain is initialized
+    setTimeout(() => {
+        setInterval(() => {
+            if (kenostodChain && kenostodChain.processScheduledTransactions) {
+                const executed = kenostodChain.processScheduledTransactions();
+                if (executed && executed.length > 0) {
+                    console.log(`Processed ${executed.length} scheduled transactions`);
+                }
+            }
+        }, 30000);
+        console.log('Scheduled transaction processor started (runs every 30 seconds)');
+    }, 2000);
 
     // Start recovery request cleanup (runs every hour)
-    setInterval(() => {
-        kenostodChain.socialRecovery.cleanupExpiredRequests();
-    }, 3600000);
-    console.log('Social recovery cleanup started (runs every hour)');
+    setTimeout(() => {
+        setInterval(() => {
+            if (kenostodChain && kenostodChain.socialRecovery) {
+                kenostodChain.socialRecovery.cleanupExpiredRequests();
+            }
+        }, 3600000);
+        console.log('Social recovery cleanup started (runs every hour)');
+    }, 2000);
 
     // Start governance proposal checker (runs every hour)
-    setInterval(() => {
-        try {
-            if (kenostodChain && kenostodChain.governance && kenostodChain.governance.proposals instanceof Map) {
-                kenostodChain.checkAndExecuteProposals();
+    setTimeout(() => {
+        setInterval(() => {
+            try {
+                if (kenostodChain && kenostodChain.governance && kenostodChain.governance.proposals instanceof Map) {
+                    kenostodChain.checkAndExecuteProposals();
+                }
+            } catch (error) {
+                console.error('Error in governance checker:', error.message);
             }
-        } catch (error) {
-            console.error('Error in governance checker:', error.message);
-        }
-    }, 3600000);
-    console.log('Governance proposal checker started (runs every hour)');
+        }, 3600000);
+        console.log('Governance proposal checker started (runs every hour)');
+    }, 2000);
 });
 
 module.exports = { app, kenostodChain, minerWallet, wallet1, wallet2 };
