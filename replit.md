@@ -72,6 +72,18 @@ This system introduces an arbitrage-native educational cryptocurrency with featu
 
 **Planned Enhancement (Option 3)**: When regulatory licenses and compliance infrastructure are in place, the platform will enable actual trade execution with real profit potential (see Future Vision above).
 
+## Flash Arbitrage Loan Pools (FALP) System
+A revolutionary DeFi-inspired liquidity pooling system where users pool their KENO tokens together for collective arbitrage opportunities. Features include:
+- **Pool Creation**: Users can create pools with different risk levels (conservative/balanced/aggressive) and lock periods (flexible/7-day/30-day/90-day)
+- **Liquidity Deposits**: Contributors deposit KENO to pools and receive proportional share percentages
+- **Pool Borrowing**: Arbitrage traders borrow from pools to execute flash loans with 5-minute repayment windows
+- **Automatic Profit Distribution**: Successful arbitrage profits are automatically distributed to all pool contributors based on their share percentage
+- **Lock Period Bonuses**: Longer lock periods earn higher profit multipliers (1x-2x)
+- **Risk Tiers**: Conservative (25% max borrow, 60% profit share), Balanced (50%/70%), Aggressive (75%/80%)
+- **Pool Leaderboard**: Top performing pools ranked by total profit distributed
+- **Contributor Tracking**: Individual contribution stats, earnings history, and active pool positions
+Frontend accessible at /fal-pools.html with full API at /api/fal-pool/*
+
 ## Security Model
 Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, transparent token supply tracking, PoRV security with cryptographically signed payments, wallet signature authentication, replay attack protection, rate limiting, CSRF protection, input validation, and server-side course verification.
 

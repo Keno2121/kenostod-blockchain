@@ -25,6 +25,7 @@ const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
+const FALPoolManager = require('./src/FALPoolManager');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -310,7 +311,7 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 
 // STUB VARIABLES - will be initialized after port opens
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
-let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem;
+let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 let dbConnection, organizationManager, wealthBuilderManager, securityMiddleware;
 let printfulIntegration, aiSupport;
@@ -356,6 +357,7 @@ async function initializeBlockchainSystems() {
         merchantIncentives = new MerchantIncentives(kenostodChain);
         revenueTracker = new RevenueTracker();
         arbitrageSystem = new ArbitrageSystem(kenostodChain, dataPersistence);
+        falPoolManager = new FALPoolManager(kenostodChain, dataPersistence, arbitrageSystem);
         
         // Connect systems
         kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
@@ -5866,6 +5868,235 @@ app.post('/api/arbitrage/bridge/transfer', (req, res) => {
 });
 
 // ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
+
+// ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
+
+app.post('/api/fal-pool/create', (req, res) => {
+    try {
+        const { walletAddress, poolName, riskLevel, lockPeriod, initialDeposit } = req.body;
+        
+        if (!walletAddress || !poolName) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Wallet address and pool name are required' 
+            });
+        }
+        
+        const result = falPoolManager.createPool(
+            walletAddress,
+            poolName,
+            riskLevel || 'balanced',
+            lockPeriod || 'flexible',
+            parseFloat(initialDeposit) || 0
+        );
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Pool creation error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to create pool',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/fal-pool/deposit', (req, res) => {
+    try {
+        const { poolId, walletAddress, amount, lockPeriod } = req.body;
+        
+        if (!poolId || !walletAddress || !amount) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Pool ID, wallet address, and amount are required' 
+            });
+        }
+        
+        const result = falPoolManager.depositToPool(
+            poolId,
+            walletAddress,
+            parseFloat(amount),
+            lockPeriod
+        );
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Pool deposit error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to deposit to pool',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/fal-pool/withdraw', (req, res) => {
+    try {
+        const { contributionId, walletAddress, amount } = req.body;
+        
+        if (!contributionId || !walletAddress) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Contribution ID and wallet address are required' 
+            });
+        }
+        
+        const result = falPoolManager.withdrawFromPool(
+            contributionId,
+            walletAddress,
+            amount ? parseFloat(amount) : null
+        );
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Pool withdrawal error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to withdraw from pool',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/fal-pool/borrow', (req, res) => {
+    try {
+        const { poolId, walletAddress, amount, arbitrageOpportunityId } = req.body;
+        
+        if (!poolId || !walletAddress || !amount) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Pool ID, wallet address, and amount are required' 
+            });
+        }
+        
+        const result = falPoolManager.borrowFromPool(
+            poolId,
+            walletAddress,
+            parseFloat(amount),
+            arbitrageOpportunityId
+        );
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Pool borrow error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to borrow from pool',
+            details: error.message 
+        });
+    }
+});
+
+app.post('/api/fal-pool/repay', (req, res) => {
+    try {
+        const { loanId, walletAddress, profit } = req.body;
+        
+        if (!loanId || !walletAddress) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Loan ID and wallet address are required' 
+            });
+        }
+        
+        const result = falPoolManager.repayPoolLoan(
+            loanId,
+            walletAddress,
+            parseFloat(profit) || 0
+        );
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Pool loan repayment error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to repay pool loan',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/fal-pool/list', (req, res) => {
+    try {
+        const pools = falPoolManager.getAllPools();
+        res.json({ 
+            success: true, 
+            pools,
+            count: pools.length 
+        });
+    } catch (error) {
+        console.error('Pool list fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch pools',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/fal-pool/leaderboard', (req, res) => {
+    try {
+        const leaderboard = falPoolManager.getPoolLeaderboard();
+        res.json({ 
+            success: true, 
+            leaderboard,
+            count: leaderboard.length 
+        });
+    } catch (error) {
+        console.error('Pool leaderboard fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch leaderboard',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/fal-pool/:poolId', (req, res) => {
+    try {
+        const { poolId } = req.params;
+        const pool = falPoolManager.getPoolStats(poolId);
+        
+        if (!pool) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Pool not found' 
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            pool 
+        });
+    } catch (error) {
+        console.error('Pool fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch pool details',
+            details: error.message 
+        });
+    }
+});
+
+app.get('/api/fal-pool/contributor/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const stats = falPoolManager.getContributorStats(walletAddress);
+        
+        res.json({ 
+            success: true, 
+            ...stats 
+        });
+    } catch (error) {
+        console.error('Contributor stats fetch error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch contributor stats',
+            details: error.message 
+        });
+    }
+});
+
+// ==================== END FLASH ARBITRAGE LOAN POOLS API ENDPOINTS ====================
 
 // ==================== ICO INVESTOR DASHBOARD API ENDPOINTS ====================
 
