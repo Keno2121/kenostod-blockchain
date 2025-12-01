@@ -106,7 +106,12 @@ A complete merchandise request and fulfillment system for verified Kenostod Grad
 A comprehensive investor transparency system designed to attract serious investors for the KENO ICO. Features include a real-time countdown timer to Private Sale launch (Nov 28, 2025), live fundraising metrics (total raised, investor count, tokens sold), KYC verification submission and status tracking with Persona/Sumsub integration readiness, smart contract transparency with BscScan integration, funding progress visualization with milestone tracker, token distribution pie chart, recent investor activity feed, and 24h growth indicators. Backend API endpoints provide real-time data refresh for investor statistics, investment recording, and KYC management. PostgreSQL database tables track ICO investors, KYC verifications, and investment statistics with appropriate indexes for performance. The dashboard is accessible at /investor-dashboard.html with prominent navigation from the main site.
 
 ## Revenue Systems
-Revenue is generated from merchant payment gateway fees (2.5%), exchange trading fees (0.5%), white-label licensing, and graduate merchandise sales. A unified analytics dashboard provides global revenue reporting.
+Revenue is generated from merchant payment gateway fees (2.5%), exchange trading fees (0.5%), white-label licensing, graduate merchandise sales, and FAL/FALP technology licensing. The licensing page now features premium tiers specifically for the patent-pending Flash Arbitrage technology:
+- **FAL License**: $25,000 + 0.5% transaction royalty (non-exclusive)
+- **FAL + FALP Bundle**: $45,000 + 0.3% transaction royalty (best value)
+- **Exclusive License**: $150,000+ with negotiable revenue share (industry/region exclusivity)
+
+A unified analytics dashboard provides global revenue reporting.
 
 # External Dependencies
 
