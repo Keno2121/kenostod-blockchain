@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Community - Kenostod Blockchain Academy</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .community-container {
+            max-width: 1400px;
+            margin: 100px auto 40px;
+            padding: 0 24px;
+        }
+
+        .community-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .community-header h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+
+        .community-header p {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .vision-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .vision-banner h2 {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+
+        .vision-banner p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .community-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .feature-card p {
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        .chat-controls {
+            background: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chat-controls-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .chat-controls input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .chat-controls input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .chat-btn {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .chat-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .chat-btn-secondary {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+
+        .chat-btn-secondary:hover {
+            background: var(--border-light);
+        }
+
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 968px) {
+            .chat-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .discussions-list {
+            background: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .discussions-list h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .discussion-item {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .discussion-item:hover {
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(2px);
+        }
+
+        .discussion-item.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .discussion-item.active .discussion-title {
+            color: white;
+        }
+
+        .discussion-item.active .discussion-meta {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .discussion-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .discussion-topic {
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .discussion-meta {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .participant-count {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-display {
+            background: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-display-header {
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-display-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .messages-container {
+            flex: 1;
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-bottom: 20px;
+        }
+
+        .message-item {
+            margin-bottom: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .message-item.student {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .message-item.helper {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .message-item.mentor {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid var(--accent-orange);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .message-author {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .author-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-student { background: #dbeafe; color: #1e40af; }
+        .badge-helper { background: #dcfce7; color: #166534; }
+        .badge-mentor { background: #fef3c7; color: #92400e; }
+        .badge-graduate { background: #e9d5ff; color: #7c3aed; }
+
+        .message-content {
+            color: var(--text-dark);
+            line-height: 1.7;
+        }
+
+        .message-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .reply-section {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .reply-section textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 12px;
+        }
+
+        .reply-section textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .reply-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .help-tips {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-gray);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .status-message.success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .status-message.error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        .status-message.info { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+
+        .new-discussion-form {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .new-discussion-form.active { display: block; }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .topic-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .topic-tag {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border-light);
+            background: var(--bg-light);
+        }
+
+        .topic-tag:hover, .topic-tag.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+    <nav class="professional-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="logo.png" alt="Kenostod Logo" class="logo-image">
+                <div>
+                    <div class="logo-text">Kenostod</div>
+                    <div class="logo-subtitle">Blockchain Academy</div>
+                </div>
+            </a>
+            <div class="nav-menu">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/wealth-builder.html" class="nav-link">Wealth Builder</a>
+                <a href="/fal-pools.html" class="nav-link">FALP</a>
+                <a href="/student-community.html" class="nav-link" style="color: var(--primary-blue);">Community</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="community-container">
+        <div class="community-header">
+            <h1>🤝 Student Community</h1>
+            <p>Learn together, help each other, and grow through this euphoric blockchain transformation</p>
+        </div>
+
+        <div class="vision-banner">
+            <h2>Learn Together. Earn Together.</h2>
+            <p>Our vision: Students don't just learn blockchain - they help each other succeed. Today we learn, tomorrow we earn through Flash Arbitrage Pools!</p>
+        </div>
+
+        <div class="community-features">
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Ask Questions</h3>
+                <p>Stuck on a concept? Post your question and get help from fellow students and mentors.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤝</div>
+                <h3>Help Others</h3>
+                <p>Share your knowledge! Helping others reinforces your own learning and builds community.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Arbitrage Tips</h3>
+                <p>Share strategies, discuss opportunities, and prepare for live Flash Arbitrage trading together.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎓</div>
+                <h3>Graduate Mentors</h3>
+                <p>Learn from graduates who completed all 21 courses and now mentor the next generation.</p>
+            </div>
+        </div>
+
+        <div id="statusMessage"></div>
+
+        <div class="chat-controls">
+            <div class="chat-controls-row">
+                <input type="text" id="userName" placeholder="Your Name or Wallet Address">
+                <input type="email" id="userEmail" placeholder="Your Email (optional)">
+                <button class="chat-btn" onclick="loadDiscussions()">Join Community</button>
+                <button class="chat-btn chat-btn-secondary" onclick="toggleNewDiscussionForm()">+ Start Discussion</button>
+            </div>
+        </div>
+
+        <div class="new-discussion-form" id="newDiscussionForm">
+            <h3 style="margin-bottom: 16px;">Start a New Discussion</h3>
+            <div class="form-group">
+                <label>Topic</label>
+                <select id="discussionTopic">
+                    <option value="general">General Questions</option>
+                    <option value="course">Course Help</option>
+                    <option value="arbitrage">Arbitrage Strategies</option>
+                    <option value="wallets">Wallets & Security</option>
+                    <option value="falp">FALP Pools</option>
+                    <option value="success">Success Stories</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Discussion Title</label>
+                <input type="text" id="newDiscussionTitle" placeholder="e.g., How does Flash Arbitrage work?">
+            </div>
+            <div class="form-group">
+                <label>Your Message</label>
+                <textarea id="firstMessage" placeholder="Describe what you'd like to discuss or ask..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="chat-btn chat-btn-secondary" onclick="toggleNewDiscussionForm()">Cancel</button>
+                <button class="chat-btn" onclick="createDiscussion()">Start Discussion</button>
+            </div>
+        </div>
+
+        <div class="topic-filter">
+            <span class="topic-tag active" onclick="filterByTopic('all')">All Topics</span>
+            <span class="topic-tag" onclick="filterByTopic('general')">General</span>
+            <span class="topic-tag" onclick="filterByTopic('course')">Course Help</span>
+            <span class="topic-tag" onclick="filterByTopic('arbitrage')">Arbitrage</span>
+            <span class="topic-tag" onclick="filterByTopic('wallets')">Wallets</span>
+            <span class="topic-tag" onclick="filterByTopic('falp')">FALP</span>
+            <span class="topic-tag" onclick="filterByTopic('success')">Success Stories</span>
+        </div>
+
+        <div class="chat-layout">
+            <div class="discussions-list">
+                <h2>Active Discussions</h2>
+                <div id="discussionsList">
+                    <div class="empty-state">
+                        <p>Enter your name above and click "Join Community" to see discussions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-display">
+                <div class="chat-display-header">
+                    <h2 id="currentDiscussionTitle">Select a discussion</h2>
+                    <span id="participantInfo"></span>
+                </div>
+                <div class="messages-container" id="messagesContainer">
+                    <div class="empty-state">
+                        <h3>👈 Select a discussion from the left</h3>
+                        <p>Or start a new one to get help from the community!</p>
+                    </div>
+                </div>
+                <div class="reply-section" id="replySection" style="display: none;">
+                    <textarea id="replyMessage" placeholder="Share your thoughts, ask a follow-up, or help answer..."></textarea>
+                    <div class="reply-actions">
+                        <span class="help-tips">Be helpful and supportive! We're all learning together.</span>
+                        <button class="chat-btn" onclick="sendReply()">Send Reply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let currentDiscussionId = null;
+        let userName = '';
+        let userEmail = '';
+        let currentFilter = 'all';
+
+        const sampleDiscussions = [
+            { id: 1, title: "How to maximize FALP pool returns?", topic: "falp", author: "BlockchainBob", participants: 5, lastActive: "2 hours ago" },
+            { id: 2, title: "Course 7 - Mining Concepts Question", topic: "course", author: "CryptoLearner", participants: 3, lastActive: "4 hours ago" },
+            { id: 3, title: "Best arbitrage opportunities this week", topic: "arbitrage", author: "ArbitrageAce", participants: 8, lastActive: "1 hour ago" },
+            { id: 4, title: "Completed all 21 courses - My Journey!", topic: "success", author: "GraduateMike", participants: 12, lastActive: "30 min ago" },
+            { id: 5, title: "Wallet security best practices", topic: "wallets", author: "SecureSteve", participants: 6, lastActive: "3 hours ago" }
+        ];
+
+        const sampleMessages = {
+            1: [
+                { author: "BlockchainBob", badge: "student", content: "I just deposited 1000 KENO into a conservative pool. Any tips on maximizing returns?", time: "2 hours ago" },
+                { author: "PoolPro", badge: "helper", content: "Great start! Consider the 30-day lock for 1.5x multiplier if you don't need immediate liquidity.", time: "1.5 hours ago" },
+                { author: "GraduateMike", badge: "graduate", content: "I recommend splitting between conservative and balanced pools. Diversification helps!", time: "1 hour ago" }
+            ],
+            3: [
+                { author: "ArbitrageAce", badge: "student", content: "Noticed a 0.5% spread between Binance and Coinbase on ETH today. Who else is tracking these?", time: "1 hour ago" },
+                { author: "TradingTina", badge: "helper", content: "Great catch! I saw similar spreads on BTC. The real-time data feed makes spotting these so much easier.", time: "45 min ago" }
+            ],
+            4: [
+                { author: "GraduateMike", badge: "graduate", content: "Just finished Course 21! What a journey. Learned so much about blockchain, wallets, and arbitrage.", time: "30 min ago" },
+                { author: "NewbieNick", badge: "student", content: "Congrats! Any tips for someone just starting Course 3?", time: "20 min ago" },
+                { author: "GraduateMike", badge: "graduate", content: "Take your time with the fundamentals. Understanding hashing and signatures really pays off later!", time: "15 min ago" }
+            ]
+        };
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status-message ${type}">${message}</div>`;
+            setTimeout(() => statusDiv.innerHTML = '', 5000);
+        }
+
+        function toggleNewDiscussionForm() {
+            document.getElementById('newDiscussionForm').classList.toggle('active');
+        }
+
+        function filterByTopic(topic) {
+            currentFilter = topic;
+            document.querySelectorAll('.topic-tag').forEach(tag => tag.classList.remove('active'));
+            event.target.classList.add('active');
+            displayDiscussions();
+        }
+
+        function loadDiscussions() {
+            userName = document.getElementById('userName').value.trim();
+            userEmail = document.getElementById('userEmail').value.trim();
+            
+            if (!userName) {
+                showStatus('Please enter your name or wallet address to join', 'error');
+                return;
+            }
+
+            showStatus('Welcome to the community, ' + userName + '!', 'success');
+            displayDiscussions();
+        }
+
+        function displayDiscussions() {
+            const container = document.getElementById('discussionsList');
+            let discussions = sampleDiscussions;
+            
+            if (currentFilter !== 'all') {
+                discussions = discussions.filter(d => d.topic === currentFilter);
+            }
+
+            if (discussions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No discussions in this topic yet. Be the first to start one!</p></div>';
+                return;
+            }
+
+            const topicLabels = {
+                general: 'General', course: 'Course', arbitrage: 'Arbitrage',
+                wallets: 'Wallets', falp: 'FALP', success: 'Success'
+            };
+
+            container.innerHTML = discussions.map(d => `
+                <div class="discussion-item" onclick="loadDiscussion(${d.id}, '${d.title}')">
+                    <div class="discussion-title">
+                        ${escapeHtml(d.title)}
+                        <span class="discussion-topic">${topicLabels[d.topic]}</span>
+                    </div>
+                    <div class="discussion-meta">
+                        <span>by ${d.author}</span>
+                        <span class="participant-count">👥 ${d.participants}</span>
+                    </div>
+                    <div class="discussion-meta" style="margin-top: 4px;">
+                        <span>${d.lastActive}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadDiscussion(id, title) {
+            currentDiscussionId = id;
+            
+            document.querySelectorAll('.discussion-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            document.getElementById('currentDiscussionTitle').textContent = title;
+            document.getElementById('replySection').style.display = 'block';
+            
+            const messages = sampleMessages[id] || [];
+            displayMessages(messages);
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No replies yet. Be the first to contribute!</p></div>';
+                return;
+            }
+
+            const badgeLabels = {
+                student: 'Student', helper: 'Helper', mentor: 'Mentor', graduate: 'Graduate'
+            };
+
+            container.innerHTML = messages.map(msg => `
+                <div class="message-item ${msg.badge}">
+                    <div class="message-header">
+                        <span class="message-author">
+                            ${escapeHtml(msg.author)}
+                            <span class="author-badge badge-${msg.badge}">${badgeLabels[msg.badge]}</span>
+                        </span>
+                        <span class="message-timestamp">${msg.time}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(msg.content)}</div>
+                </div>
+            `).join('');
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function createDiscussion() {
+            const topic = document.getElementById('discussionTopic').value;
+            const title = document.getElementById('newDiscussionTitle').value.trim();
+            const message = document.getElementById('firstMessage').value.trim();
+
+            if (!title || !message) {
+                showStatus('Please provide both a title and message', 'error');
+                return;
+            }
+
+            if (!userName) {
+                showStatus('Please enter your name first and click "Join Community"', 'error');
+                return;
+            }
+
+            const newId = sampleDiscussions.length + 1;
+            sampleDiscussions.unshift({
+                id: newId, title, topic, author: userName, participants: 1, lastActive: 'Just now'
+            });
+            sampleMessages[newId] = [{
+                author: userName, badge: 'student', content: message, time: 'Just now'
+            }];
+
+            showStatus('Discussion started! Others can now join and help.', 'success');
+            document.getElementById('newDiscussionTitle').value = '';
+            document.getElementById('firstMessage').value = '';
+            toggleNewDiscussionForm();
+            displayDiscussions();
+        }
+
+        function sendReply() {
+            const message = document.getElementById('replyMessage').value.trim();
+            
+            if (!message) {
+                showStatus('Please enter a message', 'error');
+                return;
+            }
+
+            if (!currentDiscussionId) {
+                showStatus('Please select a discussion first', 'error');
+                return;
+            }
+
+            if (!sampleMessages[currentDiscussionId]) {
+                sampleMessages[currentDiscussionId] = [];
+            }
+
+            sampleMessages[currentDiscussionId].push({
+                author: userName || 'Anonymous',
+                badge: 'student',
+                content: message,
+                time: 'Just now'
+            });
+
+            displayMessages(sampleMessages[currentDiscussionId]);
+            document.getElementById('replyMessage').value = '';
+            showStatus('Reply sent! Thank you for contributing.', 'success');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+
+    <footer style="background: var(--text-dark); color: white; padding: 32px 24px; margin-top: 80px;">
+        <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+            <p style="font-weight: 600;">© 2025 Kenostod Blockchain Academy. All Rights Reserved.</p>
+            <p style="margin-top: 16px; font-size: 0.9rem; color: #cbd5e1;">
+                <a href="/" style="color: #cbd5e1; margin: 0 12px;">Home</a> |
+                <a href="/wealth-builder.html" style="color: #cbd5e1; margin: 0 12px;">Wealth Builder</a> |
+                <a href="/fal-pools.html" style="color: #cbd5e1; margin: 0 12px;">FALP</a> |
+                <a href="/investor-faq.html" style="color: #cbd5e1; margin: 0 12px;">FAQ</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
