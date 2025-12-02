@@ -103,9 +103,13 @@ A student-to-student interaction platform replacing the old chat history feature
 Frontend accessible at /student-community.html
 
 ## G.I.F.T. Apparel System (Patent-Pending)
-**Generational Identification Fabric Technology** - Revolutionary smart apparel with embedded technology (NFC/BLE) that allows Kenostod graduates to recognize each other in real life. When two "Kenostodists" wearing G.I.F.T. apparel cross paths, their embedded shields will vibrate/signal, indicating a fellow graduate who has achieved "generational status."
-- **Technology Options**: NFC chips, Bluetooth Low Energy (BLE), RFID
-- **Blockchain Verification**: Graduate status verified on-chain
+**Generational Identification Fabric Technology** - Revolutionary smart apparel with embedded shield technology (NFC/BLE) that allows Kenostod graduates to recognize each other in real life.
+- **Proximity Detection**: As two Kenostodists approach, the embedded shield blocks begin flickering light one by one
+- **Evolution Chime**: Each illuminating block plays an evolution chime sound - the closer they get, the more blocks light up
+- **Eureka Moment**: At greeting distance, ALL blocks light up together with a harmonious "Eureka" sound
+- **One-Time First Greeting**: The full Eureka sound/light show can ONLY happen ONCE per pair of Kenostodists - making each first meeting a unique, blockchain-recorded event
+- **Technology Options**: NFC chips, Bluetooth Low Energy (BLE), RFID with LED-embedded shields
+- **Blockchain Verification**: Graduate status and first-greeting history stored on-chain permanently
 - **Global Network**: Connect with fellow Kenostodists worldwide
 - **Tagline**: "The gift that keeps on connecting."
 - **Target Launch**: 2026
