@@ -314,7 +314,8 @@ let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, s
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 let dbConnection, organizationManager, wealthBuilderManager, securityMiddleware;
-let printfulIntegration, aiSupport;
+let printfulIntegration, aiSupport, microMonetization;
+const MicroMonetization = require('./src/MicroMonetization');
 
 // Initialize blockchain and systems AFTER port opens
 async function initializeBlockchainSystems() {
@@ -368,6 +369,7 @@ async function initializeBlockchainSystems() {
         // Initialize utilities
         printfulIntegration = new PrintfulIntegration();
         aiSupport = new AISupport();
+        microMonetization = new MicroMonetization(kenostodChain);
         
         // Initialize PostgreSQL database (non-blocking - do it after blockchain loads)
         try {
@@ -6364,6 +6366,189 @@ app.get('/api/ico/kyc/status/:walletAddress', async (req, res) => {
 });
 
 // ==================== END ICO INVESTOR DASHBOARD API ENDPOINTS ====================
+
+// ==================== MICRO-MONETIZATION API ENDPOINTS ====================
+
+app.get('/api/monetization/fees', (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    res.json({
+        fees: microMonetization.getFees(),
+        membershipTiers: microMonetization.getMembershipTiers()
+    });
+});
+
+app.get('/api/monetization/stats', (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    res.json(microMonetization.getRevenueStats());
+});
+
+app.get('/api/monetization/membership/:walletAddress', (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress } = req.params;
+    const membership = microMonetization.getUserMembership(walletAddress);
+    const benefits = microMonetization.getMembershipBenefits(walletAddress);
+    res.json({ membership, benefits });
+});
+
+app.post('/api/monetization/membership/purchase', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey, tier, billingCycle } = req.body;
+    
+    if (!walletAddress || !privateKey || !tier) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await microMonetization.purchaseMembership(walletAddress, privateKey, tier, billingCycle || 'monthly');
+    res.json(result);
+});
+
+app.post('/api/monetization/ai-chat/check', (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, questionType } = req.body;
+    const access = microMonetization.checkAiChatAccess(walletAddress || 'anonymous', questionType || 'basic');
+    res.json(access);
+});
+
+app.post('/api/monetization/ai-chat/charge', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey, questionType } = req.body;
+    
+    if (!walletAddress) {
+        return res.json({ success: true, charged: false, message: 'Anonymous user - free basic access' });
+    }
+    
+    const result = await microMonetization.chargeAiChat(walletAddress, privateKey, questionType || 'basic');
+    res.json(result);
+});
+
+app.post('/api/monetization/quiz-retake', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey, courseId } = req.body;
+    
+    if (!walletAddress || !privateKey || !courseId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await microMonetization.chargeQuizRetake(walletAddress, privateKey, courseId);
+    res.json(result);
+});
+
+app.post('/api/monetization/feature-post', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey, postId, topic } = req.body;
+    
+    if (!walletAddress || !privateKey || !postId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await microMonetization.featurePost(walletAddress, privateKey, postId, topic);
+    res.json(result);
+});
+
+app.get('/api/monetization/featured-posts', (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { topic } = req.query;
+    const posts = microMonetization.getFeaturedPosts(topic);
+    res.json({ featuredPosts: posts });
+});
+
+app.post('/api/monetization/pool-create-fee', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey, poolName } = req.body;
+    
+    if (!walletAddress || !privateKey || !poolName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await microMonetization.chargePoolCreation(walletAddress, privateKey, poolName);
+    res.json(result);
+});
+
+app.post('/api/monetization/pool-boost', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey, poolId, days } = req.body;
+    
+    if (!walletAddress || !privateKey || !poolId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await microMonetization.boostPool(walletAddress, privateKey, poolId, days || 1);
+    res.json(result);
+});
+
+app.get('/api/monetization/boosted-pools', (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const pools = microMonetization.getBoostedPools();
+    res.json({ boostedPools: pools });
+});
+
+app.post('/api/monetization/tip', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { fromWallet, privateKey, toWallet, amount, message } = req.body;
+    
+    if (!fromWallet || !privateKey || !toWallet || !amount) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await microMonetization.processTip(fromWallet, privateKey, toWallet, amount, message);
+    res.json(result);
+});
+
+app.post('/api/monetization/arbitrage-alert', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey } = req.body;
+    
+    if (!walletAddress) {
+        return res.json({ success: false, error: 'Wallet address required for alerts' });
+    }
+    
+    const result = await microMonetization.chargeArbitrageAlert(walletAddress, privateKey);
+    res.json(result);
+});
+
+app.post('/api/monetization/mint-badge', async (req, res) => {
+    if (!microMonetization) {
+        return res.status(503).json({ error: 'System initializing' });
+    }
+    const { walletAddress, privateKey, badgeType, badgeName } = req.body;
+    
+    if (!walletAddress || !privateKey || !badgeType || !badgeName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await microMonetization.mintBadge(walletAddress, privateKey, badgeType, badgeName);
+    res.json(result);
+});
+
+// ==================== END MICRO-MONETIZATION API ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
