@@ -1,6 +1,13 @@
 # Overview
 
-Kenostod Blockchain Academy is an educational platform featuring a blockchain simulator and a demonstration cryptocurrency, KENO. It aims to teach advanced blockchain concepts like Proof-of-Residual-Value (PoRV), transaction reversal, and social recovery, offering hands-on experience with cryptocurrency fundamentals including dual consensus modes (PoW/PoRV), full wallet functionality, advanced transaction processing, a simulated merchant payment gateway, and an exchange trading simulation. KENO is a real ERC-20/BEP-20 token on the Binance Smart Chain. The project's vision is to provide blockchain education and passive income opportunities, evolving into a self-funding ecosystem where graduates generate revenue through Flash Arbitrage Loans (FAL™) on a live Kenostod Blockchain, creating employment and funding scholarships.
+Kenostod Blockchain Academy is an educational platform featuring a blockchain simulator and the world's first **Knowledge Yield Token (KYT)** — KENO. Unlike traditional cryptocurrencies that are bought through speculation, KENO is EARNED through completing 21 educational courses and YIELDS passive income through Flash Arbitrage Loans (FAL™).
+
+**KYT Positioning:** KENO is NOT a cryptocurrency in the traditional sense — it's a revolutionary new asset class:
+- **Knowledge:** Earned through completing 21 courses (250 KENO per course = 5,250 KENO total)
+- **Yield:** Generates passive income through FAL/FALP arbitrage systems
+- **Token:** Real BEP-20 asset on Binance Smart Chain, tradeable and transferable
+
+The platform teaches advanced blockchain concepts like Proof-of-Residual-Value (PoRV), transaction reversal, and social recovery. KENO is verified on BscScan at 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E. The vision is a self-funding ecosystem where graduates generate revenue through FAL™, creating employment and funding scholarships for future students.
 
 # User Preferences
 
