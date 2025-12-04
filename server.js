@@ -26,6 +26,7 @@ const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
+const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
@@ -312,6 +313,7 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 // STUB VARIABLES - will be initialized after port opens
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager;
+let bscTokenTransfer;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 let dbConnection, organizationManager, wealthBuilderManager, securityMiddleware;
 let printfulIntegration, aiSupport, microMonetization;
@@ -345,6 +347,10 @@ async function initializeBlockchainSystems() {
         bankingAPI = new BankingAPI(kenostodChain, dataPersistence);
         stripeIntegration = new StripeIntegration();
         paypalIntegration = new PayPalIntegration();
+        
+        // Initialize BSC Token Transfer for real on-chain token delivery
+        bscTokenTransfer = new BSCTokenTransfer();
+        bscTokenTransfer.initialize();
         
         // Load fiat balances and ICO purchases
         const savedFiatBalances = dataPersistence.loadFiatBalances();
@@ -2716,27 +2722,26 @@ app.post('/api/paypal/capture-order/:orderId', async (req, res) => {
         const bonusTokens = tokens * 0.20; // 20% bonus
         const totalTokens = tokens + bonusTokens;
         
-        // Send KENO tokens to buyer's wallet
+        // Send REAL KENO tokens on BSC to buyer's wallet
         let tokensSent = false;
         let txHash = null;
         try {
-            const tx = new Transaction(
-                minerWallet.getAddress(),
+            console.log(`📤 Attempting to send ${totalTokens} KENO to ${pendingOrder.walletAddress}...`);
+            
+            const transferResult = await bscTokenTransfer.transferTokens(
                 pendingOrder.walletAddress,
                 totalTokens,
-                `ICO Purchase - Order ${orderId}`
+                orderId
             );
-            tx.signTransaction(minerWallet.keyPair);
-            txHash = tx.calculateHash();
             
-            // Add transaction to pending transactions
-            kenostodChain.createTransaction(tx);
-            
-            // Mine the block to confirm the transaction immediately
-            await kenostodChain.minePendingTransactions(minerWallet.getAddress());
-            
-            tokensSent = true;
-            console.log(`✅ Sent ${totalTokens} KENO to ${pendingOrder.walletAddress.slice(0, 10)}... (TX: ${txHash.slice(0, 16)}...)`);
+            if (transferResult.success) {
+                tokensSent = true;
+                txHash = transferResult.txHash;
+                console.log(`✅ Real BSC transfer successful! TX: ${txHash}`);
+            } else {
+                console.error(`❌ BSC transfer failed: ${transferResult.error}`);
+                console.log(`   Tokens will be recorded for manual delivery`);
+            }
         } catch (txError) {
             console.error(`❌ Error sending tokens: ${txError.message}`);
             txHash = null;
@@ -2820,6 +2825,132 @@ app.get('/api/ico/purchases', (req, res) => {
         purchases: icoPurchases,
         total: icoPurchases.length
     });
+});
+
+// ==================== BSC TOKEN TRANSFER ENDPOINTS ====================
+
+// Get BSC transfer service status
+app.get('/api/bsc/status', async (req, res) => {
+    try {
+        const status = bscTokenTransfer.getStatus();
+        const balance = await bscTokenTransfer.getDistributionWalletBalance();
+        
+        res.json({
+            success: true,
+            ...status,
+            balance
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get pending token transfers
+app.get('/api/bsc/pending-transfers', (req, res) => {
+    const pendingTransfers = icoPurchases.filter(p => !p.tokensSent);
+    const completedTransfers = icoPurchases.filter(p => p.tokensSent);
+    
+    res.json({
+        success: true,
+        pending: pendingTransfers,
+        completed: completedTransfers,
+        summary: {
+            pendingCount: pendingTransfers.length,
+            pendingTokens: pendingTransfers.reduce((sum, p) => sum + (p.tokens || 0), 0),
+            completedCount: completedTransfers.length,
+            completedTokens: completedTransfers.reduce((sum, p) => sum + (p.tokens || 0), 0)
+        }
+    });
+});
+
+// Sweep all pending token transfers (admin endpoint)
+app.post('/api/bsc/sweep', async (req, res) => {
+    try {
+        const pendingTransfers = icoPurchases.filter(p => !p.tokensSent);
+        
+        if (pendingTransfers.length === 0) {
+            return res.json({
+                success: true,
+                message: 'No pending transfers to process',
+                results: []
+            });
+        }
+        
+        console.log(`\n🔄 Starting sweep of ${pendingTransfers.length} pending transfers...`);
+        
+        const sweepResult = await bscTokenTransfer.sweepPendingTransfers(pendingTransfers);
+        
+        // Update icoPurchases with successful transfers
+        for (const result of sweepResult.results) {
+            if (result.success) {
+                const purchaseIndex = icoPurchases.findIndex(p => p.orderId === result.orderId);
+                if (purchaseIndex !== -1) {
+                    icoPurchases[purchaseIndex].tokensSent = true;
+                    icoPurchases[purchaseIndex].txHash = result.txHash;
+                    icoPurchases[purchaseIndex].txBlockNumber = result.blockNumber;
+                    icoPurchases[purchaseIndex].deliveredAt = new Date().toISOString();
+                }
+            }
+        }
+        
+        // Save updated purchases
+        dataPersistence.saveICOPurchases(icoPurchases);
+        
+        // Update database records
+        for (const result of sweepResult.results) {
+            if (result.success && dbConnection) {
+                try {
+                    await dbConnection.query(
+                        `UPDATE ico_investors 
+                         SET transaction_hash = $1, investment_status = 'delivered'
+                         WHERE wallet_address = $2`,
+                        [result.txHash, result.walletAddress]
+                    );
+                } catch (dbError) {
+                    console.error(`⚠️ Database update failed for ${result.orderId}:`, dbError.message);
+                }
+            }
+        }
+        
+        console.log(`\n✅ Sweep completed: ${sweepResult.successCount} successful, ${sweepResult.failCount} failed`);
+        
+        res.json({
+            success: true,
+            ...sweepResult
+        });
+    } catch (error) {
+        console.error('Sweep error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Send tokens to a specific address (admin endpoint)
+app.post('/api/bsc/send', async (req, res) => {
+    try {
+        const { toAddress, amount, orderId } = req.body;
+        
+        if (!toAddress || !amount) {
+            return res.status(400).json({
+                success: false,
+                error: 'toAddress and amount are required'
+            });
+        }
+        
+        const result = await bscTokenTransfer.transferTokens(toAddress, amount, orderId);
+        
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 // ==================== ICO INVESTMENT TRACKER & ANALYTICS ====================
