@@ -35,13 +35,23 @@ async function loadABIs() {
 }
 
 async function connectWallet() {
+    const connectBtn = document.getElementById('connectWallet');
+    const originalText = connectBtn ? connectBtn.textContent : 'Connect Wallet';
+    
     if (typeof window.ethereum === 'undefined') {
-        showError('MetaMask is not installed! Please install MetaMask to participate in the ICO.');
+        showError('MetaMask is not installed! Please install MetaMask to participate in the ICO.\n\nClick OK to open the MetaMask download page.');
         window.open('https://metamask.io/download/', '_blank');
         return;
     }
 
     try {
+        // Show loading state on button
+        if (connectBtn) {
+            connectBtn.textContent = 'Connecting...';
+            connectBtn.disabled = true;
+            connectBtn.style.opacity = '0.7';
+        }
+        
         updateStatus('Connecting to MetaMask...', 'info');
         
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -73,10 +83,18 @@ async function connectWallet() {
         
     } catch (error) {
         console.error('Connection error:', error);
+        
+        // Restore button state
+        if (connectBtn) {
+            connectBtn.textContent = originalText;
+            connectBtn.disabled = false;
+            connectBtn.style.opacity = '1';
+        }
+        
         if (error.code === 4001) {
             showError('Connection rejected. Please approve the connection in MetaMask.');
         } else if (error.code === -32603 || error.message?.includes('No active wallet')) {
-            showError('⚠️ MetaMask is locked or not set up.\n\n1. Open MetaMask extension\n2. Unlock your wallet with your password\n3. Click "Connect Wallet" button again');
+            showError('MetaMask is locked or not set up.\n\n1. Open MetaMask extension\n2. Unlock your wallet with your password\n3. Click "Connect Wallet" button again');
         } else if (error.code === -32002) {
             showError('MetaMask connection request already pending. Please check your MetaMask extension.');
         } else {
@@ -431,9 +449,14 @@ function updateStatus(message, type) {
 function showError(message) {
     updateStatus('❌ ' + message, 'danger');
     
-    // Also scroll to the error message so user sees it
+    // Check if the status div is visible, if not use alert
     const statusDiv = document.getElementById('transactionStatus');
-    if (statusDiv) {
+    const cryptoBuySection = document.getElementById('cryptoBuySection');
+    
+    if (!statusDiv || (cryptoBuySection && cryptoBuySection.style.display === 'none')) {
+        // Status div isn't visible, show alert instead
+        alert('⚠️ Wallet Connection Issue\n\n' + message);
+    } else if (statusDiv) {
         statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
