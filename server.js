@@ -2866,8 +2866,22 @@ app.get('/api/bsc/pending-transfers', (req, res) => {
     });
 });
 
-// Sweep all pending token transfers (admin endpoint)
-app.post('/api/bsc/sweep', async (req, res) => {
+// Admin authentication middleware for BSC endpoints
+function requireBscAdmin(req, res, next) {
+    const adminKey = req.headers['x-admin-key'] || req.body.adminKey;
+    const validAdminKey = process.env.KENO_DISTRIBUTION_WALLET_KEY; // Uses same secret as wallet
+    
+    if (!adminKey || adminKey !== validAdminKey) {
+        return res.status(403).json({
+            success: false,
+            error: 'Unauthorized. Admin authentication required.'
+        });
+    }
+    next();
+}
+
+// Sweep all pending token transfers (admin endpoint - PROTECTED)
+app.post('/api/bsc/sweep', requireBscAdmin, async (req, res) => {
     try {
         const pendingTransfers = icoPurchases.filter(p => !p.tokensSent);
         
@@ -2930,8 +2944,8 @@ app.post('/api/bsc/sweep', async (req, res) => {
     }
 });
 
-// Send tokens to a specific address (admin endpoint)
-app.post('/api/bsc/send', async (req, res) => {
+// Send tokens to a specific address (admin endpoint - PROTECTED)
+app.post('/api/bsc/send', requireBscAdmin, async (req, res) => {
     try {
         const { toAddress, amount, orderId } = req.body;
         

@@ -25,7 +25,8 @@ class BSCTokenTransfer {
         }
         
         try {
-            this.provider = new ethers.providers.JsonRpcProvider(this.BSC_RPC_URL);
+            // ethers v6 syntax
+            this.provider = new ethers.JsonRpcProvider(this.BSC_RPC_URL);
             this.wallet = new ethers.Wallet(privateKey, this.provider);
             this.kenoContract = new ethers.Contract(
                 this.KENO_TOKEN_ADDRESS, 
@@ -52,8 +53,8 @@ class BSCTokenTransfer {
             const bnbBalance = await this.provider.getBalance(this.wallet.address);
             
             return {
-                keno: ethers.utils.formatUnits(kenoBalance, 18),
-                bnb: ethers.utils.formatEther(bnbBalance),
+                keno: ethers.formatUnits(kenoBalance, 18),
+                bnb: ethers.formatEther(bnbBalance),
                 kenoRaw: kenoBalance.toString(),
                 bnbRaw: bnbBalance.toString()
             };
@@ -72,7 +73,7 @@ class BSCTokenTransfer {
             };
         }
         
-        if (!ethers.utils.isAddress(toAddress)) {
+        if (!ethers.isAddress(toAddress)) {
             return {
                 success: false,
                 error: 'Invalid recipient address',
@@ -81,23 +82,24 @@ class BSCTokenTransfer {
         }
         
         try {
-            const amountWei = ethers.utils.parseUnits(amount.toString(), 18);
+            // ethers v6 syntax
+            const amountWei = ethers.parseUnits(amount.toString(), 18);
             
             const balance = await this.kenoContract.balanceOf(this.wallet.address);
-            if (balance.lt(amountWei)) {
+            if (balance < amountWei) {
                 return {
                     success: false,
-                    error: `Insufficient KENO balance. Have: ${ethers.utils.formatUnits(balance, 18)}, Need: ${amount}`,
+                    error: `Insufficient KENO balance. Have: ${ethers.formatUnits(balance, 18)}, Need: ${amount}`,
                     txHash: null
                 };
             }
             
             const bnbBalance = await this.provider.getBalance(this.wallet.address);
-            const minBNB = ethers.utils.parseEther('0.001');
-            if (bnbBalance.lt(minBNB)) {
+            const minBNB = ethers.parseEther('0.001');
+            if (bnbBalance < minBNB) {
                 return {
                     success: false,
-                    error: `Insufficient BNB for gas. Have: ${ethers.utils.formatEther(bnbBalance)} BNB`,
+                    error: `Insufficient BNB for gas. Have: ${ethers.formatEther(bnbBalance)} BNB`,
                     txHash: null
                 };
             }
