@@ -9,6 +9,8 @@ Kenostod Blockchain Academy is an educational platform featuring a blockchain si
 
 The platform teaches advanced blockchain concepts like Proof-of-Residual-Value (PoRV), transaction reversal, and social recovery. KENO is verified on BscScan at 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E. The vision is a self-funding ecosystem where graduates generate revenue through FAL™, creating employment and funding scholarships for future students.
 
+**Kingdom Philosophy:** "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king." This captures the platform's democratized wealth-building model where RVT NFTs, FALP pooled profits, and referral programs ensure ALL participants share in the prosperity, not just early adopters or founders.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
