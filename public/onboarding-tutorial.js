@@ -210,24 +210,25 @@ class InteractiveTutorial {
                     <h2 class="tutorial-prompt-title">Welcome Back!</h2>
                     <p class="tutorial-prompt-message">You've completed the tutorial before. Would you like to go through it again?</p>
                     <div class="tutorial-prompt-buttons">
-                        <button class="tutorial-prompt-btn tutorial-prompt-btn-primary" id="restartYes">Yes, Restart Tutorial</button>
-                        <button class="tutorial-prompt-btn tutorial-prompt-btn-secondary" id="restartNo">No Thanks</button>
+                        <button class="tutorial-prompt-btn tutorial-prompt-btn-primary" onclick="window._tutorialRestartYes()">Yes, Restart Tutorial</button>
+                        <button class="tutorial-prompt-btn tutorial-prompt-btn-secondary" onclick="window._tutorialRestartNo()">No Thanks</button>
                     </div>
                 </div>
             </div>
         `;
+        
+        const self = this;
+        window._tutorialRestartYes = function() {
+            document.getElementById('tutorialRestartPrompt').remove();
+            self.currentStep = 0;
+            self.initialBalance = null;
+            self.showStep();
+        };
+        window._tutorialRestartNo = function() {
+            document.getElementById('tutorialRestartPrompt').remove();
+        };
+        
         document.body.appendChild(promptModal);
-
-        document.getElementById('restartYes').addEventListener('click', () => {
-            promptModal.remove();
-            this.currentStep = 0;
-            this.initialBalance = null;
-            this.showStep();
-        });
-
-        document.getElementById('restartNo').addEventListener('click', () => {
-            promptModal.remove();
-        });
     }
 
     createOverlay() {
@@ -557,23 +558,24 @@ class InteractiveTutorial {
                     <h3 class="skip-prompt-title">Skip Tutorial?</h3>
                     <p class="skip-prompt-message">You can restart the tutorial anytime from the Tutorial link in the menu.</p>
                     <div class="skip-prompt-buttons">
-                        <button class="skip-btn skip-btn-confirm" id="skipConfirm">Yes, Skip</button>
-                        <button class="skip-btn skip-btn-cancel" id="skipCancel">Continue Learning</button>
+                        <button class="skip-btn skip-btn-confirm" onclick="window._skipConfirm()">Yes, Skip</button>
+                        <button class="skip-btn skip-btn-cancel" onclick="window._skipCancel()">Continue Learning</button>
                     </div>
                 </div>
             </div>
         `;
-        document.body.appendChild(skipModal);
-
-        document.getElementById('skipConfirm').addEventListener('click', () => {
-            skipModal.remove();
-            this.cleanup();
+        
+        const self = this;
+        window._skipConfirm = function() {
+            document.getElementById('tutorialSkipPrompt').remove();
+            self.cleanup();
             localStorage.setItem('kenostod_tutorial_skipped', 'true');
-        });
-
-        document.getElementById('skipCancel').addEventListener('click', () => {
-            skipModal.remove();
-        });
+        };
+        window._skipCancel = function() {
+            document.getElementById('tutorialSkipPrompt').remove();
+        };
+        
+        document.body.appendChild(skipModal);
     }
 
     complete() {
@@ -800,24 +802,24 @@ function showWelcomePrompt() {
                     <span class="welcome-feature">💸 Send Transactions</span>
                 </div>
                 <div class="welcome-prompt-buttons">
-                    <button class="welcome-prompt-btn welcome-prompt-btn-primary" id="welcomeYes">Start Tutorial</button>
-                    <button class="welcome-prompt-btn welcome-prompt-btn-secondary" id="welcomeNo">Skip for Now</button>
+                    <button class="welcome-prompt-btn welcome-prompt-btn-primary" onclick="window._welcomeYes()">Start Tutorial</button>
+                    <button class="welcome-prompt-btn welcome-prompt-btn-secondary" onclick="window._welcomeNo()">Skip for Now</button>
                 </div>
                 <p class="welcome-time">Takes about 3 minutes</p>
             </div>
         </div>
     `;
-    document.body.appendChild(welcomeModal);
-
-    document.getElementById('welcomeYes').addEventListener('click', () => {
-        welcomeModal.remove();
+    
+    window._welcomeYes = function() {
+        document.getElementById('tutorialWelcomePrompt').remove();
         tutorial.start();
-    });
-
-    document.getElementById('welcomeNo').addEventListener('click', () => {
-        welcomeModal.remove();
+    };
+    window._welcomeNo = function() {
+        document.getElementById('tutorialWelcomePrompt').remove();
         localStorage.setItem('kenostod_tutorial_skipped', 'true');
-    });
+    };
+    
+    document.body.appendChild(welcomeModal);
 }
 
 window.restartTutorial = function() {
