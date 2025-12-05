@@ -2,6 +2,8 @@
 
 Kenostod Blockchain Academy is an educational platform featuring a blockchain simulator and the world's first **Knowledge Yield Token (KYT)** — KENO. Unlike traditional cryptocurrencies that are bought through speculation, KENO is EARNED through completing 21 educational courses and YIELDS passive income through Flash Arbitrage Loans (FAL™).
 
+**Founder:** Nickeo Coleman — Creating innovations since 2007, coding since 2020, crypto enthusiast since conception.
+
 **KYT Positioning:** KENO is NOT a cryptocurrency in the traditional sense — it's a revolutionary new asset class:
 - **Knowledge:** Earned through completing 21 courses (250 KENO per course = 5,250 KENO total)
 - **Yield:** Generates passive income through FAL/FALP arbitrage systems
