@@ -1,75 +1,119 @@
-class OnboardingTutorial {
+class InteractiveTutorial {
     constructor() {
         this.currentStep = 0;
+        this.overlay = null;
+        this.modal = null;
+        this.verificationInterval = null;
+        this.initialBalance = null;
+        
         this.steps = [
             {
-                title: "Welcome to Kenostod! 🎉",
-                message: "Let's get you started with a quick 3-minute tour. We'll create your wallet, make your first transaction, and explore the revolutionary Arbitrage Revolution system!",
-                target: null,
-                position: "center",
-                action: null
+                title: "Welcome to Kenostod Academy! 🎓",
+                message: "Ready to learn blockchain and earn KENO - the world's first Knowledge Yield Token? This interactive tutorial will guide you step-by-step. You'll actually DO each task, not just read about it!",
+                instruction: null,
+                buttonText: "Let's Begin!",
+                requiresAction: false,
+                verification: null
             },
             {
                 title: "Step 1: Create Your Wallet 👛",
-                message: "First, let's create your KENO wallet. This is where you'll store your cryptocurrency. Click the 'Create Wallet' button to get started!",
-                target: ".tab-btn",
-                position: "bottom",
-                action: () => {
-                    document.querySelector('.tab-btn').click();
+                message: "Every blockchain journey starts with a wallet. Your wallet is like a digital bank account that only YOU control.",
+                instruction: "👆 Click the <strong>'Wallet'</strong> tab above, then click <strong>'Create Wallet'</strong> to generate your personal KENO wallet.",
+                buttonText: null,
+                requiresAction: true,
+                actionLabel: "Waiting for you to create a wallet...",
+                successLabel: "✅ Wallet Created! Great job!",
+                verification: () => {
+                    const walletAddress = document.getElementById('walletAddress');
+                    return walletAddress && walletAddress.textContent && 
+                           walletAddress.textContent.length > 10 && 
+                           walletAddress.textContent !== 'Not created yet';
                 }
             },
             {
-                title: "Your Wallet is Ready! ✅",
-                message: "Great! Your wallet has been created. You now have a unique address and private key. The private key is super important - it's like your password. Keep it safe!",
-                target: "#walletAddress",
-                position: "bottom",
-                action: null
+                title: "Your Wallet is Ready! 🔐",
+                message: "Excellent! You now have your own KENO wallet with a unique address. This address is like your account number - you can share it to receive KENO.",
+                instruction: "⚠️ <strong>Important:</strong> Your Private Key is shown below. In real blockchain, NEVER share this with anyone! It's like the password to your bank account.",
+                buttonText: "I Understand - Continue",
+                requiresAction: false,
+                verification: null
             },
             {
-                title: "Step 2: Get Some Free KENO 🎁",
-                message: "Let's get you some KENO tokens to start trading! Click the 'Mine Block' button to earn 100 KENO tokens instantly.",
-                target: ".tab-btn:nth-child(5)",
-                position: "bottom",
-                action: () => {
-                    const miningTab = document.querySelectorAll('.tab-btn')[4];
-                    if (miningTab) miningTab.click();
+                title: "Step 2: Mine Your First KENO 💎",
+                message: "Now let's earn some KENO! Mining is how new cryptocurrency is created. You'll solve a puzzle and earn tokens as a reward.",
+                instruction: "👆 Click the <strong>'Mining'</strong> tab above, then click <strong>'Mine Block'</strong> to earn your first 100 KENO tokens!",
+                buttonText: null,
+                requiresAction: true,
+                actionLabel: "Waiting for you to mine a block...",
+                successLabel: "✅ Block Mined! You earned 100 KENO!",
+                verification: () => {
+                    const balance = document.getElementById('balance');
+                    if (!balance) return false;
+                    const currentBalance = parseFloat(balance.textContent) || 0;
+                    if (this.initialBalance === null) {
+                        this.initialBalance = currentBalance;
+                    }
+                    return currentBalance > this.initialBalance;
                 }
             },
             {
-                title: "Congratulations! 💰",
-                message: "You've just mined your first block and earned 100 KENO! Check your balance in the Wallet tab. This is real blockchain technology in action!",
-                target: "#balance",
-                position: "bottom",
-                action: null
+                title: "You're a Miner Now! ⛏️",
+                message: "Congratulations! You just created a new block on the blockchain and earned KENO tokens. This is real blockchain technology - the same concept Bitcoin uses!",
+                instruction: "Check your <strong>Wallet</strong> tab to see your new balance. You now have spending money for the next steps!",
+                buttonText: "Continue to Transactions",
+                requiresAction: false,
+                verification: null
             },
             {
-                title: "Step 3: Explore Arbitrage Revolution ⚡",
-                message: "Now for the exciting part! Our revolutionary Arbitrage system lets you borrow up to 10,000 KENO with ZERO fees and earn bonuses on profits. Ready to see it?",
-                target: null,
-                position: "center",
-                action: null
+                title: "Step 3: Send a Transaction 💸",
+                message: "Blockchain's power is sending value anywhere instantly. Let's make your first transaction!",
+                instruction: "👆 Click the <strong>'Transactions'</strong> tab above. Enter any wallet address and amount, then click <strong>'Send KENO'</strong>.",
+                buttonText: null,
+                requiresAction: true,
+                actionLabel: "Waiting for you to send a transaction...",
+                successLabel: "✅ Transaction Sent! You're a pro!",
+                verification: () => {
+                    const txResult = document.getElementById('txResult');
+                    if (!txResult) return false;
+                    return txResult.classList.contains('success') && 
+                           txResult.innerHTML.includes('Transaction Created Successfully');
+                }
             },
             {
-                title: "Tutorial Complete! 🎊",
-                message: "You're all set! You can now: Create wallets, Send KENO, Mine blocks, Trade with arbitrage, and Join the ICO. Need help? Our AI assistant is always available in the bottom right corner!",
-                target: null,
-                position: "center",
-                action: () => {
+                title: "Step 4: Explore Flash Arbitrage ⚡",
+                message: "Here's what makes KENO special - Flash Arbitrage Loans! Borrow up to 10,000 KENO with ZERO collateral, use it for arbitrage trading, and keep the profits.",
+                instruction: "👆 Click the <strong>'Arbitrage'</strong> tab to explore the revolutionary FAL™ system that generates passive income.",
+                buttonText: null,
+                requiresAction: true,
+                actionLabel: "Waiting for you to open Arbitrage...",
+                successLabel: "✅ Welcome to the Arbitrage Revolution!",
+                verification: () => {
+                    const arbitrageTab = document.querySelector('.tab-btn.active');
+                    return arbitrageTab && arbitrageTab.textContent.toLowerCase().includes('arbitrage');
+                }
+            },
+            {
+                title: "Tutorial Complete! 🎉",
+                message: "You've mastered the basics of Kenostod Academy! You learned how to: create a wallet, mine KENO, send transactions, and explore Flash Arbitrage.",
+                instruction: "<strong>Next Steps:</strong><br>• Complete the 21 courses to earn 5,250 KENO<br>• Join the ICO to get bonus tokens<br>• Use FAL™ to generate passive income<br>• Join our community of blockchain pioneers!",
+                buttonText: "🚀 Start My Journey!",
+                requiresAction: false,
+                verification: null,
+                onComplete: () => {
                     localStorage.setItem('kenostod_tutorial_completed', 'true');
                 }
             }
         ];
-        this.overlay = null;
-        this.modal = null;
     }
 
     start() {
         if (localStorage.getItem('kenostod_tutorial_completed')) {
-            const restart = confirm("You've already completed the tutorial. Would you like to see it again?");
+            const restart = confirm("You've completed the tutorial before. Would you like to go through it again?");
             if (!restart) return;
         }
         
         this.currentStep = 0;
+        this.initialBalance = null;
         this.showStep();
     }
 
@@ -82,9 +126,10 @@ class OnboardingTutorial {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 9998;
-            backdrop-filter: blur(3px);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
         `;
         document.body.appendChild(this.overlay);
     }
@@ -92,117 +137,239 @@ class OnboardingTutorial {
     createModal(step) {
         this.modal = document.createElement('div');
         this.modal.className = 'tutorial-modal';
-        this.modal.style.cssText = `
-            position: fixed;
-            z-index: 9999;
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
-            width: 90%;
-            animation: slideIn 0.3s ease-out;
-        `;
-
+        
         const progress = ((this.currentStep + 1) / this.steps.length) * 100;
+        const isActionStep = step.requiresAction;
 
         this.modal.innerHTML = `
-            <div style="margin-bottom: 20px;">
-                <div style="background: #e5e7eb; height: 6px; border-radius: 3px; overflow: hidden;">
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: ${progress}%; transition: width 0.3s ease;"></div>
+            <style>
+                @keyframes tutorialSlideIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes tutorialPulse {
+                    0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+                    50% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+                }
+                @keyframes tutorialBounce {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-5px); }
+                }
+                .tutorial-modal-container {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 9999;
+                    background: linear-gradient(145deg, #1a1a2e, #16213e);
+                    border: 2px solid #667eea;
+                    border-radius: 20px;
+                    padding: 25px 30px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(102,126,234,0.2);
+                    max-width: 600px;
+                    width: 90%;
+                    animation: tutorialSlideIn 0.4s ease-out;
+                    color: white;
+                }
+                .tutorial-progress-bar {
+                    background: #2d2d44;
+                    height: 8px;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    margin-bottom: 15px;
+                }
+                .tutorial-progress-fill {
+                    background: linear-gradient(90deg, #667eea, #764ba2);
+                    height: 100%;
+                    width: ${progress}%;
+                    transition: width 0.5s ease;
+                    border-radius: 4px;
+                }
+                .tutorial-step-counter {
+                    color: #a0a0a0;
+                    font-size: 0.85em;
+                    margin-bottom: 10px;
+                }
+                .tutorial-title {
+                    font-size: 1.5em;
+                    font-weight: 700;
+                    margin-bottom: 12px;
+                    color: #fff;
+                }
+                .tutorial-message {
+                    color: #d0d0d0;
+                    line-height: 1.6;
+                    margin-bottom: 15px;
+                    font-size: 1em;
+                }
+                .tutorial-instruction {
+                    background: rgba(102, 126, 234, 0.15);
+                    border-left: 4px solid #667eea;
+                    padding: 15px;
+                    border-radius: 0 10px 10px 0;
+                    margin-bottom: 20px;
+                    color: #e0e0e0;
+                    animation: tutorialPulse 2s infinite;
+                }
+                .tutorial-action-status {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 12px 15px;
+                    background: ${isActionStep ? 'rgba(255, 193, 7, 0.15)' : 'rgba(76, 175, 80, 0.15)'};
+                    border-radius: 10px;
+                    margin-bottom: 20px;
+                    font-weight: 500;
+                }
+                .tutorial-action-status.pending {
+                    color: #ffc107;
+                }
+                .tutorial-action-status.complete {
+                    background: rgba(76, 175, 80, 0.2);
+                    color: #4caf50;
+                }
+                .tutorial-spinner {
+                    width: 20px;
+                    height: 20px;
+                    border: 3px solid rgba(255, 193, 7, 0.3);
+                    border-top-color: #ffc107;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                .tutorial-btn {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 14px 28px;
+                    border-radius: 10px;
+                    font-size: 1em;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .tutorial-btn:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+                }
+                .tutorial-btn:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+                .tutorial-btn-skip {
+                    background: transparent;
+                    color: #888;
+                    border: none;
+                    padding: 10px 15px;
+                    font-size: 0.9em;
+                    cursor: pointer;
+                    text-decoration: underline;
+                    margin-left: 10px;
+                }
+                .tutorial-btn-skip:hover {
+                    color: #aaa;
+                }
+                .tutorial-buttons {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+                .tutorial-checkmark {
+                    font-size: 1.2em;
+                    animation: tutorialBounce 0.5s ease;
+                }
+            </style>
+            <div class="tutorial-modal-container">
+                <div class="tutorial-progress-bar">
+                    <div class="tutorial-progress-fill"></div>
                 </div>
-                <p style="color: #6b7280; margin-top: 10px; font-size: 0.9em;">Step ${this.currentStep + 1} of ${this.steps.length}</p>
-            </div>
-            <h2 style="color: #111827; margin-bottom: 15px; font-size: 1.8em;">${step.title}</h2>
-            <p style="color: #374151; line-height: 1.6; font-size: 1.1em; margin-bottom: 30px;">${step.message}</p>
-            <div style="display: flex; gap: 15px; justify-content: flex-end;">
-                ${this.currentStep > 0 ? '<button class="tutorial-btn-secondary" onclick="tutorial.previousStep()">← Back</button>' : ''}
-                ${this.currentStep < this.steps.length - 1 ? 
-                    '<button class="tutorial-btn-primary" onclick="tutorial.nextStep()">Next →</button>' : 
-                    '<button class="tutorial-btn-primary" onclick="tutorial.complete()">🎉 Finish</button>'}
-                <button class="tutorial-btn-skip" onclick="tutorial.skip()">Skip Tutorial</button>
+                <div class="tutorial-step-counter">Step ${this.currentStep + 1} of ${this.steps.length}</div>
+                <h2 class="tutorial-title">${step.title}</h2>
+                <p class="tutorial-message">${step.message}</p>
+                ${step.instruction ? `<div class="tutorial-instruction">${step.instruction}</div>` : ''}
+                ${isActionStep ? `
+                    <div class="tutorial-action-status pending" id="tutorialActionStatus">
+                        <div class="tutorial-spinner"></div>
+                        <span id="tutorialStatusText">${step.actionLabel}</span>
+                    </div>
+                ` : ''}
+                <div class="tutorial-buttons">
+                    ${step.buttonText ? `
+                        <button class="tutorial-btn" id="tutorialNextBtn" ${isActionStep ? 'disabled' : ''}>
+                            ${step.buttonText}
+                        </button>
+                    ` : `
+                        <button class="tutorial-btn" id="tutorialNextBtn" disabled>
+                            Continue →
+                        </button>
+                    `}
+                    <button class="tutorial-btn-skip" id="tutorialSkipBtn">Skip Tutorial</button>
+                </div>
             </div>
         `;
-
-        // Always center the modal for better visibility
-        this.modal.style.top = '50%';
-        this.modal.style.left = '50%';
-        this.modal.style.transform = 'translate(-50%, -50%)';
 
         document.body.appendChild(this.modal);
 
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { 
-                    opacity: 0; 
-                    transform: translate(-50%, -50%) scale(0.9);
-                }
-                to { 
-                    opacity: 1; 
-                    transform: translate(-50%, -50%) scale(1);
-                }
-            }
-            .tutorial-btn-primary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                font-size: 1em;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .tutorial-btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 20px rgba(102,126,234,0.4);
-            }
-            .tutorial-btn-secondary {
-                background: white;
-                color: #667eea;
-                border: 2px solid #667eea;
-                padding: 12px 24px;
-                border-radius: 8px;
-                font-size: 1em;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            .tutorial-btn-secondary:hover {
-                background: #f3f4f6;
-            }
-            .tutorial-btn-skip {
-                background: transparent;
-                color: #6b7280;
-                border: none;
-                padding: 12px 24px;
-                font-size: 0.95em;
-                cursor: pointer;
-                text-decoration: underline;
-            }
-        `;
-        document.head.appendChild(style);
-    }
+        const nextBtn = document.getElementById('tutorialNextBtn');
+        const skipBtn = document.getElementById('tutorialSkipBtn');
 
-    highlightElement(selector) {
-        const element = document.querySelector(selector);
-        if (element) {
-            element.style.position = 'relative';
-            element.style.zIndex = '10000';
-            element.style.boxShadow = '0 0 0 4px #667eea, 0 0 30px rgba(102,126,234,0.6)';
-            element.style.borderRadius = '8px';
-            element.style.transition = 'all 0.3s ease';
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => this.nextStep());
+        }
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => this.skip());
+        }
+
+        if (isActionStep && step.verification) {
+            this.startVerification(step);
         }
     }
 
-    removeHighlight() {
-        document.querySelectorAll('*').forEach(el => {
-            if (el.style.zIndex === '10000') {
-                el.style.zIndex = '';
-                el.style.boxShadow = '';
+    startVerification(step) {
+        if (this.verificationInterval) {
+            clearInterval(this.verificationInterval);
+        }
+
+        this.verificationInterval = setInterval(() => {
+            if (step.verification()) {
+                this.onStepComplete(step);
             }
-        });
+        }, 500);
+    }
+
+    onStepComplete(step) {
+        if (this.verificationInterval) {
+            clearInterval(this.verificationInterval);
+            this.verificationInterval = null;
+        }
+
+        const statusDiv = document.getElementById('tutorialActionStatus');
+        const statusText = document.getElementById('tutorialStatusText');
+        const nextBtn = document.getElementById('tutorialNextBtn');
+
+        if (statusDiv) {
+            statusDiv.classList.remove('pending');
+            statusDiv.classList.add('complete');
+            statusDiv.innerHTML = `
+                <span class="tutorial-checkmark">✅</span>
+                <span>${step.successLabel}</span>
+            `;
+        }
+
+        if (nextBtn) {
+            nextBtn.disabled = false;
+            nextBtn.innerHTML = 'Continue →';
+        }
+
+        if (step.onComplete) {
+            step.onComplete();
+        }
     }
 
     showStep() {
@@ -212,34 +379,19 @@ class OnboardingTutorial {
         
         this.createOverlay();
         this.createModal(step);
-        
-        if (step.target) {
-            this.highlightElement(step.target);
-        }
-        
-        if (step.action && this.currentStep > 0) {
-            setTimeout(() => {
-                if (step.action) step.action();
-            }, 500);
-        }
     }
 
     nextStep() {
         if (this.currentStep < this.steps.length - 1) {
             this.currentStep++;
             this.showStep();
-        }
-    }
-
-    previousStep() {
-        if (this.currentStep > 0) {
-            this.currentStep--;
-            this.showStep();
+        } else {
+            this.complete();
         }
     }
 
     skip() {
-        if (confirm('Are you sure you want to skip the tutorial? You can restart it anytime from the help menu.')) {
+        if (confirm('Are you sure you want to skip? You can restart the tutorial anytime from the help menu.')) {
             this.cleanup();
             localStorage.setItem('kenostod_tutorial_skipped', 'true');
         }
@@ -255,33 +407,61 @@ class OnboardingTutorial {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 2px solid #4caf50;
+            padding: 50px;
+            border-radius: 25px;
             text-align: center;
             z-index: 10001;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 50px rgba(76, 175, 80, 0.3);
             max-width: 500px;
+            color: white;
+            animation: celebrationPop 0.5s ease-out;
         `;
         celebrationModal.innerHTML = `
-            <div style="font-size: 4em; margin-bottom: 20px;">🎉</div>
-            <h2 style="color: #111827; margin-bottom: 15px;">Congratulations!</h2>
-            <p style="color: #374151; margin-bottom: 30px; line-height: 1.6;">
-                You've completed the Kenostod onboarding! You're now ready to trade, mine, and explore the world's first arbitrage-native cryptocurrency.
+            <style>
+                @keyframes celebrationPop {
+                    from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                }
+                @keyframes confetti {
+                    0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+                    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+                }
+            </style>
+            <div style="font-size: 5em; margin-bottom: 20px;">🎓</div>
+            <h2 style="margin-bottom: 15px; font-size: 1.8em;">Welcome to Kenostod!</h2>
+            <p style="color: #a0a0a0; margin-bottom: 30px; line-height: 1.7;">
+                You've completed your first lesson! Now you're ready to explore the full platform, complete courses, and start earning real KENO tokens.
             </p>
-            <button onclick="this.parentElement.remove()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 1.1em; font-weight: 600; cursor: pointer;">
-                🚀 Start Trading
+            <button onclick="this.parentElement.remove()" style="
+                background: linear-gradient(135deg, #4caf50, #45a049);
+                color: white;
+                border: none;
+                padding: 16px 35px;
+                border-radius: 12px;
+                font-size: 1.1em;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            ">
+                🚀 Explore the Platform
             </button>
         `;
         document.body.appendChild(celebrationModal);
         
         setTimeout(() => {
-            celebrationModal.remove();
-        }, 5000);
+            if (celebrationModal.parentElement) {
+                celebrationModal.remove();
+            }
+        }, 10000);
     }
 
     cleanup() {
-        this.removeHighlight();
+        if (this.verificationInterval) {
+            clearInterval(this.verificationInterval);
+            this.verificationInterval = null;
+        }
         if (this.overlay) {
             this.overlay.remove();
             this.overlay = null;
@@ -293,20 +473,30 @@ class OnboardingTutorial {
     }
 }
 
-const tutorial = new OnboardingTutorial();
+const tutorial = new InteractiveTutorial();
 
 document.addEventListener('DOMContentLoaded', () => {
+    const isMainPage = window.location.pathname === '/' || 
+                       window.location.pathname === '/index.html' ||
+                       window.location.pathname.endsWith('/');
+    
     if (!localStorage.getItem('kenostod_tutorial_completed') && 
         !localStorage.getItem('kenostod_tutorial_skipped') &&
-        window.location.pathname === '/' || window.location.pathname === '/index.html') {
+        isMainPage) {
         
         setTimeout(() => {
-            const shouldStart = confirm('Welcome to Kenostod! Would you like a quick 3-minute guided tour?');
+            const shouldStart = confirm('Welcome to Kenostod Academy! 🎓\n\nWould you like an interactive tutorial to learn the basics? (About 3 minutes)\n\nYou\'ll actually create a wallet, mine KENO, and make transactions - hands-on learning!');
             if (shouldStart) {
                 tutorial.start();
             } else {
                 localStorage.setItem('kenostod_tutorial_skipped', 'true');
             }
-        }, 2000);
+        }, 1500);
     }
 });
+
+window.restartTutorial = function() {
+    localStorage.removeItem('kenostod_tutorial_completed');
+    localStorage.removeItem('kenostod_tutorial_skipped');
+    tutorial.start();
+};
