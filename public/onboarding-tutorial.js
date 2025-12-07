@@ -24,10 +24,13 @@ class InteractiveTutorial {
                 actionLabel: "Waiting for you to create a wallet...",
                 successLabel: "✅ Wallet Created! Great job!",
                 verification: () => {
-                    const walletAddress = document.getElementById('walletAddress');
-                    return walletAddress && walletAddress.textContent && 
-                           walletAddress.textContent.length > 10 && 
-                           walletAddress.textContent !== 'Not created yet';
+                    const newWalletDiv = document.getElementById('newWallet');
+                    const myAddressInput = document.getElementById('myAddress');
+                    const hasNewWallet = newWalletDiv && newWalletDiv.innerHTML && 
+                                         newWalletDiv.innerHTML.includes('New Wallet Created');
+                    const hasLoadedWallet = myAddressInput && myAddressInput.value && 
+                                            myAddressInput.value.length > 10;
+                    return hasNewWallet || hasLoadedWallet;
                 }
             },
             {
