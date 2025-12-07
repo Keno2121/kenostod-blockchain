@@ -7,9 +7,34 @@ document.addEventListener('DOMContentLoaded', () => {
     loadOpportunities();
     loadLeaderboard();
     
+    const walletInput = document.getElementById('walletAddress');
+    if (walletInput) {
+        walletInput.addEventListener('blur', checkForActiveLoan);
+    }
+    
     setInterval(loadOpportunities, 30000);
     setInterval(loadStats, 60000);
 });
+
+async function checkForActiveLoan() {
+    const walletAddress = document.getElementById('walletAddress').value.trim();
+    if (!walletAddress) return;
+    
+    try {
+        const response = await fetch(`/api/arbitrage/active-loan/${walletAddress}`);
+        const data = await response.json();
+        
+        if (data.success && data.hasActiveLoan) {
+            currentWallet = walletAddress;
+            activeLoan = data.loan;
+            displayActiveLoan();
+            document.getElementById('viewProfileBtn').style.display = 'block';
+            showAlert('You have an active flash loan! Repay it before taking a new one.', 'info');
+        }
+    } catch (error) {
+        console.error('Error checking active loan:', error);
+    }
+}
 
 function showAlert(message, type = 'info') {
     const alertContainer = document.getElementById('alertContainer');
@@ -221,37 +246,45 @@ function displayActiveLoan() {
         const expiresIn = Math.floor((activeLoan.expiresAt - Date.now()) / 1000);
         const minutes = Math.floor(expiresIn / 60);
         const seconds = expiresIn % 60;
+        const isExpired = expiresIn <= 0;
         
         loanInfo.innerHTML = `
-            <div class="loan-info">
-                <h3>⚡ Active Flash Loan</h3>
-                <div class="loan-details">
-                    <div class="loan-detail-item">
-                        <span class="loan-detail-label">Loan ID:</span>
-                        <span class="loan-detail-value">${activeLoan.loanId}</span>
+            <div class="loan-info" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #f59e0b;">
+                <h3 style="color: #92400e; margin-bottom: 15px;">⚡ Active Flash Loan</h3>
+                <div class="loan-details" style="display: grid; gap: 10px; margin-bottom: 15px;">
+                    <div class="loan-detail-item" style="display: flex; justify-content: space-between;">
+                        <span class="loan-detail-label" style="color: #78350f; font-weight: 600;">Loan ID:</span>
+                        <span class="loan-detail-value" style="color: #92400e; font-family: monospace; font-size: 0.85rem;">${activeLoan.loanId}</span>
                     </div>
-                    <div class="loan-detail-item">
-                        <span class="loan-detail-label">Amount:</span>
-                        <span class="loan-detail-value">${activeLoan.amount} KENO</span>
+                    <div class="loan-detail-item" style="display: flex; justify-content: space-between;">
+                        <span class="loan-detail-label" style="color: #78350f; font-weight: 600;">Amount:</span>
+                        <span class="loan-detail-value" style="color: #92400e; font-weight: 700;">${activeLoan.amount} KENO</span>
                     </div>
-                    <div class="loan-detail-item">
-                        <span class="loan-detail-label">Expires In:</span>
-                        <span class="loan-detail-value">${minutes}m ${seconds}s</span>
+                    <div class="loan-detail-item" style="display: flex; justify-content: space-between;">
+                        <span class="loan-detail-label" style="color: #78350f; font-weight: 600;">Status:</span>
+                        <span class="loan-detail-value" style="color: ${isExpired ? '#dc2626' : '#059669'}; font-weight: 700;">${isExpired ? 'EXPIRED' : `${minutes}m ${seconds}s remaining`}</span>
                     </div>
-                    <div class="loan-detail-item">
-                        <span class="loan-detail-label">Fee:</span>
-                        <span class="loan-detail-value">0% (FREE)</span>
+                    <div class="loan-detail-item" style="display: flex; justify-content: space-between;">
+                        <span class="loan-detail-label" style="color: #78350f; font-weight: 600;">Fee:</span>
+                        <span class="loan-detail-value" style="color: #059669; font-weight: 700;">0% (FREE)</span>
                     </div>
                 </div>
-                <button class="btn btn-danger" onclick="repayLoan()" style="margin-top: 20px;">
+                <div style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                    <p style="color: #78350f; font-size: 0.9rem; margin: 0;">
+                        <strong>How to repay:</strong> Click "Repay Loan Now" below. Enter any profit you made from arbitrage trading (enter 0 if none). The loan amount will be returned and your profit recorded.
+                    </p>
+                </div>
+                <button class="btn btn-danger" onclick="repayLoan()" style="width: 100%; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer;">
                     💰 Repay Loan Now
                 </button>
             </div>
         `;
         
-        setTimeout(() => {
-            if (activeLoan) displayActiveLoan();
-        }, 1000);
+        if (!isExpired) {
+            setTimeout(() => {
+                if (activeLoan) displayActiveLoan();
+            }, 1000);
+        }
     } else {
         loanInfo.innerHTML = '';
     }
@@ -263,7 +296,7 @@ async function repayLoan() {
         return;
     }
     
-    const profit = prompt('Enter your arbitrage profit in KENO (enter 0 if no profit):');
+    const profit = await showCustomPrompt('Enter your arbitrage profit in KENO (enter 0 if no profit):', '0', '💰');
     
     if (profit === null) return;
     
@@ -285,15 +318,23 @@ async function repayLoan() {
         if (data.success) {
             let message = data.message;
             if (data.bonusEarned > 0) {
-                message += ` 🎁 Bonus earned: ${data.bonusEarned.toFixed(2)} KENO!`;
+                message += ` Bonus earned: ${data.bonusEarned.toFixed(2)} KENO!`;
             }
-            showAlert(message, 'success');
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert(message, '✅');
+            } else {
+                showAlert(message, 'success');
+            }
             activeLoan = null;
             displayActiveLoan();
             loadStats();
             loadLeaderboard();
         } else {
-            showAlert(data.error, 'error');
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert(data.error, '❌');
+            } else {
+                showAlert(data.error, 'error');
+            }
             if (data.penaltyApplied) {
                 activeLoan = null;
                 displayActiveLoan();
@@ -301,7 +342,11 @@ async function repayLoan() {
         }
     } catch (error) {
         console.error('Repayment error:', error);
-        showAlert('Failed to repay loan. Please try again.', 'error');
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Failed to repay loan. Please try again.', '❌');
+        } else {
+            showAlert('Failed to repay loan. Please try again.', 'error');
+        }
     }
 }
 

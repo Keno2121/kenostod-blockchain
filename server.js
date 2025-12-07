@@ -5923,6 +5923,34 @@ app.get('/api/arbitrage/leaderboard', (req, res) => {
     }
 });
 
+app.get('/api/arbitrage/active-loan/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const activeLoan = arbitrageSystem.getActiveLoan(walletAddress);
+        
+        if (!activeLoan) {
+            return res.json({ 
+                success: true, 
+                hasActiveLoan: false,
+                message: 'No active loan found for this wallet' 
+            });
+        }
+        
+        res.json({ 
+            success: true,
+            hasActiveLoan: true,
+            loan: activeLoan
+        });
+    } catch (error) {
+        console.error('Active loan check error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to check active loan',
+            details: error.message 
+        });
+    }
+});
+
 app.get('/api/arbitrage/profile/:walletAddress', (req, res) => {
     try {
         const { walletAddress } = req.params;

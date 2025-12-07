@@ -587,6 +587,21 @@ class ArbitrageSystem {
         return this.leaderboard.slice(0, limit);
     }
 
+    getActiveLoan(walletAddress) {
+        const loan = this.activeLoans.get(walletAddress);
+        if (!loan) {
+            return null;
+        }
+        return {
+            loanId: loan.id,
+            amount: loan.amount,
+            purpose: loan.purpose,
+            timestamp: loan.timestamp,
+            expiresAt: loan.expiresAt,
+            status: loan.status
+        };
+    }
+
     getOpportunities() {
         return this.arbitrageOpportunities.filter(opp => 
             Date.now() - opp.timestamp < 60000
