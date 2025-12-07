@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 13: Royalty Distribution Tracking | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root { --primary: #14b8a6; --primary-dark: #0d9488; --gold: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .lesson-section h2 { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; }
+        .lesson-section h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; }
+        .lesson-section p { margin-bottom: 15px; }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; }
+        .objective-list li::before { content: "✓"; color: var(--success); font-weight: bold; margin-right: 12px; }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-box h4 { color: var(--success); margin-bottom: 10px; }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .quiz-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .quiz-question { background: var(--bg-dark); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .quiz-question h4 { margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">📚 Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('how')"><span class="toc-number">2</span>How Royalties Work</li>
+                <li class="toc-item" onclick="scrollToSection('tracking')"><span class="toc-number">3</span>Tracking Dashboard</li>
+                <li class="toc-item" onclick="scrollToSection('optimize')"><span class="toc-number">4</span>Optimization Strategies</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">5</span>Hands-On Practice</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">6</span>Knowledge Check</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 13</div>
+            
+            <div class="course-header">
+                <h1>📊 Course 13: Royalty Distribution Tracking <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>📖 4 Lessons</span>
+                    <span>⏱️ ~30 minutes</span>
+                    <span>🎯 Advanced Level</span>
+                    <span>🏆 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <section id="objectives" class="lesson-section">
+                <h2>🎯 Learning Objectives</h2>
+                <ul class="objective-list">
+                    <li>Understand how royalty payments are calculated and distributed</li>
+                    <li>Use the royalty tracking dashboard effectively</li>
+                    <li>Analyze your passive income streams</li>
+                    <li>Optimize your RVT portfolio for maximum royalties</li>
+                </ul>
+            </section>
+            
+            <section id="how" class="lesson-section">
+                <h2>💰 How Royalties Work</h2>
+                <p>When enterprises use computational results you helped create, a micro-payment is automatically triggered and distributed to all RVT holders for that task.</p>
+                
+                <div class="visual-diagram">
+                    <img src="/assets/course-images/royalty_distribution_tracking_system.png" alt="Royalty Distribution System">
+                    <p class="caption">Figure: Automated royalty distribution from enterprise usage to RVT holders</p>
+                </div>
+                
+                <h3>Distribution Formula</h3>
+                <ul class="step-list">
+                    <li><strong>Enterprise Pays:</strong> Each use triggers a micro-payment</li>
+                    <li><strong>50% to RVT Holders:</strong> Split proportionally by contribution</li>
+                    <li><strong>40% Burned:</strong> KENO supply decreases</li>
+                    <li><strong>10% Treasury:</strong> Funds ecosystem development</li>
+                </ul>
+            </section>
+            
+            <section id="tracking" class="lesson-section">
+                <h2>📈 Tracking Dashboard</h2>
+                
+                <ul class="step-list">
+                    <li><strong>Total Earnings:</strong> Lifetime royalty income across all RVTs</li>
+                    <li><strong>Per-RVT Breakdown:</strong> Which assets earn the most</li>
+                    <li><strong>Usage Analytics:</strong> How often your work is being used</li>
+                    <li><strong>Trend Analysis:</strong> Daily, weekly, monthly earning trends</li>
+                    <li><strong>Payout History:</strong> Complete transaction history</li>
+                </ul>
+                
+                <div class="success-box">
+                    <h4>✅ Real-Time Updates</h4>
+                    <p>Royalties are credited to your wallet in real-time as usage occurs. No waiting periods, no minimums — every micro-payment is instantly visible.</p>
+                </div>
+            </section>
+            
+            <section id="optimize" class="lesson-section">
+                <h2>🎯 Optimization Strategies</h2>
+                
+                <ul class="step-list">
+                    <li><strong>Focus on High-Usage Industries:</strong> Healthcare AI and financial modeling see heavy repeated use</li>
+                    <li><strong>Quality Over Quantity:</strong> Higher-tier RVTs (Gold/Platinum) earn significantly more</li>
+                    <li><strong>Diversify Enterprises:</strong> Don't rely on a single enterprise's usage</li>
+                    <li><strong>Monitor Trends:</strong> Shift focus to growing industries</li>
+                </ul>
+                
+                <div class="concept-box">
+                    <h4>💡 Compound Growth</h4>
+                    <p>Reinvest your royalty earnings to acquire more computing power, complete more tasks, and earn more RVTs. This creates a compound growth effect on your passive income.</p>
+                </div>
+            </section>
+            
+            <section id="practice" class="lesson-section">
+                <h2>🛠️ Hands-On Practice</h2>
+                <ul class="step-list">
+                    <li>Access your royalty dashboard</li>
+                    <li>Analyze your top-performing RVTs</li>
+                    <li>View usage statistics</li>
+                </ul>
+                <a href="/#simulator" class="practice-btn">🚀 Open Blockchain Simulator</a>
+            </section>
+            
+            <section id="quiz" class="quiz-section">
+                <h2>📝 Knowledge Check</h2>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>1. What percentage of enterprise payments goes to RVT holders?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">40%</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">50%</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">60%</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">100%</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>2. When are royalties credited to your wallet?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Monthly</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Weekly</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Real-time as usage occurs</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Annually</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>3. Which strategy helps maximize royalty earnings?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Focus on high-usage industries</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Collect only Bronze tier RVTs</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Ignore trends</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Never reinvest earnings</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>4. What happens to 40% of enterprise payments?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Paid to miners</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Stored in treasury</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Returned to enterprise</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Burned (destroyed)</div>
+                    </div>
+                </div>
+                
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result"><h3 id="resultIcon"></h3><h3 id="resultTitle"></h3><p id="resultMessage"></p><div id="nextCourseContainer"></div></div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-12-enterprise.html" style="color: var(--primary);">← Course 12</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-14-merchant.html" style="color: var(--primary);">Course 14 →</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active')); event.target.closest('.toc-item').classList.add('active'); } }
+        function selectOption(optionElement) { const question = optionElement.closest('.quiz-question'); question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected')); optionElement.classList.add('selected'); }
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question'); let correct = 0; let total = questions.length;
+            questions.forEach(question => { const correctAnswer = question.dataset.answer; const selectedOption = question.querySelector('.quiz-option.selected'); question.querySelectorAll('.quiz-option').forEach(opt => { opt.classList.remove('correct', 'incorrect'); if (opt.dataset.value === correctAnswer) opt.classList.add('correct'); }); if (selectedOption) { if (selectedOption.dataset.value === correctAnswer) correct++; else selectedOption.classList.add('incorrect'); } });
+            const resultDiv = document.getElementById('quizResult'); resultDiv.classList.remove('passed', 'failed'); resultDiv.classList.add('show');
+            if (correct >= 3) { resultDiv.classList.add('passed'); document.getElementById('resultIcon').textContent = '🎉'; document.getElementById('resultTitle').textContent = 'Congratulations!'; document.getElementById('resultMessage').textContent = `You got ${correct}/${total} correct!`; document.getElementById('nextCourseContainer').innerHTML = `<p style="margin-top: 15px; color: var(--primary);">🎓 +250 KENO!</p><a href="/courses/course-14-merchant.html" class="next-course-btn">Course 14 →</a>`; localStorage.setItem('course13_completed', 'true');
+            } else { resultDiv.classList.add('failed'); document.getElementById('resultIcon').textContent = '📚'; document.getElementById('resultTitle').textContent = 'Keep Learning!'; document.getElementById('resultMessage').textContent = `${correct}/${total} correct. Try again!`; document.getElementById('nextCourseContainer').innerHTML = `<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>`; }
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        function resetQuiz() { document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect')); document.getElementById('quizResult').classList.remove('show'); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' }); }
+    </script>
+</body>
+</html>
