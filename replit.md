@@ -33,7 +33,7 @@ The system utilizes a modular blockchain with SHA-256 Proof-of-Work, UTXO-style 
 A merchant payment gateway supports registration, API keys, QR code payments, invoicing, KENO/USD conversion, and a 4-tier incentive program. An exchange platform facilitates KENO/USD, KENO/BTC, and KENO/ETH pairs with a full order book and market/limit orders, secured by cryptographic order signature verification. The KENO token features adjustable mining rewards and transaction fees. PayPal integration is used for ICO purchases.
 
 ## API Layer & UI/UX
-The platform offers a modern, responsive web interface with a tabbed UI, dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server provides over 80 endpoints. The UI supports multi-language internationalization (6 languages), persistent user preferences, a custom modal-based free trial guide, and a "Graduate Club Recognition System" for verified course completion.
+The platform offers a modern, responsive web interface with a tabbed UI, dark theme, animations, custom fonts, and a live crypto ticker. An Express.js REST API server provides over 80 endpoints. The UI supports multi-language internationalization (6 languages), persistent user preferences, a "First Lesson Free" onboarding experience (Course 1: Wallet Management), and a "Graduate Club Recognition System" for verified course completion.
 
 ## AI Customer Support
 An AI-powered chatbot, utilizing OpenAI GPT-4o-mini via Replit AI Integrations, provides 24/7 technical support for platform features and blockchain concepts.
