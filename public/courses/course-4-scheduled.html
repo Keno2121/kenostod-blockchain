@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 4: Smart Scheduled Payments | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root { --primary: #14b8a6; --primary-dark: #0d9488; --gold: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .lesson-section h2 { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .lesson-section h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; }
+        .lesson-section p { margin-bottom: 15px; }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; display: flex; align-items: center; gap: 12px; }
+        .objective-list li::before { content: "✓"; color: var(--success); font-weight: bold; }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-box h4 { color: var(--success); margin-bottom: 10px; }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .quiz-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .quiz-question { background: var(--bg-dark); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .quiz-question h4 { margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .new-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .use-case-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .use-case-card { background: var(--bg-dark); padding: 20px; border-radius: 12px; text-align: center; }
+        .use-case-card .icon { font-size: 2em; margin-bottom: 10px; }
+        .use-case-card h4 { color: var(--primary); margin-bottom: 8px; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">📚 Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('intro')"><span class="toc-number">2</span>Why Scheduled Payments?</li>
+                <li class="toc-item" onclick="scrollToSection('types')"><span class="toc-number">3</span>Payment Types</li>
+                <li class="toc-item" onclick="scrollToSection('how')"><span class="toc-number">4</span>How It Works</li>
+                <li class="toc-item" onclick="scrollToSection('usecases')"><span class="toc-number">5</span>Use Cases</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">6</span>Hands-On Practice</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">7</span>Knowledge Check</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 4</div>
+            
+            <div class="course-header">
+                <h1>⏰ Course 4: Smart Scheduled Payments <span class="new-badge">NEW</span> <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>📖 5 Lessons</span>
+                    <span>⏱️ ~35 minutes</span>
+                    <span>🎯 Intermediate Level</span>
+                    <span>🏆 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <section id="objectives" class="lesson-section">
+                <h2>🎯 Learning Objectives</h2>
+                <ul class="objective-list">
+                    <li>Understand blockchain-native scheduled payments without smart contracts</li>
+                    <li>Create one-time future-dated payments</li>
+                    <li>Set up recurring payments (daily, weekly, monthly)</li>
+                    <li>Manage and cancel scheduled transactions</li>
+                </ul>
+            </section>
+            
+            <section id="intro" class="lesson-section">
+                <h2>📅 Why Scheduled Payments Matter</h2>
+                <p>Traditional cryptocurrencies require manual action for every payment. Want to pay rent monthly? You have to remember to send it manually each month. Kenostod changes this with <strong>protocol-level scheduled payments</strong>.</p>
+                
+                <div class="concept-box">
+                    <h4>💡 No Smart Contracts Required</h4>
+                    <p>Unlike Ethereum where scheduling requires complex smart contracts and gas fees for each execution, Kenostod builds this functionality directly into the blockchain protocol. Simpler, cheaper, and more reliable.</p>
+                </div>
+            </section>
+            
+            <section id="types" class="lesson-section">
+                <h2>📋 Types of Scheduled Payments</h2>
+                
+                <h3>One-Time Future Payments</h3>
+                <p>Schedule a single payment to execute at a specific future date and time.</p>
+                <ul class="step-list">
+                    <li>Set the recipient, amount, and exact execution timestamp</li>
+                    <li>Funds are locked but visible in your wallet until execution</li>
+                    <li>Cancel anytime before the scheduled time</li>
+                </ul>
+                
+                <h3>Recurring Payments</h3>
+                <p>Automate regular payments with flexible schedules:</p>
+                <ul class="step-list">
+                    <li><strong>Daily:</strong> Perfect for micro-payments, daily allowances</li>
+                    <li><strong>Weekly:</strong> Great for payroll, subscription services</li>
+                    <li><strong>Monthly:</strong> Ideal for rent, loan payments, memberships</li>
+                </ul>
+                
+                <div class="visual-diagram">
+                    <img src="/assets/course-images/scheduled_payments_calendar_diagram.png" alt="Scheduled Payments Calendar">
+                    <p class="caption">Figure: Visual representation of scheduled recurring payments</p>
+                </div>
+            </section>
+            
+            <section id="how" class="lesson-section">
+                <h2>⚙️ How It Works</h2>
+                
+                <ul class="step-list">
+                    <li><strong>Create Schedule:</strong> Define recipient, amount, start date, and frequency</li>
+                    <li><strong>Sign Authorization:</strong> Digitally sign to authorize future executions</li>
+                    <li><strong>Balance Reserved:</strong> System ensures sufficient balance for next payment</li>
+                    <li><strong>Automatic Execution:</strong> Network processes payment at scheduled time</li>
+                    <li><strong>Notification:</strong> Both parties notified of each execution</li>
+                </ul>
+                
+                <div class="success-box">
+                    <h4>✅ Safety Features</h4>
+                    <p>You can cancel any scheduled payment before it executes. For recurring payments, cancellation stops all future executions but doesn't affect already-completed payments.</p>
+                </div>
+            </section>
+            
+            <section id="usecases" class="lesson-section">
+                <h2>🌍 Real-World Use Cases</h2>
+                
+                <div class="use-case-grid">
+                    <div class="use-case-card">
+                        <div class="icon">🏠</div>
+                        <h4>Rent Payments</h4>
+                        <p>Monthly automatic rent to landlord</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="icon">💼</div>
+                        <h4>Payroll</h4>
+                        <p>Weekly/monthly employee salaries</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="icon">📱</div>
+                        <h4>Subscriptions</h4>
+                        <p>Streaming, software, memberships</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="icon">🎓</div>
+                        <h4>Allowances</h4>
+                        <p>Weekly allowance to children</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="icon">💰</div>
+                        <h4>Loan Repayments</h4>
+                        <p>Regular installment payments</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="icon">🎁</div>
+                        <h4>Scheduled Gifts</h4>
+                        <p>Birthday/anniversary payments</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="practice" class="lesson-section">
+                <h2>🛠️ Hands-On Practice</h2>
+                <p>Try scheduling payments in the simulator:</p>
+                <ul class="step-list">
+                    <li>Create a one-time future payment</li>
+                    <li>Set up a weekly recurring payment</li>
+                    <li>View your scheduled payment queue</li>
+                    <li>Cancel a scheduled payment</li>
+                </ul>
+                <a href="/#simulator" class="practice-btn">🚀 Open Blockchain Simulator</a>
+            </section>
+            
+            <section id="quiz" class="quiz-section">
+                <h2>📝 Knowledge Check</h2>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>1. What makes Kenostod's scheduled payments different from Ethereum?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">They use more gas</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Built into protocol, no smart contracts needed</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">They require third-party services</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">They only work with Bitcoin</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>2. Which is NOT a supported recurring payment frequency?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Daily</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Weekly</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Hourly</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Monthly</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>3. Can you cancel a scheduled payment?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Yes, anytime before execution</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">No, scheduled payments are permanent</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Only within 24 hours of creation</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Only the recipient can cancel</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>4. What's an ideal use case for monthly scheduled payments?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Buying coffee</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Emergency transfers</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">One-time purchases</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Rent or loan payments</div>
+                    </div>
+                </div>
+                
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <h3 id="resultIcon"></h3>
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-3-reversal.html" style="color: var(--primary);">← Previous: Course 3</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Back to Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-5-recovery.html" style="color: var(--primary);">Next: Course 5 →</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active')); event.target.closest('.toc-item').classList.add('active'); } }
+        function selectOption(optionElement) { const question = optionElement.closest('.quiz-question'); question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected')); optionElement.classList.add('selected'); }
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question'); let correct = 0; let total = questions.length;
+            questions.forEach(question => { const correctAnswer = question.dataset.answer; const selectedOption = question.querySelector('.quiz-option.selected');
+                question.querySelectorAll('.quiz-option').forEach(opt => { opt.classList.remove('correct', 'incorrect'); if (opt.dataset.value === correctAnswer) { opt.classList.add('correct'); } });
+                if (selectedOption) { if (selectedOption.dataset.value === correctAnswer) { correct++; } else { selectedOption.classList.add('incorrect'); } } });
+            const resultDiv = document.getElementById('quizResult'); resultDiv.classList.remove('passed', 'failed'); resultDiv.classList.add('show');
+            if (correct >= 3) { resultDiv.classList.add('passed'); document.getElementById('resultIcon').textContent = '🎉'; document.getElementById('resultTitle').textContent = 'Congratulations!'; document.getElementById('resultMessage').textContent = `You got ${correct} out of ${total} correct!`; document.getElementById('nextCourseContainer').innerHTML = `<p style="margin-top: 15px; color: var(--primary);">🎓 You've earned 250 KENO!</p><a href="/courses/course-5-recovery.html" class="next-course-btn">Continue to Course 5 →</a>`; localStorage.setItem('course4_completed', 'true');
+            } else { resultDiv.classList.add('failed'); document.getElementById('resultIcon').textContent = '📚'; document.getElementById('resultTitle').textContent = 'Keep Learning!'; document.getElementById('resultMessage').textContent = `You got ${correct} out of ${total} correct. Review and try again!`; document.getElementById('nextCourseContainer').innerHTML = `<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>`; }
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        function resetQuiz() { document.querySelectorAll('.quiz-option').forEach(opt => { opt.classList.remove('selected', 'correct', 'incorrect'); }); document.getElementById('quizResult').classList.remove('show'); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' }); }
+    </script>
+</body>
+</html>

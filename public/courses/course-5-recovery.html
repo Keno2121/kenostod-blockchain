@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 5: Social Recovery System | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root { --primary: #14b8a6; --primary-dark: #0d9488; --gold: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .lesson-section h2 { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .lesson-section h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; }
+        .lesson-section p { margin-bottom: 15px; }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; display: flex; align-items: center; gap: 12px; }
+        .objective-list li::before { content: "✓"; color: var(--success); font-weight: bold; }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .warning-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .warning-box h4 { color: var(--danger); margin-bottom: 10px; }
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-box h4 { color: var(--success); margin-bottom: 10px; }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .quiz-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .quiz-question { background: var(--bg-dark); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .quiz-question h4 { margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .new-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .guardian-visual { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 30px; background: var(--bg-dark); border-radius: 12px; margin: 20px 0; }
+        .guardian-icon { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; }
+        .guardian-icon.center { width: 100px; height: 100px; background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); font-size: 2.5em; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">📚 Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('problem')"><span class="toc-number">2</span>The Lost Key Problem</li>
+                <li class="toc-item" onclick="scrollToSection('guardians')"><span class="toc-number">3</span>Guardian System</li>
+                <li class="toc-item" onclick="scrollToSection('recovery')"><span class="toc-number">4</span>Recovery Process</li>
+                <li class="toc-item" onclick="scrollToSection('security')"><span class="toc-number">5</span>Security Design</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">6</span>Hands-On Practice</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">7</span>Knowledge Check</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 5</div>
+            
+            <div class="course-header">
+                <h1>🔐 Course 5: Social Recovery System <span class="new-badge">NEW</span> <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>📖 5 Lessons</span>
+                    <span>⏱️ ~40 minutes</span>
+                    <span>🎯 Intermediate Level</span>
+                    <span>🏆 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <section id="objectives" class="lesson-section">
+                <h2>🎯 Learning Objectives</h2>
+                <ul class="objective-list">
+                    <li>Understand why traditional seed phrase recovery is problematic</li>
+                    <li>Learn how guardian-based social recovery works</li>
+                    <li>Set up guardians for your wallet</li>
+                    <li>Complete a wallet recovery using guardian approvals</li>
+                </ul>
+            </section>
+            
+            <section id="problem" class="lesson-section">
+                <h2>🔑 The Lost Key Problem</h2>
+                
+                <p>In traditional cryptocurrency, losing your private key or seed phrase means <strong>losing access to your funds forever</strong>. An estimated 20% of all Bitcoin (worth billions) is permanently inaccessible due to lost keys.</p>
+                
+                <div class="warning-box">
+                    <h4>⚠️ The Reality</h4>
+                    <p>"Not your keys, not your coins" is a common crypto mantra. But the flip side is equally true: "Lose your keys, lose your coins." This creates an impossible choice between security and recoverability.</p>
+                </div>
+                
+                <h3>Problems with Seed Phrases</h3>
+                <ul class="step-list">
+                    <li><strong>Easy to Lose:</strong> Paper gets damaged, files get deleted</li>
+                    <li><strong>Easy to Steal:</strong> Anyone who finds your seed phrase owns your funds</li>
+                    <li><strong>No Recovery:</strong> Once lost, there's no way to recover access</li>
+                    <li><strong>Inheritance Issues:</strong> How do you pass crypto to heirs securely?</li>
+                </ul>
+            </section>
+            
+            <section id="guardians" class="lesson-section">
+                <h2>👥 The Guardian System</h2>
+                
+                <p>Kenostod's Social Recovery allows you to designate <strong>trusted guardians</strong> — friends, family, or institutions who can help you recover your wallet without ever having access to your funds.</p>
+                
+                <div class="visual-diagram">
+                    <img src="/assets/course-images/social_recovery_guardian_system.png" alt="Social Recovery Guardian System">
+                    <p class="caption">Figure: Guardian network protecting your wallet</p>
+                </div>
+                
+                <h3>How Guardians Work</h3>
+                <ul class="step-list">
+                    <li><strong>Designate Guardians:</strong> Choose 3-7 trusted people/entities</li>
+                    <li><strong>Set Threshold:</strong> Decide how many must approve (e.g., 3 of 5)</li>
+                    <li><strong>No Key Access:</strong> Guardians CANNOT access your funds normally</li>
+                    <li><strong>Recovery Only:</strong> They can only approve key replacement requests</li>
+                </ul>
+                
+                <div class="concept-box">
+                    <h4>💡 Threshold Cryptography</h4>
+                    <p>Using "m of n" thresholds (like 3 of 5), no single guardian can recover your wallet alone. This prevents both accidents and malicious guardians from compromising your funds.</p>
+                </div>
+            </section>
+            
+            <section id="recovery" class="lesson-section">
+                <h2>🔄 The Recovery Process</h2>
+                
+                <ul class="step-list">
+                    <li><strong>Initiate Recovery:</strong> You (or your new device) requests wallet recovery</li>
+                    <li><strong>Contact Guardians:</strong> System notifies your designated guardians</li>
+                    <li><strong>Guardian Verification:</strong> Guardians verify your identity (phone call, video, in person)</li>
+                    <li><strong>Approval Threshold:</strong> Once enough guardians approve, recovery proceeds</li>
+                    <li><strong>New Key Generation:</strong> New private key is created, old one is invalidated</li>
+                    <li><strong>Access Restored:</strong> You regain control of your wallet with new credentials</li>
+                </ul>
+                
+                <div class="success-box">
+                    <h4>✅ Time Lock Protection</h4>
+                    <p>There's a 48-hour delay between guardian approval and actual recovery. This gives you time to notice and cancel a fraudulent recovery attempt.</p>
+                </div>
+            </section>
+            
+            <section id="security" class="lesson-section">
+                <h2>🛡️ Security Design</h2>
+                
+                <h3>Anti-Collusion Measures</h3>
+                <ul class="step-list">
+                    <li><strong>Diverse Guardians:</strong> Choose guardians who don't know each other</li>
+                    <li><strong>Geographic Distribution:</strong> Guardians in different locations</li>
+                    <li><strong>Mixed Types:</strong> Combine friends, family, and institutional guardians</li>
+                    <li><strong>Regular Rotation:</strong> Update guardians periodically</li>
+                </ul>
+                
+                <div class="warning-box">
+                    <h4>⚠️ Guardian Selection Tips</h4>
+                    <p>Never choose guardians who could benefit from stealing your funds or who are likely to collude. Ideally, your guardians shouldn't know who the other guardians are.</p>
+                </div>
+            </section>
+            
+            <section id="practice" class="lesson-section">
+                <h2>🛠️ Hands-On Practice</h2>
+                <ul class="step-list">
+                    <li>Set up guardians for your test wallet</li>
+                    <li>Simulate a recovery request</li>
+                    <li>Act as a guardian approving a recovery</li>
+                    <li>Complete the full recovery process</li>
+                </ul>
+                <a href="/#simulator" class="practice-btn">🚀 Open Blockchain Simulator</a>
+            </section>
+            
+            <section id="quiz" class="quiz-section">
+                <h2>📝 Knowledge Check</h2>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>1. What percentage of Bitcoin is estimated to be permanently lost?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">5%</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">10%</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">20%</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">50%</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>2. Can guardians access your funds under normal circumstances?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Yes, they have full access</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">No, they can only approve recovery requests</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Yes, but only 50% of funds</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Yes, with a password</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>3. What is "3 of 5" threshold recovery?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">3 out of 5 guardians must approve recovery</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Recovery takes 3 to 5 days</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">You need 3 passwords and 5 keys</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">3% of funds require 5 confirmations</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>4. How long is the time lock delay after guardian approval?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">5 minutes</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">1 hour</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">24 hours</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">48 hours</div>
+                    </div>
+                </div>
+                
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <h3 id="resultIcon"></h3>
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-4-scheduled.html" style="color: var(--primary);">← Previous: Course 4</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Back to Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-6-messages.html" style="color: var(--primary);">Next: Course 6 →</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active')); event.target.closest('.toc-item').classList.add('active'); } }
+        function selectOption(optionElement) { const question = optionElement.closest('.quiz-question'); question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected')); optionElement.classList.add('selected'); }
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question'); let correct = 0; let total = questions.length;
+            questions.forEach(question => { const correctAnswer = question.dataset.answer; const selectedOption = question.querySelector('.quiz-option.selected');
+                question.querySelectorAll('.quiz-option').forEach(opt => { opt.classList.remove('correct', 'incorrect'); if (opt.dataset.value === correctAnswer) { opt.classList.add('correct'); } });
+                if (selectedOption) { if (selectedOption.dataset.value === correctAnswer) { correct++; } else { selectedOption.classList.add('incorrect'); } } });
+            const resultDiv = document.getElementById('quizResult'); resultDiv.classList.remove('passed', 'failed'); resultDiv.classList.add('show');
+            if (correct >= 3) { resultDiv.classList.add('passed'); document.getElementById('resultIcon').textContent = '🎉'; document.getElementById('resultTitle').textContent = 'Congratulations!'; document.getElementById('resultMessage').textContent = `You got ${correct} out of ${total} correct!`; document.getElementById('nextCourseContainer').innerHTML = `<p style="margin-top: 15px; color: var(--primary);">🎓 You've earned 250 KENO!</p><a href="/courses/course-6-messages.html" class="next-course-btn">Continue to Course 6 →</a>`; localStorage.setItem('course5_completed', 'true');
+            } else { resultDiv.classList.add('failed'); document.getElementById('resultIcon').textContent = '📚'; document.getElementById('resultTitle').textContent = 'Keep Learning!'; document.getElementById('resultMessage').textContent = `You got ${correct} out of ${total} correct. Review and try again!`; document.getElementById('nextCourseContainer').innerHTML = `<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>`; }
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        function resetQuiz() { document.querySelectorAll('.quiz-option').forEach(opt => { opt.classList.remove('selected', 'correct', 'incorrect'); }); document.getElementById('quizResult').classList.remove('show'); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' }); }
+    </script>
+</body>
+</html>

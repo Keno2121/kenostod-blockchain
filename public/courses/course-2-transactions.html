@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 2: Transactions & Digital Signatures | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --gold: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        
+        .course-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .sidebar {
+            background: var(--bg-card);
+            padding: 30px 20px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            color: var(--primary);
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toc-list { list-style: none; }
+        
+        .toc-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+        }
+        
+        .toc-item:hover, .toc-item.active {
+            background: rgba(20, 184, 166, 0.15);
+            color: var(--primary);
+        }
+        
+        .toc-number {
+            width: 28px;
+            height: 28px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .toc-item.active .toc-number {
+            background: var(--primary);
+            color: var(--bg-dark);
+        }
+        
+        .main-content {
+            padding: 40px 60px;
+            max-width: 900px;
+        }
+        
+        .breadcrumb {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .course-header {
+            margin-bottom: 40px;
+        }
+        
+        .course-header h1 {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 25px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+        
+        .course-meta span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+        }
+        
+        .lesson-section h2 {
+            color: var(--primary);
+            font-size: 1.6em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .lesson-section h3 {
+            color: var(--gold);
+            font-size: 1.2em;
+            margin: 25px 0 15px 0;
+        }
+        
+        .lesson-section p {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+        
+        .objective-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .objective-list li {
+            padding: 15px 20px;
+            background: rgba(20, 184, 166, 0.1);
+            border-left: 4px solid var(--primary);
+            margin-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .objective-list li::before {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .concept-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .concept-box h4 {
+            color: var(--gold);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .visual-diagram {
+            background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .visual-diagram img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+        
+        .visual-diagram .caption {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+        
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+            margin: 20px 0;
+        }
+        
+        .step-list li {
+            counter-increment: step-counter;
+            padding: 20px 20px 20px 70px;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-block code {
+            color: #e6edf3;
+        }
+        
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .warning-box h4 {
+            color: var(--danger);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .success-box h4 {
+            color: var(--success);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .practice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
+        }
+        
+        .quiz-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+        }
+        
+        .quiz-question {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-question h4 {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .quiz-option {
+            padding: 15px 20px;
+            background: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--primary);
+        }
+        
+        .quiz-option.selected {
+            border-color: var(--primary);
+            background: rgba(20, 184, 166, 0.15);
+        }
+        
+        .quiz-option.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+        }
+        
+        .quiz-option.incorrect {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.15);
+        }
+        
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .submit-quiz-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .quiz-result {
+            display: none;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        .locked-badge {
+            background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 900px) {
+            .course-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">📚 Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')">
+                    <span class="toc-number">1</span>
+                    Learning Objectives
+                </li>
+                <li class="toc-item" onclick="scrollToSection('intro')">
+                    <span class="toc-number">2</span>
+                    What Are Transactions?
+                </li>
+                <li class="toc-item" onclick="scrollToSection('utxo')">
+                    <span class="toc-number">3</span>
+                    The UTXO Model
+                </li>
+                <li class="toc-item" onclick="scrollToSection('signatures')">
+                    <span class="toc-number">4</span>
+                    Digital Signatures
+                </li>
+                <li class="toc-item" onclick="scrollToSection('validation')">
+                    <span class="toc-number">5</span>
+                    Transaction Validation
+                </li>
+                <li class="toc-item" onclick="scrollToSection('fees')">
+                    <span class="toc-number">6</span>
+                    Transaction Fees
+                </li>
+                <li class="toc-item" onclick="scrollToSection('practice')">
+                    <span class="toc-number">7</span>
+                    Hands-On Practice
+                </li>
+                <li class="toc-item" onclick="scrollToSection('quiz')">
+                    <span class="toc-number">8</span>
+                    Knowledge Check
+                </li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 2
+            </div>
+            
+            <div class="course-header">
+                <h1>
+                    💸 Course 2: Transactions & Digital Signatures
+                    <span class="locked-badge">PREMIUM</span>
+                </h1>
+                <div class="course-meta">
+                    <span>📖 6 Lessons</span>
+                    <span>⏱️ ~45 minutes</span>
+                    <span>🎯 Beginner Level</span>
+                    <span>🏆 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <section id="objectives" class="lesson-section">
+                <h2>🎯 Learning Objectives</h2>
+                <p>By the end of this lesson, you will be able to:</p>
+                <ul class="objective-list">
+                    <li>Understand what blockchain transactions are and how they work</li>
+                    <li>Explain the UTXO (Unspent Transaction Output) model</li>
+                    <li>Create and sign transactions using digital signatures</li>
+                    <li>Understand how transactions are validated before entering the blockchain</li>
+                    <li>Calculate transaction fees and understand their purpose</li>
+                </ul>
+            </section>
+            
+            <section id="intro" class="lesson-section">
+                <h2>📝 What Are Blockchain Transactions?</h2>
+                
+                <p>A <strong>blockchain transaction</strong> is a record of value transfer between two parties on the blockchain network. Think of it like a digital check that gets permanently recorded in a public ledger that everyone can verify.</p>
+                
+                <h3>Components of a Transaction</h3>
+                <p>Every blockchain transaction contains several key pieces of information:</p>
+                
+                <ul class="step-list">
+                    <li><strong>Sender Address:</strong> The wallet address sending the funds (derived from the sender's public key)</li>
+                    <li><strong>Recipient Address:</strong> The wallet address receiving the funds</li>
+                    <li><strong>Amount:</strong> How much cryptocurrency is being transferred</li>
+                    <li><strong>Digital Signature:</strong> Cryptographic proof that the sender authorized this transaction</li>
+                    <li><strong>Transaction Fee:</strong> A small payment to the network for processing</li>
+                </ul>
+                
+                <div class="concept-box">
+                    <h4>💡 Key Concept: Immutability</h4>
+                    <p>Once a transaction is confirmed on the blockchain, it cannot be altered or deleted. This is what makes blockchain so secure and trustworthy - there's no "undo" button (except in Kenostod's innovative 5-minute reversal window, which you'll learn about in Course 3!).</p>
+                </div>
+            </section>
+            
+            <section id="utxo" class="lesson-section">
+                <h2>🔗 The UTXO Model</h2>
+                
+                <p>Kenostod uses the <strong>UTXO (Unspent Transaction Output)</strong> model, the same system used by Bitcoin. This is fundamentally different from the account-based model used by traditional banks or Ethereum.</p>
+                
+                <h3>How UTXO Works</h3>
+                <p>Imagine you have physical bills and coins. When you pay for something, you can't tear a $20 bill in half. Instead:</p>
+                
+                <ul class="step-list">
+                    <li><strong>You spend entire "coins":</strong> Each UTXO is like a digital coin that must be spent in full</li>
+                    <li><strong>You receive change:</strong> If your UTXO is larger than needed, the extra is sent back to you as a new UTXO</li>
+                    <li><strong>UTXOs are consumed:</strong> Once spent, a UTXO cannot be used again</li>
+                </ul>
+                
+                <div class="visual-diagram">
+                    <img src="/assets/course-images/transaction_signing_flow_diagram.png" alt="Transaction Flow Diagram">
+                    <p class="caption">Figure: How transactions flow from creation through signing to blockchain confirmation</p>
+                </div>
+                
+                <h3>UTXO Example</h3>
+                <p>Let's say you have 100 KENO and want to send 30 KENO to a friend:</p>
+                
+                <div class="code-block">
+                    <code>
+Your Wallet: 1 UTXO worth 100 KENO
+
+Transaction:
+├── Input: Your 100 KENO UTXO (consumed)
+├── Output 1: 30 KENO → Friend's wallet
+├── Output 2: 69.9 KENO → Back to you (change)
+└── Fee: 0.1 KENO → Network miners
+
+Result: Your old UTXO is gone
+        Friend has 1 new UTXO (30 KENO)
+        You have 1 new UTXO (69.9 KENO)
+                    </code>
+                </div>
+                
+                <div class="success-box">
+                    <h4>✅ Benefits of UTXO</h4>
+                    <p>The UTXO model provides excellent privacy (you can use new addresses for change), enables parallel transaction validation, and makes it impossible to double-spend the same funds.</p>
+                </div>
+            </section>
+            
+            <section id="signatures" class="lesson-section">
+                <h2>✍️ Digital Signatures</h2>
+                
+                <p>A <strong>digital signature</strong> is cryptographic proof that you authorized a transaction. It's like a handwritten signature, but mathematically impossible to forge.</p>
+                
+                <h3>How Digital Signatures Work</h3>
+                
+                <ul class="step-list">
+                    <li><strong>Create Transaction Data:</strong> Combine sender, recipient, amount, and other details</li>
+                    <li><strong>Hash the Data:</strong> Create a unique fingerprint of the transaction using SHA-256</li>
+                    <li><strong>Sign with Private Key:</strong> Use your private key to encrypt the hash, creating the signature</li>
+                    <li><strong>Anyone Can Verify:</strong> Others use your public key to verify the signature matches the transaction</li>
+                </ul>
+                
+                <div class="concept-box">
+                    <h4>💡 Why This Matters</h4>
+                    <p>Digital signatures prove three things simultaneously:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li><strong>Authentication:</strong> The transaction came from the owner of the private key</li>
+                        <li><strong>Integrity:</strong> The transaction wasn't modified after signing</li>
+                        <li><strong>Non-repudiation:</strong> The sender can't deny they signed it</li>
+                    </ul>
+                </div>
+                
+                <h3>The Signing Process</h3>
+                <div class="code-block">
+                    <code>
+// Simplified transaction signing process
+const transaction = {
+    from: "your_wallet_address",
+    to: "recipient_address", 
+    amount: 50,
+    timestamp: Date.now()
+};
+
+// 1. Create message hash
+const message = JSON.stringify(transaction);
+const messageHash = SHA256(message);
+
+// 2. Sign with private key (using secp256k1)
+const signature = privateKey.sign(messageHash);
+
+// 3. Attach signature to transaction
+transaction.signature = signature;
+                    </code>
+                </div>
+                
+                <div class="warning-box">
+                    <h4>⚠️ Security Warning</h4>
+                    <p>Your private key should NEVER leave your device. Signing happens locally, and only the signature (not your private key) is sent to the network.</p>
+                </div>
+            </section>
+            
+            <section id="validation" class="lesson-section">
+                <h2>✅ Transaction Validation</h2>
+                
+                <p>Before a transaction is added to the blockchain, it goes through rigorous validation. This ensures only legitimate transactions are recorded.</p>
+                
+                <h3>Validation Steps</h3>
+                
+                <ul class="step-list">
+                    <li><strong>Signature Verification:</strong> Confirm the digital signature is valid and matches the sender's public key</li>
+                    <li><strong>Balance Check:</strong> Verify the sender has sufficient UTXOs to cover the amount plus fees</li>
+                    <li><strong>Double-Spend Check:</strong> Ensure the UTXOs haven't already been spent in another transaction</li>
+                    <li><strong>Format Validation:</strong> Check that all required fields are present and properly formatted</li>
+                    <li><strong>Fee Verification:</strong> Confirm the transaction fee meets the minimum requirement</li>
+                </ul>
+                
+                <h3>The Mempool</h3>
+                <p>Valid transactions enter the <strong>mempool</strong> (memory pool), a waiting area for unconfirmed transactions. Miners select transactions from the mempool to include in the next block, typically prioritizing those with higher fees.</p>
+                
+                <div class="concept-box">
+                    <h4>💡 Transaction States</h4>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Pending:</strong> In the mempool, waiting to be mined</li>
+                        <li><strong>Confirmed:</strong> Included in a block on the blockchain</li>
+                        <li><strong>Failed:</strong> Rejected due to validation errors</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <section id="fees" class="lesson-section">
+                <h2>💰 Transaction Fees</h2>
+                
+                <p><strong>Transaction fees</strong> are small payments made to the network for processing your transaction. They serve multiple purposes:</p>
+                
+                <h3>Why Fees Exist</h3>
+                
+                <ul class="step-list">
+                    <li><strong>Prevent Spam:</strong> Makes it expensive to flood the network with worthless transactions</li>
+                    <li><strong>Reward Miners:</strong> Incentivizes miners to include your transaction in a block</li>
+                    <li><strong>Prioritization:</strong> Higher fees = faster confirmation during congestion</li>
+                </ul>
+                
+                <h3>Kenostod Fee Structure</h3>
+                <p>Kenostod uses a simple, predictable fee system:</p>
+                
+                <div class="code-block">
+                    <code>
+Base Fee: 0.1% of transaction amount
+Minimum Fee: 0.01 KENO
+Maximum Fee: 10 KENO
+
+Examples:
+- Send 100 KENO → Fee: 0.1 KENO
+- Send 10 KENO → Fee: 0.01 KENO (minimum)
+- Send 50,000 KENO → Fee: 10 KENO (capped)
+                    </code>
+                </div>
+                
+                <div class="success-box">
+                    <h4>✅ Kenostod Advantage</h4>
+                    <p>Unlike networks with unpredictable gas fees, Kenostod's capped fee structure ensures transactions remain affordable even during high network activity.</p>
+                </div>
+            </section>
+            
+            <section id="practice" class="lesson-section">
+                <h2>🛠️ Hands-On Practice</h2>
+                
+                <p>Now it's time to put your knowledge into practice! Head to the simulator to:</p>
+                
+                <ul class="step-list">
+                    <li>Create a transaction from your wallet to another address</li>
+                    <li>Watch the digital signature being generated</li>
+                    <li>See how fees are calculated automatically</li>
+                    <li>Track your transaction through the mempool to confirmation</li>
+                </ul>
+                
+                <a href="/#simulator" class="practice-btn" onclick="goToPractice()">
+                    🚀 Open Blockchain Simulator
+                </a>
+            </section>
+            
+            <section id="quiz" class="quiz-section">
+                <h2>📝 Knowledge Check</h2>
+                <p>Test your understanding of transactions and digital signatures. You need to get at least 3 out of 4 questions correct to pass.</p>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>1. What does UTXO stand for?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Universal Transaction eXchange Output</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Unspent Transaction Output</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Unified Token eXchange Order</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">User Transaction eXecution Output</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>2. What three things does a digital signature prove?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Speed, Security, Scalability</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Encryption, Decryption, Storage</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Authentication, Integrity, Non-repudiation</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Balance, Address, Timestamp</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>3. Where do valid transactions wait before being added to a block?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">The mempool</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">The wallet</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">The mining pool</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">The blockchain header</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>4. Why do transaction fees exist in blockchain networks?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">To make the network more expensive than banks</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">To fund the blockchain developers</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">To convert cryptocurrency to fiat</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">To prevent spam and reward miners</div>
+                    </div>
+                </div>
+                
+                <button class="submit-quiz-btn" onclick="submitQuiz()">
+                    Submit Answers
+                </button>
+                
+                <div id="quizResult" class="quiz-result">
+                    <h3 id="resultIcon"></h3>
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-1-wallet-basics.html" style="color: var(--primary);">← Previous: Course 1</a>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <a href="/" style="color: var(--primary);">Back to Home</a>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <a href="/courses/course-3-reversal.html" style="color: var(--primary);">Next: Course 3 →</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+        
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+        
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) {
+                        opt.classList.add('correct');
+                    }
+                });
+                
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) {
+                        correct++;
+                    } else {
+                        selectedOption.classList.add('incorrect');
+                    }
+                }
+            });
+            
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+            
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            
+            if (correct >= 3) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '🎉';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = `You got ${correct} out of ${total} correct! You've completed Course 2: Transactions & Digital Signatures.`;
+                nextCourseContainer.innerHTML = `
+                    <p style="margin-top: 15px; color: var(--primary);">🎓 You've earned 250 KENO!</p>
+                    <a href="/courses/course-3-reversal.html" class="next-course-btn">Continue to Course 3 →</a>
+                `;
+                localStorage.setItem('course2_completed', 'true');
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '📚';
+                resultTitle.textContent = 'Keep Learning!';
+                resultMessage.textContent = `You got ${correct} out of ${total} correct. Review the lesson content and try again!`;
+                nextCourseContainer.innerHTML = `
+                    <button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>
+                `;
+            }
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function goToPractice() {
+            localStorage.setItem('course2_practice_started', 'true');
+        }
+        
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'intro', 'utxo', 'signatures', 'validation', 'fees', 'practice', 'quiz'];
+            let current = '';
+            
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) {
+                        current = sectionId;
+                    }
+                }
+            });
+            
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach((item, index) => {
+                    item.classList.remove('active');
+                    if (sections[index] === current) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
