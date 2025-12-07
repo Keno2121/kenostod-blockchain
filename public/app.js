@@ -1115,75 +1115,7 @@ function openTab(button, tabName) {
 }
 
 function startFreeCourse() {
-    const walletTab = document.querySelector('.tab-btn[onclick*="wallet"]');
-    const simulatorSection = document.querySelector('.tab-navigation')?.parentElement;
-    
-    if (simulatorSection) {
-        simulatorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    
-    setTimeout(() => {
-        if (walletTab) {
-            const tabContents = document.getElementsByClassName('tab-content');
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].classList.remove('active');
-            }
-            
-            const tabButtons = document.getElementsByClassName('tab-btn');
-            for (let i = 0; i < tabButtons.length; i++) {
-                tabButtons[i].classList.remove('active');
-            }
-            
-            document.getElementById('wallet').classList.add('active');
-            walletTab.classList.add('active');
-        }
-        
-        if (!document.getElementById('freeCourseToastStyle')) {
-            const style = document.createElement('style');
-            style.id = 'freeCourseToastStyle';
-            style.textContent = `
-                @keyframes freeCourseSlideDown {
-                    from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-                    to { transform: translateX(-50%) translateY(0); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        const existingToast = document.getElementById('freeCourseWelcomeToast');
-        if (existingToast) existingToast.remove();
-        
-        const welcomeToast = document.createElement('div');
-        welcomeToast.id = 'freeCourseWelcomeToast';
-        welcomeToast.style.cssText = `
-            position: fixed;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-weight: 600;
-            z-index: 10000;
-            box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
-            animation: freeCourseSlideDown 0.5s ease;
-            text-align: center;
-        `;
-        welcomeToast.innerHTML = `
-            <div style="font-size: 1.5em; margin-bottom: 8px;">📚 Course 1: Wallet Management</div>
-            <div style="font-weight: 400; opacity: 0.9;">Create your first wallet below to start learning!</div>
-        `;
-        
-        document.body.appendChild(welcomeToast);
-        
-        setTimeout(() => {
-            welcomeToast.style.transition = 'opacity 0.5s ease';
-            welcomeToast.style.opacity = '0';
-            setTimeout(() => welcomeToast.remove(), 500);
-        }, 5000);
-    }, 500);
+    window.location.href = '/courses/course-1-wallet-basics.html';
 }
 
 async function loadStats() {
