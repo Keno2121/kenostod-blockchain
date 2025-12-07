@@ -391,6 +391,20 @@ class InteractiveTutorial {
                 .tutorial-btn-skip:hover {
                     color: #aaa;
                 }
+                .tutorial-btn-skip-step {
+                    background: rgba(255,255,255,0.1);
+                    color: #ccc;
+                    border: 1px solid #555;
+                    padding: 10px 20px;
+                    font-size: 0.9em;
+                    cursor: pointer;
+                    border-radius: 8px;
+                    margin-left: 10px;
+                }
+                .tutorial-btn-skip-step:hover {
+                    background: rgba(255,255,255,0.2);
+                    color: #fff;
+                }
                 .tutorial-buttons {
                     display: flex;
                     align-items: center;
@@ -426,7 +440,8 @@ class InteractiveTutorial {
                             Continue →
                         </button>
                     `}
-                    <button class="tutorial-btn-skip" id="tutorialSkipBtn">Skip Tutorial</button>
+                    ${isActionStep ? `<button class="tutorial-btn-skip-step" id="tutorialSkipStepBtn">Skip This Step →</button>` : ''}
+                    <button class="tutorial-btn-skip" id="tutorialSkipBtn">Exit Tutorial</button>
                 </div>
             </div>
         `;
@@ -435,12 +450,16 @@ class InteractiveTutorial {
 
         const nextBtn = document.getElementById('tutorialNextBtn');
         const skipBtn = document.getElementById('tutorialSkipBtn');
+        const skipStepBtn = document.getElementById('tutorialSkipStepBtn');
 
         if (nextBtn) {
             nextBtn.addEventListener('click', () => this.nextStep());
         }
         if (skipBtn) {
             skipBtn.addEventListener('click', () => this.skip());
+        }
+        if (skipStepBtn) {
+            skipStepBtn.addEventListener('click', () => this.skipStep());
         }
 
         if (isActionStep && step.verification) {
@@ -579,6 +598,14 @@ class InteractiveTutorial {
         };
         
         document.body.appendChild(skipModal);
+    }
+
+    skipStep() {
+        if (this.verificationInterval) {
+            clearInterval(this.verificationInterval);
+            this.verificationInterval = null;
+        }
+        this.nextStep();
     }
 
     complete() {
