@@ -449,13 +449,13 @@ function updateStatus(message, type) {
 function showError(message) {
     updateStatus('❌ ' + message, 'danger');
     
-    // Check if the status div is visible, if not use alert
     const statusDiv = document.getElementById('transactionStatus');
     const cryptoBuySection = document.getElementById('cryptoBuySection');
     
     if (!statusDiv || (cryptoBuySection && cryptoBuySection.style.display === 'none')) {
-        // Status div isn't visible, show alert instead
-        alert('⚠️ Wallet Connection Issue\n\n' + message);
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Wallet Connection Issue\n\n' + message, '⚠️');
+        }
     } else if (statusDiv) {
         statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -574,7 +574,9 @@ async function loadPayPalSDK() {
         
         if (!config.clientId || config.clientId === 'test') {
             console.warn('PayPal not configured, using test mode');
-            alert('⚠️ PayPal is running in test mode. Please configure PAYPAL_CLIENT_ID environment variable for live transactions.');
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert('PayPal is running in test mode. Please configure PAYPAL_CLIENT_ID environment variable for live transactions.', '⚠️');
+            }
             return false;
         }
         
@@ -652,13 +654,17 @@ async function proceedToPayPal() {
     const walletAddress = document.getElementById('kenoWalletAddress').value.trim();
     
     if (!walletAddress) {
-        alert('⚠️ Please enter your KENO wallet address before continuing.');
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Please enter your KENO wallet address before continuing.', '⚠️');
+        }
         document.getElementById('kenoWalletAddress').focus();
         return;
     }
     
     if (!validateWalletAddress()) {
-        alert('⚠️ Please enter a valid KENO wallet address.');
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Please enter a valid KENO wallet address.', '⚠️');
+        }
         return;
     }
     
@@ -706,7 +712,9 @@ async function proceedToPayPal() {
                     return data.orderId;
                 } catch (error) {
                     console.error('Error creating PayPal order:', error);
-                    alert('Failed to create PayPal order. Please try again.');
+                    if (typeof showCustomAlert === 'function') {
+                        showCustomAlert('Failed to create PayPal order. Please try again.', '❌');
+                    }
                     throw error;
                 }
             },
@@ -746,13 +754,17 @@ async function proceedToPayPal() {
                     console.log('✅ Payment captured successfully:', captureData);
                 } catch (error) {
                     console.error('Error capturing PayPal payment:', error);
-                    alert('Payment capture failed. Please contact support with your transaction ID.');
+                    if (typeof showCustomAlert === 'function') {
+                        showCustomAlert('Payment capture failed. Please contact support with your transaction ID.', '❌');
+                    }
                 }
             },
             
             onError: function(err) {
                 console.error('PayPal button error:', err);
-                alert('An error occurred with PayPal. Please try again or use the crypto wallet option.');
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('An error occurred with PayPal. Please try again or use the crypto wallet option.', '❌');
+                }
                 
                 // Restore button state
                 buttonContainer.style.display = 'none';
@@ -774,7 +786,9 @@ async function proceedToPayPal() {
         
     } catch (error) {
         console.error('Error initializing PayPal:', error);
-        alert('Failed to initialize PayPal. Please try again or contact support.');
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Failed to initialize PayPal. Please try again or contact support.', '❌');
+        }
         continueBtn.style.display = 'block';
         continueBtn.disabled = false;
         continueBtn.textContent = 'Continue to PayPal Checkout →';

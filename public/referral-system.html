@@ -221,9 +221,13 @@
             const linkText = document.getElementById('referralLink').textContent;
             if (linkText !== 'Loading...' && !linkText.includes('Please enter')) {
                 navigator.clipboard.writeText(linkText).then(() => {
-                    alert('✅ Referral link copied to clipboard!');
+                    if (typeof showCustomAlert === 'function') {
+                        showCustomAlert('Referral link copied to clipboard!', '✅');
+                    }
                 }).catch(() => {
-                    alert('❌ Failed to copy. Please copy manually.');
+                    if (typeof showCustomAlert === 'function') {
+                        showCustomAlert('Failed to copy. Please copy manually.', '❌');
+                    }
                 });
             } else {
                 generateReferralLink();
@@ -247,5 +251,6 @@
             loadReferralStats();
         });
     </script>
+    <script src="/custom-dialogs.js"></script>
 </body>
 </html>

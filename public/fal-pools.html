@@ -801,8 +801,58 @@
         </div>
     </div>
 
+    <!-- Custom Dialog Modal (replaces browser alert/confirm) -->
+    <div id="customDialogModal" class="modal">
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <div id="dialogIcon" style="font-size: 3rem; margin-bottom: 16px;">✅</div>
+            <h3 id="dialogTitle" style="margin-bottom: 12px; font-size: 1.25rem;">Kenostod Academy</h3>
+            <p id="dialogMessage" style="opacity: 0.8; margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
+            <div id="dialogButtons" style="display: flex; gap: 12px; justify-content: center;">
+                <button id="dialogCancelBtn" class="btn" onclick="handleDialogCancel()" style="background: transparent; border: 2px solid #00d4ff; display: none;">Cancel</button>
+                <button id="dialogOkBtn" class="btn btn-primary" onclick="handleDialogOk()">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentWallet = null;
+        let dialogResolve = null;
+
+        function showCustomAlert(message, icon = '✅') {
+            return new Promise((resolve) => {
+                dialogResolve = resolve;
+                const modal = document.getElementById('customDialogModal');
+                document.getElementById('dialogIcon').textContent = icon;
+                document.getElementById('dialogTitle').textContent = 'Kenostod Academy';
+                document.getElementById('dialogMessage').textContent = message;
+                document.getElementById('dialogCancelBtn').style.display = 'none';
+                document.getElementById('dialogOkBtn').textContent = 'OK';
+                modal.classList.add('active');
+            });
+        }
+
+        function showCustomConfirm(message, icon = '❓') {
+            return new Promise((resolve) => {
+                dialogResolve = resolve;
+                const modal = document.getElementById('customDialogModal');
+                document.getElementById('dialogIcon').textContent = icon;
+                document.getElementById('dialogTitle').textContent = 'Confirm Action';
+                document.getElementById('dialogMessage').textContent = message;
+                document.getElementById('dialogCancelBtn').style.display = 'inline-block';
+                document.getElementById('dialogOkBtn').textContent = 'OK';
+                modal.classList.add('active');
+            });
+        }
+
+        function handleDialogOk() {
+            document.getElementById('customDialogModal').classList.remove('active');
+            if (dialogResolve) { dialogResolve(true); dialogResolve = null; }
+        }
+
+        function handleDialogCancel() {
+            document.getElementById('customDialogModal').classList.remove('active');
+            if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
+        }
         
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1043,7 +1093,7 @@
         async function createPool() {
             const wallet = getStoredWallet();
             if (!wallet) {
-                alert('Please create a wallet first at the main page.');
+                await showCustomAlert('Please create a wallet first at the main page.', '⚠️');
                 return;
             }
             
@@ -1053,7 +1103,7 @@
             const initialDeposit = parseFloat(document.getElementById('initialDeposit').value) || 0;
             
             if (!poolName) {
-                alert('Please enter a pool name.');
+                await showCustomAlert('Please enter a pool name.', '⚠️');
                 return;
             }
             
@@ -1073,22 +1123,22 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert(data.message);
+                    await showCustomAlert(data.message, '✅');
                     document.getElementById('poolName').value = '';
                     document.getElementById('initialDeposit').value = '';
                     switchTab('browse');
                 } else {
-                    alert('Error: ' + data.error);
+                    await showCustomAlert('Error: ' + data.error, '❌');
                 }
             } catch (error) {
-                alert('Error creating pool: ' + error.message);
+                await showCustomAlert('Error creating pool: ' + error.message, '❌');
             }
         }
         
         async function submitDeposit() {
             const wallet = getStoredWallet();
             if (!wallet) {
-                alert('Please create a wallet first.');
+                await showCustomAlert('Please create a wallet first.', '⚠️');
                 return;
             }
             
@@ -1097,7 +1147,7 @@
             const lockPeriod = document.getElementById('depositLockPeriod').value || null;
             
             if (!amount || amount < 100) {
-                alert('Minimum deposit is 100 KENO.');
+                await showCustomAlert('Minimum deposit is 100 KENO.', '⚠️');
                 return;
             }
             
@@ -1116,21 +1166,21 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert(data.message);
+                    await showCustomAlert(data.message, '✅');
                     closeModal('depositModal');
                     loadPools();
                 } else {
-                    alert('Error: ' + data.error);
+                    await showCustomAlert('Error: ' + data.error, '❌');
                 }
             } catch (error) {
-                alert('Error depositing: ' + error.message);
+                await showCustomAlert('Error depositing: ' + error.message, '❌');
             }
         }
         
         async function submitBorrow() {
             const wallet = getStoredWallet();
             if (!wallet) {
-                alert('Please create a wallet first.');
+                await showCustomAlert('Please create a wallet first.', '⚠️');
                 return;
             }
             
@@ -1138,7 +1188,7 @@
             const amount = parseFloat(document.getElementById('borrowAmount').value);
             
             if (!amount || amount < 100) {
-                alert('Minimum borrow amount is 100 KENO.');
+                await showCustomAlert('Minimum borrow amount is 100 KENO.', '⚠️');
                 return;
             }
             
@@ -1156,14 +1206,14 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert(data.message + '\n\nLoan ID: ' + data.loanId + '\n\nRemember to repay within 5 minutes!');
+                    await showCustomAlert(data.message + '\n\nLoan ID: ' + data.loanId + '\n\nRemember to repay within 5 minutes!', '✅');
                     closeModal('borrowModal');
                     loadPools();
                 } else {
-                    alert('Error: ' + data.error);
+                    await showCustomAlert('Error: ' + data.error, '❌');
                 }
             } catch (error) {
-                alert('Error borrowing: ' + error.message);
+                await showCustomAlert('Error borrowing: ' + error.message, '❌');
             }
         }
         

@@ -650,16 +650,22 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert(`✅ Success! Your merchandise order has been submitted.\n\nOrder ID: ${result.order.order_id}\n\nYou will receive an email when your items ship.`);
+                    if (typeof showCustomAlert === 'function') {
+                        await showCustomAlert(`Success! Your merchandise order has been submitted.\n\nOrder ID: ${result.order.order_id}\n\nYou will receive an email when your items ship.`, '✅');
+                    }
                     window.location.href = '/graduate-club.html';
                 } else {
-                    alert(`❌ Error: ${result.error}`);
+                    if (typeof showCustomAlert === 'function') {
+                        showCustomAlert(`Error: ${result.error}`, '❌');
+                    }
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Merchandise Request';
                 }
             } catch (error) {
                 console.error('Error submitting order:', error);
-                alert('❌ Failed to submit order. Please try again.');
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('Failed to submit order. Please try again.', '❌');
+                }
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Merchandise Request';
             }
@@ -667,5 +673,6 @@
 
         window.addEventListener('load', checkEligibility);
     </script>
+    <script src="/custom-dialogs.js"></script>
 </body>
 </html>
