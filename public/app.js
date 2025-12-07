@@ -2,6 +2,69 @@ const API_BASE = '';
 let ec;
 let currentLanguage = localStorage.getItem('language') || 'en';
 
+let dialogResolve = null;
+
+function showCustomAlert(message, icon = '✅') {
+    return new Promise((resolve) => {
+        dialogResolve = resolve;
+        const modal = document.getElementById('customDialogModal');
+        const iconEl = document.getElementById('dialogIcon');
+        const titleEl = document.getElementById('dialogTitle');
+        const messageEl = document.getElementById('dialogMessage');
+        const cancelBtn = document.getElementById('dialogCancelBtn');
+        const okBtn = document.getElementById('dialogOkBtn');
+        
+        iconEl.textContent = icon;
+        titleEl.textContent = 'Kenostod Academy';
+        messageEl.textContent = message;
+        cancelBtn.style.display = 'none';
+        okBtn.textContent = 'OK';
+        okBtn.className = 'btn btn-primary';
+        
+        modal.style.display = 'flex';
+    });
+}
+
+function showCustomConfirm(message, icon = '❓') {
+    return new Promise((resolve) => {
+        dialogResolve = resolve;
+        const modal = document.getElementById('customDialogModal');
+        const iconEl = document.getElementById('dialogIcon');
+        const titleEl = document.getElementById('dialogTitle');
+        const messageEl = document.getElementById('dialogMessage');
+        const cancelBtn = document.getElementById('dialogCancelBtn');
+        const okBtn = document.getElementById('dialogOkBtn');
+        
+        iconEl.textContent = icon;
+        titleEl.textContent = 'Confirm Action';
+        messageEl.textContent = message;
+        cancelBtn.style.display = 'inline-block';
+        cancelBtn.textContent = 'Cancel';
+        okBtn.textContent = 'OK';
+        okBtn.className = 'btn btn-primary';
+        
+        modal.style.display = 'flex';
+    });
+}
+
+function handleDialogOk() {
+    const modal = document.getElementById('customDialogModal');
+    modal.style.display = 'none';
+    if (dialogResolve) {
+        dialogResolve(true);
+        dialogResolve = null;
+    }
+}
+
+function handleDialogCancel() {
+    const modal = document.getElementById('customDialogModal');
+    modal.style.display = 'none';
+    if (dialogResolve) {
+        dialogResolve(false);
+        dialogResolve = null;
+    }
+}
+
 const translations = {
     en: {
         'nav.logo': 'Kenostod Academy',
@@ -1349,7 +1412,8 @@ async function loadPendingTransactions() {
 }
 
 async function cancelTransaction(txHash, senderAddress) {
-    if (!confirm('Are you sure you want to cancel this transaction?')) {
+    const confirmed = await showCustomConfirm('Are you sure you want to cancel this transaction?', '⚠️');
+    if (!confirmed) {
         return;
     }
 
@@ -1363,15 +1427,15 @@ async function cancelTransaction(txHash, senderAddress) {
         const data = await response.json();
 
         if (data.error) {
-            alert('Error: ' + data.error);
+            await showCustomAlert('Error: ' + data.error, '❌');
             return;
         }
 
-        alert('Transaction cancelled successfully!');
+        await showCustomAlert('Transaction cancelled successfully!', '✅');
         loadPendingTransactions();
         loadStats();
     } catch (error) {
-        alert('Error: ' + error.message);
+        await showCustomAlert('Error: ' + error.message, '❌');
     }
 }
 
