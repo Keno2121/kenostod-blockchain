@@ -1279,7 +1279,7 @@ function useThisWallet(address, privateKey) {
     document.getElementById('tradeWalletAddress').value = address;
     document.getElementById('tradePrivateKey').value = privateKey;
     
-    alert('✅ Wallet loaded! You can now use it to send transactions and trade on the exchange.');
+    showCustomAlert('Wallet loaded! You can now use it to send transactions and trade on the exchange.', '✅');
 }
 
 async function checkBalance() {
@@ -1577,14 +1577,14 @@ async function cancelScheduledPayment(scheduleId, address) {
         const data = await response.json();
 
         if (data.error) {
-            alert('Error: ' + data.error);
+            showCustomAlert('Error: ' + data.error, '❌');
             return;
         }
 
-        alert('Scheduled payment cancelled!');
+        showCustomAlert('Scheduled payment cancelled!', '✅');
         viewScheduledPayments();
     } catch (error) {
-        alert('Error: ' + error.message);
+        showCustomAlert('Error: ' + error.message, '❌');
     }
 }
 
@@ -1727,14 +1727,14 @@ async function approveRecovery(requestId, guardianAddress) {
         const data = await response.json();
 
         if (data.error) {
-            alert('Error: ' + data.error);
+            showCustomAlert('Error: ' + data.error, '❌');
             return;
         }
 
-        alert('Recovery request approved!');
+        showCustomAlert('Recovery request approved!', '✅');
         viewRecoveryRequests();
     } catch (error) {
-        alert('Error: ' + error.message);
+        showCustomAlert('Error: ' + error.message, '❌');
     }
 }
 
@@ -1749,14 +1749,14 @@ async function rejectRecovery(requestId, guardianAddress) {
         const data = await response.json();
 
         if (data.error) {
-            alert('Error: ' + data.error);
+            showCustomAlert('Error: ' + data.error, '❌');
             return;
         }
 
-        alert('Recovery request rejected.');
+        showCustomAlert('Recovery request rejected.', '✅');
         viewRecoveryRequests();
     } catch (error) {
-        alert('Error: ' + error.message);
+        showCustomAlert('Error: ' + error.message, '❌');
     }
 }
 
@@ -1773,14 +1773,14 @@ async function executeRecovery(requestId) {
         const data = await response.json();
 
         if (data.error) {
-            alert('Error: ' + data.error);
+            showCustomAlert('Error: ' + data.error, '❌');
             return;
         }
 
-        alert('Recovery executed! Funds will be transferred when the next block is mined.');
+        showCustomAlert('Recovery executed! Funds will be transferred when the next block is mined.', '✅');
         viewRecoveryRequests();
     } catch (error) {
-        alert('Error: ' + error.message);
+        showCustomAlert('Error: ' + error.message, '❌');
     }
 }
 
@@ -1983,7 +1983,7 @@ async function voteOnProposal(proposalId, vote) {
     const voterAddress = document.getElementById(`voterAddr_${proposalId}`).value;
     
     if (!voterAddress) {
-        alert('Please enter your address');
+        showCustomAlert('Please enter your address', '⚠️');
         return;
     }
 
@@ -1997,14 +1997,14 @@ async function voteOnProposal(proposalId, vote) {
         const data = await response.json();
 
         if (data.error) {
-            alert('Error: ' + data.error);
+            showCustomAlert('Error: ' + data.error, '❌');
             return;
         }
 
-        alert(`Vote cast: ${vote.toUpperCase()}!`);
+        showCustomAlert(`Vote cast: ${vote.toUpperCase()}!`, '✅');
         viewActiveProposals();
     } catch (error) {
-        alert('Error: ' + error.message);
+        showCustomAlert('Error: ' + error.message, '❌');
     }
 }
 
@@ -3501,7 +3501,7 @@ async function registerBankingAccount() {
         const fullName = document.getElementById('bankingFullName').value;
 
         if (!walletAddress || !email || !fullName) {
-            alert('Please fill in all fields');
+            showCustomAlert('Please fill in all fields', '⚠️');
             return;
         }
 
@@ -3539,7 +3539,7 @@ async function depositStripe() {
         const amount = parseFloat(document.getElementById('stripeDepositAmount').value);
 
         if (!walletAddress || !amount || amount < 10) {
-            alert('Please enter wallet address and amount ($10 minimum)');
+            showCustomAlert('Please enter wallet address and amount ($10 minimum)', '⚠️');
             return;
         }
 
@@ -3595,7 +3595,7 @@ async function depositPayPal() {
         const amount = parseFloat(document.getElementById('paypalDepositAmount').value);
 
         if (!walletAddress || !amount || amount < 10) {
-            alert('Please enter wallet address and amount ($10 minimum)');
+            showCustomAlert('Please enter wallet address and amount ($10 minimum)', '⚠️');
             return;
         }
 
@@ -3651,12 +3651,12 @@ async function withdrawStripe() {
         const amount = parseFloat(document.getElementById('stripeWithdrawAmount').value);
 
         if (!walletAddress || !amount) {
-            alert('Please fill in all fields');
+            showCustomAlert('Please fill in all fields', '⚠️');
             return;
         }
 
         if (amount < 10) {
-            alert('Minimum withdrawal is $10');
+            showCustomAlert('Minimum withdrawal is $10', '⚠️');
             return;
         }
 
@@ -3705,12 +3705,12 @@ async function withdrawPayPal() {
         const paypalEmail = document.getElementById('paypalWithdrawEmail').value;
 
         if (!walletAddress || !amount || !paypalEmail) {
-            alert('Please fill in all fields');
+            showCustomAlert('Please fill in all fields', '⚠️');
             return;
         }
 
         if (amount < 10) {
-            alert('Minimum withdrawal is $10');
+            showCustomAlert('Minimum withdrawal is $10', '⚠️');
             return;
         }
 
@@ -3754,7 +3754,7 @@ async function checkFiatBalance() {
         const walletAddress = document.getElementById('checkFiatBalanceWallet').value;
 
         if (!walletAddress) {
-            alert('Please enter wallet address');
+            showCustomAlert('Please enter wallet address', '⚠️');
             return;
         }
 
@@ -3780,7 +3780,7 @@ async function viewBankingHistory() {
         const walletAddress = document.getElementById('bankingHistoryWallet').value;
 
         if (!walletAddress) {
-            alert('Please enter wallet address');
+            showCustomAlert('Please enter wallet address', '⚠️');
             return;
         }
 
@@ -3956,7 +3956,7 @@ async function loadMerchantRevenue() {
     try {
         const merchantId = document.getElementById('merchantRevenueId').value;
         if (!merchantId) {
-            alert('Please enter a merchant ID');
+            showCustomAlert('Please enter a merchant ID', '⚠️');
             return;
         }
         
@@ -3993,7 +3993,7 @@ async function loadTradingFees() {
     try {
         const address = document.getElementById('tradingFeesAddress').value;
         if (!address) {
-            alert('Please enter a user address');
+            showCustomAlert('Please enter a user address', '⚠️');
             return;
         }
         
@@ -4101,14 +4101,14 @@ async function purchaseLicense() {
         const tier = document.getElementById('licensePurchaseTier').value;
         
         if (!organizationName || !contactEmail || !tier) {
-            alert('Please fill in organization name, contact email, and select a tier');
+            showCustomAlert('Please fill in organization name, contact email, and select a tier', '⚠️');
             return;
         }
         
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(contactEmail)) {
-            alert('Please enter a valid email address');
+            showCustomAlert('Please enter a valid email address', '⚠️');
             return;
         }
         
