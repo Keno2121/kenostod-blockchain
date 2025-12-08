@@ -18,13 +18,15 @@ Kenostod Blockchain Academy is the world's first learn-to-earn education platfor
 
 ### Official Website:
 ```
-https://kenostod-blockchain-academy.replit.app
+https://kenostodacademy.com
 ```
+*(Replace with your custom domain once set up)*
 
 ### Whitepaper Link:
 ```
-https://kenostod-blockchain-academy.replit.app/whitepaper.html
+https://kenostodacademy.com/whitepaper.html
 ```
+*(Replace with your custom domain once set up)*
 
 ---
 
@@ -378,8 +380,8 @@ KENO is not just another cryptocurrency — it's infrastructure for the next bil
 | IEO Tokens | 3,000,000 |
 | Target Raise | $1,500,000 |
 | Contract | 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E |
-| Website | https://kenostod-blockchain-academy.replit.app |
-| Whitepaper | https://kenostod-blockchain-academy.replit.app/whitepaper.html |
+| Website | https://kenostodacademy.com |
+| Whitepaper | https://kenostodacademy.com/whitepaper.html |
 | Email | kenostod21@gmail.com |
 
 ---
