@@ -130,12 +130,13 @@ FAL enables graduates to:
 |-------|-------|--------|-------|
 | Seed | $0.15 | 1M | $150K |
 | Presale | $0.25 | 2M | $500K |
-| IEO | $0.50 | 3M | $1.5M |
+| IEO (Dec 28) | $0.50 | 3M | $1.5M |
+| PancakeSwap | $1.00 | Market | - |
 
 **Total Raise: $2,150,000**
 
 IEO: 100% unlocked at TGE
-PancakeSwap listing post-IEO
+PancakeSwap listing at $1.00 post-IEO
 
 ---
 

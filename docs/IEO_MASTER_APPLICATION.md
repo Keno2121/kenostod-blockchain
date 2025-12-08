@@ -168,8 +168,8 @@ Total Pre-IEO Raise: $650,000
 ```
 Phase 1 - Seed Sale: $0.15 per KENO, 1,000,000 tokens, $150,000 raise
 Phase 2 - Presale: $0.25 per KENO, 2,000,000 tokens, $500,000 raise
-Phase 3 - IEO: $0.50 per KENO, 3,000,000 tokens, $1,500,000 raise
-Phase 4 - DEX Listing: $0.50+ market price
+Phase 3 - IEO (Dec 28): $0.50 per KENO, 3,000,000 tokens, $1,500,000 raise
+Phase 4 - PancakeSwap Listing: $1.00 per KENO
 ```
 
 ---

@@ -60,12 +60,13 @@
 | Hard Cap | $1,500,000 |
 | Vesting | 100% unlocked at TGE |
 | Payment | USDT |
+| Target Date | December 28, 2024 |
 
 ### Phase 4: DEX Listing
 | Detail | Value |
 |--------|-------|
 | Exchange | PancakeSwap |
-| Price | $0.50+ (market price) |
+| Listing Price | $1.00 per KENO |
 | Liquidity | 650,000 KENO paired with raised funds |
 | Lock | 12 months liquidity lock |
 
