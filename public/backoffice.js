@@ -2329,15 +2329,48 @@ function loadCourse(courseId) {
 }
 
 // Complete course and show KENO reward
-function completeCourse(courseId) {
+async function completeCourse(courseId) {
     const course = courses[courseId];
     
-    // Show custom notification
-    showCourseCompletionNotification(courseId, course.title);
+    // Get user wallet address from localStorage or app state
+    const walletAddress = localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress');
+    const userEmail = localStorage.getItem('userEmail') || '';
+    
+    // If user has wallet, credit KENO to their account
+    if (walletAddress) {
+        try {
+            const response = await fetch('/api/wealth/rewards/course-complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    walletAddress: walletAddress,
+                    email: userEmail,
+                    courseName: course.title,
+                    courseId: courseId
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('KENO reward credited:', result.message);
+            } else {
+                console.warn('Reward not credited:', result.error);
+            }
+        } catch (error) {
+            console.error('Error crediting KENO reward:', error);
+        }
+    } else {
+        // Prompt user to connect wallet for real rewards
+        console.log('No wallet connected - KENO reward saved locally only');
+    }
+    
+    // Show custom notification (pass wallet status)
+    showCourseCompletionNotification(courseId, course.title, !!walletAddress);
 }
 
 // Show course completion notification with KENO reward
-function showCourseCompletionNotification(courseId, courseTitle) {
+function showCourseCompletionNotification(courseId, courseTitle, hasWallet = false) {
     const modal = document.createElement('div');
     modal.style.cssText = `
         position: fixed;
@@ -2437,11 +2470,27 @@ function showCourseCompletionNotification(courseId, courseTitle) {
         color: #059669;
         font-weight: 600;
     `;
-    kenoDesc.textContent = 'Tokens Earned!';
+    kenoDesc.textContent = hasWallet ? 'Tokens Credited to Your Wallet!' : 'Tokens Earned!';
     
     rewardBox.appendChild(tokenIcon);
     rewardBox.appendChild(kenoText);
     rewardBox.appendChild(kenoDesc);
+    
+    // Add wallet warning if not connected
+    if (!hasWallet) {
+        const walletWarning = document.createElement('div');
+        walletWarning.style.cssText = `
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #92400e;
+        `;
+        walletWarning.innerHTML = '<strong>Note:</strong> Connect your wallet in the main app to receive KENO tokens to your account.';
+        rewardBox.appendChild(walletWarning);
+    }
     
     // Check if this is the final course (graduation!)
     const isGraduation = courseId === 21;
