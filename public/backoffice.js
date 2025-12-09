@@ -2789,9 +2789,187 @@ window.completeCourse = function(courseId) {
     originalCompleteCourse(courseId);
 };
 
+// Wallet Connection Feature
+function getConnectedWallet() {
+    return localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress') || null;
+}
+
+function renderWalletStatus() {
+    const existingWidget = document.getElementById('wallet-connection-widget');
+    if (existingWidget) existingWidget.remove();
+    
+    const wallet = getConnectedWallet();
+    const widget = document.createElement('div');
+    widget.id = 'wallet-connection-widget';
+    widget.style.cssText = `
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 9999;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+    
+    if (wallet) {
+        widget.innerHTML = `
+            <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <span style="font-size: 20px;">💰</span>
+                <div>
+                    <div style="font-size: 11px; color: #059669; font-weight: 600;">WALLET CONNECTED</div>
+                    <div style="font-size: 13px; color: #065f46; font-weight: 700;">${wallet.slice(0,6)}...${wallet.slice(-4)}</div>
+                </div>
+                <button onclick="disconnectWallet()" style="background: #fee2e2; border: 1px solid #ef4444; color: #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">Disconnect</button>
+            </div>
+        `;
+    } else {
+        widget.innerHTML = `
+            <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <span style="font-size: 20px;">⚠️</span>
+                <div>
+                    <div style="font-size: 11px; color: #92400e; font-weight: 600;">NO WALLET CONNECTED</div>
+                    <div style="font-size: 12px; color: #b45309;">Connect to earn KENO rewards</div>
+                </div>
+                <button onclick="showWalletConnectModal()" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700;">Connect Wallet</button>
+            </div>
+        `;
+    }
+    
+    document.body.appendChild(widget);
+}
+
+function showWalletConnectModal() {
+    const modal = document.createElement('div');
+    modal.id = 'wallet-connect-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    const hasMetaMask = typeof window.ethereum !== 'undefined';
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 40px; border-radius: 16px; max-width: 450px; width: 90%; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="font-size: 48px; margin-bottom: 16px;">💼</div>
+            <h2 style="margin: 0 0 8px 0; color: #1f2937; font-size: 24px;">Connect Your Wallet</h2>
+            <p style="color: #6b7280; margin-bottom: 24px; font-size: 14px;">Connect your wallet to receive KENO tokens for course completions</p>
+            
+            ${hasMetaMask ? `
+                <button onclick="connectMetaMask()" style="width: 100%; background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" style="width: 24px; height: 24px;" alt="MetaMask">
+                    Connect MetaMask
+                </button>
+            ` : ''}
+            
+            <div style="color: #9ca3af; font-size: 12px; margin: 16px 0;">OR</div>
+            
+            <div style="text-align: left; margin-bottom: 16px;">
+                <label style="font-size: 13px; color: #374151; font-weight: 600;">Enter Wallet Address Manually</label>
+                <input type="text" id="manual-wallet-input" placeholder="0x..." style="width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; margin-top: 8px; box-sizing: border-box;">
+            </div>
+            
+            <button onclick="connectManualWallet()" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 12px;">
+                Save Wallet Address
+            </button>
+            
+            <button onclick="closeWalletModal()" style="width: 100%; background: #f3f4f6; border: none; color: #6b7280; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer;">
+                Cancel
+            </button>
+            
+            <p style="color: #9ca3af; font-size: 11px; margin-top: 16px;">
+                Your wallet address is used to credit KENO rewards. You can disconnect anytime.
+            </p>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+async function connectMetaMask() {
+    try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+        localStorage.setItem('userWalletAddress', address);
+        closeWalletModal();
+        renderWalletStatus();
+        showWalletToast('Wallet connected successfully!', 'success');
+    } catch (error) {
+        console.error('MetaMask connection failed:', error);
+        showWalletToast('Connection failed. Please try again.', 'error');
+    }
+}
+
+function connectManualWallet() {
+    const input = document.getElementById('manual-wallet-input');
+    const address = input.value.trim();
+    
+    if (!address) {
+        showWalletToast('Please enter a wallet address', 'error');
+        return;
+    }
+    
+    if (!address.startsWith('0x') || address.length !== 42) {
+        showWalletToast('Please enter a valid wallet address (0x...)', 'error');
+        return;
+    }
+    
+    localStorage.setItem('userWalletAddress', address);
+    closeWalletModal();
+    renderWalletStatus();
+    showWalletToast('Wallet address saved!', 'success');
+}
+
+function disconnectWallet() {
+    localStorage.removeItem('userWalletAddress');
+    localStorage.removeItem('walletAddress');
+    renderWalletStatus();
+    showWalletToast('Wallet disconnected', 'info');
+}
+
+function closeWalletModal() {
+    const modal = document.getElementById('wallet-connect-modal');
+    if (modal) modal.remove();
+}
+
+function showWalletToast(message, type) {
+    const toast = document.createElement('div');
+    const colors = {
+        success: { bg: '#d1fae5', border: '#10b981', text: '#065f46' },
+        error: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b' },
+        info: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' }
+    };
+    const c = colors[type] || colors.info;
+    
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${c.bg};
+        border: 2px solid ${c.border};
+        color: ${c.text};
+        padding: 14px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        z-index: 10001;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 3000);
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     renderCourseNav();
     loadCourse(1);
     checkGraduateStatus();
+    renderWalletStatus();
 });
