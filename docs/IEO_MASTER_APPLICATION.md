@@ -345,6 +345,12 @@ Pre-IEO Phase (Q1 2025). Platform development complete. Currently executing seed
 - Graduate recognition and credential system
 - Corporate B2B training packages
 - Multi-language support (6 languages)
+
+FUTURE: Kenostod Blockchain (2028)
+- Native blockchain with KENO as base currency
+- Academy graduates become validators/stakers
+- All FAL/FALP features preserved on native chain
+- Unlimited scalability for global education
 ```
 
 ---
@@ -357,8 +363,9 @@ Q1 2025: Seed sale and presale completion
 Q2 2025: IEO launch, PancakeSwap listing, security audit
 Q3 2025: iOS/Android mobile app release, reach 10,000 enrolled students
 Q4 2025: Additional CEX listings, FAL v2.0 launch
-2026: Scale to 50,000 graduates, enterprise B2B partnerships
+2026: Scale to 50,000 graduates, enterprise B2B partnerships, revenue-funded rewards
 2027: 100,000+ graduates, FAL technology licensing program
+2028: Kenostod Blockchain mainnet launch - Academy graduates migrate to native chain
 ```
 
 ---

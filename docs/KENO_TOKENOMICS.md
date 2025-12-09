@@ -195,8 +195,35 @@ Education → Earning → Utility → Demand → Value → Attracts Students →
 | Initial Market Cap (IEO tokens only) | $1,500,000 |
 | Circulating at TGE | ~18% of supply |
 | Max Earnable per Student | 5,250 KENO |
-| Students to Exhaust Education Pool | ~952 graduates |
+| Phase 1 Graduates (Education Pool) | ~952 graduates |
+| Phase 2+ Graduates (Revenue-Funded) | Unlimited |
 | Target Graduates by 2027 | 100,000+ |
+
+---
+
+## Kenostod Blockchain Evolution
+
+### Phase 1: Academy on BSC (Current)
+- KENO as BEP-20 token on Binance Smart Chain
+- First 952 graduates earn from Education Pool
+- Platform revenue builds treasury
+
+### Phase 2: Revenue-Funded Rewards (2026)
+- Platform fees fund KENO buybacks
+- Purchased KENO rewards new students
+- Self-sustaining reward model
+
+### Phase 3: Kenostod Blockchain Launch (2027+)
+- Native Kenostod Blockchain with KENO as base currency
+- Migrate Academy graduates to native chain
+- All revolutionary features preserved (FAL, FALP, PoRV)
+- Unlimited scalability for new students
+- Academy graduates become early validators/stakers
+
+### Student Journey
+```
+Academy (Learn & Earn) → Graduate (5,250 KENO) → Kenostod Blockchain (Stake, Validate, Earn Forever)
+```
 
 ---
 

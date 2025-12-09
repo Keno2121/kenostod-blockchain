@@ -196,7 +196,7 @@ PancakeSwap listing at $1.00 post-IEO
 
 ## SLIDE 13: ROADMAP
 
-**Path to 100,000 Graduates**
+**Path to Kenostod Blockchain**
 
 **2025 Q1-Q2**
 - Seed/Presale completion
@@ -210,10 +210,16 @@ PancakeSwap listing at $1.00 post-IEO
 - Additional CEX listings
 - FAL v2.0
 
-**2026-2027**
-- 50,000 → 100,000 graduates
+**2026**
+- 50,000 graduates
 - B2B enterprise partnerships
+- Revenue-funded rewards launch
+
+**2027-2028**
+- 100,000+ graduates
 - FAL technology licensing
+- **Kenostod Blockchain mainnet launch**
+- Academy graduates migrate to native chain
 
 ---
 
