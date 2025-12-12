@@ -534,11 +534,10 @@ With our ICO launching November 28, 2025, we invite you to join the revolution i
 - Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 - Presale: 0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0
 
-**Social Media:**
-- Twitter: [Create and link]
-- Telegram: [Create and link]
-- LinkedIn: [Create and link]
-- Medium: [Create and link]
+
+
+
+
 
 ---
 
