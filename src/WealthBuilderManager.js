@@ -1,8 +1,13 @@
 const crypto = require('crypto');
 
 class WealthBuilderManager {
-    constructor(db) {
+    constructor(db, bscTokenTransfer = null) {
         this.db = db;
+        this.bscTokenTransfer = bscTokenTransfer;
+    }
+
+    setBscTokenTransfer(bscTokenTransfer) {
+        this.bscTokenTransfer = bscTokenTransfer;
     }
 
     async awardCourseCompletion(walletAddress, email, courseName, courseId) {
@@ -34,6 +39,25 @@ class WealthBuilderManager {
                 };
             }
 
+            // Attempt real on-chain BSC transfer if available
+            let bscTransferResult = null;
+            let transferStatus = 'pending';
+            
+            if (this.bscTokenTransfer && this.bscTokenTransfer.initialized) {
+                console.log(`🔄 Attempting BSC transfer of ${rewardAmount} KENO to ${walletAddress}...`);
+                bscTransferResult = await this.bscTokenTransfer.transferTokens(walletAddress, rewardAmount, `course-${parsedCourseId}`);
+                
+                if (bscTransferResult.success) {
+                    transferStatus = 'claimed';
+                    console.log(`✅ BSC transfer successful! TX: ${bscTransferResult.txHash}`);
+                } else {
+                    transferStatus = 'available';
+                    console.log(`⚠️ BSC transfer failed: ${bscTransferResult.error}. Reward recorded for manual claim.`);
+                }
+            } else {
+                console.log(`⚠️ BSC Token Transfer not available. Recording reward for manual claim.`);
+            }
+
             const result = await this.db.query(`
                 INSERT INTO student_rewards (
                     user_wallet_address, 
@@ -54,16 +78,32 @@ class WealthBuilderManager {
                 courseName,
                 parsedCourseId,
                 `Completed course: ${courseName}`,
-                'available'
+                transferStatus
             ]);
 
             await this.checkRVTEligibility(walletAddress, email);
             
-            return {
+            const response = {
                 success: true,
                 reward: result.rows[0],
                 message: `🎉 Congratulations! You earned ${rewardAmount} KENO for completing ${courseName}!`
             };
+            
+            if (bscTransferResult && bscTransferResult.success) {
+                response.onChainTransfer = {
+                    success: true,
+                    txHash: bscTransferResult.txHash,
+                    message: 'KENO tokens sent to your wallet on BSC!'
+                };
+            } else if (bscTransferResult) {
+                response.onChainTransfer = {
+                    success: false,
+                    error: bscTransferResult.error,
+                    message: 'Reward recorded. Tokens will be sent when distribution wallet has sufficient balance.'
+                };
+            }
+            
+            return response;
         } catch (error) {
             console.error('❌ Error awarding course completion:', error.message);
             return { success: false, error: error.message };

@@ -382,7 +382,7 @@ async function initializeBlockchainSystems() {
             dbConnection = new DatabaseConnection();
             await dbConnection.initializeSchema();
             organizationManager = new OrganizationManager(dbConnection);
-            wealthBuilderManager = new WealthBuilderManager(dbConnection);
+            wealthBuilderManager = new WealthBuilderManager(dbConnection, bscTokenTransfer);
             securityMiddleware = new SecurityMiddleware(dbConnection);
             console.log('✅ Database initialized');
             await initializeTestGraduate();
