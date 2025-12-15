@@ -548,10 +548,10 @@ function showOptions() {
 
 function updateEasyBuyPreview() {
     const amount = parseInt(document.getElementById('easyBuyAmount').value);
-    const tokenPrice = 0.50; // $0.50 per KENO
+    const tokenPrice = 0.01; // $0.01 per KENO
     
     // Calculate base tokens
-    const baseTokens = amount / tokenPrice; // e.g., $100 / $0.50 = 200 KENO
+    const baseTokens = amount / tokenPrice; // e.g., $100 / $0.01 = 10,000 KENO
     const bonusTokens = baseTokens * 0.20; // 20% bonus
     const totalTokens = baseTokens + bonusTokens;
     
@@ -737,7 +737,7 @@ async function proceedToPayPal() {
                     buttonContainer.style.display = 'none';
                     successMessage.style.display = 'block';
                     
-                    const tokenPrice = 0.50;
+                    const tokenPrice = 0.01;
                     const baseTokens = amount / tokenPrice;
                     const bonusTokens = baseTokens * 0.20;
                     const totalTokens = baseTokens + bonusTokens;
