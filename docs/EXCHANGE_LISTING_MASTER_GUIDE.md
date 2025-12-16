@@ -173,15 +173,20 @@
 
 All applications are ready in the `docs/` folder:
 
-1. `docs/GATE_IO_APPLICATION_ANSWERS.md` - Gate.io Startup (APPLIED)
-2. `docs/MEXC_LISTING_APPLICATION.md` - MEXC
-3. `docs/KUCOIN_LISTING_APPLICATION.md` - KuCoin
-4. `docs/BITMART_LISTING_APPLICATION.md` - BitMart
-5. `docs/HTX_LISTING_APPLICATION.md` - HTX (Huobi)
-6. `docs/LBANK_LISTING_APPLICATION.md` - LBank
-7. `docs/POLONIEX_LISTING_APPLICATION.md` - Poloniex
-8. `docs/XT_COM_LISTING_APPLICATION.md` - XT.com
-9. `docs/OTC_PARTNERSHIPS_GUIDE.md` - OTC (for later)
+### Price Tracking (Required for MetaMask price display)
+1. `docs/COINGECKO_LISTING_APPLICATION.md` - CoinGecko (FREE)
+2. `docs/COINMARKETCAP_LISTING_APPLICATION.md` - CoinMarketCap (FREE)
+
+### Exchange Listings
+3. `docs/GATE_IO_APPLICATION_ANSWERS.md` - Gate.io Startup (APPLIED)
+4. `docs/MEXC_LISTING_APPLICATION.md` - MEXC
+5. `docs/KUCOIN_LISTING_APPLICATION.md` - KuCoin
+6. `docs/BITMART_LISTING_APPLICATION.md` - BitMart
+7. `docs/HTX_LISTING_APPLICATION.md` - HTX (Huobi)
+8. `docs/LBANK_LISTING_APPLICATION.md` - LBank
+9. `docs/POLONIEX_LISTING_APPLICATION.md` - Poloniex
+10. `docs/XT_COM_LISTING_APPLICATION.md` - XT.com
+11. `docs/OTC_PARTNERSHIPS_GUIDE.md` - OTC (for later)
 
 ---
 
@@ -191,9 +196,10 @@ All applications are ready in the `docs/` folder:
 2. **Wait for Gate.io Response** - IEO first
 3. **Apply to Poloniex** - Cheapest CEX option
 4. **Apply to LBank & XT.com** - Budget-friendly, fast
-5. **Launch PancakeSwap** - After IEO
-6. **Apply to MEXC** - When budget allows
-7. **Consider KuCoin** - After establishing volume
+5. **Launch PancakeSwap** - After IEO (establishes market price)
+6. **Submit to CoinGecko & CoinMarketCap** - FREE, enables price display in wallets
+7. **Apply to MEXC** - When budget allows
+8. **Consider KuCoin** - After establishing volume
 
 ---
 
