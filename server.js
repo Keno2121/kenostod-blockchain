@@ -6723,6 +6723,271 @@ app.post('/api/monetization/mint-badge', async (req, res) => {
 
 // ==================== END MICRO-MONETIZATION API ENDPOINTS ====================
 
+// ==================== ADMIN BACK OFFICE API ENDPOINTS ====================
+
+const adminSessions = new Map();
+
+function generateAdminToken() {
+    return require('crypto').randomBytes(32).toString('hex');
+}
+
+function requireAdminAuth(req, res, next) {
+    const token = req.headers['x-admin-token'];
+    if (!token || !adminSessions.has(token)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized. Admin login required.' });
+    }
+    
+    const session = adminSessions.get(token);
+    if (Date.now() > session.expiresAt) {
+        adminSessions.delete(token);
+        return res.status(401).json({ success: false, error: 'Session expired. Please login again.' });
+    }
+    
+    next();
+}
+
+app.post('/api/admin/login', authLimiter, (req, res) => {
+    const { password } = req.body;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (!adminPassword) {
+        console.log('⚠️ ADMIN_PASSWORD not set. Admin login disabled for security.');
+        return res.status(503).json({ success: false, error: 'Admin access not configured. Set ADMIN_PASSWORD environment variable.' });
+    }
+    
+    if (password === adminPassword) {
+        const token = generateAdminToken();
+        adminSessions.set(token, {
+            createdAt: Date.now(),
+            expiresAt: Date.now() + (24 * 60 * 60 * 1000),
+            ip: req.ip
+        });
+        
+        console.log(`✅ Admin login successful from ${req.ip}`);
+        res.json({ success: true, token });
+    } else {
+        console.log(`❌ Failed admin login attempt from ${req.ip}`);
+        res.status(401).json({ success: false, error: 'Invalid password' });
+    }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+    const token = req.headers['x-admin-token'];
+    if (token) {
+        adminSessions.delete(token);
+    }
+    res.json({ success: true });
+});
+
+app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ success: false, error: 'Database not ready' });
+        }
+        
+        const stats = {};
+        
+        const studentsResult = await db.query(`
+            SELECT COUNT(DISTINCT user_wallet_address) as count 
+            FROM student_rewards
+        `);
+        stats.totalStudents = parseInt(studentsResult.rows[0]?.count || 0);
+        
+        const completionsResult = await db.query(`
+            SELECT COUNT(*) as count 
+            FROM student_rewards 
+            WHERE reward_type = 'course_completion'
+        `);
+        stats.courseCompletions = parseInt(completionsResult.rows[0]?.count || 0);
+        
+        const kenoResult = await db.query(`
+            SELECT COALESCE(SUM(reward_amount), 0) as total 
+            FROM student_rewards
+        `);
+        stats.kenoDistributed = parseFloat(kenoResult.rows[0]?.total || 0);
+        
+        const graduatesResult = await db.query(`
+            SELECT COUNT(DISTINCT user_wallet_address) as count 
+            FROM student_rewards 
+            WHERE reward_type = 'course_completion'
+            GROUP BY user_wallet_address 
+            HAVING COUNT(*) >= 21
+        `);
+        stats.totalGraduates = graduatesResult.rows.length;
+        
+        const icoResult = await db.query(`
+            SELECT COALESCE(SUM(amount_usd), 0) as total 
+            FROM ico_investors
+        `);
+        stats.icoRaised = parseFloat(icoResult.rows[0]?.total || 0);
+        
+        const rvtResult = await db.query(`
+            SELECT COUNT(*) as count 
+            FROM rvt_nft_distributions
+        `);
+        stats.rvtNftsIssued = parseInt(rvtResult.rows[0]?.count || 0);
+        
+        const courseStatsResult = await db.query(`
+            SELECT course_id, COUNT(*) as count 
+            FROM student_rewards 
+            WHERE reward_type = 'course_completion' AND course_id IS NOT NULL
+            GROUP BY course_id 
+            ORDER BY course_id
+        `);
+        const courseStats = courseStatsResult.rows;
+        
+        const studentsQuery = await db.query(`
+            SELECT 
+                user_wallet_address as wallet_address,
+                MAX(user_email) as email,
+                COUNT(DISTINCT CASE WHEN reward_type = 'course_completion' THEN course_id END) as courses_completed,
+                COALESCE(SUM(reward_amount), 0) as total_keno,
+                MIN(created_at) as first_activity
+            FROM student_rewards
+            GROUP BY user_wallet_address
+            ORDER BY first_activity DESC
+            LIMIT 100
+        `);
+        const students = studentsQuery.rows;
+        
+        for (let student of students) {
+            const rvtCount = await db.query(`
+                SELECT COUNT(*) as count FROM rvt_nft_distributions 
+                WHERE recipient_wallet = $1
+            `, [student.wallet_address]);
+            student.rvt_count = parseInt(rvtCount.rows[0]?.count || 0);
+        }
+        
+        const courseProgressResult = await db.query(`
+            SELECT * FROM course_progress 
+            ORDER BY updated_at DESC 
+            LIMIT 100
+        `);
+        const courseProgress = courseProgressResult.rows;
+        
+        const rewardsResult = await db.query(`
+            SELECT * FROM student_rewards 
+            ORDER BY created_at DESC 
+            LIMIT 100
+        `);
+        const rewards = rewardsResult.rows;
+        
+        const graduatesQuery = await db.query(`
+            SELECT 
+                user_wallet_address as wallet_address,
+                MAX(user_email) as email,
+                COUNT(*) as courses_count,
+                COALESCE(SUM(reward_amount), 0) as total_keno,
+                MAX(created_at) as graduated_at
+            FROM student_rewards
+            WHERE reward_type = 'course_completion'
+            GROUP BY user_wallet_address
+            HAVING COUNT(*) >= 21
+            ORDER BY graduated_at DESC
+        `);
+        const graduates = graduatesQuery.rows;
+        
+        for (let grad of graduates) {
+            const rvtTier = await db.query(`
+                SELECT nft_type FROM rvt_nft_distributions 
+                WHERE recipient_wallet = $1 
+                ORDER BY distributed_at DESC LIMIT 1
+            `, [grad.wallet_address]);
+            grad.rvt_tier = rvtTier.rows[0]?.nft_type || 'Platinum';
+        }
+        
+        const investorsResult = await db.query(`
+            SELECT * FROM ico_investors 
+            ORDER BY created_at DESC 
+            LIMIT 100
+        `);
+        const investors = investorsResult.rows;
+        
+        const referralsResult = await db.query(`
+            SELECT * FROM referrals 
+            ORDER BY created_at DESC 
+            LIMIT 100
+        `);
+        const referrals = referralsResult.rows;
+        
+        const recentActivityResult = await db.query(`
+            SELECT * FROM student_rewards 
+            ORDER BY created_at DESC 
+            LIMIT 20
+        `);
+        const recentActivity = recentActivityResult.rows;
+        
+        res.json({
+            success: true,
+            data: {
+                stats,
+                courseStats,
+                students,
+                courseProgress,
+                rewards,
+                graduates,
+                investors,
+                referrals,
+                recentActivity
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Admin dashboard error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/student/:walletAddress', requireAdminAuth, async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(503).json({ success: false, error: 'Database not ready' });
+        }
+        
+        const { walletAddress } = req.params;
+        
+        const rewards = await db.query(`
+            SELECT * FROM student_rewards 
+            WHERE user_wallet_address = $1 
+            ORDER BY created_at DESC
+        `, [walletAddress]);
+        
+        const progress = await db.query(`
+            SELECT * FROM course_progress 
+            WHERE user_wallet_address = $1 
+            ORDER BY course_id
+        `, [walletAddress]);
+        
+        const rvtNfts = await db.query(`
+            SELECT * FROM rvt_nft_distributions 
+            WHERE recipient_wallet = $1
+        `, [walletAddress]);
+        
+        const wealthSnapshot = await db.query(`
+            SELECT * FROM wealth_snapshots 
+            WHERE user_wallet = $1 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        `, [walletAddress]);
+        
+        res.json({
+            success: true,
+            data: {
+                rewards: rewards.rows,
+                progress: progress.rows,
+                rvtNfts: rvtNfts.rows,
+                wealthSnapshot: wealthSnapshot.rows[0] || null
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Student detail error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ==================== END ADMIN BACK OFFICE API ENDPOINTS ====================
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
