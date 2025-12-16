@@ -6781,32 +6781,32 @@ app.post('/api/admin/logout', (req, res) => {
 
 app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
     try {
-        if (!db) {
+        if (!dbConnection) {
             return res.status(503).json({ success: false, error: 'Database not ready' });
         }
         
         const stats = {};
         
-        const studentsResult = await db.query(`
+        const studentsResult = await dbConnection.query(`
             SELECT COUNT(DISTINCT user_wallet_address) as count 
             FROM student_rewards
         `);
         stats.totalStudents = parseInt(studentsResult.rows[0]?.count || 0);
         
-        const completionsResult = await db.query(`
+        const completionsResult = await dbConnection.query(`
             SELECT COUNT(*) as count 
             FROM student_rewards 
             WHERE reward_type = 'course_completion'
         `);
         stats.courseCompletions = parseInt(completionsResult.rows[0]?.count || 0);
         
-        const kenoResult = await db.query(`
+        const kenoResult = await dbConnection.query(`
             SELECT COALESCE(SUM(reward_amount), 0) as total 
             FROM student_rewards
         `);
         stats.kenoDistributed = parseFloat(kenoResult.rows[0]?.total || 0);
         
-        const graduatesResult = await db.query(`
+        const graduatesResult = await dbConnection.query(`
             SELECT COUNT(DISTINCT user_wallet_address) as count 
             FROM student_rewards 
             WHERE reward_type = 'course_completion'
@@ -6815,19 +6815,19 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
         `);
         stats.totalGraduates = graduatesResult.rows.length;
         
-        const icoResult = await db.query(`
+        const icoResult = await dbConnection.query(`
             SELECT COALESCE(SUM(amount_usd), 0) as total 
             FROM ico_investors
         `);
         stats.icoRaised = parseFloat(icoResult.rows[0]?.total || 0);
         
-        const rvtResult = await db.query(`
+        const rvtResult = await dbConnection.query(`
             SELECT COUNT(*) as count 
             FROM rvt_nft_distributions
         `);
         stats.rvtNftsIssued = parseInt(rvtResult.rows[0]?.count || 0);
         
-        const courseStatsResult = await db.query(`
+        const courseStatsResult = await dbConnection.query(`
             SELECT course_id, COUNT(*) as count 
             FROM student_rewards 
             WHERE reward_type = 'course_completion' AND course_id IS NOT NULL
@@ -6836,7 +6836,7 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
         `);
         const courseStats = courseStatsResult.rows;
         
-        const studentsQuery = await db.query(`
+        const studentsQuery = await dbConnection.query(`
             SELECT 
                 user_wallet_address as wallet_address,
                 MAX(user_email) as email,
@@ -6851,28 +6851,28 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
         const students = studentsQuery.rows;
         
         for (let student of students) {
-            const rvtCount = await db.query(`
+            const rvtCount = await dbConnection.query(`
                 SELECT COUNT(*) as count FROM rvt_nft_distributions 
                 WHERE recipient_wallet = $1
             `, [student.wallet_address]);
             student.rvt_count = parseInt(rvtCount.rows[0]?.count || 0);
         }
         
-        const courseProgressResult = await db.query(`
+        const courseProgressResult = await dbConnection.query(`
             SELECT * FROM course_progress 
             ORDER BY updated_at DESC 
             LIMIT 100
         `);
         const courseProgress = courseProgressResult.rows;
         
-        const rewardsResult = await db.query(`
+        const rewardsResult = await dbConnection.query(`
             SELECT * FROM student_rewards 
             ORDER BY created_at DESC 
             LIMIT 100
         `);
         const rewards = rewardsResult.rows;
         
-        const graduatesQuery = await db.query(`
+        const graduatesQuery = await dbConnection.query(`
             SELECT 
                 user_wallet_address as wallet_address,
                 MAX(user_email) as email,
@@ -6888,7 +6888,7 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
         const graduates = graduatesQuery.rows;
         
         for (let grad of graduates) {
-            const rvtTier = await db.query(`
+            const rvtTier = await dbConnection.query(`
                 SELECT nft_type FROM rvt_nft_distributions 
                 WHERE recipient_wallet = $1 
                 ORDER BY distributed_at DESC LIMIT 1
@@ -6896,21 +6896,21 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
             grad.rvt_tier = rvtTier.rows[0]?.nft_type || 'Platinum';
         }
         
-        const investorsResult = await db.query(`
+        const investorsResult = await dbConnection.query(`
             SELECT * FROM ico_investors 
             ORDER BY created_at DESC 
             LIMIT 100
         `);
         const investors = investorsResult.rows;
         
-        const referralsResult = await db.query(`
+        const referralsResult = await dbConnection.query(`
             SELECT * FROM referrals 
             ORDER BY created_at DESC 
             LIMIT 100
         `);
         const referrals = referralsResult.rows;
         
-        const recentActivityResult = await db.query(`
+        const recentActivityResult = await dbConnection.query(`
             SELECT * FROM student_rewards 
             ORDER BY created_at DESC 
             LIMIT 20
@@ -6940,30 +6940,30 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
 
 app.get('/api/admin/student/:walletAddress', requireAdminAuth, async (req, res) => {
     try {
-        if (!db) {
+        if (!dbConnection) {
             return res.status(503).json({ success: false, error: 'Database not ready' });
         }
         
         const { walletAddress } = req.params;
         
-        const rewards = await db.query(`
+        const rewards = await dbConnection.query(`
             SELECT * FROM student_rewards 
             WHERE user_wallet_address = $1 
             ORDER BY created_at DESC
         `, [walletAddress]);
         
-        const progress = await db.query(`
+        const progress = await dbConnection.query(`
             SELECT * FROM course_progress 
             WHERE user_wallet_address = $1 
             ORDER BY course_id
         `, [walletAddress]);
         
-        const rvtNfts = await db.query(`
+        const rvtNfts = await dbConnection.query(`
             SELECT * FROM rvt_nft_distributions 
             WHERE recipient_wallet = $1
         `, [walletAddress]);
         
-        const wealthSnapshot = await db.query(`
+        const wealthSnapshot = await dbConnection.query(`
             SELECT * FROM wealth_snapshots 
             WHERE user_wallet = $1 
             ORDER BY created_at DESC 
