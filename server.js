@@ -6816,7 +6816,7 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
         stats.totalGraduates = graduatesResult.rows.length;
         
         const icoResult = await dbConnection.query(`
-            SELECT COALESCE(SUM(amount_usd), 0) as total 
+            SELECT COALESCE(SUM(investment_amount_usd), 0) as total 
             FROM ico_investors
         `);
         stats.icoRaised = parseFloat(icoResult.rows[0]?.total || 0);
