@@ -315,6 +315,15 @@ let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, s
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager;
 let bscTokenTransfer;
 let icoPurchases = [], pendingPayPalOrders = new Map();
+
+// Function to log ICO purchases and save to file
+function logICOPurchase(purchaseData) {
+    icoPurchases.push(purchaseData);
+    if (dataPersistence) {
+        dataPersistence.saveICOPurchases(icoPurchases);
+    }
+    console.log(`📊 ICO purchase logged: ${purchaseData.tokens} KENO for $${purchaseData.amount}`);
+}
 let dbConnection, organizationManager, wealthBuilderManager, securityMiddleware;
 let printfulIntegration, aiSupport, microMonetization;
 const MicroMonetization = require('./src/MicroMonetization');
