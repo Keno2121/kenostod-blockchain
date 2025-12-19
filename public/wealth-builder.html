@@ -846,12 +846,17 @@
                 }
 
                 if (wealth) {
-                    document.getElementById('totalKeno').textContent = (wealth.totalKeno || 0).toFixed(2);
-                    document.getElementById('totalRewards').textContent = (wealth.totalRewards || 0).toFixed(2);
+                    document.getElementById('totalKeno').textContent = (wealth.totalKeno || 0).toLocaleString();
+                    document.getElementById('totalRewards').textContent = (wealth.totalRewards || 0).toLocaleString();
                     document.getElementById('totalRvt').textContent = (wealth.totalRvtRoyalties || 0).toFixed(2);
                     document.getElementById('totalReferrals').textContent = (wealth.totalReferrals || 0).toFixed(2);
                     document.getElementById('coursesCompleted').textContent = wealth.coursesCompleted || 0;
-                    document.getElementById('estimatedUSD').textContent = '$' + (wealth.estimatedUSD || 0).toFixed(2);
+                    document.getElementById('estimatedUSD').textContent = '$' + (wealth.estimatedUSD || 0).toLocaleString();
+                    
+                    if (wealth.icoPurchases > 0) {
+                        document.getElementById('totalRewards').parentElement.querySelector('.stat-subvalue').textContent = 
+                            `Course rewards + ${wealth.icoPurchases.toLocaleString()} ICO tokens`;
+                    }
                 }
 
                 await loadRVTNFTs();

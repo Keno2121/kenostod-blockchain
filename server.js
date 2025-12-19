@@ -3149,7 +3149,7 @@ app.post('/api/ico/one-click-cashout', async (req, res) => {
         res.json({
             success: true,
             preview: true,
-            message: 'Cash-out preview calculated. Actual withdrawals available after PancakeSwap listing (December 29, 2025).',
+            message: 'Cash-out preview calculated. Actual withdrawals available after PancakeSwap listing (March 2026).',
             summary: {
                 tokenBalance: totalTokens,
                 courseRewards: totalRewards,
@@ -3222,7 +3222,7 @@ app.get('/api/ico/preorders/:walletAddress', (req, res) => {
     }
 });
 
-// Send email notification to ICO investor (Dec 29 Public Sale launch)
+// Send email notification to ICO investor (PancakeSwap listing launch)
 app.post('/api/ico/send-notification', async (req, res) => {
     try {
         const { walletAddress } = req.body;
@@ -3287,7 +3287,7 @@ app.post('/api/ico/send-notification', async (req, res) => {
             <h2 style="color: #111827; margin-top: 0;">Congratulations, Early Investor!</h2>
             
             <p style="color: #4b5563; line-height: 1.6;">
-                The KENO Public Sale has officially launched on <strong>December 29, 2025</strong>, and your Private Sale investment has significantly increased in value!
+                The KENO token has officially launched on PancakeSwap, and your Private Sale investment has significantly increased in value!
             </p>
             
             <div class="stats-grid">
@@ -4567,7 +4567,7 @@ app.get('/api/wealth/dashboard/:walletAddress', async (req, res) => {
     try {
         const { walletAddress } = req.params;
         const email = req.query.email || '';
-        const result = await wealthBuilderManager.calculateWealthSnapshot(walletAddress, email);
+        const result = await wealthBuilderManager.calculateWealthSnapshot(walletAddress, email, icoPurchases || []);
         res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });

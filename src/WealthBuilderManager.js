@@ -457,12 +457,12 @@ class WealthBuilderManager {
         }
     }
 
-    async calculateWealthSnapshot(walletAddress, email) {
+    async calculateWealthSnapshot(walletAddress, email, icoPurchases = []) {
         try {
             const rewardsResult = await this.db.query(`
                 SELECT COALESCE(SUM(reward_amount), 0) as total_rewards
                 FROM student_rewards
-                WHERE user_wallet_address = $1 AND status = 'available'
+                WHERE user_wallet_address = $1 AND (status = 'available' OR status = 'claimed')
             `, [walletAddress]);
 
             const rvtResult = await this.db.query(`
@@ -488,9 +488,13 @@ class WealthBuilderManager {
             const totalRvtRoyalties = parseFloat(rvtResult.rows[0].total_rvt_royalties);
             const totalReferrals = parseFloat(referralResult.rows[0].total_referrals);
             const coursesCompleted = parseInt(coursesResult.rows[0].courses_completed);
+            
+            const icoPurchaseTokens = icoPurchases
+                .filter(p => p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase())
+                .reduce((sum, p) => sum + (p.tokens || 0), 0);
 
-            const totalKeno = totalRewards + totalRvtRoyalties + totalReferrals;
-            const estimatedUSD = totalKeno * 0.05;
+            const totalKeno = totalRewards + totalRvtRoyalties + totalReferrals + icoPurchaseTokens;
+            const estimatedUSD = totalKeno * 0.50;
 
             await this.db.query(`
                 INSERT INTO wealth_snapshots (
@@ -521,6 +525,7 @@ class WealthBuilderManager {
                     totalRewards,
                     totalRvtRoyalties,
                     totalReferrals,
+                    icoPurchases: icoPurchaseTokens,
                     coursesCompleted,
                     estimatedUSD,
                     rvtNFTs: parseInt(rvtResult.rows[0].rvt_count)
