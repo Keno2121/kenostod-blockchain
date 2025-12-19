@@ -2476,20 +2476,52 @@ function showCourseCompletionNotification(courseId, courseTitle, hasWallet = fal
     rewardBox.appendChild(kenoText);
     rewardBox.appendChild(kenoDesc);
     
-    // Add wallet warning if not connected
+    // Add wallet connect button if not connected
     if (!hasWallet) {
-        const walletWarning = document.createElement('div');
-        walletWarning.style.cssText = `
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-            font-size: 13px;
-            color: #92400e;
+        const walletConnectBox = document.createElement('div');
+        walletConnectBox.style.cssText = `
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            text-align: center;
         `;
-        walletWarning.innerHTML = '<strong>Note:</strong> Connect your wallet in the main app to receive KENO tokens to your account.';
-        rewardBox.appendChild(walletWarning);
+        
+        const walletIcon = document.createElement('div');
+        walletIcon.style.cssText = 'font-size: 32px; margin-bottom: 8px;';
+        walletIcon.textContent = '💼';
+        
+        const walletText = document.createElement('div');
+        walletText.style.cssText = 'font-size: 14px; color: #92400e; font-weight: 600; margin-bottom: 12px;';
+        walletText.textContent = 'Connect your wallet to receive your KENO tokens!';
+        
+        const connectBtn = document.createElement('button');
+        connectBtn.textContent = '🔗 Connect Wallet Now';
+        connectBtn.style.cssText = `
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        `;
+        connectBtn.onclick = function() {
+            if (window.kenostodWallet && window.kenostodWallet.showModal) {
+                window.kenostodWallet.showModal();
+            } else {
+                window.location.href = '/wealth-builder.html';
+            }
+        };
+        
+        walletConnectBox.appendChild(walletIcon);
+        walletConnectBox.appendChild(walletText);
+        walletConnectBox.appendChild(connectBtn);
+        rewardBox.appendChild(walletConnectBox);
     }
     
     // Check if this is the final course (graduation!)
