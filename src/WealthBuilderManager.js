@@ -459,30 +459,32 @@ class WealthBuilderManager {
 
     async calculateWealthSnapshot(walletAddress, email, icoPurchases = []) {
         try {
+            const normalizedWallet = walletAddress.toLowerCase();
+            
             const rewardsResult = await this.db.query(`
                 SELECT COALESCE(SUM(reward_amount), 0) as total_rewards
                 FROM student_rewards
-                WHERE user_wallet_address = $1 AND (status = 'available' OR status = 'claimed')
-            `, [walletAddress]);
+                WHERE LOWER(user_wallet_address) = $1 AND (status = 'available' OR status = 'claimed')
+            `, [normalizedWallet]);
 
             const rvtResult = await this.db.query(`
                 SELECT COALESCE(SUM(total_royalties_earned), 0) as total_rvt_royalties,
                        COUNT(*) as rvt_count
                 FROM rvt_nft_distributions
-                WHERE recipient_wallet = $1
-            `, [walletAddress]);
+                WHERE LOWER(recipient_wallet) = $1
+            `, [normalizedWallet]);
 
             const referralResult = await this.db.query(`
                 SELECT COALESCE(SUM(reward_amount), 0) as total_referrals
                 FROM referrals
-                WHERE referrer_wallet = $1 AND reward_claimed = true
-            `, [walletAddress]);
+                WHERE LOWER(referrer_wallet) = $1 AND reward_claimed = true
+            `, [normalizedWallet]);
 
             const coursesResult = await this.db.query(`
                 SELECT COUNT(DISTINCT course_name) as courses_completed
                 FROM student_rewards
-                WHERE user_wallet_address = $1 AND reward_type = 'course_completion'
-            `, [walletAddress]);
+                WHERE LOWER(user_wallet_address) = $1 AND reward_type = 'course_completion'
+            `, [normalizedWallet]);
 
             const totalRewards = parseFloat(rewardsResult.rows[0].total_rewards);
             const totalRvtRoyalties = parseFloat(rvtResult.rows[0].total_rvt_royalties);
