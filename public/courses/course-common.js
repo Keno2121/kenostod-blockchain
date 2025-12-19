@@ -110,6 +110,8 @@
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             const address = accounts[0];
             localStorage.setItem('userWalletAddress', address);
+            localStorage.setItem('walletAddress', address);
+            localStorage.setItem('userWallet', address);
             closeModal();
             renderWalletStatus();
             showToast('Wallet connected successfully!', 'success');
@@ -135,6 +137,8 @@
         }
         
         localStorage.setItem('userWalletAddress', address);
+        localStorage.setItem('walletAddress', address);
+        localStorage.setItem('userWallet', address);
         closeModal();
         renderWalletStatus();
         showToast('Wallet address saved!', 'success');
@@ -144,6 +148,7 @@
     function disconnect() {
         localStorage.removeItem('userWalletAddress');
         localStorage.removeItem('walletAddress');
+        localStorage.removeItem('userWallet');
         renderWalletStatus();
         showToast('Wallet disconnected', 'info');
     }
@@ -215,7 +220,7 @@
             const result = await response.json();
             
             if (result.success) {
-                showToast('🎉 250 KENO credited to your wallet!', 'success');
+                showRewardSuccessModal(walletAddress, courseName);
                 return { success: true };
             } else {
                 console.warn('Reward not credited:', result.error);
@@ -228,6 +233,66 @@
             console.error('Error crediting KENO reward:', error);
             return { success: false, reason: error.message };
         }
+    }
+
+    // Show reward success modal with clear information
+    function showRewardSuccessModal(walletAddress, courseName) {
+        const existing = document.getElementById('reward-success-modal');
+        if (existing) existing.remove();
+        
+        const modal = document.createElement('div');
+        modal.id = 'reward-success-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+        `;
+        
+        const shortWallet = walletAddress.slice(0,6) + '...' + walletAddress.slice(-4);
+        
+        modal.innerHTML = `
+            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 40px; border-radius: 20px; max-width: 420px; width: 90%; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border: 2px solid #10b981; box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);">
+                <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+                <h2 style="margin: 0 0 8px 0; color: #10b981; font-size: 28px;">Course Complete!</h2>
+                <p style="color: #a5b4fc; margin-bottom: 24px; font-size: 16px;">${courseName}</p>
+                
+                <div style="background: rgba(16, 185, 129, 0.15); border: 2px solid #10b981; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <div style="font-size: 42px; font-weight: 700; color: #10b981;">+250 KENO</div>
+                    <div style="color: #6ee7b7; margin-top: 8px; font-size: 14px;">Credited to your account</div>
+                </div>
+                
+                <div style="background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; border-radius: 10px; padding: 16px; margin-bottom: 20px; text-align: left;">
+                    <div style="color: #93c5fd; font-size: 12px; font-weight: 600; margin-bottom: 8px;">📍 WHERE TO FIND YOUR REWARDS:</div>
+                    <div style="color: white; font-size: 14px; margin-bottom: 8px;">
+                        <strong>1. Wealth Builder Page</strong> - View all your earned KENO
+                    </div>
+                    <div style="color: white; font-size: 14px;">
+                        <strong>2. MetaMask</strong> - After on-chain delivery (within 24h)
+                    </div>
+                </div>
+                
+                <div style="background: rgba(139, 92, 246, 0.15); border: 1px solid #8b5cf6; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                    <div style="color: #c4b5fd; font-size: 11px;">Connected Wallet</div>
+                    <div style="color: #a78bfa; font-size: 13px; font-weight: 600;">${shortWallet}</div>
+                </div>
+                
+                <button onclick="document.getElementById('reward-success-modal').remove()" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px;">
+                    Continue Learning
+                </button>
+                <button onclick="window.location.href='/wealth-builder.html'" style="width: 100%; background: transparent; border: 2px solid #8b5cf6; color: #a78bfa; padding: 14px; border-radius: 12px; font-size: 14px; cursor: pointer;">
+                    View My Rewards →
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
     }
 
     // Expose global API

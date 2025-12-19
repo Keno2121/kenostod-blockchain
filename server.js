@@ -3087,90 +3087,82 @@ app.get('/api/ico/sell-recommendations/:walletAddress', (req, res) => {
 });
 
 // One-click cash-out: Sell KENO + Withdraw to Bank
+// Simplified version - uses wallet address verification only (no private key needed)
 app.post('/api/ico/one-click-cashout', async (req, res) => {
     try {
-        const { walletAddress, privateKey, withdrawalMethod, withdrawalDestination } = req.body;
+        const { walletAddress, withdrawalMethod, withdrawalDestination, signature, timestamp, message } = req.body;
         
+        if (!walletAddress) {
+            return res.status(400).json({ success: false, error: 'Wallet address required' });
+        }
+        
+        // Get user's course reward balance from database
+        let totalRewards = 0;
+        try {
+            const result = await pool.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards 
+                 WHERE user_wallet_address = $1 AND status = 'claimed'`,
+                [walletAddress]
+            );
+            totalRewards = parseFloat(result.rows[0]?.total || 0);
+        } catch (dbErr) {
+            console.error('DB error getting rewards:', dbErr);
+        }
+        
+        // Also check ICO purchases
         const userPurchases = icoPurchases.filter(p => 
             p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase()
         );
+        const icoPurchaseTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
         
-        const totalTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+        const totalTokens = totalRewards + icoPurchaseTokens;
         
         if (totalTokens === 0) {
             return res.status(400).json({
                 success: false,
-                error: 'No KENO tokens to sell'
+                error: 'No KENO tokens available to cash out. Complete courses to earn KENO!'
             });
         }
         
-        const CryptoJS = require('crypto-js');
-        const EC = require('elliptic').ec;
-        const ec = new EC('secp256k1');
+        // Calculate USD value (using current rate of $0.50 per KENO for pre-listing)
+        const kenoPrice = 0.50;
+        const grossUsd = totalTokens * kenoPrice;
         
-        const timestamp = Date.now();
-        const orderData = walletAddress + 'KENO_USD' + 'sell' + 'market' + totalTokens + 0 + timestamp;
-        const hash = CryptoJS.SHA256(orderData).toString();
+        // Calculate fees based on method
+        let fee = 0;
+        let netAmount = 0;
         
-        const keyPair = ec.keyFromPrivate(privateKey, 'hex');
-        const signature = keyPair.sign(hash);
-        const signatureHex = signature.toDER('hex');
-        
-        const sellOrder = kenostodChain.exchangeAPI.createOrder({
-            userAddress: walletAddress,
-            pair: 'KENO_USD',
-            side: 'sell',
-            orderType: 'market',
-            quantity: totalTokens,
-            price: null,
-            signature: signatureHex,
-            timestamp: timestamp
-        });
-        
-        const usdBalance = bankingAPI.fiatBalances.get(walletAddress) || 0;
-        
-        let withdrawalResult;
         if (withdrawalMethod === 'stripe') {
-            withdrawalResult = bankingAPI.createWithdrawal(walletAddress, usdBalance, 'stripe', null);
-            
-            if (withdrawalResult.success) {
-                const payout = await stripeIntegration.createPayout(
-                    withdrawalResult.withdrawal.amount,
-                    null,
-                    'usd',
-                    { withdrawalId: withdrawalResult.withdrawal.withdrawalId }
-                );
-                
-                bankingAPI.completeWithdrawal(withdrawalResult.withdrawal.withdrawalId, payout.id);
-            }
+            fee = (grossUsd * 0.029) + 0.30; // 2.9% + $0.30
+            netAmount = grossUsd - fee;
         } else if (withdrawalMethod === 'paypal') {
-            withdrawalResult = bankingAPI.createWithdrawal(walletAddress, usdBalance, 'paypal', { paypalEmail: withdrawalDestination });
-            
-            if (withdrawalResult.success) {
-                const payout = await paypalIntegration.createPayout(
-                    withdrawalResult.withdrawal.amount,
-                    withdrawalDestination,
-                    'USD',
-                    { withdrawalId: withdrawalResult.withdrawal.withdrawalId }
-                );
-                
-                bankingAPI.completeWithdrawal(withdrawalResult.withdrawal.withdrawalId, payout.batch_id);
+            if (!withdrawalDestination) {
+                return res.status(400).json({ success: false, error: 'PayPal email required' });
             }
+            fee = (grossUsd * 0.0349) + 0.49; // 3.49% + $0.49
+            netAmount = grossUsd - fee;
         }
+        
+        // Note: Actual cash-out requires KENO to be listed on an exchange first
+        // This is a preview of what the cash-out would look like
         
         res.json({
             success: true,
-            sellOrder: sellOrder,
-            withdrawal: withdrawalResult,
+            preview: true,
+            message: 'Cash-out preview calculated. Actual withdrawals available after PancakeSwap listing (December 29, 2025).',
             summary: {
-                tokensSold: totalTokens,
-                usdReceived: usdBalance,
-                withdrawalAmount: withdrawalResult?.withdrawal?.amount || 0,
-                withdrawalFee: withdrawalResult?.withdrawal?.fee || 0,
-                netAmount: withdrawalResult?.withdrawal?.amount - withdrawalResult?.withdrawal?.fee || 0
+                tokenBalance: totalTokens,
+                courseRewards: totalRewards,
+                icoPurchases: icoPurchaseTokens,
+                kenoPrice: kenoPrice,
+                grossUsd: parseFloat(grossUsd.toFixed(2)),
+                withdrawalMethod: withdrawalMethod,
+                fee: parseFloat(fee.toFixed(2)),
+                netAmount: parseFloat(netAmount.toFixed(2))
             }
         });
     } catch (error) {
+        console.error('Cash-out error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

@@ -386,18 +386,17 @@
 
                 <!-- One-Click Cash-Out -->
                 <div class="card full-width-card">
-                    <h2>⚡ One-Click Cash-Out</h2>
-                    <p style="opacity:0.8; margin-bottom:20px;">Sell all your KENO and withdraw to your bank account in one click</p>
+                    <h2>⚡ Cash-Out Calculator</h2>
+                    <p style="opacity:0.8; margin-bottom:20px;">See how much you can earn when KENO lists on PancakeSwap (Dec 29, 2025)</p>
                     
                     <div class="cashout-section">
-                        <h3 style="margin-bottom:15px;">Cash-Out Settings</h3>
-                        <input type="password" id="cashoutPrivateKey" placeholder="Your private key" />
+                        <h3 style="margin-bottom:15px;">Withdrawal Method</h3>
                         <select id="cashoutMethod">
                             <option value="stripe">Stripe (Bank Transfer) - 2.9% + $0.30</option>
                             <option value="paypal">PayPal - 3.49% + $0.49</option>
                         </select>
-                        <input type="email" id="cashoutEmail" placeholder="PayPal email (if using PayPal)" />
-                        <button onclick="executeOneClickCashout()" class="btn btn-primary" style="width:100%; margin-top:15px; font-size:1.2rem;">💸 Execute Cash-Out</button>
+                        <input type="email" id="cashoutEmail" placeholder="PayPal email (if using PayPal)" style="margin-top:10px;" />
+                        <button onclick="executeOneClickCashout()" class="btn btn-primary" style="width:100%; margin-top:15px; font-size:1.2rem;">📊 Calculate Cash-Out</button>
                         <div id="cashoutResult"></div>
                     </div>
                 </div>
@@ -577,25 +576,15 @@
                 return;
             }
 
-            const privateKey = document.getElementById('cashoutPrivateKey').value.trim();
             const method = document.getElementById('cashoutMethod').value;
             const email = document.getElementById('cashoutEmail').value.trim();
-
-            if (!privateKey) {
-                alert('Please enter your private key');
-                return;
-            }
 
             if (method === 'paypal' && !email) {
                 alert('Please enter your PayPal email');
                 return;
             }
 
-            if (!confirm('Are you sure you want to sell ALL your KENO and withdraw to your bank? This cannot be undone.')) {
-                return;
-            }
-
-            document.getElementById('cashoutResult').innerHTML = '<div class="loading">Processing cash-out...</div>';
+            document.getElementById('cashoutResult').innerHTML = '<div class="loading">Calculating cash-out...</div>';
 
             try {
                 const response = await fetch('/api/ico/one-click-cashout', {
@@ -603,7 +592,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         walletAddress: currentWallet,
-                        privateKey: privateKey,
                         withdrawalMethod: method,
                         withdrawalDestination: email
                     })
@@ -618,18 +606,26 @@
 
                 const summary = data.summary;
                 const html = `
-                    <div class="success">
-                        <h3>✅ Cash-Out Successful!</h3>
-                        <p><strong>Tokens Sold:</strong> ${summary.tokensSold.toFixed(2)} KENO</p>
-                        <p><strong>USD Received:</strong> $${summary.usdReceived.toFixed(2)}</p>
-                        <p><strong>Withdrawal Fee:</strong> $${summary.withdrawalFee.toFixed(2)}</p>
-                        <p><strong>Net Amount to Bank:</strong> <span style="font-size:1.3rem; font-weight:700; color:#10b981;">$${summary.netAmount.toFixed(2)}</span></p>
+                    <div class="success" style="text-align:left;">
+                        <h3 style="text-align:center;">📊 Your Cash-Out Estimate</h3>
+                        <p style="background:rgba(0,0,0,0.2); padding:12px; border-radius:8px; margin:12px 0;">
+                            <strong>Course Rewards:</strong> ${summary.courseRewards.toLocaleString()} KENO<br>
+                            <strong>ICO Purchases:</strong> ${summary.icoPurchases.toLocaleString()} KENO<br>
+                            <strong>Total Balance:</strong> <span style="color:#10b981; font-weight:700;">${summary.tokenBalance.toLocaleString()} KENO</span>
+                        </p>
+                        <p><strong>KENO Price:</strong> $${summary.kenoPrice.toFixed(2)}</p>
+                        <p><strong>Gross Value:</strong> $${summary.grossUsd.toFixed(2)}</p>
+                        <p><strong>${summary.withdrawalMethod === 'stripe' ? 'Stripe' : 'PayPal'} Fee:</strong> -$${summary.fee.toFixed(2)}</p>
+                        <p style="font-size:1.3rem; margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.3);">
+                            <strong>Net to Bank:</strong> <span style="color:#10b981; font-weight:700;">$${summary.netAmount.toFixed(2)}</span>
+                        </p>
+                        <p style="opacity:0.7; font-size:0.85rem; margin-top:15px; text-align:center;">
+                            ⏳ Withdrawals available after PancakeSwap listing (Dec 29, 2025)
+                        </p>
                     </div>
                 `;
 
                 document.getElementById('cashoutResult').innerHTML = html;
-
-                setTimeout(() => loadDashboard(), 2000);
 
             } catch (error) {
                 document.getElementById('cashoutResult').innerHTML = `<div class="error">Error: ${error.message}</div>`;
