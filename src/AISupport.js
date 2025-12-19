@@ -15,7 +15,7 @@ ABOUT KENOSTOD BLOCKCHAIN ACADEMY:
 - 21-course curriculum covering blockchain fundamentals to advanced concepts
 - KENO is a REAL BEP-20 token on Binance Smart Chain (contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E)
 - ICO: Private Sale (Nov 28-Dec 28, 2025) at $0.01/KENO with 20% bonus, Public Sale (Dec 29-Feb 27, 2026) at $0.05/KENO
-- After ICO: PancakeSwap listing at $0.10+ (March 2026)
+- After ICO: PancakeSwap listing at $0.10+ (Dec 29, 2025)
 
 RVT - RESIDUAL VALUE TOKEN (VERY IMPORTANT - UNIQUE TO KENOSTOD):
 RVT stands for Residual Value Token. It is a special NFT in the Kenostod ecosystem that pays PERPETUAL ROYALTIES to holders.
@@ -63,7 +63,7 @@ GRADUATE REWARDS:
 - If KENO reaches $1.00 = $5,250 value
 
 WHAT GRADUATES CAN DO WITH THEIR 5,250 KENO:
-1. HODL and sell on PancakeSwap after listing (March 2026) at $0.10+
+1. HODL and sell on PancakeSwap after listing (Dec 29, 2025) at $0.10+
 2. Stake for Flash Arbitrage Loans and earn trading profits
 3. Purchase RVT NFTs for perpetual passive income
 4. Unlock premium features, mentorship, exclusive events

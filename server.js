@@ -3149,7 +3149,7 @@ app.post('/api/ico/one-click-cashout', async (req, res) => {
         res.json({
             success: true,
             preview: true,
-            message: 'Cash-out preview calculated. Actual withdrawals available after PancakeSwap listing (March 2026).',
+            message: 'Cash-out preview calculated. Actual withdrawals available after PancakeSwap listing (Dec 29, 2025).',
             summary: {
                 tokenBalance: totalTokens,
                 courseRewards: totalRewards,
