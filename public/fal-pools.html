@@ -566,6 +566,90 @@
             color: #00d4ff;
         }
         
+        .quick-deposit-btns {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-deposit-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quick-deposit-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+            transform: scale(1.02);
+        }
+        
+        .earnings-calc {
+            background: rgba(0, 255, 100, 0.1);
+            border: 1px solid rgba(0, 255, 100, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .earnings-calc-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #00ff64;
+        }
+        
+        .earnings-calc-label {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
+        .btn-trade {
+            background: linear-gradient(135deg, #ffd700, #ff9500);
+            color: #000;
+        }
+        
+        .active-loan-banner {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 149, 0, 0.15));
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .active-loan-banner.visible {
+            display: block;
+        }
+        
+        .loan-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .loan-info-item {
+            text-align: center;
+        }
+        
+        .loan-info-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .loan-info-label {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 28px;
@@ -581,6 +665,10 @@
             
             .nav-links {
                 display: none;
+            }
+            
+            .quick-deposit-btns {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -612,6 +700,37 @@
             </div>
         </section>
         
+        <section class="active-loan-banner" id="activeLoanBanner">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h3 style="margin: 0; color: #ffd700;">Active Pool Loan</h3>
+                    <p style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">You have an active flash loan! Execute arbitrage or repay before it expires.</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-trade" onclick="goToArbitrageWithLoan()">Execute Arbitrage</button>
+                    <button class="btn btn-secondary" onclick="repayPoolLoan()">Repay Loan</button>
+                </div>
+            </div>
+            <div class="loan-info-grid" id="loanInfoGrid">
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanAmount">0 KENO</div>
+                    <div class="loan-info-label">Loan Amount</div>
+                </div>
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanPool">-</div>
+                    <div class="loan-info-label">From Pool</div>
+                </div>
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanTimeLeft">5:00</div>
+                    <div class="loan-info-label">Time Left</div>
+                </div>
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanFee">0 KENO</div>
+                    <div class="loan-info-label">Fee (6%)</div>
+                </div>
+            </div>
+        </section>
+
         <section class="how-it-works">
             <h3>How It Works</h3>
             <ol class="step-list">
@@ -906,7 +1025,10 @@
                     return;
                 }
                 
-                grid.innerHTML = data.pools.map(pool => `
+                grid.innerHTML = data.pools.map(pool => {
+                    const apy = pool.estimatedAPY || 15;
+                    const monthlyReturn1000 = ((1000 * apy / 100) / 12).toFixed(1);
+                    return `
                     <div class="pool-card">
                         <div class="pool-header">
                             <div>
@@ -925,7 +1047,7 @@
                                 <div class="pool-stat-label">Available</div>
                             </div>
                             <div class="pool-stat">
-                                <div class="pool-stat-value apy-highlight">${pool.estimatedAPY?.toFixed(1) || 15}%</div>
+                                <div class="pool-stat-value apy-highlight">${apy.toFixed(1)}%</div>
                                 <div class="pool-stat-label">Est. APY</div>
                             </div>
                             <div class="pool-stat">
@@ -933,17 +1055,26 @@
                                 <div class="pool-stat-label">Contributors</div>
                             </div>
                         </div>
+                        <div class="earnings-calc">
+                            <div class="earnings-calc-value">+${monthlyReturn1000} KENO/month</div>
+                            <div class="earnings-calc-label">Estimated return on 1,000 KENO deposit</div>
+                        </div>
                         <div class="pool-progress">
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: ${pool.totalLiquidity > 0 ? ((pool.availableLiquidity / pool.totalLiquidity) * 100) : 100}%"></div>
                             </div>
                         </div>
+                        <div class="quick-deposit-btns">
+                            <button class="quick-deposit-btn" onclick="quickDeposit('${pool.id}', '${pool.name}', 100)">100 KENO</button>
+                            <button class="quick-deposit-btn" onclick="quickDeposit('${pool.id}', '${pool.name}', 500)">500 KENO</button>
+                            <button class="quick-deposit-btn" onclick="quickDeposit('${pool.id}', '${pool.name}', 1000)">1K KENO</button>
+                        </div>
                         <div class="pool-actions">
-                            <button class="btn btn-primary" onclick="openDepositModal('${pool.id}', '${pool.name}')">Deposit</button>
-                            <button class="btn btn-secondary" onclick="openBorrowModal('${pool.id}', '${pool.name}', ${pool.availableLiquidity})">Borrow</button>
+                            <button class="btn btn-primary" onclick="openDepositModal('${pool.id}', '${pool.name}')">Custom Deposit</button>
+                            <button class="btn btn-trade" onclick="borrowAndTrade('${pool.id}', '${pool.name}', ${pool.availableLiquidity})">Borrow & Trade</button>
                         </div>
                     </div>
-                `).join('');
+                `;}).join('');
                 
                 updateGlobalStats(data.pools);
                 
@@ -1234,6 +1365,200 @@
             return parseFloat(num).toLocaleString('en-US', { maximumFractionDigits: 2 });
         }
         
+        let activePoolLoan = null;
+        let loanCountdownInterval = null;
+        
+        async function quickDeposit(poolId, poolName, amount) {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                await showCustomAlert('Please create a wallet first at the main page.', '⚠️');
+                return;
+            }
+            
+            const confirmed = await showCustomConfirm(
+                `Quick Deposit ${amount} KENO to "${poolName}"?\n\nYou'll start earning passive income from arbitrage trades immediately!`,
+                '💰'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const response = await fetch('/api/fal-pool/deposit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        poolId,
+                        walletAddress: wallet.address,
+                        amount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showCustomAlert(`Deposited ${amount} KENO successfully!\n\n${data.message}`, '✅');
+                    loadPools();
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error depositing: ' + error.message, '❌');
+            }
+        }
+        
+        async function borrowAndTrade(poolId, poolName, availableLiquidity) {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                await showCustomAlert('Please create a wallet first at the main page.', '⚠️');
+                return;
+            }
+            
+            const maxBorrow = Math.min(availableLiquidity, 10000);
+            const suggestedAmount = Math.min(1000, maxBorrow);
+            
+            const confirmed = await showCustomConfirm(
+                `Borrow & Trade Flow\n\n1. Borrow ${suggestedAmount} KENO from "${poolName}"\n2. Go to Arbitrage page\n3. Execute profitable trades\n4. Keep the profit!\n\nPool Fee: 6% (${(suggestedAmount * 0.06).toFixed(0)} KENO)\nAvailable: ${formatNumber(availableLiquidity)} KENO\n\nProceed with flash loan?`,
+                '⚡'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const response = await fetch('/api/fal-pool/borrow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        poolId,
+                        walletAddress: wallet.address,
+                        amount: suggestedAmount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    activePoolLoan = {
+                        loanId: data.loanId,
+                        amount: suggestedAmount,
+                        poolName: poolName,
+                        poolId: poolId,
+                        fee: suggestedAmount * 0.06,
+                        expiresAt: Date.now() + (5 * 60 * 1000)
+                    };
+                    localStorage.setItem('activePoolLoan', JSON.stringify(activePoolLoan));
+                    
+                    await showCustomAlert(
+                        `Flash Loan Approved!\n\nAmount: ${suggestedAmount} KENO\nFee: ${(suggestedAmount * 0.06).toFixed(0)} KENO\nTime Limit: 5 minutes\n\nRedirecting to Arbitrage page...`,
+                        '⚡'
+                    );
+                    
+                    window.location.href = '/arbitrage.html?poolLoan=' + data.loanId;
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error borrowing: ' + error.message, '❌');
+            }
+        }
+        
+        function goToArbitrageWithLoan() {
+            if (activePoolLoan) {
+                window.location.href = '/arbitrage.html?poolLoan=' + activePoolLoan.loanId;
+            } else {
+                window.location.href = '/arbitrage.html';
+            }
+        }
+        
+        async function repayPoolLoan() {
+            if (!activePoolLoan) {
+                await showCustomAlert('No active pool loan found.', '⚠️');
+                return;
+            }
+            
+            const wallet = getStoredWallet();
+            if (!wallet) return;
+            
+            const confirmed = await showCustomConfirm(
+                `Repay Pool Loan?\n\nAmount: ${activePoolLoan.amount} KENO\nFee: ${activePoolLoan.fee.toFixed(0)} KENO\nTotal Due: ${(activePoolLoan.amount + activePoolLoan.fee).toFixed(0)} KENO\n\nNote: You'll keep any arbitrage profits you made!`,
+                '💳'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const response = await fetch('/api/fal-pool/repay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        loanId: activePoolLoan.loanId,
+                        walletAddress: wallet.address,
+                        profit: 0
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showCustomAlert('Loan repaid successfully!\n\n' + data.message, '✅');
+                    activePoolLoan = null;
+                    localStorage.removeItem('activePoolLoan');
+                    clearInterval(loanCountdownInterval);
+                    document.getElementById('activeLoanBanner').classList.remove('visible');
+                    loadPools();
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error repaying: ' + error.message, '❌');
+            }
+        }
+        
+        function updateLoanBanner() {
+            if (!activePoolLoan) return;
+            
+            const banner = document.getElementById('activeLoanBanner');
+            banner.classList.add('visible');
+            
+            document.getElementById('loanAmount').textContent = formatNumber(activePoolLoan.amount) + ' KENO';
+            document.getElementById('loanPool').textContent = activePoolLoan.poolName;
+            document.getElementById('loanFee').textContent = formatNumber(activePoolLoan.fee) + ' KENO';
+            
+            if (loanCountdownInterval) clearInterval(loanCountdownInterval);
+            
+            loanCountdownInterval = setInterval(() => {
+                const timeLeft = activePoolLoan.expiresAt - Date.now();
+                if (timeLeft <= 0) {
+                    document.getElementById('loanTimeLeft').textContent = 'EXPIRED!';
+                    document.getElementById('loanTimeLeft').style.color = '#ff5050';
+                    clearInterval(loanCountdownInterval);
+                } else {
+                    const minutes = Math.floor(timeLeft / 60000);
+                    const seconds = Math.floor((timeLeft % 60000) / 1000);
+                    document.getElementById('loanTimeLeft').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    if (timeLeft < 60000) {
+                        document.getElementById('loanTimeLeft').style.color = '#ff5050';
+                    }
+                }
+            }, 1000);
+        }
+        
+        function checkStoredPoolLoan() {
+            const stored = localStorage.getItem('activePoolLoan');
+            if (stored) {
+                try {
+                    activePoolLoan = JSON.parse(stored);
+                    if (activePoolLoan.expiresAt > Date.now()) {
+                        updateLoanBanner();
+                    } else {
+                        localStorage.removeItem('activePoolLoan');
+                        activePoolLoan = null;
+                    }
+                } catch (e) {
+                    localStorage.removeItem('activePoolLoan');
+                }
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
             loadPools();
             
@@ -1243,6 +1568,8 @@
             if (!wallet) {
                 document.getElementById('walletWarning').style.display = 'block';
             }
+            
+            checkStoredPoolLoan();
         });
         
         window.onclick = function(event) {
