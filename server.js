@@ -4916,12 +4916,12 @@ app.post('/api/graduate/merchandise/order', async (req, res) => {
         const sanitizedPostalCode = securityMiddleware.sanitizeText(shippingAddress.postalCode, 20);
         const sanitizedCountry = securityMiddleware.sanitizeText(shippingAddress.country, 100);
         
-        // Verify graduate status - authoritative check against kenostod_graduates table
+        // Verify graduate status - authoritative check against kenostod_graduates table (case-insensitive)
         const graduateCheck = await dbConnection.query(`
             SELECT graduate_id, completion_date, total_courses 
             FROM kenostod_graduates 
-            WHERE wallet_address = $1
-        `, [userWalletAddress.toLowerCase()]);
+            WHERE LOWER(wallet_address) = LOWER($1)
+        `, [userWalletAddress]);
         
         if (graduateCheck.rows.length === 0) {
             return res.status(403).json({ 
