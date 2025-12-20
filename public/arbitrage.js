@@ -1,6 +1,7 @@
 let currentWallet = '';
 let activeLoan = null;
 let profileData = null;
+let currentOpportunities = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     loadStats();
@@ -77,10 +78,11 @@ async function loadOpportunities() {
         list.style.display = 'block';
         
         if (data.success && data.opportunities.length > 0) {
-            list.innerHTML = data.opportunities.map(opp => {
+            currentOpportunities = data.opportunities;
+            list.innerHTML = data.opportunities.map((opp, index) => {
                 const profitPct = opp.profitPercent || opp.percentageDiff || 0;
                 return `
-                <div class="opportunity-card">
+                <div class="opportunity-card" id="opp-${index}">
                     <div class="opportunity-profit">+${profitPct.toFixed(2)}% Profit Potential</div>
                     <div class="opportunity-details">
                         <div>
@@ -93,8 +95,11 @@ async function loadOpportunities() {
                         </div>
                     </div>
                     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
-                        <small style="color: #64748b;">
-                            💡 Use flash loan to execute this arbitrage instantly!
+                        <button onclick="executeArbitrage(${index})" class="btn-execute-arb" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">
+                            Execute This Arbitrage
+                        </button>
+                        <small style="color: #64748b; display: block; margin-top: 8px; text-align: center;">
+                            Calculates profit automatically based on your loan
                         </small>
                     </div>
                 </div>
@@ -348,6 +353,92 @@ async function repayLoan() {
             showCustomAlert('Failed to repay loan. Please try again.', '❌');
         } else {
             showAlert('Failed to repay loan. Please try again.', 'error');
+        }
+    }
+}
+
+async function executeArbitrage(opportunityIndex) {
+    const opp = currentOpportunities[opportunityIndex];
+    if (!opp) {
+        showAlert('Opportunity expired. Please refresh the page.', 'error');
+        return;
+    }
+    
+    if (!activeLoan || !currentWallet) {
+        showAlert('You need an active flash loan first! Get a loan, then execute arbitrage.', 'info');
+        return;
+    }
+    
+    const loanAmount = activeLoan.amount;
+    const profitPct = opp.profitPercent || opp.percentageDiff || 0;
+    const fees = loanAmount * 0.003;
+    const grossProfit = loanAmount * (profitPct / 100);
+    const netProfit = Math.max(0, grossProfit - fees);
+    
+    const breakdown = `
+ARBITRAGE CALCULATION
+
+Your Loan: ${loanAmount.toLocaleString()} KENO
+
+Step 1: Buy ${opp.asset || 'Token'} on ${opp.buyExchange}
+   Price: $${opp.buyPrice.toFixed(4)}
+
+Step 2: Sell on ${opp.sellExchange}
+   Price: $${opp.sellPrice.toFixed(4)}
+
+Price Spread: ${profitPct.toFixed(2)}%
+
+Gross Profit: ${grossProfit.toFixed(2)} KENO
+Trading Fees (~0.3%): -${fees.toFixed(2)} KENO
+━━━━━━━━━━━━━━━━━━━━━━━
+NET PROFIT: ${netProfit.toFixed(2)} KENO
+
+Execute this arbitrage trade?`;
+
+    const confirmed = await showCustomConfirm(breakdown, '📊');
+    
+    if (!confirmed) return;
+    
+    try {
+        const response = await fetch('/api/arbitrage/flash-loan/repay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                walletAddress: currentWallet,
+                loanId: activeLoan.loanId,
+                profit: netProfit
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            let message = `Arbitrage executed successfully!\n\nProfit: ${netProfit.toFixed(2)} KENO`;
+            if (data.bonusEarned > 0) {
+                message += `\nBonus earned: ${data.bonusEarned.toFixed(2)} KENO!`;
+            }
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert(message, '🎉');
+            } else {
+                showAlert(message, 'success');
+            }
+            activeLoan = null;
+            displayActiveLoan();
+            loadStats();
+            loadLeaderboard();
+        } else {
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert(data.error, '❌');
+            } else {
+                showAlert(data.error, 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Arbitrage execution error:', error);
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('Failed to execute arbitrage. Please try again.', '❌');
+        } else {
+            showAlert('Failed to execute arbitrage. Please try again.', 'error');
         }
     }
 }
