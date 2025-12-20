@@ -77,9 +77,11 @@ async function loadOpportunities() {
         list.style.display = 'block';
         
         if (data.success && data.opportunities.length > 0) {
-            list.innerHTML = data.opportunities.map(opp => `
+            list.innerHTML = data.opportunities.map(opp => {
+                const profitPct = opp.profitPercent || opp.percentageDiff || 0;
+                return `
                 <div class="opportunity-card">
-                    <div class="opportunity-profit">+${opp.percentageDiff}% Profit Potential</div>
+                    <div class="opportunity-profit">+${profitPct.toFixed(2)}% Profit Potential</div>
                     <div class="opportunity-details">
                         <div>
                             <strong>Buy:</strong> ${opp.buyExchange}<br>
@@ -96,7 +98,7 @@ async function loadOpportunities() {
                         </small>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         } else {
             list.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #64748b;">

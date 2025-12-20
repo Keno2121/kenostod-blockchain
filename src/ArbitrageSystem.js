@@ -197,9 +197,7 @@ class ArbitrageSystem {
     applyArbitrageBonus(walletAddress, profit) {
         const bonusAmount = profit * (this.config.bonusPercentage / 100);
         
-        const balance = this.blockchain.getBalance(walletAddress);
-        this.blockchain.updateBalance(walletAddress, balance + bonusAmount);
-        
+        // Bonuses are tracked in the trader profile (educational simulation)
         const trader = this.getOrCreateTrader(walletAddress);
         trader.totalBonusEarned += bonusAmount;
         
