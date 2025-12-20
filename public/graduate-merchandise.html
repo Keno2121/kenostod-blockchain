@@ -497,20 +497,61 @@
 
         async function checkEligibility() {
             const walletState = getWalletState();
+            const urlParams = new URLSearchParams(window.location.search);
+            const walletFromUrl = urlParams.get('wallet');
             
-            if (!walletState || !walletState.publicKey) {
+            if (walletFromUrl) {
+                userWallet = walletFromUrl;
+            } else if (walletState && walletState.publicKey) {
+                userWallet = walletState.publicKey;
+            } else {
                 document.getElementById('loadingStatus').innerHTML = `
-                    <div class="status-banner error">
-                        <h3 style="margin: 0 0 12px 0; color: #dc2626;">❌ Wallet Not Connected</h3>
-                        <p style="margin: 0 0 16px 0; color: var(--text-gray);">Please connect your wallet to check graduate status.</p>
-                        <button onclick="window.location.href='/'" class="btn-gold">Go to Platform</button>
+                    <div class="status-banner" style="background: white; padding: 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <h3 style="margin: 0 0 16px 0; color: var(--primary-emerald);">🔐 Enter Your Wallet Address</h3>
+                        <p style="margin: 0 0 20px 0; color: var(--text-gray);">Enter your BSC wallet address to verify graduate status.</p>
+                        <input type="text" id="manualWalletInput" placeholder="0x..." style="width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; margin-bottom: 16px;">
+                        <button onclick="verifyManualWallet()" class="btn-gold" style="width: 100%;">Verify Graduate Status</button>
                     </div>
                 `;
                 return;
             }
 
-            userWallet = walletState.publicKey;
+            try {
+                const response = await fetch(`/api/graduate/check-eligibility/${userWallet}`);
+                const data = await response.json();
 
+                if (data.eligible && data.isGraduate) {
+                    graduateData = data;
+                    showMerchandiseForm();
+                } else {
+                    showNotEligible(data);
+                }
+            } catch (error) {
+                console.error('Error checking eligibility:', error);
+                document.getElementById('loadingStatus').innerHTML = `
+                    <div class="status-banner error">
+                        <h3 style="margin: 0 0 12px 0; color: #dc2626;">❌ Error</h3>
+                        <p style="margin: 0;">Unable to verify graduate status. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function verifyManualWallet() {
+            const walletInput = document.getElementById('manualWalletInput').value.trim();
+            if (!walletInput || !walletInput.startsWith('0x')) {
+                alert('Please enter a valid wallet address starting with 0x');
+                return;
+            }
+            userWallet = walletInput;
+            setWalletState(walletInput);
+            
+            document.getElementById('loadingStatus').innerHTML = `
+                <div class="loader"></div>
+                <p>Verifying your graduate status...</p>
+                <p style="font-size: 0.9rem; color: #666;">...</p>
+            `;
+            
             try {
                 const response = await fetch(`/api/graduate/check-eligibility/${userWallet}`);
                 const data = await response.json();
