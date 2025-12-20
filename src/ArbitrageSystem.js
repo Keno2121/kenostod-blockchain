@@ -114,8 +114,8 @@ class ArbitrageSystem {
         this.activeLoans.set(walletAddress, loan);
         this.flashLoans.set(loanId, loan);
 
-        const balance = this.blockchain.getBalance(walletAddress);
-        this.blockchain.updateBalance(walletAddress, balance + amount);
+        // Flash loans don't actually transfer KENO - they're simulated for educational purposes
+        // The loan amount is tracked virtually in the activeLoans map
 
         console.log(`⚡ Flash loan created: ${amount} KENO to ${walletAddress.substring(0, 20)}...`);
 
@@ -143,18 +143,8 @@ class ArbitrageSystem {
             return { success: false, error: 'Loan already repaid' };
         }
 
-        const balance = this.blockchain.getBalance(walletAddress);
-        
-        if (balance < loan.amount) {
-            this.handleDefaultedLoan(loan);
-            return { 
-                success: false, 
-                error: 'Insufficient balance to repay loan. Loan defaulted.',
-                penaltyApplied: true
-            };
-        }
-
-        this.blockchain.updateBalance(walletAddress, balance - loan.amount);
+        // Flash loans are simulated for educational purposes
+        // No actual balance check or deduction needed - the loan is virtual
 
         loan.repaid = true;
         loan.status = 'completed';
