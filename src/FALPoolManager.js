@@ -93,13 +93,6 @@ class FALPoolManager {
             return { success: false, error: `Minimum deposit is ${this.config.minPoolDeposit} KENO` };
         }
         
-        if (initialDeposit > 0) {
-            const creatorBalance = this.blockchain.getBalance(creatorWallet);
-            if (creatorBalance < initialDeposit) {
-                return { success: false, error: 'Insufficient balance for initial deposit' };
-            }
-        }
-        
         const poolId = this.generatePoolId();
         const riskConfig = this.config.riskLevels[riskLevel];
         const lockConfig = this.config.lockPeriods[lockPeriod];
@@ -131,8 +124,6 @@ class FALPoolManager {
         this.pools.set(poolId, pool);
         
         if (initialDeposit > 0) {
-            this.blockchain.updateBalance(creatorWallet, this.blockchain.getBalance(creatorWallet) - initialDeposit);
-            
             const contributionId = this.generateContributionId();
             const contribution = {
                 id: contributionId,
@@ -184,15 +175,8 @@ class FALPoolManager {
             return { success: false, error: `Deposit would exceed pool maximum size of ${this.config.maxPoolSize} KENO` };
         }
         
-        const walletBalance = this.blockchain.getBalance(walletAddress);
-        if (walletBalance < amount) {
-            return { success: false, error: 'Insufficient balance' };
-        }
-        
         const useLockPeriod = lockPeriod || pool.lockPeriod;
         const lockConfig = this.config.lockPeriods[useLockPeriod];
-        
-        this.blockchain.updateBalance(walletAddress, walletBalance - amount);
         
         const contributionId = this.generateContributionId();
         const contribution = {
@@ -280,8 +264,6 @@ class FALPoolManager {
         const earnings = contribution.totalEarned;
         const totalWithdrawal = withdrawAmount + earnings;
         
-        this.blockchain.updateBalance(walletAddress, this.blockchain.getBalance(walletAddress) + totalWithdrawal);
-        
         contribution.amount -= withdrawAmount;
         contribution.totalEarned = 0;
         pool.totalLiquidity -= withdrawAmount;
@@ -368,8 +350,6 @@ class FALPoolManager {
         pool.totalLoansIssued++;
         pool.lastActivityAt = Date.now();
         
-        this.blockchain.updateBalance(borrowerWallet, this.blockchain.getBalance(borrowerWallet) + amount);
-        
         this.persistData();
         
         console.log(`⚡ Pool loan issued: ${amount} KENO from ${pool.name} to ${borrowerWallet.substring(0, 20)}...`);
@@ -409,18 +389,6 @@ class FALPoolManager {
         }
         
         const totalRepayment = loan.amount + loan.platformFee + loan.poolFee;
-        const borrowerBalance = this.blockchain.getBalance(borrowerWallet);
-        
-        if (borrowerBalance < totalRepayment) {
-            this.handlePoolLoanDefault(loan, pool);
-            return {
-                success: false,
-                error: 'Insufficient balance to repay loan. Loan defaulted.',
-                penaltyApplied: true
-            };
-        }
-        
-        this.blockchain.updateBalance(borrowerWallet, borrowerBalance - totalRepayment);
         
         pool.availableLiquidity += loan.amount + loan.poolFee;
         pool.lockedLiquidity -= loan.amount;
