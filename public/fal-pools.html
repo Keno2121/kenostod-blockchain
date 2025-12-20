@@ -1349,15 +1349,26 @@
         }
         
         function getStoredWallet() {
-            const stored = localStorage.getItem('kenostod_wallet');
-            if (stored) {
-                try {
-                    return JSON.parse(stored);
-                } catch (e) {
-                    return null;
+            try {
+                const stored = localStorage.getItem('kenostod_wallet_state');
+                if (stored) {
+                    const wallet = JSON.parse(stored);
+                    if (wallet && wallet.publicKey) {
+                        return { address: wallet.publicKey, privateKey: wallet.privateKey };
+                    }
                 }
+                
+                const addressOnly = localStorage.getItem('userWalletAddress') || 
+                                   localStorage.getItem('walletAddress');
+                if (addressOnly) {
+                    return { address: addressOnly };
+                }
+                
+                return null;
+            } catch (e) {
+                console.error('Error loading wallet:', e);
+                return null;
             }
-            return null;
         }
         
         function formatNumber(num) {
