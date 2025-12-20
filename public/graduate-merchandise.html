@@ -691,10 +691,21 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    if (typeof showCustomAlert === 'function') {
-                        await showCustomAlert(`Success! Your merchandise order has been submitted.\n\nOrder ID: ${result.order.order_id}\n\nYou will receive an email when your items ship.`, '✅');
-                    }
-                    window.location.href = '/graduate-club.html';
+                    document.getElementById('merchForm').innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 5rem; margin-bottom: 20px;">🎉</div>
+                            <h2 style="color: var(--primary-emerald); margin-bottom: 16px;">Order Submitted!</h2>
+                            <p style="font-size: 1.1rem; margin-bottom: 24px;">Your merchandise request has been placed successfully.</p>
+                            <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+                                <p style="margin: 0 0 8px 0; color: #666;">Order ID:</p>
+                                <p style="font-weight: 700; font-size: 1.1rem; color: var(--primary-emerald); margin: 0;">${result.order.order_id}</p>
+                            </div>
+                            <p style="color: #666; margin-bottom: 30px;">You will receive an email when your items ship.</p>
+                            <button onclick="window.location.href='/graduate-club.html'" class="btn-gold" style="font-size: 1.1rem; padding: 16px 40px;">
+                                Go to Graduate Club
+                            </button>
+                        </div>
+                    `;
                 } else {
                     if (typeof showCustomAlert === 'function') {
                         showCustomAlert(`Error: ${result.error}`, '❌');
