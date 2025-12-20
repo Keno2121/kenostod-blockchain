@@ -4775,11 +4775,11 @@ app.get('/api/graduate/check-eligibility/:wallet', async (req, res) => {
     try {
         const { wallet } = req.params;
         
-        // Check if user is a verified graduate
+        // Check if user is a verified graduate (case-insensitive wallet match)
         const graduateCheck = await dbConnection.query(`
             SELECT graduate_id, completion_date, total_courses, keno_earned, rvt_nft_tier
             FROM kenostod_graduates
-            WHERE wallet_address = $1
+            WHERE LOWER(wallet_address) = LOWER($1)
         `, [wallet]);
         
         if (graduateCheck.rows.length > 0) {
@@ -4795,12 +4795,12 @@ app.get('/api/graduate/check-eligibility/:wallet', async (req, res) => {
             });
         }
         
-        // Check course completion status
+        // Check course completion status (case-insensitive wallet match)
         const completionCheck = await dbConnection.query(`
             SELECT 
                 COUNT(DISTINCT course_id) as completed_courses
             FROM course_progress
-            WHERE user_wallet_address = $1 
+            WHERE LOWER(user_wallet_address) = LOWER($1) 
             AND completion_verified = true
         `, [wallet]);
         
