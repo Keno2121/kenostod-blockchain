@@ -8,7 +8,7 @@
 | Symbol | KENO |
 | Blockchain | Binance Smart Chain (BEP-20) |
 | Contract | 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E |
-| Total Supply | 21,000,000 KENO |
+| Total Supply | 1,000,000,000 KENO |
 | Decimals | 18 |
 | Additional Minting | No (Fixed Supply) |
 
@@ -18,17 +18,17 @@
 
 | Allocation | Tokens | Percentage | Purpose |
 |------------|--------|------------|---------|
-| Education Rewards | 5,000,000 | 23.8% | Student course completion rewards (250 KENO x 21 courses) |
-| FAL Liquidity | 4,000,000 | 19.0% | Flash Arbitrage Loan ecosystem liquidity |
-| IEO (Public Sale) | 3,000,000 | 14.3% | Exchange initial offering |
-| Presale | 2,000,000 | 9.5% | Community presale round |
-| Scholarship Fund | 2,000,000 | 9.5% | Free access for underserved communities |
-| Team & Development | 1,500,000 | 7.1% | Long-term development incentives |
-| Marketing | 1,100,000 | 5.2% | Campaigns, partnerships, community |
-| Seed Sale | 1,000,000 | 4.8% | Early backer round |
-| Founder IP Protection | 750,000 | 3.6% | Patents, trademarks, legal protection |
-| DEX Liquidity | 650,000 | 3.1% | PancakeSwap initial liquidity |
-| **TOTAL** | **21,000,000** | **100%** | |
+| Education Rewards | 250,000,000 | 25.0% | Student course completion rewards (250 KENO x 21 courses) |
+| FAL Liquidity | 200,000,000 | 20.0% | Flash Arbitrage Loan ecosystem liquidity |
+| IEO (Public Sale) | 150,000,000 | 15.0% | Exchange initial offering |
+| Presale | 100,000,000 | 10.0% | Community presale round |
+| Scholarship Fund | 100,000,000 | 10.0% | Free access for underserved communities |
+| Team & Development | 75,000,000 | 7.5% | Long-term development incentives |
+| Marketing | 50,000,000 | 5.0% | Campaigns, partnerships, community |
+| Seed Sale | 40,000,000 | 4.0% | Early backer round |
+| Founder IP Protection | 25,000,000 | 2.5% | Patents, trademarks, legal protection |
+| DEX Liquidity | 10,000,000 | 1.0% | PancakeSwap initial liquidity |
+| **TOTAL** | **1,000,000,000** | **100%** | |
 
 ---
 
@@ -38,26 +38,26 @@
 | Detail | Value |
 |--------|-------|
 | Price | $0.15 per KENO |
-| Tokens | 1,000,000 KENO |
-| Raise | $150,000 |
+| Tokens | 40,000,000 KENO |
+| Raise | $6,000,000 |
 | Vesting | 10% at TGE, 15% monthly for 6 months |
 
 ### Phase 2: Presale
 | Detail | Value |
 |--------|-------|
 | Price | $0.25 per KENO |
-| Tokens | 2,000,000 KENO |
-| Raise | $500,000 |
+| Tokens | 100,000,000 KENO |
+| Raise | $25,000,000 |
 | Vesting | 25% at TGE, 25% monthly for 3 months |
 
 ### Phase 3: IEO (Initial Exchange Offering)
 | Detail | Value |
 |--------|-------|
 | Price | $0.50 per KENO |
-| Tokens | 3,000,000 KENO |
-| Raise | $1,500,000 |
-| Soft Cap | $300,000 |
-| Hard Cap | $1,500,000 |
+| Tokens | 150,000,000 KENO |
+| Raise | $75,000,000 |
+| Soft Cap | $15,000,000 |
+| Hard Cap | $75,000,000 |
 | Vesting | 100% unlocked at TGE |
 | Payment | USDT |
 | Target Date | December 28, 2024 |
@@ -67,7 +67,7 @@
 |--------|-------|
 | Exchange | PancakeSwap |
 | Listing Price | $1.00 per KENO |
-| Liquidity | 650,000 KENO paired with raised funds |
+| Liquidity | 10,000,000 KENO paired with raised funds |
 | Lock | 12 months liquidity lock |
 
 ---
@@ -76,10 +76,10 @@
 
 | Phase | Tokens | Price | Raise |
 |-------|--------|-------|-------|
-| Seed | 1,000,000 | $0.15 | $150,000 |
-| Presale | 2,000,000 | $0.25 | $500,000 |
-| IEO | 3,000,000 | $0.50 | $1,500,000 |
-| **Total** | **6,000,000** | | **$2,150,000** |
+| Seed | 40,000,000 | $0.15 | $6,000,000 |
+| Presale | 100,000,000 | $0.25 | $25,000,000 |
+| IEO | 150,000,000 | $0.50 | $75,000,000 |
+| **Total** | **290,000,000** | | **$106,000,000** |
 
 ---
 
