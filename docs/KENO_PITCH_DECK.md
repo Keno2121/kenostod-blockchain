@@ -49,7 +49,7 @@ A revolutionary new asset class that:
 ## Slide 5: Revenue Model (15+ Streams)
 
 **MACRO Revenue:**
-- ICO Token Sales (Presale: $0.01, DEX: $0.50)
+- ICO Token Sales (IEO: $0.50, DEX: $1.00)
 - Course Subscriptions ($19-49/month)
 - Corporate B2B Training
 - White-Label Licensing
@@ -98,9 +98,11 @@ A revolutionary new asset class that:
 | Reserve/Future | 10% | 2,100,000 |
 
 **Pricing:**
-- Presale: $0.01 (ends Dec 28, 2025)
-- DEX Launch: $0.50 (PancakeSwap)
-- Target 2026: $1.00+
+- Seed Sale: $0.15
+- Presale: $0.25
+- IEO: $0.50 (ends Dec 28, 2025)
+- DEX Launch: $1.00 (PancakeSwap, Dec 29)
+- Target 2026: $2.50+
 
 ---
 

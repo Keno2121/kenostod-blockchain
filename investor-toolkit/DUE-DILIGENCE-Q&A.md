@@ -9,7 +9,7 @@
 ### Q: What are your revenue streams?
 **A:** We have 7 distinct revenue streams:
 
-1. **ICO Token Sales** - $0.01 (private) → $0.05 (public) → DEX listing
+1. **ICO Token Sales** - $0.15 (seed) → $0.25 (presale) → $0.50 (IEO) → $1.00 (DEX)
 2. **Course Subscriptions** - Monthly/annual access to 21 courses
 3. **Corporate B2B Training** - Team licenses via Stripe integration
 4. **Merchant Gateway Fees** - 2.5% transaction fee on KENO payments

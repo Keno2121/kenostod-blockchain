@@ -71,6 +71,13 @@ A comprehensive investor transparency system with a real-time countdown timer, l
 ## Revenue Systems
 Revenue is generated through over 15 streams including ICO token sales, course subscriptions, corporate B2B training, white-label licensing, G.I.F.T. smart apparel, FAL/FALP technology licensing (MACRO); AI chat premium, quiz retakes, featured posts, pool creation/boost, badge minting, arbitrage alerts, tip platform fees, mentor verification (MICRO); and exchange trading fees, merchant gateway fees, FAL/FALP platform fees, NFT secondary sales royalties (PASSIVE). Premium memberships (Student Pro, Trader Pro, Graduate Elite) are also offered.
 
+# Recent Changes
+
+- **Dec 20, 2025:** Updated DEX listing price from $0.50 to $1.00 per KENO to match IEO presale price of $0.50 (no one should buy at lower price on DEX)
+- **Dec 20, 2025:** Added Arbitrage Intelligence Dashboard for real-time opportunity visualization
+- **Dec 20, 2025:** Added Liquidity Pool Profit Dashboard to track monthly revenue and metrics
+- **Dec 29, 2025:** Scheduled PancakeSwap listing date with 50% BNB liquidity pair, 50% patents/development
+
 # External Dependencies
 
 -   **elliptic**: secp256k1 elliptic curve cryptography.
