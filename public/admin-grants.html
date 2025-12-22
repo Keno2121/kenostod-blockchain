@@ -216,7 +216,7 @@
     </div>
 
     <script>
-        var adminPassword = '';
+        var adminToken = '';
         var isAuthenticated = false;
 
         function showOverlay() {
@@ -228,8 +228,8 @@
         }
 
         function clearSession() {
-            sessionStorage.removeItem('admin_password');
-            adminPassword = '';
+            sessionStorage.removeItem('adminToken');
+            adminToken = '';
             isAuthenticated = false;
         }
 
@@ -252,8 +252,8 @@
                 });
 
                 if (res.ok) {
-                    adminPassword = pass;
-                    sessionStorage.setItem('admin_password', pass);
+                    adminToken = pass;
+                    sessionStorage.setItem('adminToken', pass);
                     isAuthenticated = true;
                     hideOverlay();
                     fetchAndDisplayGrants();
@@ -276,7 +276,7 @@
 
             try {
                 var res = await fetch('/api/admin/grants', {
-                    headers: { 'x-admin-password': adminPassword }
+                    headers: { 'X-Admin-Token': adminToken }
                 });
 
                 if (res.status === 401) {
@@ -351,7 +351,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-admin-password': adminPassword
+                        'X-Admin-Token': adminToken
                     },
                     body: JSON.stringify({ grantId: grantId, status: status })
                 });
@@ -372,13 +372,13 @@
 
         // Single initialization on page load
         (function init() {
-            var savedPassword = sessionStorage.getItem('admin_password');
+            var savedToken = sessionStorage.getItem('adminToken');
             
-            if (savedPassword) {
-                adminPassword = savedPassword;
-                // Verify saved password works - single API call
+            if (savedToken) {
+                adminToken = savedToken;
+                // Verify saved token works - single API call
                 fetch('/api/admin/grants', {
-                    headers: { 'x-admin-password': savedPassword }
+                    headers: { 'X-Admin-Token': savedToken }
                 }).then(function(res) {
                     if (res.ok) {
                         isAuthenticated = true;
