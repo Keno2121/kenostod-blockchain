@@ -6820,25 +6820,20 @@ app.post('/api/monetization/mint-badge', async (req, res) => {
 
 // ==================== ADMIN BACK OFFICE API ENDPOINTS ====================
 
-const adminSessions = new Map();
-
-function generateAdminToken() {
-    return require('crypto').randomBytes(32).toString('hex');
-}
-
+// Unified admin auth - uses x-admin-password header
 function requireAdminAuth(req, res, next) {
-    const token = req.headers['x-admin-token'];
-    if (!token || !adminSessions.has(token)) {
-        return res.status(401).json({ success: false, error: 'Unauthorized. Admin login required.' });
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const providedPassword = req.headers['x-admin-password'];
+
+    if (!adminPassword) {
+        return res.status(500).json({ success: false, error: 'Server configuration error' });
     }
-    
-    const session = adminSessions.get(token);
-    if (Date.now() > session.expiresAt) {
-        adminSessions.delete(token);
-        return res.status(401).json({ success: false, error: 'Session expired. Please login again.' });
+
+    if (providedPassword === adminPassword) {
+        next();
+    } else {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
     }
-    
-    next();
 }
 
 // Admin authentication endpoint - verifies password
@@ -6847,6 +6842,7 @@ app.post('/api/admin/login', (req, res) => {
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminPassword) {
+        console.error('ADMIN_PASSWORD not configured');
         return res.status(500).json({ error: 'Server configuration error' });
     }
 
