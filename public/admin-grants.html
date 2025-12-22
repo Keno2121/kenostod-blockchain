@@ -69,6 +69,7 @@
             background: rgba(15, 23, 42, 0.98);
             display: flex; align-items: center; justify-content: center;
             z-index: 2000;
+            display: none; /* Controlled by JS */
         }
 
         .login-card {
@@ -280,6 +281,9 @@
             
             if (!pass) return;
 
+            if (passInput.disabled) return;
+            passInput.disabled = true;
+
             try {
                 const res = await fetch('/api/admin/login', {
                     method: 'POST',
@@ -290,31 +294,39 @@
                 if (res.ok) {
                     adminPassword = pass;
                     sessionStorage.setItem('admin_password', pass);
+                    // SUCCESS - hide overlay and load
                     document.getElementById('login-overlay').style.display = 'none';
-                    // Don't show overlay again if this load fails unless it's a 401
-                    await loadGrants(true); 
+                    errorDiv.style.display = 'none';
+                    loadGrants(true);
                 } else {
+                    errorDiv.textContent = 'Invalid password';
                     errorDiv.style.display = 'block';
                     passInput.value = '';
                 }
             } catch (err) {
+                console.error('Login error:', err);
                 errorDiv.textContent = 'Server error. Please try again.';
                 errorDiv.style.display = 'block';
+            } finally {
+                passInput.disabled = false;
             }
         }
 
-        async function loadGrants(isInitialLogin = false) {
+        async function loadGrants(isInitialLoad = false) {
+            const overlay = document.getElementById('login-overlay');
+            const list = document.getElementById('grants-list');
+            
             if (!adminPassword) {
-                document.getElementById('login-overlay').style.display = 'flex';
+                adminPassword = sessionStorage.getItem('admin_password');
+            }
+
+            if (!adminPassword) {
+                overlay.style.display = 'flex';
                 return;
             }
 
-            const list = document.getElementById('grants-list');
-            const loadingHtml = '<div style="text-align:center; padding:40px;">Loading applications...</div>';
-            
-            // Only show loading if we aren't already showing data or if it's the very first load
-            if (list.innerHTML.includes('Please login') || isInitialLogin) {
-                list.innerHTML = loadingHtml;
+            if (isInitialLoad || list.innerHTML.includes('Please login')) {
+                list.innerHTML = '<div style="text-align:center; padding:40px;">Loading applications...</div>';
             }
 
             try {
@@ -322,24 +334,28 @@
                     headers: { 'x-admin-password': adminPassword }
                 });
 
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        sessionStorage.removeItem('admin_password');
-                        adminPassword = '';
-                        document.getElementById('login-overlay').style.display = 'flex';
-                        return;
-                    }
-                    throw new Error('Failed to load grants');
+                if (res.status === 401) {
+                    console.warn('Unauthorized access. Redirecting to login.');
+                    sessionStorage.removeItem('admin_password');
+                    adminPassword = '';
+                    overlay.style.display = 'flex';
+                    return;
                 }
+
+                if (!res.ok) throw new Error('Failed to load grants: ' + res.status);
 
                 const grants = await res.json();
                 
-                // Success: hide overlay and show data
-                document.getElementById('login-overlay').style.display = 'none';
+                // If we got data, we ARE logged in
+                overlay.style.display = 'none';
                 
-                list.innerHTML = grants.length === 0 ? '<div style="text-align:center; padding:40px; background:white; border-radius:16px; box-shadow:var(--shadow-md);">No applications yet.</div>' : '';
-                
-                grants.reverse().forEach(grant => {
+                if (grants.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:16px; box-shadow:var(--shadow-md);">No applications yet.</div>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                grants.slice().reverse().forEach(grant => {
                     const card = document.createElement('div');
                     card.className = 'grant-card';
                     card.innerHTML = `
@@ -349,39 +365,40 @@
                                 <h3 style="margin:12px 0; font-size:1.2rem; color:var(--primary); word-break:break-all;">${grant.walletAddress}</h3>
                             </div>
                             <div style="display:flex; gap:12px;">
-                                ${grant.status === 'pending' ? `
-                                    <button class="btn btn-approve" onclick="updateStatus('${grant.id}', 'approved')">Approve Grant</button>
-                                    <button class="btn btn-reject" onclick="updateStatus('${grant.id}', 'rejected')">Reject Application</button>
-                                ` : ''}
+                                ${grant.status === 'pending' ? \`
+                                    <button class="btn btn-approve" onclick="updateStatus('\${grant.id}', 'approved')">Approve Grant</button>
+                                    <button class="btn btn-reject" onclick="updateStatus('\${grant.id}', 'rejected')">Reject Application</button>
+                                \` : ''}
                             </div>
                         </div>
                         
                         <div class="details">
-                            <div class="detail-item"><strong>Courses Completed</strong><span>${grant.coursesCompleted} Courses</span></div>
-                            <div class="detail-item"><strong>Experience</strong><span>${grant.experience}</span></div>
-                            <div class="detail-item"><strong>Application Date</strong><span>${new Date(grant.appliedAt).toLocaleString()}</span></div>
-                            <div class="detail-item"><strong>Grant ID</strong><span style="font-family:monospace; font-size:0.8rem;">${grant.id}</span></div>
+                            <div class="detail-item"><strong>Courses Completed</strong><span>\${grant.coursesCompleted} Courses</span></div>
+                            <div class="detail-item"><strong>Experience</strong><span>\${grant.experience}</span></div>
+                            <div class="detail-item"><strong>Application Date</strong><span>\${new Date(grant.appliedAt).toLocaleString()}</span></div>
+                            <div class="detail-item"><strong>Grant ID</strong><span style="font-family:monospace; font-size:0.8rem;">\${grant.id}</span></div>
                         </div>
 
                         <div class="grant-content">
-                            <h4>Why are you interested in mining?</h4>
-                            <p>${grant.interest || 'No response provided.'}</p>
+                            <h4>Why interested in mining?</h4>
+                            <p>\${grant.interest || 'No response provided.'}</p>
                         </div>
                         
                         <div class="grant-content" style="margin-top:20px;">
-                            <h4>What are your goals in the blockchain space?</h4>
-                            <p>${grant.goals || 'No response provided.'}</p>
+                            <h4>Goals in blockchain space?</h4>
+                            <p>\${grant.goals || 'No response provided.'}</p>
                         </div>
-                    `;
+                    \`;
                     list.appendChild(card);
                 });
             } catch (err) {
-                list.innerHTML = `<div style="text-align:center; padding:40px; color:var(--danger);">Error: ${err.message}</div>`;
+                console.error('Fetch error:', err);
+                list.innerHTML = \`<div style="text-align:center; padding:40px; color:var(--danger);">Error: \${err.message}</div>\`;
             }
         }
 
         async function updateStatus(grantId, status) {
-            if (!confirm(`Are you sure you want to ${status} this grant application?`)) return;
+            if (!confirm(\`Are you sure you want to \${status} this grant application?\`)) return;
             
             try {
                 const res = await fetch('/api/admin/grants/update', {
@@ -395,19 +412,21 @@
 
                 if (res.ok) {
                     loadGrants();
+                } else if (res.status === 401) {
+                    alert('Session expired. Please log in again.');
+                    location.reload();
                 } else {
-                    alert('Status update failed. Please check your credentials.');
+                    alert('Status update failed.');
                 }
             } catch (err) {
-                alert('Connection error. Please try again.');
+                alert('Connection error.');
             }
         }
 
-        // Auto-login if session exists
+        // On load
         window.addEventListener('load', () => {
             if (adminPassword) {
-                // Overlay stays visible until verify success in loadGrants
-                loadGrants();
+                loadGrants(true);
             } else {
                 document.getElementById('login-overlay').style.display = 'flex';
             }
