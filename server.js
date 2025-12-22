@@ -482,12 +482,19 @@ async function initializeTestGraduate() {
     }
 }
 
-// Admin Authentication Middleware - Session-based
+// Admin Authentication Middleware - Header-based (works with Replit proxy)
 const adminAuth = (req, res, next) => {
-    if (req.session && req.session.isAdmin) {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const providedPassword = req.headers['x-admin-password'];
+
+    if (!adminPassword) {
+        return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    if (providedPassword === adminPassword) {
         next();
     } else {
-        res.status(401).json({ error: 'Unauthorized: Admin access required' });
+        res.status(401).json({ error: 'Unauthorized' });
     }
 };
 
@@ -6834,50 +6841,20 @@ function requireAdminAuth(req, res, next) {
     next();
 }
 
-// Admin authentication endpoint - sets session
+// Admin authentication endpoint - verifies password
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminPassword) {
-        console.error('❌ ADMIN_PASSWORD secret not set');
         return res.status(500).json({ error: 'Server configuration error' });
     }
 
     if (password === adminPassword) {
-        req.session.isAdmin = true;
-        req.session.loginTime = Date.now();
         res.json({ success: true });
     } else {
         res.status(401).json({ success: false, error: 'Invalid password' });
     }
-});
-
-// Check if admin session is valid
-app.get('/api/admin/session', (req, res) => {
-    if (req.session && req.session.isAdmin) {
-        res.json({ authenticated: true });
-    } else {
-        res.status(401).json({ authenticated: false });
-    }
-});
-
-app.post('/api/admin/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).json({ error: 'Logout failed' });
-        }
-        res.json({ success: true });
-    });
-});
-
-// Legacy logout endpoint for backwards compatibility
-app.post('/api/admin/logout-legacy', (req, res) => {
-    const token = req.headers['x-admin-token'];
-    if (token) {
-        adminSessions.delete(token);
-    }
-    res.json({ success: true });
 });
 
 app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {

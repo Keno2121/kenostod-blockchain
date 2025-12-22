@@ -840,6 +840,8 @@
     </div>
     
     <script>
+        let adminPwd = sessionStorage.getItem('adminPwd') || '';
+        
         let allData = {
             students: [],
             courses: [],
@@ -851,20 +853,20 @@
         };
         
         async function attemptLogin() {
-            const password = document.getElementById('adminPassword').value;
+            const password = document.getElementById('adminPassword').value.trim();
             const errorEl = document.getElementById('loginError');
+            if (!password) return;
             
             try {
                 const response = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({ password })
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
+                if (response.ok) {
+                    adminPwd = password;
+                    sessionStorage.setItem('adminPwd', password);
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('adminContainer').style.display = 'flex';
                     refreshAllData();
@@ -879,32 +881,52 @@
         }
         
         async function checkExistingSession() {
+            if (!adminPwd) return;
+            
             try {
-                const response = await fetch('/api/admin/session', {
-                    credentials: 'include'
+                const response = await fetch('/api/admin/dashboard', {
+                    headers: { 'x-admin-password': adminPwd }
                 });
                 if (response.ok) {
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('adminContainer').style.display = 'flex';
-                    refreshAllData();
+                    const data = await response.json();
+                    if (data && data.success) {
+                        allData = data.data;
+                        updateDashboard();
+                        updateStudentsTable();
+                        updateCoursesTable();
+                        updateRewardsTable();
+                        updateGraduatesTable();
+                        updateInvestorsTable();
+                        updateReferralsTable();
+                        document.getElementById('lastUpdate').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                    }
+                } else {
+                    sessionStorage.removeItem('adminPwd');
+                    adminPwd = '';
                 }
             } catch (e) {
-                // No valid session, show login
+                // Error checking session
             }
         }
         
-        async function logout() {
-            await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
+        function logout() {
+            sessionStorage.removeItem('adminPwd');
+            adminPwd = '';
             location.reload();
         }
         
         async function fetchAdminData() {
+            if (!adminPwd) return null;
+            
             try {
                 const response = await fetch('/api/admin/dashboard', {
-                    credentials: 'include'
+                    headers: { 'x-admin-password': adminPwd }
                 });
                 
                 if (response.status === 401) {
+                    sessionStorage.removeItem('adminPwd');
                     location.reload();
                     return null;
                 }

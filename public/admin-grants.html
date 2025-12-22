@@ -203,7 +203,7 @@
                 <h1>💎 Mining Grant Management</h1>
                 <p>Review and approve KENO mining grant applications</p>
             </div>
-            <button class="btn btn-refresh" onclick="refreshGrants()">🔄 Refresh</button>
+            <button class="btn btn-refresh" onclick="loadGrants()">🔄 Refresh</button>
         </div>
     </div>
 
@@ -216,13 +216,13 @@
     </div>
 
     <script>
-        var isAuthenticated = false;
+        var adminPwd = sessionStorage.getItem('adminPwd') || '';
 
-        function showOverlay() {
+        function showLogin() {
             document.getElementById('login-overlay').style.display = 'flex';
         }
 
-        function hideOverlay() {
+        function hideLogin() {
             document.getElementById('login-overlay').style.display = 'none';
         }
 
@@ -232,23 +232,19 @@
             var pass = passInput.value.trim();
             
             if (!pass) return;
-            if (passInput.disabled) return;
-            
-            passInput.disabled = true;
-            errorDiv.style.display = 'none';
 
             try {
                 var res = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({ password: pass })
                 });
 
                 if (res.ok) {
-                    isAuthenticated = true;
-                    hideOverlay();
-                    fetchAndDisplayGrants();
+                    adminPwd = pass;
+                    sessionStorage.setItem('adminPwd', pass);
+                    hideLogin();
+                    loadGrants();
                 } else {
                     errorDiv.textContent = 'Invalid password';
                     errorDiv.style.display = 'block';
@@ -257,23 +253,27 @@
             } catch (err) {
                 errorDiv.textContent = 'Server error. Please try again.';
                 errorDiv.style.display = 'block';
-            } finally {
-                passInput.disabled = false;
             }
         }
 
-        async function fetchAndDisplayGrants() {
+        async function loadGrants() {
+            if (!adminPwd) {
+                showLogin();
+                return;
+            }
+
             var list = document.getElementById('grants-list');
             list.innerHTML = '<div style="text-align:center; padding:40px;">Loading applications...</div>';
 
             try {
                 var res = await fetch('/api/admin/grants', {
-                    credentials: 'include'
+                    headers: { 'x-admin-password': adminPwd }
                 });
 
                 if (res.status === 401) {
-                    isAuthenticated = false;
-                    showOverlay();
+                    sessionStorage.removeItem('adminPwd');
+                    adminPwd = '';
+                    showLogin();
                     list.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">Please login to view applications...</div>';
                     return;
                 }
@@ -281,7 +281,7 @@
                 if (!res.ok) throw new Error('Server error: ' + res.status);
 
                 var grants = await res.json();
-                isAuthenticated = true;
+                hideLogin();
                 
                 if (grants.length === 0) {
                     list.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:16px; box-shadow:var(--shadow-md);">No applications yet.</div>';
@@ -328,30 +328,25 @@
             }
         }
 
-        function refreshGrants() {
-            if (isAuthenticated) {
-                fetchAndDisplayGrants();
-            } else {
-                showOverlay();
-            }
-        }
-
         async function updateStatus(grantId, status) {
             if (!confirm('Are you sure you want to ' + status + ' this application?')) return;
             
             try {
                 var res = await fetch('/api/admin/grants/update', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': adminPwd
+                    },
                     body: JSON.stringify({ grantId: grantId, status: status })
                 });
 
                 if (res.ok) {
-                    fetchAndDisplayGrants();
+                    loadGrants();
                 } else if (res.status === 401) {
                     alert('Session expired. Please log in again.');
-                    showOverlay();
+                    sessionStorage.removeItem('adminPwd');
+                    showLogin();
                 } else {
                     alert('Update failed.');
                 }
@@ -360,24 +355,7 @@
             }
         }
 
-        (async function init() {
-            try {
-                var res = await fetch('/api/admin/session', {
-                    credentials: 'include'
-                });
-                if (res.ok) {
-                    isAuthenticated = true;
-                    hideOverlay();
-                    fetchAndDisplayGrants();
-                } else {
-                    showOverlay();
-                    document.getElementById('grants-list').innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">Please login to view applications...</div>';
-                }
-            } catch (e) {
-                showOverlay();
-                document.getElementById('grants-list').innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">Please login to view applications...</div>';
-            }
-        })();
+        loadGrants();
     </script>
 </body>
 </html>
