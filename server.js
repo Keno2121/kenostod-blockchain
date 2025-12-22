@@ -579,12 +579,39 @@ app.post('/api/admin/grants/update', adminAuth, (req, res) => {
     const grant = miningGrants.find(g => g.id === grantId);
     
     if (grant) {
+        const oldStatus = grant.status;
         grant.status = status;
         if (note) grant.adminNote = note;
         grant.updatedAt = new Date().toISOString();
         
+        // Automated reward distribution for approvals
+        if (status === 'approved' && oldStatus !== 'approved') {
+            console.log(`🚀 DISTRIBUTING KENO GRANT: 5250 KENO to ${grant.walletAddress}`);
+            
+            // In a real blockchain, this would trigger a smart contract transfer
+            // For our high-fidelity simulator, we update the student's earned balance
+            if (typeof students !== 'undefined') {
+                const student = students.find(s => s.walletAddress === grant.walletAddress);
+                if (student) {
+                    student.kenoEarned = (Number(student.kenoEarned) || 0) + 5250;
+                    student.approvedGrants = (student.approvedGrants || 0) + 1;
+                    console.log(`✅ Updated student ${grant.walletAddress} balance with 5250 KENO bonus`);
+                }
+            }
+            
+            // Log reward in database for transparency
+            if (dbConnection) {
+                dbConnection.query(`
+                    INSERT INTO student_rewards (user_wallet_address, reward_type, amount, description)
+                    VALUES ($1, 'mining_grant_bonus', 5250, 'Mining Grant Approval Bonus')
+                `, [grant.walletAddress]).catch(e => console.error('Error logging grant reward:', e));
+            }
+        }
+        
         if (dataPersistence) {
             dataPersistence.saveMiningGrants(miningGrants);
+        } else if (typeof saveGrants === 'function') {
+            saveGrants();
         }
         
         console.log(`✅ Mining grant ${grantId} updated to ${status}`);
