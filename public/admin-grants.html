@@ -247,7 +247,7 @@
             <div style="font-size: 48px; margin-bottom: 16px;">💎</div>
             <h2>Admin Grant Panel</h2>
             <div id="login-error" class="error">Invalid password</div>
-            <input type="password" id="admin-pass" placeholder="Enter Admin Password">
+            <input type="password" id="admin-pass" placeholder="Enter Admin Password" onkeydown="if(event.key==='Enter') login()">
             <button onclick="login()">Access Dashboard</button>
         </div>
     </div>
@@ -291,7 +291,8 @@
                     adminPassword = pass;
                     sessionStorage.setItem('admin_password', pass);
                     document.getElementById('login-overlay').style.display = 'none';
-                    loadGrants();
+                    // Don't show overlay again if this load fails unless it's a 401
+                    await loadGrants(true); 
                 } else {
                     errorDiv.style.display = 'block';
                     passInput.value = '';
@@ -302,11 +303,19 @@
             }
         }
 
-        async function loadGrants() {
-            if (!adminPassword) return;
+        async function loadGrants(isInitialLogin = false) {
+            if (!adminPassword) {
+                document.getElementById('login-overlay').style.display = 'flex';
+                return;
+            }
 
             const list = document.getElementById('grants-list');
-            list.innerHTML = '<div style="text-align:center; padding:40px;">Loading applications...</div>';
+            const loadingHtml = '<div style="text-align:center; padding:40px;">Loading applications...</div>';
+            
+            // Only show loading if we aren't already showing data or if it's the very first load
+            if (list.innerHTML.includes('Please login') || isInitialLogin) {
+                list.innerHTML = loadingHtml;
+            }
 
             try {
                 const res = await fetch('/api/admin/grants', {
@@ -324,6 +333,10 @@
                 }
 
                 const grants = await res.json();
+                
+                // Success: hide overlay and show data
+                document.getElementById('login-overlay').style.display = 'none';
+                
                 list.innerHTML = grants.length === 0 ? '<div style="text-align:center; padding:40px; background:white; border-radius:16px; box-shadow:var(--shadow-md);">No applications yet.</div>' : '';
                 
                 grants.reverse().forEach(grant => {
@@ -393,8 +406,10 @@
         // Auto-login if session exists
         window.addEventListener('load', () => {
             if (adminPassword) {
-                document.getElementById('login-overlay').style.display = 'none';
+                // Overlay stays visible until verify success in loadGrants
                 loadGrants();
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
             }
         });
     </script>
