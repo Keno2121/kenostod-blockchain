@@ -1285,12 +1285,12 @@ function useThisWallet(address, privateKey) {
 async function checkBalance() {
     const address = document.getElementById('balanceAddress').value;
     if (!address) {
-        showError('balanceResult', 'Please enter an address');
+        showError('balanceResult', 'Please enter an address or email');
         return;
     }
     
     try {
-        const response = await fetch(`${API_BASE}/api/balance/${address}`);
+        const response = await fetch(`${API_BASE}/api/balance/${encodeURIComponent(address)}`);
         const data = await response.json();
         
         if (data.error) {
@@ -1300,10 +1300,24 @@ async function checkBalance() {
         
         const resultDiv = document.getElementById('balanceResult');
         resultDiv.className = 'result success';
+        
+        // Show breakdown if available
+        let breakdownHtml = '';
+        if (data.breakdown) {
+            const parts = [];
+            if (data.breakdown.blockchain > 0) parts.push(`Blockchain: ${data.breakdown.blockchain}`);
+            if (data.breakdown.courseRewards > 0) parts.push(`Course Rewards: ${data.breakdown.courseRewards}`);
+            if (data.breakdown.icoPurchases > 0) parts.push(`ICO Purchases: ${data.breakdown.icoPurchases}`);
+            if (parts.length > 1) {
+                breakdownHtml = `<p style="font-size: 0.9em; opacity: 0.8;"><em>(${parts.join(' + ')})</em></p>`;
+            }
+        }
+        
         resultDiv.innerHTML = `
             <h4>Balance Information</h4>
             <p><strong>Address:</strong> <code>${data.address.substring(0, 20)}...</code></p>
-            <p><strong>Balance:</strong> ${data.balance} ${data.token}</p>
+            <p><strong>Balance:</strong> ${data.balance.toLocaleString()} ${data.token}</p>
+            ${breakdownHtml}
         `;
     } catch (error) {
         showError('balanceResult', error.message);

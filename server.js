@@ -646,14 +646,58 @@ app.get('/api/blockchain', (req, res) => {
 });
 
 // Get balance for an address
-app.get('/api/balance/:address', (req, res) => {
+app.get('/api/balance/:address', async (req, res) => {
     const address = req.params.address;
-    const balance = kenostodChain.getBalanceOfAddress(address);
+    const isEmail = address.includes('@');
+    
+    // Get simulated blockchain balance
+    let blockchainBalance = 0;
+    if (!isEmail) {
+        blockchainBalance = kenostodChain.getBalanceOfAddress(address);
+    }
+    
+    // Also check database for rewards (by wallet address or email)
+    let databaseRewards = 0;
+    try {
+        if (isEmail) {
+            const result = await pool.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards WHERE user_email = $1`,
+                [address]
+            );
+            databaseRewards = parseFloat(result.rows[0]?.total || 0);
+        } else {
+            // Check by wallet address (try both internal format and 0x format)
+            const result = await pool.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards WHERE user_wallet_address = $1`,
+                [address]
+            );
+            databaseRewards = parseFloat(result.rows[0]?.total || 0);
+        }
+    } catch (dbErr) {
+        console.error('DB error in balance check:', dbErr.message);
+    }
+    
+    // Also check ICO purchases
+    let icoPurchaseTokens = 0;
+    const userPurchases = icoPurchases.filter(p => {
+        if (isEmail) {
+            return p.email && p.email.toLowerCase() === address.toLowerCase();
+        }
+        return p.walletAddress && p.walletAddress.toLowerCase() === address.toLowerCase();
+    });
+    icoPurchaseTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+    
+    const totalBalance = blockchainBalance + databaseRewards + icoPurchaseTokens;
     
     res.json({
         address: address,
-        balance: balance,
-        token: kenostodChain.tokenSymbol
+        balance: totalBalance,
+        token: kenostodChain.tokenSymbol,
+        breakdown: {
+            blockchain: blockchainBalance,
+            courseRewards: databaseRewards,
+            icoPurchases: icoPurchaseTokens
+        }
     });
 });
 
