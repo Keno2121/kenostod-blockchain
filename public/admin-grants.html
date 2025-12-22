@@ -186,7 +186,7 @@
     </style>
 </head>
 <body>
-    <div id="login-overlay" style="display: none;">
+    <div id="login-overlay" style="display: flex;">
         <div class="login-card">
             <div style="font-size: 48px; margin-bottom: 16px;">💎</div>
             <h2>Admin Grant Panel</h2>
@@ -361,10 +361,27 @@
         }
 
         window.addEventListener('load', function() {
+            var overlay = document.getElementById('login-overlay');
+            
             if (adminPassword) {
-                loadGrants(true);
+                // Verify the stored password still works
+                fetch('/api/admin/grants', {
+                    headers: { 'x-admin-password': adminPassword }
+                }).then(function(res) {
+                    if (res.ok) {
+                        overlay.style.display = 'none';
+                        loadGrants(true);
+                    } else {
+                        // Stored password is invalid, clear it
+                        sessionStorage.removeItem('admin_password');
+                        adminPassword = '';
+                        overlay.style.display = 'flex';
+                    }
+                }).catch(function() {
+                    overlay.style.display = 'flex';
+                });
             } else {
-                document.getElementById('login-overlay').style.display = 'flex';
+                overlay.style.display = 'flex';
             }
         });
     </script>
