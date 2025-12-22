@@ -499,7 +499,18 @@ const adminAuth = (req, res, next) => {
 };
 
 // Mining grant applications storage
-let miningGrants = [];
+let miningGrants = [
+    {
+        id: 'GR-' + Date.now(),
+        walletAddress: '0x657...FD0E',
+        coursesCompleted: 21,
+        experience: 'Expert',
+        interest: 'Applying to become a certified KENO miner to contribute to the network security and earn PoRV rewards.',
+        goals: 'Establish a high-performance mining node and participate in community governance.',
+        status: 'pending',
+        appliedAt: new Date(Date.now() - 86400000).toISOString()
+    }
+];
 
 // Mining grant application endpoint
 app.post('/api/grants/apply', (req, res) => {
