@@ -2200,11 +2200,18 @@ function renderCourseNav() {
     const blockchainList = document.getElementById('blockchain-courses');
     const financeList = document.getElementById('finance-courses');
     
+    if (!blockchainList || !financeList) return;
+    
+    blockchainList.innerHTML = '';
+    financeList.innerHTML = '';
+    
     // Blockchain courses 1-16
     for (let i = 1; i <= 16; i++) {
         const course = courses[i];
+        if (!course) continue;
         const li = document.createElement('li');
         const button = document.createElement('button');
+        button.id = `nav-course-${i}`;
         button.innerHTML = `<span class="icon">${course.icon}</span><span>Course ${i}</span>`;
         button.onclick = () => loadCourse(i);
         if (i === 1) button.classList.add('active');
@@ -2215,8 +2222,10 @@ function renderCourseNav() {
     // Financial literacy courses 17-21
     for (let i = 17; i <= 21; i++) {
         const course = courses[i];
+        if (!course) continue;
         const li = document.createElement('li');
         const button = document.createElement('button');
+        button.id = `nav-course-${i}`;
         button.innerHTML = `<span class="icon">${course.icon}</span><span>Course ${i}</span>`;
         button.onclick = () => loadCourse(i);
         li.appendChild(button);
@@ -2224,19 +2233,35 @@ function renderCourseNav() {
     }
 }
 
-// Load course content
+// Function to load course content
 function loadCourse(courseId) {
     const course = courses[courseId];
-    const content = document.getElementById('course-content');
+    if (!course) return;
+
+    const contentDiv = document.getElementById('course-content');
+    if (!contentDiv) return;
     
     // Update active state
     document.querySelectorAll('.course-nav button').forEach(btn => btn.classList.remove('active'));
-    event.target.closest('button').classList.add('active');
+    
+    // Find the button for this course
+    const navBtn = document.getElementById(`nav-course-${courseId}`);
+    if (navBtn) {
+        navBtn.classList.add('active');
+    } else {
+        // Fallback for initial load if ID isn't set yet
+        const allBtns = document.querySelectorAll('.course-nav button');
+        allBtns.forEach(btn => {
+            if (btn.textContent.includes(`Course ${courseId}`)) {
+                btn.classList.add('active');
+            }
+        });
+    }
     
     // Render course content
     let html = `
         <div class="course-header-section">
-            <h2><span class="icon">${course.icon}</span>${course.title}</h2>
+            <h2><span class="icon">${course.icon}</span> ${course.title}</h2>
             <div class="course-meta">
                 <div class="meta-item">⏱️ ${course.duration}</div>
                 <div class="meta-item">📚 ${course.modules} Modules</div>
@@ -2324,8 +2349,14 @@ function loadCourse(courseId) {
         </div>
     `;
 
-    content.innerHTML = html;
-    content.scrollTop = 0;
+    contentDiv.innerHTML = html;
+    
+    // Show graduate club section for all courses in backoffice view
+    const gradSection = document.getElementById('graduate-club-section');
+    if (gradSection) gradSection.style.display = 'block';
+    
+    // Scroll to top of content
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Complete course and show KENO reward
@@ -2999,6 +3030,7 @@ function showWalletToast(message, type) {
 }
 
 // Initialize
+// Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     renderCourseNav();
     loadCourse(1);
