@@ -475,9 +475,17 @@ const adminAuth = (req, res, next) => {
         return res.status(500).json({ error: 'Server configuration error' });
     }
 
+    // Debug logging
+    console.log('🔐 Admin auth attempt:');
+    console.log('   Header received:', providedPassword ? `"${providedPassword.substring(0,3)}..." (len=${providedPassword.length})` : 'EMPTY/UNDEFINED');
+    console.log('   Expected:', adminPassword ? `"${adminPassword.substring(0,3)}..." (len=${adminPassword.length})` : 'NOT SET');
+    console.log('   Match:', providedPassword === adminPassword);
+
     if (providedPassword === adminPassword) {
+        console.log('   ✅ Auth SUCCESS');
         next();
     } else {
+        console.log('   ❌ Auth FAILED');
         res.status(401).json({ error: 'Unauthorized: Admin access required' });
     }
 };

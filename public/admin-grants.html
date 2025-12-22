@@ -51,8 +51,9 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.98);
-            display: flex; align-items: center; justify-content: center;
+            align-items: center; justify-content: center;
             z-index: 2000;
+            display: flex;
         }
 
         .login-card {
@@ -186,7 +187,7 @@
     </style>
 </head>
 <body>
-    <div id="login-overlay" style="display: flex;">
+    <div id="login-overlay">
         <div class="login-card">
             <div style="font-size: 48px; margin-bottom: 16px;">💎</div>
             <h2>Admin Grant Panel</h2>
@@ -202,29 +203,46 @@
                 <h1>💎 Mining Grant Management</h1>
                 <p>Review and approve KENO mining grant applications</p>
             </div>
-            <button class="btn btn-refresh" onclick="loadGrants()">🔄 Refresh</button>
+            <button class="btn btn-refresh" onclick="refreshGrants()">🔄 Refresh</button>
         </div>
     </div>
 
     <div class="container">
         <div id="grants-list">
             <div style="text-align: center; padding: 40px; color: #64748b;">
-                <p>Please login to view applications...</p>
+                <p>Loading...</p>
             </div>
         </div>
     </div>
 
     <script>
-        let adminPassword = sessionStorage.getItem('admin_password') || '';
+        var adminPassword = '';
+        var isAuthenticated = false;
+
+        function showOverlay() {
+            document.getElementById('login-overlay').style.display = 'flex';
+        }
+
+        function hideOverlay() {
+            document.getElementById('login-overlay').style.display = 'none';
+        }
+
+        function clearSession() {
+            sessionStorage.removeItem('admin_password');
+            adminPassword = '';
+            isAuthenticated = false;
+        }
 
         async function login() {
             var passInput = document.getElementById('admin-pass');
             var errorDiv = document.getElementById('login-error');
-            var pass = passInput.value;
+            var pass = passInput.value.trim();
             
             if (!pass) return;
             if (passInput.disabled) return;
+            
             passInput.disabled = true;
+            errorDiv.style.display = 'none';
 
             try {
                 var res = await fetch('/api/admin/login', {
@@ -236,16 +254,15 @@
                 if (res.ok) {
                     adminPassword = pass;
                     sessionStorage.setItem('admin_password', pass);
-                    document.getElementById('login-overlay').style.display = 'none';
-                    errorDiv.style.display = 'none';
-                    loadGrants(true);
+                    isAuthenticated = true;
+                    hideOverlay();
+                    fetchAndDisplayGrants();
                 } else {
                     errorDiv.textContent = 'Invalid password';
                     errorDiv.style.display = 'block';
                     passInput.value = '';
                 }
             } catch (err) {
-                console.error('Login error:', err);
                 errorDiv.textContent = 'Server error. Please try again.';
                 errorDiv.style.display = 'block';
             } finally {
@@ -253,22 +270,9 @@
             }
         }
 
-        async function loadGrants(isInitialLoad) {
-            var overlay = document.getElementById('login-overlay');
+        async function fetchAndDisplayGrants() {
             var list = document.getElementById('grants-list');
-            
-            if (!adminPassword) {
-                adminPassword = sessionStorage.getItem('admin_password');
-            }
-
-            if (!adminPassword) {
-                overlay.style.display = 'flex';
-                return;
-            }
-
-            if (isInitialLoad || list.innerHTML.includes('Please login')) {
-                list.innerHTML = '<div style="text-align:center; padding:40px;">Loading applications...</div>';
-            }
+            list.innerHTML = '<div style="text-align:center; padding:40px;">Loading applications...</div>';
 
             try {
                 var res = await fetch('/api/admin/grants', {
@@ -276,17 +280,15 @@
                 });
 
                 if (res.status === 401) {
-                    console.warn('Unauthorized access. Redirecting to login.');
-                    sessionStorage.removeItem('admin_password');
-                    adminPassword = '';
-                    overlay.style.display = 'flex';
+                    clearSession();
+                    showOverlay();
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">Please login to view applications...</div>';
                     return;
                 }
 
-                if (!res.ok) throw new Error('Failed to load grants: ' + res.status);
+                if (!res.ok) throw new Error('Server error: ' + res.status);
 
                 var grants = await res.json();
-                overlay.style.display = 'none';
                 
                 if (grants.length === 0) {
                     list.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:16px; box-shadow:var(--shadow-md);">No applications yet.</div>';
@@ -329,13 +331,20 @@
                     list.appendChild(card);
                 });
             } catch (err) {
-                console.error('Fetch error:', err);
                 list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger);">Error: ' + err.message + '</div>';
             }
         }
 
+        function refreshGrants() {
+            if (isAuthenticated && adminPassword) {
+                fetchAndDisplayGrants();
+            } else {
+                showOverlay();
+            }
+        }
+
         async function updateStatus(grantId, status) {
-            if (!confirm('Are you sure you want to ' + status + ' this grant application?')) return;
+            if (!confirm('Are you sure you want to ' + status + ' this application?')) return;
             
             try {
                 var res = await fetch('/api/admin/grants/update', {
@@ -348,42 +357,91 @@
                 });
 
                 if (res.ok) {
-                    loadGrants();
+                    fetchAndDisplayGrants();
                 } else if (res.status === 401) {
                     alert('Session expired. Please log in again.');
-                    location.reload();
+                    clearSession();
+                    showOverlay();
                 } else {
-                    alert('Status update failed.');
+                    alert('Update failed.');
                 }
             } catch (err) {
                 alert('Connection error.');
             }
         }
 
-        window.addEventListener('load', function() {
-            var overlay = document.getElementById('login-overlay');
+        // Single initialization on page load
+        (function init() {
+            var savedPassword = sessionStorage.getItem('admin_password');
             
-            if (adminPassword) {
-                // Verify the stored password still works
+            if (savedPassword) {
+                adminPassword = savedPassword;
+                // Verify saved password works - single API call
                 fetch('/api/admin/grants', {
-                    headers: { 'x-admin-password': adminPassword }
+                    headers: { 'x-admin-password': savedPassword }
                 }).then(function(res) {
                     if (res.ok) {
-                        overlay.style.display = 'none';
-                        loadGrants(true);
+                        isAuthenticated = true;
+                        hideOverlay();
+                        return res.json();
                     } else {
-                        // Stored password is invalid, clear it
-                        sessionStorage.removeItem('admin_password');
-                        adminPassword = '';
-                        overlay.style.display = 'flex';
+                        clearSession();
+                        showOverlay();
+                        throw new Error('Invalid session');
                     }
-                }).catch(function() {
-                    overlay.style.display = 'flex';
+                }).then(function(grants) {
+                    // Display the grants we already fetched
+                    var list = document.getElementById('grants-list');
+                    
+                    if (grants.length === 0) {
+                        list.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:16px; box-shadow:var(--shadow-md);">No applications yet.</div>';
+                        return;
+                    }
+
+                    list.innerHTML = '';
+                    grants.slice().reverse().forEach(function(grant) {
+                        var card = document.createElement('div');
+                        card.className = 'grant-card';
+                        
+                        var buttonsHtml = '';
+                        if (grant.status === 'pending') {
+                            buttonsHtml = '<button class="btn btn-approve" onclick="updateStatus(\'' + grant.id + '\', \'approved\')">Approve</button> ' +
+                                          '<button class="btn btn-reject" onclick="updateStatus(\'' + grant.id + '\', \'rejected\')">Reject</button>';
+                        }
+                        
+                        card.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:16px;">' +
+                            '<div>' +
+                                '<span class="status-badge status-' + grant.status + '">' + grant.status + '</span>' +
+                                '<h3 style="margin:12px 0; font-size:1.2rem; color:var(--primary); word-break:break-all;">' + grant.walletAddress + '</h3>' +
+                            '</div>' +
+                            '<div style="display:flex; gap:12px;">' + buttonsHtml + '</div>' +
+                        '</div>' +
+                        '<div class="details">' +
+                            '<div class="detail-item"><strong>Courses Completed</strong><span>' + grant.coursesCompleted + ' Courses</span></div>' +
+                            '<div class="detail-item"><strong>Experience</strong><span>' + grant.experience + '</span></div>' +
+                            '<div class="detail-item"><strong>Application Date</strong><span>' + new Date(grant.appliedAt).toLocaleString() + '</span></div>' +
+                            '<div class="detail-item"><strong>Grant ID</strong><span style="font-family:monospace; font-size:0.8rem;">' + grant.id + '</span></div>' +
+                        '</div>' +
+                        '<div class="grant-content">' +
+                            '<h4>Why interested in mining?</h4>' +
+                            '<p>' + (grant.interest || 'No response provided.') + '</p>' +
+                        '</div>' +
+                        '<div class="grant-content" style="margin-top:20px;">' +
+                            '<h4>Goals in blockchain space?</h4>' +
+                            '<p>' + (grant.goals || 'No response provided.') + '</p>' +
+                        '</div>';
+                        
+                        list.appendChild(card);
+                    });
+                }).catch(function(err) {
+                    document.getElementById('grants-list').innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">Please login to view applications...</div>';
                 });
             } else {
-                overlay.style.display = 'flex';
+                // No saved password, show login
+                showOverlay();
+                document.getElementById('grants-list').innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">Please login to view applications...</div>';
             }
-        });
+        })();
     </script>
 </body>
 </html>
