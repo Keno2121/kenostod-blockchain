@@ -831,18 +831,20 @@
                 // If no API data, use localStorage data from backoffice course completions
                 if (!wealth || wealth.coursesCompleted === 0) {
                     const completedCourses = parseInt(localStorage.getItem('completedCourses') || '0');
-                    const completedList = JSON.parse(localStorage.getItem('completedCoursesList') || '[]');
-                    
                     if (completedCourses > 0) {
                         wealth = wealth || {};
                         wealth.coursesCompleted = completedCourses;
-                        wealth.totalKeno = completedCourses * 250; // 250 KENO per course
+                        wealth.totalKeno = (wealth.totalKeno || 0) + (completedCourses * 250);
                         wealth.totalRewards = wealth.totalRewards || 0;
-                        wealth.totalRvtRoyalties = wealth.totalRvtRoyalties || 0;
-                        wealth.totalReferrals = wealth.totalReferrals || 0;
-                        wealth.estimatedUSD = wealth.totalKeno * 0.01; // Rough estimate at $0.01 per KENO (ICO price)
-                        console.log('✅ Synced from backoffice:', wealth.coursesCompleted, 'courses completed =', wealth.totalKeno, 'KENO');
+                        wealth.estimatedUSD = (wealth.totalKeno || 0) * 0.01;
                     }
+                }
+
+                // Add Approved Grants to the total
+                if (data.success && data.wealth && data.wealth.approvedGrants) {
+                    const grantTokens = data.wealth.approvedGrants * 5250;
+                    wealth.totalKeno = (wealth.totalKeno || 0) + grantTokens;
+                    console.log(`💎 Added ${grantTokens} KENO from ${data.wealth.approvedGrants} approved grants`);
                 }
 
                 if (wealth) {
