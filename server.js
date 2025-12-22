@@ -6837,7 +6837,8 @@ app.post('/api/admin/login', (req, res) => {
     }
 
     if (password === adminPassword) {
-        res.json({ success: true });
+        // Return the password as token so client can store it for subsequent requests
+        res.json({ success: true, token: password });
     } else {
         res.status(401).json({ success: false, error: 'Invalid password' });
     }
