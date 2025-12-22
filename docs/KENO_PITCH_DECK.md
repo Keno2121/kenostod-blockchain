@@ -200,7 +200,19 @@ An Offshore Umbrella Foundation for Multi-Sector Innovation
 
 ---
 
-## Slide 14: Contact
+## Slide 14: Centralization Risk Mitigation
+
+**Security Posture:**
+- **Current State:** Single EOA owner for rapid deployment and setup (standard for early-stage presale).
+- **Post-Launch Roadmap:**
+    - **Multi-Sig Transition:** Ownership will be transferred to a Gnosis Safe (3-of-5 signers).
+    - **Timelock Controller:** All administrative functions will have a 48-hour delay.
+    - **Liquidity Lock:** 50% of BNB pair liquidity locked for 2 years.
+- **Goal:** Progressive decentralization to ensure investor security while maintaining operational agility.
+
+---
+
+## Slide 15: Contact
 
 **Kenostod Blockchain Academy**
 
