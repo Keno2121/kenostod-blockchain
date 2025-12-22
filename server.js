@@ -6846,9 +6846,14 @@ app.post('/api/admin/login', (req, res) => {
         return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    if (password === adminPassword) {
+    // Debug: Log password lengths (not the actual passwords)
+    console.log(`Admin login attempt: provided=${password?.length || 0} chars, expected=${adminPassword?.length || 0} chars`);
+
+    if (password && password === adminPassword) {
+        console.log('Admin login successful');
         res.json({ success: true });
     } else {
+        console.log('Admin login failed - password mismatch');
         res.status(401).json({ success: false, error: 'Invalid password' });
     }
 });
