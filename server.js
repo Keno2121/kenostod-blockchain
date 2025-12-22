@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const https = require('https');
 const Blockchain = require('./src/Blockchain');
@@ -38,7 +39,23 @@ const PORT = 5000;
 app.set('trust proxy', 1);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
+
+// Session middleware for admin authentication
+app.use(session({
+    secret: process.env.ADMIN_PASSWORD || 'kenostod-session-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
 
 // ==================== STRIPE INITIALIZATION ====================
 // Initialize Stripe with managed webhooks and database sync
@@ -465,18 +482,9 @@ async function initializeTestGraduate() {
     }
 }
 
-// Admin Authentication Middleware
+// Admin Authentication Middleware - Session-based
 const adminAuth = (req, res, next) => {
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    // Accept both header formats for compatibility
-    const providedPassword = req.headers['x-admin-token'] || req.headers['x-admin-password'];
-
-    if (!adminPassword) {
-        console.error('❌ ADMIN_PASSWORD secret not set');
-        return res.status(500).json({ error: 'Server configuration error' });
-    }
-
-    if (providedPassword === adminPassword) {
+    if (req.session && req.session.isAdmin) {
         next();
     } else {
         res.status(401).json({ error: 'Unauthorized: Admin access required' });
@@ -6826,7 +6834,7 @@ function requireAdminAuth(req, res, next) {
     next();
 }
 
-// Admin authentication endpoint
+// Admin authentication endpoint - sets session
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
     const adminPassword = process.env.ADMIN_PASSWORD;
@@ -6837,14 +6845,34 @@ app.post('/api/admin/login', (req, res) => {
     }
 
     if (password === adminPassword) {
-        // Return the password as token so client can store it for subsequent requests
-        res.json({ success: true, token: password });
+        req.session.isAdmin = true;
+        req.session.loginTime = Date.now();
+        res.json({ success: true });
     } else {
         res.status(401).json({ success: false, error: 'Invalid password' });
     }
 });
 
+// Check if admin session is valid
+app.get('/api/admin/session', (req, res) => {
+    if (req.session && req.session.isAdmin) {
+        res.json({ authenticated: true });
+    } else {
+        res.status(401).json({ authenticated: false });
+    }
+});
+
 app.post('/api/admin/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Logout failed' });
+        }
+        res.json({ success: true });
+    });
+});
+
+// Legacy logout endpoint for backwards compatibility
+app.post('/api/admin/logout-legacy', (req, res) => {
     const token = req.headers['x-admin-token'];
     if (token) {
         adminSessions.delete(token);

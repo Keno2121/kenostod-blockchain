@@ -840,8 +840,6 @@
     </div>
     
     <script>
-        let adminToken = sessionStorage.getItem('adminToken');
-        
         let allData = {
             students: [],
             courses: [],
@@ -860,14 +858,13 @@
                 const response = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ password })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    adminToken = data.token;
-                    sessionStorage.setItem('adminToken', adminToken);
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('adminContainer').style.display = 'flex';
                     refreshAllData();
@@ -881,28 +878,33 @@
             }
         }
         
-        function checkExistingSession() {
-            if (adminToken) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('adminContainer').style.display = 'flex';
-                refreshAllData();
+        async function checkExistingSession() {
+            try {
+                const response = await fetch('/api/admin/session', {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('adminContainer').style.display = 'flex';
+                    refreshAllData();
+                }
+            } catch (e) {
+                // No valid session, show login
             }
         }
         
-        function logout() {
-            sessionStorage.removeItem('adminToken');
-            adminToken = null;
+        async function logout() {
+            await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
             location.reload();
         }
         
         async function fetchAdminData() {
             try {
                 const response = await fetch('/api/admin/dashboard', {
-                    headers: { 'X-Admin-Token': adminToken }
+                    credentials: 'include'
                 });
                 
                 if (response.status === 401) {
-                    sessionStorage.removeItem('adminToken');
                     location.reload();
                     return null;
                 }
