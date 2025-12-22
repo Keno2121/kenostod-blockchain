@@ -6825,27 +6825,19 @@ function requireAdminAuth(req, res, next) {
     next();
 }
 
-app.post('/api/admin/login', authLimiter, (req, res) => {
+// Admin authentication endpoint
+app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
     const adminPassword = process.env.ADMIN_PASSWORD;
-    
+
     if (!adminPassword) {
-        console.log('⚠️ ADMIN_PASSWORD not set. Admin login disabled for security.');
-        return res.status(503).json({ success: false, error: 'Admin access not configured. Set ADMIN_PASSWORD environment variable.' });
+        console.error('❌ ADMIN_PASSWORD secret not set');
+        return res.status(500).json({ error: 'Server configuration error' });
     }
-    
+
     if (password === adminPassword) {
-        const token = generateAdminToken();
-        adminSessions.set(token, {
-            createdAt: Date.now(),
-            expiresAt: Date.now() + (24 * 60 * 60 * 1000),
-            ip: req.ip
-        });
-        
-        console.log(`✅ Admin login successful from ${req.ip}`);
-        res.json({ success: true, token });
+        res.json({ success: true });
     } else {
-        console.log(`❌ Failed admin login attempt from ${req.ip}`);
         res.status(401).json({ success: false, error: 'Invalid password' });
     }
 });
