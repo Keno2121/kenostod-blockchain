@@ -3260,23 +3260,43 @@ app.post('/api/ico/one-click-cashout', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Wallet address required' });
         }
         
-        // Get user's course reward balance from database
+        // Get user's course reward balance from database (check by wallet OR email)
         let totalRewards = 0;
+        const emailInput = withdrawalDestination || '';
+        const isEmailInput = walletAddress.includes('@');
+        const lookupEmail = isEmailInput ? walletAddress : emailInput;
+        const lookupWallet = isEmailInput ? '' : walletAddress;
+        
         try {
-            const result = await pool.query(
-                `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards 
-                 WHERE user_wallet_address = $1 AND status = 'claimed'`,
-                [walletAddress]
-            );
-            totalRewards = parseFloat(result.rows[0]?.total || 0);
+            // Check by wallet address first
+            if (lookupWallet) {
+                const result = await pool.query(
+                    `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards 
+                     WHERE user_wallet_address = $1`,
+                    [lookupWallet]
+                );
+                totalRewards = parseFloat(result.rows[0]?.total || 0);
+            }
+            
+            // Also check by email if provided
+            if (lookupEmail && totalRewards === 0) {
+                const result = await pool.query(
+                    `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards 
+                     WHERE user_email = $1`,
+                    [lookupEmail]
+                );
+                totalRewards = parseFloat(result.rows[0]?.total || 0);
+            }
         } catch (dbErr) {
             console.error('DB error getting rewards:', dbErr);
         }
         
-        // Also check ICO purchases
-        const userPurchases = icoPurchases.filter(p => 
-            p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase()
-        );
+        // Also check ICO purchases (by wallet OR email)
+        const userPurchases = icoPurchases.filter(p => {
+            const matchesWallet = lookupWallet && p.walletAddress && p.walletAddress.toLowerCase() === lookupWallet.toLowerCase();
+            const matchesEmail = lookupEmail && p.email && p.email.toLowerCase() === lookupEmail.toLowerCase();
+            return matchesWallet || matchesEmail;
+        });
         const icoPurchaseTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
         
         const totalTokens = totalRewards + icoPurchaseTokens;
@@ -3288,8 +3308,8 @@ app.post('/api/ico/one-click-cashout', async (req, res) => {
             });
         }
         
-        // Calculate USD value (using current rate of $0.50 per KENO for pre-listing)
-        const kenoPrice = 0.50;
+        // Calculate USD value (using $1.00 per KENO - DEX listing price as of Dec 29, 2025)
+        const kenoPrice = 1.00;
         const grossUsd = totalTokens * kenoPrice;
         
         // Calculate fees based on method
