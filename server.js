@@ -499,18 +499,41 @@ const adminAuth = (req, res, next) => {
 };
 
 // Mining grant applications storage
-let miningGrants = [
-    {
-        id: 'GR-' + Date.now(),
-        walletAddress: '0x657...FD0E',
-        coursesCompleted: 21,
-        experience: 'Expert',
-        interest: 'Applying to become a certified KENO miner to contribute to the network security and earn PoRV rewards.',
-        goals: 'Establish a high-performance mining node and participate in community governance.',
-        status: 'pending',
-        appliedAt: new Date(Date.now() - 86400000).toISOString()
+let miningGrants = [];
+try {
+    const fs = require('fs');
+    if (fs.existsSync('./mining_grants.json')) {
+        miningGrants = JSON.parse(fs.readFileSync('./mining_grants.json', 'utf8') || '[]');
     }
-];
+} catch (e) {
+    console.error('Error loading grants:', e);
+}
+
+// Helper to save grants
+function saveGrants() {
+    try {
+        require('fs').writeFileSync('./mining_grants.json', JSON.stringify(miningGrants, null, 2));
+    } catch (e) {
+        console.error('Error saving grants:', e);
+    }
+}
+
+// Initial seed if empty
+if (miningGrants.length === 0) {
+    miningGrants = [
+        {
+            id: 'GR-1734876737000',
+            walletAddress: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
+            coursesCompleted: 21,
+            experience: 'Expert',
+            interest: 'Applying to become a certified KENO miner to contribute to the network security and earn PoRV rewards.',
+            goals: 'Establish a high-performance mining node and participate in community governance.',
+            status: 'pending',
+            appliedAt: new Date(Date.now() - 86400000).toISOString()
+        }
+    ];
+    saveGrants();
+}
 
 // Mining grant application endpoint
 app.post('/api/grants/apply', (req, res) => {
