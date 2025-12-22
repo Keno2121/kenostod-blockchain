@@ -24,11 +24,7 @@
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -46,22 +42,10 @@
             z-index: 100;
         }
 
-        .admin-header h1 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
+        .admin-header h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+        .admin-header p { opacity: 0.9; font-size: 0.95rem; }
 
-        .admin-header p {
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
 
         #login-overlay {
             position: fixed;
@@ -69,7 +53,6 @@
             background: rgba(15, 23, 42, 0.98);
             display: flex; align-items: center; justify-content: center;
             z-index: 2000;
-            display: none; /* Controlled by JS */
         }
 
         .login-card {
@@ -82,11 +65,7 @@
             text-align: center;
         }
 
-        .login-card h2 {
-            margin-bottom: 24px;
-            color: var(--primary);
-            font-weight: 800;
-        }
+        .login-card h2 { margin-bottom: 24px; color: var(--primary); font-weight: 800; }
 
         .login-card input {
             width: 100%;
@@ -98,10 +77,7 @@
             transition: border-color 0.2s;
         }
 
-        .login-card input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
+        .login-card input:focus { outline: none; border-color: var(--primary); }
 
         .login-card button {
             width: 100%;
@@ -116,9 +92,7 @@
             transition: background 0.2s;
         }
 
-        .login-card button:hover {
-            background: var(--primary-dark);
-        }
+        .login-card button:hover { background: var(--primary-dark); }
 
         .login-card .error {
             color: var(--danger);
@@ -128,18 +102,6 @@
             margin-bottom: 16px;
             font-size: 0.9rem;
             display: none;
-        }
-
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .header-actions h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
         }
 
         .grant-card {
@@ -152,10 +114,7 @@
             transition: transform 0.2s;
         }
 
-        .grant-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
+        .grant-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 
         .status-badge {
             padding: 6px 14px;
@@ -183,11 +142,7 @@
         .btn-approve { background: var(--success); color: white; }
         .btn-reject { background: var(--danger); color: white; }
         .btn-refresh { background: var(--text-gray); color: white; }
-
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
         .details {
             display: grid;
@@ -208,22 +163,10 @@
             margin-bottom: 4px;
         }
 
-        .detail-item span {
-            font-weight: 600;
-            color: var(--text);
-        }
+        .detail-item span { font-weight: 600; color: var(--text); }
 
-        .grant-content {
-            margin-top: 24px;
-        }
-
-        .grant-content h4 {
-            font-size: 0.9rem;
-            color: var(--text-gray);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
+        .grant-content { margin-top: 24px; }
+        .grant-content h4 { font-size: 0.9rem; color: var(--text-gray); margin-bottom: 8px; text-transform: uppercase; }
         .grant-content p {
             background: white;
             padding: 16px;
@@ -243,7 +186,7 @@
     </style>
 </head>
 <body>
-    <div id="login-overlay">
+    <div id="login-overlay" style="display: none;">
         <div class="login-card">
             <div style="font-size: 48px; margin-bottom: 16px;">💎</div>
             <h2>Admin Grant Panel</h2>
@@ -259,7 +202,7 @@
                 <h1>💎 Mining Grant Management</h1>
                 <p>Review and approve KENO mining grant applications</p>
             </div>
-            <button class="btn btn-refresh" onclick="loadGrants()">🔄 Refresh Applications</button>
+            <button class="btn btn-refresh" onclick="loadGrants()">🔄 Refresh</button>
         </div>
     </div>
 
@@ -275,17 +218,16 @@
         let adminPassword = sessionStorage.getItem('admin_password') || '';
 
         async function login() {
-            const passInput = document.getElementById('admin-pass');
-            const errorDiv = document.getElementById('login-error');
-            const pass = passInput.value;
+            var passInput = document.getElementById('admin-pass');
+            var errorDiv = document.getElementById('login-error');
+            var pass = passInput.value;
             
             if (!pass) return;
-
             if (passInput.disabled) return;
             passInput.disabled = true;
 
             try {
-                const res = await fetch('/api/admin/login', {
+                var res = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: pass })
@@ -294,7 +236,6 @@
                 if (res.ok) {
                     adminPassword = pass;
                     sessionStorage.setItem('admin_password', pass);
-                    // SUCCESS - hide overlay and load
                     document.getElementById('login-overlay').style.display = 'none';
                     errorDiv.style.display = 'none';
                     loadGrants(true);
@@ -312,9 +253,9 @@
             }
         }
 
-        async function loadGrants(isInitialLoad = false) {
-            const overlay = document.getElementById('login-overlay');
-            const list = document.getElementById('grants-list');
+        async function loadGrants(isInitialLoad) {
+            var overlay = document.getElementById('login-overlay');
+            var list = document.getElementById('grants-list');
             
             if (!adminPassword) {
                 adminPassword = sessionStorage.getItem('admin_password');
@@ -330,7 +271,7 @@
             }
 
             try {
-                const res = await fetch('/api/admin/grants', {
+                var res = await fetch('/api/admin/grants', {
                     headers: { 'x-admin-password': adminPassword }
                 });
 
@@ -344,9 +285,7 @@
 
                 if (!res.ok) throw new Error('Failed to load grants: ' + res.status);
 
-                const grants = await res.json();
-                
-                // If we got data, we ARE logged in
+                var grants = await res.json();
                 overlay.style.display = 'none';
                 
                 if (grants.length === 0) {
@@ -355,59 +294,57 @@
                 }
 
                 list.innerHTML = '';
-                grants.slice().reverse().forEach(grant => {
-                    const card = document.createElement('div');
+                grants.slice().reverse().forEach(function(grant) {
+                    var card = document.createElement('div');
                     card.className = 'grant-card';
-                    card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:16px;">
-                            <div>
-                                <span class="status-badge status-${grant.status}">${grant.status}</span>
-                                <h3 style="margin:12px 0; font-size:1.2rem; color:var(--primary); word-break:break-all;">${grant.walletAddress}</h3>
-                            </div>
-                            <div style="display:flex; gap:12px;">
-                                ${grant.status === 'pending' ? \`
-                                    <button class="btn btn-approve" onclick="updateStatus('\${grant.id}', 'approved')">Approve Grant</button>
-                                    <button class="btn btn-reject" onclick="updateStatus('\${grant.id}', 'rejected')">Reject Application</button>
-                                \` : ''}
-                            </div>
-                        </div>
-                        
-                        <div class="details">
-                            <div class="detail-item"><strong>Courses Completed</strong><span>\${grant.coursesCompleted} Courses</span></div>
-                            <div class="detail-item"><strong>Experience</strong><span>\${grant.experience}</span></div>
-                            <div class="detail-item"><strong>Application Date</strong><span>\${new Date(grant.appliedAt).toLocaleString()}</span></div>
-                            <div class="detail-item"><strong>Grant ID</strong><span style="font-family:monospace; font-size:0.8rem;">\${grant.id}</span></div>
-                        </div>
-
-                        <div class="grant-content">
-                            <h4>Why interested in mining?</h4>
-                            <p>\${grant.interest || 'No response provided.'}</p>
-                        </div>
-                        
-                        <div class="grant-content" style="margin-top:20px;">
-                            <h4>Goals in blockchain space?</h4>
-                            <p>\${grant.goals || 'No response provided.'}</p>
-                        </div>
-                    \`;
+                    
+                    var buttonsHtml = '';
+                    if (grant.status === 'pending') {
+                        buttonsHtml = '<button class="btn btn-approve" onclick="updateStatus(\'' + grant.id + '\', \'approved\')">Approve</button> ' +
+                                      '<button class="btn btn-reject" onclick="updateStatus(\'' + grant.id + '\', \'rejected\')">Reject</button>';
+                    }
+                    
+                    card.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:16px;">' +
+                        '<div>' +
+                            '<span class="status-badge status-' + grant.status + '">' + grant.status + '</span>' +
+                            '<h3 style="margin:12px 0; font-size:1.2rem; color:var(--primary); word-break:break-all;">' + grant.walletAddress + '</h3>' +
+                        '</div>' +
+                        '<div style="display:flex; gap:12px;">' + buttonsHtml + '</div>' +
+                    '</div>' +
+                    '<div class="details">' +
+                        '<div class="detail-item"><strong>Courses Completed</strong><span>' + grant.coursesCompleted + ' Courses</span></div>' +
+                        '<div class="detail-item"><strong>Experience</strong><span>' + grant.experience + '</span></div>' +
+                        '<div class="detail-item"><strong>Application Date</strong><span>' + new Date(grant.appliedAt).toLocaleString() + '</span></div>' +
+                        '<div class="detail-item"><strong>Grant ID</strong><span style="font-family:monospace; font-size:0.8rem;">' + grant.id + '</span></div>' +
+                    '</div>' +
+                    '<div class="grant-content">' +
+                        '<h4>Why interested in mining?</h4>' +
+                        '<p>' + (grant.interest || 'No response provided.') + '</p>' +
+                    '</div>' +
+                    '<div class="grant-content" style="margin-top:20px;">' +
+                        '<h4>Goals in blockchain space?</h4>' +
+                        '<p>' + (grant.goals || 'No response provided.') + '</p>' +
+                    '</div>';
+                    
                     list.appendChild(card);
                 });
             } catch (err) {
                 console.error('Fetch error:', err);
-                list.innerHTML = \`<div style="text-align:center; padding:40px; color:var(--danger);">Error: \${err.message}</div>\`;
+                list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger);">Error: ' + err.message + '</div>';
             }
         }
 
         async function updateStatus(grantId, status) {
-            if (!confirm(\`Are you sure you want to \${status} this grant application?\`)) return;
+            if (!confirm('Are you sure you want to ' + status + ' this grant application?')) return;
             
             try {
-                const res = await fetch('/api/admin/grants/update', {
+                var res = await fetch('/api/admin/grants/update', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
                         'x-admin-password': adminPassword
                     },
-                    body: JSON.stringify({ grantId, status })
+                    body: JSON.stringify({ grantId: grantId, status: status })
                 });
 
                 if (res.ok) {
@@ -423,8 +360,7 @@
             }
         }
 
-        // On load
-        window.addEventListener('load', () => {
+        window.addEventListener('load', function() {
             if (adminPassword) {
                 loadGrants(true);
             } else {
