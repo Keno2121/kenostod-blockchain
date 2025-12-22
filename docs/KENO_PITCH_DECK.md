@@ -87,15 +87,15 @@ A revolutionary new asset class that:
 
 ## Slide 7: Token Economics
 
-**Total Supply:** 21,000,000 KENO
+**Total Supply:** 1,000,000,000 KENO
 
 | Allocation | Percentage | Amount |
 |------------|------------|--------|
-| Student Rewards | 40% | 8,400,000 |
-| ICO Sale | 25% | 5,250,000 |
-| Team & Advisors | 15% | 3,150,000 |
-| Liquidity | 10% | 2,100,000 |
-| Reserve/Future | 10% | 2,100,000 |
+| Student Rewards | 40% | 400,000,000 |
+| ICO Sale | 25% | 250,000,000 |
+| Team & Advisors | 15% | 150,000,000 |
+| Liquidity | 10% | 100,000,000 |
+| Reserve/Future | 10% | 100,000,000 |
 
 **Pricing:**
 - Seed Sale: $0.15
@@ -179,7 +179,28 @@ A revolutionary new asset class that:
 
 ---
 
-## Slide 12: Contact
+## Slide 12: T.D.I.R. Foundation
+
+**"Turn Dreams Into Reality"**
+An Offshore Umbrella Foundation for Multi-Sector Innovation
+
+- **Kenostod Academy:** Education & Knowledge Yield Token Ecosystem (KYT)
+- **Solar Project:** Renewable Energy Infrastructure & Token Utility
+- **B.U.K. Security:** Banking & Security Infrastructure for the Digital Economy
+
+---
+
+## Slide 13: The Wealth Formula
+
+**KNOWLEDGE + YIELD = FREEDOM**
+
+1. **KNOWLEDGE:** Complete 21 Courses
+2. **YIELD:** Earn through FAL™ Arbitrage
+3. **FREEDOM:** Achieve Generational Wealth through the self-funding ecosystem
+
+---
+
+## Slide 14: Contact
 
 **Kenostod Blockchain Academy**
 
