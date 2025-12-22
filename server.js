@@ -573,6 +573,63 @@ app.get('/api/admin/grants', adminAuth, (req, res) => {
     res.json(miningGrants);
 });
 
+// Enterprise inquiry storage
+let enterpriseInquiries = [];
+try {
+    const saved = require('fs').readFileSync('./enterprise_inquiries.json', 'utf8');
+    enterpriseInquiries = JSON.parse(saved);
+} catch (e) {
+    enterpriseInquiries = [];
+}
+
+// Enterprise inquiry endpoint
+app.post('/api/enterprise/inquiry', async (req, res) => {
+    try {
+        const { organizationName, contactName, email, phone, organizationType, learnerCount, message } = req.body;
+        
+        if (!organizationName || !contactName || !email || !organizationType || !learnerCount) {
+            return res.status(400).json({ success: false, error: 'Missing required fields' });
+        }
+        
+        const inquiry = {
+            id: 'ENT-' + Date.now(),
+            organizationName,
+            contactName,
+            email,
+            phone: phone || '',
+            organizationType,
+            learnerCount,
+            message: message || '',
+            status: 'new',
+            submittedAt: new Date().toISOString()
+        };
+        
+        enterpriseInquiries.push(inquiry);
+        
+        try {
+            require('fs').writeFileSync('./enterprise_inquiries.json', JSON.stringify(enterpriseInquiries, null, 2));
+        } catch (e) {
+            console.error('Error saving enterprise inquiry:', e);
+        }
+        
+        console.log(`🏢 Enterprise inquiry received from ${organizationName} (${contactName})`);
+        
+        res.json({ 
+            success: true, 
+            message: 'Thank you for your interest! Our enterprise team will contact you within 24 hours.',
+            inquiryId: inquiry.id
+        });
+    } catch (error) {
+        console.error('Enterprise inquiry error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Admin endpoint to view enterprise inquiries
+app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
+    res.json({ success: true, inquiries: enterpriseInquiries });
+});
+
 // Admin endpoint to update grant status (protected)
 app.post('/api/admin/grants/update', adminAuth, (req, res) => {
     const { grantId, status, note } = req.body;

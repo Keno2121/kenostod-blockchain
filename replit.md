@@ -73,10 +73,21 @@ Revenue is generated through over 15 streams including ICO token sales, course s
 
 # Recent Changes
 
+- **Dec 22, 2025:** Created dedicated "For Organizations" enterprise landing page with B2B licensing tiers, contact form, and professional messaging targeting universities, corporations, and government agencies
+- **Dec 22, 2025:** Updated balance checker to support email lookup in addition to wallet addresses, now shows breakdown of KENO from all sources
+- **Dec 22, 2025:** Fixed ICO Dashboard cash-out calculator to use $1.00 KENO price and lookup rewards by email
 - **Dec 20, 2025:** Updated DEX listing price from $0.50 to $1.00 per KENO to match IEO presale price of $0.50 (no one should buy at lower price on DEX)
 - **Dec 20, 2025:** Added Arbitrage Intelligence Dashboard for real-time opportunity visualization
 - **Dec 20, 2025:** Added Liquidity Pool Profit Dashboard to track monthly revenue and metrics
 - **Dec 29, 2025:** Scheduled PancakeSwap listing date with 50% BNB liquidity pair, 50% patents/development
+
+## Enterprise/B2B Sales System
+A dedicated "For Organizations" landing page (`/for-organizations.html`) targeting enterprise customers with:
+- Professional hero messaging for blockchain workforce transformation
+- Three licensing tiers: Educational Institution ($15K), Corporate Enterprise ($50K), White-Label Partner ($150K)
+- Use case sections for universities, corporations, consulting firms, financial institutions, EdTech, and government
+- Contact form with enterprise inquiry submission and tracking
+- Statistics showcase (21 courses, 5,250 KENO per graduate, $1.00 token value)
 
 # External Dependencies
 
