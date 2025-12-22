@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grant Management | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+        }
+
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: white; padding: 40px; border-radius: 20px;
+            max-width: 400px; width: 90%; text-align: center;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .grant-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-approved { background: #dcfce7; color: #059669; }
+        .status-rejected { background: #fee2e2; color: #dc2626; }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-approve { background: var(--success); color: white; }
+        .btn-reject { background: var(--danger); color: white; }
+        .btn-approve:hover { filter: brightness(1.1); }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        .detail-item strong { display: block; color: #64748b; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div id="login-overlay">
+        <div class="login-card">
+            <h2>Grant Admin Access</h2>
+            <input type="password" id="admin-pass" style="width:100%; padding:12px; margin:16px 0; border:1px solid #ddd; border-radius:8px;" placeholder="Admin Password">
+            <button onclick="login()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">Login</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1>💎 Mining Grant Management</h1>
+        <button class="btn" style="background:#64748b; color:white;" onclick="loadGrants()">🔄 Refresh</button>
+    </div>
+
+    <div id="grants-list">
+        <!-- Grants will load here -->
+    </div>
+
+    <script>
+        let adminPassword = '';
+
+        async function login() {
+            const pass = document.getElementById('admin-pass').value;
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pass })
+            });
+
+            if (res.ok) {
+                adminPassword = pass;
+                document.getElementById('login-overlay').style.display = 'none';
+                loadGrants();
+            } else {
+                alert('Invalid Password');
+            }
+        }
+
+        async function loadGrants() {
+            const res = await fetch('/api/admin/grants', {
+                headers: { 'x-admin-password': adminPassword }
+            });
+            const grants = await res.json();
+            
+            const list = document.getElementById('grants-list');
+            list.innerHTML = grants.length === 0 ? '<p>No applications yet.</p>' : '';
+            
+            grants.reverse().forEach(grant => {
+                const card = document.createElement('div');
+                card.className = 'grant-card';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div>
+                            <span class="status-badge status-${grant.status}">${grant.status}</span>
+                            <h3 style="margin:8px 0;">${grant.walletAddress}</h3>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            ${grant.status === 'pending' ? `
+                                <button class="btn btn-approve" onclick="updateStatus('${grant.id}', 'approved')">Approve</button>
+                                <button class="btn btn-reject" onclick="updateStatus('${grant.id}', 'rejected')">Reject</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="details">
+                        <div class="detail-item"><strong>Courses Completed</strong>${grant.coursesCompleted}</div>
+                        <div class="detail-item"><strong>Experience</strong>${grant.experience}</div>
+                        <div class="detail-item"><strong>Applied At</strong>${new Date(grant.appliedAt).toLocaleString()}</div>
+                        <div class="detail-item"><strong>ID</strong>${grant.id}</div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <strong>Interest:</strong>
+                        <p style="margin:8px 0; color:#475569;">${grant.interest}</p>
+                    </div>
+                    <div>
+                        <strong>Goals:</strong>
+                        <p style="margin:8px 0; color:#475569;">${grant.goals}</p>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        async function updateStatus(grantId, status) {
+            if (!confirm(`Are you sure you want to ${status} this grant?`)) return;
+            
+            const res = await fetch('/api/admin/grants/update', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-password': adminPassword
+                },
+                body: JSON.stringify({ grantId, status })
+            });
+
+            if (res.ok) {
+                loadGrants();
+            } else {
+                alert('Update failed');
+            }
+        }
+    </script>
+</body>
+</html>

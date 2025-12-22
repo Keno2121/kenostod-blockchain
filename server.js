@@ -523,6 +523,27 @@ app.get('/api/admin/grants', adminAuth, (req, res) => {
     res.json(miningGrants);
 });
 
+// Admin endpoint to update grant status (protected)
+app.post('/api/admin/grants/update', adminAuth, (req, res) => {
+    const { grantId, status, note } = req.body;
+    const grant = miningGrants.find(g => g.id === grantId);
+    
+    if (grant) {
+        grant.status = status;
+        if (note) grant.adminNote = note;
+        grant.updatedAt = new Date().toISOString();
+        
+        if (dataPersistence) {
+            dataPersistence.saveMiningGrants(miningGrants);
+        }
+        
+        console.log(`✅ Mining grant ${grantId} updated to ${status}`);
+        res.json({ success: true, grant });
+    } else {
+        res.status(404).json({ error: 'Grant not found' });
+    }
+});
+
 // Get blockchain info (with pagination support)
 app.get('/api/blockchain', (req, res) => {
     const limit = parseInt(req.query.limit) || 50;
