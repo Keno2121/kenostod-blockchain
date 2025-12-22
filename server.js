@@ -367,6 +367,7 @@ async function initializeBlockchainSystems() {
             bankingAPI.loadFiatBalances(savedFiatBalances);
         }
         icoPurchases = dataPersistence.loadICOPurchases();
+        miningGrants = dataPersistence.loadMiningGrants();
         global.preOrderSellOrders = dataPersistence.loadPreOrders();
         
         // Initialize business logic
@@ -481,20 +482,45 @@ const adminAuth = (req, res, next) => {
     }
 };
 
-// Admin authentication endpoint
-app.post('/api/admin/login', (req, res) => {
-    const { password } = req.body;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+// Mining grant applications storage
+let miningGrants = [];
 
-    if (!adminPassword) {
-        return res.status(500).json({ error: 'Server configuration error' });
-    }
+// Mining grant application endpoint
+app.post('/api/grants/apply', (req, res) => {
+    try {
+        const { walletAddress, coursesCompleted, interest, goals, experience } = req.body;
+        
+        if (!walletAddress || !coursesCompleted || !interest || !goals || !experience) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
 
-    if (password === adminPassword) {
-        res.json({ success: true });
-    } else {
-        res.status(401).json({ success: false, error: 'Invalid password' });
+        const application = {
+            id: 'GRANT-' + Date.now(),
+            walletAddress,
+            coursesCompleted,
+            interest,
+            goals,
+            experience,
+            appliedAt: new Date().toISOString(),
+            status: 'pending'
+        };
+
+        miningGrants.push(application);
+        
+        if (dataPersistence) {
+            dataPersistence.saveMiningGrants(miningGrants);
+        }
+
+        console.log(`📝 Mining grant application received from ${walletAddress}`);
+        res.json({ success: true, message: 'Application submitted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
+});
+
+// Admin endpoint to view grants (protected)
+app.get('/api/admin/grants', adminAuth, (req, res) => {
+    res.json(miningGrants);
 });
 
 // Get blockchain info (with pagination support)

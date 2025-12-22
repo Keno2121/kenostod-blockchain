@@ -13,6 +13,7 @@ class DataPersistence {
         this.learningProgressFile = path.join(dataDir, 'learning_progress.json');
         this.icoPurchasesFile = path.join(dataDir, 'ico_purchases.json');
         this.preOrdersFile = path.join(dataDir, 'pre_order_sell_orders.json');
+        this.miningGrantsFile = path.join(dataDir, 'mining_grants.json');
         
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
@@ -319,6 +320,36 @@ class DataPersistence {
             return data.preOrders;
         } catch (error) {
             console.error('❌ Error loading pre-orders:', error.message);
+            return [];
+        }
+    }
+
+    saveMiningGrants(miningGrants) {
+        try {
+            const data = {
+                miningGrants,
+                timestamp: Date.now()
+            };
+            fs.writeFileSync(this.miningGrantsFile, JSON.stringify(data, null, 2));
+            console.log(`✅ Mining grants saved to disk (${miningGrants.length} applications)`);
+            return true;
+        } catch (error) {
+            console.error('❌ Error saving mining grants:', error.message);
+            return false;
+        }
+    }
+
+    loadMiningGrants() {
+        try {
+            if (!fs.existsSync(this.miningGrantsFile)) {
+                console.log('ℹ️  No saved mining grants found, starting fresh');
+                return [];
+            }
+            const data = JSON.parse(fs.readFileSync(this.miningGrantsFile, 'utf8'));
+            console.log(`✅ Loaded mining grants from disk (${data.miningGrants.length} applications)`);
+            return data.miningGrants;
+        } catch (error) {
+            console.error('❌ Error loading mining grants:', error.message);
             return [];
         }
     }
