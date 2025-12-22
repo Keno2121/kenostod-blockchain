@@ -464,7 +464,38 @@ async function initializeTestGraduate() {
     }
 }
 
-// Routes
+// Admin Authentication Middleware
+const adminAuth = (req, res, next) => {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const providedPassword = req.headers['x-admin-password'];
+
+    if (!adminPassword) {
+        console.error('❌ ADMIN_PASSWORD secret not set');
+        return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    if (providedPassword === adminPassword) {
+        next();
+    } else {
+        res.status(401).json({ error: 'Unauthorized: Admin access required' });
+    }
+};
+
+// Admin authentication endpoint
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+        return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    if (password === adminPassword) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ success: false, error: 'Invalid password' });
+    }
+});
 
 // Get blockchain info (with pagination support)
 app.get('/api/blockchain', (req, res) => {
