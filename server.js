@@ -630,6 +630,248 @@ app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
     res.json({ success: true, inquiries: enterpriseInquiries });
 });
 
+// ==================== KENO CLAIM SYSTEM ====================
+// Storage for KENO claim requests
+let kenoClaims = [];
+try {
+    const savedClaims = require('fs').readFileSync('./keno_claims.json', 'utf8');
+    kenoClaims = JSON.parse(savedClaims);
+} catch (e) {
+    kenoClaims = [];
+}
+
+function saveKenoClaims() {
+    try {
+        require('fs').writeFileSync('./keno_claims.json', JSON.stringify(kenoClaims, null, 2));
+    } catch (e) {
+        console.error('Error saving KENO claims:', e);
+    }
+}
+
+// Get user's claimable KENO balance
+app.get('/api/claims/balance/:email', async (req, res) => {
+    try {
+        const email = req.params.email.toLowerCase();
+        
+        if (!dbConnection) {
+            return res.status(503).json({ success: false, error: 'Database unavailable' });
+        }
+        
+        // Get total rewards earned
+        const rewardsResult = await dbConnection.query(
+            `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+             FROM student_rewards 
+             WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1`,
+            [email]
+        );
+        
+        // Get total already claimed
+        const claimedResult = kenoClaims
+            .filter(c => c.email.toLowerCase() === email && c.status === 'completed')
+            .reduce((sum, c) => sum + c.amount, 0);
+        
+        // Get pending claims
+        const pendingClaims = kenoClaims
+            .filter(c => c.email.toLowerCase() === email && c.status === 'pending')
+            .reduce((sum, c) => sum + c.amount, 0);
+        
+        const totalEarned = parseFloat(rewardsResult.rows[0]?.total_earned || 0);
+        const claimable = Math.max(0, totalEarned - claimedResult - pendingClaims);
+        
+        res.json({
+            success: true,
+            email,
+            totalEarned,
+            alreadyClaimed: claimedResult,
+            pendingClaims,
+            claimable
+        });
+    } catch (error) {
+        console.error('Error fetching claimable balance:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Submit a claim request
+app.post('/api/claims/request', async (req, res) => {
+    try {
+        const { email, walletAddress, amount } = req.body;
+        
+        if (!email || !walletAddress || !amount) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Email, wallet address, and amount are required' 
+            });
+        }
+        
+        // Validate wallet address
+        const { ethers } = require('ethers');
+        if (!ethers.isAddress(walletAddress)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid BSC wallet address. Must start with 0x' 
+            });
+        }
+        
+        // Check claimable balance
+        if (!dbConnection) {
+            return res.status(503).json({ success: false, error: 'Database unavailable' });
+        }
+        
+        const rewardsResult = await dbConnection.query(
+            `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+             FROM student_rewards 
+             WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1`,
+            [email.toLowerCase()]
+        );
+        
+        const claimedResult = kenoClaims
+            .filter(c => c.email.toLowerCase() === email.toLowerCase() && 
+                   (c.status === 'completed' || c.status === 'pending'))
+            .reduce((sum, c) => sum + c.amount, 0);
+        
+        const totalEarned = parseFloat(rewardsResult.rows[0]?.total_earned || 0);
+        const claimable = Math.max(0, totalEarned - claimedResult);
+        
+        if (amount > claimable) {
+            return res.status(400).json({
+                success: false,
+                error: `Insufficient claimable balance. You can claim up to ${claimable} KENO.`
+            });
+        }
+        
+        if (amount < 1) {
+            return res.status(400).json({
+                success: false,
+                error: 'Minimum claim amount is 1 KENO'
+            });
+        }
+        
+        // Create claim request
+        const claim = {
+            id: 'CLAIM-' + Date.now(),
+            email: email.toLowerCase(),
+            walletAddress,
+            amount: parseFloat(amount),
+            status: 'pending',
+            requestedAt: new Date().toISOString(),
+            txHash: null
+        };
+        
+        kenoClaims.push(claim);
+        saveKenoClaims();
+        
+        console.log(`📋 KENO claim request: ${amount} KENO to ${walletAddress} (${email})`);
+        
+        res.json({
+            success: true,
+            message: `Claim request submitted! ${amount} KENO will be sent to ${walletAddress} after admin approval.`,
+            claimId: claim.id
+        });
+    } catch (error) {
+        console.error('Error submitting claim:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get user's claim history
+app.get('/api/claims/history/:email', (req, res) => {
+    const email = req.params.email.toLowerCase();
+    const userClaims = kenoClaims.filter(c => c.email.toLowerCase() === email);
+    res.json({ success: true, claims: userClaims });
+});
+
+// Admin: View all pending claims
+app.get('/api/admin/claims', adminAuth, (req, res) => {
+    res.json({ success: true, claims: kenoClaims });
+});
+
+// Admin: Approve and process claim (sends real KENO on BSC)
+app.post('/api/admin/claims/approve', adminAuth, async (req, res) => {
+    try {
+        const { claimId } = req.body;
+        
+        const claim = kenoClaims.find(c => c.id === claimId);
+        if (!claim) {
+            return res.status(404).json({ success: false, error: 'Claim not found' });
+        }
+        
+        if (claim.status !== 'pending') {
+            return res.status(400).json({ 
+                success: false, 
+                error: `Claim already ${claim.status}` 
+            });
+        }
+        
+        // Send real KENO on BSC
+        if (!bscTokenTransfer) {
+            return res.status(503).json({ 
+                success: false, 
+                error: 'BSC token transfer service unavailable' 
+            });
+        }
+        
+        console.log(`🚀 Processing claim ${claimId}: ${claim.amount} KENO to ${claim.walletAddress}`);
+        
+        const transferResult = await bscTokenTransfer.transferTokens(
+            claim.walletAddress,
+            claim.amount,
+            claimId
+        );
+        
+        if (transferResult.success) {
+            claim.status = 'completed';
+            claim.txHash = transferResult.txHash;
+            claim.processedAt = new Date().toISOString();
+            saveKenoClaims();
+            
+            console.log(`✅ Claim ${claimId} completed! TX: ${transferResult.txHash}`);
+            
+            res.json({
+                success: true,
+                message: `Successfully sent ${claim.amount} KENO to ${claim.walletAddress}`,
+                txHash: transferResult.txHash,
+                bscscanUrl: `https://bscscan.com/tx/${transferResult.txHash}`
+            });
+        } else {
+            claim.status = 'failed';
+            claim.error = transferResult.error;
+            saveKenoClaims();
+            
+            console.error(`❌ Claim ${claimId} failed: ${transferResult.error}`);
+            
+            res.status(500).json({
+                success: false,
+                error: transferResult.error
+            });
+        }
+    } catch (error) {
+        console.error('Error processing claim:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Admin: Reject claim
+app.post('/api/admin/claims/reject', adminAuth, (req, res) => {
+    const { claimId, reason } = req.body;
+    
+    const claim = kenoClaims.find(c => c.id === claimId);
+    if (!claim) {
+        return res.status(404).json({ success: false, error: 'Claim not found' });
+    }
+    
+    claim.status = 'rejected';
+    claim.rejectionReason = reason || 'Claim rejected by admin';
+    claim.processedAt = new Date().toISOString();
+    saveKenoClaims();
+    
+    console.log(`❌ Claim ${claimId} rejected: ${reason}`);
+    
+    res.json({ success: true, message: 'Claim rejected' });
+});
+
+// ==================== END KENO CLAIM SYSTEM ====================
+
 // Admin endpoint to update grant status (protected)
 app.post('/api/admin/grants/update', adminAuth, (req, res) => {
     const { grantId, status, note } = req.body;
