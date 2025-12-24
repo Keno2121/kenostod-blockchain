@@ -191,7 +191,7 @@ We're launching PancakeSwap on **Dec 29, 2025** and would welcome B2C2 as our in
 
 **Key Links:**
 - KENO Smart Contract: https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
-- Kenostod Academy: https://kenostod-blockchain-academy.replit.dev
+- Kenostod Academy: https://kenostodblockchain.com
 - Company Registration: [TBD]
 
 **Attachment:** This proposal, KENO Tokenomics White Paper, Technical Specifications

@@ -10,11 +10,24 @@ const KENO_TOKEN = {
     image: 'https://kenostod-blockchain.replit.app/keno-logo.png'
 };
 
-// Add KENO token to MetaMask
+// Add KENO token to wallet (MetaMask, Trust Wallet, etc.)
 async function addKenoToMetaMask() {
     if (typeof window.ethereum === 'undefined') {
-        showCustomAlert('MetaMask is not installed. Please install MetaMask first.', '⚠️');
+        showAddTokenManualModal();
         return false;
+    }
+    
+    // Detect which wallet is active
+    const isMetaMask = window.ethereum.isMetaMask && !window.ethereum.isTrust;
+    const isTrustWallet = window.ethereum.isTrust || window.ethereum.isTrustWallet;
+    const walletName = isTrustWallet ? 'Trust Wallet' : (isMetaMask ? 'MetaMask' : 'your wallet');
+    
+    // If Trust Wallet or unknown wallet, offer choice
+    if (!isMetaMask) {
+        const useDetected = await showWalletChoiceModal(walletName);
+        if (!useDetected) {
+            return false;
+        }
     }
     
     try {
@@ -32,14 +45,146 @@ async function addKenoToMetaMask() {
         });
         
         if (wasAdded) {
-            showCustomAlert('KENO token added to MetaMask successfully!', '🎉');
+            showCustomAlert(`KENO token added to ${walletName} successfully!`, '🎉');
         }
         return wasAdded;
     } catch (error) {
-        console.error('Error adding KENO to MetaMask:', error);
-        showCustomAlert('Failed to add KENO token. Please try manually with address: ' + KENO_TOKEN.address, '❌');
+        console.error('Error adding KENO to wallet:', error);
+        showAddTokenManualModal();
         return false;
     }
+}
+
+// Show modal with wallet choice when non-MetaMask wallet detected
+function showWalletChoiceModal(walletName) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.id = 'walletChoiceModal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center;
+            justify-content: center; z-index: 10000;
+        `;
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 16px; padding: 32px; max-width: 450px; margin: 20px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div style="font-size: 48px; margin-bottom: 16px;">🔗</div>
+                <h3 style="color: #1f2937; font-size: 1.5rem; margin-bottom: 12px;">Wallet Detected: ${walletName}</h3>
+                <p style="color: #6b7280; line-height: 1.6; margin-bottom: 24px;">
+                    We detected <strong>${walletName}</strong> instead of MetaMask. You can still add KENO to ${walletName}, or copy the details to add manually.
+                </p>
+                <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: left;">
+                    <p style="font-size: 0.85rem; color: #374151; margin-bottom: 8px;"><strong>Token Details:</strong></p>
+                    <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;">Contract: <code style="background: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${KENO_TOKEN.address}</code></p>
+                    <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;">Symbol: KENO</p>
+                    <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;">Decimals: 18</p>
+                    <p style="font-size: 0.8rem; color: #6b7280;">Network: BNB Smart Chain (BSC)</p>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button id="useDetectedBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                        Add to ${walletName}
+                    </button>
+                    <button id="copyAddressBtn" style="background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                        Copy Address
+                    </button>
+                    <button id="cancelWalletBtn" style="background: #e5e7eb; color: #374151; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        document.getElementById('useDetectedBtn').onclick = () => {
+            modal.remove();
+            resolve(true);
+        };
+        
+        document.getElementById('copyAddressBtn').onclick = () => {
+            navigator.clipboard.writeText(KENO_TOKEN.address);
+            alert('Contract address copied! Paste it in your wallet to import KENO manually.');
+            modal.remove();
+            resolve(false);
+        };
+        
+        document.getElementById('cancelWalletBtn').onclick = () => {
+            modal.remove();
+            resolve(false);
+        };
+        
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                resolve(false);
+            }
+        };
+    });
+}
+
+// Show manual add token instructions
+function showAddTokenManualModal() {
+    const modal = document.createElement('div');
+    modal.id = 'manualAddModal';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); display: flex; align-items: center;
+        justify-content: center; z-index: 10000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 16px; padding: 32px; max-width: 500px; margin: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">📋</div>
+                <h3 style="color: #1f2937; font-size: 1.4rem; margin-bottom: 8px;">Add KENO Token Manually</h3>
+                <p style="color: #6b7280;">Copy these details and import the token in your wallet</p>
+            </div>
+            
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Contract Address</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" value="${KENO_TOKEN.address}" readonly style="flex: 1; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 0.8rem; background: white;">
+                        <button onclick="navigator.clipboard.writeText('${KENO_TOKEN.address}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);" style="padding: 10px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Copy</button>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Symbol</label>
+                        <input type="text" value="KENO" readonly style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Decimals</label>
+                        <input type="text" value="18" readonly style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Network</label>
+                    <input type="text" value="BNB Smart Chain (BSC)" readonly style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
+                </div>
+            </div>
+            
+            <div style="background: #fef3c7; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                <p style="color: #92400e; font-size: 0.85rem; margin: 0;">
+                    <strong>How to add:</strong> Open your wallet app → Import Token → Paste the contract address above
+                </p>
+            </div>
+            
+            <div style="text-align: center;">
+                <button onclick="this.closest('#manualAddModal').remove();" style="background: #10b981; color: white; padding: 12px 32px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 1rem;">
+                    Done
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
 }
 
 let dialogResolve = null;
