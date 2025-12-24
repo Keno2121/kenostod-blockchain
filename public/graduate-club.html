@@ -569,22 +569,31 @@
             Upon completing all 21 courses, you receive an official certificate with blockchain verification
         </p>
 
+        <!-- Name Update Form (for verified graduates) -->
+        <div id="nameUpdateSection" style="display: none; background: rgba(255,215,0,0.1); border: 2px solid #ffd700; border-radius: 16px; padding: 24px; max-width: 500px; margin: 0 auto 32px;">
+            <h4 style="color: #ffd700; margin-bottom: 16px;">Set Your Certificate Name</h4>
+            <p style="color: #94a3b8; margin-bottom: 16px; font-size: 0.95rem;">Enter your full name as you want it to appear on your official certificate:</p>
+            <input type="text" id="graduateNameInput" placeholder="Your Full Name" style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #e2e8f0; font-size: 1.1rem; margin-bottom: 16px;">
+            <button onclick="saveGraduateName()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #ffd700 0%, #f59e0b 100%); color: #1a1a2e; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer;">Save Name to Certificate</button>
+            <p id="nameUpdateStatus" style="margin-top: 12px; font-size: 0.9rem;"></p>
+        </div>
+
         <div class="certificate-preview">
             <div class="certificate-shield">🛡️</div>
             <div class="certificate-title">KENOSTOD GRADUATE</div>
             <div class="certificate-subtitle">Master of Blockchain & Financial Literacy</div>
             
             <p style="font-size: 1.1rem; margin: 24px 0;">This certifies that</p>
-            <h3 style="font-size: 2rem; color: var(--primary-emerald); margin: 12px 0;">[Your Name]</h3>
+            <h3 id="certificateName" style="font-size: 2rem; color: var(--primary-emerald); margin: 12px 0;">[Your Name]</h3>
             
             <p style="font-size: 1.1rem; margin: 24px 0;">
                 has successfully completed all 21 courses of the Kenostod Blockchain Academy,<br>
                 demonstrating mastery of advanced blockchain technology and financial literacy.
             </p>
 
-            <div class="graduate-id">KG-20250315-7A4B</div>
+            <div id="certificateGradId" class="graduate-id">KG-20250315-7A4B</div>
 
-            <p style="font-size: 0.95rem; color: var(--text-gray); margin-top: 32px;">
+            <p id="certificateDetails" style="font-size: 0.95rem; color: var(--text-gray); margin-top: 32px;">
                 <strong>Courses Completed:</strong> 16 Blockchain + 5 Financial Literacy<br>
                 <strong>KENO Earned:</strong> 5,250 KENO<br>
                 <strong>RVT NFT:</strong> Platinum (2% perpetual royalties)<br>
@@ -749,5 +758,115 @@
             </p>
         </div>
     </footer>
+
+    <script>
+        let currentGraduate = null;
+        
+        async function loadGraduateData() {
+            const email = localStorage.getItem('user_email') || localStorage.getItem('kenostod_email');
+            const wallet = localStorage.getItem('connectedWallet');
+            
+            if (!email && !wallet) {
+                return;
+            }
+            
+            try {
+                const identifier = email || wallet;
+                const response = await fetch(`/api/graduates/verify/${encodeURIComponent(identifier)}`);
+                const data = await response.json();
+                
+                if (data.success && data.graduate) {
+                    currentGraduate = data.graduate;
+                    updateCertificateDisplay(data.graduate);
+                }
+            } catch (error) {
+                console.error('Error loading graduate data:', error);
+            }
+        }
+        
+        function updateCertificateDisplay(graduate) {
+            const nameEl = document.getElementById('certificateName');
+            const gradIdEl = document.getElementById('certificateGradId');
+            const detailsEl = document.getElementById('certificateDetails');
+            const nameSection = document.getElementById('nameUpdateSection');
+            const nameInput = document.getElementById('graduateNameInput');
+            
+            if (graduate.graduate_name) {
+                nameEl.textContent = graduate.graduate_name;
+                nameSection.style.display = 'none';
+            } else {
+                nameEl.textContent = '[Set Your Name Below]';
+                nameSection.style.display = 'block';
+            }
+            
+            if (nameInput && graduate.graduate_name) {
+                nameInput.value = graduate.graduate_name;
+            }
+            
+            if (gradIdEl) {
+                gradIdEl.textContent = graduate.graduate_id;
+            }
+            
+            if (detailsEl) {
+                const certHash = graduate.certificate_hash ? graduate.certificate_hash.slice(0, 12) + '...' : 'N/A';
+                detailsEl.innerHTML = `
+                    <strong>Courses Completed:</strong> 16 Blockchain + 5 Financial Literacy<br>
+                    <strong>KENO Earned:</strong> ${(graduate.keno_earned || 5250).toLocaleString()} KENO<br>
+                    <strong>RVT NFT:</strong> ${graduate.rvt_nft_tier || 'Platinum'} (2% perpetual royalties)<br>
+                    <strong>Verified:</strong> ${certHash}
+                `;
+            }
+        }
+        
+        async function saveGraduateName() {
+            const nameInput = document.getElementById('graduateNameInput');
+            const statusEl = document.getElementById('nameUpdateStatus');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                statusEl.textContent = 'Please enter your name';
+                statusEl.style.color = '#ef4444';
+                return;
+            }
+            
+            if (!currentGraduate) {
+                statusEl.textContent = 'Graduate record not found. Please verify your email/wallet.';
+                statusEl.style.color = '#ef4444';
+                return;
+            }
+            
+            statusEl.textContent = 'Saving...';
+            statusEl.style.color = '#ffd700';
+            
+            try {
+                const response = await fetch('/api/graduates/update-name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        graduateId: currentGraduate.graduate_id,
+                        name: name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusEl.textContent = 'Name saved successfully!';
+                    statusEl.style.color = '#10b981';
+                    document.getElementById('certificateName').textContent = name;
+                    document.getElementById('nameUpdateSection').style.display = 'none';
+                    currentGraduate.graduate_name = name;
+                } else {
+                    statusEl.textContent = 'Error: ' + (data.error || 'Failed to save');
+                    statusEl.style.color = '#ef4444';
+                }
+            } catch (error) {
+                statusEl.textContent = 'Error saving name: ' + error.message;
+                statusEl.style.color = '#ef4444';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadGraduateData);
+    </script>
 </body>
 </html>

@@ -5216,9 +5216,13 @@ app.get('/api/graduates/verify/:identifier', async (req, res) => {
         const { identifier } = req.params;
         let result;
         
-        if (identifier.startsWith('KG-')) {
+        if (identifier.startsWith('KG-') || identifier.startsWith('GRAD-')) {
             result = await dbConnection.query(`
                 SELECT * FROM kenostod_graduates WHERE graduate_id = $1
+            `, [identifier]);
+        } else if (identifier.includes('@')) {
+            result = await dbConnection.query(`
+                SELECT * FROM kenostod_graduates WHERE LOWER(user_email) = LOWER($1)
             `, [identifier]);
         } else {
             result = await dbConnection.query(`
@@ -5227,12 +5231,24 @@ app.get('/api/graduates/verify/:identifier', async (req, res) => {
         }
         
         if (result.rows.length === 0) {
-            return res.json({ isGraduate: false, message: 'No graduate record found' });
+            return res.json({ success: false, isGraduate: false, message: 'No graduate record found' });
         }
         
         const graduate = result.rows[0];
         res.json({
+            success: true,
             isGraduate: true,
+            graduate: {
+                graduate_id: graduate.graduate_id,
+                wallet_address: graduate.wallet_address,
+                user_email: graduate.user_email,
+                graduate_name: graduate.graduate_name,
+                completion_date: graduate.completion_date,
+                total_courses: graduate.total_courses,
+                keno_earned: graduate.keno_earned,
+                rvt_nft_tier: graduate.rvt_nft_tier,
+                certificate_hash: graduate.certificate_hash
+            },
             graduateId: graduate.graduate_id,
             walletAddress: graduate.wallet_address,
             completionDate: graduate.completion_date,
@@ -5245,6 +5261,45 @@ app.get('/api/graduates/verify/:identifier', async (req, res) => {
     } catch (error) {
         console.error('Error verifying graduate:', error.message);
         res.status(500).json({ error: error.message });
+    }
+});
+
+// Update graduate name for certificate
+app.post('/api/graduates/update-name', async (req, res) => {
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+    
+    try {
+        const { graduateId, name } = req.body;
+        
+        if (!graduateId || !name) {
+            return res.status(400).json({ success: false, error: 'Graduate ID and name are required' });
+        }
+        
+        const sanitizedName = name.trim().slice(0, 100);
+        
+        const result = await dbConnection.query(`
+            UPDATE kenostod_graduates 
+            SET graduate_name = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE graduate_id = $2
+            RETURNING *
+        `, [sanitizedName, graduateId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Graduate not found' });
+        }
+        
+        console.log(`Updated graduate name: ${graduateId} -> ${sanitizedName}`);
+        
+        res.json({
+            success: true,
+            message: 'Name updated successfully',
+            graduate: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error updating graduate name:', error.message);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
