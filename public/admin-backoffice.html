@@ -572,6 +572,10 @@
                     <span class="icon">💎</span>
                     <span>Mining Grants</span>
                 </a>
+                <div class="nav-item" onclick="showTab('claims')">
+                    <span class="icon">💰</span>
+                    <span>KENO Claims</span>
+                </div>
                 <div class="nav-item" onclick="showTab('referrals')">
                     <span class="icon">🔗</span>
                     <span>Referrals</span>
@@ -816,6 +820,18 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+            
+            <div id="claimsTab" class="tab-content">
+                <div class="section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="color: #ffd700;">KENO Token Claims</h2>
+                        <button onclick="loadClaims()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                    </div>
+                    <div id="claimsList" style="display: grid; gap: 16px;">
+                        <p style="color: #94a3b8;">Loading claims...</p>
+                    </div>
                 </div>
             </div>
             
@@ -1275,8 +1291,13 @@
                 rewards: 'Rewards Distribution',
                 graduates: 'Verified Graduates',
                 investors: 'ICO Investors',
+                claims: 'KENO Claims',
                 referrals: 'Referral Program'
             };
+            
+            if (tabName === 'claims') {
+                loadClaims();
+            }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
         }
         
@@ -1338,6 +1359,119 @@
             a.href = url;
             a.download = filename;
             a.click();
+        }
+        
+        // KENO Claims Management Functions
+        async function loadClaims() {
+            const claimsList = document.getElementById('claimsList');
+            claimsList.innerHTML = '<p style="color: #94a3b8;">Loading claims...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/claims', {
+                    headers: { 'X-Admin-Session': sessionId }
+                });
+                const data = await response.json();
+                
+                if (data.success && data.claims.length > 0) {
+                    let html = '';
+                    data.claims.forEach(claim => {
+                        const statusColors = {
+                            pending: '#f59e0b',
+                            completed: '#10b981',
+                            failed: '#ef4444',
+                            rejected: '#ef4444'
+                        };
+                        const isPending = claim.status === 'pending';
+                        html += `
+                            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                                    <div>
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffd700;">${claim.amount} KENO</div>
+                                        <div style="color: #94a3b8; margin-top: 8px;">Email: ${claim.email}</div>
+                                        <div style="color: #94a3b8; font-family: monospace; font-size: 0.9rem;">Wallet: ${claim.walletAddress}</div>
+                                        <div style="color: #64748b; font-size: 0.85rem; margin-top: 8px;">Requested: ${new Date(claim.requestedAt).toLocaleString()}</div>
+                                        ${claim.txHash ? `<a href="https://bscscan.com/tx/${claim.txHash}" target="_blank" style="color: #3b82f6; font-size: 0.9rem;">View TX on BscScan →</a>` : ''}
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="background: ${statusColors[claim.status]}33; color: ${statusColors[claim.status]}; padding: 8px 16px; border-radius: 20px; font-weight: 600;">
+                                            ${claim.status.toUpperCase()}
+                                        </span>
+                                        ${isPending ? `
+                                            <div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                                                <button onclick="approveClaim('${claim.id}')" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✅ Approve & Send</button>
+                                                <button onclick="rejectClaim('${claim.id}')" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">❌ Reject</button>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    claimsList.innerHTML = html;
+                } else {
+                    claimsList.innerHTML = '<p style="color: #94a3b8;">No claims yet.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading claims:', error);
+                claimsList.innerHTML = '<p style="color: #ef4444;">Error loading claims</p>';
+            }
+        }
+        
+        async function approveClaim(claimId) {
+            if (!confirm('Approve this claim and send REAL KENO tokens to the student wallet?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/claims/approve', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Admin-Session': sessionId 
+                    },
+                    body: JSON.stringify({ claimId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ Success! ${data.message}\n\nTX Hash: ${data.txHash}`);
+                    loadClaims();
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error approving claim:', error);
+                alert('Error approving claim: ' + error.message);
+            }
+        }
+        
+        async function rejectClaim(claimId) {
+            const reason = prompt('Enter rejection reason:');
+            if (reason === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/claims/reject', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Admin-Session': sessionId 
+                    },
+                    body: JSON.stringify({ claimId, reason })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Claim rejected');
+                    loadClaims();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error rejecting claim:', error);
+                alert('Error rejecting claim: ' + error.message);
+            }
         }
         
         document.addEventListener('DOMContentLoaded', checkExistingSession);

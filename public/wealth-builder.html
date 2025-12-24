@@ -351,7 +351,7 @@
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
                 <button class="tab-btn" onclick="switchTab('tokenSystem')">🔄 Token System</button>
-                <button class="tab-btn" onclick="switchTab('convertKeno')">💵 Get Real KENO</button>
+                <button class="tab-btn" onclick="switchTab('convertKeno')">💵 Claim KENO</button>
                 <button class="tab-btn" onclick="switchTab('jobs')">💼 Career Center</button>
                 <button class="tab-btn" onclick="switchTab('scholarship')">🎓 Scholarships</button>
                 <button class="tab-btn" onclick="switchTab('referrals')">👥 Referrals</button>
@@ -424,24 +424,73 @@
             </div>
 
             <div id="convertKeno" class="tab-content">
-                <h2 class="section-title">💵 Get Real KENO & Cash Out</h2>
+                <h2 class="section-title">💵 Claim Your Earned KENO</h2>
                 
-                <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                        <div style="font-size: 36px;">📢</div>
-                        <div>
-                            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 6px;">Important: This Guide is for Real KENO Tokens Only</div>
-                            <div style="opacity: 0.95; font-size: 0.95rem; line-height: 1.5;">
-                                The KENO you earn from completing courses is <strong>educational credit</strong> tracked in the academy - it cannot be withdrawn or traded. To get tradeable KENO tokens that can be converted to cash, you must <strong>purchase them during the ICO</strong>.
+                <!-- Claim Your Earned KENO Section -->
+                <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 16px; padding: 32px; margin-bottom: 30px;">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">🎓</div>
+                        <h3 style="font-size: 1.8rem; margin-bottom: 8px;">Claim Your Course Rewards</h3>
+                        <p style="opacity: 0.9;">Complete courses → Earn KENO → Claim to your MetaMask wallet</p>
+                    </div>
+                    
+                    <div id="claimBalanceSection" style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; text-align: center;">
+                            <div>
+                                <div style="font-size: 0.9rem; opacity: 0.8;">Total Earned</div>
+                                <div id="claimTotalEarned" style="font-size: 1.8rem; font-weight: 700;">-- KENO</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; opacity: 0.8;">Already Claimed</div>
+                                <div id="claimAlreadyClaimed" style="font-size: 1.8rem; font-weight: 700;">-- KENO</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; opacity: 0.8;">Available to Claim</div>
+                                <div id="claimAvailable" style="font-size: 1.8rem; font-weight: 700; color: #fef08a;">-- KENO</div>
                             </div>
                         </div>
                     </div>
+                    
+                    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px;">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Your Email (used for courses)</label>
+                            <input type="email" id="claimEmail" placeholder="student@example.com" style="width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 1rem; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Your BSC Wallet Address (MetaMask)</label>
+                            <input type="text" id="claimWalletAddress" placeholder="0x..." style="width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 1rem; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Amount to Claim</label>
+                            <input type="number" id="claimAmount" placeholder="250" min="1" style="width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 1rem; box-sizing: border-box;">
+                        </div>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button onclick="checkClaimBalance()" style="flex: 1; min-width: 150px; padding: 14px 24px; background: rgba(255,255,255,0.2); border: 2px solid white; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">Check Balance</button>
+                            <button onclick="submitKenoClaim()" style="flex: 2; min-width: 200px; padding: 14px 24px; background: #fef08a; border: none; color: #065f46; border-radius: 8px; font-weight: 700; cursor: pointer;">🚀 Submit Claim Request</button>
+                        </div>
+                        <p id="claimStatus" style="margin-top: 12px; text-align: center; font-size: 0.95rem;"></p>
+                    </div>
                 </div>
                 
-                <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 16px; padding: 32px; margin-bottom: 30px; text-align: center;">
-                    <div style="font-size: 24px; margin-bottom: 8px;">⏰ Private Sale Starts</div>
-                    <div style="font-size: 42px; font-weight: 800; margin-bottom: 8px;">November 28, 2025</div>
-                    <div style="font-size: 18px; opacity: 0.9;">$0.01 per KENO + 20% Bonus!</div>
+                <!-- Claim History -->
+                <div style="background: #f9fafb; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+                    <h3 style="color: #1f2937; margin-bottom: 16px;">📜 Your Claim History</h3>
+                    <div id="claimHistory" style="color: #6b7280;">Enter your email above and click "Check Balance" to see your claim history.</div>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div style="font-size: 36px;">💡</div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 6px;">How It Works</div>
+                            <div style="opacity: 0.95; font-size: 0.95rem; line-height: 1.5;">
+                                1. Complete courses to earn 250 KENO each<br>
+                                2. Enter your email and MetaMask wallet address above<br>
+                                3. Submit a claim request<br>
+                                4. Admin approves and sends REAL KENO tokens to your wallet!
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <h3 style="color: #1f2937; margin-bottom: 20px; font-size: 1.3rem;">📋 Step-by-Step: Buy KENO & Convert to Cash</h3>
@@ -779,6 +828,137 @@
             }
 
             return { response, data };
+        }
+
+        // KENO Claim System Functions
+        async function checkClaimBalance() {
+            const email = document.getElementById('claimEmail').value.trim();
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            try {
+                document.getElementById('claimStatus').textContent = 'Checking balance...';
+                
+                const response = await fetch(`/api/claims/balance/${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('claimTotalEarned').textContent = `${data.totalEarned} KENO`;
+                    document.getElementById('claimAlreadyClaimed').textContent = `${data.alreadyClaimed} KENO`;
+                    document.getElementById('claimAvailable').textContent = `${data.claimable} KENO`;
+                    document.getElementById('claimStatus').textContent = '';
+                    
+                    // Auto-fill amount if empty
+                    const amountInput = document.getElementById('claimAmount');
+                    if (!amountInput.value && data.claimable > 0) {
+                        amountInput.value = data.claimable;
+                    }
+                    
+                    // Load claim history
+                    loadClaimHistory(email);
+                } else {
+                    document.getElementById('claimStatus').textContent = data.error || 'Error checking balance';
+                }
+            } catch (error) {
+                console.error('Error checking claim balance:', error);
+                document.getElementById('claimStatus').textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function loadClaimHistory(email) {
+            try {
+                const response = await fetch(`/api/claims/history/${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                const historyDiv = document.getElementById('claimHistory');
+                
+                if (data.success && data.claims.length > 0) {
+                    let html = '<div style="display: grid; gap: 12px;">';
+                    data.claims.forEach(claim => {
+                        const statusColors = {
+                            pending: '#f59e0b',
+                            completed: '#10b981',
+                            failed: '#ef4444',
+                            rejected: '#ef4444'
+                        };
+                        const statusIcons = {
+                            pending: '⏳',
+                            completed: '✅',
+                            failed: '❌',
+                            rejected: '🚫'
+                        };
+                        html += `
+                            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                <div>
+                                    <div style="font-weight: 600; color: #1f2937;">${claim.amount} KENO</div>
+                                    <div style="font-size: 0.85rem; color: #6b7280;">${claim.walletAddress.substring(0,10)}...${claim.walletAddress.substring(38)}</div>
+                                    <div style="font-size: 0.8rem; color: #9ca3af;">${new Date(claim.requestedAt).toLocaleDateString()}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="background: ${statusColors[claim.status]}22; color: ${statusColors[claim.status]}; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">
+                                        ${statusIcons[claim.status]} ${claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                                    </span>
+                                    ${claim.txHash ? `<div style="margin-top: 8px;"><a href="https://bscscan.com/tx/${claim.txHash}" target="_blank" style="color: #3b82f6; font-size: 0.85rem;">View on BscScan →</a></div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    historyDiv.innerHTML = html;
+                } else {
+                    historyDiv.innerHTML = '<p style="color: #6b7280;">No claims yet. Complete courses to earn KENO!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading claim history:', error);
+            }
+        }
+        
+        async function submitKenoClaim() {
+            const email = document.getElementById('claimEmail').value.trim();
+            const walletAddress = document.getElementById('claimWalletAddress').value.trim();
+            const amount = parseFloat(document.getElementById('claimAmount').value);
+            
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            if (!walletAddress) {
+                alert('Please enter your BSC wallet address');
+                return;
+            }
+            if (!walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+                alert('Invalid wallet address. Must start with 0x and be 42 characters.');
+                return;
+            }
+            if (!amount || amount < 1) {
+                alert('Please enter a valid amount (minimum 1 KENO)');
+                return;
+            }
+            
+            try {
+                document.getElementById('claimStatus').textContent = 'Submitting claim request...';
+                
+                const response = await fetch('/api/claims/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, walletAddress, amount })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('claimStatus').innerHTML = `<span style="color: #10b981; font-weight: 600;">✅ ${data.message}</span>`;
+                    // Refresh balance and history
+                    checkClaimBalance();
+                } else {
+                    document.getElementById('claimStatus').innerHTML = `<span style="color: #fca5a5;">❌ ${data.error}</span>`;
+                }
+            } catch (error) {
+                console.error('Error submitting claim:', error);
+                document.getElementById('claimStatus').innerHTML = `<span style="color: #fca5a5;">❌ Error: ${error.message}</span>`;
+            }
         }
 
         function switchTab(tabName) {
