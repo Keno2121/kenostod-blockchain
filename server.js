@@ -7310,13 +7310,10 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
         stats.kenoDistributed = parseFloat(kenoResult.rows[0]?.total || 0);
         
         const graduatesResult = await dbConnection.query(`
-            SELECT COUNT(DISTINCT user_wallet_address) as count 
-            FROM student_rewards 
-            WHERE reward_type = 'course_completion'
-            GROUP BY user_wallet_address 
-            HAVING COUNT(*) >= 21
+            SELECT COUNT(*) as count 
+            FROM kenostod_graduates
         `);
-        stats.totalGraduates = graduatesResult.rows.length;
+        stats.totalGraduates = parseInt(graduatesResult.rows[0]?.count || 0);
         
         const icoResult = await dbConnection.query(`
             SELECT COALESCE(SUM(investment_amount_usd), 0) as total 
