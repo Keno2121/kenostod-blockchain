@@ -2,6 +2,46 @@ const API_BASE = '';
 let ec;
 let currentLanguage = localStorage.getItem('language') || 'en';
 
+// KENO Token Contract Details
+const KENO_TOKEN = {
+    address: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
+    symbol: 'KENO',
+    decimals: 18,
+    image: 'https://kenostod-blockchain.replit.app/keno-logo.png'
+};
+
+// Add KENO token to MetaMask
+async function addKenoToMetaMask() {
+    if (typeof window.ethereum === 'undefined') {
+        showCustomAlert('MetaMask is not installed. Please install MetaMask first.', '⚠️');
+        return false;
+    }
+    
+    try {
+        const wasAdded = await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+                type: 'ERC20',
+                options: {
+                    address: KENO_TOKEN.address,
+                    symbol: KENO_TOKEN.symbol,
+                    decimals: KENO_TOKEN.decimals,
+                    image: KENO_TOKEN.image
+                }
+            }
+        });
+        
+        if (wasAdded) {
+            showCustomAlert('KENO token added to MetaMask successfully!', '🎉');
+        }
+        return wasAdded;
+    } catch (error) {
+        console.error('Error adding KENO to MetaMask:', error);
+        showCustomAlert('Failed to add KENO token. Please try manually with address: ' + KENO_TOKEN.address, '❌');
+        return false;
+    }
+}
+
 let dialogResolve = null;
 
 function showCustomAlert(message, icon = '✅') {
