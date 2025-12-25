@@ -651,10 +651,9 @@
                         <textarea id="scholarshipGoals" placeholder="Share your career aspirations and how blockchain education will help you achieve them..."></textarea>
                     </div>
 
-                    <button type="submit" class="btn-primary">📝 Submit Scholarship Application</button>
+                    <button type="submit" class="btn-primary" id="scholarshipSubmitBtn">📝 Submit Scholarship Application</button>
+                    <div id="scholarshipResult" style="margin-top: 20px;"></div>
                 </form>
-
-                <div id="scholarshipResult"></div>
             </div>
 
             <div id="referrals" class="tab-content">
@@ -1206,12 +1205,29 @@
 
         document.getElementById('scholarshipForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('📝 Scholarship form submitted');
+            
+            const submitBtn = document.getElementById('scholarshipSubmitBtn');
+            const resultDiv = document.getElementById('scholarshipResult');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Submitting...';
+            resultDiv.innerHTML = '<p style="color: #6b7280;">Processing your application...</p>';
+
+            // Check wallet from localStorage if not in memory
+            if (!currentWallet) {
+                currentWallet = localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress') || localStorage.getItem('userWallet');
+                console.log('📱 Loaded wallet from storage:', currentWallet);
+            }
 
             if (!currentWallet) {
-                document.getElementById('scholarshipResult').innerHTML = `
-                    <div class="alert alert-error" style="margin-top: 20px; padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📝 Submit Scholarship Application';
+                resultDiv.innerHTML = `
+                    <div class="alert alert-error" style="padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
                         <strong>❌ Please Connect Your Wallet First</strong><br>
-                        Connect your wallet at the top of the page before applying for a scholarship.
+                        Use the buttons at the top of this section to connect your MetaMask wallet or enter your wallet address manually.
                     </div>
                 `;
                 return;
@@ -1257,15 +1273,29 @@
                 }
 
                 if (data.success) {
-                    document.getElementById('scholarshipResult').innerHTML = `
-                        <div class="alert alert-success" style="margin-top: 20px; padding: 15px; background: #d1fae5; border-left: 4px solid #10b981; border-radius: 8px;">
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '📝 Submit Scholarship Application';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success" style="padding: 15px; background: #d1fae5; border-left: 4px solid #10b981; border-radius: 8px;">
                             <strong>✅ Application Submitted Successfully!</strong><br>
                             ${data.message}
                         </div>
                     `;
                     document.getElementById('scholarshipForm').reset();
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '📝 Submit Scholarship Application';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-error" style="padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
+                            <strong>❌ ${data.error || 'Submission failed'}</strong>
+                        </div>
+                    `;
                 }
             } catch (error) {
+                console.error('Scholarship submission error:', error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📝 Submit Scholarship Application';
+                
                 let errorMessage = error.message || 'An error occurred. Please try again.';
                 let helpText = '';
                 
@@ -1275,8 +1305,8 @@
                     <strong>How to fix:</strong> Click "Submit" again, and when the MetaMask popup appears, click "Sign" to confirm your application.`;
                 }
                 
-                document.getElementById('scholarshipResult').innerHTML = `
-                    <div class="alert alert-error" style="margin-top: 20px; padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
+                resultDiv.innerHTML = `
+                    <div class="alert alert-error" style="padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
                         <strong>❌ ${errorMessage}</strong>${helpText}
                     </div>
                 `;
@@ -1285,6 +1315,14 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             await loadJobListings();
+            
+            // Check for stored wallet on page load
+            const storedWallet = localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress') || localStorage.getItem('userWallet');
+            if (storedWallet && storedWallet.startsWith('0x') && storedWallet.length === 42) {
+                currentWallet = storedWallet;
+                console.log('📱 Restored wallet from storage:', currentWallet);
+                updateScholarshipWalletStatus();
+            }
             
             if (window.ethereum) {
                 window.ethereum.on('accountsChanged', (accounts) => {
