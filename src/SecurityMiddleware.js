@@ -8,7 +8,7 @@ class SecurityMiddleware {
         this.courseCompletionLimiter = rateLimit({
             windowMs: 60 * 60 * 1000,
             max: 10,
-            message: 'Too many course completions. Maximum 10 per hour. Please try again later.',
+            message: { error: 'Too many course completions. Maximum 10 per hour. Please try again later.' },
             standardHeaders: true,
             legacyHeaders: false
         });
@@ -16,7 +16,7 @@ class SecurityMiddleware {
         this.scholarshipApplicationLimiter = rateLimit({
             windowMs: 24 * 60 * 60 * 1000,
             max: 3,
-            message: 'Maximum 3 scholarship applications per day. Please try again tomorrow.',
+            message: { error: 'Maximum 3 scholarship applications per day. Please try again tomorrow.' },
             standardHeaders: true,
             legacyHeaders: false
         });
@@ -24,7 +24,7 @@ class SecurityMiddleware {
         this.jobApplicationLimiter = rateLimit({
             windowMs: 24 * 60 * 60 * 1000,
             max: 20,
-            message: 'Maximum 20 job applications per day. Please try again tomorrow.',
+            message: { error: 'Maximum 20 job applications per day. Please try again tomorrow.' },
             standardHeaders: true,
             legacyHeaders: false
         });
@@ -32,7 +32,7 @@ class SecurityMiddleware {
         this.referralLimiter = rateLimit({
             windowMs: 24 * 60 * 60 * 1000,
             max: 50,
-            message: 'Maximum 50 referrals per day. Please try again tomorrow.',
+            message: { error: 'Maximum 50 referrals per day. Please try again tomorrow.' },
             standardHeaders: true,
             legacyHeaders: false
         });
@@ -40,7 +40,7 @@ class SecurityMiddleware {
         this.generalApiLimiter = rateLimit({
             windowMs: 15 * 60 * 1000,
             max: 100,
-            message: 'Too many requests. Please try again later.',
+            message: { error: 'Too many requests. Please try again later.' },
             standardHeaders: true,
             legacyHeaders: false
         });
