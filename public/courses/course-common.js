@@ -295,6 +295,42 @@
         document.body.appendChild(modal);
     }
 
+    // Check course access (subscription OR scholarship)
+    async function checkCourseAccess(courseId) {
+        if (courseId === 1) return { hasAccess: true, reason: 'free' };
+        
+        const subscriptionActive = localStorage.getItem('subscriptionActive') === 'true';
+        if (subscriptionActive) return { hasAccess: true, reason: 'subscription' };
+        
+        const scholarshipActive = localStorage.getItem('scholarshipActive') === 'true';
+        if (scholarshipActive) return { hasAccess: true, reason: 'scholarship' };
+        
+        const email = localStorage.getItem('userEmail');
+        const wallet = localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress');
+        
+        if (email || wallet) {
+            try {
+                const param = email ? 'email=' + encodeURIComponent(email) : 'wallet=' + encodeURIComponent(wallet);
+                const response = await fetch('/api/wealth/scholarships/check-access?' + param);
+                const data = await response.json();
+                if (data.hasScholarship) {
+                    localStorage.setItem('scholarshipActive', 'true');
+                    return { hasAccess: true, reason: 'scholarship' };
+                }
+            } catch (e) { console.log('Scholarship check failed'); }
+        }
+        return { hasAccess: false, reason: 'none' };
+    }
+
+    function showPremiumLock() {
+        if (document.getElementById('premium-lock-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'premium-lock-overlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;';
+        overlay.innerHTML = '<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #d4af37;border-radius:20px;padding:40px;max-width:500px;text-align:center;"><div style="font-size:60px;margin-bottom:20px;">🔒</div><h2 style="color:#d4af37;font-size:28px;margin-bottom:15px;">Premium Course</h2><p style="color:#ccc;margin-bottom:25px;line-height:1.6;">This course requires a subscription or approved scholarship.</p><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;"><a href="/index.html#courses" style="background:linear-gradient(135deg,#10b981,#059669);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Subscribe Now</a><a href="/wealth-builder.html" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Apply for Scholarship</a><a href="/courses/course-1-wallet.html" style="background:rgba(255,255,255,0.1);color:#ccc;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid #555;">Try Course 1 Free</a></div></div>';
+        document.body.appendChild(overlay);
+    }
+
     // Expose global API
     window.kenostodWallet = {
         getWallet: getConnectedWallet,
@@ -305,7 +341,9 @@
         connectManual: connectManual,
         disconnect: disconnect,
         creditReward: creditCourseReward,
-        toast: showToast
+        toast: showToast,
+        checkAccess: checkCourseAccess,
+        showLock: showPremiumLock
     };
 
     // Course name mapping

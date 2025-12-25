@@ -232,14 +232,75 @@ class WealthBuilderManager {
                 RETURNING *
             `, [status, reviewerName, notes, applicationId]);
 
+            // If approved, grant scholarship access
+            if (status === 'approved' && result.rows[0]) {
+                const application = result.rows[0];
+                await this.grantScholarshipAccess(
+                    application.applicant_email,
+                    application.applicant_wallet_address,
+                    applicationId
+                );
+                console.log(`✅ Scholarship access granted to ${application.applicant_email}`);
+            }
+
             return {
                 success: true,
                 application: result.rows[0],
-                message: `Application ${status}`
+                message: `Application ${status}${status === 'approved' ? ' - Full course access granted!' : ''}`
             };
         } catch (error) {
             console.error('❌ Error reviewing scholarship:', error.message);
             return { success: false, error: error.message };
+        }
+    }
+
+    async grantScholarshipAccess(email, walletAddress, applicationId) {
+        try {
+            // Create scholarship_grants table entry
+            await this.db.query(`
+                CREATE TABLE IF NOT EXISTS scholarship_grants (
+                    id SERIAL PRIMARY KEY,
+                    applicant_email VARCHAR(255) NOT NULL,
+                    applicant_wallet_address VARCHAR(255),
+                    application_id INTEGER REFERENCES scholarship_applications(id),
+                    access_level VARCHAR(50) DEFAULT 'full',
+                    courses_unlocked INTEGER DEFAULT 21,
+                    granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '2 years'),
+                    is_active BOOLEAN DEFAULT true
+                )
+            `);
+
+            // Insert scholarship grant
+            await this.db.query(`
+                INSERT INTO scholarship_grants (applicant_email, applicant_wallet_address, application_id)
+                VALUES ($1, $2, $3)
+                ON CONFLICT DO NOTHING
+            `, [email, walletAddress, applicationId]);
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error granting scholarship access:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async checkScholarshipAccess(emailOrWallet) {
+        try {
+            const result = await this.db.query(`
+                SELECT * FROM scholarship_grants 
+                WHERE (applicant_email = $1 OR applicant_wallet_address = $1)
+                AND is_active = true
+                AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+            `, [emailOrWallet]);
+
+            return {
+                hasAccess: result.rows.length > 0,
+                grant: result.rows[0] || null
+            };
+        } catch (error) {
+            // Table might not exist yet
+            return { hasAccess: false, grant: null };
         }
     }
 

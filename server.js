@@ -4996,6 +4996,31 @@ app.post('/api/wealth/scholarships/review', async (req, res) => {
     }
 });
 
+// Check scholarship access (for course unlock)
+app.get('/api/wealth/scholarships/check-access', async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+    }
+    
+    try {
+        const { email, wallet } = req.query;
+        const identifier = email || wallet;
+        
+        if (!identifier) {
+            return res.status(400).json({ error: 'Email or wallet address required' });
+        }
+        
+        const result = await wealthBuilderManager.checkScholarshipAccess(identifier);
+        res.json({
+            hasScholarship: result.hasAccess,
+            coursesUnlocked: result.hasAccess ? 21 : 0,
+            grant: result.grant
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Create job listing (admin/companies)
 app.post('/api/wealth/jobs/create', async (req, res) => {
     if (!wealthBuilderManager) {
