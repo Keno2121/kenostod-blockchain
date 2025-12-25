@@ -67,27 +67,20 @@ function showWalletSelectionModal() {
         modal.innerHTML = `
             <div style="background: white; border-radius: 16px; padding: 32px; max-width: 480px; margin: 20px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
                 <div style="font-size: 48px; margin-bottom: 16px;">🦊</div>
-                <h3 style="color: #1f2937; font-size: 1.5rem; margin-bottom: 12px;">Add KENO to Your Wallet</h3>
+                <h3 style="color: #1f2937; font-size: 1.5rem; margin-bottom: 12px;">Add KENO Token to MetaMask</h3>
                 <p style="color: #6b7280; line-height: 1.6; margin-bottom: 24px;">
-                    Choose how you'd like to add the KENO token to your wallet.
+                    This adds the KENO token to your wallet so you can see your balance.
                 </p>
+                
+                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left;">
+                    <p style="font-size: 0.85rem; color: #92400e; margin: 0;"><strong>Note:</strong> This is NOT your wallet address. Your personal wallet address is shown at the top of MetaMask (starts with 0x...).</p>
+                </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
                     <button id="autoAddBtn" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 16px 24px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                        <span style="font-size: 1.3rem;">🦊</span> Auto-Add to Wallet
+                        <span style="font-size: 1.3rem;">🦊</span> Add KENO to MetaMask
                     </button>
                     <p style="font-size: 0.8rem; color: #9ca3af; margin: -8px 0 8px 0;">Works with MetaMask, Trust Wallet, and compatible wallets</p>
-                    
-                    <button id="manualAddBtn" style="background: #3b82f6; color: white; padding: 16px 24px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                        <span style="font-size: 1.3rem;">📋</span> Add Manually (Copy Details)
-                    </button>
-                    <p style="font-size: 0.8rem; color: #9ca3af; margin: -8px 0 8px 0;">Get contract address and details to paste in any wallet</p>
-                </div>
-                
-                <div style="background: #f3f4f6; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left;">
-                    <p style="font-size: 0.8rem; color: #374151; margin-bottom: 4px;"><strong>KENO Token Details:</strong></p>
-                    <p style="font-size: 0.75rem; color: #6b7280; margin-bottom: 2px;">Contract: ${KENO_TOKEN.address}</p>
-                    <p style="font-size: 0.75rem; color: #6b7280;">Network: BNB Smart Chain (BSC) | Symbol: KENO | Decimals: 18</p>
                 </div>
                 
                 <button id="cancelBtn" style="background: transparent; color: #6b7280; padding: 10px 20px; border-radius: 8px; border: 1px solid #d1d5db; font-weight: 500; cursor: pointer;">
@@ -101,11 +94,6 @@ function showWalletSelectionModal() {
         document.getElementById('autoAddBtn').onclick = () => {
             modal.remove();
             resolve('auto');
-        };
-        
-        document.getElementById('manualAddBtn').onclick = () => {
-            modal.remove();
-            resolve('manual');
         };
         
         document.getElementById('cancelBtn').onclick = () => {
