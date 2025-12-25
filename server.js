@@ -630,16 +630,7 @@ app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
     res.json({ success: true, inquiries: enterpriseInquiries });
 });
 
-// ==================== NODE SALE WHITELIST SYSTEM ====================
-
-// Node whitelist storage
-let nodeWhitelist = [];
-try {
-    const saved = require('fs').readFileSync('./node_whitelist.json', 'utf8');
-    nodeWhitelist = JSON.parse(saved);
-} catch (e) {
-    nodeWhitelist = [];
-}
+// ==================== NODE SALE WHITELIST SYSTEM (PostgreSQL) ====================
 
 // KENO contract address (to prevent confusion)
 const KENO_CONTRACT_ADDRESS = '0x65791e0b5cbac5f40c76cde31bf4f074d982fd0e';
@@ -651,6 +642,10 @@ app.post('/api/node-whitelist', async (req, res) => {
         
         if (!email || !wallet || !tier) {
             return res.status(400).json({ success: false, error: 'Missing required fields' });
+        }
+        
+        if (!dbConnection) {
+            return res.status(503).json({ success: false, error: 'Database unavailable' });
         }
         
         // Validate email format
@@ -679,65 +674,80 @@ app.post('/api/node-whitelist', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Invalid tier selection' });
         }
         
-        // Check for duplicate email or wallet
-        const existingEntry = nodeWhitelist.find(
-            entry => entry.email.toLowerCase() === email.toLowerCase() || 
-                     entry.wallet === normalizedWallet
+        const whitelistId = 'NODE-' + Date.now();
+        
+        // Insert into PostgreSQL (unique constraints will handle duplicates)
+        await dbConnection.query(
+            `INSERT INTO node_whitelist (whitelist_id, email, wallet, tier) VALUES ($1, $2, $3, $4)`,
+            [whitelistId, email.toLowerCase(), normalizedWallet, tier]
         );
-        
-        if (existingEntry) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'This email or wallet is already on the whitelist' 
-            });
-        }
-        
-        const whitelistEntry = {
-            id: 'NODE-' + Date.now(),
-            email: email.toLowerCase(),
-            wallet: normalizedWallet,
-            tier,
-            registeredAt: new Date().toISOString(),
-            status: 'pending'
-        };
-        
-        nodeWhitelist.push(whitelistEntry);
-        
-        try {
-            require('fs').writeFileSync('./node_whitelist.json', JSON.stringify(nodeWhitelist, null, 2));
-        } catch (e) {
-            console.error('Error saving node whitelist:', e);
-        }
         
         console.log(`🖥️ Node whitelist registration: ${email} for ${tier} node`);
         
         res.json({ 
             success: true, 
             message: 'Successfully added to whitelist!',
-            whitelistId: whitelistEntry.id
+            whitelistId
         });
     } catch (error) {
         console.error('Node whitelist error:', error);
+        // Handle unique constraint violations
+        if (error.code === '23505') {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'This email or wallet is already on the whitelist' 
+            });
+        }
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
 // Get node whitelist stats (public)
-app.get('/api/node-whitelist/stats', (req, res) => {
-    const stats = {
-        total: nodeWhitelist.length,
-        byTier: {
-            scholar: nodeWhitelist.filter(e => e.tier === 'scholar').length,
-            educator: nodeWhitelist.filter(e => e.tier === 'educator').length,
-            academy: nodeWhitelist.filter(e => e.tier === 'academy').length
+app.get('/api/node-whitelist/stats', async (req, res) => {
+    try {
+        if (!dbConnection) {
+            return res.status(503).json({ success: false, error: 'Database unavailable' });
         }
-    };
-    res.json({ success: true, stats });
+        
+        const totalResult = await dbConnection.query('SELECT COUNT(*) as total FROM node_whitelist');
+        const tierResult = await dbConnection.query(
+            `SELECT tier, COUNT(*) as count FROM node_whitelist GROUP BY tier`
+        );
+        
+        const byTier = { scholar: 0, educator: 0, academy: 0 };
+        tierResult.rows.forEach(row => {
+            byTier[row.tier] = parseInt(row.count);
+        });
+        
+        res.json({ 
+            success: true, 
+            stats: {
+                total: parseInt(totalResult.rows[0].total),
+                byTier
+            }
+        });
+    } catch (error) {
+        console.error('Node whitelist stats error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 // Admin endpoint to view node whitelist
-app.get('/api/admin/node-whitelist', adminAuth, (req, res) => {
-    res.json({ success: true, whitelist: nodeWhitelist });
+app.get('/api/admin/node-whitelist', adminAuth, async (req, res) => {
+    try {
+        if (!dbConnection) {
+            return res.status(503).json({ success: false, error: 'Database unavailable' });
+        }
+        
+        const result = await dbConnection.query(
+            'SELECT whitelist_id, email, wallet, tier, registered_at, status FROM node_whitelist ORDER BY registered_at DESC'
+        );
+        
+        res.json({ success: true, whitelist: result.rows });
+    } catch (error) {
+        console.error('Node whitelist fetch error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 // ==================== KENO CLAIM SYSTEM (PostgreSQL) ====================

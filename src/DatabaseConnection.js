@@ -577,7 +577,27 @@ class DatabaseConnection {
                 CREATE INDEX IF NOT EXISTS idx_investment_stats_date ON investment_statistics(stat_date);
             `);
 
-            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History, API Licensing, Graduate Merchandise & ICO Investors)');
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS node_whitelist (
+                    id SERIAL PRIMARY KEY,
+                    whitelist_id VARCHAR(50) UNIQUE NOT NULL,
+                    email VARCHAR(255) NOT NULL UNIQUE,
+                    wallet VARCHAR(42) NOT NULL UNIQUE,
+                    tier VARCHAR(20) NOT NULL CHECK (tier IN ('scholar', 'educator', 'academy')),
+                    registered_at TIMESTAMP DEFAULT NOW(),
+                    status VARCHAR(20) DEFAULT 'pending'
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_node_whitelist_email ON node_whitelist(email);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_node_whitelist_wallet ON node_whitelist(wallet);
+            `);
+
+            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History, API Licensing, Graduate Merchandise, ICO Investors & Node Whitelist)');
             return true;
         } catch (error) {
             console.error('❌ Error initializing database schema:', error.message);
