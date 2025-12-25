@@ -574,6 +574,30 @@
                     If you cannot afford our courses, apply for a full scholarship. We prioritize students from low-income backgrounds who demonstrate strong motivation to learn blockchain technology.
                 </div>
 
+                <div id="scholarshipWalletPrompt" style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div style="font-size: 36px;">🔗</div>
+                        <div style="flex: 1;">
+                            <h4 style="color: #92400e; margin-bottom: 8px;">Step 1: Connect Your Wallet</h4>
+                            <p style="color: #78350f; font-size: 0.95rem; margin-bottom: 12px;">You need to connect your wallet before applying. This helps us verify your identity and send rewards.</p>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <button onclick="connectMetaMask()" style="padding: 10px 20px; background: #f97316; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">🦊 Connect MetaMask</button>
+                                <button onclick="showManualWalletEntry(); document.querySelector('.tab-btn').scrollIntoView();" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">✏️ Enter Wallet Manually</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scholarshipWalletConnected" style="display: none; background: #d1fae5; border: 2px solid #10b981; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;">✅</span>
+                        <div>
+                            <strong style="color: #065f46;">Wallet Connected!</strong>
+                            <p id="scholarshipConnectedWallet" style="color: #047857; font-size: 0.9rem; margin: 0;"></p>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="scholarshipForm">
                     <div class="form-group">
                         <label>Full Name *</label>
@@ -672,6 +696,21 @@
         let userReferralCode = '';
         let isMetaMaskConnected = false;
 
+        function updateScholarshipWalletStatus() {
+            const promptDiv = document.getElementById('scholarshipWalletPrompt');
+            const connectedDiv = document.getElementById('scholarshipWalletConnected');
+            const walletDisplay = document.getElementById('scholarshipConnectedWallet');
+            
+            if (currentWallet) {
+                if (promptDiv) promptDiv.style.display = 'none';
+                if (connectedDiv) connectedDiv.style.display = 'block';
+                if (walletDisplay) walletDisplay.textContent = currentWallet.substring(0,10) + '...' + currentWallet.substring(38);
+            } else {
+                if (promptDiv) promptDiv.style.display = 'block';
+                if (connectedDiv) connectedDiv.style.display = 'none';
+            }
+        }
+
         function showManualWalletEntry() {
             const entryDiv = document.getElementById('manualWalletEntry');
             entryDiv.style.display = entryDiv.style.display === 'none' ? 'block' : 'none';
@@ -693,6 +732,7 @@
             
             currentWallet = address;
             isMetaMaskConnected = false;
+            updateScholarshipWalletStatus();
             
             localStorage.setItem('userWalletAddress', address);
             localStorage.setItem('walletAddress', address);
@@ -749,6 +789,7 @@
                 localStorage.setItem('walletAddress', currentWallet);
                 localStorage.setItem('userWallet', currentWallet);
                 console.log('✅ MetaMask connected:', currentWallet);
+                updateScholarshipWalletStatus();
                 return true;
             } catch (error) {
                 console.error('MetaMask connection failed:', error);
