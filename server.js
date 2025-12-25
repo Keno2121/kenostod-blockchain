@@ -632,37 +632,52 @@ app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
 
 // ==================== KENO CLAIM SYSTEM (PostgreSQL) ====================
 
-// Get user's claimable KENO balance
+// Get user's claimable KENO balance (supports email AND/OR wallet lookup)
 app.get('/api/claims/balance/:email', async (req, res) => {
     try {
-        const email = req.params.email.toLowerCase();
+        const emailOrWallet = req.params.email.toLowerCase();
+        const walletParam = req.query.wallet ? req.query.wallet.toLowerCase() : null;
         
         if (!dbConnection) {
             return res.status(503).json({ success: false, error: 'Database unavailable' });
         }
         
-        // Get total rewards earned
-        const rewardsResult = await dbConnection.query(
-            `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
-             FROM student_rewards 
-             WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1`,
-            [email]
-        );
+        // Get total rewards earned - check by email OR wallet address
+        let rewardsResult;
+        if (walletParam) {
+            // Both email and wallet provided - check both
+            rewardsResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+                 FROM student_rewards 
+                 WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1 
+                    OR LOWER(user_email) = $2 OR LOWER(user_wallet_address) = $2`,
+                [emailOrWallet, walletParam]
+            );
+        } else {
+            rewardsResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+                 FROM student_rewards 
+                 WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1`,
+                [emailOrWallet]
+            );
+        }
         
         // Get total already claimed from PostgreSQL
         const claimedResult = await dbConnection.query(
             `SELECT COALESCE(SUM(amount), 0) as total_claimed 
              FROM keno_claims 
-             WHERE LOWER(email) = $1 AND status = 'completed'`,
-            [email]
+             WHERE (LOWER(email) = $1 OR LOWER(wallet_address) = $1 ${walletParam ? 'OR LOWER(email) = $2 OR LOWER(wallet_address) = $2' : ''}) 
+             AND status = 'completed'`,
+            walletParam ? [emailOrWallet, walletParam] : [emailOrWallet]
         );
         
         // Get pending claims from PostgreSQL
         const pendingResult = await dbConnection.query(
             `SELECT COALESCE(SUM(amount), 0) as total_pending 
              FROM keno_claims 
-             WHERE LOWER(email) = $1 AND status = 'pending'`,
-            [email]
+             WHERE (LOWER(email) = $1 OR LOWER(wallet_address) = $1 ${walletParam ? 'OR LOWER(email) = $2 OR LOWER(wallet_address) = $2' : ''}) 
+             AND status = 'pending'`,
+            walletParam ? [emailOrWallet, walletParam] : [emailOrWallet]
         );
         
         const totalEarned = parseFloat(rewardsResult.rows[0]?.total_earned || 0);
@@ -672,7 +687,8 @@ app.get('/api/claims/balance/:email', async (req, res) => {
         
         res.json({
             success: true,
-            email,
+            email: emailOrWallet,
+            wallet: walletParam,
             totalEarned,
             alreadyClaimed,
             pendingClaims,

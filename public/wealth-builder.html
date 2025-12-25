@@ -833,15 +833,22 @@
         // KENO Claim System Functions
         async function checkClaimBalance() {
             const email = document.getElementById('claimEmail').value.trim();
-            if (!email) {
-                alert('Please enter your email address');
+            const wallet = document.getElementById('claimWallet').value.trim();
+            
+            if (!email && !wallet) {
+                alert('Please enter your email address or wallet address');
                 return;
             }
             
             try {
                 document.getElementById('claimStatus').textContent = 'Checking balance...';
                 
-                const response = await fetch(`/api/claims/balance/${encodeURIComponent(email)}`);
+                // Pass both email and wallet for comprehensive lookup
+                let url = `/api/claims/balance/${encodeURIComponent(email || wallet)}`;
+                if (email && wallet) {
+                    url += `?wallet=${encodeURIComponent(wallet)}`;
+                }
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -857,7 +864,7 @@
                     }
                     
                     // Load claim history
-                    loadClaimHistory(email);
+                    loadClaimHistory(email || wallet);
                 } else {
                     document.getElementById('claimStatus').textContent = data.error || 'Error checking balance';
                 }
