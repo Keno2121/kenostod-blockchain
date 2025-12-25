@@ -235,9 +235,10 @@ class WealthBuilderManager {
             // If approved, grant scholarship access
             if (status === 'approved' && result.rows[0]) {
                 const application = result.rows[0];
+                // Note: wallet address stored separately, grant access by email for now
                 await this.grantScholarshipAccess(
                     application.applicant_email,
-                    application.applicant_wallet_address,
+                    null, // wallet address will be retrieved separately when needed
                     applicationId
                 );
                 console.log(`✅ Scholarship access granted to ${application.applicant_email}`);
