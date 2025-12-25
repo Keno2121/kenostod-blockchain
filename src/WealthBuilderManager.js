@@ -101,7 +101,7 @@ class WealthBuilderManager {
                 transferStatus
             ]);
 
-            await this.checkRVTEligibility(walletAddress, email);
+            await this.checkRVTEligibility(normalizedWallet, email);
             
             const response = {
                 success: true,
@@ -132,22 +132,24 @@ class WealthBuilderManager {
 
     async checkRVTEligibility(walletAddress, email) {
         try {
+            // Use lowercase comparison for consistency with normalized wallet storage
+            const normalizedWallet = walletAddress.toLowerCase();
             const result = await this.db.query(`
                 SELECT COUNT(*) as courses_completed
                 FROM student_rewards
-                WHERE user_wallet_address = $1 AND reward_type = 'course_completion'
-            `, [walletAddress]);
+                WHERE LOWER(user_wallet_address) = $1 AND reward_type = 'course_completion'
+            `, [normalizedWallet]);
 
             const coursesCompleted = parseInt(result.rows[0].courses_completed);
 
             if (coursesCompleted === 5) {
-                await this.distributeRVTNFT(walletAddress, email, 'Bronze RVT', 0.25, 'Completed 5 courses');
+                await this.distributeRVTNFT(normalizedWallet, email, 'Bronze RVT', 0.25, 'Completed 5 courses');
             } else if (coursesCompleted === 10) {
-                await this.distributeRVTNFT(walletAddress, email, 'Silver RVT', 0.50, 'Completed 10 courses');
+                await this.distributeRVTNFT(normalizedWallet, email, 'Silver RVT', 0.50, 'Completed 10 courses');
             } else if (coursesCompleted === 16) {
-                await this.distributeRVTNFT(walletAddress, email, 'Gold RVT', 1.00, 'Completed all 16 blockchain courses');
+                await this.distributeRVTNFT(normalizedWallet, email, 'Gold RVT', 1.00, 'Completed all 16 blockchain courses');
             } else if (coursesCompleted === 21) {
-                await this.distributeRVTNFT(walletAddress, email, 'Platinum RVT', 2.00, 'Completed all 21 courses (blockchain + financial literacy)');
+                await this.distributeRVTNFT(normalizedWallet, email, 'Platinum RVT', 2.00, 'Completed all 21 courses (blockchain + financial literacy)');
             }
 
             return coursesCompleted;

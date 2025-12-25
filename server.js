@@ -743,6 +743,15 @@ app.post('/api/claims/request', async (req, res) => {
             });
         }
         
+        // SECURITY: Reject KENO contract address as destination (common user mistake)
+        const KENO_CONTRACT = '0x65791e0b5cbac5f40c76cde31bf4f074d982fd0e';
+        if (walletAddress.toLowerCase() === KENO_CONTRACT) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'This is the KENO token contract address, not a personal wallet. Please use your MetaMask wallet address (shown at the top of MetaMask app) instead.' 
+            });
+        }
+        
         // Check claimable balance
         if (!dbConnection) {
             return res.status(503).json({ success: false, error: 'Database unavailable' });
