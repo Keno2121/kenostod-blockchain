@@ -642,23 +642,24 @@ app.get('/api/claims/balance/:email', async (req, res) => {
             return res.status(503).json({ success: false, error: 'Database unavailable' });
         }
         
-        // Get rewards with status='available' (pending user claim via claim form)
-        let availableRewardsResult;
+        // Get claimable rewards: status='available' OR status='claimed' (not yet claimed via form)
+        // 'claimed' means auto-transferred on-chain, but can still be claimed via form for record-keeping
+        let claimableRewardsResult;
         if (walletParam) {
-            availableRewardsResult = await dbConnection.query(
-                `SELECT COALESCE(SUM(reward_amount), 0) as total_available 
+            claimableRewardsResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_claimable 
                  FROM student_rewards 
                  WHERE (LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1 
                     OR LOWER(user_email) = $2 OR LOWER(user_wallet_address) = $2)
-                 AND status = 'available'`,
+                 AND (status = 'available' OR status = 'claimed')`,
                 [emailOrWallet, walletParam]
             );
         } else {
-            availableRewardsResult = await dbConnection.query(
-                `SELECT COALESCE(SUM(reward_amount), 0) as total_available 
+            claimableRewardsResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_claimable 
                  FROM student_rewards 
                  WHERE (LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1)
-                 AND status = 'available'`,
+                 AND (status = 'available' OR status = 'claimed')`,
                 [emailOrWallet]
             );
         }
@@ -701,10 +702,10 @@ app.get('/api/claims/balance/:email', async (req, res) => {
         }
         
         const totalEarned = parseFloat(totalEarnedResult.rows[0]?.total_earned || 0);
-        const totalAvailable = parseFloat(availableRewardsResult.rows[0]?.total_available || 0);
+        const totalClaimable = parseFloat(claimableRewardsResult.rows[0]?.total_claimable || 0);
         const alreadyClaimed = parseFloat(claimedResult.rows[0]?.total_claimed || 0);
         const pendingClaims = parseFloat(pendingResult.rows[0]?.total_pending || 0);
-        const claimable = totalAvailable - alreadyClaimed - pendingClaims;
+        const claimable = totalClaimable - alreadyClaimed - pendingClaims;
         
         res.json({
             success: true,
