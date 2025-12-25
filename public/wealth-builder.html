@@ -1177,15 +1177,30 @@
             };
 
             try {
-                const { data } = await authenticatedFetch(
-                    '/api/wealth/scholarships/apply',
-                    {
+                let data;
+                
+                // If MetaMask is connected, use authenticated submission
+                // Otherwise, allow simple submission (for manually entered wallets)
+                if (isMetaMaskConnected) {
+                    const result = await authenticatedFetch(
+                        '/api/wealth/scholarships/apply',
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(applicationData)
+                        },
+                        'Apply for Scholarship'
+                    );
+                    data = result.data;
+                } else {
+                    // Simple submission without wallet signature (for manual wallet entry)
+                    const response = await fetch('/api/wealth/scholarships/apply', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(applicationData)
-                    },
-                    'Apply for Scholarship'
-                );
+                    });
+                    data = await response.json();
+                }
 
                 if (data.success) {
                     document.getElementById('scholarshipResult').innerHTML = `
