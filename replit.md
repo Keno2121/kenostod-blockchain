@@ -73,6 +73,7 @@ Revenue is generated through over 15 streams including ICO token sales, course s
 
 # Recent Changes
 
+- **Dec 25, 2025:** Comprehensive platform security audit - Added wallet address validation to prevent KENO contract address (0x65791E...) being used as student wallet; implemented case-insensitive duplicate course completion checks; normalized all wallet addresses to lowercase in database; added user-friendly error messages in backoffice and claim pages; fixed RVT milestone tracking for lowercase wallet consistency
 - **Dec 22, 2025:** Created dedicated "For Organizations" enterprise landing page with B2B licensing tiers, contact form, and professional messaging targeting universities, corporations, and government agencies
 - **Dec 22, 2025:** Updated balance checker to support email lookup in addition to wallet addresses, now shows breakdown of KENO from all sources
 - **Dec 22, 2025:** Fixed ICO Dashboard cash-out calculator to use $1.00 KENO price and lookup rewards by email
