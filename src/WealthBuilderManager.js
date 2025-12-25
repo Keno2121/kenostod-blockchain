@@ -41,21 +41,20 @@ class WealthBuilderManager {
 
             // Attempt real on-chain BSC transfer if available
             let bscTransferResult = null;
-            let transferStatus = 'pending';
+            // Always set status='available' - the claim system will track actual distribution
+            let transferStatus = 'available';
             
             if (this.bscTokenTransfer && this.bscTokenTransfer.initialized) {
                 console.log(`🔄 Attempting BSC transfer of ${rewardAmount} KENO to ${walletAddress}...`);
                 bscTransferResult = await this.bscTokenTransfer.transferTokens(walletAddress, rewardAmount, `course-${parsedCourseId}`);
                 
                 if (bscTransferResult.success) {
-                    transferStatus = 'claimed';
                     console.log(`✅ BSC transfer successful! TX: ${bscTransferResult.txHash}`);
                 } else {
-                    transferStatus = 'available';
-                    console.log(`⚠️ BSC transfer failed: ${bscTransferResult.error}. Reward recorded for manual claim.`);
+                    console.log(`⚠️ BSC transfer failed: ${bscTransferResult.error}. Reward available for claim.`);
                 }
             } else {
-                console.log(`⚠️ BSC Token Transfer not available. Recording reward for manual claim.`);
+                console.log(`⚠️ BSC Token Transfer not available. Reward available for user to claim.`);
             }
 
             const result = await this.db.query(`

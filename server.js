@@ -642,27 +642,28 @@ app.get('/api/claims/balance/:email', async (req, res) => {
             return res.status(503).json({ success: false, error: 'Database unavailable' });
         }
         
-        // Get total rewards earned - check by email OR wallet address
-        let rewardsResult;
+        // Get rewards with status='available' (pending user claim via claim form)
+        let availableRewardsResult;
         if (walletParam) {
-            // Both email and wallet provided - check both
-            rewardsResult = await dbConnection.query(
-                `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+            availableRewardsResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_available 
                  FROM student_rewards 
-                 WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1 
-                    OR LOWER(user_email) = $2 OR LOWER(user_wallet_address) = $2`,
+                 WHERE (LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1 
+                    OR LOWER(user_email) = $2 OR LOWER(user_wallet_address) = $2)
+                 AND status = 'available'`,
                 [emailOrWallet, walletParam]
             );
         } else {
-            rewardsResult = await dbConnection.query(
-                `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+            availableRewardsResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_available 
                  FROM student_rewards 
-                 WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1`,
+                 WHERE (LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1)
+                 AND status = 'available'`,
                 [emailOrWallet]
             );
         }
         
-        // Get total already claimed from PostgreSQL
+        // Get total already claimed via claim form (from keno_claims table)
         const claimedResult = await dbConnection.query(
             `SELECT COALESCE(SUM(amount), 0) as total_claimed 
              FROM keno_claims 
@@ -671,7 +672,7 @@ app.get('/api/claims/balance/:email', async (req, res) => {
             walletParam ? [emailOrWallet, walletParam] : [emailOrWallet]
         );
         
-        // Get pending claims from PostgreSQL
+        // Get pending claims from claim form
         const pendingResult = await dbConnection.query(
             `SELECT COALESCE(SUM(amount), 0) as total_pending 
              FROM keno_claims 
@@ -680,10 +681,30 @@ app.get('/api/claims/balance/:email', async (req, res) => {
             walletParam ? [emailOrWallet, walletParam] : [emailOrWallet]
         );
         
-        const totalEarned = parseFloat(rewardsResult.rows[0]?.total_earned || 0);
+        // Get total earned from all sources (for info display)
+        let totalEarnedResult;
+        if (walletParam) {
+            totalEarnedResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+                 FROM student_rewards 
+                 WHERE (LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1 
+                    OR LOWER(user_email) = $2 OR LOWER(user_wallet_address) = $2)`,
+                [emailOrWallet, walletParam]
+            );
+        } else {
+            totalEarnedResult = await dbConnection.query(
+                `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
+                 FROM student_rewards 
+                 WHERE (LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1)`,
+                [emailOrWallet]
+            );
+        }
+        
+        const totalEarned = parseFloat(totalEarnedResult.rows[0]?.total_earned || 0);
+        const totalAvailable = parseFloat(availableRewardsResult.rows[0]?.total_available || 0);
         const alreadyClaimed = parseFloat(claimedResult.rows[0]?.total_claimed || 0);
         const pendingClaims = parseFloat(pendingResult.rows[0]?.total_pending || 0);
-        const claimable = Math.max(0, totalEarned - alreadyClaimed - pendingClaims);
+        const claimable = totalAvailable - alreadyClaimed - pendingClaims;
         
         res.json({
             success: true,
