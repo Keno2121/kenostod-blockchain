@@ -14,9 +14,9 @@ class SecurityMiddleware {
         });
 
         this.scholarshipApplicationLimiter = rateLimit({
-            windowMs: 24 * 60 * 60 * 1000,
-            max: 3,
-            message: { error: 'Maximum 3 scholarship applications per day. Please try again tomorrow.' },
+            windowMs: 60 * 60 * 1000,
+            max: 10,
+            message: { error: 'Maximum 10 scholarship applications per hour. Please wait a bit and try again.' },
             standardHeaders: true,
             legacyHeaders: false
         });
