@@ -580,6 +580,10 @@
                     <span class="icon">🔗</span>
                     <span>Referrals</span>
                 </div>
+                <div class="nav-item" onclick="showTab('scholarships')">
+                    <span class="icon">🎓</span>
+                    <span>Scholarships</span>
+                </div>
             </nav>
         </aside>
         
@@ -856,11 +860,59 @@
                     </table>
                 </div>
             </div>
+            
+            <div id="scholarshipsTab" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Scholarship Applications</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="scholarshipFilter" onchange="loadScholarships()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Applications</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Email</th>
+                                <th>Country</th>
+                                <th>Income</th>
+                                <th>Education</th>
+                                <th>Status</th>
+                                <th>Applied</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scholarshipsTable">
+                            <tr>
+                                <td colspan="8" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
+    </div>
+    
+    <div id="scholarshipModal" class="modal hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;">
+        <div style="background:#1a1a2e;border:2px solid #ffd700;border-radius:16px;padding:30px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
+            <h3 style="color:#ffd700;margin-bottom:20px;">📋 Application Details</h3>
+            <div id="scholarshipDetails"></div>
+            <div style="display:flex;gap:10px;margin-top:20px;">
+                <button onclick="approveScholarship()" style="flex:1;padding:12px;background:#10b981;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;">✅ Approve</button>
+                <button onclick="rejectScholarship()" style="flex:1;padding:12px;background:#ef4444;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;">❌ Reject</button>
+                <button onclick="closeScholarshipModal()" style="flex:1;padding:12px;background:rgba(255,255,255,0.1);border:1px solid #555;color:#ccc;border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
+            </div>
+        </div>
     </div>
     
     <script>
         let adminPwd = sessionStorage.getItem('adminPwd') || '';
+        let currentScholarshipId = null;
         
         let allData = {
             students: [],
@@ -1292,11 +1344,15 @@
                 graduates: 'Verified Graduates',
                 investors: 'ICO Investors',
                 claims: 'KENO Claims',
-                referrals: 'Referral Program'
+                referrals: 'Referral Program',
+                scholarships: 'Scholarship Management'
             };
             
             if (tabName === 'claims') {
                 loadClaims();
+            }
+            if (tabName === 'scholarships') {
+                loadScholarships();
             }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
         }
@@ -1471,6 +1527,137 @@
             } catch (error) {
                 console.error('Error rejecting claim:', error);
                 alert('Error rejecting claim: ' + error.message);
+            }
+        }
+        
+        let scholarshipData = [];
+        
+        async function loadScholarships() {
+            const table = document.getElementById('scholarshipsTable');
+            table.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('scholarshipFilter')?.value || '';
+                const url = filter ? `/api/wealth/scholarships?status=${filter}` : '/api/wealth/scholarships';
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success && data.applications && data.applications.length > 0) {
+                    scholarshipData = data.applications;
+                    let html = '';
+                    data.applications.forEach(app => {
+                        const statusColors = { pending: '#f59e0b', approved: '#10b981', rejected: '#ef4444' };
+                        const isPending = app.application_status === 'pending';
+                        html += `
+                            <tr>
+                                <td>${app.applicant_name || 'N/A'}</td>
+                                <td>${app.applicant_email}</td>
+                                <td>${app.country || 'N/A'}</td>
+                                <td>$${app.current_income_usd || 0}</td>
+                                <td>${app.education_level || 'N/A'}</td>
+                                <td><span style="background: ${statusColors[app.application_status]}33; color: ${statusColors[app.application_status]}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${app.application_status}</span></td>
+                                <td>${new Date(app.created_at).toLocaleDateString()}</td>
+                                <td>
+                                    <button onclick="viewScholarship(${app.id})" style="padding: 6px 12px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">View</button>
+                                    ${isPending ? `<button onclick="quickApprove(${app.id})" style="padding: 6px 12px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-left: 4px;">Approve</button>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    table.innerHTML = html;
+                } else {
+                    table.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 40px;">No scholarship applications found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading scholarships:', error);
+                table.innerHTML = '<tr><td colspan="8" style="color: #ef4444; text-align: center;">Error loading scholarships</td></tr>';
+            }
+        }
+        
+        function viewScholarship(id) {
+            const app = scholarshipData.find(a => a.id === id);
+            if (!app) return;
+            
+            currentScholarshipId = id;
+            const details = document.getElementById('scholarshipDetails');
+            details.innerHTML = `
+                <div style="display: grid; gap: 12px;">
+                    <div><strong style="color: #94a3b8;">Name:</strong> <span style="color: white;">${app.applicant_name || 'N/A'}</span></div>
+                    <div><strong style="color: #94a3b8;">Email:</strong> <span style="color: white;">${app.applicant_email}</span></div>
+                    <div><strong style="color: #94a3b8;">Country:</strong> <span style="color: white;">${app.country || 'N/A'}</span></div>
+                    <div><strong style="color: #94a3b8;">Age:</strong> <span style="color: white;">${app.age || 'N/A'}</span></div>
+                    <div><strong style="color: #94a3b8;">Monthly Income:</strong> <span style="color: white;">$${app.current_income_usd || 0}</span></div>
+                    <div><strong style="color: #94a3b8;">Education:</strong> <span style="color: white;">${app.education_level || 'N/A'}</span></div>
+                    <div style="margin-top: 10px;">
+                        <strong style="color: #94a3b8;">Motivation:</strong>
+                        <p style="color: #ccc; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 6px;">${app.motivation_statement || 'No statement provided'}</p>
+                    </div>
+                    <div>
+                        <strong style="color: #94a3b8;">Financial Need:</strong>
+                        <p style="color: #ccc; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 6px;">${app.financial_need_statement || 'No statement provided'}</p>
+                    </div>
+                    <div>
+                        <strong style="color: #94a3b8;">Career Goals:</strong>
+                        <p style="color: #ccc; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 6px;">${app.career_goals || 'No goals provided'}</p>
+                    </div>
+                    <div style="margin-top: 10px; padding: 12px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                        <strong style="color: #ffd700;">Status:</strong> <span style="color: ${app.application_status === 'approved' ? '#10b981' : app.application_status === 'rejected' ? '#ef4444' : '#f59e0b'};">${app.application_status.toUpperCase()}</span>
+                        ${app.reviewed_by ? `<br><strong style="color: #94a3b8;">Reviewed by:</strong> ${app.reviewed_by}` : ''}
+                        ${app.review_notes ? `<br><strong style="color: #94a3b8;">Notes:</strong> ${app.review_notes}` : ''}
+                    </div>
+                </div>
+            `;
+            document.getElementById('scholarshipModal').classList.remove('hidden');
+        }
+        
+        function closeScholarshipModal() {
+            document.getElementById('scholarshipModal').classList.add('hidden');
+            currentScholarshipId = null;
+        }
+        
+        async function approveScholarship() {
+            if (!currentScholarshipId) return;
+            const notes = prompt('Add approval notes (optional):') || 'Approved';
+            await reviewScholarship(currentScholarshipId, 'approved', notes);
+        }
+        
+        async function rejectScholarship() {
+            if (!currentScholarshipId) return;
+            const notes = prompt('Enter rejection reason:');
+            if (notes === null) return;
+            await reviewScholarship(currentScholarshipId, 'rejected', notes);
+        }
+        
+        async function quickApprove(id) {
+            if (!confirm('Approve this scholarship and grant full course access?')) return;
+            await reviewScholarship(id, 'approved', 'Quick approved by admin');
+        }
+        
+        async function reviewScholarship(id, status, notes) {
+            try {
+                const response = await fetch('/api/wealth/scholarships/review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        applicationId: id,
+                        status: status,
+                        reviewerName: 'Admin',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    closeScholarshipModal();
+                    loadScholarships();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error reviewing scholarship:', error);
+                alert('Error: ' + error.message);
             }
         }
         
