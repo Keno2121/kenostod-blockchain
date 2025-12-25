@@ -630,6 +630,116 @@ app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
     res.json({ success: true, inquiries: enterpriseInquiries });
 });
 
+// ==================== NODE SALE WHITELIST SYSTEM ====================
+
+// Node whitelist storage
+let nodeWhitelist = [];
+try {
+    const saved = require('fs').readFileSync('./node_whitelist.json', 'utf8');
+    nodeWhitelist = JSON.parse(saved);
+} catch (e) {
+    nodeWhitelist = [];
+}
+
+// KENO contract address (to prevent confusion)
+const KENO_CONTRACT_ADDRESS = '0x65791e0b5cbac5f40c76cde31bf4f074d982fd0e';
+
+// Node whitelist registration endpoint
+app.post('/api/node-whitelist', async (req, res) => {
+    try {
+        const { email, wallet, tier } = req.body;
+        
+        if (!email || !wallet || !tier) {
+            return res.status(400).json({ success: false, error: 'Missing required fields' });
+        }
+        
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, error: 'Invalid email format' });
+        }
+        
+        // Validate wallet format
+        const normalizedWallet = wallet.toLowerCase();
+        if (!normalizedWallet.match(/^0x[a-f0-9]{40}$/)) {
+            return res.status(400).json({ success: false, error: 'Invalid wallet address format' });
+        }
+        
+        // Prevent KENO contract address
+        if (normalizedWallet === KENO_CONTRACT_ADDRESS) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'This is the KENO token contract address, not your personal wallet. Please use your MetaMask wallet address.' 
+            });
+        }
+        
+        // Validate tier
+        const validTiers = ['scholar', 'educator', 'academy'];
+        if (!validTiers.includes(tier)) {
+            return res.status(400).json({ success: false, error: 'Invalid tier selection' });
+        }
+        
+        // Check for duplicate email or wallet
+        const existingEntry = nodeWhitelist.find(
+            entry => entry.email.toLowerCase() === email.toLowerCase() || 
+                     entry.wallet === normalizedWallet
+        );
+        
+        if (existingEntry) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'This email or wallet is already on the whitelist' 
+            });
+        }
+        
+        const whitelistEntry = {
+            id: 'NODE-' + Date.now(),
+            email: email.toLowerCase(),
+            wallet: normalizedWallet,
+            tier,
+            registeredAt: new Date().toISOString(),
+            status: 'pending'
+        };
+        
+        nodeWhitelist.push(whitelistEntry);
+        
+        try {
+            require('fs').writeFileSync('./node_whitelist.json', JSON.stringify(nodeWhitelist, null, 2));
+        } catch (e) {
+            console.error('Error saving node whitelist:', e);
+        }
+        
+        console.log(`🖥️ Node whitelist registration: ${email} for ${tier} node`);
+        
+        res.json({ 
+            success: true, 
+            message: 'Successfully added to whitelist!',
+            whitelistId: whitelistEntry.id
+        });
+    } catch (error) {
+        console.error('Node whitelist error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get node whitelist stats (public)
+app.get('/api/node-whitelist/stats', (req, res) => {
+    const stats = {
+        total: nodeWhitelist.length,
+        byTier: {
+            scholar: nodeWhitelist.filter(e => e.tier === 'scholar').length,
+            educator: nodeWhitelist.filter(e => e.tier === 'educator').length,
+            academy: nodeWhitelist.filter(e => e.tier === 'academy').length
+        }
+    };
+    res.json({ success: true, stats });
+});
+
+// Admin endpoint to view node whitelist
+app.get('/api/admin/node-whitelist', adminAuth, (req, res) => {
+    res.json({ success: true, whitelist: nodeWhitelist });
+});
+
 // ==================== KENO CLAIM SYSTEM (PostgreSQL) ====================
 
 // Get user's claimable KENO balance (supports email AND/OR wallet lookup)
