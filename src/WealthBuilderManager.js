@@ -14,6 +14,26 @@ class WealthBuilderManager {
         const rewardAmount = 250.0;
         
         try {
+            // Validate wallet address
+            if (!walletAddress || !walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+                return { 
+                    success: false, 
+                    error: 'Invalid wallet address. Must be a valid BSC/ETH address starting with 0x.' 
+                };
+            }
+            
+            // Normalize wallet address to lowercase for consistent comparisons
+            const normalizedWallet = walletAddress.toLowerCase();
+            
+            // SECURITY: Reject KENO contract address as wallet (common user mistake)
+            const KENO_CONTRACT = '0x65791e0b5cbac5f40c76cde31bf4f074d982fd0e';
+            if (normalizedWallet === KENO_CONTRACT) {
+                return { 
+                    success: false, 
+                    error: 'This is the KENO token contract address, not a personal wallet. Please use your MetaMask wallet address (shown at the top of MetaMask app) instead.' 
+                };
+            }
+            
             const validCourseIds = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
             const parsedCourseId = parseInt(courseId);
             
@@ -24,12 +44,13 @@ class WealthBuilderManager {
                 };
             }
 
+            // Case-insensitive duplicate check to prevent multiple rewards for same course
             const existingCompletion = await this.db.query(`
                 SELECT id FROM student_rewards 
-                WHERE user_wallet_address = $1 
+                WHERE LOWER(user_wallet_address) = $1 
                 AND reward_type = 'course_completion' 
                 AND course_id = $2
-            `, [walletAddress, parsedCourseId]);
+            `, [normalizedWallet, parsedCourseId]);
 
             if (existingCompletion.rows.length > 0) {
                 return { 
@@ -70,8 +91,8 @@ class WealthBuilderManager {
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING *
             `, [
-                walletAddress,
-                email,
+                normalizedWallet,  // Store normalized (lowercase) wallet for consistency
+                email || '',
                 'course_completion',
                 rewardAmount,
                 courseName,
