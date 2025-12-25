@@ -442,18 +442,9 @@
     </style>
 </head>
 <body>
-    <div id="login-overlay">
-        <div class="login-card">
-            <h2>Admin Login</h2>
-            <div id="login-error" class="error">Invalid password</div>
-            <input type="password" id="admin-password" placeholder="Enter Admin Password">
-            <button onclick="attemptLogin()">Access Backoffice</button>
-        </div>
-    </div>
-
     <div class="admin-header">
-        <h1>🎓 Course Curriculum Backoffice</h1>
-        <p>View all 21 courses as they appear to students with full access</p>
+        <h1>🎓 Kenostod Academy Courses</h1>
+        <p>Your blockchain education journey - 21 courses to master</p>
     </div>
 
     <div class="sidebar">
@@ -486,51 +477,6 @@
         </div>
     </div>
 
-    <script>
-        function attemptLogin() {
-            const password = document.getElementById('admin-password').value;
-            const error = document.getElementById('login-error');
-
-            fetch('/api/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    sessionStorage.setItem('admin_password', password);
-                    document.getElementById('login-overlay').style.display = 'none';
-                    // Re-initialize any protected content if needed
-                } else {
-                    error.style.display = 'block';
-                }
-            })
-            .catch(() => {
-                error.textContent = 'Server error. Please try again.';
-                error.style.display = 'block';
-            });
-        }
-
-        // Check session on load
-        window.addEventListener('load', () => {
-            const saved = sessionStorage.getItem('admin_password');
-            if (saved) {
-                // Verify saved password
-                fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: saved })
-                }).then(res => {
-                    if (res.ok) {
-                        document.getElementById('login-overlay').style.display = 'none';
-                    } else {
-                        sessionStorage.removeItem('admin_password');
-                    }
-                });
-            }
-        });
-    </script>
     <script src="/backoffice.js"></script>
 </body>
 </html>
