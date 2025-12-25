@@ -2359,15 +2359,46 @@ function loadCourse(courseId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// Validate wallet address format
+function isValidWalletAddress(address) {
+    if (!address || typeof address !== 'string') return false;
+    // Valid BSC/ETH wallet: starts with 0x and is 42 characters
+    if (address.startsWith('0x') && address.length === 42) return true;
+    // Kenostod simulator wallet: starts with 04 and is very long (educational only)
+    if (address.startsWith('04') && address.length > 100) return true;
+    return false;
+}
+
+// KENO contract address - NOT a valid student wallet
+const KENO_CONTRACT_ADDRESS = '0x65791e0b5cbac5f40c76cde31bf4f074d982fd0e';
+
 // Complete course and show KENO reward
 async function completeCourse(courseId) {
     const course = courses[courseId];
     
     // Get user wallet address from localStorage or app state
-    const walletAddress = localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress');
+    let walletAddress = localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress');
     const userEmail = localStorage.getItem('userEmail') || '';
     
-    // If user has wallet, credit KENO to their account
+    // Validate wallet address before sending
+    if (walletAddress) {
+        const normalizedWallet = walletAddress.toLowerCase();
+        
+        // Check if user accidentally used the KENO contract address
+        if (normalizedWallet === KENO_CONTRACT_ADDRESS) {
+            alert('⚠️ Wrong wallet address!\n\nYou entered the KENO token contract address, not your personal wallet.\n\nPlease use your MetaMask wallet address (the one shown at the TOP of MetaMask app, NOT the contract you add to see your token balance).');
+            localStorage.removeItem('userWalletAddress');
+            localStorage.removeItem('walletAddress');
+            walletAddress = null;
+        }
+        // Check if wallet format is valid
+        else if (!isValidWalletAddress(walletAddress)) {
+            alert('⚠️ Invalid wallet address format!\n\nYour MetaMask wallet should:\n- Start with "0x"\n- Be exactly 42 characters long\n\nPlease reconnect your wallet.');
+            walletAddress = null;
+        }
+    }
+    
+    // If user has valid wallet, credit KENO to their account
     if (walletAddress) {
         try {
             const response = await fetch('/api/wealth/rewards/course-complete', {
@@ -2387,6 +2418,14 @@ async function completeCourse(courseId) {
                 console.log('KENO reward credited:', result.message);
             } else {
                 console.warn('Reward not credited:', result.error);
+                // Show user-friendly error if it's a duplicate or known issue
+                if (result.error && result.error.includes('already completed')) {
+                    alert('ℹ️ You already earned the KENO reward for this course. Each course can only be completed once.');
+                } else if (result.error && result.error.includes('contract address')) {
+                    alert('⚠️ ' + result.error);
+                    localStorage.removeItem('userWalletAddress');
+                    localStorage.removeItem('walletAddress');
+                }
             }
         } catch (error) {
             console.error('Error crediting KENO reward:', error);
