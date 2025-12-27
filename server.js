@@ -919,6 +919,19 @@ app.post('/api/claims/request', async (req, res) => {
         
         console.log(`📋 KENO claim request: ${amount} KENO to ${walletAddress} (${email})`);
         
+        // Send email notification to admin
+        const ADMIN_EMAIL = 'kenostod21@gmail.com';
+        try {
+            await EmailService.sendClaimNotification({
+                email: email.toLowerCase(),
+                walletAddress,
+                amount: parseFloat(amount),
+                claimId
+            }, ADMIN_EMAIL);
+        } catch (emailError) {
+            console.warn('⚠️ Email notification failed (claim still recorded):', emailError.message);
+        }
+        
         res.json({
             success: true,
             message: `Claim request submitted! ${amount} KENO will be sent to ${walletAddress} after admin approval.`,

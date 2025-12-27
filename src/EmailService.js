@@ -318,10 +318,128 @@ async function sendOrderDeliveredEmail(order) {
     }
 }
 
+function createClaimNotificationTemplate(claimData) {
+    const { email, walletAddress, amount, claimId } = claimData;
+    
+    const text = `
+🚨 New KENO Claim Request
+
+Claim ID: ${claimId}
+Email: ${email}
+Wallet: ${walletAddress}
+Amount: ${amount} KENO
+
+⚠️ Action Required: Please review and approve/reject this claim in the admin backoffice.
+
+Kenostod Blockchain Academy
+KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+`;
+
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0a1a; color: #e0e0e0; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #00d4ff; margin-bottom: 20px;">🚨 New KENO Claim Request</h2>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="margin: 8px 0;"><strong>Claim ID:</strong> ${claimId}</p>
+                <p style="margin: 8px 0;"><strong>Email:</strong> ${email}</p>
+                <p style="margin: 8px 0;"><strong>Wallet:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">${walletAddress}</code></p>
+                <p style="margin: 8px 0;"><strong>Amount:</strong> <span style="color: #00ff88; font-size: 1.3em; font-weight: bold;">${amount} KENO</span></p>
+            </div>
+            
+            <p style="color: #ffaa00; font-weight: bold;">⚠️ Action Required: Please review and approve/reject this claim in the admin backoffice.</p>
+            
+            <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9em; color: #888;">
+                <p>Kenostod Blockchain Academy</p>
+                <p>KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</p>
+            </div>
+        </div>
+    `;
+
+    return { text, html };
+}
+
+async function sendClaimNotification(claimData, adminEmail) {
+    try {
+        const { text, html } = createClaimNotificationTemplate(claimData);
+        
+        const result = await sendEmail({
+            to: adminEmail,
+            subject: `🚨 New KENO Claim Request: ${claimData.amount} KENO`,
+            text,
+            html
+        });
+
+        console.log(`✅ Claim notification sent to ${adminEmail} for claim ${claimData.claimId}`);
+        return result;
+    } catch (error) {
+        console.error(`❌ Failed to send claim notification:`, error.message);
+        return null;
+    }
+}
+
+function createCourseCompletionNotificationTemplate(data) {
+    const { studentEmail, walletAddress, courseName, kenoEarned } = data;
+    
+    const text = `
+📚 New Course Completion Request
+
+Student Email: ${studentEmail || 'Not provided'}
+Wallet: ${walletAddress}
+Course: ${courseName}
+KENO Earned: ${kenoEarned} KENO
+
+✅ Course completion has been recorded. Student can now claim their KENO tokens.
+
+Kenostod Blockchain Academy
+`;
+
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0a1a; color: #e0e0e0; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #00d4ff; margin-bottom: 20px;">📚 New Course Completion</h2>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="margin: 8px 0;"><strong>Student Email:</strong> ${studentEmail || 'Not provided'}</p>
+                <p style="margin: 8px 0;"><strong>Wallet:</strong> <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">${walletAddress}</code></p>
+                <p style="margin: 8px 0;"><strong>Course:</strong> ${courseName}</p>
+                <p style="margin: 8px 0;"><strong>KENO Earned:</strong> <span style="color: #00ff88; font-size: 1.3em; font-weight: bold;">${kenoEarned} KENO</span></p>
+            </div>
+            
+            <p style="color: #00ff88;">✅ Course completion has been recorded. Student can now claim their KENO tokens.</p>
+            
+            <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9em; color: #888;">
+                <p>Kenostod Blockchain Academy</p>
+            </div>
+        </div>
+    `;
+
+    return { text, html };
+}
+
+async function sendCourseCompletionNotification(data, adminEmail) {
+    try {
+        const { text, html } = createCourseCompletionNotificationTemplate(data);
+        
+        const result = await sendEmail({
+            to: adminEmail,
+            subject: `📚 New Course Completion: ${data.courseName}`,
+            text,
+            html
+        });
+
+        console.log(`✅ Course completion notification sent to ${adminEmail}`);
+        return result;
+    } catch (error) {
+        console.error(`❌ Failed to send course completion notification:`, error.message);
+        return null;
+    }
+}
+
 module.exports = {
     sendEmail,
     sendOrderShippedEmail,
     sendOrderDeliveredEmail,
     createShippedEmailTemplate,
-    createDeliveredEmailTemplate
+    createDeliveredEmailTemplate,
+    sendClaimNotification,
+    sendCourseCompletionNotification
 };
