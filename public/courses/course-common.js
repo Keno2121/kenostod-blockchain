@@ -315,6 +315,7 @@
                 const data = await response.json();
                 if (data.hasScholarship) {
                     localStorage.setItem('scholarshipActive', 'true');
+                    if (email) localStorage.setItem('userEmail', email);
                     return { hasAccess: true, reason: 'scholarship' };
                 }
             } catch (e) { console.log('Scholarship check failed'); }
@@ -322,13 +323,63 @@
         return { hasAccess: false, reason: 'none' };
     }
 
+    async function checkScholarshipByEmail(email) {
+        if (!email) return false;
+        try {
+            const response = await fetch('/api/wealth/scholarships/check-access?email=' + encodeURIComponent(email));
+            const data = await response.json();
+            if (data.hasScholarship) {
+                localStorage.setItem('scholarshipActive', 'true');
+                localStorage.setItem('userEmail', email);
+                return true;
+            }
+        } catch (e) { console.log('Scholarship check failed'); }
+        return false;
+    }
+
     function showPremiumLock() {
         if (document.getElementById('premium-lock-overlay')) return;
         const overlay = document.createElement('div');
         overlay.id = 'premium-lock-overlay';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;';
-        overlay.innerHTML = '<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #d4af37;border-radius:20px;padding:40px;max-width:500px;text-align:center;"><div style="font-size:60px;margin-bottom:20px;">🔒</div><h2 style="color:#d4af37;font-size:28px;margin-bottom:15px;">Premium Course</h2><p style="color:#ccc;margin-bottom:25px;line-height:1.6;">This course requires a subscription or approved scholarship.</p><div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;"><a href="/index.html#courses" style="background:linear-gradient(135deg,#10b981,#059669);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Subscribe Now</a><a href="/wealth-builder.html" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Apply for Scholarship</a><a href="/courses/course-1-wallet.html" style="background:rgba(255,255,255,0.1);color:#ccc;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid #555;">Try Course 1 Free</a></div></div>';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;box-sizing:border-box;';
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #d4af37;border-radius:20px;padding:40px;max-width:500px;text-align:center;width:100%;">
+                <div style="font-size:60px;margin-bottom:20px;">🔒</div>
+                <h2 style="color:#d4af37;font-size:28px;margin-bottom:15px;">Premium Course</h2>
+                <p style="color:#ccc;margin-bottom:25px;line-height:1.6;">This course requires a subscription or approved scholarship.</p>
+                
+                <div style="background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:12px;padding:20px;margin-bottom:25px;">
+                    <div style="color:#93c5fd;font-size:14px;margin-bottom:12px;font-weight:600;">Already have an approved scholarship?</div>
+                    <input type="email" id="scholarship-email-check" placeholder="Enter your email..." style="width:100%;padding:12px;border-radius:8px;border:1px solid #4b5563;background:#1f2937;color:white;font-size:14px;margin-bottom:12px;box-sizing:border-box;">
+                    <button onclick="window.kenostodWallet.verifyScholarship()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;padding:12px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;width:100%;">Verify Scholarship Access</button>
+                    <div id="scholarship-check-result" style="margin-top:10px;font-size:13px;"></div>
+                </div>
+                
+                <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;">
+                    <a href="/index.html#courses" style="background:linear-gradient(135deg,#10b981,#059669);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Subscribe Now</a>
+                    <a href="/wealth-builder.html" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Apply for Scholarship</a>
+                    <a href="/courses/course-1-wallet.html" style="background:rgba(255,255,255,0.1);color:#ccc;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid #555;">Try Course 1 Free</a>
+                </div>
+            </div>
+        `;
         document.body.appendChild(overlay);
+    }
+
+    async function verifyScholarshipFromLock() {
+        const email = document.getElementById('scholarship-email-check')?.value?.trim();
+        const resultDiv = document.getElementById('scholarship-check-result');
+        if (!email) {
+            if (resultDiv) resultDiv.innerHTML = '<span style="color:#ef4444;">Please enter your email address</span>';
+            return;
+        }
+        if (resultDiv) resultDiv.innerHTML = '<span style="color:#fbbf24;">Checking...</span>';
+        const hasAccess = await checkScholarshipByEmail(email);
+        if (hasAccess) {
+            if (resultDiv) resultDiv.innerHTML = '<span style="color:#10b981;">Scholarship verified! Reloading...</span>';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            if (resultDiv) resultDiv.innerHTML = '<span style="color:#ef4444;">No scholarship found for this email. Apply for one or subscribe.</span>';
+        }
     }
 
     // Expose global API
@@ -343,7 +394,8 @@
         creditReward: creditCourseReward,
         toast: showToast,
         checkAccess: checkCourseAccess,
-        showLock: showPremiumLock
+        showLock: showPremiumLock,
+        verifyScholarship: verifyScholarshipFromLock
     };
 
     // Course name mapping
