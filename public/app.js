@@ -1350,6 +1350,33 @@ function openTab(button, tabName) {
     }, 100);
 }
 
+function openTabByName(tabName) {
+    const tabContent = document.getElementById(tabName);
+    if (!tabContent) return false;
+    
+    const tabContents = document.getElementsByClassName('tab-content');
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+    }
+    
+    const tabButtons = document.getElementsByClassName('tab-btn');
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+        if (tabButtons[i].getAttribute('onclick') && 
+            tabButtons[i].getAttribute('onclick').includes(`'${tabName}'`)) {
+            tabButtons[i].classList.add('active');
+        }
+    }
+    
+    tabContent.classList.add('active');
+    
+    setTimeout(() => {
+        tabContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    
+    return true;
+}
+
 function startFreeCourse() {
     window.location.href = '/courses/course-1-wallet-basics.html';
 }
