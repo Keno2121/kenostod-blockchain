@@ -270,6 +270,72 @@
             color: #6b7280;
         }
 
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .course-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .course-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .course-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .course-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 12px;
+            flex-grow: 1;
+        }
+
+        .course-reward {
+            background: #f0fdf4;
+            color: #059669;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .course-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            transition: opacity 0.3s;
+        }
+
+        .course-card:hover .course-action {
+            opacity: 0.9;
+        }
+
         @media (max-width: 768px) {
             .wealth-header h1 {
                 font-size: 1.8rem;
@@ -350,6 +416,7 @@
         <div class="wealth-section">
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('courses')">📚 Start Learning</button>
                 <button class="tab-btn" onclick="switchTab('tokenSystem')">🔄 Token System</button>
                 <button class="tab-btn" onclick="switchTab('convertKeno')">💵 Claim KENO</button>
                 <button class="tab-btn" onclick="switchTab('jobs')">💼 Career Center</button>
@@ -366,6 +433,14 @@
                 </div>
 
                 <div id="rewardsHistory"></div>
+            </div>
+
+            <div id="courses" class="tab-content">
+                <h2 class="section-title">📚 Start Learning - All 21 Courses</h2>
+                <div class="alert alert-info">
+                    Complete courses to earn 250 KENO each. All 21 courses = 5,250 KENO total. Click any course to begin learning!
+                </div>
+                <div class="courses-grid" id="coursesGrid"></div>
             </div>
 
             <div id="tokenSystem" class="tab-content">
@@ -1319,8 +1394,48 @@
             }
         });
 
+        // Course data
+        const allCourses = [
+            { id: 1, title: 'Wallet Management & Cryptography', file: 'course-1-wallet.html' },
+            { id: 2, title: 'Transactions & Digital Signatures', file: 'course-2-transactions.html' },
+            { id: 3, title: 'Transaction Reversal', file: 'course-3-reversal.html' },
+            { id: 4, title: 'Scheduled Transactions', file: 'course-4-scheduled.html' },
+            { id: 5, title: 'Social Recovery', file: 'course-5-social-recovery.html' },
+            { id: 6, title: 'Encrypted Messages', file: 'course-6-encrypted.html' },
+            { id: 7, title: 'Reputation System', file: 'course-7-reputation.html' },
+            { id: 8, title: 'Governance', file: 'course-8-governance.html' },
+            { id: 9, title: 'Proof of Work', file: 'course-9-pow.html' },
+            { id: 10, title: 'Proof of Residual Value', file: 'course-10-porv.html' },
+            { id: 11, title: 'RVT Portfolio Management', file: 'course-11-rvt.html' },
+            { id: 12, title: 'Enterprise Integration', file: 'course-12-enterprise.html' },
+            { id: 13, title: 'Royalties System', file: 'course-13-royalties.html' },
+            { id: 14, title: 'Merchant Gateway', file: 'course-14-merchant.html' },
+            { id: 15, title: 'Banking System', file: 'course-15-banking.html' },
+            { id: 16, title: 'Exchange Platform', file: 'course-16-exchange.html' },
+            { id: 17, title: 'Financial Literacy', file: 'course-17-finance.html' },
+            { id: 18, title: 'Investment Strategies', file: 'course-18-investment.html' },
+            { id: 19, title: 'Wealth Building', file: 'course-19-wealth.html' },
+            { id: 20, title: 'Generational Wealth', file: 'course-20-generational.html' },
+            { id: 21, title: 'Economic Empowerment', file: 'course-21-empowerment.html' }
+        ];
+
+        function renderCourseGrid() {
+            const grid = document.getElementById('coursesGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = allCourses.map(course => `
+                <a href="/courses/${course.file}" class="course-card">
+                    <div class="course-number">${String(course.id).padStart(2, '0')}</div>
+                    <div class="course-title">${course.title}</div>
+                    <div class="course-reward">+ 250 KENO</div>
+                    <div class="course-action">Start Course →</div>
+                </a>
+            `).join('');
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
             await loadJobListings();
+            renderCourseGrid();
             
             // Check for stored wallet on page load
             const storedWallet = localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress') || localStorage.getItem('userWallet');
