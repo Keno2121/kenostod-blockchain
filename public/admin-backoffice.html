@@ -522,6 +522,59 @@
                 gap: 15px;
                 align-items: flex-start;
             }
+            
+            .mobile-nav {
+                display: flex !important;
+            }
+        }
+        
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-top: 1px solid rgba(255,215,0,0.3);
+            padding: 8px 0;
+            z-index: 1000;
+            overflow-x: auto;
+            gap: 4px;
+            justify-content: space-around;
+        }
+        
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            color: #94a3b8;
+            font-size: 0.65rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            min-width: 60px;
+        }
+        
+        .mobile-nav-item:hover, .mobile-nav-item.active {
+            background: rgba(255,215,0,0.1);
+            color: #ffd700;
+        }
+        
+        .mobile-nav-item .icon {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+        
+        .mobile-content-spacer {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-content-spacer {
+                display: block;
+                height: 80px;
+            }
         }
     </style>
 </head>
@@ -1666,6 +1719,40 @@
         setInterval(() => {
             if (adminPwd) refreshAllData();
         }, 60000);
+        
+        function showTabMobile(tabName) {
+            showTab(tabName);
+            document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.mobile-nav-item[data-tab="${tabName}"]`)?.classList.add('active');
+        }
     </script>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-item active" data-tab="dashboard" onclick="showTabMobile('dashboard')">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="students" onclick="showTabMobile('students')">
+            <span class="icon">👨‍🎓</span>
+            <span>Students</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="claims" onclick="showTabMobile('claims')">
+            <span class="icon">💰</span>
+            <span>Claims</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="scholarships" onclick="showTabMobile('scholarships')">
+            <span class="icon">🎓</span>
+            <span>Scholarships</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="rewards" onclick="showTabMobile('rewards')">
+            <span class="icon">🏆</span>
+            <span>Rewards</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="graduates" onclick="showTabMobile('graduates')">
+            <span class="icon">🎖️</span>
+            <span>Graduates</span>
+        </div>
+    </nav>
 </body>
 </html>
