@@ -954,6 +954,49 @@
             </div>
             
             <div id="falWithdrawalsTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Trader Profit Breakdown</h2>
+                        <button onclick="loadTraderProfits()" style="padding: 8px 16px; background: #ffd700; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: #1a1a2e;">Refresh</button>
+                    </div>
+                    <div id="traderProfitSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #ffd700;" id="summaryTotalProfit">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Platform Profit</div>
+                        </div>
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="summaryTotalBonuses">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Bonuses Paid</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="summaryTotalTraders">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Active Traders</div>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #a855f7;" id="summaryTotalLoans">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Loans</div>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Arbitrage Profit</th>
+                                <th>Bonus Earned</th>
+                                <th>Available Balance</th>
+                                <th>Trades</th>
+                                <th>Reputation</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="traderProfitsTable">
+                            <tr>
+                                <td colspan="7" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">FAL Withdrawal Requests</h2>
@@ -1448,6 +1491,7 @@
                 loadScholarships();
             }
             if (tabName === 'falWithdrawals') {
+                loadTraderProfits();
                 loadFALWithdrawals();
             }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
@@ -1754,6 +1798,50 @@
             } catch (error) {
                 console.error('Error reviewing scholarship:', error);
                 alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadTraderProfits() {
+            const table = document.getElementById('traderProfitsTable');
+            table.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+            
+            try {
+                const response = await fetch(`/api/admin/trader-profits?adminPassword=${encodeURIComponent(adminPwd)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('summaryTotalProfit').textContent = data.summary.totalProfitGenerated.toFixed(2) + ' KENO';
+                    document.getElementById('summaryTotalBonuses').textContent = data.summary.totalBonusesPaid.toFixed(2) + ' KENO';
+                    document.getElementById('summaryTotalTraders').textContent = data.summary.totalTraders;
+                    document.getElementById('summaryTotalLoans').textContent = data.summary.totalLoans;
+                    
+                    if (data.profiles && data.profiles.length > 0) {
+                        let html = '';
+                        data.profiles.forEach(p => {
+                            const wallet = p.walletAddress || '';
+                            const shortWallet = wallet.length > 20 ? wallet.substring(0, 12) + '...' + wallet.substring(wallet.length - 8) : wallet;
+                            html += `
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 0.75rem;" title="${wallet}">${shortWallet}</td>
+                                    <td style="color: #ffd700; font-weight: 600;">${p.totalProfit.toFixed(2)} KENO</td>
+                                    <td style="color: #10b981;">${p.totalBonusEarned.toFixed(2)} KENO</td>
+                                    <td style="color: #3b82f6; font-weight: 700;">${p.availableBalance.toFixed(2)} KENO</td>
+                                    <td>${p.tradesCompleted}</td>
+                                    <td>${p.reputation}</td>
+                                    <td>${p.joinedAt ? new Date(p.joinedAt).toLocaleDateString() : '-'}</td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px;">No trader profiles found</td></tr>';
+                    }
+                } else {
+                    table.innerHTML = '<tr><td colspan="7" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading trader profits:', error);
+                table.innerHTML = '<tr><td colspan="7" style="color: #ef4444; text-align: center;">Error loading trader profits</td></tr>';
             }
         }
         

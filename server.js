@@ -6944,6 +6944,33 @@ app.get('/api/admin/fal-withdrawals', async (req, res) => {
     }
 });
 
+app.get('/api/admin/trader-profits', (req, res) => {
+    try {
+        const { adminPassword } = req.query;
+        
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        
+        const profiles = arbitrageSystem.getAllTraderProfiles();
+        const stats = arbitrageSystem.getStats();
+        
+        res.json({ 
+            success: true, 
+            profiles,
+            summary: {
+                totalTraders: stats.totalTraders,
+                totalProfitGenerated: stats.totalProfitGenerated,
+                totalBonusesPaid: stats.totalBonusesPaid,
+                totalLoans: stats.totalLoans
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching trader profits:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch trader profits' });
+    }
+});
+
 app.post('/api/admin/fal-withdrawal/process', async (req, res) => {
     try {
         const { adminPassword, requestId, action, notes } = req.body;

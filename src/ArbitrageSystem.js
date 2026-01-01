@@ -575,6 +575,23 @@ class ArbitrageSystem {
         return this.leaderboard.slice(0, limit);
     }
 
+    getAllTraderProfiles() {
+        const profiles = [];
+        for (const [walletAddress, trader] of this.traderProfiles.entries()) {
+            profiles.push({
+                walletAddress,
+                totalProfit: trader.totalProfit,
+                totalBonusEarned: trader.totalBonusEarned,
+                tradesCompleted: trader.tradesCompleted,
+                reputation: trader.reputation,
+                badges: trader.badges,
+                joinedAt: trader.joinedAt,
+                availableBalance: trader.totalProfit + trader.totalBonusEarned
+            });
+        }
+        return profiles.sort((a, b) => b.totalProfit - a.totalProfit);
+    }
+
     getActiveLoan(walletAddress) {
         const loan = this.activeLoans.get(walletAddress);
         if (!loan) {
