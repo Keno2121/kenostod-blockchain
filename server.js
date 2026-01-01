@@ -6866,6 +6866,159 @@ app.post('/api/arbitrage/bridge/transfer', (req, res) => {
     }
 });
 
+// FAL Withdrawal Request - Students submit withdrawal requests
+app.post('/api/fal/withdrawal/request', async (req, res) => {
+    try {
+        const { simulatorWallet, metaMaskWallet, amount } = req.body;
+        
+        if (!simulatorWallet || !metaMaskWallet || !amount) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing required fields' 
+            });
+        }
+        
+        if (!metaMaskWallet.startsWith('0x') || metaMaskWallet.length !== 42) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid MetaMask wallet address' 
+            });
+        }
+        
+        const profile = arbitrageSystem.getTraderProfile(simulatorWallet);
+        if (!profile) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'No trading profile found for this wallet' 
+            });
+        }
+        
+        const availableBalance = profile.totalProfit + profile.totalBonusEarned;
+        if (amount > availableBalance) {
+            return res.status(400).json({ 
+                success: false, 
+                error: `Insufficient balance. Available: ${availableBalance.toFixed(2)} KENO` 
+            });
+        }
+        
+        const requestId = 'FAL-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        
+        await db.query(`
+            INSERT INTO fal_withdrawals (request_id, simulator_wallet, metamask_wallet, amount, status)
+            VALUES ($1, $2, $3, $4, 'pending')
+        `, [requestId, simulatorWallet.toLowerCase(), metaMaskWallet.toLowerCase(), amount]);
+        
+        console.log(`💸 FAL withdrawal request: ${amount} KENO from ${simulatorWallet.substring(0, 20)}... to ${metaMaskWallet}`);
+        
+        res.json({ 
+            success: true, 
+            requestId,
+            message: 'Withdrawal request submitted successfully'
+        });
+    } catch (error) {
+        console.error('FAL withdrawal request error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to submit withdrawal request' 
+        });
+    }
+});
+
+app.get('/api/admin/fal-withdrawals', async (req, res) => {
+    try {
+        const { adminPassword } = req.query;
+        
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        
+        const result = await db.query(`
+            SELECT * FROM fal_withdrawals 
+            ORDER BY requested_at DESC
+        `);
+        
+        res.json({ success: true, withdrawals: result.rows });
+    } catch (error) {
+        console.error('Error fetching FAL withdrawals:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch withdrawals' });
+    }
+});
+
+app.post('/api/admin/fal-withdrawal/process', async (req, res) => {
+    try {
+        const { adminPassword, requestId, action, notes } = req.body;
+        
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        
+        if (!requestId || !action) {
+            return res.status(400).json({ success: false, error: 'Missing requestId or action' });
+        }
+        
+        if (action === 'approve') {
+            const withdrawal = await db.query(
+                'SELECT * FROM fal_withdrawals WHERE request_id = $1',
+                [requestId]
+            );
+            
+            if (withdrawal.rows.length === 0) {
+                return res.status(404).json({ success: false, error: 'Withdrawal not found' });
+            }
+            
+            const w = withdrawal.rows[0];
+            
+            let txHash = null;
+            if (bscTokenTransfer) {
+                try {
+                    const txResult = await bscTokenTransfer.sendTokens(w.metamask_wallet, parseFloat(w.amount));
+                    if (txResult.success) {
+                        txHash = txResult.txHash;
+                    }
+                } catch (txError) {
+                    console.error('BSC transfer error:', txError);
+                }
+            }
+            
+            await db.query(`
+                UPDATE fal_withdrawals 
+                SET status = 'completed', tx_hash = $1, admin_notes = $2, processed_at = NOW()
+                WHERE request_id = $3
+            `, [txHash, notes || 'Approved', requestId]);
+            
+            const trader = arbitrageSystem.getTraderProfile(w.simulator_wallet);
+            if (trader) {
+                const deductAmount = parseFloat(w.amount);
+                if (trader.totalProfit >= deductAmount) {
+                    trader.totalProfit -= deductAmount;
+                } else {
+                    const remaining = deductAmount - trader.totalProfit;
+                    trader.totalProfit = 0;
+                    trader.totalBonusEarned = Math.max(0, trader.totalBonusEarned - remaining);
+                }
+                arbitrageSystem.persistData();
+            }
+            
+            console.log(`✅ FAL withdrawal approved: ${w.amount} KENO to ${w.metamask_wallet} (TX: ${txHash || 'pending'})`);
+            
+            res.json({ success: true, message: 'Withdrawal approved and processed', txHash });
+        } else if (action === 'reject') {
+            await db.query(`
+                UPDATE fal_withdrawals 
+                SET status = 'rejected', admin_notes = $1, processed_at = NOW()
+                WHERE request_id = $2
+            `, [notes || 'Rejected', requestId]);
+            
+            res.json({ success: true, message: 'Withdrawal rejected' });
+        } else {
+            res.status(400).json({ success: false, error: 'Invalid action' });
+        }
+    } catch (error) {
+        console.error('Error processing FAL withdrawal:', error);
+        res.status(500).json({ success: false, error: 'Failed to process withdrawal' });
+    }
+});
+
 // ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
 
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================

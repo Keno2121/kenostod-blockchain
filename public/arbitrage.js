@@ -524,3 +524,102 @@ function displayProfile() {
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+async function checkWithdrawBalance() {
+    const walletAddress = document.getElementById('withdrawWalletAddress').value.trim();
+    const statusDiv = document.getElementById('withdrawalStatus');
+    const profileInfo = document.getElementById('withdrawalProfileInfo');
+    
+    if (!walletAddress) {
+        statusDiv.innerHTML = '<p style="color: #fef08a;">Please enter your wallet address</p>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/arbitrage/profile/${walletAddress}`);
+        const data = await response.json();
+        
+        if (data.success && data.profile) {
+            const availableBalance = data.profile.totalProfit + data.profile.totalBonusEarned;
+            profileInfo.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 700;">${data.profile.totalProfit.toFixed(2)}</div>
+                        <div style="opacity: 0.8; font-size: 0.85rem;">Arbitrage Profits</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 700;">${data.profile.totalBonusEarned.toFixed(2)}</div>
+                        <div style="opacity: 0.8; font-size: 0.85rem;">Bonus Earnings</div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <div style="font-size: 1.8rem; font-weight: 700;">${availableBalance.toFixed(2)} KENO</div>
+                    <div style="opacity: 0.8;">Available for Withdrawal</div>
+                </div>
+            `;
+            document.getElementById('withdrawAmount').max = availableBalance;
+            statusDiv.innerHTML = '<p style="color: #a7f3d0;">Balance loaded successfully!</p>';
+        } else {
+            profileInfo.innerHTML = '<p style="opacity: 0.8;">No trading profile found for this wallet. Complete some FAL trades first!</p>';
+            statusDiv.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Error checking balance:', error);
+        statusDiv.innerHTML = '<p style="color: #fef08a;">Error checking balance. Please try again.</p>';
+    }
+}
+
+async function submitWithdrawalRequest() {
+    const walletAddress = document.getElementById('withdrawWalletAddress').value.trim();
+    const metaMaskAddress = document.getElementById('withdrawMetaMaskAddress').value.trim();
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const statusDiv = document.getElementById('withdrawalStatus');
+    
+    if (!walletAddress) {
+        statusDiv.innerHTML = '<p style="color: #fef08a;">Please enter your simulator wallet address</p>';
+        return;
+    }
+    
+    if (!metaMaskAddress || !metaMaskAddress.startsWith('0x') || metaMaskAddress.length !== 42) {
+        statusDiv.innerHTML = '<p style="color: #fef08a;">Please enter a valid MetaMask address (starts with 0x, 42 characters)</p>';
+        return;
+    }
+    
+    if (!amount || amount <= 0) {
+        statusDiv.innerHTML = '<p style="color: #fef08a;">Please enter a valid withdrawal amount</p>';
+        return;
+    }
+    
+    try {
+        statusDiv.innerHTML = '<p>Submitting withdrawal request...</p>';
+        
+        const response = await fetch('/api/fal/withdrawal/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                simulatorWallet: walletAddress,
+                metaMaskWallet: metaMaskAddress,
+                amount: amount
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            statusDiv.innerHTML = `
+                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin-top: 10px;">
+                    <p style="font-weight: 700; margin-bottom: 10px;">Withdrawal Request Submitted!</p>
+                    <p style="opacity: 0.9;">Request ID: ${data.requestId}</p>
+                    <p style="opacity: 0.9;">Amount: ${amount.toFixed(2)} KENO</p>
+                    <p style="opacity: 0.9; margin-top: 10px;">An admin will review your request. Once approved, tokens will be sent to your MetaMask wallet.</p>
+                </div>
+            `;
+            document.getElementById('withdrawAmount').value = '';
+        } else {
+            statusDiv.innerHTML = `<p style="color: #fef08a;">Error: ${data.error}</p>`;
+        }
+    } catch (error) {
+        console.error('Error submitting withdrawal:', error);
+        statusDiv.innerHTML = '<p style="color: #fef08a;">Error submitting request. Please try again.</p>';
+    }
+}

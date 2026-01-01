@@ -597,7 +597,30 @@ class DatabaseConnection {
                 CREATE INDEX IF NOT EXISTS idx_node_whitelist_wallet ON node_whitelist(wallet);
             `);
 
-            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History, API Licensing, Graduate Merchandise, ICO Investors & Node Whitelist)');
+            await this.query(`
+                CREATE TABLE IF NOT EXISTS fal_withdrawals (
+                    id SERIAL PRIMARY KEY,
+                    request_id VARCHAR(50) UNIQUE NOT NULL,
+                    simulator_wallet VARCHAR(255) NOT NULL,
+                    metamask_wallet VARCHAR(42) NOT NULL,
+                    amount DECIMAL(18, 8) NOT NULL,
+                    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
+                    tx_hash VARCHAR(66),
+                    admin_notes TEXT,
+                    requested_at TIMESTAMP DEFAULT NOW(),
+                    processed_at TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_fal_withdrawals_status ON fal_withdrawals(status);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_fal_withdrawals_wallet ON fal_withdrawals(simulator_wallet);
+            `);
+
+            console.log('✅ Database schema initialized successfully (including Wealth Builder, Chat History, API Licensing, Graduate Merchandise, ICO Investors, Node Whitelist & FAL Withdrawals)');
             return true;
         } catch (error) {
             console.error('❌ Error initializing database schema:', error.message);

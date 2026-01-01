@@ -637,6 +637,10 @@
                     <span class="icon">🎓</span>
                     <span>Scholarships</span>
                 </div>
+                <div class="nav-item" onclick="showTab('falWithdrawals')">
+                    <span class="icon">💸</span>
+                    <span>FAL Withdrawals</span>
+                </div>
             </nav>
         </aside>
         
@@ -948,6 +952,40 @@
                     </table>
                 </div>
             </div>
+            
+            <div id="falWithdrawalsTab" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">FAL Withdrawal Requests</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="falWithdrawalFilter" onchange="loadFALWithdrawals()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Simulator Wallet</th>
+                                <th>MetaMask Wallet</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="falWithdrawalsTable">
+                            <tr>
+                                <td colspan="7" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
     </div>
     
@@ -1077,6 +1115,7 @@
                 updateGraduatesTable();
                 updateInvestorsTable();
                 updateReferralsTable();
+                loadFALWithdrawals();
                 
                 const now = new Date().toLocaleTimeString();
                 document.getElementById('lastUpdate').textContent = `Last updated: ${now}`;
@@ -1398,7 +1437,8 @@
                 investors: 'ICO Investors',
                 claims: 'KENO Claims',
                 referrals: 'Referral Program',
-                scholarships: 'Scholarship Management'
+                scholarships: 'Scholarship Management',
+                falWithdrawals: 'FAL Withdrawal Requests'
             };
             
             if (tabName === 'claims') {
@@ -1406,6 +1446,9 @@
             }
             if (tabName === 'scholarships') {
                 loadScholarships();
+            }
+            if (tabName === 'falWithdrawals') {
+                loadFALWithdrawals();
             }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
         }
@@ -1710,6 +1753,118 @@
                 }
             } catch (error) {
                 console.error('Error reviewing scholarship:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadFALWithdrawals() {
+            const table = document.getElementById('falWithdrawalsTable');
+            table.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('falWithdrawalFilter')?.value || '';
+                let url = `/api/admin/fal-withdrawals?adminPassword=${encodeURIComponent(adminPwd)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success && data.withdrawals && data.withdrawals.length > 0) {
+                    let withdrawals = data.withdrawals;
+                    if (filter) {
+                        withdrawals = withdrawals.filter(w => w.status === filter);
+                    }
+                    
+                    if (withdrawals.length === 0) {
+                        table.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px;">No matching withdrawal requests</td></tr>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    withdrawals.forEach(w => {
+                        const statusColors = { pending: '#f59e0b', completed: '#10b981', rejected: '#ef4444' };
+                        const isPending = w.status === 'pending';
+                        const simWallet = w.simulator_wallet || '';
+                        const metaWallet = w.metamask_wallet || '';
+                        html += `
+                            <tr>
+                                <td style="font-family: monospace; font-size: 0.85rem;">${w.request_id}</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;">${simWallet.substring(0, 15)}...</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;"><a href="https://bscscan.com/address/${metaWallet}" target="_blank" style="color: #3b82f6;">${metaWallet.substring(0, 10)}...${metaWallet.substring(38)}</a></td>
+                                <td style="color: #ffd700; font-weight: 600;">${parseFloat(w.amount).toFixed(2)} KENO</td>
+                                <td><span style="background: ${statusColors[w.status]}33; color: ${statusColors[w.status]}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${w.status}</span></td>
+                                <td>${new Date(w.requested_at).toLocaleDateString()}</td>
+                                <td>
+                                    ${isPending ? `
+                                        <button onclick="approveFALWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Approve</button>
+                                        <button onclick="rejectFALWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #ef4444; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-left: 4px;">Reject</button>
+                                    ` : (w.tx_hash ? `<a href="https://bscscan.com/tx/${w.tx_hash}" target="_blank" style="color: #10b981; font-size: 0.85rem;">View TX</a>` : '<span style="color: #94a3b8;">-</span>')}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    table.innerHTML = html;
+                } else {
+                    table.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px;">No FAL withdrawal requests found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading FAL withdrawals:', error);
+                table.innerHTML = '<tr><td colspan="7" style="color: #ef4444; text-align: center;">Error loading withdrawals</td></tr>';
+            }
+        }
+        
+        async function approveFALWithdrawal(requestId) {
+            if (!confirm('Approve this FAL withdrawal and send KENO tokens to MetaMask wallet?')) return;
+            const notes = prompt('Add notes (optional):') || 'Approved';
+            
+            try {
+                const response = await fetch('/api/admin/fal-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'approve',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Withdrawal approved!' + (data.txHash ? ` TX: ${data.txHash}` : ' Token transfer pending.'));
+                    loadFALWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error approving withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function rejectFALWithdrawal(requestId) {
+            const notes = prompt('Enter rejection reason:');
+            if (notes === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/fal-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'reject',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Withdrawal rejected.');
+                    loadFALWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error rejecting withdrawal:', error);
                 alert('Error: ' + error.message);
             }
         }
