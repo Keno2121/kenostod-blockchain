@@ -23,6 +23,11 @@ The platform teaches advanced blockchain concepts like Proof-of-Residual-Value (
 Preferred communication style: Simple, everyday language.
 Design preferences: Professional, appealing, fun; market-ready for ROI growth and scalability.
 Contact email: kenostod21@gmail.com
+Business email: keno@kenostodblockchain.com
+
+# TODO / Future Enhancements
+
+- **Add Language Support for Transak Markets:** Add translations for countries supported by Transak integration: German, French, Dutch, Japanese, Korean, Swedish, Norwegian, Danish, Finnish, Spanish, Italian, Polish, Czech, Portuguese. Currently platform supports 6 languages - need to expand for international user base.
 
 # System Architecture
 
