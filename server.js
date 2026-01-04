@@ -5344,7 +5344,17 @@ app.get('/api/wealth/dashboard/:walletAddress', async (req, res) => {
     try {
         const { walletAddress } = req.params;
         const email = req.query.email || '';
-        const result = await wealthBuilderManager.calculateWealthSnapshot(walletAddress, email, icoPurchases || []);
+        
+        // Get FAL profits from arbitrage system
+        let falProfits = 0;
+        if (arbitrageSystem) {
+            const trader = arbitrageSystem.traderProfiles.get(walletAddress.toLowerCase());
+            if (trader) {
+                falProfits = (trader.totalProfit || 0) + (trader.totalBonusEarned || 0);
+            }
+        }
+        
+        const result = await wealthBuilderManager.calculateWealthSnapshot(walletAddress, email, icoPurchases || [], falProfits);
         res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });

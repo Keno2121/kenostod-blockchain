@@ -541,7 +541,7 @@ class WealthBuilderManager {
         }
     }
 
-    async calculateWealthSnapshot(walletAddress, email, icoPurchases = []) {
+    async calculateWealthSnapshot(walletAddress, email, icoPurchases = [], falProfits = 0) {
         try {
             const normalizedWallet = walletAddress.toLowerCase();
             
@@ -579,8 +579,8 @@ class WealthBuilderManager {
                 .filter(p => p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase())
                 .reduce((sum, p) => sum + (p.tokens || 0), 0);
 
-            const totalKeno = totalRewards + totalRvtRoyalties + totalReferrals + icoPurchaseTokens;
-            const estimatedUSD = totalKeno * 0.50;
+            const totalKeno = totalRewards + totalRvtRoyalties + totalReferrals + icoPurchaseTokens + falProfits;
+            const estimatedUSD = totalKeno * 1.00;
 
             await this.db.query(`
                 INSERT INTO wealth_snapshots (
@@ -612,6 +612,7 @@ class WealthBuilderManager {
                     totalRvtRoyalties,
                     totalReferrals,
                     icoPurchases: icoPurchaseTokens,
+                    falProfits,
                     coursesCompleted,
                     estimatedUSD,
                     rvtNFTs: parseInt(rvtResult.rows[0].rvt_count)
