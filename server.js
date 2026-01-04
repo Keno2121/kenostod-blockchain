@@ -3729,7 +3729,19 @@ app.get('/api/ico/my-investments/:walletAddress', (req, res) => {
         
         const now = new Date();
         const publicSaleStart = new Date('2025-12-29T00:00:00Z');
-        const currentPrice = now >= publicSaleStart ? 0.05 : 0.01;
+        const dexListingDate = new Date('2025-12-29T00:00:00Z');
+        
+        // Price phases: Private ($0.01) -> Public ($0.05) -> DEX Listed ($1.00)
+        let currentPrice = 0.01;
+        let pricePhase = 'Private Sale';
+        
+        if (now >= dexListingDate) {
+            currentPrice = 1.00;  // DEX listing price
+            pricePhase = 'DEX Listed';
+        } else if (now >= publicSaleStart) {
+            currentPrice = 0.05;
+            pricePhase = 'Public Sale';
+        }
         
         const currentValue = totalTokens * currentPrice;
         const profit = currentValue - totalInvested;
@@ -3745,8 +3757,8 @@ app.get('/api/ico/my-investments/:walletAddress', (req, res) => {
                 currentValue: parseFloat(currentValue.toFixed(2)),
                 profit: parseFloat(profit.toFixed(2)),
                 roi: parseFloat(roi.toFixed(2)),
-                pricePhase: now >= publicSaleStart ? 'Public Sale' : 'Private Sale',
-                nextPriceChange: now >= publicSaleStart ? null : publicSaleStart.toISOString()
+                pricePhase: pricePhase,
+                nextPriceChange: now >= dexListingDate ? null : dexListingDate.toISOString()
             }
         });
     } catch (error) {
@@ -7347,9 +7359,20 @@ app.get('/api/ico/investor-stats', async (req, res) => {
         const raised24hAmount = parseFloat(raised24h.rows[0]?.amount || 0);
 
         const privateSaleDate = new Date('2025-11-28T00:00:00Z');
+        const dexListingDate = new Date('2025-12-29T00:00:00Z');
         const now = new Date();
-        const currentPhase = now < privateSaleDate ? 'upcoming' : 'private';
-        const currentPrice = currentPhase === 'private' ? 0.01 : 0.05;
+        
+        // Price phases: Upcoming -> Private ($0.01) -> DEX Listed ($1.00)
+        let currentPhase = 'upcoming';
+        let currentPrice = 0.01;
+        
+        if (now >= dexListingDate) {
+            currentPhase = 'dex_listed';
+            currentPrice = 1.00;
+        } else if (now >= privateSaleDate) {
+            currentPhase = 'private';
+            currentPrice = 0.01;
+        }
 
         const raised24hPercent = totalRaised > 0 ? ((raised24hAmount / totalRaised) * 100).toFixed(2) : 0;
 
