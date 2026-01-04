@@ -5354,7 +5354,20 @@ app.get('/api/wealth/dashboard/:walletAddress', async (req, res) => {
             }
         }
         
-        const result = await wealthBuilderManager.calculateWealthSnapshot(walletAddress, email, icoPurchases || [], falProfits);
+        // Get approved grants
+        const approvedGrants = (miningGrants || [])
+            .filter(g => g.walletAddress && g.walletAddress.toLowerCase() === walletAddress.toLowerCase() && g.status === 'approved')
+            .length;
+        const grantTokens = approvedGrants * 5250;
+        
+        const result = await wealthBuilderManager.calculateWealthSnapshot(walletAddress, email, icoPurchases || [], falProfits + grantTokens);
+        
+        // Add grant info to response
+        if (result.success && result.wealth) {
+            result.wealth.approvedGrants = approvedGrants;
+            result.wealth.grantTokens = grantTokens;
+        }
+        
         res.json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
