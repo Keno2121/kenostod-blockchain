@@ -630,6 +630,53 @@ app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
     res.json({ success: true, inquiries: enterpriseInquiries });
 });
 
+// ==================== WITHDRAWAL NOTIFICATION SYSTEM ====================
+
+let withdrawNotifyList = [];
+try {
+    const saved = require('fs').readFileSync('./withdraw_notify_list.json', 'utf8');
+    withdrawNotifyList = JSON.parse(saved);
+} catch (e) {
+    withdrawNotifyList = [];
+}
+
+app.post('/api/withdraw-notify', (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ success: false, error: 'Invalid email address' });
+        }
+        
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        if (withdrawNotifyList.some(e => e.email === normalizedEmail)) {
+            return res.json({ success: true, message: 'Already subscribed' });
+        }
+        
+        withdrawNotifyList.push({
+            email: normalizedEmail,
+            subscribedAt: new Date().toISOString()
+        });
+        
+        try {
+            require('fs').writeFileSync('./withdraw_notify_list.json', JSON.stringify(withdrawNotifyList, null, 2));
+        } catch (e) {
+            console.error('Error saving withdraw notify list:', e);
+        }
+        
+        console.log(`📧 Withdrawal notification subscription: ${normalizedEmail}`);
+        res.json({ success: true, message: 'Subscribed successfully' });
+    } catch (error) {
+        console.error('Withdraw notify error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/withdraw-notify-list', adminAuth, (req, res) => {
+    res.json({ success: true, subscribers: withdrawNotifyList });
+});
+
 // ==================== NODE SALE WHITELIST SYSTEM (PostgreSQL) ====================
 
 // KENO contract address (to prevent confusion)
