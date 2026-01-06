@@ -291,9 +291,10 @@ class ArbitrageSystem {
     }
 
     getOrCreateTrader(walletAddress) {
-        if (!this.traderProfiles.has(walletAddress)) {
-            this.traderProfiles.set(walletAddress, {
-                walletAddress,
+        const normalizedAddress = walletAddress.toLowerCase();
+        if (!this.traderProfiles.has(normalizedAddress)) {
+            this.traderProfiles.set(normalizedAddress, {
+                walletAddress: normalizedAddress,
                 totalLoans: 0,
                 successfulLoans: 0,
                 defaultedLoans: 0,
@@ -306,7 +307,7 @@ class ArbitrageSystem {
                 lastActivity: Date.now()
             });
         }
-        return this.traderProfiles.get(walletAddress);
+        return this.traderProfiles.get(normalizedAddress);
     }
 
     calculateLoanLimit(trader) {
@@ -563,7 +564,8 @@ class ArbitrageSystem {
     }
 
     getTraderProfile(walletAddress) {
-        const trader = this.traderProfiles.get(walletAddress);
+        const normalizedAddress = walletAddress.toLowerCase();
+        const trader = this.traderProfiles.get(normalizedAddress);
         if (!trader) {
             return null;
         }
@@ -571,8 +573,8 @@ class ArbitrageSystem {
         return {
             ...trader,
             loanLimit: this.calculateLoanLimit(trader),
-            rank: this.leaderboard.findIndex(t => t.walletAddress === walletAddress) + 1,
-            recentLoans: this.loanHistory.filter(l => l.walletAddress === walletAddress).slice(-10)
+            rank: this.leaderboard.findIndex(t => t.walletAddress === normalizedAddress) + 1,
+            recentLoans: this.loanHistory.filter(l => l.walletAddress.toLowerCase() === normalizedAddress).slice(-10)
         };
     }
 
