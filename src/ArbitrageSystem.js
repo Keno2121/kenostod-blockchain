@@ -33,7 +33,8 @@ class ArbitrageSystem {
                 bronze: { threshold: 10, loanMultiplier: 1.5, badge: '🥉' },
                 silver: { threshold: 50, loanMultiplier: 2.0, badge: '🥈' },
                 gold: { threshold: 200, loanMultiplier: 3.0, badge: '🥇' },
-                platinum: { threshold: 1000, loanMultiplier: 5.0, badge: '💎' }
+                platinum: { threshold: 500, loanMultiplier: 5.0, badge: '💎' },
+                diamond: { threshold: 1000, loanMultiplier: 10.0, badge: '👑' }
             }
         };
         
@@ -314,7 +315,10 @@ class ArbitrageSystem {
         const levels = this.config.reputationLevels;
         const successfulTrades = trader.successfulLoans;
         
-        if (successfulTrades >= levels.platinum.threshold) {
+        if (successfulTrades >= levels.diamond.threshold) {
+            baseLimit *= levels.diamond.loanMultiplier;
+            trader.reputationLevel = 'diamond';
+        } else if (successfulTrades >= levels.platinum.threshold) {
             baseLimit *= levels.platinum.loanMultiplier;
             trader.reputationLevel = 'platinum';
         } else if (successfulTrades >= levels.gold.threshold) {
@@ -359,8 +363,9 @@ class ArbitrageSystem {
             { trades: 10, badge: 'First Blood', emoji: '🥉', description: '10 successful arbitrage trades' },
             { trades: 50, badge: 'Arbitrage Pro', emoji: '🥈', description: '50 successful arbitrage trades' },
             { trades: 200, badge: 'Master Trader', emoji: '🥇', description: '200 successful arbitrage trades' },
-            { trades: 1000, badge: 'Arbitrage Legend', emoji: '💎', description: '1000 successful arbitrage trades' },
-            { profit: 10000, badge: 'Profit King', emoji: '👑', description: 'Earned 10,000 KENO in profits' },
+            { trades: 500, badge: 'Arbitrage Legend', emoji: '💎', description: '500 successful arbitrage trades' },
+            { trades: 1000, badge: 'Diamond Elite', emoji: '👑', description: '1000 successful arbitrage trades' },
+            { profit: 10000, badge: 'Profit King', emoji: '💰', description: 'Earned 10,000 KENO in profits' },
             { profit: 100000, badge: 'Whale Trader', emoji: '🐋', description: 'Earned 100,000 KENO in profits' }
         ];
         
