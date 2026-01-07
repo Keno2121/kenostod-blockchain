@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 19: Flash Arbitrage Loan Pools (FALP) | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root { --primary: #14b8a6; --primary-dark: #0d9488; --gold: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --danger: #ef4444; --purple: #8b5cf6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; }
+        .toc-list { list-style: none; } .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.9em; }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; flex-shrink: 0; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; } .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; } .course-header h1 { font-size: 2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .lesson-section h2 { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; } .lesson-section h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; } .lesson-section h4 { color: var(--purple); margin: 20px 0 10px 0; } .lesson-section p { margin-bottom: 15px; }
+        .objective-list { list-style: none; margin: 20px 0; } .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; } .objective-list li::before { content: "✓"; color: var(--success); font-weight: bold; margin-right: 12px; }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+        .warning-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .warning-box h4 { color: var(--danger); margin-bottom: 10px; }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram .diagram-content { background: rgba(20, 184, 166, 0.1); border: 2px solid var(--primary); border-radius: 12px; padding: 25px; display: inline-block; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 20px; width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .success-box h4 { color: var(--success); margin-bottom: 10px; }
+        .example-box { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .example-box h4 { color: var(--purple); margin-bottom: 10px; }
+        .formula { background: var(--bg-dark); border-radius: 8px; padding: 15px 20px; margin: 15px 0; font-family: 'Fira Code', monospace; text-align: center; font-size: 1.1em; color: var(--gold); }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .comparison-table th, .comparison-table td { padding: 15px; text-align: left; border: 1px solid rgba(255,255,255,0.1); }
+        .comparison-table th { background: var(--bg-dark); color: var(--primary); }
+        .comparison-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .pool-card { background: var(--bg-dark); border-radius: 12px; padding: 20px; margin: 10px 0; border-left: 4px solid var(--primary); }
+        .risk-meter { display: flex; gap: 5px; margin: 10px 0; }
+        .risk-bar { width: 20px; height: 8px; background: #334155; border-radius: 4px; }
+        .risk-bar.active { background: var(--success); }
+        .risk-bar.active.medium { background: var(--gold); }
+        .risk-bar.active.high { background: var(--danger); }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .quiz-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .quiz-question { background: var(--bg-dark); border-radius: 12px; padding: 25px; margin-bottom: 20px; } .quiz-question h4 { margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); } .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); } .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; } .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); } .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">📚 Course Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('what-is-falp')"><span class="toc-number">2</span>What is FALP?</li>
+                <li class="toc-item" onclick="scrollToSection('pool-mechanics')"><span class="toc-number">3</span>Pool Mechanics</li>
+                <li class="toc-item" onclick="scrollToSection('risk-tiers')"><span class="toc-number">4</span>Risk Tiers</li>
+                <li class="toc-item" onclick="scrollToSection('profit-distribution')"><span class="toc-number">5</span>Profit Distribution</li>
+                <li class="toc-item" onclick="scrollToSection('lock-periods')"><span class="toc-number">6</span>Lock Periods</li>
+                <li class="toc-item" onclick="scrollToSection('creating-pools')"><span class="toc-number">7</span>Creating Pools</li>
+                <li class="toc-item" onclick="scrollToSection('strategies')"><span class="toc-number">8</span>Investment Strategies</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">9</span>Hands-On Practice</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">10</span>Knowledge Check</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 19</div>
+            
+            <div class="course-header">
+                <h1>🏊 Course 19: Flash Arbitrage Loan Pools (FALP) <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>📖 8 Lessons</span>
+                    <span>⏱️ ~50 minutes</span>
+                    <span>🎯 Advanced Level</span>
+                    <span>🏆 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <section id="objectives" class="lesson-section">
+                <h2>🎯 Learning Objectives</h2>
+                <p>Flash Arbitrage Loan Pools (FALP) allow you to earn passive income by providing liquidity that traders borrow for flash arbitrage. This is how you make money while you sleep. By the end of this course, you will:</p>
+                <ul class="objective-list">
+                    <li>Understand how liquidity pools power flash loans</li>
+                    <li>Evaluate and select pools based on risk/reward profiles</li>
+                    <li>Calculate expected returns from pool contributions</li>
+                    <li>Create and manage your own FALP pools</li>
+                    <li>Implement strategies to maximize passive income</li>
+                    <li>Understand lock periods and their bonus structures</li>
+                </ul>
+            </section>
+            
+            <section id="what-is-falp" class="lesson-section">
+                <h2>💧 What is FALP?</h2>
+                <p>Flash Arbitrage Loan Pools (FALP) are collective liquidity pools where multiple users combine their KENO tokens. This pooled capital is then available for traders to borrow for flash arbitrage trades.</p>
+                
+                <h3>The Core Concept</h3>
+                <p>Think of FALP like a cooperative bank account. Instead of your money sitting idle in a savings account earning 0.5% APY, you deposit it into a pool where it's actively lent out for arbitrage trades — earning you a share of the 0.05% fee from every trade.</p>
+                
+                <div class="visual-diagram">
+                    <div class="diagram-content">
+                        <p style="margin: 0; font-size: 1em;">
+                            <strong>Contributors</strong><br>
+                            Alice (5,000 KENO) + Bob (3,000 KENO) + Carol (2,000 KENO)<br>
+                            ↓<br>
+                            <strong>Pool Total: 10,000 KENO</strong><br>
+                            ↓<br>
+                            <strong>Trader Borrows 8,000 KENO</strong><br>
+                            ↓<br>
+                            <strong>Fee: 7.2 KENO (0.09%)</strong><br>
+                            ↓<br>
+                            Pool gets 4 KENO (0.05% goes to LPs)<br>
+                            Alice: 2 KENO | Bob: 1.2 KENO | Carol: 0.8 KENO
+                        </p>
+                    </div>
+                    <p class="caption">Figure: How profits flow from trades to liquidity providers</p>
+                </div>
+                
+                <h3>FAL vs FALP: Which is Right for You?</h3>
+                <table class="comparison-table">
+                    <tr>
+                        <th>Factor</th>
+                        <th>FAL (Active Trading)</th>
+                        <th>FALP (Passive Income)</th>
+                    </tr>
+                    <tr>
+                        <td>Time Required</td>
+                        <td>Active monitoring</td>
+                        <td>Set and forget</td>
+                    </tr>
+                    <tr>
+                        <td>Profit Potential</td>
+                        <td>Higher (per trade)</td>
+                        <td>Steady accumulation</td>
+                    </tr>
+                    <tr>
+                        <td>Risk Level</td>
+                        <td>Gas fees on failed trades</td>
+                        <td>Minimal (smart contract risk only)</td>
+                    </tr>
+                    <tr>
+                        <td>Skill Required</td>
+                        <td>Market knowledge needed</td>
+                        <td>Basic understanding</td>
+                    </tr>
+                    <tr>
+                        <td>Capital Access</td>
+                        <td>Locked during trade only</td>
+                        <td>Locked for lock period</td>
+                    </tr>
+                    <tr>
+                        <td>Best For</td>
+                        <td>Active traders</td>
+                        <td>Long-term investors</td>
+                    </tr>
+                </table>
+                
+                <div class="concept-box">
+                    <h4>💡 Passive Income Revolution</h4>
+                    <p>FALP is Kenostod's answer to DeFi yield farming — but simpler and more transparent. Instead of complex yield strategies, you earn a direct share of real trading activity. No inflation rewards, no ponzinomics — just genuine fee revenue.</p>
+                </div>
+            </section>
+            
+            <section id="pool-mechanics" class="lesson-section">
+                <h2>⚙️ Pool Mechanics</h2>
+                <p>Understanding how pools work is essential for maximizing your returns.</p>
+                
+                <h3>How Deposits Work</h3>
+                <ul class="step-list">
+                    <li>
+                        <strong>Select a Pool</strong><br>
+                        Choose from existing pools based on your risk tolerance and desired lock period. Each pool has different characteristics.
+                    </li>
+                    <li>
+                        <strong>Deposit KENO</strong><br>
+                        Transfer KENO to the pool smart contract. You receive LP (Liquidity Provider) tokens representing your share.
+                    </li>
+                    <li>
+                        <strong>Earn Continuously</strong><br>
+                        Every time a trader borrows from your pool, you earn a proportional share of the 0.05% liquidity provider fee.
+                    </li>
+                    <li>
+                        <strong>Withdraw + Profits</strong><br>
+                        After the lock period, withdraw your original deposit plus accumulated profits.
+                    </li>
+                </ul>
+                
+                <h3>LP Token Math</h3>
+                <p>When you deposit into a pool, you receive LP tokens that represent your share:</p>
+                
+                <div class="formula">
+                    Your LP Tokens = (Your Deposit / Total Pool) × Total LP Supply
+                </div>
+                
+                <div class="example-box">
+                    <h4>📈 Example: Calculating Your Share</h4>
+                    <p><strong>Pool Stats:</strong></p>
+                    <ul>
+                        <li>Total Pool: 50,000 KENO</li>
+                        <li>Total LP Tokens: 50,000</li>
+                        <li>Your Deposit: 5,000 KENO</li>
+                    </ul>
+                    <p><strong>Your LP Tokens:</strong> (5,000 / 50,000) × 50,000 = 5,000 LP</p>
+                    <p><strong>Your Share:</strong> 10% of all pool profits</p>
+                </div>
+                
+                <h3>Utilization Rate</h3>
+                <p>Not all pool capital is borrowed at all times. The <strong>utilization rate</strong> measures how actively a pool's capital is being used.</p>
+                
+                <div class="formula">
+                    Utilization Rate = (Capital Borrowed / Total Pool Size) × 100%
+                </div>
+                
+                <p>Higher utilization = more fees generated = higher returns. The best pools typically see 60-80% utilization.</p>
+            </section>
+            
+            <section id="risk-tiers" class="lesson-section">
+                <h2>⚠️ Risk Tiers</h2>
+                <p>FALP pools are categorized by risk level. Understanding these tiers helps you make informed decisions.</p>
+                
+                <div class="pool-card" style="border-color: var(--success);">
+                    <h4 style="color: var(--success);">🟢 Conservative (Low Risk)</h4>
+                    <div class="risk-meter">
+                        <div class="risk-bar active"></div>
+                        <div class="risk-bar active"></div>
+                        <div class="risk-bar"></div>
+                        <div class="risk-bar"></div>
+                        <div class="risk-bar"></div>
+                    </div>
+                    <p><strong>Target APY:</strong> 8-15%</p>
+                    <p><strong>Strategies:</strong> Major pair arbitrage (KENO/USDT, KENO/BNB) on high-liquidity exchanges</p>
+                    <p><strong>Best For:</strong> Risk-averse investors, first-time FALP users</p>
+                    <p><strong>Lock Period Bonus:</strong> +5% for 90-day lock</p>
+                </div>
+                
+                <div class="pool-card" style="border-color: var(--gold);">
+                    <h4 style="color: var(--gold);">🟡 Balanced (Medium Risk)</h4>
+                    <div class="risk-meter">
+                        <div class="risk-bar active medium"></div>
+                        <div class="risk-bar active medium"></div>
+                        <div class="risk-bar active medium"></div>
+                        <div class="risk-bar"></div>
+                        <div class="risk-bar"></div>
+                    </div>
+                    <p><strong>Target APY:</strong> 15-30%</p>
+                    <p><strong>Strategies:</strong> Cross-exchange arbitrage, triangular opportunities</p>
+                    <p><strong>Best For:</strong> Experienced investors seeking growth</p>
+                    <p><strong>Lock Period Bonus:</strong> +10% for 90-day lock</p>
+                </div>
+                
+                <div class="pool-card" style="border-color: var(--danger);">
+                    <h4 style="color: var(--danger);">🔴 Aggressive (High Risk)</h4>
+                    <div class="risk-meter">
+                        <div class="risk-bar active high"></div>
+                        <div class="risk-bar active high"></div>
+                        <div class="risk-bar active high"></div>
+                        <div class="risk-bar active high"></div>
+                        <div class="risk-bar active high"></div>
+                    </div>
+                    <p><strong>Target APY:</strong> 30-60%+</p>
+                    <p><strong>Strategies:</strong> New pair listings, volatile markets, experimental strategies</p>
+                    <p><strong>Best For:</strong> High-risk tolerance investors only</p>
+                    <p><strong>Lock Period Bonus:</strong> +20% for 90-day lock</p>
+                </div>
+                
+                <div class="warning-box">
+                    <h4>⚠️ Understanding "Risk" in FALP</h4>
+                    <p>Risk in FALP is different from FAL. You don't lose money from failed arbitrage trades — those simply revert. Risk factors include:</p>
+                    <ul>
+                        <li><strong>Smart contract risk:</strong> Bug in pool code (mitigated by audits)</li>
+                        <li><strong>Opportunity cost:</strong> Locked capital could have been used elsewhere</li>
+                        <li><strong>Lower-than-expected returns:</strong> If utilization is low, fees are lower</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <section id="profit-distribution" class="lesson-section">
+                <h2>💰 Profit Distribution</h2>
+                <p>Understanding exactly how profits flow is crucial for calculating your expected returns.</p>
+                
+                <h3>Fee Flow Breakdown</h3>
+                <div class="visual-diagram">
+                    <div class="diagram-content">
+                        <p style="margin: 0; font-size: 1em;">
+                            <strong>Flash Loan Fee: 0.09%</strong><br><br>
+                            → 0.05% (55.5%) → <strong>Liquidity Providers</strong><br>
+                            → 0.03% (33.3%) → Platform Development<br>
+                            → 0.01% (11.2%) → Scholarship Fund
+                        </p>
+                    </div>
+                    <p class="caption">Figure: Fee distribution from each flash loan</p>
+                </div>
+                
+                <h3>Calculating Your Returns</h3>
+                <div class="formula">
+                    Your Daily Profit = Pool Daily Volume × 0.0005 × Your Share %
+                </div>
+                
+                <div class="example-box">
+                    <h4>📈 Real Return Example</h4>
+                    <p><strong>Your Situation:</strong></p>
+                    <ul>
+                        <li>Pool Size: 100,000 KENO</li>
+                        <li>Your Contribution: 10,000 KENO (10% share)</li>
+                        <li>Daily Trading Volume: 500,000 KENO</li>
+                    </ul>
+                    <p><strong>Calculation:</strong></p>
+                    <ul>
+                        <li>Daily LP Fees: 500,000 × 0.0005 = 250 KENO</li>
+                        <li>Your Share: 250 × 10% = <strong>25 KENO per day</strong></li>
+                        <li>Monthly: ~750 KENO ($750 at $1/KENO)</li>
+                        <li>APY: (750 × 12) / 10,000 = <strong>90% APY</strong></li>
+                    </ul>
+                </div>
+                
+                <h3>Compounding Returns</h3>
+                <p>The real power comes from compounding. Reinvesting your earnings back into pools accelerates growth exponentially.</p>
+                
+                <table class="comparison-table">
+                    <tr>
+                        <th>Initial Deposit</th>
+                        <th>Year 1 (30% APY)</th>
+                        <th>Year 3 (Compounded)</th>
+                        <th>Year 5 (Compounded)</th>
+                    </tr>
+                    <tr>
+                        <td>1,000 KENO</td>
+                        <td>1,300 KENO</td>
+                        <td>2,197 KENO</td>
+                        <td>3,713 KENO</td>
+                    </tr>
+                    <tr>
+                        <td>5,000 KENO</td>
+                        <td>6,500 KENO</td>
+                        <td>10,985 KENO</td>
+                        <td>18,565 KENO</td>
+                    </tr>
+                    <tr>
+                        <td>10,000 KENO</td>
+                        <td>13,000 KENO</td>
+                        <td>21,970 KENO</td>
+                        <td>37,129 KENO</td>
+                    </tr>
+                </table>
+            </section>
+            
+            <section id="lock-periods" class="lesson-section">
+                <h2>🔒 Lock Periods & Bonuses</h2>
+                <p>Lock periods incentivize long-term liquidity commitment with bonus rewards.</p>
+                
+                <h3>Available Lock Periods</h3>
+                <table class="comparison-table">
+                    <tr>
+                        <th>Lock Period</th>
+                        <th>Bonus Multiplier</th>
+                        <th>Example Return</th>
+                    </tr>
+                    <tr>
+                        <td>No Lock (Flexible)</td>
+                        <td>1.0x (Base)</td>
+                        <td>20% APY → 20% APY</td>
+                    </tr>
+                    <tr>
+                        <td>30 Days</td>
+                        <td>1.1x (+10%)</td>
+                        <td>20% APY → 22% APY</td>
+                    </tr>
+                    <tr>
+                        <td>60 Days</td>
+                        <td>1.2x (+20%)</td>
+                        <td>20% APY → 24% APY</td>
+                    </tr>
+                    <tr>
+                        <td>90 Days</td>
+                        <td>1.35x (+35%)</td>
+                        <td>20% APY → 27% APY</td>
+                    </tr>
+                    <tr>
+                        <td>180 Days</td>
+                        <td>1.5x (+50%)</td>
+                        <td>20% APY → 30% APY</td>
+                    </tr>
+                    <tr>
+                        <td>365 Days</td>
+                        <td>2.0x (+100%)</td>
+                        <td>20% APY → 40% APY</td>
+                    </tr>
+                </table>
+                
+                <div class="concept-box">
+                    <h4>💡 Lock Period Strategy</h4>
+                    <p>If you don't need the capital, longer locks significantly boost returns. A 365-day lock doubles your effective returns compared to flexible withdrawals. However, only lock what you can afford to have inaccessible.</p>
+                </div>
+                
+                <h3>Early Withdrawal</h3>
+                <p>If you need to withdraw before your lock period ends:</p>
+                <ul>
+                    <li><strong>Penalty:</strong> Forfeit 50% of accrued bonus earnings</li>
+                    <li><strong>Base Earnings:</strong> You keep 100% of base fee earnings</li>
+                    <li><strong>Principal:</strong> Always returned in full</li>
+                </ul>
+            </section>
+            
+            <section id="creating-pools" class="lesson-section">
+                <h2>🏗️ Creating Your Own Pool</h2>
+                <p>Advanced users can create their own FALP pools with custom parameters.</p>
+                
+                <h3>Pool Creation Requirements</h3>
+                <ul class="step-list">
+                    <li>
+                        <strong>Graduate Status</strong><br>
+                        Must have completed all 21 courses to create pools. This ensures pool creators understand the system fully.
+                    </li>
+                    <li>
+                        <strong>Minimum Seed Liquidity</strong><br>
+                        Deposit at least 5,000 KENO as initial pool capital. This proves commitment and kickstarts the pool.
+                    </li>
+                    <li>
+                        <strong>Pool Parameters</strong><br>
+                        Set: Pool name, risk tier, trading strategy description, minimum deposit, maximum pool size.
+                    </li>
+                    <li>
+                        <strong>Fee Structure</strong><br>
+                        Pool creator can set management fee (0-10% of pool profits). Higher fees may attract fewer contributors.
+                    </li>
+                </ul>
+                
+                <h3>Pool Creator Rewards</h3>
+                <ul>
+                    <li><strong>Management Fee:</strong> 0-10% of pool profits (you set this)</li>
+                    <li><strong>Pool Creation Badge:</strong> Recognition on platform</li>
+                    <li><strong>Leaderboard Visibility:</strong> Top pools featured prominently</li>
+                    <li><strong>Priority Support:</strong> Direct access to team for pool optimization</li>
+                </ul>
+                
+                <div class="example-box">
+                    <h4>📈 Pool Creator Example</h4>
+                    <p><strong>Your Pool Stats:</strong></p>
+                    <ul>
+                        <li>Total Pool: 100,000 KENO (you seeded 10,000)</li>
+                        <li>Monthly Profits: 3,000 KENO</li>
+                        <li>Your Management Fee: 5%</li>
+                    </ul>
+                    <p><strong>Your Earnings:</strong></p>
+                    <ul>
+                        <li>Your Share as LP: 3,000 × 10% = 300 KENO</li>
+                        <li>Management Fee: 3,000 × 5% = 150 KENO</li>
+                        <li><strong>Total: 450 KENO/month</strong></li>
+                    </ul>
+                </div>
+            </section>
+            
+            <section id="strategies" class="lesson-section">
+                <h2>🎯 Investment Strategies</h2>
+                <p>Maximize your FALP returns with these proven strategies.</p>
+                
+                <h3>Strategy 1: The Ladder</h3>
+                <p>Spread deposits across multiple lock periods for flexibility + bonus earnings.</p>
+                <div class="success-box">
+                    <h4>✅ Implementation</h4>
+                    <ul>
+                        <li>25% in Flexible (emergency access)</li>
+                        <li>25% in 30-day lock</li>
+                        <li>25% in 90-day lock</li>
+                        <li>25% in 365-day lock</li>
+                    </ul>
+                    <p>Result: Balanced liquidity with boosted average returns.</p>
+                </div>
+                
+                <h3>Strategy 2: Risk Tiering</h3>
+                <p>Diversify across risk levels to balance returns and safety.</p>
+                <div class="success-box">
+                    <h4>✅ Implementation</h4>
+                    <ul>
+                        <li>50% in Conservative pools (stable base)</li>
+                        <li>35% in Balanced pools (growth)</li>
+                        <li>15% in Aggressive pools (upside potential)</li>
+                    </ul>
+                    <p>Result: Blended returns with downside protection.</p>
+                </div>
+                
+                <h3>Strategy 3: Compound Snowball</h3>
+                <p>Reinvest all earnings monthly to accelerate growth.</p>
+                <div class="success-box">
+                    <h4>✅ Implementation</h4>
+                    <ul>
+                        <li>Start with maximum affordable deposit</li>
+                        <li>Set reminder to reinvest earnings every 30 days</li>
+                        <li>Never withdraw principal for at least 1 year</li>
+                    </ul>
+                    <p>Result: Exponential growth through compounding.</p>
+                </div>
+                
+                <h3>Strategy 4: New Pool First Mover</h3>
+                <p>Join new pools early to capture higher initial yields.</p>
+                <div class="success-box">
+                    <h4>✅ Implementation</h4>
+                    <ul>
+                        <li>Monitor for new pool announcements</li>
+                        <li>Evaluate pool creator reputation</li>
+                        <li>Deposit quickly but don't overcommit</li>
+                    </ul>
+                    <p>Result: Premium yields before pools become saturated.</p>
+                </div>
+            </section>
+            
+            <section id="practice" class="lesson-section">
+                <h2>🛠️ Hands-On Practice</h2>
+                <p>Apply your knowledge with these practical exercises:</p>
+                
+                <ul class="step-list">
+                    <li>
+                        <strong>Explore Active Pools</strong><br>
+                        Visit the FALP section and review at least 5 different pools. Note their: size, utilization rate, risk tier, and historical returns.
+                    </li>
+                    <li>
+                        <strong>Calculate Expected Returns</strong><br>
+                        Choose a pool and calculate your expected monthly/yearly return if you deposited 1,000 KENO.
+                    </li>
+                    <li>
+                        <strong>Compare Lock Period Options</strong><br>
+                        For your chosen pool, calculate the difference in returns between flexible and 90-day lock.
+                    </li>
+                    <li>
+                        <strong>Make Your First Deposit</strong><br>
+                        When ready, start with a small amount in a Conservative pool with 30-day lock. Experience the system firsthand.
+                    </li>
+                </ul>
+                
+                <a href="/arbitrage.html#pools" class="practice-btn">🏊 Open FALP Dashboard</a>
+            </section>
+            
+            <section id="quiz" class="quiz-section">
+                <h2>📝 Knowledge Check</h2>
+                <p>Answer these questions to earn your 250 KENO reward. You need 7/10 correct to pass.</p>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>1. What does FALP stand for?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Fast Arbitrage Loan Platform</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Flash Arbitrage Loan Pools</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Financial Asset Liquidity Protocol</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Fixed Annual Lending Program</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>2. What percentage of the flash fee goes to liquidity providers?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">0.01%</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">0.03%</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">0.05%</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">0.09%</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>3. What is the bonus multiplier for a 365-day lock?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">1.35x</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">1.5x</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">1.75x</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">2.0x</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>4. What is the minimum seed liquidity to create a pool?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">5,000 KENO</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">1,000 KENO</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">10,000 KENO</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">500 KENO</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>5. What happens if you withdraw early from a locked pool?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">You lose all earnings</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">You forfeit 50% of bonus earnings</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">You pay a 10% penalty on principal</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Early withdrawal is not allowed</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>6. What utilization rate indicates an actively used pool?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">10-20%</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">30-40%</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">60-80%</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">100%</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>7. Who can create FALP pools?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Graduates who completed all 21 courses</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Anyone with 100 KENO</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Only platform administrators</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Diamond tier FAL traders only</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>8. Which strategy spreads deposits across multiple lock periods?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Compound Snowball</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Risk Tiering</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">First Mover</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">The Ladder</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>9. What APY range is typical for Conservative pools?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">1-5%</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">8-15%</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">30-60%</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">100%+</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>10. What represents your ownership share in a pool?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">KENO tokens</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">RVT NFTs</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">LP tokens</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Pool ID number</div>
+                    </div>
+                </div>
+                
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result"><h3 id="resultIcon"></h3><h3 id="resultTitle"></h3><p id="resultMessage"></p><div id="nextCourseContainer"></div></div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2025</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-18-fal.html" style="color: var(--primary);">← Course 18: FAL</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-20-generational.html" style="color: var(--primary);">Course 20: Wealth Building →</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active')); event.target.closest('.toc-item').classList.add('active'); } }
+        function selectOption(optionElement) { const question = optionElement.closest('.quiz-question'); question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected')); optionElement.classList.add('selected'); }
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question'); let correct = 0; let total = questions.length;
+            questions.forEach(question => { const correctAnswer = question.dataset.answer; const selectedOption = question.querySelector('.quiz-option.selected'); question.querySelectorAll('.quiz-option').forEach(opt => { opt.classList.remove('correct', 'incorrect'); if (opt.dataset.value === correctAnswer) opt.classList.add('correct'); }); if (selectedOption) { if (selectedOption.dataset.value === correctAnswer) correct++; else selectedOption.classList.add('incorrect'); } });
+            const resultDiv = document.getElementById('quizResult'); resultDiv.classList.remove('passed', 'failed'); resultDiv.classList.add('show');
+            if (correct >= 7) { resultDiv.classList.add('passed'); document.getElementById('resultIcon').textContent = '🎉'; document.getElementById('resultTitle').textContent = 'Congratulations!'; document.getElementById('resultMessage').textContent = `You got ${correct}/${total} correct! You've mastered Flash Arbitrage Loan Pools!`; document.getElementById('nextCourseContainer').innerHTML = `<p style="margin-top: 15px; color: var(--primary);">🎓 +250 KENO!</p><a href="/courses/course-20-generational.html" class="next-course-btn">Course 20: Wealth Building →</a>`; localStorage.setItem('course19_completed', 'true');
+            } else { resultDiv.classList.add('failed'); document.getElementById('resultIcon').textContent = '📚'; document.getElementById('resultTitle').textContent = 'Keep Learning!'; document.getElementById('resultMessage').textContent = `${correct}/${total} correct. You need 7 to pass. Review the material and try again!`; document.getElementById('nextCourseContainer').innerHTML = `<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>`; }
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        function resetQuiz() { document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect')); document.getElementById('quizResult').classList.remove('show'); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' }); }
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>

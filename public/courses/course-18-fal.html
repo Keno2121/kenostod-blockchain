@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 18: Flash Arbitrage Loans (FAL) | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root { --primary: #14b8a6; --primary-dark: #0d9488; --gold: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --danger: #ef4444; --purple: #8b5cf6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; }
+        .toc-list { list-style: none; } .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.9em; }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; flex-shrink: 0; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; } .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; } .course-header h1 { font-size: 2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .lesson-section h2 { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; } .lesson-section h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; } .lesson-section h4 { color: var(--purple); margin: 20px 0 10px 0; } .lesson-section p { margin-bottom: 15px; }
+        .objective-list { list-style: none; margin: 20px 0; } .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; } .objective-list li::before { content: "✓"; color: var(--success); font-weight: bold; margin-right: 12px; }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+        .warning-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .warning-box h4 { color: var(--danger); margin-bottom: 10px; }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram .diagram-content { background: rgba(20, 184, 166, 0.1); border: 2px solid var(--primary); border-radius: 12px; padding: 25px; display: inline-block; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 20px; width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .success-box h4 { color: var(--success); margin-bottom: 10px; }
+        .example-box { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; } .example-box h4 { color: var(--purple); margin-bottom: 10px; }
+        .code-block { background: #0d1117; border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Fira Code', monospace; font-size: 0.9em; overflow-x: auto; border: 1px solid #30363d; }
+        .formula { background: var(--bg-dark); border-radius: 8px; padding: 15px 20px; margin: 15px 0; font-family: 'Fira Code', monospace; text-align: center; font-size: 1.1em; color: var(--gold); }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .comparison-table th, .comparison-table td { padding: 15px; text-align: left; border: 1px solid rgba(255,255,255,0.1); }
+        .comparison-table th { background: var(--bg-dark); color: var(--primary); }
+        .comparison-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .tier-card { background: var(--bg-dark); border-radius: 12px; padding: 20px; margin: 10px 0; border-left: 4px solid var(--gold); }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .quiz-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .quiz-question { background: var(--bg-dark); border-radius: 12px; padding: 25px; margin-bottom: 20px; } .quiz-question h4 { margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); } .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); } .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; } .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); } .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">📚 Course Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('what-is-fal')"><span class="toc-number">2</span>What is a Flash Loan?</li>
+                <li class="toc-item" onclick="scrollToSection('arbitrage')"><span class="toc-number">3</span>Understanding Arbitrage</li>
+                <li class="toc-item" onclick="scrollToSection('mechanics')"><span class="toc-number">4</span>FAL Mechanics</li>
+                <li class="toc-item" onclick="scrollToSection('execution')"><span class="toc-number">5</span>Execution Flow</li>
+                <li class="toc-item" onclick="scrollToSection('reputation')"><span class="toc-number">6</span>Reputation & Tiers</li>
+                <li class="toc-item" onclick="scrollToSection('risk')"><span class="toc-number">7</span>Risk Management</li>
+                <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">8</span>Case Studies</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">9</span>Hands-On Practice</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">10</span>Knowledge Check</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 18</div>
+            
+            <div class="course-header">
+                <h1>⚡ Course 18: Flash Arbitrage Loans (FAL) <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>📖 8 Lessons</span>
+                    <span>⏱️ ~55 minutes</span>
+                    <span>🎯 Advanced Level</span>
+                    <span>🏆 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <section id="objectives" class="lesson-section">
+                <h2>🎯 Learning Objectives</h2>
+                <p>Flash Arbitrage Loans (FAL) are Kenostod's proprietary technology for generating passive income through automated price difference detection. By the end of this course, you will be able to:</p>
+                <ul class="objective-list">
+                    <li>Understand what flash loans are and how they differ from traditional loans</li>
+                    <li>Identify arbitrage opportunities across cryptocurrency exchanges</li>
+                    <li>Execute FAL trades using the Kenostod platform</li>
+                    <li>Build your reputation tier to access larger loan limits</li>
+                    <li>Calculate potential profits and manage risk exposure</li>
+                    <li>Understand the Arbitrage Incentive Protocol (AIP) rewards system</li>
+                </ul>
+            </section>
+            
+            <section id="what-is-fal" class="lesson-section">
+                <h2>💡 What is a Flash Loan?</h2>
+                <p>A flash loan is a revolutionary DeFi (Decentralized Finance) innovation that allows you to borrow large amounts of cryptocurrency <strong>without any collateral</strong> — as long as you repay it within the same transaction block.</p>
+                
+                <h3>Traditional Loan vs Flash Loan</h3>
+                <table class="comparison-table">
+                    <tr>
+                        <th>Feature</th>
+                        <th>Traditional Loan</th>
+                        <th>Flash Loan</th>
+                    </tr>
+                    <tr>
+                        <td>Collateral Required</td>
+                        <td>Yes (often 150%+)</td>
+                        <td>None</td>
+                    </tr>
+                    <tr>
+                        <td>Credit Check</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>Loan Duration</td>
+                        <td>Days to years</td>
+                        <td>Single transaction (~12 seconds)</td>
+                    </tr>
+                    <tr>
+                        <td>Interest Rate</td>
+                        <td>5-25% annually</td>
+                        <td>0.09% per transaction</td>
+                    </tr>
+                    <tr>
+                        <td>Risk if Unpaid</td>
+                        <td>Debt collection, credit damage</td>
+                        <td>Transaction reverts (no debt)</td>
+                    </tr>
+                </table>
+                
+                <div class="concept-box">
+                    <h4>💡 The Magic of Atomic Transactions</h4>
+                    <p>Flash loans are possible because of <strong>atomic transactions</strong>. In blockchain, a transaction either succeeds completely or fails completely — there's no in-between. If you can't repay the loan by the end of the transaction, the entire transaction (including the borrow) is reversed as if it never happened. This is why no collateral is needed — the lender has zero risk.</p>
+                </div>
+                
+                <h3>How Flash Loans Work</h3>
+                <div class="visual-diagram">
+                    <div class="diagram-content">
+                        <p style="margin: 0; font-size: 1.1em;">
+                            <strong>1.</strong> Borrow 10,000 KENO →<br>
+                            <strong>2.</strong> Buy ETH on Exchange A (cheaper) →<br>
+                            <strong>3.</strong> Sell ETH on Exchange B (higher price) →<br>
+                            <strong>4.</strong> Repay 10,009 KENO (loan + 0.09% fee) →<br>
+                            <strong>5.</strong> Keep the profit! ✓
+                        </p>
+                    </div>
+                    <p class="caption">Figure: Complete flash loan lifecycle in a single transaction</p>
+                </div>
+                
+                <h3>Why Flash Loans Are Revolutionary</h3>
+                <p>Before flash loans, arbitrage was only available to wealthy traders who could deploy large amounts of capital instantly. Flash loans democratize this opportunity — anyone can access the same amount of capital as a hedge fund, leveling the playing field.</p>
+            </section>
+            
+            <section id="arbitrage" class="lesson-section">
+                <h2>📊 Understanding Arbitrage</h2>
+                <p>Arbitrage is the practice of profiting from price differences of the same asset across different markets. It's one of the oldest and most reliable trading strategies in finance.</p>
+                
+                <h3>Why Do Price Differences Exist?</h3>
+                <ul class="step-list">
+                    <li><strong>Different Liquidity:</strong> Some exchanges have more buyers/sellers than others, affecting price</li>
+                    <li><strong>Regional Demand:</strong> Crypto demand varies by country and timezone</li>
+                    <li><strong>Transaction Speed:</strong> Prices take time to sync across platforms</li>
+                    <li><strong>Exchange Fees:</strong> Different fee structures create price variations</li>
+                </ul>
+                
+                <h3>Types of Arbitrage</h3>
+                
+                <h4>1. Spatial Arbitrage (Cross-Exchange)</h4>
+                <p>The most common type — buying on one exchange and selling on another.</p>
+                <div class="example-box">
+                    <h4>📈 Example: Spatial Arbitrage</h4>
+                    <p>KENO is trading at $0.98 on Binance and $1.02 on KuCoin</p>
+                    <p>Spread: $0.04 (4.08% difference)</p>
+                    <p>With a 10,000 KENO flash loan: <strong>Potential profit = $400</strong> (minus fees)</p>
+                </div>
+                
+                <h4>2. Triangular Arbitrage</h4>
+                <p>Exploiting price inconsistencies between three different trading pairs on the same exchange.</p>
+                <div class="example-box">
+                    <h4>📈 Example: Triangular Arbitrage</h4>
+                    <p><strong>Path:</strong> KENO → BTC → ETH → KENO</p>
+                    <p>If the circular path returns more KENO than you started with, you've found an opportunity.</p>
+                    <p>Start: 1,000 KENO → Buy BTC → Buy ETH → Sell for KENO = 1,015 KENO</p>
+                    <p><strong>Profit: 15 KENO</strong></p>
+                </div>
+                
+                <h4>3. Statistical Arbitrage</h4>
+                <p>Using algorithms to detect temporary price deviations from historical patterns.</p>
+                
+                <div class="concept-box">
+                    <h4>💡 The Efficiency Principle</h4>
+                    <p>Arbitrage opportunities are usually small (0.1-2%) and disappear quickly. The more traders exploit them, the faster markets become efficient. This is why speed and automation are crucial — and why Kenostod's FAL system is so valuable.</p>
+                </div>
+            </section>
+            
+            <section id="mechanics" class="lesson-section">
+                <h2>⚙️ FAL Mechanics in Kenostod</h2>
+                <p>Kenostod's Flash Arbitrage Loan system combines flash loan technology with automated arbitrage detection. Here's exactly how it works:</p>
+                
+                <h3>The FAL Smart Contract</h3>
+                <p>When you initiate a FAL, the following happens in a single atomic transaction:</p>
+                
+                <div class="code-block">
+<pre style="color: #c9d1d9; margin: 0;">
+function executeFlashArbitrage(amount, path) {
+    // 1. Borrow KENO from liquidity pool
+    uint256 borrowed = flashLoan(amount);
+    
+    // 2. Execute arbitrage trades along path
+    uint256 received = executeTrades(borrowed, path);
+    
+    // 3. Calculate fee (0.09%)
+    uint256 fee = (borrowed * 9) / 10000;
+    
+    // 4. Repay loan + fee
+    require(received >= borrowed + fee, "Insufficient profit");
+    repay(borrowed + fee);
+    
+    // 5. Profit goes to trader
+    transfer(msg.sender, received - borrowed - fee);
+}
+</pre>
+                </div>
+                
+                <h3>Fee Structure</h3>
+                <div class="formula">
+                    Total Repayment = Borrowed Amount × 1.0009
+                </div>
+                <p>The 0.09% fee is split between:</p>
+                <ul>
+                    <li><strong>0.05%</strong> → Liquidity providers (FALP participants)</li>
+                    <li><strong>0.03%</strong> → Platform development fund</li>
+                    <li><strong>0.01%</strong> → Scholarship fund for new students</li>
+                </ul>
+                
+                <h3>Profit Calculation</h3>
+                <div class="formula">
+                    Net Profit = (Sell Price - Buy Price) × Quantity - Flash Fee - Gas Fees
+                </div>
+                
+                <div class="example-box">
+                    <h4>📈 Complete Profit Example</h4>
+                    <p><strong>Setup:</strong> Borrow 5,000 KENO for arbitrage</p>
+                    <p><strong>Buy:</strong> 5,000 KENO at $0.99 on Exchange A = $4,950 value</p>
+                    <p><strong>Sell:</strong> 5,000 KENO at $1.01 on Exchange B = $5,050 value</p>
+                    <p><strong>Gross Profit:</strong> $100</p>
+                    <p><strong>Flash Fee (0.09%):</strong> -$4.50</p>
+                    <p><strong>Gas Fees:</strong> -$2.00</p>
+                    <p><strong>Net Profit:</strong> $93.50</p>
+                </div>
+            </section>
+            
+            <section id="execution" class="lesson-section">
+                <h2>🚀 FAL Execution Flow</h2>
+                <p>Here's the step-by-step process for executing a Flash Arbitrage Loan on Kenostod:</p>
+                
+                <ul class="step-list">
+                    <li>
+                        <strong>Connect Your Wallet</strong><br>
+                        Link your MetaMask or compatible Web3 wallet to the Kenostod platform. Ensure you have some BNB for gas fees (typically $2-5 per transaction).
+                    </li>
+                    <li>
+                        <strong>Check Your Reputation Tier</strong><br>
+                        Your tier determines your maximum loan amount. New users start at Bronze tier with 1,500 KENO max. Complete successful trades to unlock higher limits.
+                    </li>
+                    <li>
+                        <strong>Scan for Opportunities</strong><br>
+                        Use the Arbitrage Intelligence Dashboard to view real-time price differences across exchanges. The system highlights opportunities with spread > 0.5%.
+                    </li>
+                    <li>
+                        <strong>Validate the Opportunity</strong><br>
+                        Before executing, verify: (a) Sufficient liquidity on both exchanges, (b) Transaction can complete before price changes, (c) Profit exceeds all fees.
+                    </li>
+                    <li>
+                        <strong>Set Parameters</strong><br>
+                        Enter: loan amount, source exchange, target exchange, slippage tolerance (recommended 0.5-1%).
+                    </li>
+                    <li>
+                        <strong>Execute the Trade</strong><br>
+                        Click "Execute FAL" — the smart contract handles everything atomically. Either you profit, or nothing happens (no loss possible except gas fees).
+                    </li>
+                    <li>
+                        <strong>Confirm and Record</strong><br>
+                        Review transaction on BscScan. Your profit is automatically credited, reputation score increases, and trade is logged in your history.
+                    </li>
+                </ul>
+                
+                <div class="warning-box">
+                    <h4>⚠️ Critical: Failed Transactions</h4>
+                    <p>If the arbitrage opportunity disappears mid-transaction (another trader took it, price moved, etc.), your transaction will revert. You won't lose the loan amount, but you <strong>will lose the gas fee</strong> (~$2-5). This is the only risk in flash arbitrage.</p>
+                </div>
+            </section>
+            
+            <section id="reputation" class="lesson-section">
+                <h2>🏆 Reputation System & Tiers</h2>
+                <p>Kenostod uses a reputation-based tier system to reward consistent, successful traders with higher loan limits.</p>
+                
+                <h3>Tier Structure</h3>
+                
+                <div class="tier-card" style="border-color: #cd7f32;">
+                    <h4 style="color: #cd7f32;">🥉 Bronze Tier</h4>
+                    <p><strong>Requirements:</strong> 10 successful trades</p>
+                    <p><strong>Max Loan:</strong> 1,500 KENO</p>
+                    <p><strong>Fee Discount:</strong> None</p>
+                </div>
+                
+                <div class="tier-card" style="border-color: #c0c0c0;">
+                    <h4 style="color: #c0c0c0;">🥈 Silver Tier</h4>
+                    <p><strong>Requirements:</strong> 50 successful trades</p>
+                    <p><strong>Max Loan:</strong> 2,000 KENO</p>
+                    <p><strong>Fee Discount:</strong> 5%</p>
+                </div>
+                
+                <div class="tier-card" style="border-color: #ffd700;">
+                    <h4 style="color: #ffd700;">🥇 Gold Tier</h4>
+                    <p><strong>Requirements:</strong> 200 successful trades</p>
+                    <p><strong>Max Loan:</strong> 3,000 KENO</p>
+                    <p><strong>Fee Discount:</strong> 10%</p>
+                </div>
+                
+                <div class="tier-card" style="border-color: #e5e4e2;">
+                    <h4 style="color: #e5e4e2;">💎 Platinum Tier</h4>
+                    <p><strong>Requirements:</strong> 500 successful trades</p>
+                    <p><strong>Max Loan:</strong> 5,000 KENO</p>
+                    <p><strong>Fee Discount:</strong> 15%</p>
+                </div>
+                
+                <div class="tier-card" style="border-color: #b9f2ff;">
+                    <h4 style="color: #b9f2ff;">💠 Diamond Tier</h4>
+                    <p><strong>Requirements:</strong> 1,000 successful trades</p>
+                    <p><strong>Max Loan:</strong> 10,000 KENO</p>
+                    <p><strong>Fee Discount:</strong> 20%</p>
+                </div>
+                
+                <h3>Arbitrage Incentive Protocol (AIP)</h3>
+                <p>Beyond profits, successful FAL trades earn AIP rewards:</p>
+                <ul>
+                    <li><strong>Trade Completion Bonus:</strong> 0.5 KENO per successful trade</li>
+                    <li><strong>Volume Bonus:</strong> Extra rewards for high-volume trading days</li>
+                    <li><strong>Streak Bonus:</strong> 10% bonus for 7+ consecutive profitable days</li>
+                    <li><strong>Competition Prizes:</strong> Weekly leaderboard with KENO prizes</li>
+                </ul>
+            </section>
+            
+            <section id="risk" class="lesson-section">
+                <h2>⚠️ Risk Management</h2>
+                <p>While flash loans eliminate loan default risk, other risks exist that you must understand and manage.</p>
+                
+                <h3>Risk Categories</h3>
+                
+                <h4>1. Slippage Risk</h4>
+                <p>Price may move between when you see the opportunity and when your transaction executes. Large trades on low-liquidity exchanges are especially vulnerable.</p>
+                <div class="success-box">
+                    <h4>✅ Mitigation</h4>
+                    <p>Set appropriate slippage tolerance (0.5-1%), avoid trades on low-liquidity pairs, use smaller position sizes.</p>
+                </div>
+                
+                <h4>2. Front-Running Risk</h4>
+                <p>Other traders or bots may see your pending transaction and execute the same trade before you, taking the profit.</p>
+                <div class="success-box">
+                    <h4>✅ Mitigation</h4>
+                    <p>Use private transaction pools when available, execute during lower-activity periods, work with less obvious opportunities.</p>
+                </div>
+                
+                <h4>3. Gas Fee Risk</h4>
+                <p>Failed transactions still cost gas. During high network congestion, gas fees spike significantly.</p>
+                <div class="success-box">
+                    <h4>✅ Mitigation</h4>
+                    <p>Monitor gas prices before trading, avoid peak congestion times, only pursue opportunities with profit margins > 5x expected gas costs.</p>
+                </div>
+                
+                <h4>4. Smart Contract Risk</h4>
+                <p>Bugs in DEX or bridge smart contracts could result in loss of funds.</p>
+                <div class="success-box">
+                    <h4>✅ Mitigation</h4>
+                    <p>Only use audited, established protocols. Kenostod's contracts are audited and open-source.</p>
+                </div>
+                
+                <h3>The Golden Rule</h3>
+                <div class="concept-box">
+                    <h4>💡 Only Risk What You Can Afford to Lose</h4>
+                    <p>For FAL trading, this means gas fees. Never trade with your last $10 of BNB for gas. Keep a reserve for multiple attempts. Budget approximately $20-50 for learning and initial trades.</p>
+                </div>
+            </section>
+            
+            <section id="case-studies" class="lesson-section">
+                <h2>📚 Case Studies</h2>
+                
+                <h3>Case Study 1: Successful Cross-Exchange Arbitrage</h3>
+                <div class="example-box">
+                    <h4>📈 Scenario</h4>
+                    <p><strong>Trader:</strong> Gold Tier member with 3,000 KENO limit</p>
+                    <p><strong>Opportunity:</strong> KENO/USDT spread of 1.8% between PancakeSwap and MEXC</p>
+                    <p><strong>Loan Amount:</strong> 3,000 KENO</p>
+                    <p><strong>Execution:</strong></p>
+                    <ul>
+                        <li>Borrowed 3,000 KENO</li>
+                        <li>Sold on MEXC at $1.018</li>
+                        <li>Bought back on PancakeSwap at $1.00</li>
+                        <li>Repaid 3,002.7 KENO (loan + fee)</li>
+                    </ul>
+                    <p><strong>Net Profit:</strong> $51.30 in 12 seconds</p>
+                </div>
+                
+                <h3>Case Study 2: Failed Trade (Learning Experience)</h3>
+                <div class="warning-box">
+                    <h4>⚠️ Scenario</h4>
+                    <p><strong>Trader:</strong> Silver Tier member</p>
+                    <p><strong>Opportunity:</strong> 0.8% spread that looked promising</p>
+                    <p><strong>What Happened:</strong> Another trader front-ran the opportunity. Transaction reverted.</p>
+                    <p><strong>Loss:</strong> $3.50 gas fee only</p>
+                    <p><strong>Lesson:</strong> Small spreads are more competitive. Focus on opportunities > 1.5%.</p>
+                </div>
+                
+                <h3>Case Study 3: Triangular Arbitrage Success</h3>
+                <div class="example-box">
+                    <h4>📈 Scenario</h4>
+                    <p><strong>Path:</strong> KENO → BNB → ETH → KENO on PancakeSwap</p>
+                    <p><strong>Starting Amount:</strong> 2,000 KENO</p>
+                    <p><strong>Ending Amount:</strong> 2,034 KENO</p>
+                    <p><strong>Gross Profit:</strong> 34 KENO ($34)</p>
+                    <p><strong>Flash Fee:</strong> -1.8 KENO</p>
+                    <p><strong>Gas:</strong> -$2.20</p>
+                    <p><strong>Net Profit:</strong> $29.80</p>
+                </div>
+            </section>
+            
+            <section id="practice" class="lesson-section">
+                <h2>🛠️ Hands-On Practice</h2>
+                <p>Now it's time to apply what you've learned. Complete these exercises:</p>
+                
+                <ul class="step-list">
+                    <li>
+                        <strong>Visit the Arbitrage Dashboard</strong><br>
+                        Navigate to the arbitrage section and study real-time price data from multiple exchanges. Identify at least 3 potential opportunities (don't execute yet).
+                    </li>
+                    <li>
+                        <strong>Calculate Profitability</strong><br>
+                        For each opportunity found, calculate: (a) Gross profit potential, (b) Flash fee, (c) Estimated gas, (d) Net profit. Which is most attractive?
+                    </li>
+                    <li>
+                        <strong>Paper Trade First</strong><br>
+                        Use the "Simulate" feature to practice FAL execution without real money. Complete 5 simulated trades successfully.
+                    </li>
+                    <li>
+                        <strong>Execute Your First Real FAL</strong><br>
+                        When ready, start with the minimum loan amount. Focus on success, not profit size. Build your reputation.
+                    </li>
+                </ul>
+                
+                <a href="/arbitrage.html" class="practice-btn">🚀 Open Arbitrage Dashboard</a>
+            </section>
+            
+            <section id="quiz" class="quiz-section">
+                <h2>📝 Knowledge Check</h2>
+                <p>Answer these questions to earn your 250 KENO reward. You need 7/10 correct to pass.</p>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>1. What makes flash loans possible?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Banks guarantee the loan</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Atomic transactions that revert if unpaid</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Government insurance</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Collateral from other users</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>2. What is the FAL fee in Kenostod?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">1%</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">0.5%</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">0.09%</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Free</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>3. What type of arbitrage exploits price differences between exchanges?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Spatial (Cross-Exchange) Arbitrage</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Temporal Arbitrage</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Interest Rate Arbitrage</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Currency Arbitrage</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>4. What is the maximum loan for Diamond tier?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">3,000 KENO</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">5,000 KENO</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">7,500 KENO</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">10,000 KENO</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>5. What is the ONLY thing you can lose in a failed flash loan?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">The borrowed amount</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Gas fees</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Your wallet contents</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Your reputation score</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>6. What does AIP stand for?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Automated Investment Protocol</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Annual Interest Percentage</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Arbitrage Incentive Protocol</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Asset Integration Platform</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="a">
+                    <h4>7. How many successful trades are needed for Gold tier?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">200</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">100</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">500</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">50</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="b">
+                    <h4>8. What is front-running?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Being first in line at an exchange</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Others executing your trade before you</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Running the first node on a network</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">The first transaction in a block</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="d">
+                    <h4>9. What is triangular arbitrage?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Trading in three countries</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Using three wallets</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Trading for three days</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Exploiting price differences between three trading pairs</div>
+                    </div>
+                </div>
+                
+                <div class="quiz-question" data-answer="c">
+                    <h4>10. What percentage of the flash fee goes to liquidity providers?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">0.01%</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">0.03%</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">0.05%</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">0.09%</div>
+                    </div>
+                </div>
+                
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result"><h3 id="resultIcon"></h3><h3 id="resultTitle"></h3><p id="resultMessage"></p><div id="nextCourseContainer"></div></div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2025</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-17-finance.html" style="color: var(--primary);">← Course 17: Financial Literacy</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-19-falp.html" style="color: var(--primary);">Course 19: FALP →</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) { const section = document.getElementById(sectionId); if (section) { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active')); event.target.closest('.toc-item').classList.add('active'); } }
+        function selectOption(optionElement) { const question = optionElement.closest('.quiz-question'); question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected')); optionElement.classList.add('selected'); }
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question'); let correct = 0; let total = questions.length;
+            questions.forEach(question => { const correctAnswer = question.dataset.answer; const selectedOption = question.querySelector('.quiz-option.selected'); question.querySelectorAll('.quiz-option').forEach(opt => { opt.classList.remove('correct', 'incorrect'); if (opt.dataset.value === correctAnswer) opt.classList.add('correct'); }); if (selectedOption) { if (selectedOption.dataset.value === correctAnswer) correct++; else selectedOption.classList.add('incorrect'); } });
+            const resultDiv = document.getElementById('quizResult'); resultDiv.classList.remove('passed', 'failed'); resultDiv.classList.add('show');
+            if (correct >= 7) { resultDiv.classList.add('passed'); document.getElementById('resultIcon').textContent = '🎉'; document.getElementById('resultTitle').textContent = 'Congratulations!'; document.getElementById('resultMessage').textContent = `You got ${correct}/${total} correct! You've mastered Flash Arbitrage Loans!`; document.getElementById('nextCourseContainer').innerHTML = `<p style="margin-top: 15px; color: var(--primary);">🎓 +250 KENO!</p><a href="/courses/course-19-falp.html" class="next-course-btn">Course 19: FALP →</a>`; localStorage.setItem('course18_completed', 'true');
+            } else { resultDiv.classList.add('failed'); document.getElementById('resultIcon').textContent = '📚'; document.getElementById('resultTitle').textContent = 'Keep Learning!'; document.getElementById('resultMessage').textContent = `${correct}/${total} correct. You need 7 to pass. Review the material and try again!`; document.getElementById('nextCourseContainer').innerHTML = `<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>`; }
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        function resetQuiz() { document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect')); document.getElementById('quizResult').classList.remove('show'); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' }); }
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>
