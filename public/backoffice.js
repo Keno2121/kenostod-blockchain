@@ -1589,17 +1589,17 @@ const courses = {
 
     17: {
         icon: '💰',
-        title: 'Course 17: Personal Finance Foundations',
-        duration: '5 hours',
-        modules: 6,
+        title: 'Course 17: Financial Literacy & Investment Foundations',
+        duration: '6 hours',
+        modules: 7,
         level: 'Beginner',
-        overview: 'Master the fundamentals of personal finance and money management. Learn budgeting, emergency funds, debt management, credit scores, and financial goal setting. Build the foundation for lifelong financial success and break the cycle of poverty.',
+        overview: 'Master personal finance AND investment fundamentals in one comprehensive course. Learn budgeting (50/30/20 rule), emergency funds, debt management strategies (avalanche vs snowball), compound growth with Rule of 72, dollar cost averaging, and portfolio diversification.',
         objectives: [
-            'Create and maintain effective budgets',
-            'Build emergency savings funds',
-            'Understand and improve credit scores',
-            'Develop debt elimination strategies',
-            'Set achievable financial goals'
+            'Create and maintain effective budgets using the 50/30/20 rule',
+            'Build emergency savings funds (3-6 months expenses)',
+            'Develop debt elimination strategies (avalanche vs snowball)',
+            'Master compound interest and the Rule of 72',
+            'Implement dollar-cost averaging for consistent investing'
         ],
         modules_content: [
             {
@@ -1617,49 +1617,53 @@ const courses = {
                     '50/30/20 rule (needs, wants, savings)',
                     'Zero-based budgeting',
                     'Tracking income and expenses',
-                    'Budget apps and tools',
-                    'Adjusting budgets over time'
+                    'Budget apps and tools'
                 ]
             },
             {
-                title: 'Emergency Funds',
+                title: 'Emergency Funds & Debt Management',
                 lessons: [
                     'Why you need 3-6 months expenses saved',
-                    'How to build emergency fund from $0',
-                    'Where to keep emergency money',
-                    'When to use emergency funds',
-                    'Rebuilding after emergencies'
-                ]
-            },
-            {
-                title: 'Debt Management',
-                lessons: [
                     'Good debt vs. bad debt',
                     'Debt avalanche vs. debt snowball methods',
-                    'Credit card interest calculations',
-                    'Negotiating with creditors',
-                    'Avoiding predatory loans (payday, title loans)'
+                    'Avoiding predatory loans'
                 ]
             },
             {
-                title: 'Credit Scores & Reports',
+                title: 'Compound Interest: The 8th Wonder',
                 lessons: [
-                    'How credit scores are calculated',
-                    'FICO score ranges and what they mean',
-                    'How to check credit reports for free',
-                    'Disputing credit report errors',
-                    'Building credit from scratch',
-                    'Impact of credit on life (housing, jobs, insurance)'
+                    'Simple vs. compound interest',
+                    'The Rule of 72 (doubling time)',
+                    'Real calculation: $100/month for 30 years at 8% = $150,000',
+                    'Why starting early matters (time > amount)'
                 ]
             },
             {
-                title: 'Financial Goal Setting',
+                title: 'Investment Vehicles',
                 lessons: [
-                    'Short-term vs. long-term goals',
-                    'SMART goals framework',
-                    'Creating financial roadmaps',
-                    'Tracking progress',
-                    'Celebrating milestones'
+                    'Stocks: ownership in companies',
+                    'Bonds: lending to governments/corporations',
+                    'Index funds: diversification made easy',
+                    'Cryptocurrency: digital assets',
+                    'Risk vs. return spectrum'
+                ]
+            },
+            {
+                title: 'Dollar-Cost Averaging (DCA)',
+                lessons: [
+                    'Investing fixed amounts regularly',
+                    'Why DCA beats market timing',
+                    'Automatic investment plans',
+                    'Psychological benefits of consistency'
+                ]
+            },
+            {
+                title: 'Portfolio Diversification',
+                lessons: [
+                    '"Don\'t put all eggs in one basket"',
+                    'Asset allocation by age',
+                    'Rebalancing strategies',
+                    'Risk tolerance assessment'
                 ]
             }
         ],
@@ -1675,128 +1679,14 @@ const courses = {
                 correct: 'B) 50% needs, 30% wants, 20% savings/debt'
             },
             {
-                question: 'How much should you save in an emergency fund?',
+                question: 'Using the Rule of 72, how long does it take to double money at 8% annual return?',
                 options: [
-                    'A) $100',
-                    'B) 1 month of expenses',
-                    'C) 3-6 months of expenses',
-                    'D) $1 million'
+                    'A) 4 years',
+                    'B) 9 years (72 ÷ 8 = 9)',
+                    'C) 12 years',
+                    'D) 20 years'
                 ],
-                correct: 'C) 3-6 months of expenses'
-            },
-            {
-                question: 'What is the debt snowball method?',
-                options: [
-                    'A) Ignoring debt',
-                    'B) Paying smallest debts first for psychological wins',
-                    'C) Taking on more debt',
-                    'D) Paying random amounts'
-                ],
-                correct: 'B) Paying smallest debts first for psychological wins'
-            }
-        ],
-        skills: ['Budgeting', 'Debt Management', 'Credit Scores', 'Emergency Planning', 'Financial Goal Setting'],
-        real_world: 'Essential life skills for everyone. Critical for students from low-income backgrounds to understand money, avoid financial mistakes, and start building wealth.',
-        hands_on: 'Students create personal budgets, calculate emergency fund goals, analyze their debt, and design 1-year financial plans.',
-        wealth_builder_reward: '250 KENO upon completion + progress toward Bronze RVT NFT'
-    },
-
-    18: {
-        icon: '📈',
-        title: 'Course 18: Investment Strategies & Compound Growth',
-        duration: '6 hours',
-        modules: 7,
-        level: 'Intermediate',
-        overview: 'Understand investing fundamentals and the power of compound interest. Learn about stocks, bonds, index funds, cryptocurrency, and dollar-cost averaging. Discover how small, consistent investments can grow into life-changing wealth over time.',
-        objectives: [
-            'Understand investment vehicles (stocks, bonds, crypto)',
-            'Master compound interest mathematics',
-            'Implement dollar-cost averaging strategies',
-            'Build diversified portfolios',
-            'Calculate long-term wealth projections'
-        ],
-        modules_content: [
-            {
-                title: 'Why Invest?',
-                lessons: [
-                    'Inflation erodes savings (3% annual)',
-                    'Working for money vs. money working for you',
-                    'The millionaire next door: how average people build wealth',
-                    'Starting with $100/month: real examples'
-                ]
-            },
-            {
-                title: 'Compound Interest: The 8th Wonder',
-                lessons: [
-                    'Simple vs. compound interest',
-                    'The Rule of 72 (doubling time)',
-                    'Real calculation: $100/month for 30 years at 8% = $150,000',
-                    'Why starting early matters (time > amount)',
-                    'Interactive compound interest calculator'
-                ]
-            },
-            {
-                title: 'Investment Vehicles',
-                lessons: [
-                    'Stocks: ownership in companies',
-                    'Bonds: lending to governments/corporations',
-                    'Index funds: diversification made easy',
-                    'Real estate investment trusts (REITs)',
-                    'Cryptocurrency: digital assets',
-                    'Risk vs. return spectrum'
-                ]
-            },
-            {
-                title: 'Stock Market Basics',
-                lessons: [
-                    'How the stock market works',
-                    'Individual stocks vs. index funds',
-                    'S&P 500: 500 largest US companies',
-                    'Historical returns: ~10% annually long-term',
-                    'Market volatility and staying calm'
-                ]
-            },
-            {
-                title: 'Dollar-Cost Averaging (DCA)',
-                lessons: [
-                    'Investing fixed amounts regularly',
-                    'Why DCA beats market timing',
-                    'Automatic investment plans',
-                    'Buying more when prices are low',
-                    'Psychological benefits of consistency'
-                ]
-            },
-            {
-                title: 'Portfolio Diversification',
-                lessons: [
-                    '"Don\'t put all eggs in one basket"',
-                    'Asset allocation by age',
-                    'Rebalancing strategies',
-                    'International diversification',
-                    'Risk tolerance assessment'
-                ]
-            },
-            {
-                title: 'Cryptocurrency Investing',
-                lessons: [
-                    'Bitcoin and Ethereum fundamentals',
-                    'Crypto volatility management',
-                    'Percentage allocation recommendations (5-10% of portfolio)',
-                    'KENO as long-term hold',
-                    'Crypto vs. traditional assets'
-                ]
-            }
-        ],
-        quiz: [
-            {
-                question: 'If you invest $100/month for 30 years at 8% annual return, approximately how much will you have?',
-                options: [
-                    'A) $36,000',
-                    'B) $72,000',
-                    'C) $150,000',
-                    'D) $500,000'
-                ],
-                correct: 'C) $150,000'
+                correct: 'B) 9 years (72 ÷ 8 = 9)'
             },
             {
                 question: 'What is dollar-cost averaging?',
@@ -1807,278 +1697,394 @@ const courses = {
                     'D) Averaging your expenses'
                 ],
                 correct: 'B) Investing a fixed amount regularly regardless of price'
-            },
-            {
-                question: 'What is an index fund?',
-                options: [
-                    'A) A single company stock',
-                    'B) A fund that owns shares of many companies (e.g., S&P 500)',
-                    'C) A type of bond',
-                    'D) A savings account'
-                ],
-                correct: 'B) A fund that owns shares of many companies (e.g., S&P 500)'
             }
         ],
-        skills: ['Investment Strategies', 'Compound Interest', 'Portfolio Management', 'Dollar-Cost Averaging', 'Asset Allocation'],
-        real_world: 'Transform earned income into passive wealth. $100/month invested consistently = financial independence. Warren Buffett built $100B+ fortune using these principles.',
-        hands_on: 'Students use compound interest calculators, design 30-year investment plans, allocate sample portfolios, and calculate retirement projections.',
+        skills: ['Budgeting', 'Debt Management', 'Compound Growth', 'Dollar-Cost Averaging', 'Diversification'],
+        real_world: 'Essential life skills for everyone. Build the complete foundation for lifelong financial success: from budgeting your first paycheck to building a diversified investment portfolio.',
+        hands_on: 'Students create personal budgets, calculate compound growth projections, design 30-year investment plans, and build diversified portfolio allocations.',
+        wealth_builder_reward: '250 KENO upon completion + progress toward Bronze RVT NFT'
+    },
+
+    18: {
+        icon: '⚡',
+        title: 'Course 18: Flash Arbitrage Loans (FAL)',
+        duration: '6 hours',
+        modules: 8,
+        level: 'Intermediate',
+        overview: 'Master Kenostod\'s revolutionary Flash Arbitrage Loan system. Understand arbitrage mechanics, execute flash loans across exchanges, build reputation tiers (Bronze to Diamond), calculate profit margins, and manage risk. Real case studies with actual profit calculations.',
+        objectives: [
+            'Understand arbitrage fundamentals and price discrepancies',
+            'Master Flash Arbitrage Loan mechanics and execution',
+            'Build reputation through successful trades (Bronze→Diamond)',
+            'Calculate profit margins and break-even points',
+            'Implement risk management strategies'
+        ],
+        modules_content: [
+            {
+                title: 'Arbitrage Fundamentals',
+                lessons: [
+                    'What is arbitrage? Price differences across markets',
+                    'Why price discrepancies exist (liquidity, speed, fees)',
+                    'Traditional arbitrage vs. crypto arbitrage',
+                    'Cross-exchange opportunities in real-time'
+                ]
+            },
+            {
+                title: 'Flash Loans Explained',
+                lessons: [
+                    'What are flash loans? Borrow and repay in same transaction',
+                    'Zero collateral requirement - how it works',
+                    'Why flash loans exist (atomic transactions)',
+                    'Kenostod FAL vs. DeFi flash loans'
+                ]
+            },
+            {
+                title: 'FAL Mechanics & Execution',
+                lessons: [
+                    'Requesting a Flash Arbitrage Loan',
+                    'Loan limits based on reputation tier',
+                    'Execution window and repayment requirements',
+                    'Platform fees and profit distribution'
+                ]
+            },
+            {
+                title: 'Reputation Tiers & Loan Limits',
+                lessons: [
+                    'Bronze Tier: 10 trades = 1,500 KENO limit',
+                    'Silver Tier: 50 trades = 2,000 KENO limit',
+                    'Gold Tier: 200 trades = 3,000 KENO limit',
+                    'Platinum Tier: 500 trades = 5,000 KENO limit',
+                    'Diamond Tier: 1,000 trades = 10,000 KENO limit'
+                ]
+            },
+            {
+                title: 'Profit Calculation & Break-Even',
+                lessons: [
+                    'Calculating price spread percentage',
+                    'Fee structure: platform fee + gas costs',
+                    'Break-even analysis for each trade',
+                    'Case study: 2% spread on 1,000 KENO trade'
+                ]
+            },
+            {
+                title: 'Risk Management',
+                lessons: [
+                    'Slippage: when prices move during execution',
+                    'Liquidity risks on smaller exchanges',
+                    'Failed transaction handling',
+                    'Position sizing and exposure limits'
+                ]
+            },
+            {
+                title: 'Real Case Studies',
+                lessons: [
+                    'Case Study 1: Binance-Coinbase spread capture',
+                    'Case Study 2: KuCoin arbitrage opportunity',
+                    'Case Study 3: Failed trade analysis - what went wrong',
+                    'Lessons from top FAL traders'
+                ]
+            },
+            {
+                title: 'Advanced FAL Strategies',
+                lessons: [
+                    'Multi-hop arbitrage (A→B→C→A)',
+                    'Timing strategies: when opportunities peak',
+                    'Automation and bot considerations',
+                    'Scaling from Bronze to Diamond'
+                ]
+            }
+        ],
+        quiz: [
+            {
+                question: 'What is a Flash Arbitrage Loan?',
+                options: [
+                    'A) A traditional bank loan',
+                    'B) A loan that must be borrowed and repaid in the same transaction',
+                    'C) A mortgage for buying houses',
+                    'D) A credit card'
+                ],
+                correct: 'B) A loan that must be borrowed and repaid in the same transaction'
+            },
+            {
+                question: 'What is the Diamond Tier loan limit after 1,000 successful trades?',
+                options: [
+                    'A) 1,500 KENO',
+                    'B) 3,000 KENO',
+                    'C) 5,000 KENO',
+                    'D) 10,000 KENO'
+                ],
+                correct: 'D) 10,000 KENO'
+            },
+            {
+                question: 'Why do price differences exist between exchanges?',
+                options: [
+                    'A) Exchanges are broken',
+                    'B) Differences in liquidity, trading volume, and price update speed',
+                    'C) Government regulations',
+                    'D) Price differences don\'t exist'
+                ],
+                correct: 'B) Differences in liquidity, trading volume, and price update speed'
+            }
+        ],
+        skills: ['Flash Loans', 'Arbitrage Trading', 'Risk Management', 'Profit Calculation', 'Reputation Building'],
+        real_world: 'Transform KENO holdings into active income. Learn to spot price differences across exchanges and capture profits in single transactions. Graduates execute real FAL trades earning consistent returns.',
+        hands_on: 'Students analyze real arbitrage opportunities, calculate profit margins, simulate FAL trades, and build trading strategies based on market data.',
         wealth_builder_reward: '250 KENO upon completion + progress toward Silver RVT NFT'
     },
 
     19: {
-        icon: '💎',
-        title: 'Course 19: Wealth Building & Asset Allocation',
-        duration: '6 hours',
-        modules: 7,
-        level: 'Advanced',
-        overview: 'Advanced wealth accumulation strategies. Learn multiple income streams, asset diversification, real estate basics, business ownership, and tax optimization. Understand how the wealthy build and preserve multi-generational fortunes.',
+        icon: '🌊',
+        title: 'Course 19: Flash Arbitrage Loan Pools (FALP)',
+        duration: '5 hours',
+        modules: 8,
+        level: 'Intermediate',
+        overview: 'Master passive income through liquidity pools. Understand pool mechanics, risk tiers (Conservative to Aggressive), lock period bonuses, profit distribution formulas, and pool management. Learn to evaluate pools and maximize yields safely.',
         objectives: [
-            'Create multiple income streams',
-            'Understand real estate investing',
-            'Design wealth-building roadmaps',
-            'Optimize tax strategies',
-            'Build $500K-$2M+ net worth plans'
+            'Understand liquidity pool fundamentals and how they work',
+            'Evaluate pools based on risk tiers and historical performance',
+            'Master lock period bonuses (1.1x to 2.0x multipliers)',
+            'Calculate expected returns and profit distribution',
+            'Manage pool contributions and withdrawals strategically'
         ],
         modules_content: [
             {
-                title: 'The Wealth Equation',
+                title: 'Liquidity Pools Fundamentals',
                 lessons: [
-                    'Income - Expenses + Investments × Time = Wealth',
-                    'Why high income doesn\'t guarantee wealth',
-                    'The spending trap (lifestyle inflation)',
-                    'Net worth calculation and tracking'
+                    'What are liquidity pools?',
+                    'How pools enable flash loans for traders',
+                    'Pool contributors vs. borrowers',
+                    'Why passive income beats active trading for most'
                 ]
             },
             {
-                title: 'Multiple Income Streams',
+                title: 'FALP Pool Mechanics',
                 lessons: [
-                    'Active income (job/business)',
-                    'Passive income (investments, royalties)',
-                    'Portfolio income (dividends, interest)',
-                    'Side hustles and freelancing',
-                    'Building income diversity for security',
-                    'Case study: 7 income streams of millionaires'
+                    'Depositing KENO into pools',
+                    'How your contribution funds arbitrage trades',
+                    'Automatic profit distribution',
+                    'Pool utilization rates and capacity'
                 ]
             },
             {
-                title: 'Real Estate Investing',
+                title: 'Risk Tiers Explained',
                 lessons: [
-                    'Primary residence as asset',
-                    'Rental property basics',
-                    'House hacking (rent out rooms)',
-                    'REITs for passive real estate exposure',
-                    'Real estate appreciation and cash flow',
-                    'Leverage and mortgage strategies'
+                    'Conservative pools: Lower risk, lower returns',
+                    'Balanced pools: Medium risk, medium returns',
+                    'Aggressive pools: Higher risk, higher returns',
+                    'Matching your risk tolerance to pool choice'
                 ]
             },
             {
-                title: 'Business Ownership',
+                title: 'Lock Period Bonuses',
                 lessons: [
-                    'Starting side businesses with low capital',
-                    'Online businesses and digital products',
-                    'Franchise opportunities',
-                    'Equity and business valuation',
-                    'Exit strategies (selling businesses)'
+                    '30-day lock: 1.1x multiplier on profits',
+                    '60-day lock: 1.2x multiplier on profits',
+                    '90-day lock: 1.35x multiplier on profits',
+                    '180-day lock: 1.5x multiplier on profits',
+                    '365-day lock: 2.0x multiplier on profits'
                 ]
             },
             {
-                title: 'Advanced Portfolio Strategies',
+                title: 'Profit Distribution Formula',
                 lessons: [
-                    'Aggressive vs. conservative allocation',
-                    'Alternative investments (commodities, precious metals)',
-                    'Private equity and venture capital',
-                    'Hedge fund strategies simplified',
-                    'Rebalancing for optimal returns'
+                    'Your Share = (Your Contribution ÷ Total Pool) × Profits × Lock Bonus',
+                    'When distributions occur (daily/weekly)',
+                    'Compound earnings by reinvesting',
+                    'Real examples with actual numbers'
                 ]
             },
             {
-                title: 'Tax Optimization',
+                title: 'Pool Evaluation & Selection',
                 lessons: [
-                    '401(k) and IRA retirement accounts',
-                    'Tax-advantaged investing',
-                    'Capital gains vs. ordinary income',
-                    'Tax-loss harvesting',
-                    'Charitable giving strategies',
-                    'Legal tax reduction (not evasion)'
+                    'Historical performance metrics',
+                    'Pool manager reputation',
+                    'Total Value Locked (TVL) analysis',
+                    'Diversifying across multiple pools'
                 ]
             },
             {
-                title: 'Wealth Protection',
+                title: 'Managing Your Pool Position',
                 lessons: [
-                    'Insurance: life, disability, umbrella',
-                    'Asset protection trusts',
-                    'Lawsuit protection strategies',
-                    'Estate planning basics',
-                    'Protecting wealth from market crashes'
+                    'When to increase contributions',
+                    'When to withdraw (after lock period)',
+                    'Rebalancing between pools',
+                    'Tax considerations for pool income'
+                ]
+            },
+            {
+                title: 'Advanced FALP Strategies',
+                lessons: [
+                    'Laddering lock periods for flexibility',
+                    'Combining FAL trading with FALP pooling',
+                    'Creating your own pool (for advanced users)',
+                    'Pool governance and voting rights'
                 ]
             }
         ],
         quiz: [
             {
-                question: 'What are the three main types of income?',
+                question: 'What is the profit multiplier for a 365-day lock period?',
                 options: [
-                    'A) Salary, tips, bonuses',
-                    'B) Active (earned), passive, and portfolio income',
-                    'C) Cash, credit, crypto',
-                    'D) Full-time, part-time, contract'
+                    'A) 1.1x',
+                    'B) 1.5x',
+                    'C) 2.0x',
+                    'D) 3.0x'
                 ],
-                correct: 'B) Active (earned), passive, and portfolio income'
+                correct: 'C) 2.0x'
             },
             {
-                question: 'What is "house hacking"?',
+                question: 'How is your share of pool profits calculated?',
                 options: [
-                    'A) Illegally breaking into houses',
-                    'B) Renting out rooms in your home to cover your mortgage',
-                    'C) Buying foreclosed properties',
-                    'D) Flipping houses quickly'
+                    'A) Everyone gets equal amounts',
+                    'B) (Your Contribution ÷ Total Pool) × Profits × Lock Bonus',
+                    'C) First come, first served',
+                    'D) Random distribution'
                 ],
-                correct: 'B) Renting out rooms in your home to cover your mortgage'
+                correct: 'B) (Your Contribution ÷ Total Pool) × Profits × Lock Bonus'
             },
             {
-                question: 'Why is tax optimization important?',
+                question: 'What type of pool is best for someone who can\'t afford to lose money?',
                 options: [
-                    'A) To avoid paying any taxes',
-                    'B) To legally reduce tax burden and keep more wealth growing',
-                    'C) It\'s not important',
-                    'D) Only for the ultra-rich'
+                    'A) Aggressive pool for maximum returns',
+                    'B) Conservative pool with lower risk',
+                    'C) The newest pool available',
+                    'D) All pools are the same risk'
                 ],
-                correct: 'B) To legally reduce tax burden and keep more wealth growing'
+                correct: 'B) Conservative pool with lower risk'
             }
         ],
-        skills: ['Asset Allocation', 'Real Estate', 'Multiple Income Streams', 'Tax Strategy', 'Wealth Preservation'],
-        real_world: 'Bridge the wealth gap. Students learn to build $500K-$2M+ net worth over 10-20 years through strategic diversification, even starting from poverty.',
-        hands_on: 'Students design personal wealth roadmaps, calculate real estate ROI, plan multiple income streams, and create 10-year net worth projections.',
-        wealth_builder_reward: '250 KENO upon completion + progress toward Gold RVT NFT'
+        skills: ['Liquidity Pools', 'Passive Income', 'Risk Assessment', 'Yield Optimization', 'Pool Management'],
+        real_world: 'Earn passive income without active trading. Deposit KENO into pools and earn a share of arbitrage profits generated by other traders. Lock period bonuses up to 2x multiplier for patient investors.',
+        hands_on: 'Students evaluate sample pools, calculate expected returns with different lock periods, design pool contribution strategies, and create diversified pool portfolios.',
+        wealth_builder_reward: '250 KENO upon completion + progress toward Silver RVT NFT'
     },
 
     20: {
-        icon: '🏛️',
-        title: 'Course 20: Generational Wealth Planning',
+        icon: '💎',
+        title: 'Course 20: Wealth Building & Asset Allocation',
         duration: '5 hours',
         modules: 6,
         level: 'Advanced',
-        overview: 'Create wealth that lasts for generations. Learn estate planning, trusts, inheritance strategies, family financial education, and how to pass wealth to children and grandchildren. Break the cycle of poverty for your entire family tree.',
+        overview: 'Advanced wealth accumulation strategies. Learn asset classes, strategic allocation based on age and goals, portfolio rebalancing techniques, KENO deployment strategies, and RVT income building across tiers for perpetual royalty income.',
         objectives: [
-            'Understand estate planning fundamentals',
-            'Create inheritance strategies',
-            'Design family wealth education programs',
-            'Implement wealth transfer mechanisms',
-            'Build multi-generational financial legacies'
+            'Understand all major asset classes and their roles',
+            'Design age-appropriate asset allocation strategies',
+            'Master portfolio rebalancing techniques',
+            'Deploy KENO strategically across FAL, FALP, and holding',
+            'Build RVT income through tier progression'
         ],
         modules_content: [
             {
-                title: 'Generational Wealth Mindset',
+                title: 'Asset Classes Overview',
                 lessons: [
-                    'Thinking beyond your lifetime',
-                    'How wealthy families stay wealthy (Rockefellers, Rothschilds)',
-                    'The 90% rule: 90% of families lose wealth by 3rd generation',
-                    'Breaking poverty cycles permanently'
+                    'Stocks: Growth engine of portfolios',
+                    'Bonds: Stability and income',
+                    'Real estate: Tangible assets and cash flow',
+                    'Crypto: High-risk, high-reward digital assets',
+                    'KENO: Knowledge Yield Token as core holding'
                 ]
             },
             {
-                title: 'Estate Planning Basics',
+                title: 'Strategic Allocation by Age',
                 lessons: [
-                    'Wills vs. trusts',
-                    'Probate process and costs',
-                    'Beneficiary designations',
-                    'Power of attorney',
-                    'Healthcare directives',
-                    'Why everyone needs estate planning (not just the rich)'
+                    '20s: Aggressive growth (80% stocks, 20% crypto)',
+                    '30s-40s: Balanced growth (60% stocks, 20% bonds, 20% alternatives)',
+                    '50s+: Capital preservation (40% stocks, 40% bonds, 20% alternatives)',
+                    'The 120 minus age rule',
+                    'Adjusting for personal risk tolerance'
                 ]
             },
             {
-                title: 'Trusts & Wealth Transfer',
+                title: 'Portfolio Rebalancing',
                 lessons: [
-                    'Living trusts vs. testamentary trusts',
-                    'Revocable vs. irrevocable trusts',
-                    'Trust benefits: avoid probate, reduce taxes, control distribution',
-                    'Setting up family trusts',
-                    'Trustee selection and responsibilities'
+                    'Why portfolios drift over time',
+                    'Calendar rebalancing (quarterly, annually)',
+                    'Threshold rebalancing (when allocation drifts 5%+)',
+                    'Tax-efficient rebalancing strategies',
+                    'Avoiding emotional decisions'
                 ]
             },
             {
-                title: 'Inheritance Strategies',
+                title: 'KENO Deployment Strategies',
                 lessons: [
-                    'Gifting during lifetime vs. inheritance',
-                    'Annual gift tax exclusions',
-                    'Education funding (529 plans)',
-                    'Life insurance as wealth transfer',
-                    'Unequal vs. equal distribution among heirs',
-                    'Incentive trusts (rewarding education, work ethic)'
+                    'Holding: Long-term appreciation play',
+                    'FAL Trading: Active income generation',
+                    'FALP Pooling: Passive income stream',
+                    'Optimal split: 40% hold, 30% FAL, 30% FALP',
+                    'Adjusting based on market conditions'
                 ]
             },
             {
-                title: 'Family Financial Education',
+                title: 'RVT Income Building',
                 lessons: [
-                    'Teaching children about money',
-                    'Age-appropriate financial lessons',
-                    'The trust fund kid problem (and solutions)',
-                    'Family wealth councils and meetings',
-                    'Preparing heirs to receive wealth responsibly',
-                    'Financial literacy as family tradition'
+                    'Bronze RVT: Complete courses 1-5',
+                    'Silver RVT: Complete courses 6-10',
+                    'Gold RVT: Complete courses 11-15',
+                    'Platinum RVT: Complete courses 16-18',
+                    'Diamond RVT: Complete all 21 courses',
+                    'Perpetual royalty income from RVT tiers'
                 ]
             },
             {
-                title: 'Long-Term Wealth Preservation',
+                title: 'Wealth Milestone Planning',
                 lessons: [
-                    'Dynasty trusts (wealth for 100+ years)',
-                    'Family offices for ultra-wealthy',
-                    'Philanthropic foundations',
-                    'Business succession planning',
-                    'International wealth diversification',
-                    'Protecting wealth from lawsuits and creditors'
+                    'First $10K: Emergency fund complete',
+                    'First $100K: Wealth building accelerates',
+                    'First $500K: Financial independence in sight',
+                    '$1M+: True wealth and options',
+                    'Creating your personal wealth roadmap'
                 ]
             }
         ],
         quiz: [
             {
-                question: 'Why do 90% of wealthy families lose their wealth by the 3rd generation?',
+                question: 'What is the recommended KENO deployment split in this course?',
                 options: [
-                    'A) Bad luck',
-                    'B) Lack of financial education and planning across generations',
-                    'C) Government taxes',
-                    'D) Market crashes'
+                    'A) 100% holding',
+                    'B) 100% FAL trading',
+                    'C) 40% hold, 30% FAL, 30% FALP',
+                    'D) 50% FAL, 50% FALP'
                 ],
-                correct: 'B) Lack of financial education and planning across generations'
+                correct: 'C) 40% hold, 30% FAL, 30% FALP'
             },
             {
-                question: 'What is the main advantage of a trust over a will?',
+                question: 'What is threshold rebalancing?',
                 options: [
-                    'A) It\'s cheaper',
-                    'B) Avoids probate, maintains privacy, provides control over distribution',
-                    'C) No lawyers needed',
-                    'D) Trusts are only for millionaires'
+                    'A) Rebalancing every day',
+                    'B) Rebalancing when allocation drifts beyond a set percentage (e.g., 5%)',
+                    'C) Never rebalancing',
+                    'D) Only rebalancing when you\'re losing money'
                 ],
-                correct: 'B) Avoids probate, maintains privacy, provides control over distribution'
+                correct: 'B) Rebalancing when allocation drifts beyond a set percentage (e.g., 5%)'
             },
             {
-                question: 'What is an incentive trust?',
+                question: 'Which RVT tier do you achieve after completing all 21 courses?',
                 options: [
-                    'A) A trust that rewards heirs for achievements (education, career)',
-                    'B) A trust with high interest rates',
-                    'C) A government trust fund',
-                    'D) A retirement account'
+                    'A) Bronze RVT',
+                    'B) Gold RVT',
+                    'C) Platinum RVT',
+                    'D) Diamond RVT'
                 ],
-                correct: 'A) A trust that rewards heirs for achievements (education, career)'
+                correct: 'D) Diamond RVT'
             }
         ],
-        skills: ['Estate Planning', 'Trusts', 'Wealth Transfer', 'Family Finance Education', 'Legacy Building'],
-        real_world: 'The ultimate goal: financial freedom for your descendants. Learn how families like the Rockefellers and Rothschilds preserve wealth across centuries.',
-        hands_on: 'Students create sample wills, design family trust structures, plan inheritance strategies, and develop family financial education programs.',
-        wealth_builder_reward: '250 KENO upon completion + progress toward Platinum RVT NFT'
+        skills: ['Asset Allocation', 'Portfolio Rebalancing', 'KENO Strategies', 'RVT Income', 'Wealth Planning'],
+        real_world: 'Bridge the wealth gap. Build $500K-$2M+ net worth through strategic asset allocation. Integrate KENO and RVTs into a comprehensive wealth-building portfolio.',
+        hands_on: 'Students design personalized asset allocations, create rebalancing schedules, plan KENO deployment strategies, and map RVT progression paths.',
+        wealth_builder_reward: '250 KENO upon completion + progress toward Gold RVT NFT'
     },
 
     21: {
-        icon: '🌍',
-        title: 'Course 21: Economic Empowerment & Poverty Reduction',
-        duration: '6 hours',
+        icon: '🏛️',
+        title: 'Course 21: Generational Wealth & Economic Empowerment',
+        duration: '5 hours',
         modules: 7,
         level: 'Advanced',
-        overview: 'Use blockchain and financial knowledge to lift communities out of poverty. Learn microfinance, community investment, social entrepreneurship, and how technology enables global economic opportunity. Discover your role in reducing global poverty.',
+        overview: 'Create wealth that lasts for generations AND make global impact. Learn the 3-generation wealth problem, estate planning, trusts, crypto inheritance via social recovery, financial inclusion through blockchain, and the Kenostod mission.',
         objectives: [
-            'Understand global poverty challenges',
-            'Learn microfinance and community banking',
-            'Design social impact businesses',
+            'Understand why 90% of families lose wealth by 3rd generation',
+            'Create estate plans with crypto-specific considerations',
+            'Implement social recovery for crypto inheritance',
             'Leverage blockchain for financial inclusion',
             'Create economic empowerment strategies'
         ],
