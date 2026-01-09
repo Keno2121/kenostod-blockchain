@@ -1,7 +1,7 @@
 # CoinGecko Listing Submission Guide
 
 ## Submission URL
-https://www.coingecko.com/en/coins/new
+https://www.coingecko.com/en/coins/news
 
 ---
 
