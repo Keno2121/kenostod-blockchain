@@ -87,12 +87,12 @@ Our revolutionary system that lets you:
 
 This is how KENO generates YIELD for holders.
 
-Tiers:
-Bronze: Up to 1,000 KENO
-Silver: Up to 5,000 KENO
-Gold: Up to 25,000 KENO
-Platinum: Up to 100,000 KENO
-Diamond: Up to 500,000 KENO
+Tiers (based on successful trades):
+Bronze (10+ trades): Up to 1,500 KENO
+Silver (50+ trades): Up to 2,000 KENO
+Gold (200+ trades): Up to 3,000 KENO
+Platinum (500+ trades): Up to 5,000 KENO
+Diamond (1,000+ trades): Up to 10,000 KENO
 
 Learn the system: https://kenostodblockchain.com
 
