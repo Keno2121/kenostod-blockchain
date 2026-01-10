@@ -314,6 +314,16 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// MoonPay configuration endpoint (serves publishable key from environment)
+app.get('/api/moonpay/config', (req, res) => {
+    const publishableKey = process.env.MOONPAY_PUBLISHABLE_KEY;
+    if (publishableKey) {
+        res.json({ success: true, publishableKey });
+    } else {
+        res.json({ success: false, error: 'MoonPay not configured' });
+    }
+});
+
 // Serve robots.txt and sitemap.xml for SEO
 app.get('/robots.txt', (req, res) => {
     res.sendFile(__dirname + '/public/robots.txt');
