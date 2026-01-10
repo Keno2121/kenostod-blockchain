@@ -623,3 +623,28 @@ async function submitWithdrawalRequest() {
         statusDiv.innerHTML = '<p style="color: #fef08a;">Error submitting request. Please try again.</p>';
     }
 }
+
+async function openMoonPayOffRamp() {
+    try {
+        const response = await fetch('/api/moonpay/config');
+        const config = await response.json();
+        
+        if (!config.success) {
+            showAlert('MoonPay is not yet configured. Please wait for KYB approval.', 'error');
+            return;
+        }
+        
+        const walletAddress = document.getElementById('withdrawMetaMaskAddress')?.value?.trim();
+        if (!walletAddress || !walletAddress.startsWith('0x')) {
+            showAlert('Please enter your MetaMask wallet address first.', 'error');
+            return;
+        }
+        
+        const moonpayUrl = `https://sell.moonpay.com?apiKey=${config.publishableKey}&baseCurrencyCode=bnb_bsc&walletAddress=${walletAddress}&colorCode=%237c3aed`;
+        
+        window.open(moonpayUrl, '_blank', 'width=500,height=700');
+    } catch (error) {
+        console.error('Error opening MoonPay:', error);
+        showAlert('Error opening MoonPay. Please try again.', 'error');
+    }
+}
