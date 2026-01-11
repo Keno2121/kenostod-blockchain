@@ -7002,6 +7002,30 @@ app.post('/api/fal/withdrawal/request', async (req, res) => {
         
         console.log(`💸 FAL withdrawal request: ${amount} KENO from ${simulatorWallet.substring(0, 20)}... to ${metaMaskWallet}`);
         
+        try {
+            await EmailService.sendEmail({
+                to: 'kenostod21@gmail.com',
+                subject: `🚨 New FAL Withdrawal Request: ${amount.toFixed(2)} KENO`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #10b981;">New FAL Withdrawal Request</h2>
+                        <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <p><strong>Request ID:</strong> ${requestId}</p>
+                            <p><strong>Amount:</strong> ${amount.toFixed(2)} KENO ($${amount.toFixed(2)} USD)</p>
+                            <p><strong>Simulator Wallet:</strong> ${simulatorWallet.substring(0, 30)}...</p>
+                            <p><strong>MetaMask Wallet:</strong> ${metaMaskWallet}</p>
+                            <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                        </div>
+                        <p>Login to the <a href="https://kenostodblockchain.com/backoffice.html">Admin Backoffice</a> to review and process this request.</p>
+                    </div>
+                `,
+                text: `New FAL Withdrawal Request\n\nRequest ID: ${requestId}\nAmount: ${amount.toFixed(2)} KENO\nMetaMask: ${metaMaskWallet}\n\nLogin to backoffice to process.`
+            });
+            console.log('📧 Admin notification email sent for FAL withdrawal');
+        } catch (emailError) {
+            console.error('⚠️ Failed to send admin notification email:', emailError.message);
+        }
+        
         res.json({ 
             success: true, 
             requestId,
