@@ -5,12 +5,38 @@ class MercuryBankAPI {
         this.apiKey = process.env.MERCURY_API_KEY;
         this.accountId = process.env.MERCURY_ACCOUNT_ID;
         this.baseUrl = 'https://api.mercury.com/api/v1';
-        this.isConfigured = !!(this.apiKey && this.accountId);
+        this.isConfigured = !!this.apiKey;
+        this.accountsFetched = false;
+        this.accounts = [];
         
-        if (this.isConfigured) {
-            console.log('✅ Mercury Bank API configured');
+        if (this.apiKey) {
+            console.log('✅ Mercury Bank API key configured');
+            this.initializeAccounts();
         } else {
             console.log('⚠️ Mercury Bank API not configured - running in stub mode');
+        }
+    }
+
+    async initializeAccounts() {
+        try {
+            const response = await fetch(`${this.baseUrl}/accounts`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.accounts = data.accounts || [];
+                if (this.accounts.length > 0) {
+                    this.accountId = this.accounts[0].id;
+                    console.log(`✅ Mercury account auto-detected: ${this.accounts[0].name} (${this.accountId})`);
+                }
+                this.accountsFetched = true;
+            } else {
+                console.log('⚠️ Mercury API: Could not fetch accounts -', response.status);
+            }
+        } catch (error) {
+            console.log('⚠️ Mercury API initialization error:', error.message);
         }
     }
 
