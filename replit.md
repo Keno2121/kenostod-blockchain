@@ -78,6 +78,7 @@ Revenue is generated through over 15 streams including ICO token sales, course s
 
 # Recent Changes
 
+- **Jan 11, 2026:** Mercury Bank USD Cashout System LIVE - Completed full integration with Mercury Business Banking API. Students can now add bank details (AES-256 encrypted), request KENO-to-USD withdrawals, admin approves in dashboard, Mercury initiates ACH transfer, USD arrives in 1-3 business days. Kenostod Blockchain Academy LLC (Wyoming, ID: 2026-001863120) with Mercury Checking account enables direct USD conversions without requiring DEX liquidity or third-party listings.
 - **Dec 27, 2025:** T.D.I.R. Foundation Overview Page - Created dedicated landing page (/tdir-foundation.html) showcasing all four foundation ventures: Kenostod Blockchain Academy, Kenostod Blockchain, B.U.K Security Banking, and Unex Solar. Includes roadmap, synergy diagram, and kingdom philosophy section.
 - **Dec 27, 2025:** B.U.K Security Banking Integration - Added B.U.K (Back-Up Key) as 5th node utility function with dual-chip technology, security event logging, and Automated Smart Contract Insurance Claims system. Updated node sale design document (v2.0) with insurance partner revenue model (5% to node operators), secure practice KENO rewards, and 2027 roadmap for insurance smart contracts. Updated landing page with B.U.K section.
 - **Dec 25, 2025:** Node Sale System - Created comprehensive node sale design document, landing page (/node-sale.html), and PostgreSQL-backed whitelist registration system. Three node tiers (Scholar $299, Educator $799, Academy $1,999) with 5 utility functions: course validation, KENO distribution, FAL calculations, credential verification, B.U.K security events. Countdown to Q1 2026 launch.
@@ -114,3 +115,4 @@ A dedicated "For Organizations" landing page (`/for-organizations.html`) targeti
 -   **Replit AI Integrations**: Integration for AI Customer Support.
 -   **Printful**: Automated merchandise order fulfillment.
 -   **Replit Mail**: Email notifications.
+-   **Mercury Bank API**: Business banking for USD cashouts via ACH transfers.
