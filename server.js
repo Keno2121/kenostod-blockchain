@@ -978,7 +978,7 @@ app.post('/api/claims/request', async (req, res) => {
         console.log(`📋 KENO claim request: ${amount} KENO to ${walletAddress} (${email})`);
         
         // Send email notification to admin
-        const ADMIN_EMAIL = 'kenostod21@gmail.com';
+        const ADMIN_EMAIL = 'moheazy81@gmail.com';
         try {
             await EmailService.sendClaimNotification({
                 email: email.toLowerCase(),
@@ -7005,7 +7005,7 @@ app.post('/api/fal/withdrawal/request', async (req, res) => {
         
         try {
             await EmailService.sendEmail({
-                to: 'kenostod21@gmail.com',
+                to: 'moheazy81@gmail.com',
                 subject: `🚨 New FAL Withdrawal Request: ${amount.toFixed(2)} KENO`,
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -8198,7 +8198,7 @@ app.post('/api/usd-withdrawal/request', async (req, res) => {
         
         try {
             await EmailService.sendEmail({
-                to: 'kenostod21@gmail.com',
+                to: 'moheazy81@gmail.com',
                 subject: `🏦 New USD Withdrawal Request: $${usdAmount.toFixed(2)}`,
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -8339,7 +8339,7 @@ app.post('/api/admin/test-email', async (req, res) => {
             return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
         
-        const testEmail = targetEmail || 'kenostod21@gmail.com';
+        const testEmail = targetEmail || 'moheazy81@gmail.com';
         
         console.log(`📧 Attempting to send test email to ${testEmail}...`);
         
