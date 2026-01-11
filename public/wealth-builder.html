@@ -654,18 +654,75 @@
                     </div>
                 </div>
 
-                <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-                    <h3 style="color: #92400e; margin-bottom: 12px;">⏳ Coming Soon: Direct Bank Withdrawals</h3>
-                    <p style="color: #78350f; line-height: 1.7; margin-bottom: 16px;">
-                        We are currently partnering with licensed Money Service Businesses to enable direct fiat withdrawals. 
-                        Once approved, you'll be able to convert KENO directly to USD, EUR, GBP, and more!
-                    </p>
-                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                        <span style="background: #fde68a; color: #92400e; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">ZeroHash (In Progress)</span>
-                        <span style="background: #fde68a; color: #92400e; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">MoonPay (Applied)</span>
-                        <span style="background: #fde68a; color: #92400e; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Transak (Applied)</span>
-                        <span style="background: #fde68a; color: #92400e; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">BVNK (Applying)</span>
+                <div id="mercuryBankSection" style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; border-radius: 16px; padding: 32px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                        <div style="font-size: 48px;">🏦</div>
+                        <div>
+                            <h3 style="font-size: 1.5rem; margin-bottom: 4px;">Direct USD Withdrawal via Mercury Bank</h3>
+                            <p style="opacity: 0.9; font-size: 0.95rem;">Convert KENO to USD and receive directly in your bank account</p>
+                        </div>
                     </div>
+                    
+                    <div id="bankDetailsStatus" style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <p style="text-align: center; opacity: 0.9;">Enter your email to check bank details status</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Your Email</label>
+                        <input type="email" id="usdWithdrawEmail" placeholder="your@email.com" style="width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; color: #1f2937;" onchange="checkBankDetails()">
+                    </div>
+                    
+                    <div id="bankDetailsForm" style="display: none;">
+                        <h4 style="margin-bottom: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2);">Add Your Bank Details</h4>
+                        <div style="display: grid; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 0.9rem;">Bank Name</label>
+                                <input type="text" id="bankName" placeholder="e.g., Chase, Bank of America" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; color: #1f2937;">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 0.9rem;">Account Holder Name</label>
+                                <input type="text" id="accountHolderName" placeholder="Name on bank account" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; color: #1f2937;">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 6px; font-size: 0.9rem;">Routing Number (9 digits)</label>
+                                    <input type="text" id="routingNumber" placeholder="123456789" maxlength="9" pattern="\d{9}" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; color: #1f2937;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 6px; font-size: 0.9rem;">Account Number</label>
+                                    <input type="text" id="accountNumber" placeholder="Your account number" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; color: #1f2937;">
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 0.9rem;">Account Type</label>
+                                <select id="accountType" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; color: #1f2937;">
+                                    <option value="checking">Checking</option>
+                                    <option value="savings">Savings</option>
+                                </select>
+                            </div>
+                            <button onclick="saveBankDetails()" style="padding: 14px; background: white; color: #7c3aed; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer;">Save Bank Details Securely</button>
+                        </div>
+                        <p style="font-size: 0.8rem; opacity: 0.8; margin-top: 12px; text-align: center;">🔒 Your bank details are encrypted and stored securely</p>
+                    </div>
+                    
+                    <div id="usdWithdrawForm" style="display: none;">
+                        <h4 style="margin-bottom: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2);">Request USD Withdrawal</h4>
+                        <div id="savedBankInfo" style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 16px;"></div>
+                        <div style="display: grid; gap: 16px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 0.9rem;">Amount (KENO)</label>
+                                <input type="number" id="usdWithdrawAmount" placeholder="Enter KENO amount" min="10" style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; color: #1f2937;" oninput="updateUsdPreview()">
+                                <p id="usdPreview" style="font-size: 0.9rem; margin-top: 8px; opacity: 0.9;">You will receive: $0.00 USD</p>
+                            </div>
+                            <button onclick="submitUsdWithdrawal()" style="padding: 14px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer;">💵 Request USD Withdrawal</button>
+                        </div>
+                        <div id="usdWithdrawResult" style="margin-top: 16px;"></div>
+                    </div>
+                </div>
+                
+                <div id="withdrawalHistory" style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; display: none;">
+                    <h3 style="color: #1f2937; margin-bottom: 16px;">📋 Your Withdrawal History</h3>
+                    <div id="withdrawalHistoryContent"></div>
                 </div>
 
                 <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
@@ -1560,6 +1617,170 @@
                 });
             }
         });
+
+        async function checkBankDetails() {
+            const email = document.getElementById('usdWithdrawEmail').value.trim();
+            if (!email) return;
+            
+            const statusDiv = document.getElementById('bankDetailsStatus');
+            statusDiv.innerHTML = '<p style="text-align: center;">Checking bank details...</p>';
+            
+            try {
+                const response = await fetch(`/api/bank-details/check?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success && data.hasBankDetails) {
+                    statusDiv.innerHTML = `
+                        <div style="text-align: center;">
+                            <p style="font-weight: 600; margin-bottom: 8px;">✅ Bank Details on File</p>
+                            <p style="opacity: 0.9; font-size: 0.9rem;">${data.bankName} - ****${data.routingNumberLast4} (${data.accountType})</p>
+                            <p style="opacity: 0.9; font-size: 0.9rem;">${data.accountHolderName}</p>
+                        </div>
+                    `;
+                    document.getElementById('bankDetailsForm').style.display = 'none';
+                    document.getElementById('usdWithdrawForm').style.display = 'block';
+                    document.getElementById('savedBankInfo').innerHTML = `
+                        <p style="margin: 0;"><strong>Bank:</strong> ${data.bankName} | <strong>Account:</strong> ****${data.routingNumberLast4}</p>
+                        <button onclick="showBankForm()" style="margin-top: 8px; padding: 6px 12px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Update Bank Details</button>
+                    `;
+                    loadWithdrawalHistory(email);
+                } else {
+                    statusDiv.innerHTML = '<p style="text-align: center;">No bank details found. Please add your bank information below.</p>';
+                    document.getElementById('bankDetailsForm').style.display = 'block';
+                    document.getElementById('usdWithdrawForm').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Check bank details error:', error);
+                statusDiv.innerHTML = '<p style="text-align: center; color: #fecaca;">Error checking bank details</p>';
+            }
+        }
+
+        function showBankForm() {
+            document.getElementById('bankDetailsForm').style.display = 'block';
+        }
+
+        async function saveBankDetails() {
+            const email = document.getElementById('usdWithdrawEmail').value.trim();
+            const bankName = document.getElementById('bankName').value.trim();
+            const accountHolderName = document.getElementById('accountHolderName').value.trim();
+            const routingNumber = document.getElementById('routingNumber').value.trim();
+            const accountNumber = document.getElementById('accountNumber').value.trim();
+            const accountType = document.getElementById('accountType').value;
+            
+            if (!email || !bankName || !accountHolderName || !routingNumber || !accountNumber) {
+                alert('Please fill in all bank details');
+                return;
+            }
+            
+            if (!/^\d{9}$/.test(routingNumber)) {
+                alert('Routing number must be exactly 9 digits');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/bank-details/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        walletAddress: currentWallet,
+                        bankName,
+                        accountHolderName,
+                        routingNumber,
+                        accountNumber,
+                        accountType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Bank details saved securely!');
+                    checkBankDetails();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Save bank details error:', error);
+                alert('Error saving bank details. Please try again.');
+            }
+        }
+
+        function updateUsdPreview() {
+            const amount = parseFloat(document.getElementById('usdWithdrawAmount').value) || 0;
+            const usdAmount = amount * 1.00;
+            document.getElementById('usdPreview').textContent = `You will receive: $${usdAmount.toFixed(2)} USD`;
+        }
+
+        async function submitUsdWithdrawal() {
+            const email = document.getElementById('usdWithdrawEmail').value.trim();
+            const kenoAmount = parseFloat(document.getElementById('usdWithdrawAmount').value);
+            
+            if (!email || !kenoAmount || kenoAmount < 10) {
+                alert('Please enter a valid amount (minimum 10 KENO)');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('usdWithdrawResult');
+            resultDiv.innerHTML = '<p>Submitting withdrawal request...</p>';
+            
+            try {
+                const response = await fetch('/api/usd-withdrawal/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        walletAddress: currentWallet,
+                        kenoAmount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div style="background: rgba(16, 185, 129, 0.3); padding: 16px; border-radius: 8px;">
+                            <p style="font-weight: 700; margin-bottom: 8px;">✅ Withdrawal Request Submitted!</p>
+                            <p style="opacity: 0.9;">Request ID: ${data.requestId}</p>
+                            <p style="opacity: 0.9;">Amount: ${kenoAmount.toFixed(2)} KENO = $${data.usdAmount.toFixed(2)} USD</p>
+                            <p style="opacity: 0.9; margin-top: 8px;">An admin will review your request and initiate the bank transfer. Expect funds within 1-3 business days after approval.</p>
+                        </div>
+                    `;
+                    document.getElementById('usdWithdrawAmount').value = '';
+                    loadWithdrawalHistory(email);
+                } else {
+                    resultDiv.innerHTML = `<p style="color: #fecaca;">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('USD withdrawal error:', error);
+                resultDiv.innerHTML = '<p style="color: #fecaca;">Error submitting request. Please try again.</p>';
+            }
+        }
+
+        async function loadWithdrawalHistory(email) {
+            try {
+                const response = await fetch(`/api/usd-withdrawal/history?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success && data.withdrawals.length > 0) {
+                    document.getElementById('withdrawalHistory').style.display = 'block';
+                    const content = document.getElementById('withdrawalHistoryContent');
+                    content.innerHTML = data.withdrawals.map(w => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px;">
+                            <div>
+                                <p style="font-weight: 600; color: #1f2937;">${w.keno_amount} KENO = $${w.usd_amount}</p>
+                                <p style="font-size: 0.85rem; color: #6b7280;">${w.request_id} - ${new Date(w.requested_at).toLocaleDateString()}</p>
+                            </div>
+                            <span style="padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; background: ${w.status === 'completed' ? '#d1fae5' : w.status === 'approved' ? '#dbeafe' : w.status === 'rejected' ? '#fee2e2' : '#fef3c7'}; color: ${w.status === 'completed' ? '#065f46' : w.status === 'approved' ? '#1e40af' : w.status === 'rejected' ? '#991b1b' : '#92400e'};">
+                                ${w.status.charAt(0).toUpperCase() + w.status.slice(1)}
+                            </span>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Load withdrawal history error:', error);
+            }
+        }
     </script>
     <script src="/custom-dialogs.js"></script>
 

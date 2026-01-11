@@ -352,8 +352,9 @@ function logICOPurchase(purchaseData) {
     console.log(`📊 ICO purchase logged: ${purchaseData.tokens} KENO for $${purchaseData.amount}`);
 }
 let dbConnection, organizationManager, wealthBuilderManager, securityMiddleware;
-let printfulIntegration, aiSupport, microMonetization;
+let printfulIntegration, aiSupport, microMonetization, mercuryBankAPI;
 const MicroMonetization = require('./src/MicroMonetization');
+const MercuryBankAPI = require('./src/MercuryBankAPI');
 
 // Initialize blockchain and systems AFTER port opens
 async function initializeBlockchainSystems() {
@@ -8099,6 +8100,236 @@ app.get('/api/admin/student/:walletAddress', requireAdminAuth, async (req, res) 
 });
 
 // ==================== END ADMIN BACK OFFICE API ENDPOINTS ====================
+
+// ==================== MERCURY BANK USD CASHOUT ENDPOINTS ====================
+
+mercuryBankAPI = new MercuryBankAPI();
+
+app.post('/api/bank-details/save', async (req, res) => {
+    try {
+        const { email, walletAddress, bankName, accountHolderName, routingNumber, accountNumber, accountType } = req.body;
+        
+        if (!email || !bankName || !accountHolderName || !routingNumber || !accountNumber) {
+            return res.status(400).json({ success: false, error: 'Missing required bank details' });
+        }
+        
+        if (!/^\d{9}$/.test(routingNumber)) {
+            return res.status(400).json({ success: false, error: 'Invalid routing number (must be 9 digits)' });
+        }
+        
+        if (!/^\d{4,17}$/.test(accountNumber)) {
+            return res.status(400).json({ success: false, error: 'Invalid account number' });
+        }
+        
+        const encryptedAccount = mercuryBankAPI.encryptAccountNumber(accountNumber);
+        
+        await dbConnection.query(`
+            INSERT INTO student_bank_details (email, wallet_address, bank_name, account_holder_name, routing_number, account_number_encrypted, account_type)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (email) 
+            DO UPDATE SET bank_name = $3, account_holder_name = $4, routing_number = $5, account_number_encrypted = $6, account_type = $7, updated_at = CURRENT_TIMESTAMP
+        `, [email.toLowerCase(), walletAddress?.toLowerCase(), bankName, accountHolderName, routingNumber, encryptedAccount, accountType || 'checking']);
+        
+        console.log(`🏦 Bank details saved for: ${email}`);
+        res.json({ success: true, message: 'Bank details saved securely' });
+    } catch (error) {
+        console.error('Bank details save error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/bank-details/check', async (req, res) => {
+    try {
+        const { email } = req.query;
+        if (!email) {
+            return res.status(400).json({ success: false, error: 'Email required' });
+        }
+        
+        const result = await dbConnection.query(
+            'SELECT bank_name, account_holder_name, routing_number, account_type FROM student_bank_details WHERE email = $1',
+            [email.toLowerCase()]
+        );
+        
+        if (result.rows.length > 0) {
+            const details = result.rows[0];
+            res.json({ 
+                success: true, 
+                hasBankDetails: true,
+                bankName: details.bank_name,
+                accountHolderName: details.account_holder_name,
+                routingNumberLast4: details.routing_number.slice(-4),
+                accountType: details.account_type
+            });
+        } else {
+            res.json({ success: true, hasBankDetails: false });
+        }
+    } catch (error) {
+        console.error('Bank details check error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/usd-withdrawal/request', async (req, res) => {
+    try {
+        const { email, walletAddress, kenoAmount } = req.body;
+        
+        if (!email || !kenoAmount || kenoAmount <= 0) {
+            return res.status(400).json({ success: false, error: 'Invalid request' });
+        }
+        
+        const bankDetails = await dbConnection.query(
+            'SELECT * FROM student_bank_details WHERE email = $1',
+            [email.toLowerCase()]
+        );
+        
+        if (bankDetails.rows.length === 0) {
+            return res.status(400).json({ success: false, error: 'Please add bank details first' });
+        }
+        
+        const usdAmount = kenoAmount * 1.00;
+        const requestId = 'USD-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        
+        await dbConnection.query(`
+            INSERT INTO usd_withdrawals (request_id, email, wallet_address, keno_amount, usd_amount, status)
+            VALUES ($1, $2, $3, $4, $5, 'pending')
+        `, [requestId, email.toLowerCase(), walletAddress?.toLowerCase(), kenoAmount, usdAmount]);
+        
+        console.log(`💵 USD withdrawal request: ${kenoAmount} KENO ($${usdAmount}) from ${email}`);
+        
+        try {
+            await EmailService.sendEmail({
+                to: 'kenostod21@gmail.com',
+                subject: `🏦 New USD Withdrawal Request: $${usdAmount.toFixed(2)}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #7c3aed;">New USD Withdrawal Request (Mercury Bank)</h2>
+                        <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <p><strong>Request ID:</strong> ${requestId}</p>
+                            <p><strong>Student Email:</strong> ${email}</p>
+                            <p><strong>KENO Amount:</strong> ${kenoAmount.toFixed(2)} KENO</p>
+                            <p><strong>USD Amount:</strong> $${usdAmount.toFixed(2)}</p>
+                            <p><strong>Bank:</strong> ${bankDetails.rows[0].bank_name}</p>
+                            <p><strong>Account Holder:</strong> ${bankDetails.rows[0].account_holder_name}</p>
+                            <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                        </div>
+                        <p>Login to the <a href="https://kenostodblockchain.com/backoffice.html">Admin Backoffice</a> to review and process via Mercury Bank.</p>
+                    </div>
+                `,
+                text: `New USD Withdrawal Request\n\nRequest ID: ${requestId}\nEmail: ${email}\nKENO: ${kenoAmount}\nUSD: $${usdAmount}\n\nLogin to backoffice to process via Mercury.`
+            });
+            console.log('📧 Admin notification email sent for USD withdrawal');
+        } catch (emailError) {
+            console.error('⚠️ Email notification failed:', emailError.message);
+        }
+        
+        res.json({ success: true, requestId, usdAmount, message: 'Withdrawal request submitted' });
+    } catch (error) {
+        console.error('USD withdrawal request error:', error);
+        res.status(500).json({ success: false, error: 'Failed to submit withdrawal request' });
+    }
+});
+
+app.get('/api/usd-withdrawal/history', async (req, res) => {
+    try {
+        const { email } = req.query;
+        if (!email) {
+            return res.status(400).json({ success: false, error: 'Email required' });
+        }
+        
+        const result = await dbConnection.query(`
+            SELECT request_id, keno_amount, usd_amount, status, requested_at, completed_at 
+            FROM usd_withdrawals 
+            WHERE email = $1 
+            ORDER BY requested_at DESC
+        `, [email.toLowerCase()]);
+        
+        res.json({ success: true, withdrawals: result.rows });
+    } catch (error) {
+        console.error('USD withdrawal history error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/usd-withdrawals', async (req, res) => {
+    try {
+        const { adminPassword } = req.query;
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        
+        const result = await dbConnection.query(`
+            SELECT w.*, b.bank_name, b.account_holder_name, b.routing_number, b.account_type
+            FROM usd_withdrawals w
+            LEFT JOIN student_bank_details b ON w.email = b.email
+            ORDER BY w.requested_at DESC
+        `);
+        
+        res.json({ success: true, withdrawals: result.rows });
+    } catch (error) {
+        console.error('Admin USD withdrawals error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/admin/usd-withdrawal/process', async (req, res) => {
+    try {
+        const { adminPassword, requestId, action, adminNotes } = req.body;
+        
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        
+        const withdrawal = await dbConnection.query(
+            'SELECT w.*, b.* FROM usd_withdrawals w LEFT JOIN student_bank_details b ON w.email = b.email WHERE w.request_id = $1',
+            [requestId]
+        );
+        
+        if (withdrawal.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Withdrawal not found' });
+        }
+        
+        const w = withdrawal.rows[0];
+        
+        if (action === 'approve') {
+            const decryptedAccount = mercuryBankAPI.decryptAccountNumber(w.account_number_encrypted);
+            
+            const transferResult = await mercuryBankAPI.initiateACHTransfer({
+                amount: w.usd_amount,
+                recipientName: w.account_holder_name,
+                routingNumber: w.routing_number,
+                accountNumber: decryptedAccount,
+                accountType: w.account_type,
+                memo: `Kenostod KENO Withdrawal - ${requestId}`
+            });
+            
+            await dbConnection.query(`
+                UPDATE usd_withdrawals 
+                SET status = 'approved', mercury_transfer_id = $1, admin_notes = $2, processed_at = CURRENT_TIMESTAMP
+                WHERE request_id = $3
+            `, [transferResult.transferId, adminNotes || '', requestId]);
+            
+            console.log(`✅ USD withdrawal approved: ${requestId} - Transfer ID: ${transferResult.transferId}`);
+            res.json({ success: true, message: 'Withdrawal approved and ACH transfer initiated', transferResult });
+            
+        } else if (action === 'reject') {
+            await dbConnection.query(`
+                UPDATE usd_withdrawals 
+                SET status = 'rejected', admin_notes = $1, processed_at = CURRENT_TIMESTAMP
+                WHERE request_id = $2
+            `, [adminNotes || 'Request rejected', requestId]);
+            
+            console.log(`❌ USD withdrawal rejected: ${requestId}`);
+            res.json({ success: true, message: 'Withdrawal rejected' });
+        } else {
+            res.status(400).json({ success: false, error: 'Invalid action' });
+        }
+    } catch (error) {
+        console.error('Process USD withdrawal error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ==================== END MERCURY BANK ENDPOINTS ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
