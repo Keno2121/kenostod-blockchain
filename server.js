@@ -8331,6 +8331,43 @@ app.post('/api/admin/usd-withdrawal/process', async (req, res) => {
 
 // ==================== END MERCURY BANK ENDPOINTS ====================
 
+// Test email endpoint (admin only)
+app.post('/api/admin/test-email', async (req, res) => {
+    try {
+        const { adminPassword, targetEmail } = req.body;
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        
+        const testEmail = targetEmail || 'kenostod21@gmail.com';
+        
+        console.log(`📧 Attempting to send test email to ${testEmail}...`);
+        
+        const result = await EmailService.sendEmail({
+            to: testEmail,
+            subject: 'Test Email from Kenostod Blockchain Academy',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #7c3aed;">Email Test Successful!</h2>
+                    <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <p>This is a test email from Kenostod Blockchain Academy.</p>
+                        <p><strong>Sent at:</strong> ${new Date().toLocaleString()}</p>
+                        <p><strong>Target:</strong> ${testEmail}</p>
+                    </div>
+                    <p>If you received this email, the email notification system is working correctly.</p>
+                </div>
+            `,
+            text: `Email Test Successful!\n\nThis is a test email from Kenostod Blockchain Academy.\nSent at: ${new Date().toLocaleString()}\n\nIf you received this email, the email notification system is working correctly.`
+        });
+        
+        console.log(`✅ Test email sent successfully to ${testEmail}`);
+        res.json({ success: true, message: `Test email sent to ${testEmail}`, result });
+    } catch (error) {
+        console.error('❌ Test email error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
