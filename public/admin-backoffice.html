@@ -641,6 +641,10 @@
                     <span class="icon">💸</span>
                     <span>FAL Withdrawals</span>
                 </div>
+                <div class="nav-item" onclick="showTab('usdWithdrawals')">
+                    <span class="icon">🏦</span>
+                    <span>USD Cashouts</span>
+                </div>
             </nav>
         </aside>
         
@@ -1024,6 +1028,67 @@
                         <tbody id="falWithdrawalsTable">
                             <tr>
                                 <td colspan="7" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="usdWithdrawalsTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">USD Cashout Summary</h2>
+                        <button onclick="loadUSDWithdrawals()" style="padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white;">Refresh</button>
+                    </div>
+                    <div id="usdWithdrawalSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="usdPendingCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Pending Requests</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="usdApprovedCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Approved</div>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #a855f7;" id="usdCompletedCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Completed</div>
+                        </div>
+                        <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #ffd700;" id="usdTotalPaidOut">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Paid Out</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">USD Withdrawal Requests</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="usdWithdrawalFilter" onchange="loadUSDWithdrawals()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="completed">Completed</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Email</th>
+                                <th>KENO Amount</th>
+                                <th>USD Amount</th>
+                                <th>Bank</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usdWithdrawalsTable">
+                            <tr>
+                                <td colspan="8" class="loading">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1481,7 +1546,8 @@
                 claims: 'KENO Claims',
                 referrals: 'Referral Program',
                 scholarships: 'Scholarship Management',
-                falWithdrawals: 'FAL Withdrawal Requests'
+                falWithdrawals: 'FAL Withdrawal Requests',
+                usdWithdrawals: 'USD Cashout Management'
             };
             
             if (tabName === 'claims') {
@@ -1493,6 +1559,9 @@
             if (tabName === 'falWithdrawals') {
                 loadTraderProfits();
                 loadFALWithdrawals();
+            }
+            if (tabName === 'usdWithdrawals') {
+                loadUSDWithdrawals();
             }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
         }
@@ -1953,6 +2022,151 @@
                 }
             } catch (error) {
                 console.error('Error rejecting withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadUSDWithdrawals() {
+            const table = document.getElementById('usdWithdrawalsTable');
+            table.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('usdWithdrawalFilter')?.value || '';
+                let url = `/api/admin/usd-withdrawals?adminPassword=${encodeURIComponent(adminPwd)}`;
+                if (filter) url += `&status=${filter}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('usdPendingCount').textContent = data.summary?.pending || 0;
+                    document.getElementById('usdApprovedCount').textContent = data.summary?.approved || 0;
+                    document.getElementById('usdCompletedCount').textContent = data.summary?.completed || 0;
+                    document.getElementById('usdTotalPaidOut').textContent = '$' + (data.summary?.totalPaidOut || 0).toFixed(2);
+                    
+                    if (data.withdrawals && data.withdrawals.length > 0) {
+                        let html = '';
+                        data.withdrawals.forEach(w => {
+                            const statusColors = { pending: '#f59e0b', approved: '#3b82f6', completed: '#10b981', rejected: '#ef4444' };
+                            const isPending = w.status === 'pending';
+                            const isApproved = w.status === 'approved';
+                            html += `
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 0.85rem;">${w.request_id}</td>
+                                    <td>${w.email}</td>
+                                    <td style="color: #ffd700; font-weight: 600;">${parseFloat(w.keno_amount).toFixed(2)} KENO</td>
+                                    <td style="color: #10b981; font-weight: 600;">$${parseFloat(w.usd_amount).toFixed(2)}</td>
+                                    <td style="font-size: 0.85rem;">${w.bank_name || 'N/A'}</td>
+                                    <td><span style="background: ${statusColors[w.status]}33; color: ${statusColors[w.status]}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${w.status}</span></td>
+                                    <td>${new Date(w.requested_at).toLocaleDateString()}</td>
+                                    <td>
+                                        ${isPending ? `
+                                            <button onclick="approveUSDWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Approve</button>
+                                            <button onclick="rejectUSDWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #ef4444; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-left: 4px;">Reject</button>
+                                        ` : isApproved ? `
+                                            <button onclick="completeUSDWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Mark Complete</button>
+                                        ` : '<span style="color: #94a3b8;">-</span>'}
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 40px;">No USD withdrawal requests found</td></tr>';
+                    }
+                } else {
+                    table.innerHTML = '<tr><td colspan="8" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading USD withdrawals:', error);
+                table.innerHTML = '<tr><td colspan="8" style="color: #ef4444; text-align: center;">Error loading withdrawals</td></tr>';
+            }
+        }
+        
+        async function approveUSDWithdrawal(requestId) {
+            if (!confirm('Approve this USD withdrawal request? This marks it ready for bank transfer.')) return;
+            const notes = prompt('Add notes (optional):') || 'Approved for bank transfer';
+            
+            try {
+                const response = await fetch('/api/admin/usd-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'approve',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('USD withdrawal approved! Ready for bank transfer.');
+                    loadUSDWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error approving USD withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function completeUSDWithdrawal(requestId) {
+            const txRef = prompt('Enter bank transfer reference/confirmation number:');
+            if (txRef === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/usd-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'complete',
+                        txReference: txRef,
+                        notes: 'Bank transfer completed'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('USD withdrawal marked as completed!');
+                    loadUSDWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error completing USD withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function rejectUSDWithdrawal(requestId) {
+            const notes = prompt('Enter rejection reason:');
+            if (notes === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/usd-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'reject',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('USD withdrawal rejected.');
+                    loadUSDWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error rejecting USD withdrawal:', error);
                 alert('Error: ' + error.message);
             }
         }
