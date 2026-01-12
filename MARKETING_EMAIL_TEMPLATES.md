@@ -1,281 +1,309 @@
-# KENO Token ICO - Email Marketing Templates
+# KENO Token - VC & Investor Email Campaign Templates (2026)
 
 ## Template Index
-1. [Investor Outreach - Initial Contact](#template-1-investor-outreach---initial-contact)
+1. [VC/Investor Outreach - Liquidity Partnership](#template-1-vcinvestor-outreach---liquidity-partnership)
 2. [Investor Follow-Up - Feature Deep Dive](#template-2-investor-follow-up---feature-deep-dive)
 3. [Institutional Partnership Pitch](#template-3-institutional-partnership-pitch)
 4. [Student/Community Recruitment](#template-4-studentcommunity-recruitment)
 5. [Press/Media Outreach](#template-5-pressmedia-outreach)
-6. [Whitelist VIP Invitation](#template-6-whitelist-vip-invitation)
+6. [Node Sale Invitation](#template-6-node-sale-invitation)
 
 ---
 
-## Template 1: Investor Outreach - Initial Contact (URGENT - Nov 18 Deadline)
+## Template 1: VC/Investor Outreach - Liquidity Partnership
 
-**Subject Line:** ⏰ LAST CHANCE: 20% Bonus Ends Nov 18 - KENO Token Private Sale
+**Subject Line:** Investment Opportunity: KENO Token Liquidity Partnership - Educational Blockchain
 
 **Email Body:**
 
 ```
-Hi [First Name],
+Dear [Investor Name],
 
-⏰ URGENT: The KENO Token private sale ends in just 6 DAYS (November 18, 2025).
+I'm reaching out regarding a strategic investment opportunity in KENO Token, the world's first Knowledge Yield Token (KYT) powering Kenostod Blockchain Academy.
 
-This is your final opportunity to secure 20% bonus tokens before they're gone forever.
+**Why KENO is Different:**
 
-KENO is not just another learn-to-earn platform. We've built the world's first educational blockchain with revolutionary features that solve real problems:
+KENO is NOT a speculative cryptocurrency. It's a revolutionary new asset class:
+- **Knowledge:** Earned through completing 21 educational courses (5,250 KENO total)
+- **Yield:** Generates passive income through Flash Arbitrage Loans (FAL™)
+- **Token:** Real BEP-20 asset on Binance Smart Chain, verified on BSCScan
 
-🌟 WORLD FIRST: 5-minute transaction reversal window (protects against user errors)
-💎 Proof-of-Residual-Value mining that generates REAL revenue through AI/ML computations
-🎓 Complete blockchain simulator with 16 comprehensive courses in 6 languages
-🔒 Social recovery system and guardian-based wallet protection
+**Investment Opportunity:**
 
-**🚨 DEADLINE APPROACHING:**
-• Private Sale Ends: November 18, 2025 (6 days left!)
-• Current Bonus: 20% extra tokens
-• After Nov 18: NO BONUS + Higher prices
-• Public Sale: December 19, 2025
-• Token: KENO (ERC-20/BEP-20 on Binance Smart Chain)
-• Target Raise: $1.3M - $13M
-• Verified Contracts: Live on BSCScan
+We're seeking strategic partners to fund our PancakeSwap liquidity pool:
+- Target: $50,000 - $500,000 liquidity funding
+- Token Price: $1.00 per KENO (locked at this rate)
+- LP Token Split: 50/50 KENO/BNB pair
+- Returns: Trading fees + platform revenue share
 
-**Why KENO Stands Out:**
-Unlike BitDegree, Coinbase Learn & Earn, or PEDAGOG, KENO offers:
-✓ Full blockchain simulator (not just videos)
-✓ Revenue-generating PoRV mining with RVT NFTs
-✓ Built-in exchange, payment gateway, and mobile app
-✓ 4 revenue streams: B2B subscriptions, trading fees, merchant fees, white-label licensing
+**What's Already Built (Live Platform):**
 
-**Compare for yourself:**
-[Link to comparison chart]
+✅ 21 comprehensive blockchain courses in 6 languages
+✅ Flash Arbitrage Loan (FAL™) system with real profit generation
+✅ FALP liquidity pools for collective arbitrage
+✅ Mercury Bank integration for USD cashouts
+✅ Node Sale system (3 tiers: $299-$1,999)
+✅ Corporate B2B licensing ($15K-$150K deals)
+✅ AI-powered customer support
+✅ Mobile app ready (Capacitor/Android)
 
-**⚡ ACT NOW - Limited Time:**
-With only 6 days left, this is your LAST CHANCE to:
-✓ Lock in 20% bonus tokens (worth thousands at scale)
-✓ Get early PoRV mining access
-✓ Join at the lowest price point ever
+**Revenue Model:**
 
-Don't let this opportunity slip away. Can we schedule a quick 15-minute call TODAY to get you onboarded before the deadline?
+15+ revenue streams including:
+- Course subscriptions and corporate training
+- FAL/FALP platform fees
+- Node sales and licensing
+- Exchange trading fees
+- White-label partnerships
+
+**Verified Smart Contracts:**
+
+KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E (BSCScan verified)
+
+**Company:**
+
+Kenostod Blockchain Academy LLC
+Wyoming, USA (ID: 2026-001863120)
+Mercury Business Banking established
+
+**Next Steps:**
+
+I'd welcome a 20-minute call to discuss partnership terms and demonstrate the live platform.
+
+Are you available this week for a brief introduction?
 
 Best regards,
-[Your Name]
-Founder, Kenostod Blockchain Academy
-[Your Email]
-[Your Phone]
+Nickeo Coleman
+Founder & CEO, Kenostod Blockchain Academy
+Email: keno@kenostodblockchain.com
+Website: https://kenostodblockchain.com
 
-P.S. View our live smart contracts on BSCScan:
-• KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
-• Presale Contract: 0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0
+P.S. View our live platform and verified contracts - everything is built and operational.
 ```
 
 ---
 
 ## Template 2: Investor Follow-Up - Feature Deep Dive
 
-**Subject Line:** Re: KENO Token - Answering Your Questions About PoRV Mining
+**Subject Line:** Re: KENO Token - How Flash Arbitrage Loans Generate Real Returns
 
 **Email Body:**
 
 ```
 Hi [First Name],
 
-Thank you for your interest in KENO Token! I wanted to follow up with more details about our proprietary Proof-of-Residual-Value (PoRV) mining system.
+Thank you for your interest in KENO Token! I wanted to follow up with details about our proprietary Flash Arbitrage Loan (FAL™) system.
 
-**How PoRV Generates Real Revenue:**
+**How FAL™ Generates Real Revenue:**
 
-Traditional crypto mining consumes energy to solve arbitrary math problems. PoRV mining is different:
+Unlike traditional learn-to-earn platforms that rely on speculation, KENO's FAL™ system creates actual value:
 
-1. Enterprise clients pay to submit AI/ML computation tasks
-2. Miners complete these tasks and earn KENO + RVT NFTs
-3. RVT NFTs generate ongoing royalties from commercial usage
-4. Royalties are automatically distributed: 70% to NFT holders, 20% KENO burn (deflationary), 10% treasury
+1. Students complete 21 courses and earn 5,250 KENO
+2. Earned KENO can be used in Flash Arbitrage Loans
+3. FAL™ identifies cross-exchange price differences (Binance, Coinbase, Kraken, KuCoin)
+4. Profits are split: 70% to user, 20% platform fee, 10% scholarship fund
 
-**This creates THREE value drivers:**
-✅ Token utility (payment for enterprise tasks)
-✅ Deflationary mechanism (automatic token burning)
-✅ Passive income (RVT NFT royalties)
+**Flash Arbitrage Loan Pools (FALP):**
 
-**Real-World Economics:**
-• Enterprise client submits $1,000 task → pays in KENO
-• Miner completes task → earns KENO + RVT NFT
-• Task generates $10,000 in commercial value → RVT holder receives $7,000 in royalties
-• $2,000 worth of KENO is permanently burned (reduces supply)
-• $1,000 goes to treasury for platform development
+For collective arbitrage opportunities:
+- Pool KENO tokens with other users
+- Share in larger arbitrage profits
+- Lock period bonuses (higher returns for longer locks)
+- Risk tiers to match investment preferences
 
-**Comparison to Competitors:**
-BitDegree, Coinbase Learn & Earn, and Binance Academy offer simple "watch and earn" rewards. KENO is the ONLY platform with revenue-generating mining that creates lasting economic value.
+**Real-World Example:**
+- Student earns 5,250 KENO through courses ($5,250 value at $1.00)
+- Stakes KENO in FALP for 6 months
+- Earns estimated 15-30% annual yield through arbitrage
+- Can withdraw to USD via Mercury Bank when ready
 
-**Investment Terms (Private Sale):**
-• Price: 0.0000416 BNB per KENO (20% discount)
-• Minimum: 0.1 BNB (~$60)
-• Bonus: First 100 investors get additional 10% bonus
-• Vesting: No lockup - immediate liquidity
+**What Makes KENO Unique:**
 
-**Next Steps:**
-I'm hosting a private investor webinar this [Date] at [Time] to demonstrate the platform live. Would you like to attend?
+| Feature | KENO | BitDegree | Coinbase Earn |
+|---------|------|-----------|---------------|
+| Full blockchain simulator | ✅ | ❌ | ❌ |
+| Revenue-generating loans | ✅ | ❌ | ❌ |
+| USD cashout system | ✅ | ❌ | Limited |
+| Node ownership | ✅ | ❌ | ❌ |
+| B2B licensing | ✅ | ✅ | ❌ |
 
-Alternatively, I'm happy to arrange a 1-on-1 demo at your convenience.
+**Investment Terms:**
 
-Looking forward to having you as part of the KENO revolution!
+Liquidity Partnership:
+- Entry: $50,000 minimum
+- LP tokens with trading fee revenue
+- Platform revenue share agreement
+- Advisory board seat option
+
+**Demo Available:**
+
+I can show you the live platform with:
+- Real FAL™ calculations running
+- Student dashboard with earnings tracking
+- Admin panel with revenue metrics
+- Mercury Bank integration
+
+Would you like to schedule a live demo this week?
 
 Best regards,
-[Your Name]
-Founder, Kenostod Blockchain Academy
+Nickeo Coleman
+Founder & CEO, Kenostod Blockchain Academy
+Email: keno@kenostodblockchain.com
 
-P.S. Full whitepaper and tokenomics available at: [Link]
+P.S. Full documentation and API specs available upon request.
 ```
 
 ---
 
 ## Template 3: Institutional Partnership Pitch
 
-**Subject Line:** Corporate Blockchain Training Partnership Opportunity - KENO Academy
+**Subject Line:** Corporate Blockchain Training Partnership - Kenostod Academy
 
 **Email Body:**
 
 ```
 Dear [Title] [Last Name],
 
-I'm reaching out to [University/Company] because we're offering institutional partners early access to our blockchain education platform along with exclusive KENO token allocation.
+I'm reaching out to [University/Company] regarding an institutional partnership for blockchain education and workforce development.
 
-**About KENO Academy:**
-We've built the world's most comprehensive blockchain education platform featuring:
-• 16 hands-on courses with full blockchain simulator
-• Multi-language support (English, Spanish, Chinese, Hindi, Portuguese, French)
-• Enterprise-grade team management and analytics
-• White-label licensing for branded programs
+**About Kenostod Blockchain Academy:**
 
-**Partnership Benefits:**
+We've built the world's most comprehensive blockchain education platform:
+- 21 hands-on courses with full blockchain simulator
+- 6 languages (English, Spanish, Chinese, Hindi, Portuguese, French)
+- Students earn real KENO tokens while learning
+- Enterprise-grade team management and analytics
 
-FOR UNIVERSITIES/BOOTCAMPS:
-✓ Bulk student seats at 40-60% discount
-✓ Custom branded interface with your logo
-✓ Learning analytics dashboard for tracking progress
-✓ Revenue share on student token earnings
-✓ Exclusive KENO token allocation for your institution
+**Licensing Tiers:**
+
+| Tier | Investment | Features |
+|------|------------|----------|
+| Educational Institution | $15,000/year | 500 seats, branded portal, analytics |
+| Corporate Enterprise | $50,000/year | Unlimited seats, API access, custom courses |
+| White-Label Partner | $150,000/year | Full platform rebrand, revenue share |
+
+**Use Cases:**
+
+FOR UNIVERSITIES:
+- Blockchain certification programs
+- Computer science curriculum enhancement
+- Student career placement advantage
+- Research collaboration opportunities
 
 FOR CORPORATIONS:
-✓ Employee blockchain training programs
-✓ Team management and progress tracking
-✓ Custom course development for your industry
-✓ API integration with your LMS/HR systems
-✓ ROI tracking and compliance reporting
+- Employee blockchain literacy training
+- Fintech team upskilling
+- Compliance and security training
+- Innovation lab resources
 
-**Current Clients:**
-[If you have any - otherwise remove this section]
+**ROI for Partners:**
 
-**Exclusive ICO Opportunity:**
-As an institutional partner, you receive:
-• 30% discount on KENO tokens during private sale
-• Dedicated account manager
-• Priority support and feature requests
-• Co-marketing opportunities
+- Students earn KENO tokens (real value)
+- Potential revenue share on platform fees
+- Early access to node ownership program
+- Co-marketing and brand association
 
-**Investment Example:**
-$10,000 investment during private sale:
-• Receives tokens worth $14,285 at public sale price (30% discount)
-• Can be used for student/employee training credits
-• Potential appreciation as platform grows
-• Additional value from PoRV mining and RVT royalties
+**Current Platform Stats:**
+
+- 21 comprehensive courses
+- 5,250 KENO earned per graduate ($5,250 value)
+- Live on BSC with verified contracts
+- Mercury Bank integration for USD operations
 
 **Next Steps:**
-I'd love to schedule a 20-minute demo to show you:
-1. Live platform walkthrough
-2. Team management dashboard
-3. Custom branding options
-4. Partnership terms and pricing
 
-Are you available [Day] or [Day] for a brief call?
+I'd welcome the opportunity to demonstrate our platform and discuss partnership terms.
+
+Available for a 30-minute introduction call at your convenience.
 
 Best regards,
-[Your Name]
-Founder & CEO, Kenostod Blockchain Academy
-[Your Email] | [Your Phone]
+Nickeo Coleman
+Founder & CEO, Kenostod Blockchain Academy LLC
+Email: keno@kenostodblockchain.com
+Website: https://kenostodblockchain.com
 
-P.S. View our competitive analysis: [Link to comparison chart]
+**Quick Links:**
+- Platform Demo: Available upon request
+- For Organizations: kenostodblockchain.com/for-organizations.html
+- BSCScan Verified: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 ```
 
 ---
 
 ## Template 4: Student/Community Recruitment
 
-**Subject Line:** Learn Blockchain & Earn Real Cryptocurrency - Free Course Inside 🚀
+**Subject Line:** Learn Blockchain & Earn $5,250 in KENO Tokens - Free Courses Inside
 
 **Email Body:**
 
 ```
 Hey [First Name]!
 
-Want to learn blockchain technology AND earn real cryptocurrency at the same time?
+Want to learn blockchain technology AND earn real cryptocurrency?
 
-KENO Academy is offering FREE access to the world's most advanced blockchain education platform. No catches, no gimmicks - just real learning with real earning potential.
+Kenostod Academy offers FREE access to the world's most advanced blockchain education platform. Complete 21 courses and earn 5,250 KENO tokens ($5,250 value at $1.00 per token).
 
-**What You Get (100% Free):**
+**What You Get:**
 
-📚 16 Comprehensive Courses:
-• Wallet Management & Cryptography
-• Transactions & Digital Signatures
-• Mining (Proof-of-Work + Proof-of-Residual-Value)
-• Smart Contracts & DeFi
-• Exchange Trading & Market Making
-...and 11 more!
+📚 21 Comprehensive Courses:
+- Wallet Management & Cryptography
+- Transactions & Digital Signatures
+- Mining (Proof-of-Work + Proof-of-Residual-Value)
+- Smart Contracts & DeFi
+- Flash Arbitrage Loans
+- Exchange Trading & Market Making
+...and 15 more!
 
 💻 Hands-On Learning:
-• Full blockchain simulator (not just videos!)
-• Create real wallets and transactions
-• Mine blocks and earn KENO tokens
-• Trade on built-in exchange
-• Build payment gateways
+- Full blockchain simulator (not just videos!)
+- Create real wallets and transactions
+- Mine blocks and earn KENO tokens
+- Trade on built-in exchange
 
 🌍 Your Language:
 Available in English, Spanish, Chinese, Hindi, Portuguese, and French
 
 💰 Real Earning Potential:
-• Earn KENO tokens while learning
-• Mine with Proof-of-Residual-Value for RVT NFTs
-• RVT NFTs generate ongoing royalties
-• Trade on exchange or use for real payments
+- Earn 250 KENO per course completed
+- 21 courses = 5,250 KENO total
+- Use Flash Arbitrage Loans for passive income
+- Cash out to USD via bank transfer
 
-**Limited Time ICO Bonus:**
-Join before December 19 and get:
-✓ 10 free KENO tokens to start
-✓ Early access to PoRV mining
-✓ Exclusive whitelist status for future airdrops
+**How It Works:**
 
-**Get Started in 2 Minutes:**
-1. Click here: [Link to platform]
-2. Create your wallet (we'll guide you)
-3. Start Course 1: Wallet Management
-4. Earn your first KENO tokens!
+1. Sign up free at kenostodblockchain.com
+2. Start Course 1: Wallet Management (FREE - no payment needed)
+3. Complete courses at your own pace
+4. Earn KENO tokens for each completion
+5. Withdraw to your wallet or cash out to USD
 
-**Why Students Love KENO:**
+**The KENO Difference:**
 
-"I learned more in 2 weeks on KENO than in 6 months of YouTube videos. Plus I earned $50 in tokens!" - Maria, Spain
-
-"The hands-on simulator makes everything click. And the RVT mining is genius." - Raj, India
-
-"Finally, a platform that teaches real blockchain instead of just crypto trading." - Chen, China
+Unlike watch-and-earn platforms:
+✓ Full hands-on simulator experience
+✓ Real token with verified smart contract
+✓ Passive income through FAL™ system
+✓ Path to employment (career center)
+✓ Graduate recognition and merchandise
 
 **Questions?**
-Reply to this email or join our community:
-• Discord: [Link]
-• Telegram: [Link]
-• Twitter/X: [Link]
 
-Start learning today - your future blockchain career is waiting!
+Reply to this email or contact us:
+- Email: keno@kenostodblockchain.com
+- Website: kenostodblockchain.com
 
-See you in the Academy,
-[Your Name]
-KENO Academy Team
+Start learning today - your blockchain career awaits!
 
-P.S. Share this with 3 friends and all of you get bonus KENO tokens! 🎁
+Kenostod Academy Team
+
+*KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E (BSC)*
 ```
 
 ---
 
 ## Template 5: Press/Media Outreach
 
-**Subject Line:** PRESS RELEASE: Revolutionary Educational Blockchain Launches $13M ICO
+**Subject Line:** PRESS: Educational Blockchain Platform Launches Real-Earning Token System
 
 **Email Body:**
 
@@ -284,221 +312,161 @@ FOR IMMEDIATE RELEASE
 
 Dear [Journalist Name],
 
-I'm reaching out with a story that I believe will interest your readers in the blockchain education and edtech space.
+I'm reaching out with a story about the intersection of blockchain education and real economic value creation.
 
-**KENO Academy Launches World's First Educational Blockchain with Revenue-Generating Mining**
+**HEADLINE:**
+Kenostod Blockchain Academy Launches KENO - World's First "Knowledge Yield Token"
 
-Kenostod Blockchain Academy has launched KENO Token, a cryptocurrency backed by a fully functional blockchain education platform featuring revolutionary technology not found in any competing system.
+**THE STORY:**
 
-**Key Story Angles:**
+Kenostod Blockchain Academy has created a new category of digital asset: the Knowledge Yield Token (KYT). Unlike speculative cryptocurrencies, KENO is earned through education and generates passive income through Flash Arbitrage Loans.
 
-1. **World-First Technology:**
-   - Only blockchain with 5-minute transaction reversal window
-   - Proprietary Proof-of-Residual-Value mining generates real economic value
-   - RVT NFTs provide automatic passive income streams
+**KEY FACTS:**
 
-2. **$1.3M-$13M ICO:**
-   - Private sale now open on Binance Smart Chain
-   - Public sale begins December 19, 2025
-   - Verified smart contracts live on BSCScan
+- Token: KENO (BEP-20 on Binance Smart Chain)
+- Earning: 5,250 KENO earned by completing 21 courses
+- Value: $1.00 per KENO
+- Yield: Flash Arbitrage Loan system generates real returns
+- Company: Kenostod Blockchain Academy LLC (Wyoming, USA)
+- Banking: Mercury Business Banking for USD operations
 
-3. **Massive Market Opportunity:**
-   - $3.2 billion blockchain education market by 2027
-   - KENO targets 4 revenue streams: B2B subscriptions, exchange fees, merchant fees, white-label licensing
-   - Competitive advantages over BitDegree, Coinbase, Binance Academy
+**WHAT MAKES IT NEWSWORTHY:**
 
-**Available for Interview:**
-I'm available for interviews to discuss:
-• How PoRV mining revolutionizes learn-to-earn models
-• The future of blockchain education
-• Why transaction reversal solves crypto's biggest user problem
-• Global expansion strategy with 6-language support
+1. **First of Its Kind:** KENO creates a new asset class - tokens earned through verified learning, not purchased through speculation.
 
-**Press Kit Includes:**
-• High-resolution logos and screenshots
-• Founder bio and headshots
-• Technical whitepaper
-• Competitive analysis chart
-• Demo access to platform
+2. **Real Revenue Model:** Flash Arbitrage Loans generate actual profits from cross-exchange price differences.
 
-**Exclusive Opportunity:**
-I can offer your publication exclusive early access to interview our founding team and demo the platform before public launch.
+3. **Verified and Operational:** Smart contracts live on BSCScan, Mercury Bank integration active, full platform functional.
 
-Would you be interested in covering this story? I'm happy to provide any additional information or arrange an interview at your convenience.
+4. **Global Accessibility:** 21 courses in 6 languages, free to start.
 
-Best regards,
-[Your Name]
-Founder & CEO, Kenostod Blockchain Academy
-[Your Email] | [Your Phone]
+**FOUNDER AVAILABLE FOR INTERVIEW:**
 
-**Quick Facts:**
-• Token: KENO (BEP-20)
-• Blockchain: Binance Smart Chain
-• Platform: 16 courses, 6 languages, full simulator
-• Unique Tech: Transaction reversal, PoRV mining, RVT NFTs
-• Website: [URL]
-• Contracts: Verified on BSCScan
+Nickeo Coleman, Founder & CEO
+- Background: Creating innovations since 2007, coding since 2020
+- Vision: Breaking poverty cycles through blockchain education
+- Philosophy: "KENO is king, Kenostod is his kingdom - but everyone receives royalties, not just the king."
 
-Media Assets: [Link to press kit]
+**ASSETS AVAILABLE:**
+
+- Platform screenshots and demos
+- Smart contract verification links
+- Founder bio and photos
+- Technical whitepaper
+- Competitive analysis
+
+**CONTACT:**
+
+Nickeo Coleman
+Email: keno@kenostodblockchain.com
+Website: kenostodblockchain.com
+BSCScan: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+
+Would you be interested in covering this story?
 ```
 
 ---
 
-## Template 6: Whitelist VIP Invitation
+## Template 6: Node Sale Invitation
 
-**Subject Line:** 🌟 You're Invited: Exclusive KENO Private Sale Access (20% Bonus)
+**Subject Line:** Exclusive: Kenostod Node Sale - Own Infrastructure, Earn Passive Income
 
 **Email Body:**
 
 ```
 Hi [First Name],
 
-You've been selected for exclusive whitelist access to the KENO Token private sale.
+You're invited to participate in the Kenostod Node Sale - an opportunity to own a piece of our blockchain infrastructure and earn passive income.
 
-**Your VIP Benefits:**
+**What Are Kenostod Nodes?**
 
-💎 20% Bonus Tokens
-Private sale price: 0.0000416 BNB/KENO (vs 0.0000520 public sale)
-That's an instant 20% gain before public launch!
+Nodes power the Kenostod ecosystem by:
+- Validating course completions
+- Distributing KENO rewards
+- Processing FAL calculations
+- Verifying graduate credentials
+- Handling B.U.K security events
 
-🎯 Priority Allocation
-Your whitelist spot guarantees token allocation (public sale may sell out)
+**Node Tiers:**
 
-🔓 No Lockup Period
-Trade immediately - no vesting, no waiting
+| Tier | Price | Utility Functions | Expected Returns |
+|------|-------|-------------------|------------------|
+| Scholar | $299 | Course validation, basic rewards | Entry-level passive income |
+| Educator | $799 | All Scholar + FAL processing | Mid-tier returns |
+| Academy | $1,999 | All functions + priority processing | Maximum earning potential |
 
-⚡ First Access to PoRV Mining
-Start earning RVT NFTs and royalties before public investors
+**Node Owner Benefits:**
 
-**Sale Details:**
+✅ Passive income from network fees
+✅ Priority access to platform features
+✅ Governance voting rights
+✅ Insurance partner revenue (5% of premiums)
+✅ Early access to new features
 
-Private Sale Period: NOW - December 11, 2025
-Your Whitelist Status: ACTIVE ✅
-Minimum Investment: 0.1 BNB (~$60)
-Maximum Investment: 100 BNB (~$60,000)
-Bonus Expires: [Date]
+**Limited Availability:**
+
+Node sale launching Q1 2026 with limited spots per tier.
 
 **How to Participate:**
 
-1. Connect MetaMask to Binance Smart Chain
-2. Visit: [ICO platform URL]
-3. Your address is pre-approved (no KYC needed)
-4. Contribute BNB and receive KENO + 20% bonus instantly
+1. Join the whitelist at kenostodblockchain.com/node-sale.html
+2. Complete identity verification
+3. Select your preferred tier
+4. Receive priority notification when sale opens
 
-**Why Early Investors Win:**
+**Already Built:**
 
-✓ Best price (20% discount)
-✓ Early PoRV mining = more RVT NFTs
-✓ RVT royalties compound over time
-✓ First-mover advantage in platform ecosystem
+- Node registration system live
+- PostgreSQL database tracking
+- Admin management panel
+- Payment processing ready
 
-**The KENO Difference:**
+**Questions?**
 
-Unlike other educational tokens, KENO offers:
-• Real revenue-generating mining (PoRV)
-• Automatic passive income (RVT royalties)
-• Deflationary tokenomics (automatic burns)
-• Complete platform ecosystem
+Reply to this email or contact:
+- Email: keno@kenostodblockchain.com
+- Website: kenostodblockchain.com/node-sale.html
 
-**Time Sensitive:**
-
-Your whitelist access expires in [X days]. After that, you'll need to wait for public sale at a 20% higher price with no guaranteed allocation.
-
-**Questions Before Investing?**
-
-Reply to this email or schedule a 10-minute call: [Calendly link]
-
-Don't miss this exclusive opportunity!
+Secure your node position today!
 
 Best regards,
-[Your Name]
-Founder, Kenostod Blockchain Academy
-
-P.S. Check out how we compare to competitors: [Comparison chart link]
-
-**Quick Links:**
-• Buy KENO Now: [ICO platform]
-• View Contracts: [BSCScan links]
-• Read Whitepaper: [Link]
-• Join Community: [Discord/Telegram]
-
-*This is not financial advice. Cryptocurrency investments carry risk. Invest responsibly.*
+Nickeo Coleman
+Founder & CEO, Kenostod Blockchain Academy
+Email: keno@kenostodblockchain.com
 ```
 
 ---
 
-## Email Best Practices
+## Email Campaign Best Practices
+
+### For VC/Investor Outreach:
+- Lead with the opportunity, not the ask
+- Include verified proof points (contracts, bank, LLC)
+- Offer specific next steps (demo, call)
+- Follow up at Day 3, Day 7, Day 14
 
 ### Subject Line Tips:
 - Keep under 50 characters
-- Use numbers ($1.3M, 20% bonus)
-- Create urgency (Limited Time, Now Open)
+- Be specific (amounts, features)
+- Avoid spam triggers (FREE, URGENT, etc.)
 - Personalize when possible
 
-### Body Tips:
-- Lead with value proposition
-- Use bullet points and emojis for scannability
-- Include clear call-to-action
-- Add social proof (testimonials, metrics)
-- Always include contact information
-
-### Follow-Up Schedule:
-- Day 3: Send follow-up if no response
-- Day 7: Send feature-focused email
-- Day 14: Send last chance/urgency email
-- Day 30: Move to nurture campaign
-
-### A/B Testing Ideas:
-- Test different subject lines
-- Test longer vs shorter emails
-- Test different CTAs ("Schedule Call" vs "Learn More")
-- Test with/without emojis
+### Tracking:
+- Use UTM parameters on all links
+- Track opens, clicks, responses
+- A/B test subject lines
+- Iterate based on data
 
 ---
 
-## Customization Guide
+## Contact Information
 
-**Before Sending:**
-1. Replace [Placeholders] with actual information
-2. Add your contact details
-3. Insert real URLs (comparison chart, ICO platform, etc.)
-4. Personalize the greeting and content
-5. Add any testimonials or case studies you have
-6. Update dates and pricing if needed
-
-**Legal Disclaimer to Add:**
-```
-*This email contains information about cryptocurrency investments. Cryptocurrency investments 
-carry significant risk and may not be suitable for all investors. Past performance does not 
-guarantee future results. Please conduct your own research and consult with a financial 
-advisor before investing. This is not financial advice.*
-```
+**Founder:** Nickeo Coleman
+**Email:** keno@kenostodblockchain.com
+**Company:** Kenostod Blockchain Academy LLC
+**Location:** Wyoming, USA (ID: 2026-001863120)
+**Token:** 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 
 ---
 
-## Tracking Recommendations
-
-Track these metrics for each template:
-- Open rate
-- Click-through rate
-- Response rate
-- Conversion rate (to investor/student)
-- Time to response
-
-Use tools like:
-- MailChimp / SendGrid for bulk sending
-- HubSpot / Pipedrive for CRM tracking
-- Google Analytics for link tracking
-- Calendly for scheduling automation
-
----
-
-**Next Steps:**
-1. Customize templates with your information
-2. Build email list (investors, institutions, students, press)
-3. Set up email automation platform
-4. Create tracking links for each campaign
-5. Schedule sends and monitor results
-6. Iterate based on performance data
-
-Good luck with your ICO campaign! 🚀
+*Updated January 2026*
