@@ -4,7 +4,8 @@ const PRINTFUL_ITEM_MAPPING = {
     'hat': { variant_id: 4013, name: 'Kenostod Graduate Hat' },
     'mug': { variant_id: 4014, name: 'Kenostod Graduate Mug' },
     'sticker': { variant_id: 4015, name: 'Kenostod Graduate Sticker Pack' },
-    'pin': { variant_id: 4016, name: 'Kenostod Graduate Pin' }
+    'pin': { variant_id: 4016, name: 'Kenostod Graduate Pin' },
+    'id-card': { variant_id: 4017, name: 'Kenostod Graduate ID Card' }
 };
 
 class PrintfulIntegration {
@@ -56,16 +57,26 @@ class PrintfulIntegration {
     }
 
     mapMerchandiseOrderToPrintful(order) {
-        const items = order.items_requested.map(item => {
-            const itemKey = item.name.toLowerCase().replace(/\s+/g, '-');
+        let itemsData = order.items_requested;
+        if (typeof itemsData === 'string') {
+            try {
+                itemsData = JSON.parse(itemsData);
+            } catch (e) {
+                console.error('Failed to parse items_requested:', e);
+                itemsData = [];
+            }
+        }
+        
+        const items = itemsData.map(item => {
+            const itemKey = (item.itemType || item.name || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
             const printfulItem = PRINTFUL_ITEM_MAPPING[itemKey];
             
             if (!printfulItem) {
-                console.warn(`⚠️  Unknown item type: ${item.name}, using default variant`);
+                console.warn(`⚠️  Unknown item type: ${itemKey}, using default variant`);
                 return {
                     variant_id: 4011,
                     quantity: item.quantity || 1,
-                    name: item.name
+                    name: item.itemType || item.name || 'Unknown Item'
                 };
             }
 
