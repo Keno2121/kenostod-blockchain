@@ -645,6 +645,10 @@
                     <span class="icon">🏦</span>
                     <span>USD Cashouts</span>
                 </div>
+                <div class="nav-item" onclick="showTab('nodeWhitelist')">
+                    <span class="icon">🖥️</span>
+                    <span>Node Whitelist</span>
+                </div>
             </nav>
         </aside>
         
@@ -1089,6 +1093,64 @@
                         <tbody id="usdWithdrawalsTable">
                             <tr>
                                 <td colspan="8" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="nodeWhitelistTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Node Whitelist Summary</h2>
+                        <button onclick="loadNodeWhitelist()" style="padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white;">Refresh</button>
+                    </div>
+                    <div id="nodeWhitelistSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="nodeScholarCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Scholar Nodes ($299)</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="nodeEducatorCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Educator Nodes ($799)</div>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #a855f7;" id="nodeAcademyCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Academy Nodes ($1,999)</div>
+                        </div>
+                        <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #ffd700;" id="nodeTotalRegistered">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Registered</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Node Whitelist Registrations</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="nodeWhitelistFilter" onchange="loadNodeWhitelist()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Tiers</option>
+                                <option value="scholar">Scholar</option>
+                                <option value="educator">Educator</option>
+                                <option value="academy">Academy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Whitelist ID</th>
+                                <th>Email</th>
+                                <th>Wallet</th>
+                                <th>Tier</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nodeWhitelistTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1547,7 +1609,8 @@
                 referrals: 'Referral Program',
                 scholarships: 'Scholarship Management',
                 falWithdrawals: 'FAL Withdrawal Requests',
-                usdWithdrawals: 'USD Cashout Management'
+                usdWithdrawals: 'USD Cashout Management',
+                nodeWhitelist: 'Node Whitelist Management'
             };
             
             if (tabName === 'claims') {
@@ -1562,6 +1625,9 @@
             }
             if (tabName === 'usdWithdrawals') {
                 loadUSDWithdrawals();
+            }
+            if (tabName === 'nodeWhitelist') {
+                loadNodeWhitelist();
             }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
         }
@@ -2168,6 +2234,61 @@
             } catch (error) {
                 console.error('Error rejecting USD withdrawal:', error);
                 alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadNodeWhitelist() {
+            const table = document.getElementById('nodeWhitelistTable');
+            table.innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('nodeWhitelistFilter')?.value || '';
+                let url = `/api/admin/node-whitelist`;
+                if (filter) url += `?tier=${filter}`;
+                
+                const response = await fetch(url, {
+                    headers: { 'x-admin-password': adminPwd }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const whitelist = data.whitelist || [];
+                    const scholarCount = whitelist.filter(w => w.tier === 'scholar').length;
+                    const educatorCount = whitelist.filter(w => w.tier === 'educator').length;
+                    const academyCount = whitelist.filter(w => w.tier === 'academy').length;
+                    
+                    document.getElementById('nodeScholarCount').textContent = scholarCount;
+                    document.getElementById('nodeEducatorCount').textContent = educatorCount;
+                    document.getElementById('nodeAcademyCount').textContent = academyCount;
+                    document.getElementById('nodeTotalRegistered').textContent = whitelist.length;
+                    
+                    if (whitelist.length > 0) {
+                        let html = '';
+                        const filteredList = filter ? whitelist.filter(w => w.tier === filter) : whitelist;
+                        filteredList.forEach(w => {
+                            const tierColors = { scholar: '#10b981', educator: '#3b82f6', academy: '#a855f7' };
+                            const tierColor = tierColors[w.tier] || '#94a3b8';
+                            html += `
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 0.85rem;">${w.whitelist_id}</td>
+                                    <td>${w.email}</td>
+                                    <td style="font-family: monospace; font-size: 0.8rem;">${w.wallet ? w.wallet.substring(0, 10) + '...' : 'N/A'}</td>
+                                    <td><span style="background: ${tierColor}33; color: ${tierColor}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; text-transform: capitalize;">${w.tier}</span></td>
+                                    <td><span style="background: ${w.status === 'pending' ? '#f59e0b33' : '#10b98133'}; color: ${w.status === 'pending' ? '#f59e0b' : '#10b981'}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${w.status || 'pending'}</span></td>
+                                    <td>${new Date(w.registered_at).toLocaleDateString()}</td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">No node whitelist registrations yet. Share the /node-sale.html page to get registrations!</td></tr>';
+                    }
+                } else {
+                    table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading node whitelist:', error);
+                table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error loading whitelist</td></tr>';
             }
         }
         
