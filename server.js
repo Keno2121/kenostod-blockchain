@@ -8514,6 +8514,29 @@ app.post('/api/usd-withdrawal/request', async (req, res) => {
         }
         
         const usdAmount = kenoAmount * 1.00;
+        
+        // Check reserve availability (Revenue-First Model)
+        const reserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+        if (reserve.rows.length > 0) {
+            const r = reserve.rows[0];
+            const currentBalance = parseFloat(r.current_balance_usd);
+            const minimumReserve = parseFloat(r.minimum_reserve_usd);
+            const availableForWithdrawal = currentBalance - minimumReserve;
+            
+            if (availableForWithdrawal < usdAmount) {
+                console.log(`⚠️ Withdrawal blocked: $${usdAmount} requested, only $${availableForWithdrawal.toFixed(2)} available`);
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Withdrawal reserve is currently low. Please try a smaller amount or wait for more revenue to be deposited.',
+                    reserveStatus: {
+                        available: Math.max(0, availableForWithdrawal),
+                        requested: usdAmount,
+                        message: 'Revenue-first model: Withdrawals are funded from platform revenue (courses, ICO, node sales, B2B licensing)'
+                    }
+                });
+            }
+        }
+        
         const requestId = 'USD-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
         
         await dbConnection.query(`
@@ -8618,6 +8641,23 @@ app.post('/api/admin/usd-withdrawal/process', async (req, res) => {
         const w = withdrawal.rows[0];
         
         if (action === 'approve') {
+            // Check reserve availability before approving
+            const reserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+            if (reserve.rows.length > 0) {
+                const r = reserve.rows[0];
+                const currentBalance = parseFloat(r.current_balance_usd);
+                const minimumReserve = parseFloat(r.minimum_reserve_usd);
+                const availableForWithdrawal = currentBalance - minimumReserve;
+                
+                if (availableForWithdrawal < parseFloat(w.usd_amount)) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        error: `Insufficient reserve funds. Available: $${availableForWithdrawal.toFixed(2)}, Requested: $${w.usd_amount}`,
+                        suggestion: 'Add more funds to the reserve via revenue deposits before approving this withdrawal.'
+                    });
+                }
+            }
+            
             const decryptedAccount = mercuryBankAPI.decryptAccountNumber(w.account_number_encrypted);
             
             const transferResult = await mercuryBankAPI.initiateACHTransfer({
@@ -8628,6 +8668,29 @@ app.post('/api/admin/usd-withdrawal/process', async (req, res) => {
                 accountType: w.account_type,
                 memo: `Kenostod KENO Withdrawal - ${requestId}`
             });
+            
+            // Deduct from reserve after successful transfer initiation
+            const currentReserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+            if (currentReserve.rows.length > 0) {
+                const currentUsd = parseFloat(currentReserve.rows[0].current_balance_usd);
+                const currentKeno = parseFloat(currentReserve.rows[0].current_balance_keno);
+                const newBalanceUsd = Math.max(0, currentUsd - parseFloat(w.usd_amount));
+                const newBalanceKeno = Math.max(0, currentKeno - parseFloat(w.keno_amount));
+                
+                await dbConnection.query(`
+                    UPDATE withdrawal_reserve 
+                    SET current_balance_usd = $1, current_balance_keno = $2, last_updated = CURRENT_TIMESTAMP
+                    WHERE id = (SELECT id FROM withdrawal_reserve ORDER BY id DESC LIMIT 1)
+                `, [newBalanceUsd, newBalanceKeno]);
+                
+                await dbConnection.query(`
+                    INSERT INTO reserve_transactions 
+                    (transaction_type, source, amount_usd, amount_keno, reference_id, description, balance_after_usd, balance_after_keno, created_by)
+                    VALUES ('withdrawal', 'student_cashout', $1, $2, $3, $4, $5, $6, 'admin')
+                `, [w.usd_amount, w.keno_amount, requestId, `USD cashout to ${w.email}`, newBalanceUsd, newBalanceKeno]);
+                
+                console.log(`📤 Reserve deduction: $${w.usd_amount} for ${requestId}. New balance: $${newBalanceUsd}`);
+            }
             
             await dbConnection.query(`
                 UPDATE usd_withdrawals 
@@ -8657,6 +8720,248 @@ app.post('/api/admin/usd-withdrawal/process', async (req, res) => {
 });
 
 // ==================== END MERCURY BANK ENDPOINTS ====================
+
+// ==================== WITHDRAWAL RESERVE SYSTEM (Revenue-First Model) ====================
+
+// Get reserve status (public endpoint for transparency)
+app.get('/api/reserve/status', async (req, res) => {
+    try {
+        const reserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+        
+        if (reserve.rows.length === 0) {
+            return res.json({ 
+                success: true, 
+                reserve: { currentBalanceUsd: 0, currentBalanceKeno: 0, minimumReserveUsd: 1000, healthy: false }
+            });
+        }
+        
+        const r = reserve.rows[0];
+        const pendingWithdrawals = await dbConnection.query(
+            "SELECT COALESCE(SUM(usd_amount), 0) as pending FROM usd_withdrawals WHERE status = 'pending'"
+        );
+        const pendingAmount = parseFloat(pendingWithdrawals.rows[0]?.pending || 0);
+        
+        const availableForWithdrawal = Math.max(0, parseFloat(r.current_balance_usd) - parseFloat(r.minimum_reserve_usd));
+        const isHealthy = parseFloat(r.current_balance_usd) >= parseFloat(r.minimum_reserve_usd);
+        
+        res.json({
+            success: true,
+            reserve: {
+                currentBalanceUsd: parseFloat(r.current_balance_usd),
+                currentBalanceKeno: parseFloat(r.current_balance_keno),
+                minimumReserveUsd: parseFloat(r.minimum_reserve_usd),
+                reservePercentage: r.reserve_percentage,
+                kenoPriceUsd: parseFloat(r.keno_price_usd),
+                pendingWithdrawalsUsd: pendingAmount,
+                availableForWithdrawal: availableForWithdrawal,
+                healthy: isHealthy,
+                lastUpdated: r.last_updated
+            }
+        });
+    } catch (error) {
+        console.error('Reserve status error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Admin: Get detailed reserve info and transaction history
+app.get('/api/admin/reserve', requireAdminAuth, async (req, res) => {
+    try {
+        const reserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+        const transactions = await dbConnection.query(
+            'SELECT * FROM reserve_transactions ORDER BY created_at DESC LIMIT 100'
+        );
+        
+        const pendingWithdrawals = await dbConnection.query(
+            "SELECT COALESCE(SUM(usd_amount), 0) as pending, COUNT(*) as count FROM usd_withdrawals WHERE status = 'pending'"
+        );
+        
+        const revenueStats = await dbConnection.query(`
+            SELECT source, 
+                   SUM(amount_usd) as total_usd, 
+                   COUNT(*) as count
+            FROM reserve_transactions 
+            WHERE transaction_type = 'deposit'
+            GROUP BY source
+        `);
+        
+        const withdrawalStats = await dbConnection.query(`
+            SELECT SUM(amount_usd) as total_withdrawn, COUNT(*) as count
+            FROM reserve_transactions 
+            WHERE transaction_type = 'withdrawal'
+        `);
+        
+        res.json({
+            success: true,
+            reserve: reserve.rows[0] || null,
+            transactions: transactions.rows,
+            pendingWithdrawals: {
+                totalUsd: parseFloat(pendingWithdrawals.rows[0]?.pending || 0),
+                count: parseInt(pendingWithdrawals.rows[0]?.count || 0)
+            },
+            revenueBySource: revenueStats.rows,
+            totalWithdrawn: {
+                totalUsd: parseFloat(withdrawalStats.rows[0]?.total_withdrawn || 0),
+                count: parseInt(withdrawalStats.rows[0]?.count || 0)
+            }
+        });
+    } catch (error) {
+        console.error('Admin reserve error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Admin: Add funds to reserve (from revenue sources)
+app.post('/api/admin/reserve/deposit', requireAdminAuth, async (req, res) => {
+    try {
+        const { source, amountUsd, amountKeno, referenceId, description } = req.body;
+        
+        if (!source || (!amountUsd && !amountKeno)) {
+            return res.status(400).json({ success: false, error: 'Source and amount required' });
+        }
+        
+        const validSources = ['ico_sale', 'course_sale', 'node_sale', 'b2b_licensing', 'trading_fees', 'manual_deposit', 'other'];
+        if (!validSources.includes(source)) {
+            return res.status(400).json({ success: false, error: `Invalid source. Valid: ${validSources.join(', ')}` });
+        }
+        
+        // Get current reserve balance
+        const currentReserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+        const currentUsd = parseFloat(currentReserve.rows[0]?.current_balance_usd || 0);
+        const currentKeno = parseFloat(currentReserve.rows[0]?.current_balance_keno || 0);
+        
+        const depositUsd = parseFloat(amountUsd) || 0;
+        const depositKeno = parseFloat(amountKeno) || 0;
+        
+        const newBalanceUsd = currentUsd + depositUsd;
+        const newBalanceKeno = currentKeno + depositKeno;
+        
+        // Update reserve balance
+        await dbConnection.query(`
+            UPDATE withdrawal_reserve 
+            SET current_balance_usd = $1, current_balance_keno = $2, last_updated = CURRENT_TIMESTAMP
+            WHERE id = (SELECT id FROM withdrawal_reserve ORDER BY id DESC LIMIT 1)
+        `, [newBalanceUsd, newBalanceKeno]);
+        
+        // Log transaction
+        await dbConnection.query(`
+            INSERT INTO reserve_transactions 
+            (transaction_type, source, amount_usd, amount_keno, reference_id, description, balance_after_usd, balance_after_keno, created_by)
+            VALUES ('deposit', $1, $2, $3, $4, $5, $6, $7, 'admin')
+        `, [source, depositUsd, depositKeno, referenceId || null, description || `Revenue deposit from ${source}`, newBalanceUsd, newBalanceKeno]);
+        
+        console.log(`💰 Reserve deposit: $${depositUsd} / ${depositKeno} KENO from ${source}. New balance: $${newBalanceUsd}`);
+        
+        res.json({
+            success: true,
+            message: 'Funds deposited to reserve',
+            deposit: { amountUsd: depositUsd, amountKeno: depositKeno, source },
+            newBalance: { usd: newBalanceUsd, keno: newBalanceKeno }
+        });
+    } catch (error) {
+        console.error('Reserve deposit error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Admin: Update reserve settings
+app.post('/api/admin/reserve/settings', requireAdminAuth, async (req, res) => {
+    try {
+        const { minimumReserveUsd, reservePercentage, kenoPriceUsd } = req.body;
+        
+        const updates = [];
+        const values = [];
+        let paramIndex = 1;
+        
+        if (minimumReserveUsd !== undefined) {
+            updates.push(`minimum_reserve_usd = $${paramIndex++}`);
+            values.push(parseFloat(minimumReserveUsd));
+        }
+        if (reservePercentage !== undefined) {
+            updates.push(`reserve_percentage = $${paramIndex++}`);
+            values.push(parseInt(reservePercentage));
+        }
+        if (kenoPriceUsd !== undefined) {
+            updates.push(`keno_price_usd = $${paramIndex++}`);
+            values.push(parseFloat(kenoPriceUsd));
+        }
+        
+        if (updates.length === 0) {
+            return res.status(400).json({ success: false, error: 'No settings to update' });
+        }
+        
+        updates.push('last_updated = CURRENT_TIMESTAMP');
+        
+        await dbConnection.query(`
+            UPDATE withdrawal_reserve 
+            SET ${updates.join(', ')}
+            WHERE id = (SELECT id FROM withdrawal_reserve ORDER BY id DESC LIMIT 1)
+        `, values);
+        
+        console.log(`⚙️ Reserve settings updated`);
+        res.json({ success: true, message: 'Reserve settings updated' });
+    } catch (error) {
+        console.error('Reserve settings error:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Helper function to check reserve availability
+async function checkReserveAvailability(amountUsd) {
+    const reserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+    if (reserve.rows.length === 0) return { available: false, reason: 'Reserve not initialized' };
+    
+    const r = reserve.rows[0];
+    const currentBalance = parseFloat(r.current_balance_usd);
+    const minimumReserve = parseFloat(r.minimum_reserve_usd);
+    const availableForWithdrawal = currentBalance - minimumReserve;
+    
+    if (availableForWithdrawal < amountUsd) {
+        return {
+            available: false,
+            reason: 'Insufficient reserve funds',
+            currentBalance,
+            minimumReserve,
+            availableForWithdrawal: Math.max(0, availableForWithdrawal),
+            requested: amountUsd
+        };
+    }
+    
+    return {
+        available: true,
+        currentBalance,
+        availableForWithdrawal,
+        requested: amountUsd
+    };
+}
+
+// Helper function to deduct from reserve (called when withdrawal is approved)
+async function deductFromReserve(amountUsd, amountKeno, referenceId, description) {
+    const currentReserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');
+    const currentUsd = parseFloat(currentReserve.rows[0]?.current_balance_usd || 0);
+    const currentKeno = parseFloat(currentReserve.rows[0]?.current_balance_keno || 0);
+    
+    const newBalanceUsd = Math.max(0, currentUsd - amountUsd);
+    const newBalanceKeno = Math.max(0, currentKeno - amountKeno);
+    
+    await dbConnection.query(`
+        UPDATE withdrawal_reserve 
+        SET current_balance_usd = $1, current_balance_keno = $2, last_updated = CURRENT_TIMESTAMP
+        WHERE id = (SELECT id FROM withdrawal_reserve ORDER BY id DESC LIMIT 1)
+    `, [newBalanceUsd, newBalanceKeno]);
+    
+    await dbConnection.query(`
+        INSERT INTO reserve_transactions 
+        (transaction_type, source, amount_usd, amount_keno, reference_id, description, balance_after_usd, balance_after_keno, created_by)
+        VALUES ('withdrawal', 'student_cashout', $1, $2, $3, $4, $5, $6, 'system')
+    `, [amountUsd, amountKeno, referenceId, description, newBalanceUsd, newBalanceKeno]);
+    
+    console.log(`📤 Reserve deduction: $${amountUsd} for ${referenceId}. New balance: $${newBalanceUsd}`);
+    
+    return { newBalanceUsd, newBalanceKeno };
+}
+
+// ==================== END WITHDRAWAL RESERVE SYSTEM ====================
 
 // Test email endpoint (admin only)
 app.post('/api/admin/test-email', async (req, res) => {
