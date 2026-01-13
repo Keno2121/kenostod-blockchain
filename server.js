@@ -5141,6 +5141,269 @@ app.get('/api/revenue/report/breakdown', (req, res) => {
 
 // ==================== END REVENUE GENERATION API ENDPOINTS ====================
 
+// ==================== STUDENT ENROLLMENT API ENDPOINTS ====================
+
+// Enroll a new student
+app.post('/api/students/enroll', async (req, res) => {
+    try {
+        const { name, email, walletAddress, phone, country, referralCode } = req.body;
+        
+        if (!name || !email || !walletAddress) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Name, email, and wallet address are required' 
+            });
+        }
+        
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Please enter a valid email address' 
+            });
+        }
+        
+        // Validate wallet address format (basic check)
+        if (!walletAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Please enter a valid wallet address (0x...)' 
+            });
+        }
+        
+        // Normalize wallet address to lowercase
+        const normalizedWallet = walletAddress.toLowerCase();
+        const normalizedEmail = email.toLowerCase().trim();
+        const sanitizedName = name.trim().substring(0, 255);
+        
+        // Check if student already exists
+        const existingStudent = await dbConnection.query(
+            `SELECT * FROM students WHERE LOWER(email) = $1 OR wallet_address = $2`,
+            [normalizedEmail, normalizedWallet]
+        );
+        
+        if (existingStudent.rows.length > 0) {
+            const existing = existingStudent.rows[0];
+            // If same wallet and email, just return success (already enrolled)
+            if (existing.wallet_address === normalizedWallet && existing.email.toLowerCase() === normalizedEmail) {
+                return res.json({ 
+                    success: true, 
+                    message: 'Welcome back! You are already enrolled.',
+                    student: {
+                        studentId: existing.student_id,
+                        name: existing.name,
+                        email: existing.email,
+                        walletAddress: existing.wallet_address,
+                        enrollmentDate: existing.enrollment_date
+                    },
+                    alreadyEnrolled: true
+                });
+            }
+            // Different wallet or email conflict
+            if (existing.email.toLowerCase() === normalizedEmail) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'This email is already registered with a different wallet address' 
+                });
+            }
+            if (existing.wallet_address === normalizedWallet) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'This wallet address is already registered with a different email' 
+                });
+            }
+        }
+        
+        // Generate student ID
+        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const studentId = `STU-${dateStr}-${randomSuffix}`;
+        
+        // Insert new student
+        await dbConnection.query(`
+            INSERT INTO students (student_id, name, email, wallet_address, phone, country, referral_code)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [studentId, sanitizedName, normalizedEmail, normalizedWallet, phone || null, country || null, referralCode || null]);
+        
+        // Update any existing student_rewards records with this wallet to include the email
+        await dbConnection.query(`
+            UPDATE student_rewards 
+            SET user_email = $1 
+            WHERE wallet_address = $2 OR user_wallet_address = $2
+        `, [normalizedEmail, normalizedWallet]);
+        
+        console.log(`✅ New student enrolled: ${studentId} - ${sanitizedName} (${normalizedEmail})`);
+        
+        res.json({ 
+            success: true, 
+            message: 'Welcome to Kenostod Blockchain Academy!',
+            student: {
+                studentId,
+                name: sanitizedName,
+                email: normalizedEmail,
+                walletAddress: normalizedWallet,
+                enrollmentDate: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('Error enrolling student:', error.message);
+        res.status(500).json({ success: false, error: 'Failed to enroll. Please try again.' });
+    }
+});
+
+// Check if student is enrolled
+app.get('/api/students/check/:walletAddress', async (req, res) => {
+    try {
+        const walletAddress = req.params.walletAddress.toLowerCase();
+        
+        const result = await dbConnection.query(
+            `SELECT * FROM students WHERE wallet_address = $1`,
+            [walletAddress]
+        );
+        
+        if (result.rows.length > 0) {
+            const student = result.rows[0];
+            res.json({ 
+                success: true, 
+                enrolled: true,
+                student: {
+                    studentId: student.student_id,
+                    name: student.name,
+                    email: student.email,
+                    walletAddress: student.wallet_address,
+                    enrollmentDate: student.enrollment_date,
+                    coursesCompleted: student.courses_completed,
+                    totalKenoEarned: student.total_keno_earned
+                }
+            });
+        } else {
+            res.json({ success: true, enrolled: false });
+        }
+    } catch (error) {
+        console.error('Error checking enrollment:', error.message);
+        res.status(500).json({ success: false, error: 'Failed to check enrollment status' });
+    }
+});
+
+// Get student by email (for admin lookups)
+app.get('/api/students/by-email/:email', async (req, res) => {
+    try {
+        const email = req.params.email.toLowerCase();
+        
+        const result = await dbConnection.query(
+            `SELECT * FROM students WHERE LOWER(email) = $1`,
+            [email]
+        );
+        
+        if (result.rows.length > 0) {
+            const student = result.rows[0];
+            res.json({ 
+                success: true, 
+                found: true,
+                student: {
+                    studentId: student.student_id,
+                    name: student.name,
+                    email: student.email,
+                    walletAddress: student.wallet_address,
+                    enrollmentDate: student.enrollment_date,
+                    coursesCompleted: student.courses_completed,
+                    totalKenoEarned: student.total_keno_earned
+                }
+            });
+        } else {
+            res.json({ success: true, found: false });
+        }
+    } catch (error) {
+        console.error('Error finding student:', error.message);
+        res.status(500).json({ success: false, error: 'Failed to find student' });
+    }
+});
+
+// Admin: Update student email for existing wallet (backfill)
+app.post('/api/admin/students/update-email', requireAdminAuth, async (req, res) => {
+    try {
+        const { walletAddress, email, name } = req.body;
+        
+        if (!walletAddress || !email) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Wallet address and email are required' 
+            });
+        }
+        
+        const normalizedWallet = walletAddress.toLowerCase();
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        // Check if student exists
+        const existingStudent = await dbConnection.query(
+            `SELECT * FROM students WHERE wallet_address = $1`,
+            [normalizedWallet]
+        );
+        
+        if (existingStudent.rows.length > 0) {
+            // Update existing student
+            await dbConnection.query(`
+                UPDATE students 
+                SET email = $1, name = COALESCE($2, name), updated_at = CURRENT_TIMESTAMP
+                WHERE wallet_address = $3
+            `, [normalizedEmail, name || null, normalizedWallet]);
+        } else {
+            // Create new student record
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const studentId = `STU-${dateStr}-${randomSuffix}`;
+            
+            await dbConnection.query(`
+                INSERT INTO students (student_id, name, email, wallet_address)
+                VALUES ($1, $2, $3, $4)
+            `, [studentId, name || 'Student', normalizedEmail, normalizedWallet]);
+        }
+        
+        // Update student_rewards records
+        await dbConnection.query(`
+            UPDATE student_rewards 
+            SET user_email = $1 
+            WHERE user_wallet_address = $2
+        `, [normalizedEmail, normalizedWallet]);
+        
+        console.log(`✅ Admin updated student: ${normalizedWallet} -> ${normalizedEmail}`);
+        
+        res.json({ 
+            success: true, 
+            message: 'Student record updated successfully'
+        });
+    } catch (error) {
+        console.error('Error updating student:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Admin: List all enrolled students
+app.get('/api/admin/students', requireAdminAuth, async (req, res) => {
+    try {
+        const result = await dbConnection.query(`
+            SELECT s.*, 
+                   (SELECT COUNT(*) FROM student_rewards sr WHERE sr.user_wallet_address = s.wallet_address AND sr.reward_type = 'course_completion') as actual_courses_completed,
+                   (SELECT COALESCE(SUM(reward_amount), 0) FROM student_rewards sr WHERE sr.user_wallet_address = s.wallet_address) as actual_keno_earned
+            FROM students s
+            ORDER BY s.created_at DESC
+            LIMIT 500
+        `);
+        
+        res.json({ 
+            success: true, 
+            students: result.rows,
+            total: result.rows.length
+        });
+    } catch (error) {
+        console.error('Error fetching students:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ==================== END STUDENT ENROLLMENT API ENDPOINTS ====================
+
 // ==================== WEALTH BUILDER PROGRAM API ENDPOINTS ====================
 
 // Award course completion reward (SECURED: Rate Limited + Course Progress Verification)
