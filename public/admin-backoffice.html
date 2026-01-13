@@ -743,7 +743,7 @@
             
             <div id="studentsTab" class="tab-content">
                 <div class="search-box">
-                    <input type="text" class="search-input" id="studentSearch" placeholder="Search by wallet address or email..." oninput="filterStudents()">
+                    <input type="text" class="search-input" id="studentSearch" placeholder="Search by wallet, name, or email..." oninput="filterStudents()">
                     <button class="export-btn" onclick="exportStudents()">📥 Export CSV</button>
                 </div>
                 
@@ -752,16 +752,17 @@
                         <thead>
                             <tr>
                                 <th>Wallet Address</th>
+                                <th>Name</th>
                                 <th>Email</th>
-                                <th>Courses Completed</th>
-                                <th>Total KENO Earned</th>
-                                <th>RVT NFTs</th>
-                                <th>Joined</th>
+                                <th>Courses</th>
+                                <th>Total KENO</th>
+                                <th>Enrolled</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTable">
                             <tr>
-                                <td colspan="6" class="loading">Loading...</td>
+                                <td colspan="7" class="loading">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1384,7 +1385,7 @@
             if (students.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="empty-state">
+                        <td colspan="7" class="empty-state">
                             <div class="icon">👥</div>
                             <p>No students yet</p>
                         </td>
@@ -1395,19 +1396,54 @@
             
             let html = '';
             students.forEach(student => {
+                const enrolled = student.enrolled_at ? 'Yes' : 'Synced';
+                const enrolledClass = student.enrolled_at ? 'completed' : 'pending';
                 html += `
-                    <tr>
-                        <td class="wallet-address">${truncateAddress(student.wallet_address)}</td>
-                        <td>${student.email || '-'}</td>
-                        <td>${student.courses_completed}/21</td>
-                        <td>${formatNumber(student.total_keno)} KENO</td>
-                        <td>${student.rvt_count || 0}</td>
-                        <td>${formatDate(student.first_activity)}</td>
+                    <tr data-wallet="${student.wallet_address}">
+                        <td class="wallet-address" title="${student.wallet_address}">${truncateAddress(student.wallet_address)}</td>
+                        <td>${student.name || '<span style="color: #94a3b8;">-</span>'}</td>
+                        <td>${student.email || '<span style="color: #94a3b8;">-</span>'}</td>
+                        <td>${student.courses_completed || 0}/21</td>
+                        <td>${formatNumber(student.total_keno || 0)} KENO</td>
+                        <td><span class="status-badge ${enrolledClass}">${enrolled}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="editStudent('${student.wallet_address}', '${(student.name || '').replace(/'/g, "\\'")}', '${(student.email || '').replace(/'/g, "\\'")}')" title="Edit Student">✏️</button>
+                        </td>
                     </tr>
                 `;
             });
             
             tbody.innerHTML = html;
+        }
+        
+        function editStudent(wallet, currentName, currentEmail) {
+            const name = prompt('Enter student name:', currentName);
+            if (name === null) return;
+            
+            const email = prompt('Enter student email:', currentEmail);
+            if (email === null) return;
+            
+            fetch('/api/admin/students/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-key': adminKey
+                },
+                body: JSON.stringify({ walletAddress: wallet, name, email })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Student updated successfully', 'success');
+                    loadDashboardData();
+                } else {
+                    showNotification(data.error || 'Failed to update student', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error updating student:', err);
+                showNotification('Failed to update student', 'error');
+            });
         }
         
         function updateCoursesTable() {

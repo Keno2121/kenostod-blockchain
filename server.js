@@ -5379,6 +5379,60 @@ app.post('/api/admin/students/update-email', requireAdminAuth, async (req, res) 
     }
 });
 
+// Admin: Update student (alias for update-email, used by admin backoffice)
+app.post('/api/admin/students/update', requireAdminAuth, async (req, res) => {
+    try {
+        const { walletAddress, email, name } = req.body;
+        
+        if (!walletAddress) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Wallet address is required' 
+            });
+        }
+        
+        const normalizedWallet = walletAddress.toLowerCase();
+        const normalizedEmail = email ? email.toLowerCase().trim() : null;
+        
+        // Check if student exists
+        const existingStudent = await dbConnection.query(
+            `SELECT * FROM students WHERE wallet_address = $1`,
+            [normalizedWallet]
+        );
+        
+        if (existingStudent.rows.length > 0) {
+            // Update existing student
+            await dbConnection.query(`
+                UPDATE students 
+                SET name = COALESCE(NULLIF($1, ''), name),
+                    email = COALESCE(NULLIF($2, ''), email),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE wallet_address = $3
+            `, [name || null, normalizedEmail, normalizedWallet]);
+            
+            // Update student_rewards records if email provided
+            if (normalizedEmail) {
+                await dbConnection.query(`
+                    UPDATE student_rewards 
+                    SET user_email = $1 
+                    WHERE user_wallet_address = $2
+                `, [normalizedEmail, normalizedWallet]);
+            }
+            
+            console.log(`✅ Admin updated student: ${normalizedWallet}`);
+            res.json({ success: true, message: 'Student updated successfully' });
+        } else {
+            res.status(404).json({ 
+                success: false, 
+                error: 'Student not found. Use enrollment to create new students.' 
+            });
+        }
+    } catch (error) {
+        console.error('Error updating student:', error.message);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Admin: List all enrolled students
 app.get('/api/admin/students', requireAdminAuth, async (req, res) => {
     try {
@@ -8214,13 +8268,16 @@ app.get('/api/admin/dashboard', requireAdminAuth, async (req, res) => {
         
         const studentsQuery = await dbConnection.query(`
             SELECT 
-                user_wallet_address as wallet_address,
-                MAX(user_email) as email,
-                COUNT(DISTINCT CASE WHEN reward_type = 'course_completion' THEN course_id END) as courses_completed,
-                COALESCE(SUM(reward_amount), 0) as total_keno,
-                MIN(created_at) as first_activity
-            FROM student_rewards
-            GROUP BY user_wallet_address
+                sr.user_wallet_address as wallet_address,
+                COALESCE(s.name, MAX(sr.user_email)) as name,
+                COALESCE(s.email, MAX(sr.user_email)) as email,
+                COUNT(DISTINCT CASE WHEN sr.reward_type = 'course_completion' THEN sr.course_id END) as courses_completed,
+                COALESCE(SUM(sr.reward_amount), 0) as total_keno,
+                MIN(sr.created_at) as first_activity,
+                s.created_at as enrolled_at
+            FROM student_rewards sr
+            LEFT JOIN students s ON LOWER(sr.user_wallet_address) = LOWER(s.wallet_address)
+            GROUP BY sr.user_wallet_address, s.name, s.email, s.created_at
             ORDER BY first_activity DESC
             LIMIT 100
         `);
