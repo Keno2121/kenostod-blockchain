@@ -5379,7 +5379,7 @@ app.post('/api/admin/students/update-email', requireAdminAuth, async (req, res) 
     }
 });
 
-// Admin: Update student (alias for update-email, used by admin backoffice)
+// Admin: Update student (upsert - creates if not exists, used by admin backoffice)
 app.post('/api/admin/students/update', requireAdminAuth, async (req, res) => {
     try {
         const { walletAddress, email, name } = req.body;
@@ -5409,24 +5409,31 @@ app.post('/api/admin/students/update', requireAdminAuth, async (req, res) => {
                     updated_at = CURRENT_TIMESTAMP
                 WHERE wallet_address = $3
             `, [name || null, normalizedEmail, normalizedWallet]);
-            
-            // Update student_rewards records if email provided
-            if (normalizedEmail) {
-                await dbConnection.query(`
-                    UPDATE student_rewards 
-                    SET user_email = $1 
-                    WHERE user_wallet_address = $2
-                `, [normalizedEmail, normalizedWallet]);
-            }
-            
-            console.log(`✅ Admin updated student: ${normalizedWallet}`);
-            res.json({ success: true, message: 'Student updated successfully' });
         } else {
-            res.status(404).json({ 
-                success: false, 
-                error: 'Student not found. Use enrollment to create new students.' 
-            });
+            // Create new student record for legacy wallet (backfill)
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const studentId = `STU-${dateStr}-${randomSuffix}`;
+            
+            await dbConnection.query(`
+                INSERT INTO students (student_id, name, email, wallet_address)
+                VALUES ($1, $2, $3, $4)
+            `, [studentId, name || 'Student', normalizedEmail || '', normalizedWallet]);
+            
+            console.log(`✅ Admin created student record for legacy wallet: ${normalizedWallet}`);
         }
+        
+        // Update student_rewards records if email provided
+        if (normalizedEmail) {
+            await dbConnection.query(`
+                UPDATE student_rewards 
+                SET user_email = $1 
+                WHERE user_wallet_address = $2
+            `, [normalizedEmail, normalizedWallet]);
+        }
+        
+        console.log(`✅ Admin updated student: ${normalizedWallet}`);
+        res.json({ success: true, message: 'Student updated successfully' });
     } catch (error) {
         console.error('Error updating student:', error.message);
         res.status(500).json({ success: false, error: error.message });
