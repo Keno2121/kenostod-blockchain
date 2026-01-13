@@ -2,9 +2,25 @@
 // Wallet Connection & KENO Reward System
 
 (function() {
+    // Load enrollment modal script
+    if (!document.querySelector('script[src="/enrollment-modal.js"]')) {
+        const script = document.createElement('script');
+        script.src = '/enrollment-modal.js';
+        document.head.appendChild(script);
+    }
+    
     // Get connected wallet
     function getConnectedWallet() {
         return localStorage.getItem('userWalletAddress') || localStorage.getItem('walletAddress') || null;
+    }
+    
+    // Get enrolled student from localStorage
+    function getEnrolledStudent() {
+        try {
+            const stored = localStorage.getItem('kenostod_enrolled_student');
+            if (stored) return JSON.parse(stored);
+        } catch (e) {}
+        return null;
     }
 
     // Render wallet status widget
@@ -196,7 +212,10 @@
     // Credit KENO reward for course completion
     async function creditCourseReward(courseId, courseName) {
         const walletAddress = getConnectedWallet();
-        const userEmail = localStorage.getItem('userEmail') || '';
+        const enrolledStudent = getEnrolledStudent();
+        
+        // Use enrolled student email if available, otherwise from localStorage
+        const userEmail = enrolledStudent?.email || localStorage.getItem('userEmail') || '';
         
         if (!walletAddress) {
             console.log('No wallet connected - showing connect prompt');
@@ -205,13 +224,30 @@
             return { success: false, reason: 'no_wallet' };
         }
         
+        // Check if student is enrolled - if not, show enrollment modal
+        if (!enrolledStudent && window.EnrollmentModal) {
+            console.log('Student not enrolled - showing enrollment modal');
+            return new Promise((resolve) => {
+                window.EnrollmentModal.show(async (student) => {
+                    // After enrollment, credit the reward
+                    const result = await submitCourseReward(student.walletAddress, student.email, courseName, courseId);
+                    resolve(result);
+                });
+            });
+        }
+        
+        return await submitCourseReward(walletAddress, userEmail, courseName, courseId);
+    }
+    
+    // Submit course reward to API
+    async function submitCourseReward(walletAddress, email, courseName, courseId) {
         try {
             const response = await fetch('/api/wealth/rewards/course-complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     walletAddress: walletAddress,
-                    email: userEmail,
+                    email: email,
                     courseName: courseName,
                     courseId: courseId
                 })
