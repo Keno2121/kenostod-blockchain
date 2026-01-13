@@ -645,6 +645,10 @@
                     <span class="icon">🏦</span>
                     <span>USD Cashouts</span>
                 </div>
+                <div class="nav-item" onclick="showTab('reserve')">
+                    <span class="icon">💵</span>
+                    <span>Withdrawal Reserve</span>
+                </div>
                 <div class="nav-item" onclick="showTab('nodeWhitelist')">
                     <span class="icon">🖥️</span>
                     <span>Node Whitelist</span>
@@ -1094,6 +1098,87 @@
                         <tbody id="usdWithdrawalsTable">
                             <tr>
                                 <td colspan="8" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="reserveTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Withdrawal Reserve Status</h2>
+                        <button onclick="loadReserveData()" style="padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white;">Refresh</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="reserveBalance">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Current Balance</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="reserveAvailable">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Available for Withdrawals</div>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #f59e0b;" id="reservePending">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Pending Withdrawals</div>
+                        </div>
+                        <div id="reserveHealthBox" style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700;" id="reserveHealth">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Reserve Health</div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <p style="color: #c4b5fd; margin: 0;"><strong>Revenue-First Model:</strong> Withdrawals are funded from platform revenue (courses, ICO, node sales, B2B licensing). The minimum reserve of <span id="reserveMinimum">$1,000</span> is always maintained.</p>
+                    </div>
+                </div>
+                
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Add Revenue to Reserve</h2>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Revenue Source</label>
+                            <select id="depositSource" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                                <option value="ico_sale">ICO Sale</option>
+                                <option value="course_sale">Course Sale</option>
+                                <option value="node_sale">Node Sale</option>
+                                <option value="b2b_licensing">B2B Licensing</option>
+                                <option value="trading_fees">Trading Fees</option>
+                                <option value="manual_deposit">Manual Deposit</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #94a3b8;">USD Amount</label>
+                            <input type="number" id="depositAmount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Description (optional)</label>
+                            <input type="text" id="depositDescription" placeholder="Reference or notes..." style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                        </div>
+                        <button onclick="addReserveDeposit()" style="padding: 12px 24px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; white-space: nowrap;">Add to Reserve</button>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Reserve Transactions</h2>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Source</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Balance After</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reserveTransactionsTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1646,6 +1731,7 @@
                 scholarships: 'Scholarship Management',
                 falWithdrawals: 'FAL Withdrawal Requests',
                 usdWithdrawals: 'USD Cashout Management',
+                reserve: 'Withdrawal Reserve Management',
                 nodeWhitelist: 'Node Whitelist Management'
             };
             
@@ -1661,6 +1747,9 @@
             }
             if (tabName === 'usdWithdrawals') {
                 loadUSDWithdrawals();
+            }
+            if (tabName === 'reserve') {
+                loadReserveData();
             }
             if (tabName === 'nodeWhitelist') {
                 loadNodeWhitelist();
@@ -2269,6 +2358,107 @@
                 }
             } catch (error) {
                 console.error('Error rejecting USD withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadReserveData() {
+            try {
+                const response = await fetch('/api/admin/reserve', {
+                    headers: { 'x-admin-key': adminKey }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const r = data.reserve;
+                    const available = Math.max(0, parseFloat(r?.current_balance_usd || 0) - parseFloat(r?.minimum_reserve_usd || 1000));
+                    const isHealthy = parseFloat(r?.current_balance_usd || 0) >= parseFloat(r?.minimum_reserve_usd || 1000);
+                    
+                    document.getElementById('reserveBalance').textContent = '$' + parseFloat(r?.current_balance_usd || 0).toFixed(2);
+                    document.getElementById('reserveAvailable').textContent = '$' + available.toFixed(2);
+                    document.getElementById('reservePending').textContent = '$' + parseFloat(data.pendingWithdrawals?.totalUsd || 0).toFixed(2);
+                    document.getElementById('reserveMinimum').textContent = '$' + parseFloat(r?.minimum_reserve_usd || 1000).toFixed(2);
+                    
+                    const healthBox = document.getElementById('reserveHealthBox');
+                    const healthText = document.getElementById('reserveHealth');
+                    if (isHealthy) {
+                        healthText.textContent = 'Healthy';
+                        healthText.style.color = '#10b981';
+                        healthBox.style.background = 'rgba(16,185,129,0.1)';
+                        healthBox.style.borderColor = 'rgba(16,185,129,0.3)';
+                    } else {
+                        healthText.textContent = 'Low';
+                        healthText.style.color = '#ef4444';
+                        healthBox.style.background = 'rgba(239,68,68,0.1)';
+                        healthBox.style.borderColor = 'rgba(239,68,68,0.3)';
+                    }
+                    
+                    const table = document.getElementById('reserveTransactionsTable');
+                    if (data.transactions && data.transactions.length > 0) {
+                        let html = '';
+                        data.transactions.forEach(t => {
+                            const typeColor = t.transaction_type === 'deposit' ? '#10b981' : '#ef4444';
+                            const typeIcon = t.transaction_type === 'deposit' ? '+' : '-';
+                            html += `
+                                <tr>
+                                    <td><span style="background: ${typeColor}33; color: ${typeColor}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; text-transform: capitalize;">${t.transaction_type}</span></td>
+                                    <td style="text-transform: capitalize;">${t.source.replace(/_/g, ' ')}</td>
+                                    <td style="color: ${typeColor}; font-weight: 600;">${typeIcon}$${parseFloat(t.amount_usd).toFixed(2)}</td>
+                                    <td style="font-size: 0.9rem; color: #94a3b8;">${t.description || '-'}</td>
+                                    <td style="font-weight: 600;">$${parseFloat(t.balance_after_usd).toFixed(2)}</td>
+                                    <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">No reserve transactions yet. Add revenue to get started!</td></tr>';
+                    }
+                } else {
+                    console.error('Error loading reserve data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading reserve data:', error);
+            }
+        }
+        
+        async function addReserveDeposit() {
+            const source = document.getElementById('depositSource').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            const description = document.getElementById('depositDescription').value;
+            
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            if (!confirm(`Add $${amount.toFixed(2)} to reserve from ${source.replace(/_/g, ' ')}?`)) return;
+            
+            try {
+                const response = await fetch('/api/admin/reserve/deposit', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-key': adminKey
+                    },
+                    body: JSON.stringify({
+                        source: source,
+                        amountUsd: amount,
+                        description: description || `Revenue from ${source.replace(/_/g, ' ')}`
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(`$${amount.toFixed(2)} added to reserve!`, 'success');
+                    document.getElementById('depositAmount').value = '';
+                    document.getElementById('depositDescription').value = '';
+                    loadReserveData();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding deposit:', error);
                 alert('Error: ' + error.message);
             }
         }
