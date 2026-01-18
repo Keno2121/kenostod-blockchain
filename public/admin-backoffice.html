@@ -876,6 +876,17 @@
                         </div>
                     </div>
                 </div>
+                
+                <div id="courseContentModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto;">
+                    <div style="background: #1e293b; margin: 20px auto; border-radius: 16px; padding: 30px; max-width: 900px; width: 95%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: sticky; top: 0; background: #1e293b; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <h3 id="contentModalTitle" style="margin: 0; color: #ffd700; font-size: 1.5rem;"></h3>
+                            <button onclick="closeCourseContentModal()" style="background: none; border: none; color: #94a3b8; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+                        </div>
+                        
+                        <div id="courseContentBody" style="color: #e2e8f0;"></div>
+                    </div>
+                </div>
             </div>
             
             <div id="rewardsTab" class="tab-content">
@@ -2570,7 +2581,10 @@
                                 <td>${c.duration}</td>
                                 <td style="text-align: center;">${c.modules}</td>
                                 <td><span style="background: ${levelColor}33; color: ${levelColor}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${c.level}</span></td>
-                                <td><button onclick="openCourseEditModal(${id})" style="padding: 6px 16px; background: linear-gradient(135deg, #ffd700, #ff9500); border: none; color: #0a0a0a; border-radius: 6px; cursor: pointer; font-weight: 500;">Edit</button></td>
+                                <td style="display: flex; gap: 8px;">
+                                    <button onclick="openCourseContentModal(${id})" style="padding: 6px 12px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">View</button>
+                                    <button onclick="openCourseEditModal(${id})" style="padding: 6px 12px; background: linear-gradient(135deg, #ffd700, #ff9500); border: none; color: #0a0a0a; border-radius: 6px; cursor: pointer; font-weight: 500;">Edit</button>
+                                </td>
                             </tr>
                         `;
                     });
@@ -2635,6 +2649,95 @@
                 console.error('Error saving course:', error);
                 alert('Error: ' + error.message);
             }
+        }
+        
+        function openCourseContentModal(courseId) {
+            const course = typeof courses !== 'undefined' ? courses[courseId] : null;
+            if (!course) {
+                alert('Course content not loaded. Please refresh the page.');
+                return;
+            }
+            
+            document.getElementById('contentModalTitle').textContent = course.title;
+            
+            let html = '';
+            
+            html += `<div style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffd700;">
+                <p style="margin: 0; font-size: 1.1rem;"><strong>Duration:</strong> ${course.duration} | <strong>Modules:</strong> ${course.modules} | <strong>Level:</strong> ${course.level}</p>
+            </div>`;
+            
+            html += `<div style="margin-bottom: 25px;">
+                <h4 style="color: #ffd700; margin-bottom: 10px;">Overview</h4>
+                <p style="line-height: 1.6; color: #94a3b8;">${course.overview}</p>
+            </div>`;
+            
+            if (course.objectives && course.objectives.length) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Learning Objectives</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #94a3b8;">
+                        ${course.objectives.map(obj => `<li style="margin-bottom: 8px;">${obj}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+            
+            if (course.modules_content && course.modules_content.length) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 15px;">Course Modules & Lessons</h4>`;
+                
+                let totalLessons = 0;
+                course.modules_content.forEach((module, idx) => {
+                    const lessonCount = module.lessons ? module.lessons.length : 0;
+                    totalLessons += lessonCount;
+                    html += `<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <h5 style="color: #3b82f6; margin: 0 0 10px 0; font-size: 1.1rem;">Module ${idx + 1}: ${module.title}</h5>
+                        <ul style="margin: 0; padding-left: 20px; color: #e2e8f0;">
+                            ${module.lessons ? module.lessons.map(lesson => `<li style="margin-bottom: 6px;">${lesson}</li>`).join('') : '<li style="color: #ef4444;">No lessons defined</li>'}
+                        </ul>
+                    </div>`;
+                });
+                
+                html += `<p style="color: #10b981; font-weight: 600; margin-top: 15px;">Total: ${course.modules_content.length} modules, ${totalLessons} lessons</p>`;
+                html += `</div>`;
+            } else {
+                html += `<div style="background: rgba(239,68,68,0.2); padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444;">
+                    <p style="margin: 0; color: #ef4444;">No module content defined for this course.</p>
+                </div>`;
+            }
+            
+            if (course.quiz && course.quiz.length) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Quiz Questions (${course.quiz.length})</h4>
+                    ${course.quiz.map((q, idx) => `
+                        <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                            <p style="margin: 0 0 8px 0; color: #e2e8f0;"><strong>Q${idx + 1}:</strong> ${q.question}</p>
+                            <p style="margin: 0; color: #10b981; font-size: 0.9rem;"><strong>Answer:</strong> ${q.correct}</p>
+                        </div>
+                    `).join('')}
+                </div>`;
+            }
+            
+            if (course.hands_on) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Hands-On Practice</h4>
+                    <p style="line-height: 1.6; color: #94a3b8;">${course.hands_on}</p>
+                </div>`;
+            }
+            
+            if (course.skills && course.skills.length) {
+                html += `<div style="margin-bottom: 15px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Skills Acquired</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${course.skills.map(skill => `<span style="background: rgba(59,130,246,0.2); color: #3b82f6; padding: 4px 12px; border-radius: 15px; font-size: 0.9rem;">${skill}</span>`).join('')}
+                    </div>
+                </div>`;
+            }
+            
+            document.getElementById('courseContentBody').innerHTML = html;
+            document.getElementById('courseContentModal').style.display = 'block';
+        }
+        
+        function closeCourseContentModal() {
+            document.getElementById('courseContentModal').style.display = 'none';
         }
         
         async function loadNodeWhitelist() {
@@ -2704,6 +2807,8 @@
             document.querySelector(`.mobile-nav-item[data-tab="${tabName}"]`)?.classList.add('active');
         }
     </script>
+    
+    <script src="backoffice.js"></script>
     
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-nav">
