@@ -8906,6 +8906,125 @@ app.post('/api/admin/reserve/settings', requireAdminAuth, async (req, res) => {
     }
 });
 
+// ============ Admin Course Editor API ============
+
+// In-memory course overrides (loaded from file on startup)
+let courseOverrides = {};
+const COURSE_OVERRIDES_FILE = './data/course-overrides.json';
+
+// Load course overrides from file
+function loadCourseOverrides() {
+    try {
+        const fs = require('fs');
+        if (fs.existsSync(COURSE_OVERRIDES_FILE)) {
+            courseOverrides = JSON.parse(fs.readFileSync(COURSE_OVERRIDES_FILE, 'utf8'));
+            console.log(`✅ Loaded ${Object.keys(courseOverrides).length} course overrides`);
+        }
+    } catch (error) {
+        console.error('Error loading course overrides:', error.message);
+    }
+}
+
+// Save course overrides to file
+function saveCourseOverrides() {
+    try {
+        const fs = require('fs');
+        fs.writeFileSync(COURSE_OVERRIDES_FILE, JSON.stringify(courseOverrides, null, 2));
+    } catch (error) {
+        console.error('Error saving course overrides:', error.message);
+    }
+}
+
+// Initialize on startup
+loadCourseOverrides();
+
+// Base course data (matches backoffice.js structure)
+const baseCourses = {
+    1: { icon: '💼', title: 'Course 1: Wallet Management & Cryptography', duration: '4 hours', modules: 5, level: 'Beginner', overview: 'Master the fundamentals of blockchain wallets using industry-standard secp256k1 elliptic curve cryptography.' },
+    2: { icon: '⛏️', title: 'Course 2: Block Mining & Hashing', duration: '5 hours', modules: 6, level: 'Beginner', overview: 'Learn how blockchain miners create new blocks using SHA-256 hashing and Proof-of-Work consensus.' },
+    3: { icon: '🔄', title: 'Course 3: Transaction Reversal Windows', duration: '3 hours', modules: 4, level: 'Intermediate', overview: 'Understand the unique transaction reversal system that provides a safety net for blockchain transactions.' },
+    4: { icon: '📅', title: 'Course 4: Scheduled Transactions', duration: '3 hours', modules: 4, level: 'Intermediate', overview: 'Master time-locked and scheduled transactions for automated blockchain payments.' },
+    5: { icon: '🛡️', title: 'Course 5: Social Recovery Wallets', duration: '4 hours', modules: 5, level: 'Intermediate', overview: 'Learn about social recovery mechanisms that help users recover lost wallet access through trusted contacts.' },
+    6: { icon: '💬', title: 'Course 6: Blockchain Messaging', duration: '3 hours', modules: 4, level: 'Beginner', overview: 'Explore encrypted messaging capabilities built into blockchain transactions.' },
+    7: { icon: '⭐', title: 'Course 7: Reputation Systems', duration: '3 hours', modules: 4, level: 'Intermediate', overview: 'Build and verify on-chain reputation through transaction history analysis.' },
+    8: { icon: '🗳️', title: 'Course 8: Governance & Voting', duration: '4 hours', modules: 5, level: 'Advanced', overview: 'Participate in blockchain governance through proposal creation and voting mechanisms.' },
+    9: { icon: '⚡', title: 'Course 9: Proof-of-Work Deep Dive', duration: '5 hours', modules: 6, level: 'Advanced', overview: 'Advanced understanding of Proof-of-Work consensus and mining optimization.' },
+    10: { icon: '🔮', title: 'Course 10: Proof-of-Residual-Value (PoRV)', duration: '5 hours', modules: 6, level: 'Advanced', overview: 'Learn about the innovative PoRV consensus that generates value through AI/ML computations.' },
+    11: { icon: '🎨', title: 'Course 11: Residual Value Tokens (RVT)', duration: '4 hours', modules: 5, level: 'Intermediate', overview: 'Understand perpetual royalty NFTs that generate passive income for holders.' },
+    12: { icon: '🏢', title: 'Course 12: Enterprise Blockchain', duration: '4 hours', modules: 5, level: 'Advanced', overview: 'Apply blockchain solutions to enterprise business problems.' },
+    13: { icon: '👑', title: 'Course 13: Royalty Distribution', duration: '3 hours', modules: 4, level: 'Intermediate', overview: 'Implement automatic royalty distribution through smart contracts.' },
+    14: { icon: '🏪', title: 'Course 14: Merchant Payment Gateway', duration: '4 hours', modules: 5, level: 'Intermediate', overview: 'Build merchant payment solutions accepting cryptocurrency.' },
+    15: { icon: '🏦', title: 'Course 15: Blockchain Banking', duration: '5 hours', modules: 6, level: 'Advanced', overview: 'Integrate blockchain with traditional banking systems.' },
+    16: { icon: '📊', title: 'Course 16: Decentralized Exchange', duration: '5 hours', modules: 6, level: 'Advanced', overview: 'Build and operate decentralized cryptocurrency exchanges.' },
+    17: { icon: '💹', title: 'Course 17: DeFi Finance', duration: '5 hours', modules: 6, level: 'Advanced', overview: 'Master decentralized finance protocols and yield strategies.' },
+    18: { icon: '⚡', title: 'Course 18: Flash Arbitrage Loans (FAL)', duration: '6 hours', modules: 7, level: 'Advanced', overview: 'Execute flash loans for arbitrage opportunities across exchanges.' },
+    19: { icon: '🏊', title: 'Course 19: Flash Arbitrage Loan Pools (FALP)', duration: '6 hours', modules: 7, level: 'Advanced', overview: 'Participate in pooled liquidity for collective arbitrage opportunities.' },
+    20: { icon: '💰', title: 'Course 20: Wealth Building Strategies', duration: '5 hours', modules: 6, level: 'Advanced', overview: 'Long-term cryptocurrency wealth building and portfolio management.' },
+    21: { icon: '🌟', title: 'Course 21: Generational Wealth', duration: '5 hours', modules: 6, level: 'Advanced', overview: 'Create lasting wealth through strategic blockchain investments and inheritance planning.' }
+};
+
+// Get merged courses (base + overrides)
+function getMergedCourses() {
+    const merged = {};
+    for (const id of Object.keys(baseCourses)) {
+        merged[id] = { ...baseCourses[id], ...(courseOverrides[id] || {}) };
+    }
+    return merged;
+}
+
+// Admin: Get all courses
+app.get('/api/admin/courses', (req, res) => {
+    const adminPwd = req.headers['x-admin-password'] || req.query.adminPassword;
+    if (adminPwd !== process.env.ADMIN_PASSWORD) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    
+    res.json({ success: true, courses: getMergedCourses() });
+});
+
+// Admin: Update a course
+app.put('/api/admin/courses/:courseId', (req, res) => {
+    const adminPwd = req.headers['x-admin-password'] || req.body.adminPassword;
+    if (adminPwd !== process.env.ADMIN_PASSWORD) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    
+    const courseId = req.params.courseId;
+    if (!baseCourses[courseId]) {
+        return res.status(404).json({ success: false, error: 'Course not found' });
+    }
+    
+    const { title, duration, modules, level, overview } = req.body;
+    
+    // Create or update override
+    if (!courseOverrides[courseId]) {
+        courseOverrides[courseId] = {};
+    }
+    
+    if (title) courseOverrides[courseId].title = title;
+    if (duration) courseOverrides[courseId].duration = duration;
+    if (modules) courseOverrides[courseId].modules = parseInt(modules);
+    if (level) courseOverrides[courseId].level = level;
+    if (overview) courseOverrides[courseId].overview = overview;
+    
+    saveCourseOverrides();
+    
+    console.log(`✏️ Course ${courseId} updated:`, courseOverrides[courseId]);
+    res.json({ success: true, message: 'Course updated', course: getMergedCourses()[courseId] });
+});
+
+// Public: Get course info (for displaying on course pages)
+app.get('/api/courses/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const courses = getMergedCourses();
+    
+    if (!courses[courseId]) {
+        return res.status(404).json({ success: false, error: 'Course not found' });
+    }
+    
+    res.json({ success: true, course: courses[courseId] });
+});
+
 // Helper function to check reserve availability
 async function checkReserveAvailability(amountUsd) {
     const reserve = await dbConnection.query('SELECT * FROM withdrawal_reserve ORDER BY id DESC LIMIT 1');

@@ -609,6 +609,10 @@
                     <span class="icon">📚</span>
                     <span>Course Progress</span>
                 </div>
+                <div class="nav-item" onclick="showTab('courseEditor')">
+                    <span class="icon">✏️</span>
+                    <span>Course Editor</span>
+                </div>
                 <div class="nav-item" onclick="showTab('rewards')">
                     <span class="icon">🎁</span>
                     <span>Rewards</span>
@@ -799,6 +803,78 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+            
+            <div id="courseEditorTab" class="tab-content">
+                <div class="section">
+                    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; color: #e2e8f0;">Course Curriculum Editor</h2>
+                        <p style="margin: 0; color: #94a3b8;">Edit course metadata (duration, modules, level, description)</p>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Course Title</th>
+                                <th>Duration</th>
+                                <th>Modules</th>
+                                <th>Level</th>
+                                <th style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="courseEditorTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading courses...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="courseEditModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: #1e293b; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 id="editModalTitle" style="margin: 0; color: #ffd700;">Edit Course</h3>
+                            <button onclick="closeCourseEditModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                        </div>
+                        
+                        <input type="hidden" id="editCourseId">
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Course Title</label>
+                            <input type="text" id="editCourseTitle" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; font-size: 1rem;">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Duration</label>
+                                <input type="text" id="editCourseDuration" placeholder="e.g. 5 hours" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Modules</label>
+                                <input type="number" id="editCourseModules" min="1" max="20" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Level</label>
+                                <select id="editCourseLevel" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Course Overview</label>
+                            <textarea id="editCourseOverview" rows="4" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; resize: vertical;"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="closeCourseEditModal()" style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: none; color: #94a3b8; border-radius: 8px; cursor: pointer;">Cancel</button>
+                            <button onclick="saveCourseChanges()" style="padding: 12px 24px; background: linear-gradient(135deg, #ffd700, #ff9500); border: none; color: #0a0a0a; border-radius: 8px; cursor: pointer; font-weight: 600;">Save Changes</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1723,6 +1799,7 @@
                 dashboard: 'Dashboard Overview',
                 students: 'Student Management',
                 courses: 'Course Progress',
+                courseEditor: 'Course Curriculum Editor',
                 rewards: 'Rewards Distribution',
                 graduates: 'Verified Graduates',
                 investors: 'ICO Investors',
@@ -1750,6 +1827,9 @@
             }
             if (tabName === 'reserve') {
                 loadReserveData();
+            }
+            if (tabName === 'courseEditor') {
+                loadCourseEditor();
             }
             if (tabName === 'nodeWhitelist') {
                 loadNodeWhitelist();
@@ -2459,6 +2539,100 @@
                 }
             } catch (error) {
                 console.error('Error adding deposit:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        let allCourses = {};
+        
+        async function loadCourseEditor() {
+            const table = document.getElementById('courseEditorTable');
+            table.innerHTML = '<tr><td colspan="6" class="loading">Loading courses...</td></tr>';
+            
+            try {
+                const response = await fetch('/api/admin/courses', {
+                    headers: { 'x-admin-password': adminPwd }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    allCourses = data.courses;
+                    let html = '';
+                    const levelColors = { Beginner: '#10b981', Intermediate: '#3b82f6', Advanced: '#a855f7' };
+                    
+                    Object.keys(data.courses).sort((a, b) => parseInt(a) - parseInt(b)).forEach(id => {
+                        const c = data.courses[id];
+                        const levelColor = levelColors[c.level] || '#94a3b8';
+                        html += `
+                            <tr>
+                                <td style="text-align: center; font-weight: 600; color: #ffd700;">${id}</td>
+                                <td>${c.icon || ''} ${c.title}</td>
+                                <td>${c.duration}</td>
+                                <td style="text-align: center;">${c.modules}</td>
+                                <td><span style="background: ${levelColor}33; color: ${levelColor}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${c.level}</span></td>
+                                <td><button onclick="openCourseEditModal(${id})" style="padding: 6px 16px; background: linear-gradient(135deg, #ffd700, #ff9500); border: none; color: #0a0a0a; border-radius: 6px; cursor: pointer; font-weight: 500;">Edit</button></td>
+                            </tr>
+                        `;
+                    });
+                    table.innerHTML = html;
+                } else {
+                    table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error loading courses</td></tr>';
+            }
+        }
+        
+        function openCourseEditModal(courseId) {
+            const course = allCourses[courseId];
+            if (!course) return;
+            
+            document.getElementById('editCourseId').value = courseId;
+            document.getElementById('editCourseTitle').value = course.title || '';
+            document.getElementById('editCourseDuration').value = course.duration || '';
+            document.getElementById('editCourseModules').value = course.modules || 1;
+            document.getElementById('editCourseLevel').value = course.level || 'Beginner';
+            document.getElementById('editCourseOverview').value = course.overview || '';
+            document.getElementById('editModalTitle').textContent = `Edit Course ${courseId}`;
+            
+            document.getElementById('courseEditModal').style.display = 'flex';
+        }
+        
+        function closeCourseEditModal() {
+            document.getElementById('courseEditModal').style.display = 'none';
+        }
+        
+        async function saveCourseChanges() {
+            const courseId = document.getElementById('editCourseId').value;
+            const updates = {
+                title: document.getElementById('editCourseTitle').value,
+                duration: document.getElementById('editCourseDuration').value,
+                modules: parseInt(document.getElementById('editCourseModules').value),
+                level: document.getElementById('editCourseLevel').value,
+                overview: document.getElementById('editCourseOverview').value
+            };
+            
+            try {
+                const response = await fetch('/api/admin/courses/' + courseId, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': adminPwd
+                    },
+                    body: JSON.stringify(updates)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Course updated successfully!', 'success');
+                    closeCourseEditModal();
+                    loadCourseEditor();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error saving course:', error);
                 alert('Error: ' + error.message);
             }
         }
