@@ -479,10 +479,125 @@
         }
     };
 
+    // ========================================
+    // COURSE PROGRESS TRACKING SYSTEM
+    // ========================================
+    
+    function initCourseProgress() {
+        const courseMatch = window.location.pathname.match(/course-(\d+)/);
+        if (!courseMatch) return;
+        const courseId = parseInt(courseMatch[1]);
+        
+        const sections = document.querySelectorAll('.lesson-section, section[id]');
+        if (sections.length === 0) return;
+        
+        const progressKey = `course${courseId}_section_progress`;
+        let sectionProgress = {};
+        try { sectionProgress = JSON.parse(localStorage.getItem(progressKey) || '{}'); } catch(e) {}
+        
+        const timeKey = `course${courseId}_time_spent`;
+        let totalTimeSpent = parseInt(localStorage.getItem(timeKey) || '0');
+        let sectionStartTime = Date.now();
+        
+        setInterval(() => {
+            totalTimeSpent += 1;
+            localStorage.setItem(timeKey, totalTimeSpent.toString());
+        }, 1000);
+        
+        const progressBar = document.createElement('div');
+        progressBar.id = 'course-progress-bar';
+        progressBar.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;z-index:9998;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
+        progressBar.innerHTML = `
+            <div style="background:rgba(15,23,42,0.95);border-top:2px solid #3b82f6;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;backdrop-filter:blur(10px);">
+                <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                    <span style="color:#94a3b8;font-size:12px;font-weight:600;white-space:nowrap;">PROGRESS</span>
+                    <div style="flex:1;background:#1e293b;border-radius:10px;height:8px;overflow:hidden;min-width:100px;">
+                        <div id="progress-fill" style="height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);border-radius:10px;transition:width 0.5s ease;width:0%;"></div>
+                    </div>
+                    <span id="progress-pct" style="color:#60a5fa;font-size:12px;font-weight:700;min-width:35px;">0%</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="color:#94a3b8;font-size:11px;">TIME:</span>
+                    <span id="time-display" style="color:#fbbf24;font-size:12px;font-weight:700;">0:00</span>
+                </div>
+                <div id="sections-complete" style="color:#94a3b8;font-size:11px;white-space:nowrap;">0/0 sections</div>
+            </div>
+        `;
+        document.body.appendChild(progressBar);
+        document.body.style.paddingBottom = '50px';
+        
+        const allSections = [];
+        sections.forEach(section => {
+            if (section.id && section.id !== 'quizResult') {
+                allSections.push(section.id);
+            }
+        });
+        
+        function updateProgress() {
+            const completed = Object.keys(sectionProgress).filter(k => sectionProgress[k]).length;
+            const total = allSections.length;
+            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            const fill = document.getElementById('progress-fill');
+            const pctEl = document.getElementById('progress-pct');
+            const secEl = document.getElementById('sections-complete');
+            if (fill) fill.style.width = pct + '%';
+            if (pctEl) pctEl.textContent = pct + '%';
+            if (secEl) secEl.textContent = completed + '/' + total + ' sections';
+        }
+        
+        function updateTimeDisplay() {
+            const el = document.getElementById('time-display');
+            if (!el) return;
+            const hrs = Math.floor(totalTimeSpent / 3600);
+            const mins = Math.floor((totalTimeSpent % 3600) / 60);
+            const secs = totalTimeSpent % 60;
+            if (hrs > 0) {
+                el.textContent = hrs + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+            } else {
+                el.textContent = mins + ':' + String(secs).padStart(2, '0');
+            }
+        }
+        
+        setInterval(updateTimeDisplay, 1000);
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+                    const sectionId = entry.target.id;
+                    if (sectionId && allSections.includes(sectionId)) {
+                        setTimeout(() => {
+                            sectionProgress[sectionId] = true;
+                            localStorage.setItem(progressKey, JSON.stringify(sectionProgress));
+                            updateProgress();
+                        }, 5000);
+                    }
+                }
+            });
+        }, { threshold: 0.3 });
+        
+        sections.forEach(section => {
+            if (section.id && allSections.includes(section.id)) {
+                observer.observe(section);
+            }
+        });
+        
+        updateProgress();
+        updateTimeDisplay();
+    }
+    
+    window.kenostodCourse = {
+        initProgress: initCourseProgress
+    };
+
     // Initialize on page load
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', renderWalletStatus);
+        document.addEventListener('DOMContentLoaded', () => {
+            renderWalletStatus();
+            initCourseProgress();
+        });
     } else {
         renderWalletStatus();
+        initCourseProgress();
     }
 })();
