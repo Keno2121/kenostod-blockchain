@@ -8,12 +8,12 @@ Use this document to copy answers directly into the Gate.io application form.
 
 ### Project Name:
 ```
-KENO - Knowledge Yield Token (KYT)
+KENO - Knowledge Utility Token (KUT)
 ```
 
 ### Brief Project Introduction:
 ```
-Kenostod Blockchain Academy is the world's first learn-to-earn education platform featuring KENO — a revolutionary Knowledge Yield Token (KYT). Unlike traditional crypto that requires capital investment, KENO is EARNED by completing 21 blockchain courses (250 KENO per course = 5,250 KENO total). Graduates access our proprietary Flash Arbitrage Loan (FAL) technology for passive income generation. Core philosophy: "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king." Verified BEP-20 token on Binance Smart Chain: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+Kenostod Blockchain Academy is the world's first learn-to-earn education platform featuring KENO — a revolutionary Knowledge Utility Token (KUT). Unlike traditional crypto that requires capital investment, KENO is EARNED by completing 21 blockchain courses (250 KENO per course = 5,250 KENO total). Graduates access our proprietary Flash Arbitrage Loan (FAL) technology for token utility. Core philosophy: "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king." Verified BEP-20 token on Binance Smart Chain: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 ```
 
 ### Official Website:
@@ -167,7 +167,7 @@ Reserve & Operations: 5% ($107,500) - Working capital, contingency fund
 
 ### Detailed Project Description:
 ```
-KENO is the world's first Knowledge Yield Token (KYT) — a revolutionary new asset class that combines education, earning, and passive income generation.
+KENO is the world's first Knowledge Utility Token (KUT) — a revolutionary new asset class that combines education, earning, and token utility.
 
 THE PROBLEM:
 Traditional cryptocurrency requires capital investment to participate. This excludes billions of people worldwide who cannot afford to speculate. Meanwhile, blockchain education remains disconnected from actual earning opportunities.
@@ -179,7 +179,7 @@ Kenostod Blockchain Academy solves both problems simultaneously:
 Students complete 21 comprehensive blockchain courses covering everything from wallet management to advanced DeFi strategies. Each course completion rewards 250 KENO tokens. Graduates earn 5,250 KENO total — with zero capital investment required.
 
 2. FLASH ARBITRAGE LOAN (FAL) TECHNOLOGY
-Our proprietary FAL system enables graduates to participate in cross-exchange arbitrage opportunities. Users access platform liquidity for instant trades, capturing price differences between exchanges. Profits are shared between users and the platform, creating sustainable passive income.
+Our proprietary FAL system enables graduates to participate in cross-exchange arbitrage opportunities. Users access platform liquidity for instant trades, capturing price differences between exchanges. Profits are shared between users and the platform, creating sustainable arbitrage opportunities.
 
 3. DEMOCRATIZED WEALTH MODEL
 Unlike traditional crypto where early investors benefit most, KENO distributes wealth broadly:
@@ -226,8 +226,8 @@ This captures our core belief: the blockchain revolution should benefit everyone
 
 ### What makes your project unique?
 ```
-1. FIRST KNOWLEDGE YIELD TOKEN (KYT)
-KENO is the world's first token in a new asset class: earned through education, yielding passive income. No other project combines learn-to-earn with sustainable yield generation.
+1. FIRST KNOWLEDGE YIELD TOKEN (KUT)
+KENO is the world's first token in a new asset class: earned through education, providing arbitrage access. No other project combines learn-to-earn with sustainable token utility.
 
 2. ZERO CAPITAL BARRIER
 Unlike every other cryptocurrency, KENO can be earned entirely through education. Students graduate with real, tradeable tokens without investing a single dollar.
@@ -356,9 +356,9 @@ Gate.io's 14M+ user base represents our ideal audience: crypto-curious individua
 
 ### Investment Thesis:
 ```
-KENO is not just another cryptocurrency — it's infrastructure for the next billion crypto users. By removing the capital barrier and providing genuine utility through education and yield generation, KENO addresses the fundamental accessibility problem in crypto. Early investors benefit from:
+KENO is not just another cryptocurrency — it's infrastructure for the next billion crypto users. By removing the capital barrier and providing genuine utility through education and token utility, KENO addresses the fundamental accessibility problem in crypto. Early investors benefit from:
 
-1. First-mover advantage in a new asset class (KYT)
+1. First-mover advantage in a new asset class (KUT)
 2. Multiple revenue streams (courses, B2B, licensing, fees)
 3. Deflationary tokenomics through platform activity
 4. Growing user base of educated, engaged participants

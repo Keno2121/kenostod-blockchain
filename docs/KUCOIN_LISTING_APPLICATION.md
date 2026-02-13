@@ -1,5 +1,5 @@
 # KuCoin Exchange Listing Application
-## KENO Token (Knowledge Yield Token)
+## KENO Token (Knowledge Utility Token)
 
 **Application Date:** December 2024
 **Project:** Kenostod Blockchain Academy
@@ -51,14 +51,14 @@
 ## 3. PROJECT DESCRIPTION
 
 ### Overview
-Kenostod Blockchain Academy introduces the world's first **Knowledge Yield Token (KYT)** - KENO. This revolutionary token is:
+Kenostod Blockchain Academy introduces the world's first **Knowledge Utility Token (KUT)** - KENO. This revolutionary token is:
 - **EARNED** through education (not bought through speculation)
-- **YIELDS** passive income through Flash Arbitrage Loan (FAL) technology
+- **UNLOCKS** arbitrage access through Flash Arbitrage Loan (FAL) technology
 - **REAL** value backed by 21-course blockchain curriculum
 
 ### Innovation Highlights
 1. **Learn-to-Earn Model:** Students earn 250 KENO per course completion (5,250 KENO total for 21 courses)
-2. **Flash Arbitrage Loans (FAL):** Proprietary DeFi technology for passive income generation
+2. **Flash Arbitrage Loans (FAL):** Proprietary DeFi technology for token utility
 3. **Proof-of-Residual-Value (PoRV):** Novel consensus mechanism creating real economic value
 4. **Residual Value Tokens (RVT):** NFTs generating perpetual royalties
 

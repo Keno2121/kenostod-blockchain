@@ -35,7 +35,7 @@
 - 🇮🇳 **India:** 100M+ users (top 3 globally)
 - 🌏 **Asia:** 150M+ users (Indonesia, Philippines, Vietnam)
 
-**Total Addressable Market:** 500M potential students seeking blockchain education + passive income
+**Total Addressable Market:** 500M potential students seeking blockchain education + earning opportunities
 
 ---
 

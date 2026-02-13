@@ -16,10 +16,10 @@ November 28, 2025
 KENO
 
 ### One-liner Description
-The world's first Knowledge Yield Token (KYT) - earned through education, yielding passive income through Flash Arbitrage Loans.
+The world's first Knowledge Utility Token (KUT) - earned through education, providing arbitrage access through Flash Arbitrage Loans.
 
 ### Detailed Project Description
-Kenostod Blockchain Academy introduces a revolutionary new asset class: Knowledge Yield Tokens (KYT). Unlike traditional cryptocurrencies bought through speculation, KENO is EARNED through completing 21 blockchain education courses and YIELDS passive income through proprietary Flash Arbitrage Loan (FAL) technology.
+Kenostod Blockchain Academy introduces a revolutionary new asset class: Knowledge Utility Tokens (KUT). Unlike traditional cryptocurrencies bought through speculation, KENO is EARNED through completing 21 blockchain education courses and UNLOCKS arbitrage access through proprietary Flash Arbitrage Loan (FAL) technology.
 
 **How It Works:**
 1. Students enroll in Kenostod Blockchain Academy
@@ -154,7 +154,7 @@ https://kenostodblockchain.com/docs.html
 - **Name:** Nickeo Coleman
 - **Position:** Founder & CEO
 - **LinkedIn:** [To be provided]
-- **Bio:** Innovator since 2007, software developer since 2020, cryptocurrency enthusiast. Created Kenostod Blockchain Academy to democratize blockchain education and provide passive income opportunities through the Knowledge Yield Token model.
+- **Bio:** Innovator since 2007, software developer since 2020, cryptocurrency enthusiast. Created Kenostod Blockchain Academy to democratize blockchain education and provide earning opportunities through the Knowledge Utility Token model.
 
 ### Team Size
 Solo founder with contracted developers
@@ -184,12 +184,12 @@ Maine, United States
 
 ### What makes KENO unique?
 
-1. **First Knowledge Yield Token (KYT)**
-   - New asset class combining education + passive income
+1. **First Knowledge Utility Token (KUT)**
+   - New asset class combining education + earning opportunities
    - Tokens earned through achievement, not purchased through speculation
 
 2. **Real Utility Beyond Trading**
-   - Flash Arbitrage Loans for yield generation
+   - Flash Arbitrage Loans for token utility
    - Graduate merchandise (G.I.F.T. smart apparel)
    - Platform governance and voting rights
    - Premium feature access

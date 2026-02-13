@@ -5,7 +5,7 @@
 
 ## Slide 1: Title
 **Kenostod Blockchain Academy**
-*The World's First Knowledge Yield Token (KYT)*
+*The World's First Knowledge Utility Token (KUT)*
 
 - KENO Token on Binance Smart Chain (BEP-20)
 - Contract: `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E`
@@ -17,18 +17,18 @@
 
 1. **Crypto speculation** - 95% of tokens are bought, not earned
 2. **Education is disconnected from rewards** - Students pay to learn but don't earn
-3. **No passive income for learners** - Traditional education has no financial upside
+3. **No earning opportunities for learners** - Traditional education has no financial upside
 4. **High barrier to DeFi** - Arbitrage is complex and inaccessible to beginners
 
 ---
 
 ## Slide 3: The Solution
 
-**KENO - Knowledge Yield Token**
+**KENO - Knowledge Utility Token**
 
 A revolutionary new asset class that:
 - Is **EARNED** through completing blockchain education (not bought)
-- **YIELDS** passive income through Flash Arbitrage Loans (FAL™)
+- **UNLOCKS** arbitrage access through Flash Arbitrage Loans (FAL™)
 - Combines **education + DeFi** in one ecosystem
 
 *"Learn to Earn, Then Earn While You Sleep"*
@@ -37,12 +37,12 @@ A revolutionary new asset class that:
 
 ## Slide 4: How It Works
 
-**21 Courses → 5,250 KENO → Passive Income**
+**21 Courses → 5,250 KENO → Arbitrage Access**
 
 1. Students complete 21 blockchain courses
 2. Earn 250 KENO per course (5,250 total)
 3. Use KENO in Flash Arbitrage Loan Pools (FALP)
-4. Earn passive income from arbitrage profits
+4. Earn token rewards from arbitrage profits
 
 ---
 
@@ -139,7 +139,7 @@ A revolutionary new asset class that:
 | Feature | KENO | Traditional Crypto | Learn-to-Earn |
 |---------|------|-------------------|---------------|
 | Earned through education | ✅ | ❌ | ✅ |
-| Passive income (DeFi) | ✅ | ❌ | ❌ |
+| Arbitrage access (DeFi) | ✅ | ❌ | ❌ |
 | Real BEP-20 token | ✅ | ✅ | Rare |
 | Corporate B2B model | ✅ | ❌ | ❌ |
 | Self-funding ecosystem | ✅ | ❌ | ❌ |
@@ -184,7 +184,7 @@ A revolutionary new asset class that:
 **"Turn Dreams Into Reality"**
 An Offshore Umbrella Foundation for Multi-Sector Innovation
 
-- **Kenostod Academy:** Education & Knowledge Yield Token Ecosystem (KYT)
+- **Kenostod Academy:** Education & Knowledge Utility Token Ecosystem (KUT)
 - **Solar Project:** Renewable Energy Infrastructure & Token Utility
 - **B.U.K. Security:** Banking & Security Infrastructure for the Digital Economy
 

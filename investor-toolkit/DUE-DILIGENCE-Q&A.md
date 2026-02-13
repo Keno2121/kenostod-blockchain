@@ -127,7 +127,7 @@ This diversification means we're not dependent on token price alone.
 
 ✅ **Structured Curriculum:** 21 courses, beginner → advanced progression
 ✅ **Hands-On Practice:** Real wallets, real mining, real transactions
-✅ **Earn While Learning:** Students get KENO tokens (passive income)
+✅ **Earn While Learning:** Students get KENO tokens (token rewards)
 ✅ **Certification:** Graduate Club recognition + blockchain-verified credentials
 ✅ **Career Support:** Job board, employer connections, resume help
 ✅ **Community:** Live support, forums, mentorship
@@ -316,7 +316,7 @@ $2M raise = 50+ months runway (profitability before capital runs out)
 2. **Merchant Adoption:** Businesses accept KENO for payments
 3. **Exchange Trading:** Supply/demand dynamics on DEX/CEX
 4. **Burn Mechanism:** Transaction fees burned (deflationary)
-5. **Staking Rewards:** Holders earn passive income (planned)
+5. **Staking Rewards:** Holders access arbitrage earnings (planned)
 6. **Scarcity:** Fixed 1B supply, no new minting
 7. **Network Growth:** More users = more valuable (Metcalfe's Law)
 

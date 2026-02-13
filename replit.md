@@ -1,12 +1,12 @@
 # Overview
 
-Kenostod Blockchain Academy is an educational platform featuring a blockchain simulator and the world's first **Knowledge Yield Token (KYT)** — KENO. Unlike traditional cryptocurrencies that are bought through speculation, KENO is EARNED through completing 21 educational courses and YIELDS passive income through Flash Arbitrage Loans (FAL™).
+Kenostod Blockchain Academy is an educational platform featuring a blockchain simulator and the world's first **Knowledge Utility Token (KUT)** — KENO. Unlike traditional cryptocurrencies that are bought through speculation, KENO is EARNED through completing 21 educational courses and provides access to Flash Arbitrage Loan features (FAL™).
 
 **Founder:** Nickeo Coleman — Creating innovations since 2007, coding since 2020, crypto enthusiast since conception.
 
-**KYT Positioning:** KENO is NOT a cryptocurrency in the traditional sense — it's a revolutionary new asset class:
+**KUT Positioning:** KENO is a utility token — NOT a security, NOT an investment contract:
 - **Knowledge:** Earned through completing 21 courses (250 KENO per course = 5,250 KENO total)
-- **Yield:** Generates passive income through FAL/FALP arbitrage systems
+- **Utility:** Provides platform access, governance voting, and FAL/FALP feature access
 - **Token:** Real BEP-20 asset on Binance Smart Chain, tradeable and transferable
 
 The platform teaches advanced blockchain concepts like Proof-of-Residual-Value (PoRV), transaction reversal, and social recovery. KENO is verified on BscScan at 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E. The vision is a self-funding ecosystem where graduates generate revenue through FAL™, creating employment and funding scholarships for future students.
@@ -31,6 +31,7 @@ Business email: keno@kenostodblockchain.com
 
 # Recent Changes
 
+- **Feb 13, 2026:** BRIDGE.XYZ COMPLIANCE OVERHAUL - Renamed KYT (Knowledge Yield Token) to KUT (Knowledge Utility Token) across all 44+ files. Removed "passive income", "yield", and securities-triggering language from all public-facing pages. Added comprehensive utility token disclaimers, not-a-security notices, FinCEN MSB/AML/KYC compliance sections to Terms of Service, Risk Disclosure, and index.html. Updated Bridge meeting prep with compliance readiness summary. All changes designed to meet Bridge.xyz Open Issuance partnership requirements.
 - **Feb 13, 2026:** MAJOR CURRICULUM OVERHAUL - All 21 courses expanded from ~225-600 lines to 1,277-1,803 lines each. Every course now includes 10-18 content sections, 10-12 quiz questions (80% pass rate), 4-5 written exercises with feedback, real-world case studies, comparison tables, code examples, and vocabulary grids. Courses now provide legitimate 2-3 hour educational experiences. Enhanced course-common.js with progress tracking system (section completion, time spent, progress bar at bottom of every course page).
 
 # System Architecture

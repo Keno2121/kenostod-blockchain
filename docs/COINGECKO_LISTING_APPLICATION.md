@@ -35,10 +35,10 @@ Kenostod Blockchain Academy
 November 28, 2025
 
 ### Project Description (Short)
-KENO is the world's first Knowledge Yield Token (KYT) - earned through completing 21 blockchain education courses and yielding passive income through Flash Arbitrage Loans (FAL).
+KENO is the world's first Knowledge Utility Token (KUT) - earned through completing 21 blockchain education courses and providing arbitrage access through Flash Arbitrage Loans (FAL).
 
 ### Project Description (Long)
-Kenostod Blockchain Academy introduces a revolutionary new asset class: Knowledge Yield Tokens (KYT). Unlike traditional cryptocurrencies bought through speculation, KENO is EARNED through educational achievement and YIELDS passive income through proprietary Flash Arbitrage Loan technology.
+Kenostod Blockchain Academy introduces a revolutionary new asset class: Knowledge Utility Tokens (KUT). Unlike traditional cryptocurrencies bought through speculation, KENO is EARNED through educational achievement and UNLOCKS arbitrage access through proprietary Flash Arbitrage Loan technology.
 
 Students complete 21 courses covering blockchain fundamentals, cryptocurrency trading, smart contracts, DeFi, and financial literacy. Upon completion of each course, students earn 250 KENO tokens (5,250 KENO total for all 21 courses). These tokens can then be staked to access Flash Arbitrage Loans, generating real yield from market inefficiencies.
 
@@ -134,7 +134,7 @@ $0.50 USD
 
 1. **Earned, Not Bought:** KENO is earned through completing educational courses, not speculation
 2. **Real Utility:** Access Flash Arbitrage Loans, premium features, merchandise, and governance
-3. **Passive Income:** FAL/FALP systems generate real yield from market arbitrage
+3. **Arbitrage Access:** FAL/FALP systems generate real yield from market arbitrage
 4. **Deflationary:** Token burning and buyback mechanisms reduce supply over time
 5. **Physical Integration:** G.I.F.T. smart apparel creates real-world token utility
 

@@ -7,22 +7,22 @@
 
 ## Executive Summary
 
-Kenostod Blockchain Academy proposes a strategic partnership with B2C2 to provide institutional-grade liquidity and market-making services for the **KENO Knowledge Yield Token (KYT)**. 
+Kenostod Blockchain Academy proposes a strategic partnership with B2C2 to provide institutional-grade liquidity and market-making services for the **KENO Knowledge Utility Token (KUT)**. 
 
-Unlike speculative cryptocurrencies, KENO is a revolutionary new asset class combining **education, yield generation, and real-world utility**. We are seeking B2C2's expertise to:
+Unlike speculative cryptocurrencies, KENO is a revolutionary new asset class combining **education, token utility, and real-world utility**. We are seeking B2C2's expertise to:
 - Stabilize KENO pricing post-launch
 - Enable institutional adoption
 - Support our B2B licensing expansion
 
 ---
 
-## The Opportunity: KENO Knowledge Yield Token
+## The Opportunity: KENO Knowledge Utility Token
 
 ### What Makes KENO Different
 
 **Not a speculative cryptocurrency — an educational asset:**
 - **Earned** through completing 21 blockchain courses (not bought)
-- **Yields** passive income through Flash Arbitrage Loans (FAL) and pooled FALP systems
+- **Provides** arbitrage access through Flash Arbitrage Loans (FAL) and pooled FALP systems
 - **Real utility** through proprietary technology (Proof-of-Residual-Value, RVT NFTs, social recovery)
 - **Corporate demand** from universities, enterprises, and government agencies seeking blockchain workforce training
 

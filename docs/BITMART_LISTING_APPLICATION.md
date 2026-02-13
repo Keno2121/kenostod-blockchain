@@ -1,5 +1,5 @@
 # BitMart Exchange Listing Application
-## KENO Token (Knowledge Yield Token)
+## KENO Token (Knowledge Utility Token)
 
 **Application Date:** December 2024
 **Project:** Kenostod Blockchain Academy
@@ -35,14 +35,14 @@
 | Block Explorer | https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E |
 
 ### Project Description
-Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Yield Token (KYT)** - KENO. Unlike traditional cryptocurrencies, KENO is:
+Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Utility Token (KUT)** - KENO. Unlike traditional cryptocurrencies, KENO is:
 - **EARNED** through completing 21 blockchain courses
-- **YIELDS** passive income through Flash Arbitrage Loan (FAL) technology
+- **UNLOCKS** arbitrage access through Flash Arbitrage Loan (FAL) technology
 - Zero capital investment required for students
 
 ### Unique Value Proposition
 1. **Learn-to-Earn:** 250 KENO per course (5,250 total)
-2. **FAL Technology:** Proprietary passive income mechanism
+2. **FAL Technology:** Proprietary token utility mechanism
 3. **Real Education:** Comprehensive 21-course curriculum
 4. **PoRV Consensus:** Creates real economic value
 

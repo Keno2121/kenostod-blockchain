@@ -39,7 +39,7 @@ We're the world's first educational platform where students earn REAL cryptocurr
 
 🇮🇳 INDIA OPPORTUNITY:
 • 100M+ crypto users
-• High demand for blockchain education + passive income
+• High demand for blockchain education + earning opportunities
 • Mobile-first population
 • Young, tech-savvy demographic
 
@@ -154,7 +154,7 @@ Kenostod Blockchain Academy teaches students blockchain technology while they ea
 🌍 GLOBAL MARKET OPPORTUNITY:
 • Target: Africa, Brazil, India, Asia (500M+ potential students)
 • 350M+ existing crypto users in these markets
-• Underserved demand for blockchain education + passive income
+• Underserved demand for blockchain education + earning opportunities
 
 💎 ICO STRUCTURE:
 • Private Sale: $0.01/KENO + 20% bonus (Nov 28-Dec 28)

@@ -23,7 +23,7 @@ We're building the world's first educational platform where African students can
 • **Youth Unemployment Crisis**: 60% of Africa's unemployed are youth
 • **Blockchain Jobs Boom**: 10,000+ unfilled blockchain jobs globally
 • **Mobile-First Solution**: Works on basic smartphones (critical for Africa)
-• **Passive Income**: Students earn KENO tokens worth more than subscription cost
+• **Arbitrage Access**: Students earn KENO tokens worth more than subscription cost
 • **Career Pathway**: Direct connection to blockchain jobs after graduation
 
 📚 WHAT WE'VE BUILT:
@@ -46,7 +46,7 @@ We're building the world's first educational platform where African students can
 
 This isn't just an investment—it's empowering the next generation of African blockchain developers and entrepreneurs. We're solving TWO problems simultaneously:
 1. **Skills Gap**: Training blockchain developers Africa desperately needs
-2. **Income Gap**: Students earn while learning (passive income model)
+2. **Income Gap**: Students earn while learning (token rewards model)
 
 ✅ TRACTION & CREDIBILITY:
 
@@ -108,7 +108,7 @@ We're launching the world's first educational platform where students earn real 
 • **Crypto Adoption Leader**: Indonesia = 4th largest crypto user base globally
 • **Young Population**: 60% under age 30 (huge student market)
 • **Mobile-First**: 350M+ smartphone users in SE Asia
-• **Education Demand**: Massive appetite for tech skills and passive income
+• **Education Demand**: Massive appetite for tech skills and earning opportunities
 • **English Proficiency**: Large English-speaking student base
 
 📚 THE OPPORTUNITY:
@@ -134,7 +134,7 @@ We're not just another crypto token—we're building blockchain education infras
 ANGIN invests in businesses that create positive social impact. We deliver:
 
 1. **Education Access**: Affordable blockchain training for underserved communities
-2. **Economic Opportunity**: Students earn passive income while learning
+2. **Economic Opportunity**: Students access arbitrage earnings while learning
 3. **Job Creation**: Career center connects graduates to high-paying blockchain jobs
 4. **Financial Inclusion**: Teaching DeFi, wallets, crypto to unbanked populations
 5. **Gender Equality**: Scholarship fund for women in blockchain
@@ -318,7 +318,7 @@ We're building the world's first educational platform where Brazilian students e
 🎯 SOCIAL IMPACT IN BRAZIL:
 
 1. **Accessible Education**: Affordable blockchain training for underserved communities
-2. **Passive Income**: Students earn while they learn
+2. **Arbitrage Access**: Students earn while they learn
 3. **Job Creation**: Connecting graduates to high-paying blockchain jobs
 4. **Financial Inclusion**: Teaching DeFi, wallets, cryptocurrency
 5. **Poverty Combat**: Education + economic opportunity

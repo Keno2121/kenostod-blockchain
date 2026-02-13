@@ -1,5 +1,5 @@
 # XT.com Exchange Listing Application
-## KENO Token (Knowledge Yield Token)
+## KENO Token (Knowledge Utility Token)
 
 **Application Date:** December 2024
 **Project:** Kenostod Blockchain Academy
@@ -44,12 +44,12 @@
 ## 3. PROJECT OVERVIEW
 
 ### Description
-Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Yield Token (KYT)** - KENO.
+Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Utility Token (KUT)** - KENO.
 
 ### Unique Value Proposition
 1. **Learn-to-Earn:** 250 KENO per course (5,250 total for 21 courses)
 2. **Zero Investment:** Students earn without capital
-3. **Passive Income:** FAL technology generates yield
+3. **Arbitrage Access:** FAL technology generates yield
 4. **Real Education:** Comprehensive blockchain curriculum
 
 ### Problem Solved

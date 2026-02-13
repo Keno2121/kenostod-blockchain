@@ -4,7 +4,7 @@
 
 Welcome to the Official KENO Token Community!
 
-KENO is the world's first Knowledge Yield Token (KYT) - earned through education, yields through arbitrage.
+KENO is the world's first Knowledge Utility Token (KUT) - earned through education, yields through arbitrage.
 
 QUICK LINKS:
 Website: https://kenostodblockchain.com
@@ -47,10 +47,10 @@ Direct Link: https://pancakeswap.finance/swap?outputCurrency=0x65791E0B5Cbac5F40
 
 WHAT MAKES KENO DIFFERENT?
 
-KENO is NOT a cryptocurrency - it's a Knowledge Yield Token (KYT)
+KENO is NOT a cryptocurrency - it's a Knowledge Utility Token (KUT)
 
 KNOWLEDGE: Earn 5,250 KENO by completing 21 courses
-YIELD: Generate passive income through Flash Arbitrage Loans
+YIELD: Generate arbitrage access through Flash Arbitrage Loans
 TOKEN: Real BEP-20 asset on BSC
 
 Unlike Bitcoin (speculation) or meme coins (hype), KENO is EARNED through education and YIELDS real income.

@@ -73,7 +73,7 @@ We're launching the world's first educational platform where students earn real,
 • Target: Africa, Brazil, India, Asia (500M+ potential students)
 • 350M+ existing crypto users in these markets
 • Mobile-first platform (critical for developing economies)
-• Education + passive income = powerful value proposition
+• Education + earning opportunities = powerful value proposition
 
 💡 UNIQUE BUSINESS MODEL:
 • Students pay $10-20/month BUT earn KENO tokens worth more

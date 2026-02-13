@@ -69,7 +69,7 @@
 **Key Points:**
 - Simple flow: Learn → Earn → Career
 - Emphasize "REAL cryptocurrency" (not points)
-- Students earn MORE than they pay (passive income angle)
+- Students earn MORE than they pay (token rewards angle)
 - Job placement = complete solution
 
 **Tone:**

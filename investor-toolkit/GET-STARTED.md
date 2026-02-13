@@ -42,7 +42,7 @@ I'm the founder of Kenostod Blockchain Academy - the world's first educational p
 
 🎯 WHY AFRICA MATTERS TO US:
 • 200M+ crypto users across Nigeria, Kenya, South Africa
-• High demand for blockchain education AND passive income
+• High demand for blockchain education AND earning opportunities
 • Mobile-first populations perfect for crypto adoption
 • Underserved markets hungry for opportunity
 
@@ -170,7 +170,7 @@ Kenostod Blockchain Academy is the world's first educational platform where stud
 🇮🇳 INDIA OPPORTUNITY:
 • 100M+ crypto users (one of the largest markets globally)
 • Young, tech-savvy population
-• Strong demand for blockchain skills & passive income
+• Strong demand for blockchain skills & earning opportunities
 • Growing crypto adoption despite regulatory uncertainty
 
 💎 WHAT MAKES US DIFFERENT:
@@ -360,7 +360,7 @@ Founder & CEO, Kenostod Blockchain Academy
 📍 Verified Contract: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 🔗 https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
 
-"Empowering the world through blockchain education and passive income opportunities"
+"Empowering the world through blockchain education and earning opportunities"
 ```
 
 ---

@@ -167,4 +167,4 @@ If you need help with the listing process:
 ---
 
 *Guide prepared for Kenostod Blockchain Academy*
-*KENO - Knowledge Yield Token*
+*KENO - Knowledge Utility Token*

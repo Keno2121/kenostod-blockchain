@@ -4,7 +4,7 @@
 
 | Property | Value |
 |----------|-------|
-| Token Name | KENO - Knowledge Yield Token |
+| Token Name | KENO - Knowledge Utility Token |
 | Symbol | KENO |
 | Blockchain | Binance Smart Chain (BEP-20) |
 | Contract | 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E |
@@ -141,7 +141,7 @@ Unlock advanced AI support, priority arbitrage alerts, and premium content.
 
 ### Value Accrual
 1. **Education Demand** → More students → More platform activity
-2. **FAL Usage** → Graduate yield generation → Platform fee revenue
+2. **FAL Usage** → Graduate token utility → Platform fee revenue
 3. **Trading Volume** → Exchange activity → Fee capture
 4. **Merchant Adoption** → Payment processing → Gateway fees
 

@@ -35,7 +35,7 @@ Kenostod Validator Nodes perform five essential functions:
 - **Function:** Run real-time arbitrage opportunity calculations across exchanges
 - **Process:** Nodes fetch market data, calculate spreads, and identify opportunities
 - **Reward:** Share of FAL platform fees (25% distributed to node operators)
-- **Impact:** Powers the FAL/FALP systems that generate passive income for graduates
+- **Impact:** Powers the FAL/FALP systems that enable arbitrage access for graduates
 
 ### 1.4 Graduate Credential Verification
 - **Function:** Verify graduate status for employers, institutions, and third parties
@@ -345,7 +345,7 @@ Unlike speculative crypto projects, Kenostod nodes power **real infrastructure**
 
 ### 10.3 Investment Highlights
 
-- **First Knowledge Yield Token** ecosystem in the world
+- **First Knowledge Utility Token** ecosystem in the world
 - **21 comprehensive courses** already developed
 - **Working product** (not just a whitepaper)
 - **BSC listing** on PancakeSwap imminent

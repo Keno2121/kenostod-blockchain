@@ -241,7 +241,7 @@ Official blog of KENO Token | Blockchain education platform with Proof-of-Residu
 2. **"What is Proof-of-Residual-Value (PoRV)?"**
 3. **"How to Participate in the KENO Token ICO"**
 4. **"21 Courses That Will Make You a Blockchain Expert"**
-5. **"Residual Value Tokens: Passive Income Explained"**
+5. **"Residual Value Tokens: Token Rewards Explained"**
 
 ---
 
@@ -307,7 +307,7 @@ Subscribe for:
 📊 ICO updates and news
 💡 PoRV consensus explained
 🏆 Student success stories
-💰 Passive income strategies
+💰 Earning strategies
 
 Website: kenostodblockchain.com
 ```

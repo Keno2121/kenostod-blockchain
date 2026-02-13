@@ -175,7 +175,7 @@ We're flipping the model:
 • Learn real blockchain skills
 • Get connected to blockchain jobs
 
-It's education + passive income + career pathway, all in one.
+It's education + earning opportunities + career pathway, all in one.
 
 We're launching our Private Sale on November 28 at $0.01/KENO + 20% bonus.
 
@@ -325,7 +325,7 @@ Private Sale: Nov 28 | Link in bio
 >
 > And we've structured it so students earn KENO worth MORE than their subscription cost. They're literally getting paid to learn.
 >
-> When they graduate, our Career Center connects them directly to blockchain jobs. So it's education + passive income + job placement, all in one platform.
+> When they graduate, our Career Center connects them directly to blockchain jobs. So it's education + earning opportunities + job placement, all in one platform.
 >
 > You can test the entire platform yourself right now at kenostodblockchain.com. It's live and fully operational."
 

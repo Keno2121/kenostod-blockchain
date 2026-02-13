@@ -1,4 +1,4 @@
-# KENO: Knowledge Yield Token
+# KENO: Knowledge Utility Token
 ## The World's First Learn-to-Earn Blockchain Asset
 
 **Version 1.0 | December 2024**
@@ -9,7 +9,7 @@
 
 ## Abstract
 
-KENO introduces a revolutionary asset class: the **Knowledge Yield Token (KYT)**. Unlike traditional cryptocurrencies acquired through speculation, KENO is exclusively **earned through education** and **generates passive income** through proprietary Flash Arbitrage Loan (FAL) technology. This creates a self-sustaining ecosystem where knowledge directly converts to wealth.
+KENO introduces a revolutionary asset class: the **Knowledge Utility Token (KUT)**. Unlike traditional cryptocurrencies acquired through speculation, KENO is exclusively **earned through education** and **enables arbitrage access** through proprietary Flash Arbitrage Loan (FAL) technology. This creates a self-sustaining ecosystem where knowledge directly converts to wealth.
 
 Kenostod Academy is the educational platform that issues KENO tokens to students who complete its 21-course blockchain curriculum. Graduates enter a perpetual profit-sharing system, creating the first truly democratized wealth-building model in crypto.
 
@@ -20,7 +20,7 @@ Kenostod Academy is the educational platform that issues KENO tokens to students
 ## Table of Contents
 
 1. [Problem Statement](#1-problem-statement)
-2. [Solution: Knowledge Yield Token](#2-solution-knowledge-yield-token)
+2. [Solution: Knowledge Utility Token](#2-solution-knowledge-yield-token)
 3. [Platform Overview](#3-platform-overview)
 4. [Technical Architecture](#4-technical-architecture)
 5. [Tokenomics](#5-tokenomics)
@@ -42,7 +42,7 @@ Kenostod Academy is the educational platform that issues KENO tokens to students
 ### The Education-Employment Gap
 - **$1.7 trillion** in global student debt
 - Graduates lack practical skills for emerging blockchain industry
-- Traditional education offers no path to passive income
+- Traditional education offers no path to earning opportunities
 - Knowledge acquisition doesn't directly translate to wealth
 
 ### The Crypto Speculation Problem
@@ -54,27 +54,27 @@ Kenostod Academy is the educational platform that issues KENO tokens to students
 ### The DeFi Complexity Barrier
 - Flash loans require technical expertise
 - Arbitrage opportunities inaccessible to average users
-- High barriers to entry for yield generation
+- High barriers to entry for token utility
 - No educational pathway to DeFi participation
 
 ---
 
-## 2. Solution: Knowledge Yield Token
+## 2. Solution: Knowledge Utility Token
 
 KENO solves these problems by creating a new asset class:
 
-| Traditional Crypto | Knowledge Yield Token (KYT) |
+| Traditional Crypto | Knowledge Utility Token (KUT) |
 |-------------------|----------------------------|
 | Bought through speculation | Earned through education |
 | Value from hype | Value from utility + yield |
 | Passive holding | Active income generation |
 | Wealth to early adopters | Wealth to all participants |
 
-### The KYT Framework
+### The KUT Framework
 
 **K - Knowledge:** Earned by completing 21 blockchain courses (250 KENO per course = 5,250 KENO total)
 
-**Y - Yield:** Generates passive income through Flash Arbitrage Loan Pools (FALP)
+**U - Utility:** Provides arbitrage access and platform features through Flash Arbitrage Loan Pools (FALP)
 
 **T - Token:** Real BEP-20 asset on Binance Smart Chain, fully tradeable and transferable
 
@@ -265,14 +265,14 @@ Collective liquidity system:
 | Feature | KENO | Learn-to-Earn Competitors | Traditional EdTech |
 |---------|------|---------------------------|-------------------|
 | Real Token Rewards | BEP-20 on BSC | Often testnet only | None |
-| Passive Income | FAL/FALP system | Limited/None | None |
+| Arbitrage Access | FAL/FALP system | Limited/None | None |
 | Blockchain Simulator | Full feature | Basic/None | Theoretical |
 | Graduate Employment | Career center | Limited | Job boards |
 | Wealth Building | RVT NFTs, royalties | None | None |
 
 ### Unique Differentiators
 
-1. **First KYT:** New asset class category
+1. **First KUT:** New asset class category
 2. **Earn, Don't Buy:** Eliminates speculation
 3. **Perpetual Royalties:** Graduates earn forever
 4. **Real Arbitrage:** Not simulated, actual market opportunities
@@ -373,7 +373,7 @@ KENO is designed as a **utility token**:
 
 ### Intellectual Property
 - Patent-pending FAL technology
-- Trademark: Kenostod, KENO, KYT
+- Trademark: Kenostod, KENO, KUT
 - Copyright: Course content, platform code
 
 ---
@@ -414,7 +414,7 @@ An offshore umbrella foundation consolidating all investments:
 
 ## 15. Conclusion
 
-KENO represents a paradigm shift in how we think about cryptocurrency, education, and wealth building. By creating the world's first Knowledge Yield Token, we're not just building another blockchain project — we're building a new economic model where:
+KENO represents a paradigm shift in how we think about cryptocurrency, education, and wealth building. By creating the world's first Knowledge Utility Token, we're not just building another blockchain project — we're building a new economic model where:
 
 - **Knowledge creates wealth**
 - **Everyone earns royalties**

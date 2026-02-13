@@ -154,7 +154,7 @@ Use template: Email Template 4
 > "We're Kenostod Blockchain Academy - the world's first educational platform where students learn blockchain by using REAL cryptocurrency. Our students create wallets, mine tokens, and execute transactions with KENO - a real BEP-20 token they can trade. We have 21 comprehensive courses, verified smart contracts, and 7 revenue streams. Private sale launches Nov 28th at $0.01/token with a 20% bonus. Public sale is $0.05 - that's a 5x potential return in 3 months."
 
 ### Your "Why Now?" Answer:
-> "Blockchain education market is $41B by 2030. Our target markets - Africa, Brazil, India - have 350M+ crypto users desperately seeking education AND passive income opportunities. We're verified, transparent, live, and ready to scale with proper capital."
+> "Blockchain education market is $41B by 2030. Our target markets - Africa, Brazil, India - have 350M+ crypto users desperately seeking education AND earning opportunities. We're verified, transparent, live, and ready to scale with proper capital."
 
 ### Your Competitive Advantage:
 > "We're the ONLY platform combining professional education with real cryptocurrency. Coursera teaches theory. We let students EARN while they LEARN. Nobody else does this."

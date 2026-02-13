@@ -67,7 +67,7 @@
 ### Purpose of Funds
 - Patent filings for FAL (Flash Arbitrage Loan) technology
 - Patent filings for FALP (Flash Arbitrage Loan Pools) system
-- Trademark registration: KENO, Kenostod, Knowledge Yield Token
+- Trademark registration: KENO, Kenostod, Knowledge Utility Token
 - Legal entity formation and compliance
 - Intellectual property protection globally
 
@@ -136,9 +136,9 @@ All IP protection expenditures will be documented and reported to the community 
 
 ### What is Kenostod Blockchain Academy?
 
-The world's first **learn-to-earn** blockchain education platform featuring KENO — a revolutionary **Knowledge Yield Token (KYT)**.
+The world's first **learn-to-earn** blockchain education platform featuring KENO — a revolutionary **Knowledge Utility Token (KUT)**.
 
-Unlike traditional cryptocurrencies that require capital investment, KENO is **EARNED through education** and **YIELDS passive income** through our proprietary Flash Arbitrage Loan (FAL) technology.
+Unlike traditional cryptocurrencies that require capital investment, KENO is **EARNED through education** and **UNLOCKS arbitrage access** through our proprietary Flash Arbitrage Loan (FAL) technology.
 
 **Core Philosophy:** *"KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."*
 
@@ -225,12 +225,12 @@ Unlike traditional cryptocurrencies that require capital investment, KENO is **E
 |---------|------|---------------------|-------------------|
 | Earn without capital | Yes | Partial | No |
 | Comprehensive education | 21 courses | Limited | No |
-| Passive income mechanism | FAL Technology | No | Staking only |
+| Token utility mechanism | FAL Technology | No | Staking only |
 | Verified BEP-20 token | Yes | Varies | Yes |
 | Democratized royalties | RVT system | No | No |
 | Corporate B2B ready | Yes | No | No |
 
-**Unique Differentiator:** KENO is the world's first **Knowledge Yield Token (KYT)** — a new asset class combining education, earning, and passive income.
+**Unique Differentiator:** KENO is the world's first **Knowledge Utility Token (KUT)** — a new asset class combining education, earning, and earning opportunities.
 
 ---
 

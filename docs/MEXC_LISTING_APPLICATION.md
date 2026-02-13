@@ -1,5 +1,5 @@
 # MEXC Exchange Listing Application
-## KENO Token (Knowledge Yield Token)
+## KENO Token (Knowledge Utility Token)
 
 **Application Date:** December 2024
 **Project:** Kenostod Blockchain Academy
@@ -23,11 +23,11 @@ Kenostod Blockchain Academy
 - **Decimals:** 18
 
 ### Project Description
-Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Yield Token (KYT)** - KENO. Unlike traditional cryptocurrencies purchased through speculation, KENO is EARNED through completing 21 blockchain courses and YIELDS passive income through Flash Arbitrage Loan (FAL) technology.
+Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Utility Token (KUT)** - KENO. Unlike traditional cryptocurrencies purchased through speculation, KENO is EARNED through completing 21 blockchain courses and UNLOCKS arbitrage access through Flash Arbitrage Loan (FAL) technology.
 
 ### Unique Value Proposition
 1. **Learn-to-Earn Model:** Students earn 250 KENO per course (5,250 total) with zero capital investment
-2. **Passive Income Technology:** FAL (Flash Arbitrage Loans) enable graduates to generate yield
+2. **Arbitrage Technology:** FAL (Flash Arbitrage Loans) enable graduates to generate yield
 3. **Real Education:** Comprehensive 21-course blockchain curriculum
 4. **Deflationary Mechanism:** Proof-of-Residual-Value (PoRV) consensus creates real economic value
 
@@ -78,7 +78,7 @@ Kenostod Blockchain Academy is the world's first educational platform featuring 
 ## 4. TECHNOLOGY & INNOVATION
 
 ### Core Technologies
-1. **Flash Arbitrage Loans (FAL)** - Proprietary DeFi technology for passive income generation
+1. **Flash Arbitrage Loans (FAL)** - Proprietary DeFi technology for token utility
 2. **Proof-of-Residual-Value (PoRV)** - Novel consensus mechanism creating real economic value
 3. **Residual Value Tokens (RVT)** - NFTs that generate perpetual royalties
 

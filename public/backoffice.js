@@ -1981,7 +1981,7 @@ const courses = {
                     'Bonds: Stability and income',
                     'Real estate: Tangible assets and cash flow',
                     'Crypto: High-risk, high-reward digital assets',
-                    'KENO: Knowledge Yield Token as core holding'
+                    'KENO: Knowledge Utility Token as core holding'
                 ]
             },
             {

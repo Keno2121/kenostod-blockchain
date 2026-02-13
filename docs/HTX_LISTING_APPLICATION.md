@@ -1,5 +1,5 @@
 # HTX (Huobi) Exchange Listing Application
-## KENO Token (Knowledge Yield Token)
+## KENO Token (Knowledge Utility Token)
 
 **Application Date:** December 2024
 **Project:** Kenostod Blockchain Academy
@@ -30,14 +30,14 @@
 ## 2. PROJECT INFORMATION
 
 ### Overview
-Kenostod Blockchain Academy introduces the world's first **Knowledge Yield Token (KYT)** - KENO. This revolutionary asset class combines:
+Kenostod Blockchain Academy introduces the world's first **Knowledge Utility Token (KUT)** - KENO. This revolutionary asset class combines:
 - **Knowledge:** Earned through completing 21 blockchain courses
-- **Yield:** Generates passive income through FAL technology
+- **Utility:** Provides arbitrage access through FAL technology
 - **Token:** Real BEP-20 asset on Binance Smart Chain
 
 ### Core Innovation
 1. **Learn-to-Earn Model:** Students earn 250 KENO per course (5,250 total) with zero capital investment
-2. **Flash Arbitrage Loans (FAL):** Proprietary DeFi technology for passive income
+2. **Flash Arbitrage Loans (FAL):** Proprietary DeFi technology for arbitrage access
 3. **Proof-of-Residual-Value (PoRV):** Novel consensus creating real economic value
 4. **Residual Value Tokens (RVT):** NFTs generating perpetual royalties
 

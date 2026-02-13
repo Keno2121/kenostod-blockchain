@@ -6,7 +6,7 @@
 ## Slide 1: Title
 
 # KENO
-### The World's First Knowledge Yield Token
+### The World's First Knowledge Utility Token
 
 **Earn Through Education. Yield Through Innovation.**
 
@@ -20,17 +20,17 @@ Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E (BSC)
 ### 95% of Crypto Investors Lose Money
 ### DeFi is Too Complex for Average Users
 
-**The Gap:** No pathway connects education → skills → passive income
+**The Gap:** No pathway connects education → skills → earning opportunities
 
 ---
 
 ## Slide 3: The Solution
 
-# Knowledge Yield Token (KYT)
+# Knowledge Utility Token (KUT)
 
 A new asset class where tokens are:
 
-| Traditional Crypto | KENO (KYT) |
+| Traditional Crypto | KENO (KUT) |
 |-------------------|------------|
 | Bought | **Earned** |
 | Speculative | **Educational** |
@@ -149,12 +149,12 @@ A new asset class where tokens are:
 | Feature | KENO | Competitors |
 |---------|------|-------------|
 | Real Token (BSC) | Yes | Testnet/None |
-| Passive Income | FAL/FALP | Limited |
+| Arbitrage Access | FAL/FALP | Limited |
 | Arbitrage Tech | Proprietary | Basic |
 | Perpetual Royalties | Yes | No |
 | Self-Funding | Scholarship fund | No |
 
-**First Mover:** Created the KYT category
+**First Mover:** Created the KUT category
 
 ---
 
@@ -216,7 +216,7 @@ Offshore umbrella consolidating:
 - Global network
 
 ### What We Offer:
-- Novel asset class (KYT)
+- Novel asset class (KUT)
 - Working product
 - Multiple revenue streams
 - Clear path to scale

@@ -9,7 +9,7 @@
 
 ## Table of Contents
 
-1. [Knowledge Yield Token (KYT) - KENO](#1-knowledge-yield-token-kyt---keno)
+1. [Knowledge Utility Token (KUT) - KENO](#1-knowledge-utility-token-kut---keno)
 2. [Flash Arbitrage Loans (FAL)](#2-flash-arbitrage-loans-fal)
 3. [Flash Arbitrage Loan Pools (FALP)](#3-flash-arbitrage-loan-pools-falp)
 4. [Proof-of-Residual-Value (PoRV)](#4-proof-of-residual-value-porv)
@@ -27,26 +27,26 @@
 
 ---
 
-## 1. Knowledge Yield Token (KYT) - KENO
+## 1. Knowledge Utility Token (KUT) - KENO
 
 ### What Makes It Revolutionary
-KENO is the world's first **Knowledge Yield Token (KYT)** - a completely new asset class that breaks away from traditional cryptocurrency models.
+KENO is the world's first **Knowledge Utility Token (KUT)** - a completely new asset class that breaks away from traditional cryptocurrency models.
 
-### The Three Pillars of KYT
+### The Three Pillars of KUT
 
 | Pillar | Description |
 |--------|-------------|
 | **K - Knowledge** | KENO is EARNED through completing 21 educational courses (250 KENO per course = 5,250 KENO total). You can't just buy your way in - you must learn. |
-| **Y - Yield** | KENO generates passive income through the FAL/FALP arbitrage systems. Unlike traditional tokens that just sit in your wallet, KENO works for you. |
+| **U - Utility** | KENO enables arbitrage access through the FAL/FALP arbitrage systems. Unlike traditional tokens that just sit in your wallet, KENO works for you. |
 | **T - Token** | Real BEP-20 asset on Binance Smart Chain, fully tradeable and transferable. Contract: `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` |
 
 ### Key Differentiators from Traditional Crypto
 
-| Traditional Crypto | KENO (KYT) |
+| Traditional Crypto | KENO (KUT) |
 |--------------------|------------|
 | Bought through speculation | Earned through education |
 | Value based on hype | Value backed by knowledge and skills |
-| Passive holding | Active yield generation |
+| Passive holding | Active token utility |
 | No entry barrier | 21-course completion requirement |
 | Pump and dump vulnerable | Education-gated, stable community |
 
@@ -154,7 +154,7 @@ Multiple Contributors
 ### Key Features
 
 1. **Pool Creation** - Anyone can create a pool with custom parameters
-2. **Liquidity Deposits** - Contributors add KENO to earn passive income
+2. **Liquidity Deposits** - Contributors add KENO to access arbitrage earnings
 3. **Pool Borrowing** - Traders borrow from pools for flash loans
 4. **Automatic Distribution** - Profits split fairly based on contribution
 5. **Lock Period Bonuses** - Longer locks earn higher rewards
@@ -163,7 +163,7 @@ Multiple Contributors
 
 ### Why It's Revolutionary
 - **Democratized Arbitrage** - Anyone can participate, not just whale traders
-- **Passive Income** - Earn from arbitrage without active trading
+- **Arbitrage Access** - Earn from arbitrage without active trading
 - **Risk Management** - Choose your risk level
 - **Community Pooling** - Collective power beats individual limitations
 
@@ -263,7 +263,7 @@ Commercial Use of Output
 
 | Tier | Requirements | Royalty Rate | Benefits |
 |------|--------------|--------------|----------|
-| Bronze | Complete 7 courses | 2% royalties | Basic passive income |
+| Bronze | Complete 7 courses | 2% royalties | Basic arbitrage earnings |
 | Silver | Complete 14 courses | 5% royalties | Enhanced earnings |
 | Gold | Complete 21 courses | 10% royalties | Maximum earnings + voting rights |
 | Platinum | Graduate + 5 referrals | 15% royalties | Elite status + mentorship access |
@@ -594,7 +594,7 @@ A complete payment infrastructure for merchants to accept KENO payments in their
 ## 11. Wealth Builder Program
 
 ### What Is It?
-A comprehensive financial empowerment program combining education, passive income, and career opportunities.
+A comprehensive financial empowerment program combining education, earning opportunities, and career opportunities.
 
 ### Components
 
@@ -824,7 +824,7 @@ Academy       Banking        Project
 
 | Innovation | Category | Status |
 |------------|----------|--------|
-| Knowledge Yield Token (KYT) | Asset Class | Live |
+| Knowledge Utility Token (KUT) | Asset Class | Live |
 | Flash Arbitrage Loans (FAL) | DeFi | Live |
 | Flash Arbitrage Loan Pools (FALP) | DeFi | Live |
 | Proof-of-Residual-Value (PoRV) | Consensus | Live |

@@ -32,7 +32,7 @@
 - **21 Comprehensive Courses** covering blockchain fundamentals to advanced concepts
 - **Real BEP-20 Token** deployed on Binance Smart Chain
 - **Proof-of-Residual-Value** - Patent-pending consensus creating actual economic value
-- **Passive Income Opportunities** through Residual Value Tokens (RVTs)
+- **Earning Opportunities** through Residual Value Tokens (RVTs)
 - **ICO Launch**: Private Sale starting November 28, 2025
 - **Total Supply**: 1,000,000,000 KENO
 - **ICO Allocation**: 300,000,000 KENO (30%)
@@ -47,7 +47,7 @@ To democratize blockchain education and create pathways to financial independenc
 
 ### Mission
 
-Provide world-class blockchain education that combines theoretical knowledge with hands-on experience, while creating sustainable passive income opportunities for students and graduates.
+Provide world-class blockchain education that combines theoretical knowledge with hands-on experience, while creating sustainable earning opportunities for students and graduates.
 
 ### The Kenostod Philosophy
 
@@ -74,7 +74,7 @@ Provide world-class blockchain education that combines theoretical knowledge wit
    - No understanding of mining, consensus, or token economics
    - Gap between education and employment
 
-4. **Passive Income Inaccessibility**
+4. **Earning Opportunity Inaccessibility**
    - Crypto mining requires expensive hardware
    - Staking requires large capital
    - Complex DeFi protocols intimidate beginners
@@ -516,7 +516,7 @@ Salary Range: $50,000 - $165,000+
 
 The KENO token serves as the foundation for this ecosystem, enabling students to:
 - Learn blockchain technology hands-on
-- Earn passive income while studying
+- Access arbitrage earnings while studying
 - Build professional careers in blockchain
 - Access global opportunities
 

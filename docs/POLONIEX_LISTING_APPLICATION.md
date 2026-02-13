@@ -1,5 +1,5 @@
 # Poloniex Exchange Listing Application
-## KENO Token (Knowledge Yield Token)
+## KENO Token (Knowledge Utility Token)
 
 **Application Date:** December 2024
 **Project:** Kenostod Blockchain Academy
@@ -23,12 +23,12 @@
 | Contact | kenostod21@gmail.com |
 
 ### Project Description
-Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Yield Token (KYT)** - KENO.
+Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Utility Token (KUT)** - KENO.
 
 **Key Innovation:**
 - Students EARN 250 KENO per course (5,250 total)
 - Zero capital investment required
-- Flash Arbitrage Loan (FAL) technology for passive income
+- Flash Arbitrage Loan (FAL) technology for arbitrage access
 - Comprehensive 21-course blockchain curriculum
 
 ---

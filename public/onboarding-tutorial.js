@@ -9,7 +9,7 @@ class InteractiveTutorial {
         this.steps = [
             {
                 title: "Welcome to Kenostod Academy! 🎓",
-                message: "Ready to learn blockchain and earn KENO - the world's first Knowledge Yield Token? This interactive tutorial will guide you step-by-step. You'll actually DO each task, not just read about it!",
+                message: "Ready to learn blockchain and earn KENO - the world's first Knowledge Utility Token? This interactive tutorial will guide you step-by-step. You'll actually DO each task, not just read about it!",
                 instruction: null,
                 buttonText: "Let's Begin!",
                 requiresAction: false,

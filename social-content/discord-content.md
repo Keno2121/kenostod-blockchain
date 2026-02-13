@@ -39,12 +39,12 @@ Kenostod Blockchain Academy
 
 Welcome to Kenostod Blockchain Academy!
 
-We're building the world's first Knowledge Yield Token (KYT) ecosystem.
+We're building the world's first Knowledge Utility Token (KUT) ecosystem.
 
 WHAT WE'RE ABOUT:
 - Learn blockchain through 21 courses
 - Earn KENO tokens for completing education
-- Generate passive income through Flash Arbitrage Loans
+- Generate arbitrage access through Flash Arbitrage Loans
 
 QUICK LINKS:
 Website: https://kenostodblockchain.com
@@ -130,7 +130,7 @@ https://pancakeswap.finance/swap?outputCurrency=0x65791E0B5Cbac5F40c76cDe31bf4F0
 FREQUENTLY ASKED QUESTIONS
 
 Q: What is KENO?
-A: KENO is the world's first Knowledge Yield Token (KYT) - earned through education and yields passive income through Flash Arbitrage Loans.
+A: KENO is the world's first Knowledge Utility Token (KUT) - earned through education and provides arbitrage access through Flash Arbitrage Loans.
 
 Q: How do I buy KENO?
 A: You can buy on PancakeSwap by swapping BNB for KENO, or through our ICO at kenostodblockchain.com/ico

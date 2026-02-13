@@ -1,5 +1,5 @@
 # LBank Exchange Listing Application
-## KENO Token (Knowledge Yield Token)
+## KENO Token (Knowledge Utility Token)
 
 **Application Date:** December 2024
 **Project:** Kenostod Blockchain Academy
@@ -41,12 +41,12 @@
 ## 2. PROJECT OVERVIEW
 
 ### Description
-Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Yield Token (KYT)** - KENO. 
+Kenostod Blockchain Academy is the world's first educational platform featuring a **Knowledge Utility Token (KUT)** - KENO. 
 
 **What Makes KENO Unique:**
 - **EARNED, Not Bought:** Students earn 250 KENO per course (5,250 total for 21 courses)
 - **Zero Investment Required:** No capital needed to start earning
-- **Passive Income:** Flash Arbitrage Loan (FAL) technology generates yield
+- **Arbitrage Access:** Flash Arbitrage Loan (FAL) technology generates yield
 - **Real Education:** Comprehensive blockchain curriculum
 
 ### Problem Solved
@@ -55,7 +55,7 @@ Traditional crypto education is expensive and doesn't reward learners. KENO flip
 ### Target Market
 - Blockchain education seekers
 - DeFi enthusiasts
-- Passive income seekers
+- Arbitrage opportunity seekers
 - Corporate training programs
 
 ---

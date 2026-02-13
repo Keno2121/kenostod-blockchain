@@ -32,12 +32,12 @@ BNB Smart Chain (BEP-20)
 ### Project Description
 
 **Short Description (150 chars):**
-KENO is the world's first Knowledge Yield Token (KYT) - earned through education, yields through Flash Arbitrage Loans.
+KENO is the world's first Knowledge Utility Token (KUT) - earned through education, yields through Flash Arbitrage Loans.
 
 **Full Description:**
-Kenostod Token (KENO) is the world's first Knowledge Yield Token (KYT), representing a revolutionary new asset class in the cryptocurrency space. Unlike traditional cryptocurrencies that are bought through speculation, KENO is EARNED through completing educational courses and YIELDS passive income through our proprietary Flash Arbitrage Loan (FAL) system.
+Kenostod Token (KENO) is the world's first Knowledge Utility Token (KUT), representing a revolutionary new asset class in the cryptocurrency space. Unlike traditional cryptocurrencies that are bought through speculation, KENO is EARNED through completing educational courses and UNLOCKS arbitrage access through our proprietary Flash Arbitrage Loan (FAL) system.
 
-The Kenostod Blockchain Academy platform offers 21 comprehensive courses teaching blockchain technology, DeFi, and financial literacy. Students earn 250 KENO per completed course (5,250 KENO total). Graduates can then deploy their KENO in Flash Arbitrage Loan Pools (FALP) to generate passive income.
+The Kenostod Blockchain Academy platform offers 21 comprehensive courses teaching blockchain technology, DeFi, and financial literacy. Students earn 250 KENO per completed course (5,250 KENO total). Graduates can then deploy their KENO in Flash Arbitrage Loan Pools (FALP) to enable arbitrage access.
 
 Key innovations include:
 - Flash Arbitrage Loans (FAL): Zero-collateral loans for arbitrage trading

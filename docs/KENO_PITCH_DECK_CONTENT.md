@@ -7,9 +7,9 @@ Copy this content into Google Slides, Canva, or PowerPoint to create your pitch 
 ## SLIDE 1: TITLE
 
 **KENO**
-*The World's First Knowledge Yield Token*
+*The World's First Knowledge Utility Token*
 
-Earn Crypto Through Education. Generate Passive Income.
+Earn Crypto Through Education. Enable Arbitrage Access.
 
 Website: kenostodblockchain.com
 BEP-20 Token on Binance Smart Chain
@@ -31,15 +31,15 @@ BEP-20 Token on Binance Smart Chain
 
 ## SLIDE 3: OUR SOLUTION
 
-**KENO: Knowledge Yield Token**
+**KENO: Knowledge Utility Token**
 
 A new asset class where tokens are:
 - **EARNED** through education (not bought)
-- **YIELDING** passive income (not just held)
+- **providing** UTILITY (platform access, governance, arbitrage)
 - **ACCESSIBLE** to everyone (zero capital required)
 
 Complete 21 courses = Earn 5,250 KENO
-Graduate = Access Flash Arbitrage Loans for passive income
+Graduate = Access Flash Arbitrage Loans for arbitrage access
 
 ---
 
@@ -64,7 +64,7 @@ FAL enables graduates to:
 - Access platform liquidity for instant trades
 - Capture price differences between exchanges
 - Share profits with the platform
-- Generate sustainable passive income
+- Generate sustainable arbitrage opportunities
 
 *The world's first education-gated DeFi yield system*
 
@@ -172,7 +172,7 @@ PancakeSwap listing at $1.00 post-IEO
 | Deep Education | Yes | No (short videos) | Yes | No |
 | Earn Tokens | Yes | Limited | No | No |
 | Zero Capital | Yes | No | N/A | No |
-| Yield Generation | Yes | No | No | Yes |
+| token utility | Yes | No | No | Yes |
 | Democratized Profits | Yes | No | No | No |
 
 *KENO is the only platform combining all four*
@@ -286,7 +286,7 @@ Our Core Belief:
 - Immediate exchange listing
 
 **What Investors Get:**
-- First-mover in new asset class (KYT)
+- First-mover in new asset class (KUT)
 - Multiple revenue streams
 - Deflationary tokenomics
 - Growing educated user base

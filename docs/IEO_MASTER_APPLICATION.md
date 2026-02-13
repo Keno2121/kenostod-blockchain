@@ -8,7 +8,7 @@ Universal answers for IEO/Launchpad applications across all exchanges.
 
 ### Project Name:
 ```
-KENO - Knowledge Yield Token
+KENO - Knowledge Utility Token
 ```
 
 ### Token Symbol:
@@ -18,17 +18,17 @@ KENO
 
 ### One-Line Description:
 ```
-World's first Knowledge Yield Token (KYT) — earned through education, yielding passive income.
+World's first Knowledge Utility Token (KUT) — earned through education, providing arbitrage access.
 ```
 
 ### Brief Description (Short):
 ```
-Kenostod Blockchain Academy is a learn-to-earn platform where students complete 21 blockchain courses and earn 5,250 KENO tokens with zero capital investment. Graduates access Flash Arbitrage Loan (FAL) technology for passive income. Core philosophy: "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."
+Kenostod Blockchain Academy is a learn-to-earn platform where students complete 21 blockchain courses and earn 5,250 KENO tokens with zero capital investment. Graduates access Flash Arbitrage Loan (FAL) technology for arbitrage access. Core philosophy: "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."
 ```
 
 ### Full Description (Long):
 ```
-KENO is the world's first Knowledge Yield Token (KYT) — a revolutionary new asset class that combines education, earning, and passive income generation.
+KENO is the world's first Knowledge Utility Token (KUT) — a revolutionary new asset class that combines education, earning, and token utility.
 
 THE PROBLEM:
 Traditional cryptocurrency requires capital investment to participate. This excludes billions of people worldwide who cannot afford to speculate. Meanwhile, blockchain education remains disconnected from actual earning opportunities.
@@ -40,7 +40,7 @@ Kenostod Blockchain Academy solves both problems simultaneously:
 Students complete 21 comprehensive blockchain courses covering everything from wallet management to advanced DeFi strategies. Each course completion rewards 250 KENO tokens. Graduates earn 5,250 KENO total — with zero capital investment required.
 
 2. FLASH ARBITRAGE LOAN (FAL) TECHNOLOGY
-Our proprietary FAL system enables graduates to participate in cross-exchange arbitrage opportunities. Users access platform liquidity for instant trades, capturing price differences between exchanges. Profits are shared between users and the platform, creating sustainable passive income.
+Our proprietary FAL system enables graduates to participate in cross-exchange arbitrage opportunities. Users access platform liquidity for instant trades, capturing price differences between exchanges. Profits are shared between users and the platform, creating sustainable arbitrage opportunities.
 
 3. DEMOCRATIZED WEALTH MODEL
 Unlike traditional crypto where early investors benefit most, KENO distributes wealth broadly:
@@ -204,7 +204,7 @@ Reserve & Operations: 5% ($107,500) - Working capital, contingency fund
 
 ### Economic Model:
 ```
-KENO is a Knowledge Yield Token (KYT) with deflationary mechanics. Students earn tokens through education (250 KENO per course). Graduates access Flash Arbitrage Loan (FAL) technology for passive income. Platform fees contribute to token burns, creating deflationary pressure. Revenue streams include course subscriptions, B2B training, exchange fees, merchant gateway fees, and FAL platform fees.
+KENO is a Knowledge Utility Token (KUT) with deflationary mechanics. Students earn tokens through education (250 KENO per course). Graduates access Flash Arbitrage Loan (FAL) technology for arbitrage access. Platform fees contribute to token burns, creating deflationary pressure. Revenue streams include course subscriptions, B2B training, exchange fees, merchant gateway fees, and FAL platform fees.
 ```
 
 ### Economic Model Connected to Ecosystem:
@@ -212,7 +212,7 @@ KENO is a Knowledge Yield Token (KYT) with deflationary mechanics. Students earn
 Token economics and ecosystem growth are directly linked:
 1. Students earn KENO → increases educated user base → more FAL participants → more platform activity
 2. Platform fees from FAL, exchange, and merchant gateway → partially burned → deflationary pressure
-3. Graduate success with passive income → attracts new students → ecosystem growth
+3. Graduate success with arbitrage earnings → attracts new students → ecosystem growth
 4. RVT NFT royalties → distributed to all holders → aligned incentives
 5. Scholarship fund → enables access for underserved communities → wider adoption
 This creates a virtuous cycle where education drives utility, utility drives demand, and demand funds more education.
@@ -227,13 +227,13 @@ This creates a virtuous cycle where education drives utility, utility drives dem
 Learn-to-earn: Coinbase Earn, CoinMarketCap Earn (reward viewing, not deep education)
 Blockchain education: Udemy, Coursera (no token rewards)
 DeFi yields: Aave, Compound (require capital investment)
-KENO is unique: combines comprehensive education + token earning + yield generation in one platform.
+KENO is unique: combines comprehensive education + token earning + token utility in one platform.
 ```
 
 ### Competitive Advantage:
 ```
-1. FIRST KNOWLEDGE YIELD TOKEN (KYT)
-KENO is the world's first token in a new asset class: earned through education, yielding passive income. No other project combines learn-to-earn with sustainable yield generation.
+1. FIRST KNOWLEDGE YIELD TOKEN (KUT)
+KENO is the world's first token in a new asset class: earned through education, providing arbitrage access. No other project combines learn-to-earn with sustainable token utility.
 
 2. ZERO CAPITAL BARRIER
 Unlike every other cryptocurrency, KENO can be earned entirely through education. Students graduate with real, tradeable tokens without investing a single dollar.
@@ -263,7 +263,7 @@ BEP-20 smart contract on Binance Smart Chain. Node.js/Express backend with Postg
 ### Technological Innovation:
 ```
 1. Flash Arbitrage Loan (FAL) Technology - Patent-pending zero-collateral flash loans enabling cross-exchange arbitrage participation for educated users.
-2. Knowledge Yield Token (KYT) - First token class earned through verified course completion, not capital investment.
+2. Knowledge Utility Token (KUT) - First token class earned through verified course completion, not capital investment.
 3. Proof-of-Residual-Value (PoRV) - Novel consensus mechanism generating value through AI/ML computations.
 4. Flash Arbitrage Loan Pools (FALP) - DeFi-style liquidity pooling for collective arbitrage opportunities.
 ```
@@ -278,7 +278,7 @@ BEP-20 smart contract on Binance Smart Chain. Node.js/Express backend with Postg
 
 ### Solution Proposed:
 ```
-Kenostod solves the crypto accessibility problem. Traditional cryptocurrency requires capital to participate, excluding billions worldwide. Our solution: students EARN tokens through education (250 KENO per course, 5,250 total). Graduates access Flash Arbitrage Loan technology for sustainable passive income. This creates educated crypto users who understand the technology, not just speculators.
+Kenostod solves the crypto accessibility problem. Traditional cryptocurrency requires capital to participate, excluding billions worldwide. Our solution: students EARN tokens through education (250 KENO per course, 5,250 total). Graduates access Flash Arbitrage Loan technology for sustainable arbitrage opportunities. This creates educated crypto users who understand the technology, not just speculators.
 ```
 
 ### Open Source:
@@ -483,7 +483,7 @@ PHASE 3 - POST-IEO GROWTH:
 Scale paid acquisition on Twitter, YouTube, TikTok. Partner with blockchain education influencers. Launch referral incentive program. Target university blockchain clubs. Corporate B2B outreach for training packages.
 
 PHASE 4 - ECOSYSTEM EXPANSION:
-Graduate success stories as social proof. FAL passive income testimonials. Regional expansion with localized content (6 languages supported). Strategic exchange listing announcements. Ambassador program for top graduates.
+Graduate success stories as social proof. FAL arbitrage earnings testimonials. Regional expansion with localized content (6 languages supported). Strategic exchange listing announcements. Ambassador program for top graduates.
 
 KPIs: 10,000 enrolled students by Q3 2025, 50,000 graduates by 2026, 100,000+ by 2027.
 ```
@@ -538,7 +538,7 @@ Compliance infrastructure planned with funding. KYC/AML ready for implementation
 | Field | Value |
 |-------|-------|
 | Token | KENO |
-| Full Name | KENO - Knowledge Yield Token |
+| Full Name | KENO - Knowledge Utility Token |
 | Type | BEP-20 (BSC) |
 | Supply | 21,000,000 |
 | Decimals | 18 |

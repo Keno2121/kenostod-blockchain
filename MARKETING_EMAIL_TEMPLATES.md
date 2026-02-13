@@ -19,13 +19,13 @@
 ```
 Dear [Investor Name],
 
-I'm reaching out regarding a strategic investment opportunity in KENO Token, the world's first Knowledge Yield Token (KYT) powering Kenostod Blockchain Academy.
+I'm reaching out regarding a strategic investment opportunity in KENO Token, the world's first Knowledge Utility Token (KUT) powering Kenostod Blockchain Academy.
 
 **Why KENO is Different:**
 
 KENO is NOT a speculative cryptocurrency. It's a revolutionary new asset class:
 - **Knowledge:** Earned through completing 21 educational courses (5,250 KENO total)
-- **Yield:** Generates passive income through Flash Arbitrage Loans (FAL™)
+- **Utility:** Provides arbitrage access through Flash Arbitrage Loans (FAL™)
 - **Token:** Real BEP-20 asset on Binance Smart Chain, verified on BSCScan
 
 **Investment Opportunity:**
@@ -118,13 +118,13 @@ Unlike traditional learn-to-earn platforms that rely on speculation, KENO's FAL�
 ```
 Dear [Investor Name],
 
-I'm reaching out regarding a strategic investment opportunity in KENO Token, the world's first Knowledge Yield Token (KYT) powering Kenostod Blockchain Academy.
+I'm reaching out regarding a strategic investment opportunity in KENO Token, the world's first Knowledge Utility Token (KUT) powering Kenostod Blockchain Academy.
 
 **Why KENO is Different:**
 
 KENO is NOT a speculative cryptocurrency. It's a revolutionary new asset class:
 - **Knowledge:** Earned through completing 21 educational courses (5,250 KENO total)
-- **Yield:** Generates passive income through Flash Arbitrage Loans (FAL™)
+- **Utility:** Provides arbitrage access through Flash Arbitrage Loans (FAL™)
 - **Token:** Real BEP-20 asset on Binance Smart Chain, verified on BSCScan
 
 **Investment Opportunity:**
@@ -364,7 +364,7 @@ Available in English, Spanish, Chinese, Hindi, Portuguese, and French
 💰 Real Earning Potential:
 - Earn 250 KENO per course completed
 - 21 courses = 5,250 KENO total
-- Use Flash Arbitrage Loans for passive income
+- Use Flash Arbitrage Loans for arbitrage access
 - Cash out to USD via bank transfer
 
 **How It Works:**
@@ -380,7 +380,7 @@ Available in English, Spanish, Chinese, Hindi, Portuguese, and French
 Unlike watch-and-earn platforms:
 ✓ Full hands-on simulator experience
 ✓ Real token with verified smart contract
-✓ Passive income through FAL™ system
+✓ Arbitrage access through FAL™ system
 ✓ Path to employment (career center)
 ✓ Graduate recognition and merchandise
 
@@ -413,11 +413,11 @@ Dear [Journalist Name],
 I'm reaching out with a story about the intersection of blockchain education and real economic value creation.
 
 **HEADLINE:**
-Kenostod Blockchain Academy Launches KENO - World's First "Knowledge Yield Token"
+Kenostod Blockchain Academy Launches KENO - World's First "Knowledge Utility Token"
 
 **THE STORY:**
 
-Kenostod Blockchain Academy has created a new category of digital asset: the Knowledge Yield Token (KYT). Unlike speculative cryptocurrencies, KENO is earned through education and generates passive income through Flash Arbitrage Loans.
+Kenostod Blockchain Academy has created a new category of digital asset: the Knowledge Utility Token (KUT). Unlike speculative cryptocurrencies, KENO is earned through education and enables arbitrage access through Flash Arbitrage Loans.
 
 **KEY FACTS:**
 
@@ -467,14 +467,14 @@ Would you be interested in covering this story?
 
 ## Template 6: Node Sale Invitation
 
-**Subject Line:** Exclusive: Kenostod Node Sale - Own Infrastructure, Earn Passive Income
+**Subject Line:** Exclusive: Kenostod Node Sale - Own Infrastructure, Access Arbitrage Earnings
 
 **Email Body:**
 
 ```
 Hi [First Name],
 
-You're invited to participate in the Kenostod Node Sale - an opportunity to own a piece of our blockchain infrastructure and earn passive income.
+You're invited to participate in the Kenostod Node Sale - an opportunity to own a piece of our blockchain infrastructure and access arbitrage earnings.
 
 **What Are Kenostod Nodes?**
 
@@ -489,13 +489,13 @@ Nodes power the Kenostod ecosystem by:
 
 | Tier | Price | Utility Functions | Expected Returns |
 |------|-------|-------------------|------------------|
-| Scholar | $299 | Course validation, basic rewards | Entry-level passive income |
+| Scholar | $299 | Course validation, basic rewards | Entry-level arbitrage earnings |
 | Educator | $799 | All Scholar + FAL processing | Mid-tier returns |
 | Academy | $1,999 | All functions + priority processing | Maximum earning potential |
 
 **Node Owner Benefits:**
 
-✅ Passive income from network fees
+✅ Token rewards from network fees
 ✅ Priority access to platform features
 ✅ Governance voting rights
 ✅ Insurance partner revenue (5% of premiums)
