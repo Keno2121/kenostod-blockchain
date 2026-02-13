@@ -29,6 +29,10 @@ Business email: keno@kenostodblockchain.com
 
 - **Add Language Support for Transak Markets:** Add translations for countries supported by Transak integration: German, French, Dutch, Japanese, Korean, Swedish, Norwegian, Danish, Finnish, Spanish, Italian, Polish, Czech, Portuguese. Currently platform supports 6 languages - need to expand for international user base.
 
+# Recent Changes
+
+- **Feb 13, 2026:** MAJOR CURRICULUM OVERHAUL - All 21 courses expanded from ~225-600 lines to 1,277-1,803 lines each. Every course now includes 10-18 content sections, 10-12 quiz questions (80% pass rate), 4-5 written exercises with feedback, real-world case studies, comparison tables, code examples, and vocabulary grids. Courses now provide legitimate 2-3 hour educational experiences. Enhanced course-common.js with progress tracking system (section completion, time spent, progress bar at bottom of every course page).
+
 # System Architecture
 
 ## Core Blockchain & Consensus
