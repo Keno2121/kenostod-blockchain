@@ -493,25 +493,8 @@ utl-snap/<br>
             btn.disabled = true;
             btn.textContent = 'Installing...';
             setStatus('Installing UTL Snap...', 'pending');
-            log('Connecting to local snap server at localhost:8080...', 'info');
-
-            try {
-                const checkLocal = await fetch('http://localhost:8080/snap.manifest.json').catch(() => null);
-                if (!checkLocal || !checkLocal.ok) {
-                    log('Cannot reach localhost:8080 — make sure you ran "node serve-snap.js" first!', 'error');
-                    setStatus('Local snap server not running', 'error');
-                    btn.textContent = 'Install UTL Snap';
-                    btn.disabled = false;
-                    return;
-                }
-                log('Local snap server detected at localhost:8080', 'success');
-            } catch (e) {
-                log('Cannot reach localhost:8080 — make sure you ran "node serve-snap.js" first!', 'error');
-                setStatus('Local snap server not running', 'error');
-                btn.textContent = 'Install UTL Snap';
-                btn.disabled = false;
-                return;
-            }
+            log('Requesting MetaMask Flask to install UTL Snap from localhost:8080...', 'info');
+            log('Make sure "node serve-snap.js" is running in your Command Prompt!', 'warn');
 
             try {
                 const result = await window.ethereum.request({
