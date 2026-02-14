@@ -80,7 +80,7 @@
 
 ---
 
-## Documents Checklist for MoonPay/Transak
+## Documents Checklist for Transak
 
 After completing above, you'll have:
 
@@ -111,8 +111,8 @@ After completing above, you'll have:
 | State processing | 1-7 days (varies by state) |
 | Get EIN | Same day (10 minutes) |
 | Open bank account | 1-3 days |
-| Submit to MoonPay | Same day after above complete |
-| MoonPay review | 1-7 days |
+| Submit to Transak | Same day after above complete |
+| Transak review | 1-7 days |
 
 **Total: About 1-2 weeks to be fully set up**
 
@@ -134,8 +134,8 @@ After completing above, you'll have:
 
 1. Save all documents as PDFs
 2. Open business bank account
-3. Submit KYB to MoonPay
+3. Submit KYB to Transak
 4. Submit to CoinGecko
-5. Add MoonPay widget to Kenostod website
+5. Add Transak widget to Kenostod website
 
 Good luck with Kenostod Blockchain Academy LLC!

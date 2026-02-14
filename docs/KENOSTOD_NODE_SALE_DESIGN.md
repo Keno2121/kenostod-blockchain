@@ -119,7 +119,7 @@ Monthly Reward = (Base Reward × Tier Multiplier) + (FAL Fees × Node Share) + (
 - BNB (Binance Smart Chain)
 - USDT / USDC
 - ETH (bridged to BSC)
-- Credit Card via MoonPay/Transak
+- Credit Card via Transak
 
 ### 4.3 Node License NFT
 
