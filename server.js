@@ -309,6 +309,20 @@ app.use((req, res, next) => {
 
 app.use(express.static('public'));
 
+app.use('/snap', express.static('utl/metamask-snap', {
+    setHeaders: (res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Content-Type', 'application/json');
+    }
+}));
+
+app.get('/snap/dist/bundle.js', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(__dirname + '/utl/metamask-snap/dist/bundle.js');
+});
+
 // CRITICAL: Health check endpoint for deployment - responds immediately
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });

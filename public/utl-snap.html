@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Snap — Kenostod Blockchain Academy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 20px 40px;
+            border-bottom: 2px solid #f7931a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            color: #f7931a;
+            font-size: 1.5rem;
+        }
+        .header a {
+            color: #8892b0;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .header a:hover { color: #f7931a; }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .hero h2 {
+            font-size: 2.2rem;
+            color: #f7931a;
+            margin-bottom: 10px;
+        }
+        .hero p {
+            color: #8892b0;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .status-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .status-card.connected { border-color: #00d4aa; }
+        .status-card.error { border-color: #ff4757; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .status-indicator.active { background: #00d4aa; }
+        .status-indicator.error { background: #ff4757; }
+        .status-indicator.pending { background: #f7931a; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #f7931a, #e67e22);
+            color: #fff;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(247, 147, 26, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary {
+            background: #2a2a4e;
+            color: #e0e0e0;
+            border: 1px solid #3a3a5e;
+        }
+        .btn-secondary:hover { background: #3a3a5e; }
+        .btn-danger {
+            background: #ff4757;
+            color: #fff;
+        }
+        .btn-success {
+            background: #00d4aa;
+            color: #0a0a1a;
+        }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .action-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-card:hover {
+            border-color: #f7931a;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.2);
+        }
+        .action-card h3 {
+            color: #f7931a;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .action-card p {
+            color: #8892b0;
+            font-size: 0.85rem;
+        }
+        .action-card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .log {
+            background: #0d0d1a;
+            border: 1px solid #2a2a4e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid #1a1a2e; }
+        .log-entry.success { color: #00d4aa; }
+        .log-entry.error { color: #ff4757; }
+        .log-entry.info { color: #8892b0; }
+        .log-entry.warn { color: #f7931a; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-box .label { color: #8892b0; font-size: 0.8rem; margin-bottom: 5px; }
+        .stat-box .value { color: #f7931a; font-size: 1.3rem; font-weight: 700; }
+        .instructions {
+            background: #16213e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .instructions h3 { color: #f7931a; margin-bottom: 15px; }
+        .instructions ol { padding-left: 20px; }
+        .instructions li { margin-bottom: 10px; color: #8892b0; line-height: 1.6; }
+        .instructions code {
+            background: #0d0d1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #00d4aa;
+            font-size: 0.9rem;
+        }
+        .hidden { display: none !important; }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>UTL Snap Control Panel</h1>
+        <a href="/">Back to Kenostod Academy</a>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>Universal Transaction Layer</h2>
+            <p>Connect your MetaMask Flask to the UTL Snap and start earning from cross-chain transaction fees.</p>
+        </div>
+
+        <div class="status-card" id="statusCard">
+            <span class="status-indicator" id="statusDot"></span>
+            <span id="statusText">Checking MetaMask Flask...</span>
+        </div>
+
+        <div id="noFlaskSection" class="instructions hidden">
+            <h3>MetaMask Flask Required</h3>
+            <ol>
+                <li>Install <strong>MetaMask Flask</strong> from the Chrome Web Store (it's the developer version of MetaMask)</li>
+                <li>Disable your regular MetaMask extension if you have one (both can't run at the same time)</li>
+                <li>Set up your Flask wallet and come back to this page</li>
+                <li>Click the <strong>Connect</strong> button below</li>
+            </ol>
+        </div>
+
+        <div id="connectSection" class="hidden" style="text-align: center; margin: 20px 0;">
+            <button class="btn btn-primary" id="connectBtn" onclick="connectSnap()">
+                Install UTL Snap
+            </button>
+            <p style="color: #8892b0; margin-top: 10px; font-size: 0.9rem;">This will ask MetaMask Flask to install the UTL Snap</p>
+        </div>
+
+        <div id="connectedSection" class="hidden">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-box">
+                    <div class="label">Status</div>
+                    <div class="value" id="statStatus">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Tier</div>
+                    <div class="value" id="statTier">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Fees Contributed</div>
+                    <div class="value" id="statFees">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Rewards Earned</div>
+                    <div class="value" id="statRewards">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Transactions</div>
+                    <div class="value" id="statTxCount">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Auto-Compound</div>
+                    <div class="value" id="statAutoCompound">--</div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <div class="action-card" onclick="callSnap('utl_optIn')">
+                    <h3>Opt In</h3>
+                    <p>Activate UTL fee redistribution on your wallet</p>
+                </div>
+                <div class="action-card" onclick="callSnap('utl_optOut')">
+                    <h3>Opt Out</h3>
+                    <p>Deactivate UTL fee redistribution</p>
+                </div>
+                <div class="action-card" onclick="callSnap('utl_dashboard')">
+                    <h3>Dashboard</h3>
+                    <p>View your full UTL earnings dashboard</p>
+                </div>
+                <div class="action-card" onclick="callSnap('utl_toggleAutoCompound')">
+                    <h3>Toggle Auto-Compound</h3>
+                    <p>Auto-restake rewards for growth</p>
+                </div>
+                <div class="action-card" onclick="callSnap('utl_claimRewards')">
+                    <h3>Claim Rewards</h3>
+                    <p>Withdraw earned rewards to wallet</p>
+                </div>
+                <div class="action-card" onclick="callSnap('utl_weeklyReport')">
+                    <h3>Weekly Report</h3>
+                    <p>Get summary of weekly performance</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="log" id="logPanel">
+            <div class="log-entry info">UTL Snap Control Panel initialized...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Powered by Kenostod Blockchain Academy | Universal Transaction Layer v1.0
+    </div>
+
+    <script>
+        const SNAP_ORIGIN = `local:${window.location.origin}/snap`;
+        const SNAP_ID = SNAP_ORIGIN;
+
+        function log(message, type = 'info') {
+            const panel = document.getElementById('logPanel');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            panel.appendChild(entry);
+            panel.scrollTop = panel.scrollHeight;
+        }
+
+        function setStatus(text, type) {
+            document.getElementById('statusText').textContent = text;
+            const dot = document.getElementById('statusDot');
+            dot.className = 'status-indicator';
+            const card = document.getElementById('statusCard');
+            card.className = 'status-card';
+            if (type === 'active') { dot.classList.add('active'); card.classList.add('connected'); }
+            else if (type === 'error') { dot.classList.add('error'); card.classList.add('error'); }
+            else if (type === 'pending') { dot.classList.add('pending'); }
+        }
+
+        function show(id) { document.getElementById(id).classList.remove('hidden'); }
+        function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+        async function checkFlask() {
+            try {
+                const provider = window.ethereum;
+                if (!provider || !provider.isMetaMask) {
+                    setStatus('MetaMask Flask not detected', 'error');
+                    show('noFlaskSection');
+                    log('MetaMask Flask not found. Please install it first.', 'error');
+                    return false;
+                }
+
+                const clientVersion = await provider.request({ method: 'web3_clientVersion' });
+                const isFlask = clientVersion?.includes('flask') || clientVersion?.includes('Flask');
+
+                if (!isFlask) {
+                    try {
+                        await provider.request({ method: 'wallet_getSnaps' });
+                        setStatus('MetaMask detected (Snap support available)', 'pending');
+                        show('connectSection');
+                        log('MetaMask with Snap support detected.', 'success');
+                        return true;
+                    } catch (e) {
+                        setStatus('Regular MetaMask detected — need Flask for Snaps', 'error');
+                        show('noFlaskSection');
+                        log('Regular MetaMask detected. Flask is needed for Snap development.', 'warn');
+                        return false;
+                    }
+                }
+
+                setStatus('MetaMask Flask detected', 'active');
+                show('connectSection');
+                log('MetaMask Flask detected! Ready to install the UTL Snap.', 'success');
+
+                const snaps = await provider.request({ method: 'wallet_getSnaps' });
+                if (snaps && snaps[SNAP_ID]) {
+                    log('UTL Snap is already installed!', 'success');
+                    setStatus('UTL Snap Connected', 'active');
+                    show('connectedSection');
+                    document.getElementById('connectBtn').textContent = 'Reinstall UTL Snap';
+                    await refreshStats();
+                }
+
+                return true;
+            } catch (err) {
+                setStatus('Error checking MetaMask', 'error');
+                log(`Error: ${err.message}`, 'error');
+                show('noFlaskSection');
+                return false;
+            }
+        }
+
+        async function connectSnap() {
+            const btn = document.getElementById('connectBtn');
+            btn.disabled = true;
+            btn.textContent = 'Installing...';
+            setStatus('Installing UTL Snap...', 'pending');
+            log('Requesting UTL Snap installation...', 'info');
+
+            try {
+                const result = await window.ethereum.request({
+                    method: 'wallet_requestSnaps',
+                    params: {
+                        [SNAP_ID]: {}
+                    }
+                });
+
+                log('Snap installation result: ' + JSON.stringify(result), 'success');
+                setStatus('UTL Snap Connected!', 'active');
+                show('connectedSection');
+                btn.textContent = 'Reinstall UTL Snap';
+                btn.disabled = false;
+                await refreshStats();
+            } catch (err) {
+                log(`Installation failed: ${err.message}`, 'error');
+                setStatus('Installation failed — check log', 'error');
+                btn.textContent = 'Retry Installation';
+                btn.disabled = false;
+
+                if (err.code === 4001) {
+                    log('User rejected the Snap installation.', 'warn');
+                }
+            }
+        }
+
+        async function callSnap(method, params = {}) {
+            log(`Calling ${method}...`, 'info');
+            try {
+                const result = await window.ethereum.request({
+                    method: 'wallet_invokeSnap',
+                    params: {
+                        snapId: SNAP_ID,
+                        request: { method, params }
+                    }
+                });
+
+                log(`${method} completed successfully`, 'success');
+                if (result && typeof result === 'object') {
+                    log('Response: ' + JSON.stringify(result), 'info');
+                }
+
+                await refreshStats();
+                return result;
+            } catch (err) {
+                log(`${method} failed: ${err.message}`, 'error');
+            }
+        }
+
+        async function refreshStats() {
+            try {
+                const stats = await window.ethereum.request({
+                    method: 'wallet_invokeSnap',
+                    params: {
+                        snapId: SNAP_ID,
+                        request: { method: 'utl_getStats' }
+                    }
+                });
+
+                if (stats) {
+                    document.getElementById('statStatus').textContent = stats.isOptedIn ? 'ACTIVE' : 'INACTIVE';
+                    document.getElementById('statStatus').style.color = stats.isOptedIn ? '#00d4aa' : '#ff4757';
+                    document.getElementById('statTier').textContent = stats.tier || 'Observer';
+                    document.getElementById('statFees').textContent = formatEth(stats.totalFeesContributed) + ' ETH';
+                    document.getElementById('statRewards').textContent = formatEth(stats.totalRewardsEarned) + ' ETH';
+                    document.getElementById('statTxCount').textContent = stats.transactionCount || '0';
+                    document.getElementById('statAutoCompound').textContent = stats.autoCompound ? 'ON' : 'OFF';
+                    document.getElementById('statAutoCompound').style.color = stats.autoCompound ? '#00d4aa' : '#8892b0';
+                    log('Stats refreshed', 'info');
+                }
+            } catch (err) {
+                log('Could not refresh stats: ' + err.message, 'warn');
+            }
+        }
+
+        function formatEth(wei) {
+            if (!wei || wei === '0') return '0.0000';
+            const eth = parseFloat(wei) / 1e18;
+            if (eth < 0.0001) return '< 0.0001';
+            return eth.toFixed(4);
+        }
+
+        window.addEventListener('load', () => {
+            log('Checking for MetaMask Flask...', 'info');
+            setTimeout(checkFlask, 500);
+        });
+    </script>
+</body>
+</html>
