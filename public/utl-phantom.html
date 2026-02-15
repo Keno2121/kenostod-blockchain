@@ -76,11 +76,6 @@
             border: 1px solid #3a3a5e;
         }
         .btn-secondary:hover { background: #3a3a5e; }
-        .btn-keno {
-            background: linear-gradient(135deg, #f7931a, #e67e22);
-            color: #fff;
-        }
-        .btn-keno:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(247, 147, 26, 0.4); }
         .wallet-info {
             background: #16213e;
             border-radius: 8px;
@@ -111,6 +106,7 @@
         }
         .stat-box .label { color: #8892b0; font-size: 0.8rem; margin-bottom: 5px; }
         .stat-box .value { color: #ab9ff2; font-size: 1.3rem; font-weight: 700; }
+        .stat-box .unit { color: #2775ca; font-size: 0.75rem; margin-top: 3px; }
         .actions {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -133,29 +129,6 @@
         }
         .action-card h3 { color: #ab9ff2; margin-bottom: 8px; font-size: 1rem; }
         .action-card p { color: #8892b0; font-size: 0.85rem; }
-        .action-card.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-        .tier-display {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin: 20px 0;
-        }
-        .tier-badge {
-            background: #16213e;
-            border: 1px solid #2a2a4e;
-            border-radius: 8px;
-            padding: 12px 8px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .tier-badge.active {
-            border-color: #ab9ff2;
-            background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
-            box-shadow: 0 0 15px rgba(171, 159, 242, 0.2);
-        }
-        .tier-badge .tier-name { color: #ab9ff2; font-size: 0.75rem; font-weight: 700; }
-        .tier-badge .tier-req { color: #8892b0; font-size: 0.65rem; margin-top: 4px; }
-        .tier-badge .tier-mult { color: #f7931a; font-size: 0.8rem; font-weight: 700; margin-top: 4px; }
         .log {
             background: #0d0d1a;
             border: 1px solid #2a2a4e;
@@ -264,6 +237,58 @@
             cursor: pointer;
         }
         .contract-row .addr:hover { color: #fff; }
+        .usdc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #1a2a4e;
+            border: 1px solid #2775ca;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            color: #2775ca;
+            font-weight: 600;
+        }
+        .how-it-works {
+            background: #16213e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .how-it-works h3 { color: #ab9ff2; margin-bottom: 15px; }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+        .step-item:last-child { margin-bottom: 0; }
+        .step-num {
+            min-width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #ab9ff2, #8b7fd4);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .step-item .step-text { color: #8892b0; line-height: 1.5; }
+        .step-item .step-text strong { color: #e0e0e0; }
+        .notice-box {
+            background: #1a2a3e;
+            border: 1px solid #2775ca;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .notice-box strong { color: #2775ca; }
     </style>
 </head>
 <body>
@@ -281,6 +306,9 @@
             <h2>Universal Transaction Layer</h2>
             <p>Connect your Phantom wallet to the UTL protocol and participate in cross-chain transaction fee redistribution.</p>
             <p class="sub">No downloads, no local setup — just connect and go.</p>
+            <div style="margin-top: 15px;">
+                <span class="usdc-badge">USDC — Fees collected and distributed in USDC</span>
+            </div>
         </div>
 
         <div class="status-card" id="statusCard">
@@ -317,54 +345,52 @@
                     <div class="value" id="statStatus">INACTIVE</div>
                 </div>
                 <div class="stat-box">
-                    <div class="label">Staking Tier</div>
-                    <div class="value" id="statTier">Observer</div>
-                </div>
-                <div class="stat-box">
-                    <div class="label">KENO Staked</div>
-                    <div class="value" id="statStaked">0</div>
+                    <div class="label">USDC Accumulated</div>
+                    <div class="value" id="statAccumulated">$0.00</div>
+                    <div class="unit">USDC</div>
                 </div>
                 <div class="stat-box">
                     <div class="label">Fees Contributed</div>
-                    <div class="value" id="statFees">0.0000</div>
+                    <div class="value" id="statFees">$0.00</div>
+                    <div class="unit">USDC</div>
                 </div>
                 <div class="stat-box">
-                    <div class="label">Rewards Earned</div>
-                    <div class="value" id="statRewards">0.0000</div>
+                    <div class="label">Total Distributed</div>
+                    <div class="value" id="statDistributed">$0.00</div>
+                    <div class="unit">USDC</div>
                 </div>
                 <div class="stat-box">
                     <div class="label">Transactions</div>
                     <div class="value" id="statTxCount">0</div>
                 </div>
+                <div class="stat-box">
+                    <div class="label">Member Since</div>
+                    <div class="value" id="statJoined">--</div>
+                </div>
             </div>
 
-            <h3 class="section-title">Staking Tiers</h3>
-            <div class="tier-display">
-                <div class="tier-badge active" id="tier-observer">
-                    <div class="tier-name">Observer</div>
-                    <div class="tier-req">0 KENO</div>
-                    <div class="tier-mult">0.1x</div>
+            <h3 class="section-title">How UTL Works</h3>
+            <div class="how-it-works">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text"><strong>Opt In</strong> — Activate UTL on your wallet. A 0.1% fee is captured from transactions that flow through the UTL protocol.</div>
                 </div>
-                <div class="tier-badge" id="tier-participant">
-                    <div class="tier-name">Participant</div>
-                    <div class="tier-req">1K KENO</div>
-                    <div class="tier-mult">1.0x</div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-text"><strong>Fees Pool</strong> — All captured fees across every UTL participant are pooled together in USDC.</div>
                 </div>
-                <div class="tier-badge" id="tier-advocate">
-                    <div class="tier-name">Advocate</div>
-                    <div class="tier-req">10K KENO</div>
-                    <div class="tier-mult">1.2x</div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-text"><strong>Distribution</strong> — 60% of the fee pool is redistributed to UTL participants. The rest supports Kenostod operations, scholarships, and reserves.</div>
                 </div>
-                <div class="tier-badge" id="tier-champion">
-                    <div class="tier-name">Champion</div>
-                    <div class="tier-req">100K KENO</div>
-                    <div class="tier-mult">1.5x</div>
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div class="step-text"><strong>Withdraw</strong> — Claim your accumulated USDC to your wallet at any time, or cash out to USD via Mercury bank transfer.</div>
                 </div>
-                <div class="tier-badge" id="tier-guardian">
-                    <div class="tier-name">Guardian</div>
-                    <div class="tier-req">1M KENO</div>
-                    <div class="tier-mult">2.0x</div>
-                </div>
+            </div>
+
+            <div class="notice-box">
+                <strong>USDC Model:</strong> All UTL fees are collected and distributed in USDC (USD Coin), a regulated dollar-backed stablecoin. This means your accumulated balance maintains a stable dollar value. You can withdraw to your wallet or cash out to USD via Mercury bank transfer at any time.
             </div>
 
             <h3 class="section-title">Actions</h3>
@@ -377,35 +403,25 @@
                     <h3>Opt Out</h3>
                     <p>Deactivate UTL fee capture</p>
                 </div>
-                <div class="action-card" onclick="stakeKeno()">
-                    <h3>Stake KENO</h3>
-                    <p>Increase your tier and redistribution share</p>
-                </div>
-                <div class="action-card" onclick="claimRewards()">
-                    <h3>Claim Rewards</h3>
-                    <p>Withdraw earned rewards to wallet</p>
+                <div class="action-card" onclick="claimUSDC()">
+                    <h3>Claim USDC</h3>
+                    <p>Withdraw accumulated USDC to your wallet</p>
                 </div>
                 <div class="action-card" onclick="viewWeeklyReport()">
                     <h3>Weekly Report</h3>
-                    <p>View your performance summary</p>
+                    <p>View your activity summary</p>
                 </div>
                 <div class="action-card" onclick="viewFeeBreakdown()">
                     <h3>Fee Breakdown</h3>
                     <p>See how fees are distributed</p>
                 </div>
+                <div class="action-card" onclick="viewCashoutInfo()">
+                    <h3>USD Cashout</h3>
+                    <p>Info on converting USDC to USD via Mercury</p>
+                </div>
             </div>
 
             <h3 class="section-title">Settings</h3>
-            <div class="setting-row">
-                <div>
-                    <div class="setting-label">Auto-Compound Rewards</div>
-                    <div class="setting-desc">Automatically restake distributed tokens back into staking</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="autoCompoundToggle" onchange="toggleAutoCompound()">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
             <div class="setting-row">
                 <div>
                     <div class="setting-label">Transaction Notifications</div>
@@ -420,15 +436,11 @@
             <h3 class="section-title">Smart Contracts</h3>
             <div class="contract-info">
                 <div class="contract-row">
-                    <span class="label">KENO Token (BEP-20)</span>
-                    <span class="addr" onclick="copyAddr('0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E')">0x6579...FD0E</span>
+                    <span class="label">USDC (Circle)</span>
+                    <span class="addr" onclick="copyAddr('0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d')">0x8AC7...580d (BSC)</span>
                 </div>
                 <div class="contract-row">
                     <span class="label">UTL Fee Collector</span>
-                    <span class="addr" onclick="copyAddr('TBD')">Deployment pending</span>
-                </div>
-                <div class="contract-row">
-                    <span class="label">UTL Staking</span>
                     <span class="addr" onclick="copyAddr('TBD')">Deployment pending</span>
                 </div>
                 <div class="contract-row">
@@ -444,7 +456,7 @@
             <h3 class="section-title">Revenue Distribution</h3>
             <div style="background: #16213e; border-radius: 8px; padding: 20px; margin: 10px 0;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: #8892b0;">Stakers (you)</span>
+                    <span style="color: #8892b0;">Participants (you)</span>
                     <span style="color: #ab9ff2; font-weight: 700;">60%</span>
                 </div>
                 <div style="background: #0d0d1a; border-radius: 4px; height: 8px; margin-bottom: 15px;">
@@ -491,19 +503,17 @@
     </div>
 
     <script>
-        const KENO_TOKEN = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
         const UTL_API = window.location.origin + '/api';
 
         let connectedWallet = null;
         let utlState = {
             isOptedIn: false,
-            tier: 'Observer',
-            stakedAmount: 0,
+            usdcAccumulated: 0,
             totalFeesContributed: 0,
-            totalRewardsEarned: 0,
+            totalDistributed: 0,
             transactionCount: 0,
-            autoCompound: false,
-            notifications: true
+            notifications: true,
+            joinedAt: null
         };
 
         function log(message, type = 'info') {
@@ -539,34 +549,20 @@
             });
         }
 
-        function calculateTier(stakedAmount) {
-            if (stakedAmount >= 1000000) return { name: 'Guardian', mult: '2.0x', id: 'guardian' };
-            if (stakedAmount >= 100000) return { name: 'Champion', mult: '1.5x', id: 'champion' };
-            if (stakedAmount >= 10000) return { name: 'Advocate', mult: '1.2x', id: 'advocate' };
-            if (stakedAmount >= 1000) return { name: 'Participant', mult: '1.0x', id: 'participant' };
-            return { name: 'Observer', mult: '0.1x', id: 'observer' };
-        }
-
-        function updateTierDisplay(tierId) {
-            document.querySelectorAll('.tier-badge').forEach(b => b.classList.remove('active'));
-            const tiers = ['observer', 'participant', 'advocate', 'champion', 'guardian'];
-            const idx = tiers.indexOf(tierId);
-            for (let i = 0; i <= idx; i++) {
-                document.getElementById('tier-' + tiers[i]).classList.add('active');
-            }
+        function formatUSD(amount) {
+            return '$' + amount.toFixed(2);
         }
 
         function updateStats() {
-            const tier = calculateTier(utlState.stakedAmount);
             document.getElementById('statStatus').textContent = utlState.isOptedIn ? 'ACTIVE' : 'INACTIVE';
             document.getElementById('statStatus').style.color = utlState.isOptedIn ? '#ab9ff2' : '#ff4757';
-            document.getElementById('statTier').textContent = tier.name;
-            document.getElementById('statStaked').textContent = utlState.stakedAmount.toLocaleString();
-            document.getElementById('statFees').textContent = utlState.totalFeesContributed.toFixed(4);
-            document.getElementById('statRewards').textContent = utlState.totalRewardsEarned.toFixed(4);
+            document.getElementById('statAccumulated').textContent = formatUSD(utlState.usdcAccumulated);
+            document.getElementById('statFees').textContent = formatUSD(utlState.totalFeesContributed);
+            document.getElementById('statDistributed').textContent = formatUSD(utlState.totalDistributed);
             document.getElementById('statTxCount').textContent = utlState.transactionCount;
-            document.getElementById('autoCompoundToggle').checked = utlState.autoCompound;
-            updateTierDisplay(tier.id);
+            document.getElementById('statJoined').textContent = utlState.joinedAt
+                ? new Date(utlState.joinedAt).toLocaleDateString()
+                : '--';
         }
 
         async function loadState() {
@@ -580,7 +576,7 @@
                     }
                 }
             } catch (e) {
-                const saved = localStorage.getItem('utl_state_' + connectedWallet);
+                const saved = localStorage.getItem('utl_usdc_state_' + connectedWallet);
                 if (saved) {
                     utlState = JSON.parse(saved);
                 }
@@ -590,7 +586,7 @@
 
         function saveState() {
             if (connectedWallet) {
-                localStorage.setItem('utl_state_' + connectedWallet, JSON.stringify(utlState));
+                localStorage.setItem('utl_usdc_state_' + connectedWallet, JSON.stringify(utlState));
             }
         }
 
@@ -677,18 +673,19 @@
 
         function utlOptIn() {
             utlState.isOptedIn = true;
-            utlState.joinedAt = new Date().toISOString();
+            utlState.joinedAt = utlState.joinedAt || new Date().toISOString();
             saveState();
             updateStats();
-            log('Opted into UTL fee redistribution! Your transactions will now contribute to the fee pool.', 'success');
+            log('Opted into UTL fee redistribution! Fees will accumulate in USDC.', 'success');
             showModal('Welcome to UTL!',
                 'You are now opted into the Universal Transaction Layer.\n\n' +
                 'How it works:\n' +
-                '1. A 0.1% fee is captured from your transactions\n' +
-                '2. Fees are pooled across all UTL participants\n' +
-                '3. 60% of all fees are redistributed to KENO stakers\n' +
-                '4. Your share is based on your stake amount and tier\n\n' +
-                'Stake KENO tokens to increase your tier and earn more!'
+                '1. A 0.1% fee is captured from transactions on the UTL protocol\n' +
+                '2. Fees are pooled across all UTL participants in USDC\n' +
+                '3. 60% of all fees are redistributed to participants\n' +
+                '4. Your accumulated USDC can be claimed anytime\n' +
+                '5. Convert USDC to USD via Mercury bank transfer\n\n' +
+                'All balances are held in USDC (USD Coin) for dollar stability.'
             );
         }
 
@@ -699,90 +696,75 @@
             log('Opted out of UTL fee redistribution.', 'warn');
             showModal('UTL Deactivated',
                 'You have opted out of UTL fee redistribution.\n' +
-                'Your staked KENO remains until you unstake.\n' +
+                'Your accumulated USDC balance remains available to claim.\n' +
                 'You can re-activate at any time.'
             );
         }
 
-        function stakeKeno() {
-            const amount = prompt('Enter KENO amount to stake:');
-            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-                log('Invalid stake amount.', 'error');
+        function claimUSDC() {
+            if (utlState.usdcAccumulated <= 0) {
+                log('No USDC to claim yet.', 'warn');
+                showModal('No Balance', 'You have no USDC accumulated yet. Once UTL contracts are deployed and fees start flowing, your share will appear here.');
                 return;
             }
-            const stakeAmount = parseFloat(amount);
-            utlState.stakedAmount += stakeAmount;
-            const tier = calculateTier(utlState.stakedAmount);
-            utlState.tier = tier.name;
+            const amount = utlState.usdcAccumulated;
+            utlState.totalDistributed += amount;
+            utlState.usdcAccumulated = 0;
             saveState();
             updateStats();
-            log('Staked ' + stakeAmount.toLocaleString() + ' KENO. New tier: ' + tier.name + ' (' + tier.mult + ')', 'success');
-            showModal('KENO Staked!',
-                'Successfully staked ' + stakeAmount.toLocaleString() + ' KENO\n\n' +
-                'Current Tier: ' + tier.name + '\n' +
-                'Multiplier: ' + tier.mult + '\n' +
-                'Total Staked: ' + utlState.stakedAmount.toLocaleString() + ' KENO'
+            log('Claimed ' + formatUSD(amount) + ' USDC to wallet.', 'success');
+            showModal('USDC Claimed!',
+                'Successfully claimed ' + formatUSD(amount) + ' USDC to your wallet.\n\n' +
+                'To convert to USD:\n' +
+                'Use the Mercury cashout feature on the main Kenostod platform to transfer USDC to your bank account via ACH.'
             );
         }
 
-        function claimRewards() {
-            if (utlState.totalRewardsEarned <= 0) {
-                log('No rewards to claim yet.', 'warn');
-                showModal('No Rewards', 'You have no pending rewards to claim yet. Keep participating in UTL to earn rewards!');
-                return;
-            }
-            const rewards = utlState.totalRewardsEarned;
-            if (utlState.autoCompound) {
-                utlState.stakedAmount += rewards;
-                log('Auto-compounded ' + rewards.toFixed(4) + ' rewards into stake.', 'success');
-            } else {
-                log('Claimed ' + rewards.toFixed(4) + ' rewards to wallet.', 'success');
-            }
-            utlState.totalRewardsEarned = 0;
-            saveState();
-            updateStats();
-        }
-
         function viewWeeklyReport() {
-            const tier = calculateTier(utlState.stakedAmount);
             showModal('UTL Weekly Report',
                 'Wallet: ' + (connectedWallet ? shortenAddress(connectedWallet) : '--') + '\n' +
                 'Status: ' + (utlState.isOptedIn ? 'ACTIVE' : 'INACTIVE') + '\n' +
-                'Tier: ' + tier.name + ' (' + tier.mult + ')\n\n' +
-                'This Week:\n' +
+                'Member Since: ' + (utlState.joinedAt ? new Date(utlState.joinedAt).toLocaleDateString() : '--') + '\n\n' +
+                'This Period:\n' +
                 'Transactions: ' + utlState.transactionCount + '\n' +
-                'Fees Contributed: ' + utlState.totalFeesContributed.toFixed(4) + ' ETH\n' +
-                'Rewards Earned: ' + utlState.totalRewardsEarned.toFixed(4) + ' ETH\n' +
-                'KENO Staked: ' + utlState.stakedAmount.toLocaleString() + '\n\n' +
-                'Auto-Compound: ' + (utlState.autoCompound ? 'ON' : 'OFF')
+                'Fees Contributed: ' + formatUSD(utlState.totalFeesContributed) + ' USDC\n' +
+                'USDC Accumulated: ' + formatUSD(utlState.usdcAccumulated) + '\n' +
+                'Total Distributed: ' + formatUSD(utlState.totalDistributed) + ' USDC\n\n' +
+                'All amounts in USDC (USD Coin)'
             );
             log('Weekly report generated.', 'info');
         }
 
         function viewFeeBreakdown() {
             showModal('UTL Fee Distribution',
-                'Every transaction on the UTL network captures a 0.1% fee.\n' +
-                'This fee is distributed as follows:\n\n' +
-                '60% — Stakers (pro-rata by tier)\n' +
+                'Every transaction on the UTL protocol captures a 0.1% fee.\n' +
+                'Fees are converted to USDC and distributed as follows:\n\n' +
+                '60% — Participants (pro-rata share)\n' +
                 '15% — Kenostod Operations\n' +
                 '10% — Scholarship Fund\n' +
                 '10% — T.D.I.R. Foundation\n' +
                 '5%  — Insurance Reserve\n\n' +
                 'Total: 100%\n\n' +
-                'Your share depends on your staking tier:\n' +
-                'Observer (0 KENO): 0.1x multiplier\n' +
-                'Participant (1K): 1.0x multiplier\n' +
-                'Advocate (10K): 1.2x multiplier\n' +
-                'Champion (100K): 1.5x multiplier\n' +
-                'Guardian (1M): 2.0x multiplier'
+                'Your share is proportional to your participation in the network.\n' +
+                'All distributions are in USDC for dollar-value stability.'
             );
             log('Fee breakdown displayed.', 'info');
         }
 
-        function toggleAutoCompound() {
-            utlState.autoCompound = document.getElementById('autoCompoundToggle').checked;
-            saveState();
-            log('Auto-compound ' + (utlState.autoCompound ? 'enabled' : 'disabled') + '.', 'success');
+        function viewCashoutInfo() {
+            showModal('USD Cashout via Mercury',
+                'Convert your UTL USDC to real USD in your bank account:\n\n' +
+                '1. Accumulate USDC from UTL fee redistribution\n' +
+                '2. Claim USDC to your wallet\n' +
+                '3. Go to the Mercury Cashout section on the main Kenostod platform\n' +
+                '4. Enter your bank details (encrypted and secure)\n' +
+                '5. Request a withdrawal — funds arrive via ACH transfer\n\n' +
+                'Mercury is a regulated business banking platform.\n' +
+                'Kenostod Blockchain Academy LLC (Wyoming) is the operating entity.\n\n' +
+                'Minimum withdrawal: $10.00 USDC\n' +
+                'Processing time: 1-3 business days'
+            );
+            log('Cashout info displayed.', 'info');
         }
 
         function toggleNotifications() {
