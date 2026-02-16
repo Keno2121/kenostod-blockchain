@@ -51,7 +51,7 @@ UTL is a standalone, independent protocol separate from Kenostod. It is an asset
 - Wallet connector bundle built with esbuild at public/js/utl-wallets.js
 - Config API at /api/utl/config provides WalletConnect project ID and contract addresses
 
-**Revenue Model:** 0.1% fee capture → 60% stakers, 15% operations, 10% scholarships, 10% T.D.I.R., 5% insurance. Currently USDC-only until KENO staking post-Bridge.xyz meeting (March 6, 2026).
+**Revenue Model:** 0.1% fee capture → 60% stakers, 40% treasury. UTL is a fully independent protocol with no ties to Kenostod branding or operations. Currently USDC-only until KENO staking post-Bridge.xyz meeting (March 6, 2026).
 
 ## Security Model
 Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, transparent token supply tracking, PoRV security, wallet signature authentication, replay attack protection, rate limiting, CSRF protection, input validation, and server-side course verification.
