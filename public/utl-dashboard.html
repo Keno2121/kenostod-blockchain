@@ -90,6 +90,15 @@
                     </div>
                     <i class="fas fa-chevron-right text-slate-500"></i>
                 </div>
+
+                <div onclick="connectWallet('phantom')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon" style="background: linear-gradient(135deg, #ab9ff220, #534bb130); color: #ab9ff2;"><i class="fas fa-ghost"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Phantom</div>
+                        <div class="text-xs text-slate-400">Browser extension & mobile app</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
             </div>
 
             <div class="mt-5 text-center">
@@ -124,7 +133,7 @@
             </div>
             <h1 class="text-4xl font-bold mb-4">Universal Transaction Layer</h1>
             <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-2">Asset-agnostic fee redistribution protocol. Stake USDC, earn passive income from every transaction processed through UTL.</p>
-            <p class="text-indigo-400 text-sm">Now supporting MetaMask, WalletConnect (300+ wallets), and Coinbase Wallet</p>
+            <p class="text-indigo-400 text-sm">Now supporting MetaMask, Phantom, WalletConnect (300+ wallets), and Coinbase Wallet</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
@@ -144,7 +153,7 @@
 
         <div class="glass rounded-xl p-6 mb-8 max-w-3xl mx-auto">
             <h3 class="font-semibold mb-4 text-center text-lg">Connect With Your Favorite Wallet</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <button onclick="connectWallet('metamask')" class="btn-metamask rounded-xl p-5 text-center text-white transition-all hover:scale-105">
                     <i class="fa-brands fa-ethereum text-3xl mb-3 block"></i>
                     <div class="font-semibold mb-1">MetaMask</div>
@@ -159,6 +168,11 @@
                     <i class="fas fa-coins text-3xl mb-3 block"></i>
                     <div class="font-semibold mb-1">Coinbase Wallet</div>
                     <div class="text-xs opacity-80">Mobile & Smart Wallet</div>
+                </button>
+                <button onclick="connectWallet('phantom')" class="rounded-xl p-5 text-center text-white transition-all hover:scale-105" style="background: linear-gradient(135deg, #ab9ff2, #534bb1);">
+                    <i class="fas fa-ghost text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">Phantom</div>
+                    <div class="text-xs opacity-80">Browser & Mobile</div>
                 </button>
             </div>
         </div>
@@ -510,6 +524,8 @@
 
                 if (walletId === 'metamask') {
                     await connectMetaMaskDirect();
+                } else if (walletId === 'phantom') {
+                    await connectPhantomDirect();
                 } else if (walletId === 'coinbase-sdk') {
                     await connectCoinbaseDirect();
                 } else {
@@ -554,6 +570,31 @@
             } else {
                 showToast('Coinbase Wallet extension not detected. Try using the WalletConnect option or install Coinbase Wallet.', 'error');
             }
+        }
+
+        async function connectPhantomDirect() {
+            const phantomProvider = window.phantom?.ethereum || 
+                (window.ethereum?.providers?.find(p => p.isPhantom)) ||
+                (window.ethereum?.isPhantom ? window.ethereum : null);
+
+            if (!phantomProvider) {
+                showToast('Phantom wallet not detected. Please install Phantom from phantom.app', 'error');
+                return;
+            }
+
+            await phantomProvider.request({ method: 'eth_requestAccounts' });
+            await ensureBSC(phantomProvider);
+            provider = new ethers.providers.Web3Provider(phantomProvider);
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            setupContracts();
+            showConnected('Phantom');
+            loadDashboard();
+
+            phantomProvider.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) { showDisconnected(); }
+                else { userAddress = accounts[0]; loadDashboard(); }
+            });
         }
 
         async function ensureBSC(prov) {
