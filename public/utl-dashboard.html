@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>UTL Dashboard — Universal Transaction Layer | Kenostod</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a0e1a; color: #e2e8f0; min-height: 100vh; }
+        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.15); }
+        .glass-hover:hover { border-color: rgba(99, 102, 241, 0.4); transform: translateY(-2px); transition: all 0.3s; }
+        .gradient-text { background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); } 50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.4); } }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); transition: all 0.3s; }
+        .btn-primary:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed); transform: scale(1.02); }
+        .btn-outline { border: 1px solid rgba(99, 102, 241, 0.4); transition: all 0.3s; }
+        .btn-outline:hover { background: rgba(99, 102, 241, 0.1); border-color: #6366f1; }
+        .tier-badge { padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .tier-observer { background: rgba(100, 116, 139, 0.3); color: #94a3b8; }
+        .tier-participant { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .tier-advocate { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .tier-champion { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .tier-guardian { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .stat-card { position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366f1, #a78bfa); }
+        .network-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .network-dot.connected { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.6); }
+        .network-dot.disconnected { background: #ef4444; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .progress-bar { height: 6px; border-radius: 3px; background: rgba(99, 102, 241, 0.15); overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #6366f1, #a78bfa); transition: width 0.8s ease; }
+        .live-tag { background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; }
+        #toast { transition: all 0.3s; }
+    </style>
+</head>
+<body>
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden glass rounded-lg px-4 py-3 text-sm max-w-sm"></div>
+
+    <nav class="glass sticky top-0 z-40 px-6 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm">U</div>
+                <span class="font-bold text-lg">UTL <span class="text-indigo-400 text-sm font-normal">Dashboard</span></span>
+                <span class="live-tag ml-2">LIVE on BSC</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="networkStatus" class="flex items-center gap-2 text-sm text-slate-400">
+                    <span class="network-dot disconnected"></span>
+                    <span>Not Connected</span>
+                </div>
+                <button id="connectBtn" onclick="connectWallet()" class="btn-primary px-5 py-2 rounded-lg text-sm font-semibold text-white">
+                    <i class="fas fa-wallet mr-2"></i>Connect MetaMask
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="notConnected" class="max-w-4xl mx-auto px-6 py-20 text-center">
+        <div class="mb-8">
+            <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center mb-6 pulse-glow">
+                <i class="fas fa-layer-group text-3xl text-indigo-400"></i>
+            </div>
+            <h1 class="text-4xl font-bold mb-4">Universal Transaction Layer</h1>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Asset-agnostic fee redistribution protocol. Stake USDC, earn passive income from every transaction processed through UTL.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
+            <div class="glass rounded-xl p-5 text-center">
+                <div class="text-2xl font-bold text-indigo-400 mb-1">0.1%</div>
+                <div class="text-sm text-slate-400">Fee Per Transaction</div>
+            </div>
+            <div class="glass rounded-xl p-5 text-center">
+                <div class="text-2xl font-bold text-green-400 mb-1">60%</div>
+                <div class="text-sm text-slate-400">To Stakers</div>
+            </div>
+            <div class="glass rounded-xl p-5 text-center">
+                <div class="text-2xl font-bold text-purple-400 mb-1">5 Tiers</div>
+                <div class="text-sm text-slate-400">Staking Levels</div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-10 max-w-3xl mx-auto text-left">
+            <h3 class="font-semibold mb-4 text-indigo-300"><i class="fas fa-chart-bar mr-2"></i>Staking Tiers & Multipliers</h3>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-observer">Observer</span><span class="text-sm text-slate-400">0 USDC</span></div>
+                    <span class="text-sm font-mono text-slate-400">0.1x</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-participant">Participant</span><span class="text-sm text-slate-400">1,000 USDC</span></div>
+                    <span class="text-sm font-mono text-blue-400">1.0x</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-advocate">Advocate</span><span class="text-sm text-slate-400">10,000 USDC</span></div>
+                    <span class="text-sm font-mono text-green-400">1.2x</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-champion">Champion</span><span class="text-sm text-slate-400">100,000 USDC</span></div>
+                    <span class="text-sm font-mono text-yellow-400">1.5x</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-guardian">Guardian</span><span class="text-sm text-slate-400">1,000,000 USDC</span></div>
+                    <span class="text-sm font-mono text-purple-400">2.0x</span>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="connectWallet()" class="btn-primary px-8 py-3 rounded-xl text-white font-semibold text-lg">
+            <i class="fas fa-wallet mr-2"></i>Connect Wallet to Start
+        </button>
+        <p class="text-xs text-slate-500 mt-3">Requires MetaMask on BNB Smart Chain</p>
+    </div>
+
+    <div id="dashboard" class="hidden max-w-7xl mx-auto px-6 py-8 fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Total Fees Collected</div>
+                <div id="totalFees" class="text-2xl font-bold text-white">-</div>
+                <div class="text-xs text-slate-500 mt-1">BNB</div>
+            </div>
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Transactions Processed</div>
+                <div id="totalTx" class="text-2xl font-bold text-white">-</div>
+                <div class="text-xs text-slate-500 mt-1">Total</div>
+            </div>
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Contract Balance</div>
+                <div id="contractBalance" class="text-2xl font-bold text-white">-</div>
+                <div class="text-xs text-slate-500 mt-1">BNB held</div>
+            </div>
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Fee Rate</div>
+                <div id="feeRate" class="text-2xl font-bold text-indigo-400">-</div>
+                <div class="text-xs text-slate-500 mt-1">basis points</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="glass rounded-xl p-6 lg:col-span-2">
+                <h3 class="font-semibold text-lg mb-4"><i class="fas fa-exchange-alt mr-2 text-indigo-400"></i>Send Transaction via UTL</h3>
+                <p class="text-sm text-slate-400 mb-4">Send BNB to any address. UTL captures a 0.1% fee — 60% goes to stakers, 40% to treasury.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Recipient Address</label>
+                        <input id="recipientAddr" type="text" placeholder="0x..." class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white"/>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Amount (BNB)</label>
+                        <input id="sendAmount" type="number" step="0.001" min="0.001" placeholder="0.01" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white"/>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-xs text-slate-500">Min: 0.001 BNB</span>
+                            <span id="feePreview" class="text-xs text-indigo-400">Fee: ~0.000001 BNB</span>
+                        </div>
+                    </div>
+                    <button id="sendTxBtn" onclick="sendTransaction()" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">
+                        <i class="fas fa-paper-plane mr-2"></i>Send via UTL
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass rounded-xl p-6">
+                <h3 class="font-semibold text-lg mb-4"><i class="fas fa-user-circle mr-2 text-indigo-400"></i>Your Stats</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Your Address</div>
+                        <div id="userAddress" class="text-sm font-mono text-white truncate mt-1">-</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Your BNB Balance</div>
+                        <div id="userBalance" class="text-lg font-bold text-white mt-1">-</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Transactions via UTL</div>
+                        <div id="userTxCount" class="text-lg font-bold text-white mt-1">-</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Total Fees Paid</div>
+                        <div id="userFeesPaid" class="text-lg font-bold text-white mt-1">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8">
+            <h3 class="font-semibold text-lg mb-4"><i class="fas fa-coins mr-2 text-indigo-400"></i>USDC Staking</h3>
+            <p class="text-sm text-slate-400 mb-4">Stake USDC to earn a share of all UTL transaction fees. Higher tiers earn bigger multipliers.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Stake Amount (USDC)</label>
+                    <input id="stakeAmount" type="number" step="100" min="100" placeholder="1000" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white mb-3"/>
+                    <div class="flex gap-3">
+                        <button onclick="approveAndStake()" class="btn-primary flex-1 py-3 rounded-lg text-white font-semibold text-sm">
+                            <i class="fas fa-lock mr-1"></i>Approve & Stake
+                        </button>
+                        <button onclick="unstake()" class="btn-outline flex-1 py-3 rounded-lg text-indigo-300 font-semibold text-sm">
+                            <i class="fas fa-unlock mr-1"></i>Unstake
+                        </button>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-400">Your Staked</span>
+                        <span id="userStaked" class="font-semibold text-white">0 USDC</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-400">Your Tier</span>
+                        <span id="userTier" class="tier-badge tier-observer">Observer</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-400">Pending Rewards</span>
+                        <span id="userRewards" class="font-semibold text-green-400">0 BNB</span>
+                    </div>
+                    <button onclick="claimRewards()" class="btn-outline w-full py-2 rounded-lg text-green-400 font-semibold text-sm mt-2">
+                        <i class="fas fa-gift mr-1"></i>Claim Rewards
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8">
+            <h3 class="font-semibold text-lg mb-4"><i class="fas fa-file-contract mr-2 text-indigo-400"></i>Live Contracts on BSC</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <a href="https://bscscan.com/address/0xfE537c43d202C455Cedc141B882c808287BB662f" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">FeeCollector</div>
+                        <div class="text-xs font-mono text-slate-400">0xfE537c...BB662f</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+                <a href="https://bscscan.com/address/0x49961979c93f43f823BB3593b207724194019d1d" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">Staking</div>
+                        <div class="text-xs font-mono text-slate-400">0x49961...19d1d</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+                <a href="https://bscscan.com/address/0x3B3538b955647d811D42400084e9409e6593bE97" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">Treasury</div>
+                        <div class="text-xs font-mono text-slate-400">0x3B353...bE97</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+                <a href="https://bscscan.com/address/0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">Distribution</div>
+                        <div class="text-xs font-mono text-slate-400">0xE6918...93c7</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6">
+            <h3 class="font-semibold text-lg mb-3"><i class="fas fa-chart-pie mr-2 text-indigo-400"></i>Revenue Distribution</h3>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div class="text-center p-3 rounded-lg bg-indigo-500/10">
+                    <div class="text-xl font-bold text-indigo-400">60%</div>
+                    <div class="text-xs text-slate-400">Stakers</div>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-blue-500/10">
+                    <div class="text-xl font-bold text-blue-400">15%</div>
+                    <div class="text-xs text-slate-400">Operations</div>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-green-500/10">
+                    <div class="text-xl font-bold text-green-400">10%</div>
+                    <div class="text-xs text-slate-400">Scholarships</div>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-purple-500/10">
+                    <div class="text-xl font-bold text-purple-400">10%</div>
+                    <div class="text-xs text-slate-400">T.D.I.R.</div>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-yellow-500/10">
+                    <div class="text-xl font-bold text-yellow-400">5%</div>
+                    <div class="text-xs text-slate-400">Insurance</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-8 text-xs text-slate-600">
+        &copy; 2026 Kenostod Blockchain Academy LLC &mdash; Universal Transaction Layer Protocol
+    </footer>
+
+    <script>
+        const CONTRACTS = {
+            FeeCollector: '0xfE537c43d202C455Cedc141B882c808287BB662f',
+            Staking: '0x49961979c93f43f823BB3593b207724194019d1d',
+            Treasury: '0x3B3538b955647d811D42400084e9409e6593bE97',
+            Distribution: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7'
+        };
+        const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
+        const BSC_CHAIN_ID = '0x38';
+
+        const FEE_COLLECTOR_ABI = [
+            'function collectNativeFee() external payable',
+            'function processTransactionWithFee(address recipient) external payable',
+            'function collectTokenFee(address token, uint256 amount) external',
+            'function getStats() external view returns (uint256, uint256, uint256, uint256)',
+            'function getUserStats(address user) external view returns (uint256, uint256)',
+            'function calculateFee(uint256 amount) external view returns (uint256)',
+            'function totalFeesCollectedNative() external view returns (uint256)',
+            'function totalTransactionsProcessed() external view returns (uint256)',
+            'function feeRate() external view returns (uint256)'
+        ];
+
+        const STAKING_ABI = [
+            'function stake(uint256 amount) external',
+            'function unstake(uint256 amount) external',
+            'function claimRewards() external',
+            'function getStakeInfo(address user) external view returns (uint256, uint256, uint256, uint8, uint256)',
+            'function totalStaked() external view returns (uint256)',
+            'function getStakerCount() external view returns (uint256)'
+        ];
+
+        const ERC20_ABI = [
+            'function approve(address spender, uint256 amount) external returns (bool)',
+            'function allowance(address owner, address spender) external view returns (uint256)',
+            'function balanceOf(address account) external view returns (uint256)',
+            'function decimals() external view returns (uint8)'
+        ];
+
+        let provider, signer, userAddress;
+        let feeCollectorContract, stakingContract, usdcContract;
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const colors = { info: 'border-indigo-500', success: 'border-green-500', error: 'border-red-500' };
+            toast.className = `fixed top-4 right-4 z-50 glass rounded-lg px-4 py-3 text-sm max-w-sm border-l-4 ${colors[type]}`;
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+
+        async function connectWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                showToast('MetaMask not detected. Please install MetaMask.', 'error');
+                return;
+            }
+
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (chainId !== BSC_CHAIN_ID) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: BSC_CHAIN_ID }]
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: BSC_CHAIN_ID,
+                                    chainName: 'BNB Smart Chain',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                                    blockExplorerUrls: ['https://bscscan.com/']
+                                }]
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
+                }
+
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+
+                feeCollectorContract = new ethers.Contract(CONTRACTS.FeeCollector, FEE_COLLECTOR_ABI, signer);
+                stakingContract = new ethers.Contract(CONTRACTS.Staking, STAKING_ABI, signer);
+                usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
+
+                document.getElementById('connectBtn').innerHTML = `<i class="fas fa-check-circle mr-2"></i>${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+                document.getElementById('networkStatus').innerHTML = `<span class="network-dot connected"></span><span>BSC Mainnet</span>`;
+                document.getElementById('notConnected').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+
+                showToast('Wallet connected to BSC Mainnet', 'success');
+                await loadDashboard();
+
+            } catch (err) {
+                console.error(err);
+                showToast('Connection failed: ' + (err.message || 'Unknown error'), 'error');
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const [stats, userStats, balance, userBal] = await Promise.all([
+                    feeCollectorContract.getStats(),
+                    feeCollectorContract.getUserStats(userAddress),
+                    provider.getBalance(CONTRACTS.FeeCollector),
+                    provider.getBalance(userAddress)
+                ]);
+
+                document.getElementById('totalFees').textContent = parseFloat(ethers.utils.formatEther(stats[0])).toFixed(6);
+                document.getElementById('totalTx').textContent = stats[1].toString();
+                document.getElementById('contractBalance').textContent = parseFloat(ethers.utils.formatEther(stats[2])).toFixed(6);
+                document.getElementById('feeRate').textContent = stats[3].toString();
+
+                document.getElementById('userAddress').textContent = userAddress;
+                document.getElementById('userBalance').textContent = parseFloat(ethers.utils.formatEther(userBal)).toFixed(4) + ' BNB';
+                document.getElementById('userTxCount').textContent = userStats[0].toString();
+                document.getElementById('userFeesPaid').textContent = parseFloat(ethers.utils.formatEther(userStats[1])).toFixed(6) + ' BNB';
+
+                try {
+                    const stakeInfo = await stakingContract.getStakeInfo(userAddress);
+                    const tierNames = ['Observer', 'Participant', 'Advocate', 'Champion', 'Guardian'];
+                    const tierClasses = ['tier-observer', 'tier-participant', 'tier-advocate', 'tier-champion', 'tier-guardian'];
+                    const tierIdx = stakeInfo[3];
+                    document.getElementById('userStaked').textContent = parseFloat(ethers.utils.formatEther(stakeInfo[0])).toFixed(2) + ' USDC';
+                    document.getElementById('userTier').textContent = tierNames[tierIdx];
+                    document.getElementById('userTier').className = `tier-badge ${tierClasses[tierIdx]}`;
+                    document.getElementById('userRewards').textContent = parseFloat(ethers.utils.formatEther(stakeInfo[2])).toFixed(6) + ' BNB';
+                } catch(e) {
+                    console.log('Staking info not available:', e.message);
+                }
+
+            } catch (err) {
+                console.error('Dashboard load error:', err);
+            }
+        }
+
+        async function sendTransaction() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+
+            const recipient = document.getElementById('recipientAddr').value.trim();
+            const amount = document.getElementById('sendAmount').value;
+
+            if (!ethers.utils.isAddress(recipient)) { showToast('Invalid recipient address', 'error'); return; }
+            if (!amount || parseFloat(amount) <= 0) { showToast('Enter a valid amount', 'error'); return; }
+
+            try {
+                document.getElementById('sendTxBtn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                document.getElementById('sendTxBtn').disabled = true;
+
+                const value = ethers.utils.parseEther(amount);
+                const tx = await feeCollectorContract.processTransactionWithFee(recipient, { value });
+
+                showToast('Transaction submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+                showToast('Transaction confirmed! Fee captured by UTL.', 'success');
+                await loadDashboard();
+
+            } catch (err) {
+                console.error(err);
+                showToast('Transaction failed: ' + (err.reason || err.message || 'Unknown'), 'error');
+            } finally {
+                document.getElementById('sendTxBtn').innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send via UTL';
+                document.getElementById('sendTxBtn').disabled = false;
+            }
+        }
+
+        async function approveAndStake() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+
+            const amount = document.getElementById('stakeAmount').value;
+            if (!amount || parseFloat(amount) < 100) { showToast('Minimum stake is 100 USDC', 'error'); return; }
+
+            try {
+                const decimals = await usdcContract.decimals();
+                const stakeAmount = ethers.utils.parseUnits(amount, decimals);
+
+                showToast('Approving USDC spending...', 'info');
+                const approveTx = await usdcContract.approve(CONTRACTS.Staking, stakeAmount);
+                await approveTx.wait();
+
+                showToast('Staking USDC...', 'info');
+                const stakeTx = await stakingContract.stake(stakeAmount);
+                await stakeTx.wait();
+
+                showToast('Successfully staked ' + amount + ' USDC!', 'success');
+                await loadDashboard();
+
+            } catch (err) {
+                console.error(err);
+                showToast('Staking failed: ' + (err.reason || err.message || 'Unknown'), 'error');
+            }
+        }
+
+        async function unstake() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+
+            const amount = document.getElementById('stakeAmount').value;
+            if (!amount || parseFloat(amount) <= 0) { showToast('Enter amount to unstake', 'error'); return; }
+
+            try {
+                const decimals = await usdcContract.decimals();
+                const unstakeAmount = ethers.utils.parseUnits(amount, decimals);
+
+                showToast('Unstaking USDC...', 'info');
+                const tx = await stakingContract.unstake(unstakeAmount);
+                await tx.wait();
+
+                showToast('Successfully unstaked ' + amount + ' USDC!', 'success');
+                await loadDashboard();
+
+            } catch (err) {
+                console.error(err);
+                showToast('Unstake failed: ' + (err.reason || err.message || 'Unknown'), 'error');
+            }
+        }
+
+        async function claimRewards() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+
+            try {
+                showToast('Claiming rewards...', 'info');
+                const tx = await stakingContract.claimRewards();
+                await tx.wait();
+
+                showToast('Rewards claimed!', 'success');
+                await loadDashboard();
+
+            } catch (err) {
+                console.error(err);
+                showToast('Claim failed: ' + (err.reason || err.message || 'Unknown'), 'error');
+            }
+        }
+
+        document.getElementById('sendAmount').addEventListener('input', function() {
+            const val = parseFloat(this.value) || 0;
+            const fee = Math.max(val * 0.001, 0.0001);
+            document.getElementById('feePreview').textContent = `Fee: ~${fee.toFixed(6)} BNB`;
+        });
+
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', () => window.location.reload());
+            window.ethereum.on('chainChanged', () => window.location.reload());
+        }
+    </script>
+</body>
+</html>
