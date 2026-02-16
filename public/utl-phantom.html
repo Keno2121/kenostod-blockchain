@@ -502,20 +502,27 @@
         Powered by Kenostod Blockchain Academy | Universal Transaction Layer v1.0 | Phantom Integration
     </div>
 
-    <script type="module">
-        import { BrowserSDK, AddressType } from "https://cdn.jsdelivr.net/npm/@phantom/browser-sdk@latest/dist/index.js";
-
+    <script src="https://cdn.jsdelivr.net/npm/@phantom/browser-sdk@1.0.2/dist/index.min.js"></script>
+    <script>
         const PHANTOM_APP_ID = "a162b37d-d2c5-431d-8195-4f5054da5baa";
 
-        const phantomSDK = new BrowserSDK({
-            providerType: "embedded",
-            addressTypes: [AddressType.ethereum, AddressType.solana, AddressType.bitcoinSegwit],
-            appId: PHANTOM_APP_ID,
-            authOptions: {
-                authUrl: "https://connect.phantom.app/login",
-                redirectUrl: window.location.origin + "/utl-phantom.html"
+        let phantomSDK = null;
+        try {
+            const PhantomSDK = window.PhantomBrowserSDK || window;
+            if (PhantomSDK && PhantomSDK.BrowserSDK) {
+                phantomSDK = new PhantomSDK.BrowserSDK({
+                    providerType: "embedded",
+                    addressTypes: ["ethereum", "solana"],
+                    appId: PHANTOM_APP_ID,
+                    authOptions: {
+                        authUrl: "https://connect.phantom.app/login",
+                        redirectUrl: window.location.origin + "/utl-phantom.html"
+                    }
+                });
             }
-        });
+        } catch(e) {
+            console.log("Phantom SDK init note:", e.message);
+        }
 
         const UTL_API = window.location.origin + '/api';
 
@@ -622,29 +629,34 @@
             const btn = document.getElementById('connectBtn');
             btn.disabled = true;
             btn.textContent = 'Connecting...';
-            log('Requesting Phantom wallet connection via SDK...', 'info');
+            log('Requesting Phantom wallet connection...', 'info');
 
             try {
-                const { addresses } = await phantomSDK.connect();
-                console.log("Connected addresses:", addresses);
+                if (phantomSDK) {
+                    const { addresses } = await phantomSDK.connect();
+                    console.log("Connected addresses:", addresses);
 
-                const ethAddr = addresses.find(a => a.type === "ethereum");
-                const solAddr = addresses.find(a => a.type === "solana");
-                const btcAddr = addresses.find(a => a.type === "bitcoinSegwit");
+                    const ethAddr = addresses.find(a => a.type === "ethereum");
+                    const solAddr = addresses.find(a => a.type === "solana");
 
-                connectedWallet = ethAddr ? ethAddr.address : (solAddr ? solAddr.address : (btcAddr ? btcAddr.address : addresses[0].address));
+                    connectedWallet = ethAddr ? ethAddr.address : (solAddr ? solAddr.address : addresses[0].address);
+
+                    let chainInfo = [];
+                    if (ethAddr) chainInfo.push('Ethereum: ' + shortenAddress(ethAddr.address));
+                    if (solAddr) chainInfo.push('Solana: ' + shortenAddress(solAddr.address));
+                    log('Connected via Phantom SDK! ' + chainInfo.join(' | '), 'success');
+                } else {
+                    const provider = window.phantom?.solana || window.solana;
+                    if (!provider) throw new Error('No Phantom wallet detected');
+                    const resp = await provider.connect();
+                    connectedWallet = resp.publicKey.toString();
+                    log('Connected via Phantom extension: ' + shortenAddress(connectedWallet), 'success');
+                }
 
                 document.getElementById('walletAddress').textContent = shortenAddress(connectedWallet);
                 setStatus('Connected: ' + shortenAddress(connectedWallet), 'active');
                 hide('connectSection');
                 show('connectedSection');
-
-                let chainInfo = [];
-                if (ethAddr) chainInfo.push('Ethereum: ' + shortenAddress(ethAddr.address));
-                if (solAddr) chainInfo.push('Solana: ' + shortenAddress(solAddr.address));
-                if (btcAddr) chainInfo.push('Bitcoin: ' + shortenAddress(btcAddr.address));
-                log('Connected! ' + chainInfo.join(' | '), 'success');
-
                 await loadState();
             } catch (err) {
                 log('Connection failed: ' + err.message, 'error');
@@ -660,7 +672,12 @@
 
         async function disconnectPhantom() {
             try {
-                await phantomSDK.disconnect();
+                if (phantomSDK) {
+                    await phantomSDK.disconnect();
+                } else {
+                    const provider = window.phantom?.solana || window.solana;
+                    if (provider) await provider.disconnect();
+                }
             } catch (e) {}
             connectedWallet = null;
             setStatus('Disconnected', 'pending');
@@ -802,21 +819,20 @@
             document.body.appendChild(overlay);
         }
 
-        window.connectPhantom = connectPhantom;
-        window.disconnectPhantom = disconnectPhantom;
-        window.utlOptIn = utlOptIn;
-        window.utlOptOut = utlOptOut;
-        window.claimUSDC = claimUSDC;
-        window.viewWeeklyReport = viewWeeklyReport;
-        window.viewFeeBreakdown = viewFeeBreakdown;
-        window.viewCashoutInfo = viewCashoutInfo;
-        window.toggleNotifications = toggleNotifications;
-        window.copyAddr = copyAddr;
-
         window.addEventListener('load', () => {
-            log('Initializing Phantom Browser SDK...', 'info');
+            log('Initializing Phantom Connect...', 'info');
             setTimeout(checkPhantom, 500);
         });
+
+        if (window.phantom?.solana) {
+            window.phantom.solana.on('disconnect', () => {
+                connectedWallet = null;
+                hide('connectedSection');
+                show('connectSection');
+                setStatus('Disconnected', 'pending');
+                log('Phantom disconnected.', 'warn');
+            });
+        }
     </script>
 </body>
 </html>
