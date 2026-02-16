@@ -29,8 +29,21 @@ This system provides an arbitrage-native educational cryptocurrency with Flash A
 ## Flash Arbitrage Loan Pools (FALP) System
 A DeFi-inspired liquidity pooling system allowing users to pool KENO tokens for collective arbitrage. Features include pool creation with risk levels, liquidity deposits, pool borrowing for flash loans, automatic profit distribution, lock period bonuses, risk tiers, a pool leaderboard, and contributor tracking.
 
-## Universal Transaction Layer (UTL)
-The UTL infrastructure includes four Solidity smart contracts (UTLFeeCollector, UTLTreasury, UTLStaking, UTLDistribution) for 0.1% fee capture, a 5-tier staking system, Merkle-tree claim distribution, and a 48-hour timelock treasury. A MetaMask Snap provides transaction insights, dashboard, auto-compounding, and weekly reports. Revenue split allocates 60% to stakers, 15% to Kenostod operations, 10% to scholarships, 10% to T.D.I.R., and 5% to insurance.
+## Universal Transaction Layer (UTL) — Standalone Protocol
+UTL is a standalone, independent protocol separate from Kenostod. It is an asset-agnostic fee redistribution system designed to live directly inside wallets (MetaMask Snap + Phantom), not as a website feature. UTL generates independent revenue to fund all Kenostod operations.
+
+**Deployed Contracts (BSC Mainnet, Feb 16, 2026):**
+- FeeCollector: 0xfE537c43d202C455Cedc141B882c808287BB662f
+- Staking: 0x49961979c93f43f823BB3593b207724194019d1d
+- Treasury: 0x3B3538b955647d811D42400084e9409e6593bE97
+- Distribution: 0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7
+- USDC (BSC): 0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d
+
+**Wallet Integrations:**
+- MetaMask Snap: Transaction insight panel showing UTL fee calculations, opt-in/out, dashboard, auto-compound, weekly reports. Snap bundle at utl/metamask-snap/dist/bundle.js.
+- Phantom: Browser SDK integration with App ID a162b37d-d2c5-431d-8195-4f5054da5baa. Domain verified via DNS TXT record.
+
+**Revenue Model:** 0.1% fee capture → 60% stakers, 15% operations, 10% scholarships, 10% T.D.I.R., 5% insurance. Currently USDC-only until KENO staking post-Bridge.xyz meeting (March 6, 2026).
 
 ## Security Model
 Security features include client-side transaction signing, digital signatures, multi-layer transaction validation, cryptographic block linking, transparent token supply tracking, PoRV security, wallet signature authentication, replay attack protection, rate limiting, CSRF protection, input validation, and server-side course verification.
