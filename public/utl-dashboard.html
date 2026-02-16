@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>UTL Dashboard — Universal Transaction Layer | Kenostod</title>
+    <title>UTL Dashboard — Universal Transaction Layer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script src="/js/utl-wallets.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <style>
@@ -20,6 +21,12 @@
         .btn-primary:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed); transform: scale(1.02); }
         .btn-outline { border: 1px solid rgba(99, 102, 241, 0.4); transition: all 0.3s; }
         .btn-outline:hover { background: rgba(99, 102, 241, 0.1); border-color: #6366f1; }
+        .btn-metamask { background: linear-gradient(135deg, #f6851b, #e2761b); }
+        .btn-metamask:hover { background: linear-gradient(135deg, #e2761b, #cd6116); }
+        .btn-walletconnect { background: linear-gradient(135deg, #3b99fc, #2d7dd2); }
+        .btn-walletconnect:hover { background: linear-gradient(135deg, #2d7dd2, #1f6ab5); }
+        .btn-coinbase { background: linear-gradient(135deg, #0052ff, #003dcc); }
+        .btn-coinbase:hover { background: linear-gradient(135deg, #003dcc, #002d99); }
         .tier-badge { padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .tier-observer { background: rgba(100, 116, 139, 0.3); color: #94a3b8; }
         .tier-participant { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
@@ -33,14 +40,63 @@
         .network-dot.disconnected { background: #ef4444; }
         .fade-in { animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .progress-bar { height: 6px; border-radius: 3px; background: rgba(99, 102, 241, 0.15); overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #6366f1, #a78bfa); transition: width 0.8s ease; }
         .live-tag { background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; }
+        .wallet-option { cursor: pointer; transition: all 0.3s; border: 1px solid rgba(99, 102, 241, 0.1); }
+        .wallet-option:hover { border-color: rgba(99, 102, 241, 0.5); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .modal-overlay { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
+        .wallet-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .wallet-icon-mm { background: linear-gradient(135deg, #f6851b20, #e2761b30); color: #f6851b; }
+        .wallet-icon-wc { background: linear-gradient(135deg, #3b99fc20, #2d7dd230); color: #3b99fc; }
+        .wallet-icon-cb { background: linear-gradient(135deg, #0052ff20, #003dcc30); color: #0052ff; }
+        .connected-badge { background: rgba(34, 197, 94, 0.15); color: #22c55e; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         #toast { transition: all 0.3s; }
     </style>
 </head>
 <body>
     <div id="toast" class="fixed top-4 right-4 z-50 hidden glass rounded-lg px-4 py-3 text-sm max-w-sm"></div>
+
+    <div id="walletModal" class="fixed inset-0 z-50 hidden modal-overlay flex items-center justify-center p-4">
+        <div class="glass rounded-2xl p-6 max-w-md w-full fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">Connect Wallet</h2>
+                <button onclick="closeWalletModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <p class="text-sm text-slate-400 mb-5">Choose how you'd like to connect to UTL on BNB Smart Chain.</p>
+
+            <div class="space-y-3" id="walletOptions">
+                <div onclick="connectWallet('metamask')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon wallet-icon-mm"><i class="fa-brands fa-ethereum"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">MetaMask</div>
+                        <div class="text-xs text-slate-400">Browser extension & mobile</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
+
+                <div onclick="connectWallet('walletconnect')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon wallet-icon-wc"><i class="fas fa-qrcode"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">WalletConnect</div>
+                        <div class="text-xs text-slate-400">Trust Wallet, Rainbow, 300+ wallets</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
+
+                <div onclick="connectWallet('coinbase-sdk')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon wallet-icon-cb"><i class="fas fa-coins"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Coinbase Wallet</div>
+                        <div class="text-xs text-slate-400">Mobile app & Smart Wallet</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
+            </div>
+
+            <div class="mt-5 text-center">
+                <p class="text-xs text-slate-500">By connecting, you agree to the UTL Protocol Terms of Service</p>
+            </div>
+        </div>
+    </div>
 
     <nav class="glass sticky top-0 z-40 px-6 py-3">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -54,20 +110,21 @@
                     <span class="network-dot disconnected"></span>
                     <span>Not Connected</span>
                 </div>
-                <button id="connectBtn" onclick="connectWallet()" class="btn-primary px-5 py-2 rounded-lg text-sm font-semibold text-white">
-                    <i class="fas fa-wallet mr-2"></i>Connect MetaMask
+                <button id="connectBtn" onclick="openWalletModal()" class="btn-primary px-5 py-2 rounded-lg text-sm font-semibold text-white">
+                    <i class="fas fa-wallet mr-2"></i>Connect Wallet
                 </button>
             </div>
         </div>
     </nav>
 
-    <div id="notConnected" class="max-w-4xl mx-auto px-6 py-20 text-center">
+    <div id="notConnected" class="max-w-4xl mx-auto px-6 py-16 text-center">
         <div class="mb-8">
             <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center mb-6 pulse-glow">
                 <i class="fas fa-layer-group text-3xl text-indigo-400"></i>
             </div>
             <h1 class="text-4xl font-bold mb-4">Universal Transaction Layer</h1>
-            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Asset-agnostic fee redistribution protocol. Stake USDC, earn passive income from every transaction processed through UTL.</p>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-2">Asset-agnostic fee redistribution protocol. Stake USDC, earn passive income from every transaction processed through UTL.</p>
+            <p class="text-indigo-400 text-sm">Now supporting MetaMask, WalletConnect (300+ wallets), and Coinbase Wallet</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
@@ -82,6 +139,27 @@
             <div class="glass rounded-xl p-5 text-center">
                 <div class="text-2xl font-bold text-purple-400 mb-1">5 Tiers</div>
                 <div class="text-sm text-slate-400">Staking Levels</div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8 max-w-3xl mx-auto">
+            <h3 class="font-semibold mb-4 text-center text-lg">Connect With Your Favorite Wallet</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="connectWallet('metamask')" class="btn-metamask rounded-xl p-5 text-center text-white transition-all hover:scale-105">
+                    <i class="fa-brands fa-ethereum text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">MetaMask</div>
+                    <div class="text-xs opacity-80">Browser & Mobile</div>
+                </button>
+                <button onclick="connectWallet('walletconnect')" class="btn-walletconnect rounded-xl p-5 text-center text-white transition-all hover:scale-105">
+                    <i class="fas fa-qrcode text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">WalletConnect</div>
+                    <div class="text-xs opacity-80">300+ Wallets</div>
+                </button>
+                <button onclick="connectWallet('coinbase-sdk')" class="btn-coinbase rounded-xl p-5 text-center text-white transition-all hover:scale-105">
+                    <i class="fas fa-coins text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">Coinbase Wallet</div>
+                    <div class="text-xs opacity-80">Mobile & Smart Wallet</div>
+                </button>
             </div>
         </div>
 
@@ -110,11 +188,6 @@
                 </div>
             </div>
         </div>
-
-        <button onclick="connectWallet()" class="btn-primary px-8 py-3 rounded-xl text-white font-semibold text-lg">
-            <i class="fas fa-wallet mr-2"></i>Connect Wallet to Start
-        </button>
-        <p class="text-xs text-slate-500 mt-3">Requires MetaMask on BNB Smart Chain</p>
     </div>
 
     <div id="dashboard" class="hidden max-w-7xl mx-auto px-6 py-8 fade-in">
@@ -152,7 +225,7 @@
                     </div>
                     <div>
                         <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Amount (BNB)</label>
-                        <input id="sendAmount" type="number" step="0.001" min="0.001" placeholder="0.01" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white"/>
+                        <input id="sendAmount" type="number" step="0.001" min="0.001" placeholder="0.01" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white" oninput="updateFeePreview()"/>
                         <div class="flex justify-between mt-1">
                             <span class="text-xs text-slate-500">Min: 0.001 BNB</span>
                             <span id="feePreview" class="text-xs text-indigo-400">Fee: ~0.000001 BNB</span>
@@ -167,6 +240,10 @@
             <div class="glass rounded-xl p-6">
                 <h3 class="font-semibold text-lg mb-4"><i class="fas fa-user-circle mr-2 text-indigo-400"></i>Your Stats</h3>
                 <div class="space-y-4">
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Connected Via</div>
+                        <div id="walletTypeDisplay" class="text-sm font-semibold text-indigo-400 mt-1">-</div>
+                    </div>
                     <div>
                         <div class="text-xs text-slate-400 uppercase tracking-wider">Your Address</div>
                         <div id="userAddress" class="text-sm font-mono text-white truncate mt-1">-</div>
@@ -183,6 +260,9 @@
                         <div class="text-xs text-slate-400 uppercase tracking-wider">Total Fees Paid</div>
                         <div id="userFeesPaid" class="text-lg font-bold text-white mt-1">-</div>
                     </div>
+                    <button onclick="disconnectWallet()" class="btn-outline w-full py-2 rounded-lg text-red-400 border-red-500/30 hover:bg-red-500/10 font-semibold text-sm mt-2">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Disconnect
+                    </button>
                 </div>
             </div>
         </div>
@@ -257,6 +337,32 @@
             </div>
         </div>
 
+        <div class="glass rounded-xl p-6 mb-8">
+            <h3 class="font-semibold text-lg mb-4"><i class="fas fa-wallet mr-2 text-indigo-400"></i>Supported Wallets</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fa-brands fa-ethereum text-2xl text-orange-400 mb-2 block"></i>
+                    <div class="text-sm font-semibold">MetaMask</div>
+                    <div class="text-xs text-green-400 mt-1">Connected</div>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fas fa-qrcode text-2xl text-blue-400 mb-2 block"></i>
+                    <div class="text-sm font-semibold">WalletConnect</div>
+                    <div class="text-xs text-slate-400 mt-1">300+ wallets</div>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fas fa-coins text-2xl text-blue-500 mb-2 block"></i>
+                    <div class="text-sm font-semibold">Coinbase</div>
+                    <div class="text-xs text-slate-400 mt-1">Mobile & Smart</div>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fas fa-ghost text-2xl text-purple-400 mb-2 block"></i>
+                    <div class="text-sm font-semibold">Phantom</div>
+                    <div class="text-xs text-slate-400 mt-1">Browser SDK</div>
+                </div>
+            </div>
+        </div>
+
         <div class="glass rounded-xl p-6">
             <h3 class="font-semibold text-lg mb-3"><i class="fas fa-chart-pie mr-2 text-indigo-400"></i>Revenue Distribution</h3>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -285,7 +391,7 @@
     </div>
 
     <footer class="text-center py-8 text-xs text-slate-600">
-        &copy; 2026 Kenostod Blockchain Academy LLC &mdash; Universal Transaction Layer Protocol
+        &copy; 2026 Universal Transaction Layer Protocol &mdash; Standalone Fee Redistribution System
     </footer>
 
     <script>
@@ -297,6 +403,20 @@
         };
         const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
         const BSC_CHAIN_ID = '0x38';
+        let WALLETCONNECT_PROJECT_ID = '';
+        let configLoaded = false;
+
+        const configPromise = (async () => {
+            try {
+                const resp = await fetch('/api/utl/config');
+                const config = await resp.json();
+                WALLETCONNECT_PROJECT_ID = config.walletConnectProjectId || '';
+                configLoaded = true;
+            } catch (e) {
+                console.log('UTL config not available');
+                configLoaded = true;
+            }
+        })();
 
         const FEE_COLLECTOR_ABI = [
             'function collectNativeFee() external payable',
@@ -328,215 +448,286 @@
 
         let provider, signer, userAddress;
         let feeCollectorContract, stakingContract, usdcContract;
+        let walletConnector = null;
+
+        if (window.UTLWalletConnector) {
+            walletConnector = new window.UTLWalletConnector();
+            walletConnector.onDisconnect = () => {
+                showDisconnected();
+            };
+            walletConnector.onAccountChanged = (account) => {
+                userAddress = account;
+                loadDashboard();
+            };
+        }
 
         function showToast(msg, type = 'info') {
             const toast = document.getElementById('toast');
-            const colors = { info: 'border-indigo-500', success: 'border-green-500', error: 'border-red-500' };
+            const colors = { info: 'border-indigo-500', success: 'border-green-500', error: 'border-red-500', warning: 'border-yellow-500' };
             toast.className = `fixed top-4 right-4 z-50 glass rounded-lg px-4 py-3 text-sm max-w-sm border-l-4 ${colors[type]}`;
             toast.textContent = msg;
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 5000);
         }
 
-        async function connectWallet() {
-            if (typeof window.ethereum === 'undefined') {
-                showToast('MetaMask not detected. Please install MetaMask.', 'error');
-                return;
-            }
+        function openWalletModal() {
+            document.getElementById('walletModal').classList.remove('hidden');
+        }
+
+        function closeWalletModal() {
+            document.getElementById('walletModal').classList.add('hidden');
+        }
+
+        async function connectWallet(walletId) {
+            closeWalletModal();
 
             try {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                await configPromise;
 
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                if (chainId !== BSC_CHAIN_ID) {
-                    try {
-                        await window.ethereum.request({
-                            method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: BSC_CHAIN_ID }]
-                        });
-                    } catch (switchError) {
-                        if (switchError.code === 4902) {
-                            await window.ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [{
-                                    chainId: BSC_CHAIN_ID,
-                                    chainName: 'BNB Smart Chain',
-                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                                    rpcUrls: ['https://bsc-dataseed1.binance.org/'],
-                                    blockExplorerUrls: ['https://bscscan.com/']
-                                }]
-                            });
-                        } else {
-                            throw switchError;
-                        }
+                if (walletId === 'walletconnect') {
+                    if (!WALLETCONNECT_PROJECT_ID) {
+                        showToast('WalletConnect Project ID not configured yet. Get one free at cloud.walletconnect.com and add it to your settings, or use MetaMask/Coinbase Wallet.', 'warning');
+                        return;
                     }
                 }
 
+                showToast(`Connecting via ${walletId}...`, 'info');
+
+                if (walletConnector) {
+                    const result = await walletConnector.connect(walletId, {
+                        projectId: WALLETCONNECT_PROJECT_ID
+                    });
+
+                    provider = new ethers.providers.Web3Provider(result.provider);
+                    signer = provider.getSigner();
+                    userAddress = result.account;
+
+                    setupContracts();
+                    showConnected(result.walletType);
+                    loadDashboard();
+                    return;
+                }
+
+                if (walletId === 'metamask') {
+                    await connectMetaMaskDirect();
+                } else if (walletId === 'coinbase-sdk') {
+                    await connectCoinbaseDirect();
+                } else {
+                    showToast('Wallet connector not loaded. Please refresh the page.', 'error');
+                }
+            } catch (err) {
+                console.error('Connection error:', err);
+                showToast(err.message || 'Failed to connect wallet', 'error');
+            }
+        }
+
+        async function connectMetaMaskDirect() {
+            if (!window.ethereum) {
+                showToast('MetaMask not detected. Please install MetaMask.', 'error');
+                return;
+            }
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            await ensureBSC(window.ethereum);
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            setupContracts();
+            showConnected('MetaMask');
+            loadDashboard();
+
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) { showDisconnected(); }
+                else { userAddress = accounts[0]; loadDashboard(); }
+            });
+        }
+
+        async function connectCoinbaseDirect() {
+            if (window.ethereum && window.ethereum.isCoinbaseWallet) {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                await ensureBSC(window.ethereum);
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
                 userAddress = await signer.getAddress();
-
-                feeCollectorContract = new ethers.Contract(CONTRACTS.FeeCollector, FEE_COLLECTOR_ABI, signer);
-                stakingContract = new ethers.Contract(CONTRACTS.Staking, STAKING_ABI, signer);
-                usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
-
-                document.getElementById('connectBtn').innerHTML = `<i class="fas fa-check-circle mr-2"></i>${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-                document.getElementById('networkStatus').innerHTML = `<span class="network-dot connected"></span><span>BSC Mainnet</span>`;
-                document.getElementById('notConnected').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-
-                showToast('Wallet connected to BSC Mainnet', 'success');
-                await loadDashboard();
-
-            } catch (err) {
-                console.error(err);
-                showToast('Connection failed: ' + (err.message || 'Unknown error'), 'error');
+                setupContracts();
+                showConnected('Coinbase Wallet');
+                loadDashboard();
+            } else {
+                showToast('Coinbase Wallet extension not detected. Try using the WalletConnect option or install Coinbase Wallet.', 'error');
             }
+        }
+
+        async function ensureBSC(prov) {
+            const chainId = await prov.request({ method: 'eth_chainId' });
+            if (chainId !== BSC_CHAIN_ID) {
+                try {
+                    await prov.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID }] });
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        await prov.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: BSC_CHAIN_ID,
+                                chainName: 'BNB Smart Chain',
+                                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                                blockExplorerUrls: ['https://bscscan.com/']
+                            }]
+                        });
+                    } else { throw switchError; }
+                }
+            }
+        }
+
+        function setupContracts() {
+            feeCollectorContract = new ethers.Contract(CONTRACTS.FeeCollector, FEE_COLLECTOR_ABI, signer);
+            stakingContract = new ethers.Contract(CONTRACTS.Staking, STAKING_ABI, signer);
+            usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
+        }
+
+        function showConnected(walletType) {
+            const shortAddr = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+            document.getElementById('connectBtn').innerHTML = `<span class="connected-badge"><i class="fas fa-check-circle mr-1"></i>${shortAddr}</span>`;
+            document.getElementById('connectBtn').onclick = openWalletModal;
+            document.getElementById('networkStatus').innerHTML = `<span class="network-dot connected"></span><span>BSC Mainnet via ${walletType}</span>`;
+            document.getElementById('notConnected').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('walletTypeDisplay').textContent = walletType;
+            showToast(`Connected via ${walletType}!`, 'success');
+        }
+
+        function showDisconnected() {
+            provider = null; signer = null; userAddress = null;
+            feeCollectorContract = null; stakingContract = null; usdcContract = null;
+            document.getElementById('connectBtn').innerHTML = '<i class="fas fa-wallet mr-2"></i>Connect Wallet';
+            document.getElementById('connectBtn').onclick = openWalletModal;
+            document.getElementById('networkStatus').innerHTML = '<span class="network-dot disconnected"></span><span>Not Connected</span>';
+            document.getElementById('notConnected').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            showToast('Wallet disconnected', 'info');
+        }
+
+        async function disconnectWallet() {
+            if (walletConnector) {
+                await walletConnector.disconnect();
+            }
+            showDisconnected();
         }
 
         async function loadDashboard() {
             try {
-                const [stats, userStats, balance, userBal] = await Promise.all([
-                    feeCollectorContract.getStats(),
-                    feeCollectorContract.getUserStats(userAddress),
-                    provider.getBalance(CONTRACTS.FeeCollector),
-                    provider.getBalance(userAddress)
+                const [balance, totalFees, totalTx, feeRateVal] = await Promise.all([
+                    provider.getBalance(userAddress),
+                    feeCollectorContract.totalFeesCollectedNative().catch(() => ethers.BigNumber.from(0)),
+                    feeCollectorContract.totalTransactionsProcessed().catch(() => ethers.BigNumber.from(0)),
+                    feeCollectorContract.feeRate().catch(() => ethers.BigNumber.from(10))
                 ]);
 
-                document.getElementById('totalFees').textContent = parseFloat(ethers.utils.formatEther(stats[0])).toFixed(6);
-                document.getElementById('totalTx').textContent = stats[1].toString();
-                document.getElementById('contractBalance').textContent = parseFloat(ethers.utils.formatEther(stats[2])).toFixed(6);
-                document.getElementById('feeRate').textContent = stats[3].toString();
-
                 document.getElementById('userAddress').textContent = userAddress;
-                document.getElementById('userBalance').textContent = parseFloat(ethers.utils.formatEther(userBal)).toFixed(4) + ' BNB';
-                document.getElementById('userTxCount').textContent = userStats[0].toString();
-                document.getElementById('userFeesPaid').textContent = parseFloat(ethers.utils.formatEther(userStats[1])).toFixed(6) + ' BNB';
+                document.getElementById('userBalance').textContent = parseFloat(ethers.utils.formatEther(balance)).toFixed(6) + ' BNB';
+                document.getElementById('totalFees').textContent = parseFloat(ethers.utils.formatEther(totalFees)).toFixed(8);
+                document.getElementById('totalTx').textContent = totalTx.toString();
+                document.getElementById('feeRate').textContent = feeRateVal.toString();
+
+                const contractBal = await provider.getBalance(CONTRACTS.FeeCollector);
+                document.getElementById('contractBalance').textContent = parseFloat(ethers.utils.formatEther(contractBal)).toFixed(8);
+
+                try {
+                    const userStats = await feeCollectorContract.getUserStats(userAddress);
+                    document.getElementById('userTxCount').textContent = userStats[0].toString();
+                    document.getElementById('userFeesPaid').textContent = parseFloat(ethers.utils.formatEther(userStats[1])).toFixed(8) + ' BNB';
+                } catch { document.getElementById('userTxCount').textContent = '0'; document.getElementById('userFeesPaid').textContent = '0 BNB'; }
 
                 try {
                     const stakeInfo = await stakingContract.getStakeInfo(userAddress);
+                    const stakedAmt = parseFloat(ethers.utils.formatUnits(stakeInfo[0], 18));
+                    document.getElementById('userStaked').textContent = stakedAmt.toLocaleString() + ' USDC';
                     const tierNames = ['Observer', 'Participant', 'Advocate', 'Champion', 'Guardian'];
                     const tierClasses = ['tier-observer', 'tier-participant', 'tier-advocate', 'tier-champion', 'tier-guardian'];
                     const tierIdx = stakeInfo[3];
-                    document.getElementById('userStaked').textContent = parseFloat(ethers.utils.formatEther(stakeInfo[0])).toFixed(2) + ' USDC';
-                    document.getElementById('userTier').textContent = tierNames[tierIdx];
                     document.getElementById('userTier').className = `tier-badge ${tierClasses[tierIdx]}`;
-                    document.getElementById('userRewards').textContent = parseFloat(ethers.utils.formatEther(stakeInfo[2])).toFixed(6) + ' BNB';
-                } catch(e) {
-                    console.log('Staking info not available:', e.message);
-                }
-
+                    document.getElementById('userTier').textContent = tierNames[tierIdx];
+                    document.getElementById('userRewards').textContent = parseFloat(ethers.utils.formatEther(stakeInfo[2])).toFixed(8) + ' BNB';
+                } catch {}
             } catch (err) {
                 console.error('Dashboard load error:', err);
             }
         }
 
+        function updateFeePreview() {
+            const amount = parseFloat(document.getElementById('sendAmount').value) || 0;
+            const fee = amount * 0.001;
+            document.getElementById('feePreview').textContent = `Fee: ~${fee.toFixed(6)} BNB`;
+        }
+
         async function sendTransaction() {
             if (!signer) { showToast('Connect wallet first', 'error'); return; }
-
-            const recipient = document.getElementById('recipientAddr').value.trim();
+            const recipient = document.getElementById('recipientAddr').value;
             const amount = document.getElementById('sendAmount').value;
-
-            if (!ethers.utils.isAddress(recipient)) { showToast('Invalid recipient address', 'error'); return; }
-            if (!amount || parseFloat(amount) <= 0) { showToast('Enter a valid amount', 'error'); return; }
+            if (!recipient || !amount) { showToast('Enter recipient and amount', 'error'); return; }
 
             try {
-                document.getElementById('sendTxBtn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-                document.getElementById('sendTxBtn').disabled = true;
+                const sendBtn = document.getElementById('sendTxBtn');
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
 
-                const value = ethers.utils.parseEther(amount);
-                const tx = await feeCollectorContract.processTransactionWithFee(recipient, { value });
-
-                showToast('Transaction submitted! Waiting for confirmation...', 'info');
+                const tx = await feeCollectorContract.processTransactionWithFee(recipient, {
+                    value: ethers.utils.parseEther(amount)
+                });
+                showToast(`Transaction sent! Hash: ${tx.hash.slice(0,10)}...`, 'success');
                 await tx.wait();
-                showToast('Transaction confirmed! Fee captured by UTL.', 'success');
-                await loadDashboard();
-
+                showToast('Transaction confirmed on BSC!', 'success');
+                loadDashboard();
             } catch (err) {
-                console.error(err);
-                showToast('Transaction failed: ' + (err.reason || err.message || 'Unknown'), 'error');
+                showToast(err.reason || err.message || 'Transaction failed', 'error');
             } finally {
-                document.getElementById('sendTxBtn').innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send via UTL';
-                document.getElementById('sendTxBtn').disabled = false;
+                const sendBtn = document.getElementById('sendTxBtn');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send via UTL';
             }
         }
 
         async function approveAndStake() {
             if (!signer) { showToast('Connect wallet first', 'error'); return; }
-
             const amount = document.getElementById('stakeAmount').value;
-            if (!amount || parseFloat(amount) < 100) { showToast('Minimum stake is 100 USDC', 'error'); return; }
+            if (!amount || parseFloat(amount) <= 0) { showToast('Enter stake amount', 'error'); return; }
 
             try {
-                const decimals = await usdcContract.decimals();
-                const stakeAmount = ethers.utils.parseUnits(amount, decimals);
-
-                showToast('Approving USDC spending...', 'info');
-                const approveTx = await usdcContract.approve(CONTRACTS.Staking, stakeAmount);
+                showToast('Approving USDC...', 'info');
+                const stakeWei = ethers.utils.parseUnits(amount, 18);
+                const approveTx = await usdcContract.approve(CONTRACTS.Staking, stakeWei);
                 await approveTx.wait();
-
-                showToast('Staking USDC...', 'info');
-                const stakeTx = await stakingContract.stake(stakeAmount);
+                showToast('USDC approved! Now staking...', 'info');
+                const stakeTx = await stakingContract.stake(stakeWei);
                 await stakeTx.wait();
-
-                showToast('Successfully staked ' + amount + ' USDC!', 'success');
-                await loadDashboard();
-
-            } catch (err) {
-                console.error(err);
-                showToast('Staking failed: ' + (err.reason || err.message || 'Unknown'), 'error');
-            }
+                showToast('Staked successfully!', 'success');
+                loadDashboard();
+            } catch (err) { showToast(err.reason || err.message || 'Staking failed', 'error'); }
         }
 
         async function unstake() {
             if (!signer) { showToast('Connect wallet first', 'error'); return; }
-
             const amount = document.getElementById('stakeAmount').value;
-            if (!amount || parseFloat(amount) <= 0) { showToast('Enter amount to unstake', 'error'); return; }
+            if (!amount || parseFloat(amount) <= 0) { showToast('Enter unstake amount', 'error'); return; }
 
             try {
-                const decimals = await usdcContract.decimals();
-                const unstakeAmount = ethers.utils.parseUnits(amount, decimals);
-
-                showToast('Unstaking USDC...', 'info');
-                const tx = await stakingContract.unstake(unstakeAmount);
+                const unstakeWei = ethers.utils.parseUnits(amount, 18);
+                const tx = await stakingContract.unstake(unstakeWei);
+                showToast('Unstaking...', 'info');
                 await tx.wait();
-
-                showToast('Successfully unstaked ' + amount + ' USDC!', 'success');
-                await loadDashboard();
-
-            } catch (err) {
-                console.error(err);
-                showToast('Unstake failed: ' + (err.reason || err.message || 'Unknown'), 'error');
-            }
+                showToast('Unstaked successfully!', 'success');
+                loadDashboard();
+            } catch (err) { showToast(err.reason || err.message || 'Unstaking failed', 'error'); }
         }
 
         async function claimRewards() {
             if (!signer) { showToast('Connect wallet first', 'error'); return; }
-
             try {
-                showToast('Claiming rewards...', 'info');
                 const tx = await stakingContract.claimRewards();
+                showToast('Claiming rewards...', 'info');
                 await tx.wait();
-
                 showToast('Rewards claimed!', 'success');
-                await loadDashboard();
-
-            } catch (err) {
-                console.error(err);
-                showToast('Claim failed: ' + (err.reason || err.message || 'Unknown'), 'error');
-            }
-        }
-
-        document.getElementById('sendAmount').addEventListener('input', function() {
-            const val = parseFloat(this.value) || 0;
-            const fee = Math.max(val * 0.001, 0.0001);
-            document.getElementById('feePreview').textContent = `Fee: ~${fee.toFixed(6)} BNB`;
-        });
-
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', () => window.location.reload());
-            window.ethereum.on('chainChanged', () => window.location.reload());
+                loadDashboard();
+            } catch (err) { showToast(err.reason || err.message || 'Claim failed', 'error'); }
         }
     </script>
 </body>

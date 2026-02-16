@@ -43,6 +43,14 @@ UTL is a standalone, independent protocol separate from Kenostod. It is an asset
 - MetaMask Snap: Transaction insight panel showing UTL fee calculations, opt-in/out, dashboard, auto-compound, weekly reports. Snap bundle at utl/metamask-snap/dist/bundle.js.
 - Phantom: Browser SDK integration with App ID a162b37d-d2c5-431d-8195-4f5054da5baa. Domain verified via DNS TXT record.
 
+**Multi-Wallet Dashboard (public/utl-dashboard.html):**
+- MetaMask: Direct injection via window.ethereum
+- WalletConnect: QR code connection for 300+ mobile wallets (Trust Wallet, Rainbow, etc.). Requires WALLETCONNECT_PROJECT_ID env var from cloud.walletconnect.com.
+- Coinbase Wallet: SDK integration for mobile app and Smart Wallet
+- All wallets connect to live BSC contracts with full staking, transaction, and rewards functionality
+- Wallet connector bundle built with esbuild at public/js/utl-wallets.js
+- Config API at /api/utl/config provides WalletConnect project ID and contract addresses
+
 **Revenue Model:** 0.1% fee capture → 60% stakers, 15% operations, 10% scholarships, 10% T.D.I.R., 5% insurance. Currently USDC-only until KENO staking post-Bridge.xyz meeting (March 6, 2026).
 
 ## Security Model

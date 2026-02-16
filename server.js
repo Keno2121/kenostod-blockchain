@@ -317,6 +317,20 @@ app.use('/snap', express.static('utl/metamask-snap', {
     }
 }));
 
+app.get('/api/utl/config', (req, res) => {
+    res.json({
+        walletConnectProjectId: process.env.WALLETCONNECT_PROJECT_ID || '',
+        contracts: {
+            FeeCollector: '0xfE537c43d202C455Cedc141B882c808287BB662f',
+            Staking: '0x49961979c93f43f823BB3593b207724194019d1d',
+            Treasury: '0x3B3538b955647d811D42400084e9409e6593bE97',
+            Distribution: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7',
+            USDC: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'
+        },
+        network: { chainId: 56, name: 'BNB Smart Chain', rpc: 'https://bsc-dataseed1.binance.org/' }
+    });
+});
+
 app.get('/snap/dist/bundle.js', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/javascript');
