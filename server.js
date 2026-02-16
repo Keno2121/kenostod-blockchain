@@ -331,6 +331,21 @@ app.get('/api/utl/config', (req, res) => {
     });
 });
 
+app.get('/snap-package/snap.manifest.json', (req, res) => {
+    res.setHeader('Content-Disposition', 'attachment; filename="snap.manifest.json"');
+    res.sendFile(__dirname + '/utl/metamask-snap/snap.manifest.json');
+});
+
+app.get('/snap-package/serve-snap.js', (req, res) => {
+    res.setHeader('Content-Disposition', 'attachment; filename="serve-snap.js"');
+    res.sendFile(__dirname + '/utl/metamask-snap/serve-snap.js');
+});
+
+app.get('/snap-package/dist/bundle.js', (req, res) => {
+    res.setHeader('Content-Disposition', 'attachment; filename="bundle.js"');
+    res.sendFile(__dirname + '/utl/metamask-snap/dist/bundle.js');
+});
+
 app.get('/snap/dist/bundle.js', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/javascript');
