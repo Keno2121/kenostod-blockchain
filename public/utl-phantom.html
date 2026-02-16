@@ -502,7 +502,21 @@
         Powered by Kenostod Blockchain Academy | Universal Transaction Layer v1.0 | Phantom Integration
     </div>
 
-    <script>
+    <script type="module">
+        import { BrowserSDK, AddressType } from "https://cdn.jsdelivr.net/npm/@phantom/browser-sdk@latest/dist/index.js";
+
+        const PHANTOM_APP_ID = "a162b37d-d2c5-431d-8195-4f5054da5baa";
+
+        const phantomSDK = new BrowserSDK({
+            providerType: "embedded",
+            addressTypes: [AddressType.ethereum, AddressType.solana, AddressType.bitcoinSegwit],
+            appId: PHANTOM_APP_ID,
+            authOptions: {
+                authUrl: "https://connect.phantom.app/login",
+                redirectUrl: window.location.origin + "/utl-phantom.html"
+            }
+        });
+
         const UTL_API = window.location.origin + '/api';
 
         let connectedWallet = null;
@@ -592,37 +606,13 @@
 
         async function checkPhantom() {
             try {
-                const provider = window.phantom?.solana;
-                if (!provider?.isPhantom) {
-                    if (window.solana?.isPhantom) {
-                        setStatus('Phantom detected', 'active');
-                        show('connectSection');
-                        log('Phantom wallet detected (legacy provider).', 'success');
-                        return true;
-                    }
-                    setStatus('Phantom wallet not detected', 'error');
-                    show('noPhantomSection');
-                    log('Phantom wallet not found. Please install it.', 'error');
-                    return false;
-                }
-
-                setStatus('Phantom detected — ready to connect', 'active');
+                setStatus('Phantom Connect SDK loaded — ready to connect', 'active');
                 show('connectSection');
-                log('Phantom wallet detected! Click Connect to get started.', 'success');
-
-                if (provider.isConnected && provider.publicKey) {
-                    connectedWallet = provider.publicKey.toString();
-                    document.getElementById('walletAddress').textContent = shortenAddress(connectedWallet);
-                    setStatus('Connected: ' + shortenAddress(connectedWallet), 'active');
-                    hide('connectSection');
-                    show('connectedSection');
-                    log('Auto-reconnected to ' + shortenAddress(connectedWallet), 'success');
-                    await loadState();
-                }
-
+                log('Phantom Browser SDK initialized with App ID.', 'success');
+                log('Click Connect to link your wallet via Phantom Connect.', 'info');
                 return true;
             } catch (err) {
-                setStatus('Error checking Phantom', 'error');
+                setStatus('Error initializing Phantom SDK', 'error');
                 log('Error: ' + err.message, 'error');
                 return false;
             }
@@ -632,18 +622,29 @@
             const btn = document.getElementById('connectBtn');
             btn.disabled = true;
             btn.textContent = 'Connecting...';
-            log('Requesting Phantom wallet connection...', 'info');
+            log('Requesting Phantom wallet connection via SDK...', 'info');
 
             try {
-                const provider = window.phantom?.solana || window.solana;
-                const resp = await provider.connect();
-                connectedWallet = resp.publicKey.toString();
+                const { addresses } = await phantomSDK.connect();
+                console.log("Connected addresses:", addresses);
+
+                const ethAddr = addresses.find(a => a.type === "ethereum");
+                const solAddr = addresses.find(a => a.type === "solana");
+                const btcAddr = addresses.find(a => a.type === "bitcoinSegwit");
+
+                connectedWallet = ethAddr ? ethAddr.address : (solAddr ? solAddr.address : (btcAddr ? btcAddr.address : addresses[0].address));
 
                 document.getElementById('walletAddress').textContent = shortenAddress(connectedWallet);
                 setStatus('Connected: ' + shortenAddress(connectedWallet), 'active');
                 hide('connectSection');
                 show('connectedSection');
-                log('Connected to ' + shortenAddress(connectedWallet), 'success');
+
+                let chainInfo = [];
+                if (ethAddr) chainInfo.push('Ethereum: ' + shortenAddress(ethAddr.address));
+                if (solAddr) chainInfo.push('Solana: ' + shortenAddress(solAddr.address));
+                if (btcAddr) chainInfo.push('Bitcoin: ' + shortenAddress(btcAddr.address));
+                log('Connected! ' + chainInfo.join(' | '), 'success');
+
                 await loadState();
             } catch (err) {
                 log('Connection failed: ' + err.message, 'error');
@@ -659,8 +660,7 @@
 
         async function disconnectPhantom() {
             try {
-                const provider = window.phantom?.solana || window.solana;
-                await provider.disconnect();
+                await phantomSDK.disconnect();
             } catch (e) {}
             connectedWallet = null;
             setStatus('Disconnected', 'pending');
@@ -802,20 +802,21 @@
             document.body.appendChild(overlay);
         }
 
+        window.connectPhantom = connectPhantom;
+        window.disconnectPhantom = disconnectPhantom;
+        window.utlOptIn = utlOptIn;
+        window.utlOptOut = utlOptOut;
+        window.claimUSDC = claimUSDC;
+        window.viewWeeklyReport = viewWeeklyReport;
+        window.viewFeeBreakdown = viewFeeBreakdown;
+        window.viewCashoutInfo = viewCashoutInfo;
+        window.toggleNotifications = toggleNotifications;
+        window.copyAddr = copyAddr;
+
         window.addEventListener('load', () => {
-            log('Checking for Phantom wallet...', 'info');
+            log('Initializing Phantom Browser SDK...', 'info');
             setTimeout(checkPhantom, 500);
         });
-
-        if (window.phantom?.solana) {
-            window.phantom.solana.on('disconnect', () => {
-                connectedWallet = null;
-                hide('connectedSection');
-                show('connectSection');
-                setStatus('Disconnected', 'pending');
-                log('Phantom disconnected.', 'warn');
-            });
-        }
     </script>
 </body>
 </html>
