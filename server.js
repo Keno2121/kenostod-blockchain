@@ -341,6 +341,11 @@ app.get('/snap-package/serve-snap.js', (req, res) => {
     res.sendFile(__dirname + '/utl/metamask-snap/serve-snap.js');
 });
 
+app.get('/snap-package/serve-snap-view', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.sendFile(__dirname + '/utl/metamask-snap/serve-snap.js');
+});
+
 app.get('/snap-package/dist/bundle.js', (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="bundle.js"');
     res.sendFile(__dirname + '/utl/metamask-snap/dist/bundle.js');
