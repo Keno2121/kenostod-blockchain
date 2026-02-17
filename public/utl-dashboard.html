@@ -318,6 +318,108 @@
         </div>
 
         <div class="glass rounded-xl p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-lg"><i class="fas fa-exchange-alt mr-2 text-amber-400"></i>DEX Aggregator <span class="text-xs font-normal text-slate-400 ml-2">Powered by 1inch</span></h3>
+                <div id="dexLiveStatus" class="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 font-semibold">SIMULATED</div>
+            </div>
+            <p class="text-sm text-slate-400 mb-5">Find the best swap rates across multiple DEXs. UTL routes through optimal paths and captures a 0.1% fee for stakers.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Network</label>
+                            <select id="dexNetwork" onchange="loadDexTokens()" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                <option value="bsc">BNB Smart Chain</option>
+                                <option value="ethereum">Ethereum</option>
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">From</label>
+                            <div class="flex gap-2">
+                                <select id="dexFromToken" class="flex-1 bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                    <option value="">Loading...</option>
+                                </select>
+                                <input id="dexFromAmount" type="number" step="any" min="0" placeholder="0.0" class="flex-1 bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500" oninput="debouncedQuote()"/>
+                            </div>
+                        </div>
+                        <div class="flex justify-center">
+                            <button onclick="swapTokenDirection()" class="w-10 h-10 rounded-full bg-slate-800/80 border border-slate-600/50 flex items-center justify-center text-indigo-400 hover:bg-indigo-600/20 hover:border-indigo-500 transition-all">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">To</label>
+                            <div class="flex gap-2">
+                                <select id="dexToToken" class="flex-1 bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                    <option value="">Loading...</option>
+                                </select>
+                                <input id="dexToAmount" type="text" readonly placeholder="0.0" class="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-lg px-4 py-3 text-sm text-green-400 font-semibold focus:outline-none"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Slippage Tolerance</label>
+                            <div class="flex gap-2">
+                                <button onclick="setSlippage(0.1, this)" class="slippage-btn px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 text-xs text-slate-300 hover:border-indigo-500 transition-all">0.1%</button>
+                                <button onclick="setSlippage(0.5, this)" class="slippage-btn active px-3 py-2 rounded-lg bg-indigo-600/20 border border-indigo-500 text-xs text-indigo-300">0.5%</button>
+                                <button onclick="setSlippage(1.0, this)" class="slippage-btn px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 text-xs text-slate-300 hover:border-indigo-500 transition-all">1.0%</button>
+                                <button onclick="setSlippage(3.0, this)" class="slippage-btn px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 text-xs text-slate-300 hover:border-indigo-500 transition-all">3.0%</button>
+                            </div>
+                        </div>
+                        <button id="dexSwapBtn" onclick="getSwapQuote()" class="w-full py-3 rounded-lg font-semibold text-white" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-search mr-2"></i>Get Best Rate
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dexQuoteResult" class="hidden">
+                    <div class="bg-slate-800/40 rounded-xl p-5 space-y-4">
+                        <div class="text-center">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">You'll Receive</div>
+                            <div id="quoteToAmount" class="text-3xl font-bold text-green-400">-</div>
+                            <div id="quoteToSymbol" class="text-sm text-slate-400">-</div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Rate</span>
+                                <span id="quoteRate" class="text-white font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Price Impact</span>
+                                <span id="quotePriceImpact" class="text-green-400">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Est. Gas</span>
+                                <span id="quoteGas" class="text-white font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">UTL Fee (0.1%)</span>
+                                <span id="quoteUtlFee" class="text-indigo-400 font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Savings vs Direct</span>
+                                <span id="quoteSavings" class="text-green-400 font-semibold">-</span>
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-700/50 pt-3">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-2">Route</div>
+                            <div id="quoteRoute" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <button id="executeSwapBtn" onclick="executeSwap()" class="w-full py-3 rounded-lg font-semibold text-white btn-primary">
+                            <i class="fas fa-bolt mr-2"></i>Execute Swap via UTL
+                        </button>
+                    </div>
+                </div>
+                <div id="dexQuotePlaceholder" class="flex items-center justify-center">
+                    <div class="text-center text-slate-500">
+                        <i class="fas fa-chart-line text-4xl mb-3 block opacity-30"></i>
+                        <p class="text-sm">Enter an amount and click<br/>"Get Best Rate" to see quotes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8">
             <h3 class="font-semibold text-lg mb-4"><i class="fas fa-file-contract mr-2 text-indigo-400"></i>Live Contracts on BSC</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <a href="https://bscscan.com/address/0xfE537c43d202C455Cedc141B882c808287BB662f" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
@@ -773,6 +875,163 @@
                 loadDashboard();
             } catch (err) { showToast(err.reason || err.message || 'Claim failed', 'error'); }
         }
+
+        let dexTokens = [];
+        let currentSlippage = 0.5;
+        let quoteTimeout = null;
+        let lastQuote = null;
+
+        async function loadDexTokens() {
+            const network = document.getElementById('dexNetwork').value;
+            document.getElementById('dexLiveStatus').textContent = 'SIMULATED';
+            document.getElementById('dexLiveStatus').className = 'text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 font-semibold';
+            document.getElementById('dexQuoteResult').classList.add('hidden');
+            document.getElementById('dexQuotePlaceholder').classList.remove('hidden');
+            try {
+                const resp = await fetch(`/api/utl/dex/tokens?network=${network}`);
+                const data = await resp.json();
+                dexTokens = data.tokens || [];
+                const fromSelect = document.getElementById('dexFromToken');
+                const toSelect = document.getElementById('dexToToken');
+                fromSelect.innerHTML = dexTokens.map(t => `<option value="${t.address}">${t.symbol} — ${t.name}</option>`).join('');
+                toSelect.innerHTML = dexTokens.map(t => `<option value="${t.address}">${t.symbol} — ${t.name}</option>`).join('');
+                if (dexTokens.length > 1) toSelect.selectedIndex = 1;
+            } catch (err) {
+                console.error('Failed to load tokens:', err);
+            }
+        }
+
+        function setSlippage(val, el) {
+            currentSlippage = val;
+            document.querySelectorAll('.slippage-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.className = btn.className.replace('bg-indigo-600/20 border-indigo-500 text-indigo-300', 'bg-slate-800/50 border-slate-600/50 text-slate-300');
+            });
+            el.classList.add('active');
+            el.className = el.className.replace('bg-slate-800/50 border-slate-600/50 text-slate-300', 'bg-indigo-600/20 border-indigo-500 text-indigo-300');
+        }
+
+        function swapTokenDirection() {
+            const fromSelect = document.getElementById('dexFromToken');
+            const toSelect = document.getElementById('dexToToken');
+            const tmpIdx = fromSelect.selectedIndex;
+            fromSelect.selectedIndex = toSelect.selectedIndex;
+            toSelect.selectedIndex = tmpIdx;
+            document.getElementById('dexFromAmount').value = '';
+            document.getElementById('dexToAmount').value = '';
+            document.getElementById('dexQuoteResult').classList.add('hidden');
+            document.getElementById('dexQuotePlaceholder').classList.remove('hidden');
+        }
+
+        function debouncedQuote() {
+            if (quoteTimeout) clearTimeout(quoteTimeout);
+            quoteTimeout = setTimeout(() => {
+                const amount = document.getElementById('dexFromAmount').value;
+                if (amount && parseFloat(amount) > 0) getSwapQuote();
+            }, 600);
+        }
+
+        async function getSwapQuote() {
+            const fromToken = document.getElementById('dexFromToken').value;
+            const toToken = document.getElementById('dexToToken').value;
+            const amountStr = document.getElementById('dexFromAmount').value;
+            const network = document.getElementById('dexNetwork').value;
+
+            if (!fromToken || !toToken || !amountStr || parseFloat(amountStr) <= 0) {
+                showToast('Enter a valid amount', 'error');
+                return;
+            }
+            if (fromToken === toToken) {
+                showToast('Select different tokens', 'error');
+                return;
+            }
+
+            const fromInfo = dexTokens.find(t => t.address === fromToken);
+            const decimals = fromInfo ? fromInfo.decimals : 18;
+            const amountWei = BigInt(Math.floor(parseFloat(amountStr) * Math.pow(10, decimals))).toString();
+
+            const btn = document.getElementById('dexSwapBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Finding Best Route...';
+            btn.disabled = true;
+
+            try {
+                const resp = await fetch(`/api/utl/dex/quote?fromToken=${fromToken}&toToken=${toToken}&amount=${amountWei}&network=${network}&slippage=${currentSlippage}`);
+                const quote = await resp.json();
+                lastQuote = quote;
+
+                const toInfo = dexTokens.find(t => t.address === toToken);
+                const toDecimals = toInfo ? toInfo.decimals : 18;
+                const toAmountHuman = quote.toAmountHuman || (parseFloat(quote.toAmount) / Math.pow(10, toDecimals)).toFixed(6);
+
+                document.getElementById('dexToAmount').value = toAmountHuman;
+                document.getElementById('quoteToAmount').textContent = parseFloat(toAmountHuman).toLocaleString(undefined, {maximumFractionDigits: 6});
+                document.getElementById('quoteToSymbol').textContent = toInfo ? toInfo.symbol : '';
+                document.getElementById('quoteRate').textContent = quote.rate ? `1 ${fromInfo?.symbol} = ${quote.rate} ${toInfo?.symbol}` : '-';
+                document.getElementById('quotePriceImpact').textContent = `${quote.priceImpact || '< 0.01'}%`;
+                document.getElementById('quoteGas').textContent = `~${parseInt(quote.estimatedGas || 0).toLocaleString()} gas`;
+                document.getElementById('quoteUtlFee').textContent = `$${quote.utlFee || '0.00'}`;
+                document.getElementById('quoteSavings').textContent = `~${quote.savings || '0.00'}% better`;
+
+                const routeDiv = document.getElementById('quoteRoute');
+                const protocols = quote.protocols || [];
+                routeDiv.innerHTML = protocols.map(p => `<span class="px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(99,102,241,0.15); color: #a5b4fc;">${p.name || p} <span class="text-slate-500">${p.part || 100}%</span></span>`).join('');
+
+                if (quote.live) {
+                    document.getElementById('dexLiveStatus').textContent = 'LIVE';
+                    document.getElementById('dexLiveStatus').className = 'text-xs px-3 py-1 rounded-full bg-green-500/15 text-green-400 font-semibold';
+                }
+
+                document.getElementById('dexQuoteResult').classList.remove('hidden');
+                document.getElementById('dexQuotePlaceholder').classList.add('hidden');
+            } catch (err) {
+                showToast('Quote failed: ' + err.message, 'error');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-search mr-2"></i>Get Best Rate';
+                btn.disabled = false;
+            }
+        }
+
+        async function executeSwap() {
+            if (!signer) {
+                showToast('Connect wallet first to execute swaps', 'error');
+                return;
+            }
+            if (!lastQuote) {
+                showToast('Get a quote first', 'error');
+                return;
+            }
+            if (lastQuote.simulated) {
+                showToast('Simulated mode — add 1inch API key for live swaps. Quote shown for reference.', 'info');
+                return;
+            }
+            try {
+                const fromToken = document.getElementById('dexFromToken').value;
+                const toToken = document.getElementById('dexToToken').value;
+                const amount = document.getElementById('dexFromAmount').value;
+                const fromInfo = dexTokens.find(t => t.address === fromToken);
+                const amountWei = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, fromInfo.decimals))).toString();
+                const network = document.getElementById('dexNetwork').value;
+                const addr = await signer.getAddress();
+
+                const resp = await fetch(`/api/utl/dex/swap-data?fromToken=${fromToken}&toToken=${toToken}&amount=${amountWei}&fromAddress=${addr}&slippage=${currentSlippage}&network=${network}`);
+                const swapData = await resp.json();
+
+                if (swapData.simulated) {
+                    showToast('Simulated mode — add 1inch API key for live swaps', 'info');
+                    return;
+                }
+
+                const tx = await signer.sendTransaction(swapData.tx);
+                showToast('Swap submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+                showToast('Swap executed successfully!', 'success');
+                loadDashboard();
+            } catch (err) {
+                showToast('Swap failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        loadDexTokens();
     </script>
 </body>
 </html>
