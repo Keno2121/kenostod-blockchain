@@ -68,6 +68,7 @@ class UTLWalletConnector {
     this._wcProvider = await EthereumProvider.init({
       projectId: projectId,
       chains: [BSC_CHAIN_ID],
+      optionalChains: [BSC_CHAIN_ID],
       showQrModal: true,
       metadata: {
         name: 'UTL — Universal Transaction Layer',
@@ -80,7 +81,16 @@ class UTLWalletConnector {
       }
     });
 
-    await this._wcProvider.connect();
+    await this._wcProvider.connect({ chains: [BSC_CHAIN_ID] });
+
+    try {
+      await this._wcProvider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x38' }]
+      });
+    } catch (e) {
+      console.log('Chain switch after WC connect:', e.message);
+    }
 
     this.provider = this._wcProvider;
     this.walletType = 'WalletConnect';
