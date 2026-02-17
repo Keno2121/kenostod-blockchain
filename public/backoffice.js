@@ -1,4 +1,318 @@
-// Comprehensive Course Curriculum Data
+let subscriptionVerified = localStorage.getItem('subscriptionActive') === 'true';
+const isSubscribed = () => subscriptionVerified;
+const getSubscriptionPlan = () => localStorage.getItem('subscriptionPlan') || 'free';
+
+(async function verifySubscription() {
+    const email = localStorage.getItem('userEmail') || localStorage.getItem('customerEmail');
+    if (!email && localStorage.getItem('subscriptionActive') !== 'true') return;
+    try {
+        const resp = await fetch(`/api/subscription/verify?email=${encodeURIComponent(email || '')}`);
+        const data = await resp.json();
+        subscriptionVerified = data.active;
+        localStorage.setItem('subscriptionActive', data.active ? 'true' : 'false');
+        if (data.active) localStorage.setItem('subscriptionPlan', data.plan);
+    } catch (e) {
+        subscriptionVerified = localStorage.getItem('subscriptionActive') === 'true';
+    }
+})();
+
+const premiumContent = {
+    1: {
+        deep_dive: [
+            { title: 'Advanced ECC Mathematics', content: 'Explore the group theory behind elliptic curves, point addition and scalar multiplication on secp256k1, and how the discrete logarithm problem provides security.' },
+            { title: 'HD Wallet Architecture (BIP32/BIP44)', content: 'Master hierarchical deterministic wallets — derive unlimited addresses from a single seed, understand derivation paths (m/44\'/60\'/0\'/0), and implement multi-account structures.' },
+            { title: 'Hardware Wallet Integration', content: 'Learn how Ledger and Trezor devices protect private keys using secure elements, and how to sign transactions via USB/Bluetooth without exposing keys.' }
+        ],
+        code_exercises: [
+            'Build a complete HD wallet from scratch using BIP32 derivation',
+            'Implement multi-signature (2-of-3) wallet logic',
+            'Create a vanity address generator using secp256k1',
+            'Build a wallet recovery tool using BIP39 mnemonics'
+        ],
+        resources: ['Mastering Bitcoin - Chapter 4: Keys & Addresses', 'NIST Elliptic Curve Standards Guide', 'BIP39 Wordlist Reference']
+    },
+    2: {
+        deep_dive: [
+            { title: 'Mining Pool Mechanics', content: 'Understand stratum protocols, share difficulty, payout schemes (PPS, PPLNS, FPPS), and how pools coordinate thousands of miners to find blocks efficiently.' },
+            { title: 'ASIC vs GPU Mining Economics', content: 'Deep analysis of hardware ROI calculations, electricity costs, hash rate comparisons, and when each mining approach is profitable.' },
+            { title: 'Selfish Mining & Attack Vectors', content: 'Study the selfish mining attack strategy where miners withhold blocks to gain unfair advantage, and how protocols defend against it.' }
+        ],
+        code_exercises: [
+            'Build a complete SHA-256 hasher from scratch (no libraries)',
+            'Simulate a mining pool with share validation',
+            'Implement dynamic difficulty adjustment algorithm',
+            'Create a mining profitability calculator'
+        ],
+        resources: ['Bitcoin Whitepaper - Section 4: Proof-of-Work', 'Hashcash Proof-of-Work Function Paper', 'Mining Difficulty Algorithm Analysis']
+    },
+    3: {
+        deep_dive: [
+            { title: 'Merkle Patricia Tries', content: 'How Ethereum stores state using Merkle Patricia tries — key-value mappings, node types (leaf, extension, branch), and efficient proof generation.' },
+            { title: 'Block Propagation & Orphan Blocks', content: 'Study network topology, block propagation delays, compact block relay (BIP152), and how orphan/uncle blocks affect consensus.' },
+            { title: 'State Channels & Off-Chain Verification', content: 'Learn how payment channels (Lightning Network) verify transactions off-chain using cryptographic proofs, reducing on-chain load.' }
+        ],
+        code_exercises: [
+            'Build a Merkle tree implementation with proof verification',
+            'Simulate block propagation across a network',
+            'Implement SPV (Simplified Payment Verification)',
+            'Create a blockchain explorer that validates chain integrity'
+        ],
+        resources: ['Ethereum Yellow Paper - State Trie Specification', 'Bitcoin Developer Guide - Block Chain', 'Merkle Tree Research Paper']
+    },
+    4: {
+        deep_dive: [
+            { title: 'Timelock Contract Patterns', content: 'Deep exploration of CLTV (CheckLockTimeVerify), CSV (CheckSequenceVerify), and how time-based conditions enable advanced smart contract logic.' },
+            { title: 'Escrow & Multi-Party Computation', content: 'Build trustless escrow systems using hash time-locked contracts (HTLCs) and understand multi-party computation for secure shared decisions.' },
+            { title: 'Automated Market Maker Scheduling', content: 'How DeFi protocols use scheduled transactions for rebalancing, fee collection, and liquidity provision automation.' }
+        ],
+        code_exercises: [
+            'Build a timelock vault with configurable release schedules',
+            'Implement an escrow system with dispute resolution',
+            'Create a vesting schedule contract for token distribution',
+            'Build a recurring payment system with cancellation'
+        ],
+        resources: ['BIP65: CheckLockTimeVerify Specification', 'Hash Time-Locked Contracts Explained', 'DeFi Scheduling Patterns Guide']
+    },
+    5: {
+        deep_dive: [
+            { title: 'UTXO Model Deep Dive', content: 'Compare UTXO (Bitcoin) vs Account (Ethereum) models in depth — transaction construction, change outputs, coin selection algorithms, and privacy implications.' },
+            { title: 'Transaction Malleability & SegWit', content: 'Understand how transaction malleability attacks work, why Segregated Witness was introduced, and how it fixes the txid mutation problem.' },
+            { title: 'Fee Estimation Algorithms', content: 'Study mempool analysis, fee rate estimation (sat/vbyte), Replace-By-Fee (RBF), and Child-Pays-For-Parent (CPFP) strategies.' }
+        ],
+        code_exercises: [
+            'Implement a UTXO coin selection algorithm (Branch and Bound)',
+            'Build a transaction fee estimator using mempool data',
+            'Create a batch transaction optimizer',
+            'Simulate Replace-By-Fee mechanics'
+        ],
+        resources: ['Bitcoin Transaction Format Specification', 'BIP141: Segregated Witness', 'Fee Estimation Research Paper']
+    },
+    6: {
+        deep_dive: [
+            { title: 'Reversible Transaction Protocol Design', content: 'Study the game theory behind transaction reversal windows — how 5-minute windows balance user protection with finality, and the security implications of delayed settlement.' },
+            { title: 'Chargeback Prevention Systems', content: 'Compare traditional payment chargeback rates (0.6-1.8%) with blockchain reversal mechanisms, and how merchants benefit from deterministic dispute resolution.' },
+            { title: 'Cross-Chain Reversibility', content: 'Explore how atomic swaps handle reversal scenarios across different blockchains using hash time-locked contracts with timeout windows.' }
+        ],
+        code_exercises: [
+            'Build a complete reversal window system with timeout enforcement',
+            'Implement a dispute resolution mechanism with evidence submission',
+            'Create a merchant protection dashboard with reversal analytics',
+            'Simulate fraud detection using reversal pattern analysis'
+        ],
+        resources: ['Kenostod Reversal Window Whitepaper', 'Payment Fraud Detection Research', 'Dispute Resolution in Digital Payments']
+    },
+    7: {
+        deep_dive: [
+            { title: 'Sybil Resistance Mechanisms', content: 'Deep dive into proof-of-personhood, social graph analysis, Web of Trust models, and how platforms prevent fake identity creation at scale.' },
+            { title: 'Zero-Knowledge Reputation Proofs', content: 'Learn how ZK-SNARKs enable proving reputation scores without revealing transaction history, protecting user privacy while maintaining trust.' },
+            { title: 'Cross-Platform Reputation Portability', content: 'Study W3C Verifiable Credentials, DID (Decentralized Identifiers), and how to make blockchain reputation portable across platforms.' }
+        ],
+        code_exercises: [
+            'Build a reputation scoring system with decay and recovery',
+            'Implement Sybil detection using graph analysis',
+            'Create a verifiable credential issuer and verifier',
+            'Design a cross-platform reputation aggregator'
+        ],
+        resources: ['W3C DID Core Specification', 'Sybil Attack Prevention Research', 'Verifiable Credentials Data Model']
+    },
+    8: {
+        deep_dive: [
+            { title: 'Quadratic Voting Implementation', content: 'Build a complete quadratic voting system — cost calculations, credit allocation, vote tallying, and how it prevents plutocratic governance outcomes.' },
+            { title: 'Governance Attack Vectors', content: 'Study flash loan governance attacks (real DeFi examples), vote buying markets, and delegation manipulation strategies with countermeasures.' },
+            { title: 'DAO Treasury Management', content: 'Learn how major DAOs (MakerDAO, Uniswap, Aave) manage multi-million dollar treasuries through governance proposals and execution.' }
+        ],
+        code_exercises: [
+            'Build a complete DAO voting system with proposal lifecycle',
+            'Implement quadratic voting with credit management',
+            'Create a timelock-protected treasury execution system',
+            'Design a delegation system with vote weight inheritance'
+        ],
+        resources: ['Compound Governor Alpha/Bravo Specs', 'Quadratic Payments Research Paper', 'DAO Governance Best Practices']
+    },
+    9: {
+        deep_dive: [
+            { title: 'Mining Economics Simulation', content: 'Build a comprehensive mining simulator — electricity costs, hardware depreciation, difficulty projections, and breakeven analysis for different scenarios.' },
+            { title: 'Halving Events & Supply Dynamics', content: 'Study Bitcoin halving mechanics, stock-to-flow models, the impact on miner revenue, and historical price correlation analysis.' },
+            { title: 'MEV (Maximal Extractable Value)', content: 'Understand how miners/validators extract value through transaction ordering — front-running, sandwich attacks, and Flashbots as a mitigation solution.' }
+        ],
+        code_exercises: [
+            'Build a mining profitability simulator with real-time data',
+            'Implement a block reward halving schedule calculator',
+            'Create an MEV detection dashboard',
+            'Design a Flashbots-style transaction bundle system'
+        ],
+        resources: ['Bitcoin Halving Schedule & History', 'MEV Research Paper (Flashbots)', 'Mining Economics Analysis']
+    },
+    10: {
+        deep_dive: [
+            { title: 'PoRV Economic Model', content: 'Deep analysis of how Proof-of-Residual-Value transforms computation into lasting economic value — energy efficiency comparisons, value accrual mechanics, and sustainability analysis.' },
+            { title: 'AI/ML Computation Marketplace', content: 'How PoRV creates a marketplace for AI inference and ML training — task allocation, result verification, and quality-of-service guarantees.' },
+            { title: 'Deflationary Token Mechanics', content: 'Study burn mechanisms, supply curves, and how PoRV\'s token burns create predictable deflation that benefits long-term holders.' }
+        ],
+        code_exercises: [
+            'Implement a PoRV validator node simulator',
+            'Build a computation task marketplace with bidding',
+            'Create a token burn tracker with supply projection',
+            'Design a hybrid PoW/PoRV consensus selector'
+        ],
+        resources: ['Kenostod PoRV Whitepaper', 'Token Deflation Models', 'AI Compute Marketplace Design']
+    },
+    11: {
+        deep_dive: [
+            { title: 'RVT NFT Smart Contract Architecture', content: 'Study the ERC-721 extension for royalty-bearing NFTs — how perpetual royalty payments are encoded on-chain and distributed automatically.' },
+            { title: 'Royalty Distribution Mathematics', content: 'Learn the mathematical models behind tiered royalty rates, pro-rata distribution, compounding effects, and long-term yield projections.' },
+            { title: 'NFT Marketplace Integration', content: 'How to list, trade, and manage RVT NFTs across major marketplaces while maintaining royalty enforcement through ERC-2981.' }
+        ],
+        code_exercises: [
+            'Build an ERC-721 contract with perpetual royalty distribution',
+            'Implement a tiered royalty calculator with compounding',
+            'Create an NFT marketplace with royalty enforcement',
+            'Design a royalty yield projection dashboard'
+        ],
+        resources: ['ERC-2981: NFT Royalty Standard', 'ERC-721 Token Standard', 'Perpetual Royalty Design Patterns']
+    },
+    12: {
+        deep_dive: [
+            { title: 'Enterprise Compute Pricing Models', content: 'How to price AI/ML computation competitively — comparison with AWS, Google Cloud, and Azure, and the blockchain advantage in cost transparency.' },
+            { title: 'Decentralized Storage for Compute Results', content: 'Integration with IPFS and Arweave for permanent storage of computation results, with on-chain verification hashes.' },
+            { title: 'Compute Node Operation', content: 'Practical guide to running a PoRV compute node — hardware requirements, software setup, task selection strategies, and income optimization.' }
+        ],
+        code_exercises: [
+            'Build a compute pricing engine with market-based rates',
+            'Implement IPFS integration for result storage and retrieval',
+            'Create a compute node dashboard with earnings tracker',
+            'Design a task routing system for optimal node utilization'
+        ],
+        resources: ['Decentralized Compute Networks Overview', 'IPFS Documentation', 'Cloud Pricing Comparison Analysis']
+    },
+    13: {
+        deep_dive: [
+            { title: 'RVT Tier Economic Analysis', content: 'Detailed ROI analysis for each RVT tier (Bronze through Diamond) — break-even periods, expected annual yields, and historical performance modeling.' },
+            { title: 'Secondary Market Dynamics', content: 'How RVT NFTs trade on secondary markets — floor price dynamics, rarity premiums, and how royalty income affects trading decisions.' },
+            { title: 'Tax Implications of NFT Royalties', content: 'Understanding how perpetual royalty income is classified, reporting requirements, and strategies for tax-efficient RVT portfolio management.' }
+        ],
+        code_exercises: [
+            'Build an RVT portfolio value tracker with yield projections',
+            'Implement a secondary market price discovery algorithm',
+            'Create an automated royalty reinvestment system',
+            'Design a tax reporting tool for NFT royalty income'
+        ],
+        resources: ['RVT Tier Specifications', 'NFT Market Analysis Framework', 'Crypto Tax Reporting Guide']
+    },
+    14: {
+        deep_dive: [
+            { title: 'Payment Gateway Architecture', content: 'Build a production-grade payment gateway — request routing, idempotency keys, webhook delivery guarantees, and PCI compliance considerations for crypto payments.' },
+            { title: 'Merchant SDK Development', content: 'Create developer SDKs for multiple platforms (JavaScript, Python, PHP) that merchants can integrate in minutes with simple API calls.' },
+            { title: 'Point-of-Sale Integration', content: 'How to integrate crypto payments into physical retail — NFC terminals, QR code displays, receipt printing, and real-time conversion rates.' }
+        ],
+        code_exercises: [
+            'Build a complete merchant payment API with webhooks',
+            'Implement a QR code payment flow with real-time confirmation',
+            'Create a merchant analytics dashboard with revenue charts',
+            'Design a multi-currency checkout widget'
+        ],
+        resources: ['Payment Gateway Design Patterns', 'PCI DSS Compliance Guide', 'Crypto Payment Integration Best Practices']
+    },
+    15: {
+        deep_dive: [
+            { title: 'KYC/AML Implementation', content: 'Build compliant onboarding — identity verification tiers, document validation, sanctions screening, and travel rule compliance for crypto businesses.' },
+            { title: 'Regulatory Landscape Analysis', content: 'Navigate global crypto regulations — SEC guidance, MiCA (EU), FATF recommendations, and how to build for multi-jurisdictional compliance.' },
+            { title: 'Smart Contract Auditing', content: 'Learn formal verification methods, common vulnerability patterns (reentrancy, overflow, access control), and how to conduct thorough smart contract audits.' }
+        ],
+        code_exercises: [
+            'Build a KYC verification flow with document upload',
+            'Implement AML transaction monitoring with risk scoring',
+            'Create a smart contract vulnerability scanner',
+            'Design a compliance reporting dashboard'
+        ],
+        resources: ['FATF Virtual Asset Guidance', 'Smart Contract Security Best Practices', 'KYC/AML Compliance Framework']
+    },
+    16: {
+        deep_dive: [
+            { title: 'Order Book Engine Design', content: 'Build a high-performance matching engine — price-time priority, order types (limit, market, stop-loss, iceberg), and nanosecond-precision matching.' },
+            { title: 'Liquidity & Market Making', content: 'Understand market maker strategies, spread management, inventory risk, and how automated market makers (AMMs) compare to order books.' },
+            { title: 'Exchange Security Architecture', content: 'Multi-sig cold storage, hot wallet management, rate limiting, DDoS protection, and how top exchanges secure billions in assets.' }
+        ],
+        code_exercises: [
+            'Build a complete order matching engine with price-time priority',
+            'Implement a market making bot with spread management',
+            'Create a real-time order book visualization',
+            'Design a hot/cold wallet management system'
+        ],
+        resources: ['Exchange Architecture Patterns', 'Market Making Strategies Guide', 'Cryptocurrency Security Standards']
+    },
+    17: {
+        deep_dive: [
+            { title: 'Behavioral Finance & Cognitive Biases', content: 'Study how loss aversion, anchoring bias, herd mentality, and overconfidence affect investment decisions — and evidence-based strategies to overcome them.' },
+            { title: 'Tax-Efficient Investment Strategies', content: 'Learn tax-loss harvesting, holding period optimization, retirement account strategies (IRA/401k), and how to minimize tax drag on portfolio returns.' },
+            { title: 'Estate Planning & Generational Wealth', content: 'Trusts, beneficiary designations, crypto inheritance planning, and how to structure assets for efficient generational wealth transfer.' }
+        ],
+        code_exercises: [
+            'Build a compound interest calculator with inflation adjustment',
+            'Implement a budget tracking app with category analysis',
+            'Create a retirement planning tool with Monte Carlo simulation',
+            'Design a net worth tracker with goal projections'
+        ],
+        resources: ['The Psychology of Money - Key Concepts', 'Tax-Loss Harvesting Guide', 'Estate Planning Basics']
+    },
+    18: {
+        deep_dive: [
+            { title: 'Flash Loan Attack Analysis', content: 'Study real-world flash loan exploits (bZx, Harvest Finance, Cream) — the exact transaction sequences, profit calculations, and how protocols now defend against them.' },
+            { title: 'Multi-DEX Arbitrage Strategies', content: 'Build advanced arbitrage strategies across 5+ DEXs simultaneously — triangular arbitrage, cross-chain arbitrage, and statistical arbitrage approaches.' },
+            { title: 'Gas Optimization for Flash Loans', content: 'Minimize gas costs in flash loan transactions — calldata optimization, storage patterns, and how to make profitable trades even with high gas fees.' }
+        ],
+        code_exercises: [
+            'Build a flash loan executor with multi-hop arbitrage',
+            'Implement a real-time arbitrage opportunity scanner',
+            'Create a gas optimization layer for complex transactions',
+            'Design a flash loan risk assessment tool'
+        ],
+        resources: ['Flash Loan Protocol Specifications', 'DeFi Exploit Post-Mortems', 'Gas Optimization Techniques']
+    },
+    19: {
+        deep_dive: [
+            { title: 'Liquidity Pool Mathematics', content: 'Master constant product formulas (x*y=k), impermanent loss calculations, concentrated liquidity (Uniswap V3), and how pool design affects returns.' },
+            { title: 'Risk Management in DeFi Pools', content: 'Build risk assessment frameworks — smart contract risk, impermanent loss risk, oracle manipulation risk, and how to construct balanced pool portfolios.' },
+            { title: 'Yield Farming Strategy Optimization', content: 'Compare yield farming strategies across protocols — auto-compounding benefits, farm rotation timing, and how to maximize APY while managing risk.' }
+        ],
+        code_exercises: [
+            'Build an impermanent loss calculator with visualization',
+            'Implement a yield farming optimizer across multiple pools',
+            'Create a pool performance comparison dashboard',
+            'Design an automated pool rebalancing strategy'
+        ],
+        resources: ['Uniswap V3 Concentrated Liquidity Paper', 'Impermanent Loss Deep Dive', 'DeFi Yield Farming Guide']
+    },
+    20: {
+        deep_dive: [
+            { title: 'Modern Portfolio Theory for Crypto', content: 'Apply Markowitz efficient frontier to crypto portfolios — correlation matrices, risk-adjusted returns (Sharpe/Sortino ratios), and optimal allocation strategies.' },
+            { title: 'On-Chain Portfolio Analysis', content: 'Use on-chain data for portfolio decisions — whale wallet tracking, DEX volume analysis, protocol revenue metrics, and how to identify undervalued assets.' },
+            { title: 'Automated Portfolio Management', content: 'Build rebalancing bots — threshold-based rebalancing, calendar rebalancing, and how to minimize tax events while maintaining target allocations.' }
+        ],
+        code_exercises: [
+            'Build a portfolio allocation optimizer using MPT',
+            'Implement an automated rebalancing engine with tax awareness',
+            'Create an on-chain analytics dashboard for investment research',
+            'Design a portfolio performance tracker with benchmark comparison'
+        ],
+        resources: ['Modern Portfolio Theory Applied to Crypto', 'On-Chain Analysis Framework', 'Portfolio Rebalancing Strategies']
+    },
+    21: {
+        deep_dive: [
+            { title: 'Global Financial Inclusion', content: 'How blockchain enables banking the unbanked — 1.7 billion people without bank accounts, mobile money solutions, and crypto\'s role in emerging economies.' },
+            { title: 'Microfinance & Blockchain', content: 'Study how blockchain reduces lending costs for micro-entrepreneurs — smart contract-based microloans, group lending models, and repayment tracking systems.' },
+            { title: 'Cross-Border Remittance Revolution', content: 'Compare traditional remittance costs (6.5% average) with blockchain solutions — instant settlement, transparent fees, and how crypto reduces the $48B annual remittance fee burden.' }
+        ],
+        code_exercises: [
+            'Build a micro-lending platform with smart contract enforcement',
+            'Implement a cross-border remittance cost calculator',
+            'Create a financial inclusion impact dashboard',
+            'Design a group savings (chama/tontine) system on blockchain'
+        ],
+        resources: ['World Bank Financial Inclusion Database', 'Blockchain for Social Impact Report', 'Remittance Market Analysis']
+    }
+};
+
 const courses = {
     1: {
         icon: '💼',
@@ -2353,6 +2667,64 @@ function loadCourse(courseId) {
             <p>${course.hands_on}</p>
         </div>
     `;
+
+    const premium = premiumContent[courseId];
+    if (premium) {
+        if (isSubscribed()) {
+            html += `
+                <div style="margin-top: 32px; padding-top: 24px; border-top: 3px solid #6366f1;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                        <span style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">PREMIUM</span>
+                        <span style="color: #6366f1; font-weight: 600; font-size: 1.1rem;">Extended Course Content</span>
+                    </div>
+
+                    <div class="section-block" style="background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1px solid #c7d2fe;">
+                        <h3 style="color: #4338ca;">🔬 Deep Dive Topics</h3>
+                        ${premium.deep_dive.map(topic => `
+                            <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #6366f1;">
+                                <h4 style="color: #4338ca; margin-bottom: 8px; font-size: 1rem;">${topic.title}</h4>
+                                <p style="color: #4b5563; line-height: 1.6; margin: 0;">${topic.content}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="section-block" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #bbf7d0;">
+                        <h3 style="color: #166534;">💻 Coding Exercises</h3>
+                        <div style="display: grid; gap: 8px;">
+                            ${premium.code_exercises.map((ex, i) => `
+                                <div style="background: white; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #22c55e; display: flex; align-items: center; gap: 12px;">
+                                    <span style="background: #22c55e; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0;">${i + 1}</span>
+                                    <span style="color: #374151;">${ex}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="section-block" style="background: linear-gradient(135deg, #fff7ed, #ffedd5); border: 1px solid #fed7aa;">
+                        <h3 style="color: #9a3412;">📚 Premium Resources</h3>
+                        <div style="display: grid; gap: 8px;">
+                            ${premium.resources.map(res => `
+                                <div style="background: white; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: #ea580c; font-size: 1.2rem;">📄</span>
+                                    <span style="color: #374151;">${res}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div style="margin-top: 32px; padding: 24px; background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 2px dashed #94a3b8; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 12px;">🔒</div>
+                    <h3 style="color: #334155; margin-bottom: 8px;">Premium Content Locked</h3>
+                    <p style="color: #64748b; margin-bottom: 8px;">This course includes <strong>${premium.deep_dive.length} deep-dive topics</strong>, <strong>${premium.code_exercises.length} hands-on coding exercises</strong>, and <strong>${premium.resources.length} premium resources</strong>.</p>
+                    <p style="color: #64748b; margin-bottom: 16px;">Subscribe to unlock the full extended curriculum across all 21 courses.</p>
+                    <a href="/#subscriptions" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 700; transition: all 0.2s;">Subscribe Now</a>
+                </div>
+            `;
+        }
+    }
 
     // Add Wealth Builder reward info for courses 17-21
     if (courseId >= 17 && course.wealth_builder_reward) {

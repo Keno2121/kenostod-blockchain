@@ -342,6 +342,34 @@ app.get('/api/utl/config', (req, res) => {
     });
 });
 
+app.get('/api/subscription/verify', async (req, res) => {
+    const { email, sessionId } = req.query;
+    if (!email && !sessionId) {
+        return res.json({ active: false, plan: 'free' });
+    }
+    try {
+        if (sessionId) {
+            const session = await stripeIntegration.stripe.checkout.sessions.retrieve(sessionId);
+            if (session && session.payment_status === 'paid') {
+                return res.json({ active: true, plan: session.metadata?.plan || 'student', email: session.customer_email });
+            }
+        }
+        if (email) {
+            const customers = await stripeIntegration.stripe.customers.list({ email, limit: 1 });
+            if (customers.data.length > 0) {
+                const subs = await stripeIntegration.stripe.subscriptions.list({ customer: customers.data[0].id, status: 'active', limit: 1 });
+                if (subs.data.length > 0) {
+                    return res.json({ active: true, plan: subs.data[0].items?.data[0]?.price?.lookup_key || 'student' });
+                }
+            }
+        }
+        res.json({ active: false, plan: 'free' });
+    } catch (err) {
+        console.error('Subscription verify error:', err.message);
+        res.json({ active: false, plan: 'free' });
+    }
+});
+
 app.get('/api/utl/dex/tokens', (req, res) => {
     const { network } = req.query;
     const tokens = {
