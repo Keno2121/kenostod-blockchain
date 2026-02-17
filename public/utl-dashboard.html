@@ -793,28 +793,52 @@
             document.getElementById('feePreview').textContent = `Fee: ~${fee.toFixed(6)} BNB`;
         }
 
+        function withTimeout(promise, ms, label) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms/1000}s. Check your wallet app — you may need to approve or reject the transaction there.`)), ms))
+            ]);
+        }
+
         async function sendTransaction() {
             if (!signer) { showToast('Connect wallet first', 'error'); return; }
             const recipient = document.getElementById('recipientAddr').value;
             const amount = document.getElementById('sendAmount').value;
             if (!recipient || !amount) { showToast('Enter recipient and amount', 'error'); return; }
 
+            const sendBtn = document.getElementById('sendTxBtn');
             try {
-                const sendBtn = document.getElementById('sendTxBtn');
                 sendBtn.disabled = true;
-                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Waiting for wallet approval...';
+                showToast('Check your wallet app to approve the transaction', 'info');
 
-                const tx = await feeCollectorContract.processTransactionWithFee(recipient, {
-                    value: ethers.utils.parseEther(amount)
-                });
+                const tx = await withTimeout(
+                    feeCollectorContract.processTransactionWithFee(recipient, {
+                        value: ethers.utils.parseEther(amount)
+                    }),
+                    120000,
+                    'Wallet approval'
+                );
+
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Confirming on BSC...';
                 showToast(`Transaction sent! Hash: ${tx.hash.slice(0,10)}...`, 'success');
-                await tx.wait();
+
+                const receipt = await withTimeout(tx.wait(), 120000, 'Transaction confirmation');
                 showToast('Transaction confirmed on BSC!', 'success');
                 loadDashboard();
             } catch (err) {
-                showToast(err.reason || err.message || 'Transaction failed', 'error');
+                console.error('Send transaction error:', err);
+                const msg = err.reason || err.data?.message || err.message || 'Transaction failed';
+                if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
+                    showToast('Transaction cancelled by user', 'error');
+                } else if (msg.includes('timed out')) {
+                    showToast(msg, 'error');
+                } else if (msg.includes('insufficient funds') || msg.includes('INSUFFICIENT_FUNDS')) {
+                    showToast('Insufficient BNB balance for this transaction + gas fees', 'error');
+                } else {
+                    showToast('Transaction failed: ' + msg, 'error');
+                }
             } finally {
-                const sendBtn = document.getElementById('sendTxBtn');
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send via UTL';
             }
@@ -829,21 +853,23 @@
                 showToast('Approving USDC — check your wallet to confirm...', 'info');
                 const stakeWei = ethers.utils.parseUnits(amount, 18);
                 console.log('Approving', amount, 'USDC, wei:', stakeWei.toString());
-                const approveTx = await usdcContract.approve(CONTRACTS.Staking, stakeWei);
+                const approveTx = await withTimeout(usdcContract.approve(CONTRACTS.Staking, stakeWei), 120000, 'USDC approval');
                 showToast('Approval sent! Waiting for confirmation...', 'info');
-                await approveTx.wait();
+                await withTimeout(approveTx.wait(), 120000, 'Approval confirmation');
                 showToast('USDC approved! Now staking — check wallet again...', 'info');
                 console.log('Approval confirmed, now staking...');
-                const stakeTx = await stakingContract.stake(stakeWei);
+                const stakeTx = await withTimeout(stakingContract.stake(stakeWei), 120000, 'Staking');
                 showToast('Stake sent! Waiting for confirmation...', 'info');
-                await stakeTx.wait();
+                await withTimeout(stakeTx.wait(), 120000, 'Stake confirmation');
                 showToast('Staked ' + amount + ' USDC successfully!', 'success');
                 loadDashboard();
             } catch (err) {
                 console.error('Staking error:', err);
                 const msg = err.reason || err.data?.message || err.message || 'Staking failed';
-                if (msg.includes('user rejected') || msg.includes('User rejected')) {
+                if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
                     showToast('Transaction cancelled by user', 'error');
+                } else if (msg.includes('timed out')) {
+                    showToast(msg, 'error');
                 } else {
                     showToast('Staking error: ' + msg, 'error');
                 }
@@ -856,21 +882,27 @@
             if (!amount || parseFloat(amount) <= 0) { showToast('Enter unstake amount', 'error'); return; }
 
             try {
+                showToast('Check your wallet to approve unstaking...', 'info');
                 const unstakeWei = ethers.utils.parseUnits(amount, 18);
-                const tx = await stakingContract.unstake(unstakeWei);
+                const tx = await withTimeout(stakingContract.unstake(unstakeWei), 120000, 'Unstake approval');
                 showToast('Unstaking...', 'info');
-                await tx.wait();
+                await withTimeout(tx.wait(), 120000, 'Unstake confirmation');
                 showToast('Unstaked successfully!', 'success');
                 loadDashboard();
-            } catch (err) { showToast(err.reason || err.message || 'Unstaking failed', 'error'); }
+            } catch (err) {
+                const msg = err.reason || err.data?.message || err.message || 'Unstaking failed';
+                if (msg.includes('timed out')) { showToast(msg, 'error'); }
+                else { showToast('Unstake error: ' + msg, 'error'); }
+            }
         }
 
         async function claimRewards() {
             if (!signer) { showToast('Connect wallet first', 'error'); return; }
             try {
-                const tx = await stakingContract.claimRewards();
+                showToast('Check your wallet to approve claiming rewards...', 'info');
+                const tx = await withTimeout(stakingContract.claimRewards(), 120000, 'Claim rewards');
                 showToast('Claiming rewards...', 'info');
-                await tx.wait();
+                await withTimeout(tx.wait(), 120000, 'Claim confirmation');
                 showToast('Rewards claimed!', 'success');
                 loadDashboard();
             } catch (err) { showToast(err.reason || err.message || 'Claim failed', 'error'); }
