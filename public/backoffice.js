@@ -2202,6 +2202,25 @@ const courses = {
 };
 
 // Navigation rendering
+function checkAnswer(el) {
+    const questionDiv = el.closest('.quiz-question');
+    if (questionDiv.classList.contains('answered')) return;
+    questionDiv.classList.add('answered');
+    const correctAnswer = atob(questionDiv.dataset.correct);
+    const selectedText = el.textContent.trim();
+    if (selectedText === correctAnswer) {
+        el.classList.add('selected-correct');
+    } else {
+        el.classList.add('selected-wrong');
+        const allOptions = questionDiv.querySelectorAll('li');
+        allOptions.forEach(opt => {
+            if (opt.textContent.trim() === correctAnswer) {
+                opt.classList.add('reveal-correct');
+            }
+        });
+    }
+}
+
 function renderCourseNav() {
     const blockchainList = document.getElementById('blockchain-courses');
     const financeList = document.getElementById('finance-courses');
@@ -2304,11 +2323,11 @@ function loadCourse(courseId) {
         <div class="section-block">
             <h3>✅ Knowledge Check Quiz</h3>
             ${course.quiz.map((q, idx) => `
-                <div class="quiz-question">
+                <div class="quiz-question" data-correct="${btoa(q.correct)}">
                     <strong>Question ${idx + 1}: ${q.question}</strong>
                     <ul>
                         ${q.options.map(opt => `
-                            <li class="${opt === q.correct ? 'correct' : ''}">${opt}</li>
+                            <li onclick="checkAnswer(this)">${opt}</li>
                         `).join('')}
                     </ul>
                 </div>
