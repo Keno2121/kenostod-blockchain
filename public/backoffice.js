@@ -1,8 +1,16 @@
+const pageParams = new URLSearchParams(window.location.search);
+const isStudentMode = pageParams.get('mode') === 'student';
+const isAdminMode = localStorage.getItem('kenostodAdmin') === 'true';
+
 let subscriptionVerified = localStorage.getItem('subscriptionActive') === 'true';
-const isSubscribed = () => subscriptionVerified;
-const getSubscriptionPlan = () => localStorage.getItem('subscriptionPlan') || 'free';
+const isSubscribed = () => subscriptionVerified || isAdminMode;
+const getSubscriptionPlan = () => isAdminMode ? 'admin' : (localStorage.getItem('subscriptionPlan') || 'free');
 
 (async function verifySubscription() {
+    if (isAdminMode) {
+        subscriptionVerified = true;
+        return;
+    }
     const email = localStorage.getItem('userEmail') || localStorage.getItem('customerEmail');
     if (!email && localStorage.getItem('subscriptionActive') !== 'true') return;
     try {
@@ -13,6 +21,26 @@ const getSubscriptionPlan = () => localStorage.getItem('subscriptionPlan') || 'f
         if (data.active) localStorage.setItem('subscriptionPlan', data.plan);
     } catch (e) {
         subscriptionVerified = localStorage.getItem('subscriptionActive') === 'true';
+    }
+})();
+
+(function setupPageMode() {
+    if (isStudentMode) {
+        document.querySelectorAll('.admin-only-section').forEach(el => el.style.display = 'none');
+        const header = document.querySelector('.admin-header h1');
+        if (header) header.textContent = '🎓 Kenostod Academy Courses';
+        const subtitle = document.querySelector('.admin-header p');
+        if (subtitle) subtitle.textContent = 'Your blockchain education journey - 21 courses to master';
+    }
+    if (isAdminMode && !isStudentMode) {
+        const header = document.querySelector('.admin-header');
+        if (header) {
+            const badge = document.createElement('span');
+            badge.style.cssText = 'background: #059669; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; margin-left: 12px; vertical-align: middle;';
+            badge.textContent = 'ADMIN - Full Access';
+            const h1 = header.querySelector('h1');
+            if (h1) h1.appendChild(badge);
+        }
     }
 })();
 
