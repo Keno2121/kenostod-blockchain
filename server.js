@@ -307,6 +307,17 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use((req, res, next) => {
+    const adminPages = ['/admin-analytics.html', '/admin-backoffice.html', '/admin-grants.html', '/admin-ico-purchases.html', '/admin-merchandise.html'];
+    if (adminPages.includes(req.path)) {
+        const adminPassword = process.env.ADMIN_PASSWORD;
+        const providedPassword = req.query.key;
+        if (!adminPassword || providedPassword !== adminPassword) {
+            return res.status(403).send('<html><body style="background:#0f172a;color:#e2e8f0;display:flex;justify-content:center;align-items:center;height:100vh;font-family:Inter,sans-serif;"><div style="text-align:center;"><h1 style="font-size:3rem;">403</h1><p>Access Denied — Admin Only</p></div></body></html>');
+        }
+    }
+    next();
+});
 app.use(express.static('public'));
 
 app.use('/snap', express.static('utl/metamask-snap', {
