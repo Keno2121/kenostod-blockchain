@@ -287,7 +287,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Stake Amount (USDC)</label>
-                    <input id="stakeAmount" type="number" step="100" min="100" placeholder="1000" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white mb-3"/>
+                    <input id="stakeAmount" type="number" step="1" min="1" placeholder="5" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white mb-3"/>
                     <div class="flex gap-3">
                         <button onclick="approveAndStake()" class="btn-primary flex-1 py-3 rounded-lg text-white font-semibold text-sm">
                             <i class="fas fa-lock mr-1"></i>Approve & Stake
@@ -723,16 +723,28 @@
             if (!amount || parseFloat(amount) <= 0) { showToast('Enter stake amount', 'error'); return; }
 
             try {
-                showToast('Approving USDC...', 'info');
+                showToast('Approving USDC — check your wallet to confirm...', 'info');
                 const stakeWei = ethers.utils.parseUnits(amount, 18);
+                console.log('Approving', amount, 'USDC, wei:', stakeWei.toString());
                 const approveTx = await usdcContract.approve(CONTRACTS.Staking, stakeWei);
+                showToast('Approval sent! Waiting for confirmation...', 'info');
                 await approveTx.wait();
-                showToast('USDC approved! Now staking...', 'info');
+                showToast('USDC approved! Now staking — check wallet again...', 'info');
+                console.log('Approval confirmed, now staking...');
                 const stakeTx = await stakingContract.stake(stakeWei);
+                showToast('Stake sent! Waiting for confirmation...', 'info');
                 await stakeTx.wait();
-                showToast('Staked successfully!', 'success');
+                showToast('Staked ' + amount + ' USDC successfully!', 'success');
                 loadDashboard();
-            } catch (err) { showToast(err.reason || err.message || 'Staking failed', 'error'); }
+            } catch (err) {
+                console.error('Staking error:', err);
+                const msg = err.reason || err.data?.message || err.message || 'Staking failed';
+                if (msg.includes('user rejected') || msg.includes('User rejected')) {
+                    showToast('Transaction cancelled by user', 'error');
+                } else {
+                    showToast('Staking error: ' + msg, 'error');
+                }
+            }
         }
 
         async function unstake() {
