@@ -563,6 +563,7 @@
         let feeCollectorContract, stakingContract, usdcContract;
         let walletConnector = null;
         let stakedAmountWei = null;
+        let currentWalletType = null;
 
         if (window.UTLWalletConnector) {
             walletConnector = new window.UTLWalletConnector();
@@ -726,6 +727,7 @@
         }
 
         function showConnected(walletType) {
+            currentWalletType = walletType;
             const shortAddr = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
             document.getElementById('connectBtn').innerHTML = `<span class="connected-badge"><i class="fas fa-check-circle mr-1"></i>${shortAddr}</span>`;
             document.getElementById('connectBtn').onclick = openWalletModal;
@@ -737,7 +739,7 @@
         }
 
         function showDisconnected() {
-            provider = null; signer = null; userAddress = null;
+            provider = null; signer = null; userAddress = null; currentWalletType = null;
             feeCollectorContract = null; stakingContract = null; usdcContract = null;
             document.getElementById('connectBtn').innerHTML = '<i class="fas fa-wallet mr-2"></i>Connect Wallet';
             document.getElementById('connectBtn').onclick = openWalletModal;
@@ -745,6 +747,43 @@
             document.getElementById('notConnected').classList.remove('hidden');
             document.getElementById('dashboard').classList.add('hidden');
             showToast('Wallet disconnected', 'info');
+        }
+
+        async function ensureWalletSession() {
+            if (!signer || !provider) {
+                showToast('Wallet not connected. Please connect your wallet first.', 'error');
+                openWalletModal();
+                return false;
+            }
+            try {
+                await provider.getNetwork();
+                return true;
+            } catch (err) {
+                console.error('Session check failed:', err);
+                showToast('Wallet session expired. Please reconnect your wallet to continue.', 'error');
+                showDisconnected();
+                setTimeout(() => openWalletModal(), 1500);
+                return false;
+            }
+        }
+
+        function showMobileWalletHint(walletType) {
+            const isWC = walletType === 'WalletConnect';
+            if (!isWC) return;
+            const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+            if (!isMobile) return;
+            const existing = document.getElementById('mobileWalletHint');
+            if (existing) existing.remove();
+            const hint = document.createElement('div');
+            hint.id = 'mobileWalletHint';
+            hint.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid #4f46e5;color:white;padding:14px 20px;border-radius:14px;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+            hint.innerHTML = `
+                <div style="font-weight:700;margin-bottom:6px;">📲 Check Trust Wallet</div>
+                <div style="font-size:0.82rem;color:#94a3b8;margin-bottom:10px;">Switch to Trust Wallet — you should see a pending approval request there.</div>
+                <button onclick="document.getElementById('mobileWalletHint').remove()" style="background:#4f46e5;color:white;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;">Got it</button>
+            `;
+            document.body.appendChild(hint);
+            setTimeout(() => { if (hint.parentNode) hint.remove(); }, 30000);
         }
 
         async function disconnectWallet() {
@@ -818,7 +857,7 @@
         }
 
         async function sendTransaction() {
-            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+            if (!await ensureWalletSession()) return;
             const recipient = document.getElementById('recipientAddr').value;
             const amount = document.getElementById('sendAmount').value;
             if (!recipient || !amount) { showToast('Enter recipient and amount', 'error'); return; }
@@ -827,6 +866,7 @@
             try {
                 sendBtn.disabled = true;
                 sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Waiting for wallet approval...';
+                showMobileWalletHint(currentWalletType);
                 showToast('Check your wallet app to approve the transaction', 'info');
 
                 const tx = await withTimeout(
@@ -862,31 +902,37 @@
         }
 
         async function approveAndStake() {
-            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+            if (!await ensureWalletSession()) return;
             const amount = document.getElementById('stakeAmount').value;
             if (!amount || parseFloat(amount) <= 0) { showToast('Enter stake amount', 'error'); return; }
 
             try {
-                showToast('Approving USDC — check your wallet to confirm...', 'info');
+                showMobileWalletHint(currentWalletType);
+                showToast('Step 1 of 2: Approving USDC — check your wallet...', 'info');
                 const stakeWei = ethers.utils.parseUnits(amount, 18);
                 console.log('Approving', amount, 'USDC, wei:', stakeWei.toString());
                 const approveTx = await withTimeout(usdcContract.approve(CONTRACTS.Staking, stakeWei), 120000, 'USDC approval');
                 showToast('Approval sent! Waiting for confirmation...', 'info');
                 await withTimeout(approveTx.wait(), 120000, 'Approval confirmation');
-                showToast('USDC approved! Now staking — check wallet again...', 'info');
+                showToast('Step 2 of 2: Now staking — approve again in your wallet...', 'info');
                 console.log('Approval confirmed, now staking...');
                 const stakeTx = await withTimeout(stakingContract.stake(stakeWei), 120000, 'Staking');
-                showToast('Stake sent! Waiting for confirmation...', 'info');
+                showToast('Stake sent! Waiting for BSC confirmation...', 'info');
                 await withTimeout(stakeTx.wait(), 120000, 'Stake confirmation');
+                const hint = document.getElementById('mobileWalletHint');
+                if (hint) hint.remove();
                 showToast('Staked ' + amount + ' USDC successfully!', 'success');
                 loadDashboard();
             } catch (err) {
+                const hint = document.getElementById('mobileWalletHint');
+                if (hint) hint.remove();
                 console.error('Staking error:', err);
                 const msg = err.reason || err.data?.message || err.message || 'Staking failed';
                 if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
-                    showToast('Transaction cancelled by user', 'error');
+                    showToast('Transaction cancelled in wallet app.', 'error');
                 } else if (msg.includes('timed out')) {
-                    showToast(msg, 'error');
+                    showToast('No response from wallet. Please disconnect, reconnect your wallet, and try again.', 'error');
+                    showDisconnected();
                 } else {
                     showToast('Staking error: ' + msg, 'error');
                 }
@@ -928,24 +974,34 @@
         }
 
         async function _doUnstake(weiAmount, label) {
+            if (!await ensureWalletSession()) return;
             try {
-                showToast('Check your wallet to approve unstaking ' + label + '...', 'info');
+                showMobileWalletHint(currentWalletType);
+                showToast('Approve the unstake in your wallet app...', 'info');
                 const tx = await withTimeout(stakingContract.unstake(weiAmount), 120000, 'Unstake approval');
-                showToast('Unstaking ' + label + '...', 'info');
+                const existing = document.getElementById('mobileWalletHint');
+                if (existing) existing.remove();
+                showToast('Unstaking ' + label + ' — waiting for BSC confirmation...', 'info');
                 await withTimeout(tx.wait(), 120000, 'Unstake confirmation');
-                showToast('Successfully unstaked ' + label + '! USDC returned to your wallet.', 'success');
+                showToast('Successfully unstaked ' + label + '! USDC is back in your wallet.', 'success');
                 stakedAmountWei = null;
                 document.getElementById('stakeAmount').value = '';
                 loadDashboard();
             } catch (err) {
+                const existing = document.getElementById('mobileWalletHint');
+                if (existing) existing.remove();
                 console.error('Unstake error:', err);
                 const msg = err.reason || err.data?.message || err.message || 'Unstaking failed';
                 if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
-                    showToast('Unstake cancelled by user', 'error');
+                    showToast('Unstake cancelled in wallet app.', 'error');
                 } else if (msg.includes('timed out')) {
-                    showToast(msg, 'error');
+                    showToast('No response from wallet. Please disconnect and reconnect your wallet, then try again.', 'error');
+                    showDisconnected();
                 } else if (msg.includes('Insufficient stake')) {
-                    showToast('Amount exceeds your staked balance. Click MAX to use your exact staked amount.', 'error');
+                    showToast('Amount exceeds your staked balance. Use "Unstake All" button to withdraw everything.', 'error');
+                } else if (msg.includes('session') || msg.includes('expired') || msg.includes('disconnected')) {
+                    showToast('Wallet session expired. Please reconnect your wallet and try again.', 'error');
+                    showDisconnected();
                 } else {
                     showToast('Unstake error: ' + msg, 'error');
                 }
