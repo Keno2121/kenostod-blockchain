@@ -287,7 +287,10 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Stake Amount (USDC) <span class="text-yellow-400">— Min 100 USDC for first stake</span></label>
-                    <input id="stakeAmount" type="number" step="1" min="100" placeholder="100" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white mb-3"/>
+                    <div class="relative mb-3">
+                        <input id="stakeAmount" type="number" step="any" min="100" placeholder="100" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white pr-36"/>
+                        <button id="stakeMaxBtn" onclick="setMaxUnstake()" style="display:none;" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md font-semibold transition-colors">MAX</button>
+                    </div>
                     <div class="flex gap-3">
                         <button onclick="approveAndStake()" class="btn-primary flex-1 py-3 rounded-lg text-white font-semibold text-sm">
                             <i class="fas fa-lock mr-1"></i>Approve & Stake
@@ -296,6 +299,9 @@
                             <i class="fas fa-unlock mr-1"></i>Unstake
                         </button>
                     </div>
+                    <button onclick="unstakeAll()" class="w-full mt-2 py-2 rounded-lg text-sm font-semibold border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Unstake All & Return to Wallet
+                    </button>
                 </div>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
@@ -556,6 +562,7 @@
         let provider, signer, userAddress;
         let feeCollectorContract, stakingContract, usdcContract;
         let walletConnector = null;
+        let stakedAmountWei = null;
 
         if (window.UTLWalletConnector) {
             walletConnector = new window.UTLWalletConnector();
@@ -773,14 +780,24 @@
 
                 try {
                     const stakeInfo = await stakingContract.getStakeInfo(userAddress);
-                    const stakedAmt = parseFloat(ethers.utils.formatUnits(stakeInfo[0], 18));
-                    document.getElementById('userStaked').textContent = stakedAmt.toLocaleString() + ' USDC';
+                    stakedAmountWei = stakeInfo[0];
+                    const stakedAmt = parseFloat(ethers.utils.formatUnits(stakedAmountWei, 18));
+                    document.getElementById('userStaked').textContent = stakedAmt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 6}) + ' USDC';
                     const tierNames = ['Observer', 'Participant', 'Advocate', 'Champion', 'Guardian'];
                     const tierClasses = ['tier-observer', 'tier-participant', 'tier-advocate', 'tier-champion', 'tier-guardian'];
                     const tierIdx = stakeInfo[3];
                     document.getElementById('userTier').className = `tier-badge ${tierClasses[tierIdx]}`;
                     document.getElementById('userTier').textContent = tierNames[tierIdx];
                     document.getElementById('userRewards').textContent = parseFloat(ethers.utils.formatEther(stakeInfo[2])).toFixed(8) + ' BNB';
+                    const maxBtn = document.getElementById('stakeMaxBtn');
+                    if (maxBtn) {
+                        if (stakedAmt > 0) {
+                            maxBtn.style.display = 'inline-block';
+                            maxBtn.textContent = 'MAX (' + stakedAmt.toFixed(2) + ' USDC)';
+                        } else {
+                            maxBtn.style.display = 'none';
+                        }
+                    }
                 } catch {}
             } catch (err) {
                 console.error('Dashboard load error:', err);
@@ -876,23 +893,62 @@
             }
         }
 
+        function setMaxUnstake() {
+            if (stakedAmountWei && !stakedAmountWei.isZero()) {
+                const readable = ethers.utils.formatUnits(stakedAmountWei, 18);
+                document.getElementById('stakeAmount').value = readable;
+            }
+        }
+
+        async function unstakeAll() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+            if (!stakedAmountWei || stakedAmountWei.isZero()) {
+                showToast('No USDC currently staked', 'error'); return;
+            }
+            await _doUnstake(stakedAmountWei, 'all your staked USDC');
+        }
+
         async function unstake() {
             if (!signer) { showToast('Connect wallet first', 'error'); return; }
             const amount = document.getElementById('stakeAmount').value;
-            if (!amount || parseFloat(amount) <= 0) { showToast('Enter unstake amount', 'error'); return; }
+            if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount to unstake', 'error'); return; }
 
+            let unstakeWei;
             try {
-                showToast('Check your wallet to approve unstaking...', 'info');
-                const unstakeWei = ethers.utils.parseUnits(amount, 18);
-                const tx = await withTimeout(stakingContract.unstake(unstakeWei), 120000, 'Unstake approval');
-                showToast('Unstaking...', 'info');
+                unstakeWei = ethers.utils.parseUnits(amount.toString(), 18);
+            } catch {
+                showToast('Invalid amount entered', 'error'); return;
+            }
+
+            if (stakedAmountWei && unstakeWei.gte(stakedAmountWei)) {
+                unstakeWei = stakedAmountWei;
+            }
+
+            await _doUnstake(unstakeWei, amount + ' USDC');
+        }
+
+        async function _doUnstake(weiAmount, label) {
+            try {
+                showToast('Check your wallet to approve unstaking ' + label + '...', 'info');
+                const tx = await withTimeout(stakingContract.unstake(weiAmount), 120000, 'Unstake approval');
+                showToast('Unstaking ' + label + '...', 'info');
                 await withTimeout(tx.wait(), 120000, 'Unstake confirmation');
-                showToast('Unstaked successfully!', 'success');
+                showToast('Successfully unstaked ' + label + '! USDC returned to your wallet.', 'success');
+                stakedAmountWei = null;
+                document.getElementById('stakeAmount').value = '';
                 loadDashboard();
             } catch (err) {
+                console.error('Unstake error:', err);
                 const msg = err.reason || err.data?.message || err.message || 'Unstaking failed';
-                if (msg.includes('timed out')) { showToast(msg, 'error'); }
-                else { showToast('Unstake error: ' + msg, 'error'); }
+                if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
+                    showToast('Unstake cancelled by user', 'error');
+                } else if (msg.includes('timed out')) {
+                    showToast(msg, 'error');
+                } else if (msg.includes('Insufficient stake')) {
+                    showToast('Amount exceeds your staked balance. Click MAX to use your exact staked amount.', 'error');
+                } else {
+                    showToast('Unstake error: ' + msg, 'error');
+                }
             }
         }
 
