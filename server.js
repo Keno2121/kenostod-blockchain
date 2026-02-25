@@ -893,6 +893,63 @@ app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
     res.json({ success: true, inquiries: enterpriseInquiries });
 });
 
+// ==================== LICENSE INQUIRY SYSTEM ====================
+
+let licenseInquiries = [];
+try {
+    const saved = require('fs').readFileSync('./license_inquiries.json', 'utf8');
+    licenseInquiries = JSON.parse(saved);
+} catch (e) {
+    licenseInquiries = [];
+}
+
+app.post('/api/license-inquiry', async (req, res) => {
+    try {
+        const { name, company, email, phone, licenseType, useCase, timeline, message } = req.body;
+
+        if (!name || !company || !email || !licenseType) {
+            return res.status(400).json({ success: false, error: 'Missing required fields: name, company, email, licenseType' });
+        }
+
+        const inquiry = {
+            id: 'LIC-' + Date.now(),
+            name,
+            company,
+            email,
+            phone: phone || '',
+            licenseType,
+            useCase: useCase || '',
+            timeline: timeline || '',
+            message: message || '',
+            status: 'new',
+            submittedAt: new Date().toISOString()
+        };
+
+        licenseInquiries.push(inquiry);
+
+        try {
+            require('fs').writeFileSync('./license_inquiries.json', JSON.stringify(licenseInquiries, null, 2));
+        } catch (e) {
+            console.error('Error saving license inquiry:', e);
+        }
+
+        console.log(`📋 License inquiry [${inquiry.id}] from ${company} (${name}) — ${licenseType}`);
+
+        res.json({
+            success: true,
+            message: 'Thank you for your interest! Our licensing team will reach out within 1 business day.',
+            inquiryId: inquiry.id
+        });
+    } catch (error) {
+        console.error('License inquiry error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/license-inquiries', adminAuth, (req, res) => {
+    res.json({ success: true, inquiries: licenseInquiries });
+});
+
 // ==================== WITHDRAWAL NOTIFICATION SYSTEM ====================
 
 let withdrawNotifyList = [];
