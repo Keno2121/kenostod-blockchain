@@ -222,6 +222,17 @@
                         </div>
                     </div>
 
+                    <div id="snapMobileNote" class="hidden rounded-xl p-4 border border-blue-500/30 bg-blue-500/10 mb-2">
+                        <p class="text-sm text-blue-300 font-semibold mb-1"><i class="fas fa-mobile-screen mr-2"></i>Desktop Only Feature</p>
+                        <p class="text-xs text-slate-400">MetaMask Snaps only work in the <strong class="text-white">desktop browser extension</strong> — not the mobile app. To install the UTL Snap:</p>
+                        <ol class="text-xs text-slate-400 mt-2 space-y-1 list-decimal list-inside">
+                            <li>Open this page on your desktop computer</li>
+                            <li>Make sure MetaMask browser extension is installed</li>
+                            <li>Click "Install UTL Snap" on desktop</li>
+                        </ol>
+                        <a href="https://metamask.io/download/" target="_blank" class="inline-block mt-3 text-xs text-blue-400 underline">Get MetaMask for desktop →</a>
+                    </div>
+
                     <div id="snapNotInstalled" class="">
                         <button id="installSnapBtn" onclick="installSnap()" class="w-full py-3.5 rounded-xl font-bold text-white text-base transition-all hover:scale-[1.02] mb-3" style="background: linear-gradient(135deg, #f97316, #f59e0b);">
                             <i class="fa-brands fa-ethereum mr-2"></i>Install UTL Snap into MetaMask
@@ -1462,6 +1473,16 @@
             const notInstalled = document.getElementById('snapNotInstalled');
             const installed = document.getElementById('snapInstalled');
             const noMetaMask = document.getElementById('snapNoMetaMask');
+            const mobileNote = document.getElementById('snapMobileNote');
+
+            const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+            if (isMobile) {
+                badge.textContent = 'Desktop Only';
+                badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400';
+                notInstalled.classList.add('hidden');
+                if (mobileNote) mobileNote.classList.remove('hidden');
+                return;
+            }
 
             if (!window.ethereum) {
                 badge.textContent = 'No MetaMask';
