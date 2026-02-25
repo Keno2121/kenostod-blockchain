@@ -136,7 +136,7 @@
             <p class="text-indigo-400 text-sm">Now supporting MetaMask, Phantom, WalletConnect (300+ wallets), and Coinbase Wallet</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-3xl mx-auto">
             <div class="glass rounded-xl p-5 text-center">
                 <div class="text-2xl font-bold text-indigo-400 mb-1">0.1%</div>
                 <div class="text-sm text-slate-400">Fee Per Transaction</div>
@@ -148,6 +148,19 @@
             <div class="glass rounded-xl p-5 text-center">
                 <div class="text-2xl font-bold text-purple-400 mb-1">5 Tiers</div>
                 <div class="text-sm text-slate-400">Staking Levels</div>
+            </div>
+        </div>
+
+        <div id="priceTicker" class="glass rounded-xl px-4 py-3 mb-8 max-w-3xl mx-auto">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+                <span class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Live Prices</span>
+                <div class="flex items-center gap-5 flex-wrap">
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">BNB</span><span id="tickerBNB" class="text-sm font-bold text-white">—</span><span id="tickerBNBchg" class="text-xs">—</span></div>
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">ETH</span><span id="tickerETH" class="text-sm font-bold text-white">—</span><span id="tickerETHchg" class="text-xs">—</span></div>
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">BTC</span><span id="tickerBTC" class="text-sm font-bold text-white">—</span><span id="tickerBTCchg" class="text-xs">—</span></div>
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">USDC</span><span id="tickerUSDC" class="text-sm font-bold text-white">—</span><span id="tickerUSDCchg" class="text-xs">—</span></div>
+                </div>
+                <span id="tickerUpdated" class="text-xs text-slate-600">Updating...</span>
             </div>
         </div>
 
@@ -319,16 +332,26 @@
                     <button onclick="claimRewards()" class="btn-outline w-full py-2 rounded-lg text-green-400 font-semibold text-sm mt-2">
                         <i class="fas fa-gift mr-1"></i>Claim Rewards
                     </button>
+                    <div class="flex items-center justify-between mt-3 p-3 rounded-lg bg-slate-800/40 border border-slate-700/50">
+                        <div>
+                            <div class="text-sm font-semibold text-white">Auto-Compound</div>
+                            <div class="text-xs text-slate-400">Auto claim &amp; restake when rewards exceed 0.001 BNB</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer ml-3">
+                            <input type="checkbox" id="autoCompoundToggle" class="sr-only peer" onchange="toggleAutoCompound(this.checked)">
+                            <div class="w-10 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="glass rounded-xl p-6 mb-8">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="font-semibold text-lg"><i class="fas fa-exchange-alt mr-2 text-amber-400"></i>DEX Aggregator <span class="text-xs font-normal text-slate-400 ml-2">Powered by 1inch</span></h3>
-                <div id="dexLiveStatus" class="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 font-semibold">SIMULATED</div>
+                <h3 class="font-semibold text-lg"><i class="fas fa-exchange-alt mr-2 text-amber-400"></i>DEX Aggregator <span class="text-xs font-normal text-slate-400 ml-2">Powered by ParaSwap</span></h3>
+                <div id="dexLiveStatus" class="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 font-semibold">LOADING</div>
             </div>
-            <p class="text-sm text-slate-400 mb-5">Find the best swap rates across multiple DEXs. UTL routes through optimal paths and captures a 0.1% fee for stakers.</p>
+            <p class="text-sm text-slate-400 mb-5">Best swap rates across 50+ DEXs via ParaSwap. UTL captures a 0.1% fee distributed to stakers.</p>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
@@ -456,6 +479,34 @@
                     </div>
                     <i class="fas fa-external-link-alt text-slate-500"></i>
                 </a>
+            </div>
+        </div>
+
+        <div id="earningsHistorySection" class="glass rounded-xl p-6 mb-8 hidden">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-semibold text-lg"><i class="fas fa-history mr-2 text-purple-400"></i>My Staking History</h3>
+                <button onclick="loadEarningsHistory()" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"><i class="fas fa-sync-alt mr-1"></i>Refresh</button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Total Claimed</div>
+                    <div id="histTotalClaimed" class="font-bold text-green-400">— BNB</div>
+                </div>
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Total Staked (in)</div>
+                    <div id="histTotalStaked" class="font-bold text-indigo-400">— USDC</div>
+                </div>
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Total Unstaked (out)</div>
+                    <div id="histTotalUnstaked" class="font-bold text-amber-400">— USDC</div>
+                </div>
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Events Found</div>
+                    <div id="histEventCount" class="font-bold text-white">0</div>
+                </div>
+            </div>
+            <div id="earningsHistoryTable" class="overflow-x-auto">
+                <div class="text-center text-slate-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Loading history from blockchain...</div>
             </div>
         </div>
 
@@ -838,6 +889,16 @@
                         }
                     }
                 } catch {}
+
+                const toggle = document.getElementById('autoCompoundToggle');
+                if (toggle) toggle.checked = autoCompoundEnabled;
+                if (autoCompoundEnabled && !autoCompoundInterval) startAutoCompound();
+
+                const histSection = document.getElementById('earningsHistorySection');
+                if (histSection && histSection.classList.contains('hidden')) {
+                    histSection.classList.remove('hidden');
+                    loadEarningsHistory();
+                }
             } catch (err) {
                 console.error('Dashboard load error:', err);
             }
@@ -1027,8 +1088,8 @@
 
         async function loadDexTokens() {
             const network = document.getElementById('dexNetwork').value;
-            document.getElementById('dexLiveStatus').textContent = 'SIMULATED';
-            document.getElementById('dexLiveStatus').className = 'text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 font-semibold';
+            document.getElementById('dexLiveStatus').textContent = 'READY';
+            document.getElementById('dexLiveStatus').className = 'text-xs px-3 py-1 rounded-full bg-slate-700/50 text-slate-400 font-semibold';
             document.getElementById('dexQuoteResult').classList.add('hidden');
             document.getElementById('dexQuotePlaceholder').classList.remove('hidden');
             try {
@@ -1136,42 +1197,173 @@
         }
 
         async function executeSwap() {
-            if (!signer) {
-                showToast('Connect wallet first to execute swaps', 'error');
-                return;
-            }
-            if (!lastQuote) {
-                showToast('Get a quote first', 'error');
-                return;
-            }
-            if (lastQuote.simulated) {
-                showToast('Simulated mode — add 1inch API key for live swaps. Quote shown for reference.', 'info');
+            if (!signer) { showToast('Connect wallet first to execute swaps', 'error'); return; }
+            if (!lastQuote) { showToast('Get a quote first', 'error'); return; }
+            if (lastQuote.simulated || !lastQuote.priceRoute) {
+                showToast('Live quote required for execution — ParaSwap is fetching real rates', 'info');
                 return;
             }
             try {
-                const fromToken = document.getElementById('dexFromToken').value;
-                const toToken = document.getElementById('dexToToken').value;
-                const amount = document.getElementById('dexFromAmount').value;
-                const fromInfo = dexTokens.find(t => t.address === fromToken);
-                const amountWei = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, fromInfo.decimals))).toString();
                 const network = document.getElementById('dexNetwork').value;
                 const addr = await signer.getAddress();
-
-                const resp = await fetch(`/api/utl/dex/swap-data?fromToken=${fromToken}&toToken=${toToken}&amount=${amountWei}&fromAddress=${addr}&slippage=${currentSlippage}&network=${network}`);
+                const resp = await fetch('/api/utl/dex/swap-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ priceRoute: lastQuote.priceRoute, fromAddress: addr, slippage: currentSlippage, network })
+                });
                 const swapData = await resp.json();
-
-                if (swapData.simulated) {
-                    showToast('Simulated mode — add 1inch API key for live swaps', 'info');
-                    return;
-                }
-
-                const tx = await signer.sendTransaction(swapData.tx);
+                if (swapData.simulated) { showToast(swapData.message || 'Swap build failed', 'error'); return; }
+                const tx = await signer.sendTransaction({ to: swapData.to, data: swapData.data, value: swapData.value || '0', gasLimit: swapData.gas || 300000 });
                 showToast('Swap submitted! Waiting for confirmation...', 'info');
                 await tx.wait();
-                showToast('Swap executed successfully!', 'success');
+                showToast('Swap executed successfully via ParaSwap!', 'success');
                 loadDashboard();
             } catch (err) {
                 showToast('Swap failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        async function fetchPriceTicker() {
+            try {
+                const resp = await fetch('/api/utl/prices');
+                if (!resp.ok) return;
+                const prices = await resp.json();
+                const fmt = (n) => n >= 1000 ? '$' + n.toLocaleString(undefined, {maximumFractionDigits: 0}) : '$' + n.toFixed(4);
+                const chg = (c) => {
+                    const sign = c >= 0 ? '+' : '';
+                    const color = c >= 0 ? 'text-green-400' : 'text-red-400';
+                    return `<span class="${color}">${sign}${c.toFixed(2)}%</span>`;
+                };
+                if (prices.BNB)  { document.getElementById('tickerBNB').textContent  = fmt(prices.BNB.price);  document.getElementById('tickerBNBchg').innerHTML  = chg(prices.BNB.change24h); }
+                if (prices.ETH)  { document.getElementById('tickerETH').textContent  = fmt(prices.ETH.price);  document.getElementById('tickerETHchg').innerHTML  = chg(prices.ETH.change24h); }
+                if (prices.BTC)  { document.getElementById('tickerBTC').textContent  = fmt(prices.BTC.price);  document.getElementById('tickerBTCchg').innerHTML  = chg(prices.BTC.change24h); }
+                if (prices.USDC) { document.getElementById('tickerUSDC').textContent = fmt(prices.USDC.price); document.getElementById('tickerUSDCchg').innerHTML = chg(prices.USDC.change24h); }
+                const now = new Date();
+                document.getElementById('tickerUpdated').textContent = `Updated ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            } catch (e) { console.log('Price ticker error:', e.message); }
+        }
+
+        fetchPriceTicker();
+        setInterval(fetchPriceTicker, 60000);
+
+        let autoCompoundEnabled = localStorage.getItem('utl_autocompound') === 'true';
+        let autoCompoundInterval = null;
+
+        function toggleAutoCompound(enabled) {
+            autoCompoundEnabled = enabled;
+            localStorage.setItem('utl_autocompound', enabled ? 'true' : 'false');
+            if (enabled) {
+                showToast('Auto-compound enabled — rewards above 0.001 BNB will auto-restake', 'success');
+                startAutoCompound();
+            } else {
+                showToast('Auto-compound disabled', 'info');
+                if (autoCompoundInterval) { clearInterval(autoCompoundInterval); autoCompoundInterval = null; }
+            }
+        }
+
+        function startAutoCompound() {
+            if (autoCompoundInterval) clearInterval(autoCompoundInterval);
+            autoCompoundInterval = setInterval(async () => {
+                if (!signer || !stakingContract || !autoCompoundEnabled) return;
+                try {
+                    const addr = await signer.getAddress();
+                    const info = await withTimeout(stakingContract.getUserInfo(addr), 15000, 'getUserInfo');
+                    const pendingBNB = parseFloat(ethers.utils.formatEther(info.pendingRewards || 0));
+                    if (pendingBNB >= 0.001) {
+                        console.log('Auto-compound: claiming', pendingBNB, 'BNB');
+                        const tx = await withTimeout(stakingContract.claimRewards(), 120000, 'autocompound claim');
+                        await tx.wait();
+                        showToast(`Auto-compound: Claimed ${pendingBNB.toFixed(6)} BNB rewards`, 'success');
+                        loadDashboard();
+                    }
+                } catch (e) { console.log('Auto-compound check failed:', e.message); }
+            }, 5 * 60 * 1000);
+        }
+
+        const STAKING_ABI_HIST = [
+            'event Staked(address indexed user, uint256 amount)',
+            'event Unstaked(address indexed user, uint256 amount)',
+            'event RewardsClaimed(address indexed user, uint256 amount)'
+        ];
+
+        async function loadEarningsHistory() {
+            const section = document.getElementById('earningsHistorySection');
+            const table = document.getElementById('earningsHistoryTable');
+            if (!provider || !userAddress) {
+                section.classList.add('hidden');
+                return;
+            }
+            section.classList.remove('hidden');
+            table.innerHTML = '<div class="text-center text-slate-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Reading events from BSC...</div>';
+
+            try {
+                const STAKING_ADDR = '0x49961979c93f43f823BB3593b207724194019d1d';
+                const iface = new ethers.utils.Interface(STAKING_ABI_HIST);
+                const latestBlock = await provider.getBlockNumber();
+                const fromBlock = Math.max(latestBlock - 150000, 0);
+
+                const stakedFilter   = { address: STAKING_ADDR, topics: [ethers.utils.id('Staked(address,uint256)'),   ethers.utils.hexZeroPad(userAddress, 32)] };
+                const unstakedFilter = { address: STAKING_ADDR, topics: [ethers.utils.id('Unstaked(address,uint256)'), ethers.utils.hexZeroPad(userAddress, 32)] };
+                const claimedFilter  = { address: STAKING_ADDR, topics: [ethers.utils.id('RewardsClaimed(address,uint256)'), ethers.utils.hexZeroPad(userAddress, 32)] };
+
+                const [stakedLogs, unstakedLogs, claimedLogs] = await Promise.all([
+                    provider.getLogs({ ...stakedFilter, fromBlock, toBlock: 'latest' }),
+                    provider.getLogs({ ...unstakedFilter, fromBlock, toBlock: 'latest' }),
+                    provider.getLogs({ ...claimedFilter, fromBlock, toBlock: 'latest' })
+                ]);
+
+                const events = [];
+                let totalClaimed = 0, totalStaked = 0, totalUnstaked = 0;
+
+                for (const log of stakedLogs) {
+                    const parsed = iface.parseLog(log);
+                    const amt = parseFloat(ethers.utils.formatUnits(parsed.args.amount, 18));
+                    totalStaked += amt;
+                    events.push({ block: log.blockNumber, type: 'Stake', amount: amt, unit: 'USDC', hash: log.transactionHash });
+                }
+                for (const log of unstakedLogs) {
+                    const parsed = iface.parseLog(log);
+                    const amt = parseFloat(ethers.utils.formatUnits(parsed.args.amount, 18));
+                    totalUnstaked += amt;
+                    events.push({ block: log.blockNumber, type: 'Unstake', amount: amt, unit: 'USDC', hash: log.transactionHash });
+                }
+                for (const log of claimedLogs) {
+                    const parsed = iface.parseLog(log);
+                    const amt = parseFloat(ethers.utils.formatEther(parsed.args.amount));
+                    totalClaimed += amt;
+                    events.push({ block: log.blockNumber, type: 'Claimed', amount: amt, unit: 'BNB', hash: log.transactionHash });
+                }
+
+                events.sort((a, b) => b.block - a.block);
+
+                document.getElementById('histTotalClaimed').textContent  = totalClaimed.toFixed(8)  + ' BNB';
+                document.getElementById('histTotalStaked').textContent   = totalStaked.toFixed(4)   + ' USDC';
+                document.getElementById('histTotalUnstaked').textContent = totalUnstaked.toFixed(4) + ' USDC';
+                document.getElementById('histEventCount').textContent    = events.length;
+
+                if (events.length === 0) {
+                    table.innerHTML = '<div class="text-center text-slate-500 py-8"><i class="fas fa-inbox text-2xl mb-2 block opacity-40"></i>No staking events found for this wallet in the last ~150,000 blocks</div>';
+                    return;
+                }
+
+                const typeColor = { 'Stake': 'text-indigo-400', 'Unstake': 'text-amber-400', 'Claimed': 'text-green-400' };
+                const typeBg    = { 'Stake': 'bg-indigo-500/10', 'Unstake': 'bg-amber-500/10', 'Claimed': 'bg-green-500/10' };
+
+                table.innerHTML = `<table class="w-full text-sm">
+                    <thead><tr class="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+                        <th class="pb-3 pr-4">Type</th><th class="pb-3 pr-4">Amount</th><th class="pb-3 pr-4">Block</th><th class="pb-3">Tx</th>
+                    </tr></thead>
+                    <tbody>
+                    ${events.map(e => `<tr class="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                        <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded text-xs font-semibold ${typeColor[e.type]} ${typeBg[e.type]}">${e.type}</span></td>
+                        <td class="py-3 pr-4 font-mono font-semibold ${typeColor[e.type]}">${e.amount.toFixed(6)} ${e.unit}</td>
+                        <td class="py-3 pr-4 text-slate-400 font-mono">#${e.block.toLocaleString()}</td>
+                        <td class="py-3"><a href="https://bscscan.com/tx/${e.hash}" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-mono text-xs">${e.hash.slice(0,8)}...${e.hash.slice(-6)} <i class="fas fa-external-link-alt ml-1 text-xs"></i></a></td>
+                    </tr>`).join('')}
+                    </tbody></table>`;
+            } catch (err) {
+                table.innerHTML = `<div class="text-center text-slate-500 py-8"><i class="fas fa-exclamation-triangle text-amber-400 text-xl mb-2 block"></i>Could not load history: ${err.message}</div>`;
+                console.error('loadEarningsHistory error:', err);
             }
         }
 

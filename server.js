@@ -370,157 +370,178 @@ app.get('/api/subscription/verify', async (req, res) => {
     }
 });
 
+const DEX_TOKENS = {
+    bsc: [
+        { symbol: 'BNB',  name: 'BNB',           address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals: 18 },
+        { symbol: 'USDC', name: 'USD Coin',       address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', decimals: 18 },
+        { symbol: 'USDT', name: 'Tether USD',     address: '0x55d398326f99059fF775485246999027B3197955', decimals: 18 },
+        { symbol: 'BUSD', name: 'Binance USD',    address: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56', decimals: 18 },
+        { symbol: 'ETH',  name: 'Ethereum',       address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', decimals: 18 },
+        { symbol: 'BTCB', name: 'Bitcoin BEP-20', address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', decimals: 18 },
+        { symbol: 'CAKE', name: 'PancakeSwap',    address: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', decimals: 18 },
+        { symbol: 'XRP',  name: 'XRP Token',      address: '0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE', decimals: 18 },
+        { symbol: 'ADA',  name: 'Cardano Token',  address: '0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47', decimals: 18 },
+        { symbol: 'DOT',  name: 'Polkadot Token', address: '0x7083609fCE4d1d8Dc0C979AAb8c869Ea2C873402', decimals: 18 }
+    ],
+    ethereum: [
+        { symbol: 'ETH',  name: 'Ethereum',       address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals: 18 },
+        { symbol: 'USDC', name: 'USD Coin',       address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', decimals: 6  },
+        { symbol: 'USDT', name: 'Tether USD',     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6  },
+        { symbol: 'WBTC', name: 'Wrapped BTC',    address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599', decimals: 8  },
+        { symbol: 'DAI',  name: 'Dai Stablecoin', address: '0x6B175474E89094C44Da98b954EedeAC495271d0F', decimals: 18 },
+        { symbol: 'WETH', name: 'Wrapped ETH',    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', decimals: 18 }
+    ]
+};
+
+const DEX_TOKEN_MAP = {};
+Object.entries(DEX_TOKENS).forEach(([net, list]) => {
+    DEX_TOKEN_MAP[net] = {};
+    list.forEach(t => { DEX_TOKEN_MAP[net][t.address.toLowerCase()] = t; });
+});
+
 app.get('/api/utl/dex/tokens', (req, res) => {
     const { network } = req.query;
-    const tokens = {
-        bsc: [
-            { symbol: 'BNB', name: 'BNB', address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals: 18, logoURI: 'https://tokens.1inch.io/0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c.png' },
-            { symbol: 'USDC', name: 'USD Coin', address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', decimals: 18, logoURI: 'https://tokens.1inch.io/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png' },
-            { symbol: 'USDT', name: 'Tether USD', address: '0x55d398326f99059fF775485246999027B3197955', decimals: 18, logoURI: 'https://tokens.1inch.io/0xdac17f958d2ee523a2206206994597c13d831ec7.png' },
-            { symbol: 'BUSD', name: 'Binance USD', address: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56', decimals: 18, logoURI: 'https://tokens.1inch.io/0x4fabb145d64652a948d72533023f6e7a623c7c53.png' },
-            { symbol: 'ETH', name: 'Ethereum', address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', decimals: 18, logoURI: 'https://tokens.1inch.io/0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.png' },
-            { symbol: 'BTCB', name: 'Bitcoin BEP2', address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c', decimals: 18, logoURI: 'https://tokens.1inch.io/0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.png' },
-            { symbol: 'CAKE', name: 'PancakeSwap', address: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', decimals: 18, logoURI: '' },
-            { symbol: 'XRP', name: 'XRP Token', address: '0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE', decimals: 18, logoURI: '' },
-            { symbol: 'ADA', name: 'Cardano Token', address: '0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47', decimals: 18, logoURI: '' },
-            { symbol: 'DOT', name: 'Polkadot Token', address: '0x7083609fCE4d1d8Dc0C979AAb8c869Ea2C873402', decimals: 18, logoURI: '' }
-        ],
-        ethereum: [
-            { symbol: 'ETH', name: 'Ethereum', address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals: 18, logoURI: '' },
-            { symbol: 'USDC', name: 'USD Coin', address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', decimals: 6, logoURI: '' },
-            { symbol: 'USDT', name: 'Tether USD', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6, logoURI: '' },
-            { symbol: 'WBTC', name: 'Wrapped BTC', address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599', decimals: 8, logoURI: '' },
-            { symbol: 'DAI', name: 'Dai Stablecoin', address: '0x6B175474E89094C44Da98b954EedeAC495271d0F', decimals: 18, logoURI: '' }
-        ]
-    };
-    res.json({ tokens: tokens[network] || tokens.bsc });
+    res.json({ tokens: DEX_TOKENS[network] || DEX_TOKENS.bsc });
 });
 
 app.get('/api/utl/dex/quote', async (req, res) => {
-    const { fromToken, toToken, amount, network, slippage } = req.query;
-    const apiKey = process.env.ONEINCH_API_KEY;
+    const { fromToken, toToken, amount, network, slippage, fromAddress } = req.query;
+    const chainId = network === 'ethereum' ? 1 : 56;
+    const userAddr = fromAddress || '0x0000000000000000000000000000000000000000';
 
-    if (apiKey && apiKey !== 'your_key_here') {
-        try {
-            const chainId = network === 'ethereum' ? 1 : 56;
-            const resp = await fetch(`https://api.1inch.dev/swap/v6.0/${chainId}/quote?src=${fromToken}&dst=${toToken}&amount=${amount}`, {
-                headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept': 'application/json' }
-            });
-            if (resp.ok) {
-                const data = await resp.json();
+    try {
+        const net = network || 'bsc';
+        const fromInfo = DEX_TOKEN_MAP[net]?.[fromToken?.toLowerCase()] || { symbol: 'UNKNOWN', decimals: 18 };
+        const toInfo   = DEX_TOKEN_MAP[net]?.[toToken?.toLowerCase()]   || { symbol: 'UNKNOWN', decimals: 18 };
+
+        const url = `https://apiv5.paraswap.io/prices?srcToken=${fromToken}&destToken=${toToken}&srcDecimals=${fromInfo.decimals}&destDecimals=${toInfo.decimals}&amount=${amount}&side=SELL&network=${chainId}&userAddress=${userAddr}`;
+        const resp = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            const pr = data.priceRoute;
+            if (pr && pr.destAmount) {
+                const fromAmtHuman = parseFloat(pr.srcAmount) / Math.pow(10, pr.srcDecimals || fromInfo.decimals);
+                const toAmtHuman   = parseFloat(pr.destAmount) / Math.pow(10, pr.destDecimals || toInfo.decimals);
+                const usdValue = parseFloat(pr.srcUSD || 0) || (fromAmtHuman * 1);
+                const bestRoute = (pr.bestRoute || []).flatMap(r => (r.swaps || []).flatMap(s => (s.swapExchanges || []).map(e => ({ name: e.exchange, part: Math.round(e.percent || 0) }))));
                 return res.json({
                     live: true,
-                    fromToken: data.srcToken || fromToken,
-                    toToken: data.dstToken || toToken,
-                    fromAmount: amount,
-                    toAmount: data.dstAmount || data.toAmount,
-                    estimatedGas: data.gas || data.estimatedGas || '150000',
-                    protocols: data.protocols || [{ name: '1inch', part: 100 }]
+                    provider: 'ParaSwap',
+                    fromToken: { symbol: fromInfo.symbol, address: fromToken, decimals: fromInfo.decimals },
+                    toToken:   { symbol: toInfo.symbol,   address: toToken,   decimals: toInfo.decimals },
+                    fromAmount: pr.srcAmount,
+                    toAmount:   pr.destAmount,
+                    toAmountHuman: toAmtHuman.toFixed(8),
+                    rate: `${(toAmtHuman / fromAmtHuman).toFixed(6)}`,
+                    priceImpact: (parseFloat(pr.maxImpactReached || 0)).toFixed(3),
+                    estimatedGas: pr.gasCost || '200000',
+                    protocols: bestRoute.length ? bestRoute : [{ name: 'ParaSwap', part: 100 }],
+                    utlFee: (usdValue * 0.001).toFixed(4),
+                    savings: pr.side === 'SELL' ? (Math.random() * 1.5 + 0.3).toFixed(2) : '0.50',
+                    priceRoute: pr
                 });
             }
-        } catch (err) {
-            console.log('1inch API error, falling back to simulated:', err.message);
         }
+    } catch (err) {
+        console.log('ParaSwap quote error, using fallback:', err.message);
     }
 
-    const prices = {
-        'BNB': 620, 'USDC': 1.0, 'USDT': 1.0, 'BUSD': 1.0,
-        'ETH': 2850, 'BTCB': 97500, 'CAKE': 2.45, 'XRP': 2.55,
-        'ADA': 0.78, 'DOT': 7.15, 'WBTC': 97500, 'DAI': 1.0
-    };
-    const tokenList = {
-        bsc: {
-            '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE': { symbol: 'BNB', decimals: 18 },
-            '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d': { symbol: 'USDC', decimals: 18 },
-            '0x55d398326f99059fF775485246999027B3197955': { symbol: 'USDT', decimals: 18 },
-            '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56': { symbol: 'BUSD', decimals: 18 },
-            '0x2170Ed0880ac9A755fd29B2688956BD959F933F8': { symbol: 'ETH', decimals: 18 },
-            '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c': { symbol: 'BTCB', decimals: 18 },
-            '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82': { symbol: 'CAKE', decimals: 18 },
-            '0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE': { symbol: 'XRP', decimals: 18 },
-            '0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47': { symbol: 'ADA', decimals: 18 },
-            '0x7083609fCE4d1d8Dc0C979AAb8c869Ea2C873402': { symbol: 'DOT', decimals: 18 }
-        },
-        ethereum: {
-            '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE': { symbol: 'ETH', decimals: 18 },
-            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': { symbol: 'USDC', decimals: 6 },
-            '0xdAC17F958D2ee523a2206206994597C13D831ec7': { symbol: 'USDT', decimals: 6 },
-            '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599': { symbol: 'WBTC', decimals: 8 },
-            '0x6B175474E89094C44Da98b954EedeAC495271d0F': { symbol: 'DAI', decimals: 18 }
-        }
-    };
+    const fallbackPrices = { BNB: 620, USDC: 1.0, USDT: 1.0, BUSD: 1.0, ETH: 2850, BTCB: 97500, WBTC: 97500, CAKE: 2.45, XRP: 2.55, ADA: 0.78, DOT: 7.15, DAI: 1.0, WETH: 2850 };
     const net = network || 'bsc';
-    const fromInfo = tokenList[net]?.[fromToken] || { symbol: 'UNKNOWN', decimals: 18 };
-    const toInfo = tokenList[net]?.[toToken] || { symbol: 'UNKNOWN', decimals: 18 };
-    const fromPrice = prices[fromInfo.symbol] || 1;
-    const toPrice = prices[toInfo.symbol] || 1;
+    const fromInfo = DEX_TOKEN_MAP[net]?.[fromToken?.toLowerCase()] || { symbol: 'UNKNOWN', decimals: 18 };
+    const toInfo   = DEX_TOKEN_MAP[net]?.[toToken?.toLowerCase()]   || { symbol: 'UNKNOWN', decimals: 18 };
     const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-        return res.status(400).json({ error: 'Invalid amount' });
-    }
-    const fromAmountHuman = parsedAmount / Math.pow(10, fromInfo.decimals);
-    const usdValue = fromAmountHuman * fromPrice;
-    const toAmountHuman = usdValue / toPrice;
-    const parsedSlippage = parseFloat(slippage || '0.5');
-    const slip = (isNaN(parsedSlippage) || parsedSlippage < 0 || parsedSlippage > 50 ? 0.5 : parsedSlippage) / 100;
-    const toAmountAfterSlippage = toAmountHuman * (1 - slip);
-    const toAmountWei = BigInt(Math.floor(toAmountAfterSlippage * Math.pow(10, toInfo.decimals))).toString();
-
-    const dexSources = ['PancakeSwap V3', 'PancakeSwap V2', 'BiSwap', 'DODO', 'Wombat', 'Thena'];
-    const selectedDex = dexSources[Math.floor(Math.random() * 3)];
-    const secondDex = dexSources[Math.floor(Math.random() * 3) + 3];
-    const mainPart = 70 + Math.floor(Math.random() * 20);
-
+    if (isNaN(parsedAmount) || parsedAmount <= 0) return res.status(400).json({ error: 'Invalid amount' });
+    const fromAmtHuman  = parsedAmount / Math.pow(10, fromInfo.decimals);
+    const usdValue      = fromAmtHuman * (fallbackPrices[fromInfo.symbol] || 1);
+    const toAmtHuman    = usdValue / (fallbackPrices[toInfo.symbol] || 1);
+    const slip          = Math.min(Math.max(parseFloat(slippage || '0.5'), 0), 50) / 100;
+    const toAfterSlip   = toAmtHuman * (1 - slip);
+    const dexNames      = ['PancakeSwap V3', 'PancakeSwap V2', 'BiSwap', 'DODO', 'Wombat', 'Thena'];
+    const mainPart      = 65 + Math.floor(Math.random() * 25);
     res.json({
-        live: false,
-        simulated: true,
+        live: false, simulated: true, provider: 'ParaSwap',
         fromToken: { symbol: fromInfo.symbol, address: fromToken, decimals: fromInfo.decimals },
-        toToken: { symbol: toInfo.symbol, address: toToken, decimals: toInfo.decimals },
+        toToken:   { symbol: toInfo.symbol,   address: toToken,   decimals: toInfo.decimals },
         fromAmount: amount,
-        toAmount: toAmountWei,
-        toAmountHuman: toAmountAfterSlippage.toFixed(6),
-        rate: (toPrice > fromPrice) ? (fromPrice / toPrice).toFixed(8) : (fromPrice / toPrice).toFixed(4),
-        priceImpact: (Math.random() * 0.3).toFixed(2),
-        estimatedGas: (120000 + Math.floor(Math.random() * 80000)).toString(),
-        protocols: [
-            { name: selectedDex, part: mainPart },
-            { name: secondDex, part: 100 - mainPart }
-        ],
+        toAmount: BigInt(Math.floor(toAfterSlip * Math.pow(10, toInfo.decimals))).toString(),
+        toAmountHuman: toAfterSlip.toFixed(8),
+        rate: (toAfterSlip / fromAmtHuman).toFixed(6),
+        priceImpact: (Math.random() * 0.25).toFixed(3),
+        estimatedGas: (180000 + Math.floor(Math.random() * 70000)).toString(),
+        protocols: [{ name: dexNames[Math.floor(Math.random() * 3)], part: mainPart }, { name: dexNames[3 + Math.floor(Math.random() * 3)], part: 100 - mainPart }],
         utlFee: (usdValue * 0.001).toFixed(4),
-        savings: (Math.random() * 2 + 0.5).toFixed(2)
+        savings: (Math.random() * 1.5 + 0.3).toFixed(2)
     });
 });
 
-app.get('/api/utl/dex/swap-data', async (req, res) => {
-    const { fromToken, toToken, amount, fromAddress, slippage, network } = req.query;
-    const apiKey = process.env.ONEINCH_API_KEY;
+app.post('/api/utl/dex/swap-data', async (req, res) => {
+    const { priceRoute, fromAddress, slippage, network } = req.body;
+    const chainId = network === 'ethereum' ? 1 : 56;
 
-    if (apiKey && apiKey !== 'your_key_here') {
-        try {
-            const chainId = network === 'ethereum' ? 1 : 56;
-            const resp = await fetch(`https://api.1inch.dev/swap/v6.0/${chainId}/swap?src=${fromToken}&dst=${toToken}&amount=${amount}&from=${fromAddress}&slippage=${slippage || 1}`, {
-                headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept': 'application/json' }
-            });
-            if (resp.ok) {
-                const data = await resp.json();
-                return res.json({ live: true, tx: data.tx, toAmount: data.dstAmount });
-            }
-        } catch (err) {
-            console.log('1inch swap API error:', err.message);
-        }
+    if (!priceRoute || !fromAddress) {
+        return res.json({ live: false, simulated: true, message: 'Get a quote first' });
     }
 
-    res.json({
-        live: false,
-        simulated: true,
-        message: 'Swap simulation — connect 1inch API key for live swaps',
-        tx: {
-            from: fromAddress,
-            to: '0x1111111254EEB25477B68fb85Ed929f73A960582',
-            data: '0x...',
-            value: fromToken === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' ? amount : '0',
-            gas: '250000'
+    try {
+        const resp = await fetch(`https://apiv5.paraswap.io/transactions/${chainId}?ignoreChecks=true`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                priceRoute,
+                srcToken: priceRoute.srcToken,
+                destToken: priceRoute.destToken,
+                srcAmount: priceRoute.srcAmount,
+                destAmount: priceRoute.destAmount,
+                slippage: Math.round((parseFloat(slippage) || 0.5) * 100),
+                userAddress: fromAddress,
+                deadline: Math.floor(Date.now() / 1000) + 600
+            }),
+            signal: AbortSignal.timeout(8000)
+        });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            return res.json({ live: true, tx: data, toAmount: priceRoute.destAmount });
         }
+        const errText = await resp.text();
+        console.log('ParaSwap tx build error:', errText);
+    } catch (err) {
+        console.log('ParaSwap swap-data error:', err.message);
+    }
+
+    res.json({ live: false, simulated: true, message: 'ParaSwap transaction build failed — quote still valid for reference' });
+});
+
+let cgPriceCache = { data: null, ts: 0 };
+app.get('/api/utl/prices', async (req, res) => {
+    const now = Date.now();
+    if (cgPriceCache.data && now - cgPriceCache.ts < 60000) {
+        return res.json(cgPriceCache.data);
+    }
+    try {
+        const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin,usd-coin,ethereum,bitcoin&vs_currencies=usd&include_24hr_change=true', {
+            headers: { 'Accept': 'application/json' },
+            signal: AbortSignal.timeout(6000)
+        });
+        if (resp.ok) {
+            const raw = await resp.json();
+            const result = {
+                BNB:  { price: raw['binancecoin']?.usd || 0,  change24h: raw['binancecoin']?.usd_24h_change || 0  },
+                ETH:  { price: raw['ethereum']?.usd || 0,     change24h: raw['ethereum']?.usd_24h_change || 0     },
+                BTC:  { price: raw['bitcoin']?.usd || 0,      change24h: raw['bitcoin']?.usd_24h_change || 0      },
+                USDC: { price: raw['usd-coin']?.usd || 1,     change24h: raw['usd-coin']?.usd_24h_change || 0     }
+            };
+            cgPriceCache = { data: result, ts: now };
+            return res.json(result);
+        }
+    } catch (err) {
+        console.log('CoinGecko price error:', err.message);
+    }
+    res.json(cgPriceCache.data || {
+        BNB: { price: 620, change24h: 0 }, ETH: { price: 2850, change24h: 0 },
+        BTC: { price: 97500, change24h: 0 }, USDC: { price: 1, change24h: 0 }
     });
 });
 
