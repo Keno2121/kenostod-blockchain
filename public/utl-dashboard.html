@@ -226,7 +226,17 @@
                         <button id="installSnapBtn" onclick="installSnap()" class="w-full py-3.5 rounded-xl font-bold text-white text-base transition-all hover:scale-[1.02] mb-3" style="background: linear-gradient(135deg, #f97316, #f59e0b);">
                             <i class="fa-brands fa-ethereum mr-2"></i>Install UTL Snap into MetaMask
                         </button>
-                        <p class="text-xs text-slate-500 text-center">Requires MetaMask browser extension. One click — no gas fees for installation.</p>
+                        <p class="text-xs text-slate-500 text-center">Requires MetaMask browser extension v11+. One click — no gas fees for installation.</p>
+                        <div id="snapUpgradeNote" style="display:none;" class="mt-3 rounded-xl p-3 border border-amber-500/30 bg-amber-500/10">
+                            <p class="text-xs text-amber-300 font-semibold mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>MetaMask needs updating</p>
+                            <p class="text-xs text-slate-400 mb-2">Snaps require MetaMask v11 or newer. Here's how to update:</p>
+                            <ol class="text-xs text-slate-400 space-y-1 list-decimal list-inside">
+                                <li>Open MetaMask extension</li>
+                                <li>Click the 3-dot menu → Settings</li>
+                                <li>Go to About → check for updates</li>
+                                <li>Or reinstall from <a href="https://metamask.io/download/" target="_blank" class="text-amber-400 underline">metamask.io/download</a></li>
+                            </ol>
+                        </div>
                     </div>
 
                     <div id="snapInstalled" class="hidden">
@@ -1496,6 +1506,9 @@
             } catch (err) {
                 if (err.code === 4001) {
                     showToast('Installation cancelled', 'info');
+                } else if (err.message && (err.message.includes('does not exist') || err.message.includes('not available') || err.message.includes('wallet_requestSnaps'))) {
+                    showToast('MetaMask needs to be updated to v11+ to support Snaps. Open MetaMask → Settings → About → Update.', 'error');
+                    document.getElementById('snapUpgradeNote').style.display = 'block';
                 } else if (err.message && err.message.includes('npm')) {
                     showToast('Snap not yet on npm registry — publishing in progress. Check back soon!', 'info');
                 } else {
