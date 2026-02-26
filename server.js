@@ -7802,6 +7802,119 @@ app.post('/api/admin/fal-withdrawal/process', async (req, res) => {
     }
 });
 
+app.get('/api/arbitrage/export/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const profile = arbitrageSystem.getTraderProfile(walletAddress);
+        if (!profile) {
+            return res.status(404).json({ success: false, error: 'No trading profile found' });
+        }
+        const loans = arbitrageSystem.loanHistory.filter(
+            l => l.walletAddress && l.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        const exportData = {
+            exportDate: new Date().toISOString(),
+            exportedFor: 'Bridge.xyz KYC / Source of Funds Documentation',
+            platform: 'Kenostod Blockchain Academy',
+            foundation: 'T.D.I.R. Foundation — Turn Dreams Into Reality',
+            kenoContract: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
+            network: 'BNB Smart Chain (BSC)',
+            activityType: 'Educational Flash Arbitrage Loan (FAL) simulation — utility token earnings',
+            regulatory: {
+                entityType: 'Wyoming LLC',
+                fincenMSB: 'MRX26-00001866',
+                tokenClassification: 'Utility token (not a security)'
+            },
+            traderProfile: {
+                walletAddress: profile.walletAddress,
+                reputationLevel: profile.reputationLevel,
+                reputationScore: profile.reputationScore,
+                totalLoans: profile.totalLoans,
+                successfulLoans: profile.successfulLoans,
+                defaultedLoans: profile.defaultedLoans,
+                totalProfitKeno: profile.totalProfit,
+                totalBonusKeno: profile.totalBonusEarned,
+                availableBalanceKeno: profile.totalProfit + profile.totalBonusEarned,
+                badges: profile.badges,
+                joinedAt: new Date(profile.joinedAt).toISOString(),
+                lastActivity: new Date(profile.lastActivity).toISOString()
+            },
+            loanHistory: loans.map(l => ({
+                loanId: l.id,
+                amount: l.amount,
+                profit: l.profit || 0,
+                status: l.status,
+                purpose: l.purpose,
+                createdAt: new Date(l.timestamp).toISOString(),
+                repaidAt: l.repaidAt ? new Date(l.repaidAt).toISOString() : null
+            })),
+            summary: {
+                totalLoansCount: loans.length,
+                completedLoans: loans.filter(l => l.status === 'completed').length,
+                defaultedLoans: loans.filter(l => l.status === 'defaulted').length,
+                totalKenoEarned: profile.totalProfit + profile.totalBonusEarned,
+                kenoValueUSD: `$${(profile.totalProfit + profile.totalBonusEarned).toFixed(2)} USD (at $1.00/KENO)`
+            }
+        };
+        res.json({ success: true, export: exportData });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Export failed', details: error.message });
+    }
+});
+
+app.get('/api/arbitrage/export/:walletAddress/csv', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const profile = arbitrageSystem.getTraderProfile(walletAddress);
+        if (!profile) {
+            return res.status(404).json({ success: false, error: 'No trading profile found' });
+        }
+        const loans = arbitrageSystem.loanHistory.filter(
+            l => l.walletAddress && l.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+        );
+        const lines = [];
+        lines.push('# KENOSTOD BLOCKCHAIN ACADEMY — FAL EARNINGS EXPORT');
+        lines.push('# Generated: ' + new Date().toISOString());
+        lines.push('# Purpose: Source of Funds Documentation for Bridge.xyz KYC');
+        lines.push('# Foundation: T.D.I.R. Foundation — Turn Dreams Into Reality');
+        lines.push('# KENO Token (BEP-20): 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E');
+        lines.push('# FinCEN MSB: MRX26-00001866 | Wyoming LLC | Token Type: Utility (not security)');
+        lines.push('# Activity Type: Educational Flash Arbitrage Loan simulation earnings');
+        lines.push('#');
+        lines.push('# ACCOUNT SUMMARY');
+        lines.push(`Wallet Address,${walletAddress}`);
+        lines.push(`Reputation Level,${profile.reputationLevel || 'beginner'}`);
+        lines.push(`Total Loans,${profile.totalLoans}`);
+        lines.push(`Successful Loans,${profile.successfulLoans}`);
+        lines.push(`Total Profit (KENO),${(profile.totalProfit || 0).toFixed(2)}`);
+        lines.push(`Total Bonus (KENO),${(profile.totalBonusEarned || 0).toFixed(2)}`);
+        lines.push(`Available Balance (KENO),${((profile.totalProfit || 0) + (profile.totalBonusEarned || 0)).toFixed(2)}`);
+        lines.push(`Estimated Value (USD @ $1.00/KENO),$${((profile.totalProfit || 0) + (profile.totalBonusEarned || 0)).toFixed(2)}`);
+        lines.push(`Badges Earned,"${(profile.badges || []).join(', ')}"`);
+        lines.push(`Account Created,${new Date(profile.joinedAt).toISOString()}`);
+        lines.push(`Last Activity,${new Date(profile.lastActivity).toISOString()}`);
+        lines.push('#');
+        lines.push('# LOAN HISTORY');
+        lines.push('Loan ID,Date,Amount (KENO),Profit (KENO),Status,Purpose,Repaid At');
+        loans.forEach(l => {
+            lines.push([
+                l.id,
+                new Date(l.timestamp).toISOString(),
+                l.amount,
+                (l.profit || 0).toFixed(2),
+                l.status,
+                `"${l.purpose || 'Arbitrage simulation'}"`,
+                l.repaidAt ? new Date(l.repaidAt).toISOString() : 'N/A'
+            ].join(','));
+        });
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="FAL-earnings-${walletAddress.substring(0, 12)}-${Date.now()}.csv"`);
+        res.send(lines.join('\n'));
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'CSV export failed', details: error.message });
+    }
+});
+
 // ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
 
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
@@ -8042,6 +8155,136 @@ app.get('/api/fal-pool/contributor/:walletAddress', (req, res) => {
 });
 
 // ==================== END FLASH ARBITRAGE LOAN POOLS API ENDPOINTS ====================
+
+// ==================== T.D.I.R. FOUNDATION DISTRIBUTION PROTOCOL ====================
+
+const foundationGrantsFile = 'foundation_grants.json';
+
+function loadFoundationGrants() {
+    try {
+        const fs = require('fs');
+        if (fs.existsSync(foundationGrantsFile)) {
+            return JSON.parse(fs.readFileSync(foundationGrantsFile, 'utf8'));
+        }
+    } catch (e) {}
+    return [];
+}
+
+function saveFoundationGrants(grants) {
+    const fs = require('fs');
+    fs.writeFileSync(foundationGrantsFile, JSON.stringify(grants, null, 2));
+}
+
+app.post('/api/foundation/grant-request', (req, res) => {
+    try {
+        const { simulatorWallet, bscWallet, amount, activityType, notes } = req.body;
+        if (!simulatorWallet || !bscWallet || !amount) {
+            return res.status(400).json({ success: false, error: 'simulatorWallet, bscWallet, and amount are required' });
+        }
+        if (!bscWallet.startsWith('0x') || bscWallet.length !== 42) {
+            return res.status(400).json({ success: false, error: 'Invalid BSC wallet address' });
+        }
+        const profile = arbitrageSystem.getTraderProfile(simulatorWallet);
+        if (!profile) {
+            return res.status(400).json({ success: false, error: 'No FAL trading profile found for this wallet' });
+        }
+        const availableBalance = (profile.totalProfit || 0) + (profile.totalBonusEarned || 0);
+        if (amount > availableBalance) {
+            return res.status(400).json({
+                success: false,
+                error: `Insufficient balance. Available: ${availableBalance.toFixed(2)} KENO`
+            });
+        }
+        const grants = loadFoundationGrants();
+        const grantId = 'TDIR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        const grant = {
+            grantId,
+            grantee: simulatorWallet,
+            destinationWallet: bscWallet.toLowerCase(),
+            amountKeno: amount,
+            estimatedValueUSD: amount.toFixed(2),
+            activityType: activityType || 'FAL educational simulation earnings',
+            reputationLevel: profile.reputationLevel || 'beginner',
+            totalLoansCompleted: profile.successfulLoans || 0,
+            badges: profile.badges || [],
+            status: 'pending_distribution',
+            requestedAt: new Date().toISOString(),
+            notes: notes || '',
+            documentation: {
+                platform: 'Kenostod Blockchain Academy',
+                foundation: 'T.D.I.R. Foundation — Turn Dreams Into Reality',
+                tokenType: 'KENO (BEP-20) — Utility Token (not a security)',
+                kenoContract: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
+                network: 'BNB Smart Chain (BSC)',
+                entityType: 'Wyoming LLC',
+                fincenMSB: 'MRX26-00001866',
+                distributionChain: 'Platform Treasury → T.D.I.R. Foundation → Grantee BSC Wallet → Bridge.xyz → USDK'
+            }
+        };
+        grants.push(grant);
+        saveFoundationGrants(grants);
+        console.log(`🏛️ Foundation grant request: ${amount} KENO — ${grantId}`);
+        res.json({
+            success: true,
+            grantId,
+            message: `Foundation grant request submitted. ${amount.toFixed ? amount.toFixed(2) : amount} KENO will be distributed to ${bscWallet} from the T.D.I.R. Foundation treasury.`,
+            nextStep: 'After receiving KENO on BSC, go to Bridge.xyz to convert to USDK.',
+            distributionChain: 'Platform Treasury → T.D.I.R. Foundation → Your BSC Wallet → Bridge.xyz'
+        });
+    } catch (error) {
+        console.error('Foundation grant error:', error);
+        res.status(500).json({ success: false, error: 'Grant request failed', details: error.message });
+    }
+});
+
+app.get('/api/foundation/grants', (req, res) => {
+    try {
+        const { adminPassword } = req.query;
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        const grants = loadFoundationGrants();
+        const totalPending = grants.filter(g => g.status === 'pending_distribution').reduce((s, g) => s + g.amountKeno, 0);
+        const totalDistributed = grants.filter(g => g.status === 'distributed').reduce((s, g) => s + g.amountKeno, 0);
+        res.json({ success: true, grants, summary: { totalGrants: grants.length, totalPendingKeno: totalPending, totalDistributedKeno: totalDistributed } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Failed to fetch grants' });
+    }
+});
+
+app.post('/api/foundation/grant-approve', async (req, res) => {
+    try {
+        const { adminPassword, grantId, txHash } = req.body;
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        }
+        const grants = loadFoundationGrants();
+        const grant = grants.find(g => g.grantId === grantId);
+        if (!grant) return res.status(404).json({ success: false, error: 'Grant not found' });
+        grant.status = 'distributed';
+        grant.distributedAt = new Date().toISOString();
+        grant.txHash = txHash || null;
+        saveFoundationGrants(grants);
+        res.json({ success: true, message: `Grant ${grantId} marked as distributed.`, grant });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Failed to approve grant' });
+    }
+});
+
+app.get('/api/foundation/my-grants/:walletAddress', (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const grants = loadFoundationGrants().filter(
+            g => g.grantee.toLowerCase() === walletAddress.toLowerCase() ||
+                 g.destinationWallet.toLowerCase() === walletAddress.toLowerCase()
+        );
+        res.json({ success: true, grants, totalKeno: grants.reduce((s, g) => s + g.amountKeno, 0) });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Failed to fetch grants' });
+    }
+});
+
+// ==================== END T.D.I.R. FOUNDATION DISTRIBUTION PROTOCOL ====================
 
 // ==================== ICO INVESTOR DASHBOARD API ENDPOINTS ====================
 

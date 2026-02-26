@@ -626,6 +626,68 @@
             <div id="leaderboardContent" style="display: none;"></div>
         </div>
 
+        <div class="panel" style="border: 1px solid rgba(99,102,241,0.4); background: rgba(99,102,241,0.05);">
+            <div class="panel-header">
+                <span class="panel-icon">📊</span>
+                <h2>Export Trading Records</h2>
+            </div>
+            <p class="text-sm" style="color: #94a3b8; margin-bottom: 16px;">
+                Download your complete FAL trading history for Bridge.xyz KYC, source of funds documentation, or personal records. Includes reputation level, badges, all loan history, and regulatory identifiers.
+            </p>
+            <div class="form-group">
+                <label>Your Wallet Address (from FAL trading)</label>
+                <input type="text" id="exportWalletAddress" placeholder="Paste your simulator wallet address (starts with 04...)">
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="exportTradingHistory('json')" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; min-width: 140px;">
+                    Download JSON Report
+                </button>
+                <button onclick="exportTradingHistory('csv')" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; min-width: 140px;">
+                    Download CSV for Bridge
+                </button>
+            </div>
+            <div id="exportStatus" style="margin-top: 12px;"></div>
+        </div>
+
+        <div class="panel" style="border: 2px solid rgba(16,185,129,0.5); background: rgba(16,185,129,0.05);">
+            <div class="panel-header">
+                <span class="panel-icon">🏛️</span>
+                <h2>T.D.I.R. Foundation Grant Request</h2>
+            </div>
+            <p class="text-sm" style="color: #94a3b8; margin-bottom: 8px;">
+                For large distributions (especially 100,000+ KENO), request a formal Foundation Grant. This creates documented, arm's-length distribution records for Bridge.xyz KYC compliance.
+            </p>
+            <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 0.85rem; color: #34d399;">
+                Platform Treasury → T.D.I.R. Foundation → Your BSC Wallet → Bridge.xyz → USDK
+            </div>
+            <div class="form-group">
+                <label>FAL Simulator Wallet Address</label>
+                <input type="text" id="grantSimWallet" placeholder="Simulator wallet (starts with 04...)">
+            </div>
+            <div class="form-group">
+                <label>BSC MetaMask Wallet (to receive KENO)</label>
+                <input type="text" id="grantBscWallet" placeholder="0x... (BNB Smart Chain)">
+            </div>
+            <div class="form-group">
+                <label>Amount (KENO)</label>
+                <input type="number" id="grantAmount" placeholder="Enter KENO amount" min="1">
+            </div>
+            <div class="form-group">
+                <label>Activity Type</label>
+                <select id="grantActivity" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: #1e293b; color: white;">
+                    <option value="FAL educational simulation earnings">FAL Educational Simulation Earnings</option>
+                    <option value="FALP liquidity pool earnings">FALP Liquidity Pool Earnings</option>
+                    <option value="Combined FAL and FALP earnings">Combined FAL + FALP Earnings</option>
+                    <option value="Diamond tier reputation achievement reward">Diamond Tier Achievement Reward</option>
+                    <option value="Course completion and FAL participation rewards">Course Completion + FAL Participation</option>
+                </select>
+            </div>
+            <button onclick="submitFoundationGrant()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+                Submit Foundation Grant Request
+            </button>
+            <div id="grantStatus" style="margin-top: 12px;"></div>
+        </div>
+
         <div class="panel" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
             <div class="panel-header" style="border-bottom-color: rgba(255,255,255,0.2);">
                 <span class="panel-icon">💸</span>
@@ -713,5 +775,82 @@
     <script src="/ai-support-widget.js"></script>
     <script src="/custom-dialogs.js"></script>
     <script src="arbitrage.js"></script>
+    <script>
+        async function exportTradingHistory(format) {
+            const wallet = document.getElementById('exportWalletAddress').value.trim();
+            const statusEl = document.getElementById('exportStatus');
+            if (!wallet) {
+                statusEl.innerHTML = '<p style="color:#f87171;">Please enter your wallet address.</p>';
+                return;
+            }
+            statusEl.innerHTML = '<p style="color:#94a3b8;">Generating export...</p>';
+            try {
+                if (format === 'csv') {
+                    const url = `/api/arbitrage/export/${encodeURIComponent(wallet)}/csv`;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `FAL-earnings-${wallet.substring(0,12)}-${Date.now()}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    statusEl.innerHTML = '<p style="color:#34d399;">CSV download started. Use this file for Bridge.xyz KYC documentation.</p>';
+                } else {
+                    const res = await fetch(`/api/arbitrage/export/${encodeURIComponent(wallet)}`);
+                    const data = await res.json();
+                    if (!data.success) {
+                        statusEl.innerHTML = `<p style="color:#f87171;">${data.error}</p>`;
+                        return;
+                    }
+                    const blob = new Blob([JSON.stringify(data.export, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `FAL-report-${wallet.substring(0,12)}-${Date.now()}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    statusEl.innerHTML = `<p style="color:#34d399;">JSON report downloaded. Total earned: <strong>${(data.export.summary.totalKenoEarned || 0).toFixed(2)} KENO</strong></p>`;
+                }
+            } catch (e) {
+                statusEl.innerHTML = `<p style="color:#f87171;">Export failed: ${e.message}</p>`;
+            }
+        }
+
+        async function submitFoundationGrant() {
+            const simWallet = document.getElementById('grantSimWallet').value.trim();
+            const bscWallet = document.getElementById('grantBscWallet').value.trim();
+            const amount = parseFloat(document.getElementById('grantAmount').value);
+            const activity = document.getElementById('grantActivity').value;
+            const statusEl = document.getElementById('grantStatus');
+            if (!simWallet || !bscWallet || !amount) {
+                statusEl.innerHTML = '<p style="color:#f87171;">Please fill in all fields.</p>';
+                return;
+            }
+            statusEl.innerHTML = '<p style="color:#94a3b8;">Submitting grant request...</p>';
+            try {
+                const res = await fetch('/api/foundation/grant-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ simulatorWallet: simWallet, bscWallet, amount, activityType: activity })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    statusEl.innerHTML = `
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.4); border-radius: 8px; padding: 16px; margin-top: 8px;">
+                            <p style="color:#34d399; font-weight:700; margin-bottom:6px;">Foundation Grant Submitted</p>
+                            <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:4px;"><strong>Grant ID:</strong> ${data.grantId}</p>
+                            <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:4px;"><strong>Amount:</strong> ${amount.toFixed(2)} KENO</p>
+                            <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:8px;"><strong>Next step:</strong> ${data.nextStep}</p>
+                            <p style="color:#60a5fa; font-size:0.8rem;">${data.distributionChain}</p>
+                        </div>`;
+                } else {
+                    statusEl.innerHTML = `<p style="color:#f87171;">${data.error}</p>`;
+                }
+            } catch (e) {
+                statusEl.innerHTML = `<p style="color:#f87171;">Grant request failed: ${e.message}</p>`;
+            }
+        }
+    </script>
 </body>
 </html>
