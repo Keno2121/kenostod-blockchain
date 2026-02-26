@@ -8260,20 +8260,68 @@ app.get('/api/foundation/grants', (req, res) => {
 
 app.post('/api/foundation/grant-approve', async (req, res) => {
     try {
-        const { adminPassword, grantId, txHash } = req.body;
+        const { adminPassword, grantId } = req.body;
         if (adminPassword !== process.env.ADMIN_PASSWORD) {
             return res.status(401).json({ success: false, error: 'Unauthorized' });
         }
         const grants = loadFoundationGrants();
         const grant = grants.find(g => g.grantId === grantId);
         if (!grant) return res.status(404).json({ success: false, error: 'Grant not found' });
+        if (grant.status === 'distributed') {
+            return res.status(400).json({ success: false, error: 'Grant already distributed' });
+        }
+
+        // Check BSC transfer is available
+        if (!bscTokenTransfer || !bscTokenTransfer.initialized) {
+            return res.status(503).json({ success: false, error: 'BSC transfer not initialized. Check KENO_DISTRIBUTION_WALLET_KEY.' });
+        }
+
+        // Fire real on-chain KENO transfer
+        console.log(`🏛️ Foundation executing grant ${grantId}: ${grant.amountKeno} KENO → ${grant.destinationWallet}`);
+        const transferResult = await bscTokenTransfer.transferTokens(
+            grant.destinationWallet,
+            grant.amountKeno,
+            grantId
+        );
+
+        if (!transferResult.success) {
+            return res.status(500).json({
+                success: false,
+                error: `On-chain transfer failed: ${transferResult.error}`,
+                grantId
+            });
+        }
+
+        // Mark grant as distributed with real tx hash
         grant.status = 'distributed';
         grant.distributedAt = new Date().toISOString();
-        grant.txHash = txHash || null;
+        grant.txHash = transferResult.txHash;
+        grant.blockNumber = transferResult.blockNumber;
+        grant.gasUsed = transferResult.gasUsed;
         saveFoundationGrants(grants);
-        res.json({ success: true, message: `Grant ${grantId} marked as distributed.`, grant });
+
+        // Deduct from trader profile balance
+        const profile = arbitrageSystem.getTraderProfile(grant.grantee);
+        if (profile) {
+            const deductFromBonus = Math.min(grant.amountKeno, profile.totalBonusEarned || 0);
+            const deductFromProfit = grant.amountKeno - deductFromBonus;
+            profile.totalBonusEarned = Math.max(0, (profile.totalBonusEarned || 0) - deductFromBonus);
+            profile.totalProfit = Math.max(0, (profile.totalProfit || 0) - deductFromProfit);
+            arbitrageSystem.persistData();
+        }
+
+        console.log(`✅ Foundation grant distributed: ${grant.amountKeno} KENO → ${grant.destinationWallet} | TX: ${transferResult.txHash}`);
+        res.json({
+            success: true,
+            message: `Grant distributed! ${grant.amountKeno} KENO sent to ${grant.destinationWallet}`,
+            grantId,
+            txHash: transferResult.txHash,
+            bscscanUrl: `https://bscscan.com/tx/${transferResult.txHash}`,
+            grant
+        });
     } catch (error) {
-        res.status(500).json({ success: false, error: 'Failed to approve grant' });
+        console.error('Foundation grant approve error:', error);
+        res.status(500).json({ success: false, error: 'Failed to approve grant', details: error.message });
     }
 });
 

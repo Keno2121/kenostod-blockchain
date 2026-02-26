@@ -832,6 +832,239 @@
         </div>
     </section>
 
+    <!-- ==================== GRANT REQUEST & ADMIN PANEL ==================== -->
+    <section id="grant-portal" style="background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 100%); padding: 80px 0;">
+        <div class="container">
+            <h2 style="text-align: center; color: #fff; font-family: 'Orbitron', sans-serif; margin-bottom: 12px;">Foundation Grant Portal</h2>
+            <p style="text-align: center; color: #8892b0; margin-bottom: 48px;">Submit a grant request to receive your FAL earnings on BSC. The Foundation distributes KENO tokens directly to your wallet.</p>
+
+            <!-- Distribution Wallet Status -->
+            <div id="wallet-status-bar" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 16px 24px; margin-bottom: 32px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: center;">
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Distribution Wallet</div>
+                    <div style="font-size: 0.85rem; color: #10b981; font-family: monospace;" id="dist-wallet-addr">Loading...</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">KENO Available</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff;" id="dist-keno-bal">—</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">BNB for Gas</div>
+                    <div style="font-size: 1.1rem; font-weight: 700;" id="dist-bnb-bal">—</div>
+                </div>
+                <div id="bnb-warning" style="display:none; background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; color: #fbbf24;">
+                    ⚠️ Low BNB — add BNB to distribution wallet before sending
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+                <!-- Grant Request Form -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px;">
+                    <h3 style="color: #fff; margin-bottom: 8px; font-size: 1.1rem;">Request Distribution</h3>
+                    <p style="color: #8892b0; font-size: 0.875rem; margin-bottom: 24px;">Submit a grant to receive KENO to your BSC wallet</p>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Your Simulator Wallet (BSC)</label>
+                            <input id="grant-sim-wallet" type="text" placeholder="0x75b4ae...your FAL wallet" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; font-family: monospace; box-sizing: border-box;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Destination MetaMask Wallet</label>
+                            <input id="grant-bsc-wallet" type="text" placeholder="0x... your MetaMask BSC address" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; font-family: monospace; box-sizing: border-box;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Amount (KENO)</label>
+                            <input id="grant-amount" type="number" placeholder="e.g. 10000" min="1" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; box-sizing: border-box;" />
+                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">1 KENO = $1.00 USD</div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Notes (optional)</label>
+                            <input id="grant-notes" type="text" placeholder="e.g. Bridge.xyz test transfer" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; box-sizing: border-box;" />
+                        </div>
+                        <button onclick="submitGrantRequest()" style="padding: 14px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s;">Submit Grant Request</button>
+                        <div id="grant-result" style="display:none; padding: 14px; border-radius: 8px; font-size: 0.875rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Admin Approval Panel -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px;">
+                    <h3 style="color: #fff; margin-bottom: 8px; font-size: 1.1rem;">Admin — Approve & Send</h3>
+                    <p style="color: #8892b0; font-size: 0.875rem; margin-bottom: 16px;">Approve a grant to auto-send KENO on-chain to the recipient</p>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                        <input id="admin-password" type="password" placeholder="Admin password" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; box-sizing: border-box;" />
+                        <button onclick="loadPendingGrants()" style="padding: 12px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); border-radius: 8px; color: #a5b4fc; font-weight: 600; cursor: pointer;">Load Pending Grants</button>
+                    </div>
+                    <div id="pending-grants-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto;">
+                        <p style="color: #475569; font-size: 0.85rem; text-align: center; margin-top: 16px;">Enter admin password and click Load</p>
+                    </div>
+                    <div id="approve-result" style="display:none; margin-top: 12px; padding: 14px; border-radius: 8px; font-size: 0.875rem;"></div>
+                </div>
+            </div>
+
+            <!-- My Grants History -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; margin-top: 32px;">
+                <h3 style="color: #fff; margin-bottom: 16px; font-size: 1.1rem;">My Grant History</h3>
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <input id="my-grants-wallet" type="text" placeholder="Enter your wallet address" style="flex: 1; min-width: 280px; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; font-family: monospace;" />
+                    <button onclick="loadMyGrants()" style="padding: 12px 20px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); border-radius: 8px; color: #10b981; font-weight: 600; cursor: pointer;">View My Grants</button>
+                </div>
+                <div id="my-grants-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    // Load distribution wallet status on page load
+    async function loadWalletStatus() {
+        try {
+            const r = await fetch('/api/bsc/status');
+            const d = await r.json();
+            if (d.success) {
+                document.getElementById('dist-wallet-addr').textContent = d.distributionWallet;
+                const keno = parseFloat(d.balance.keno).toLocaleString('en-US', {maximumFractionDigits: 0});
+                document.getElementById('dist-keno-bal').textContent = keno + ' KENO';
+                const bnb = parseFloat(d.balance.bnb).toFixed(6);
+                const bnbEl = document.getElementById('dist-bnb-bal');
+                bnbEl.textContent = bnb + ' BNB';
+                bnbEl.style.color = parseFloat(bnb) < 0.002 ? '#f59e0b' : '#10b981';
+                if (parseFloat(bnb) < 0.002) {
+                    document.getElementById('bnb-warning').style.display = 'block';
+                }
+            }
+        } catch(e) {}
+    }
+    loadWalletStatus();
+
+    async function submitGrantRequest() {
+        const simWallet = document.getElementById('grant-sim-wallet').value.trim();
+        const bscWallet = document.getElementById('grant-bsc-wallet').value.trim();
+        const amount = parseFloat(document.getElementById('grant-amount').value);
+        const notes = document.getElementById('grant-notes').value.trim();
+        const resultEl = document.getElementById('grant-result');
+
+        if (!simWallet || !bscWallet || !amount) {
+            resultEl.style.display = 'block';
+            resultEl.style.background = 'rgba(239,68,68,0.15)';
+            resultEl.style.border = '1px solid rgba(239,68,68,0.4)';
+            resultEl.style.color = '#fca5a5';
+            resultEl.textContent = 'Please fill in all required fields.';
+            return;
+        }
+
+        try {
+            const r = await fetch('/api/foundation/grant-request', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ simulatorWallet: simWallet, bscWallet, amount, notes })
+            });
+            const d = await r.json();
+            resultEl.style.display = 'block';
+            if (d.success) {
+                resultEl.style.background = 'rgba(16,185,129,0.15)';
+                resultEl.style.border = '1px solid rgba(16,185,129,0.4)';
+                resultEl.style.color = '#6ee7b7';
+                resultEl.innerHTML = `✅ Grant submitted!<br><strong>Grant ID: ${d.grantId}</strong><br>Ask admin to approve and KENO will be sent to your wallet.`;
+            } else {
+                resultEl.style.background = 'rgba(239,68,68,0.15)';
+                resultEl.style.border = '1px solid rgba(239,68,68,0.4)';
+                resultEl.style.color = '#fca5a5';
+                resultEl.textContent = '❌ ' + d.error;
+            }
+        } catch(e) {
+            resultEl.style.display = 'block';
+            resultEl.textContent = 'Request failed: ' + e.message;
+        }
+    }
+
+    async function loadPendingGrants() {
+        const pwd = document.getElementById('admin-password').value;
+        if (!pwd) return;
+        const list = document.getElementById('pending-grants-list');
+        list.innerHTML = '<p style="color:#64748b; text-align:center;">Loading...</p>';
+        try {
+            const r = await fetch('/api/foundation/grants?adminPassword=' + encodeURIComponent(pwd));
+            const d = await r.json();
+            if (!d.success) { list.innerHTML = '<p style="color:#f87171;">Unauthorized or error</p>'; return; }
+            const pending = d.grants.filter(g => g.status === 'pending_distribution');
+            if (pending.length === 0) { list.innerHTML = '<p style="color:#64748b; text-align:center; margin-top:16px;">No pending grants</p>'; return; }
+            list.innerHTML = pending.map(g => `
+                <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 12px 14px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap;">
+                        <div style="flex:1;">
+                            <div style="font-size:0.75rem; color:#64748b; font-family:monospace;">${g.grantId}</div>
+                            <div style="font-weight:700; color:#fff; font-size:1rem;">${parseFloat(g.amountKeno).toLocaleString()} KENO <span style="color:#64748b; font-size:0.8rem;">($${parseFloat(g.estimatedValueUSD).toLocaleString()})</span></div>
+                            <div style="font-size:0.8rem; color:#8892b0; font-family:monospace; word-break:break-all;">→ ${g.destinationWallet}</div>
+                            <div style="font-size:0.75rem; color:#475569;">${g.reputationLevel.toUpperCase()} | ${new Date(g.requestedAt).toLocaleDateString()}</div>
+                        </div>
+                        <button onclick="approveGrant('${g.grantId}')" style="padding: 8px 16px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer; white-space: nowrap; font-size: 0.85rem;">Send KENO ▶</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { list.innerHTML = '<p style="color:#f87171;">Error: ' + e.message + '</p>'; }
+    }
+
+    async function approveGrant(grantId) {
+        const pwd = document.getElementById('admin-password').value;
+        const resultEl = document.getElementById('approve-result');
+        resultEl.style.display = 'block';
+        resultEl.style.background = 'rgba(99,102,241,0.15)';
+        resultEl.style.border = '1px solid rgba(99,102,241,0.4)';
+        resultEl.style.color = '#a5b4fc';
+        resultEl.innerHTML = '⏳ Sending KENO on-chain... please wait (BSC confirmation ~15 sec)';
+        try {
+            const r = await fetch('/api/foundation/grant-approve', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ adminPassword: pwd, grantId })
+            });
+            const d = await r.json();
+            if (d.success) {
+                resultEl.style.background = 'rgba(16,185,129,0.15)';
+                resultEl.style.border = '1px solid rgba(16,185,129,0.4)';
+                resultEl.style.color = '#6ee7b7';
+                resultEl.innerHTML = `✅ KENO sent!<br><strong>TX: <a href="${d.bscscanUrl}" target="_blank" style="color:#10b981;">${d.txHash.substring(0,20)}...</a></strong><br>View on <a href="${d.bscscanUrl}" target="_blank" style="color:#10b981;">BscScan ↗</a>`;
+                loadPendingGrants();
+                loadWalletStatus();
+            } else {
+                resultEl.style.background = 'rgba(239,68,68,0.15)';
+                resultEl.style.border = '1px solid rgba(239,68,68,0.4)';
+                resultEl.style.color = '#fca5a5';
+                resultEl.textContent = '❌ ' + d.error;
+            }
+        } catch(e) {
+            resultEl.style.color = '#fca5a5';
+            resultEl.textContent = 'Error: ' + e.message;
+        }
+    }
+
+    async function loadMyGrants() {
+        const wallet = document.getElementById('my-grants-wallet').value.trim();
+        if (!wallet) return;
+        const list = document.getElementById('my-grants-list');
+        list.innerHTML = '<p style="color:#64748b;">Loading...</p>';
+        try {
+            const r = await fetch('/api/foundation/my-grants/' + wallet);
+            const d = await r.json();
+            if (!d.success || d.grants.length === 0) { list.innerHTML = '<p style="color:#64748b;">No grants found for this wallet.</p>'; return; }
+            list.innerHTML = `<p style="color:#8892b0; margin-bottom:12px;">Total: <strong style="color:#fff;">${d.grants.reduce((s,g)=>s+g.amountKeno,0).toLocaleString()} KENO</strong> across ${d.grants.length} grant(s)</p>` +
+                d.grants.map(g => `
+                <div style="background: rgba(255,255,255,0.04); border-radius: 8px; padding: 14px; margin-bottom: 8px; border-left: 3px solid ${g.status==='distributed'?'#10b981':'#f59e0b'};">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <span style="font-size:0.75rem; color:#64748b;">${g.grantId}</span>
+                            <div style="font-weight:700; color:#fff;">${parseFloat(g.amountKeno).toLocaleString()} KENO</div>
+                            <div style="font-size:0.8rem; color:#8892b0;">${new Date(g.requestedAt).toLocaleDateString()}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="padding: 4px 10px; border-radius: 20px; font-size:0.75rem; font-weight:700; background: ${g.status==='distributed'?'rgba(16,185,129,0.2)':'rgba(245,158,11,0.2)'}; color: ${g.status==='distributed'?'#10b981':'#f59e0b'};">${g.status.replace('_',' ').toUpperCase()}</span>
+                            ${g.txHash ? `<div style="margin-top:4px;"><a href="https://bscscan.com/tx/${g.txHash}" target="_blank" style="font-size:0.75rem; color:#10b981;">BscScan ↗</a></div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { list.innerHTML = '<p style="color:#f87171;">Error: ' + e.message + '</p>'; }
+    }
+    </script>
+
     <section class="cta-section">
         <div class="container">
             <h2>Join the Vision</h2>
