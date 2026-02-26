@@ -320,6 +320,12 @@ app.use((req, res, next) => {
 });
 app.use(express.static('public'));
 
+app.get('/UTL-Whitepaper-Kenostod.pdf', (req, res) => {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="UTL-Whitepaper-Kenostod.pdf"');
+    res.sendFile(__dirname + '/assets/documents/UTL-Whitepaper-Kenostod.pdf');
+});
+
 app.use('/snap', express.static('utl/metamask-snap', {
     setHeaders: (res) => {
         res.setHeader('Access-Control-Allow-Origin', '*');
