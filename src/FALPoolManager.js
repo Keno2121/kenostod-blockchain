@@ -11,6 +11,9 @@ class FALPoolManager {
         this.poolLoans = new Map();
         this.poolHistory = [];
         this.contributorProfiles = new Map();
+        this.treasuryBalance = 0;
+        this.treasuryAddress = '0x3B3538b955647d811D42400084e9409e6593bE97';
+        this.treasuryHistory = [];
         
         this.config = {
             minPoolDeposit: 100,
@@ -52,8 +55,11 @@ class FALPoolManager {
             this.poolLoans = new Map(savedData.poolLoans || []);
             this.poolHistory = savedData.poolHistory || [];
             this.contributorProfiles = new Map(savedData.contributorProfiles || []);
+            this.treasuryBalance = savedData.treasuryBalance || 0;
+            this.treasuryHistory = savedData.treasuryHistory || [];
             console.log(`✅ Loaded ${this.pools.size} FAL pools from disk`);
             console.log(`✅ Loaded ${this.contributorProfiles.size} pool contributor profiles`);
+            console.log(`✅ Treasury balance: ${this.treasuryBalance.toFixed(2)} KENO`);
         }
     }
     
@@ -64,6 +70,8 @@ class FALPoolManager {
             poolLoans: Array.from(this.poolLoans.entries()),
             poolHistory: this.poolHistory,
             contributorProfiles: Array.from(this.contributorProfiles.entries()),
+            treasuryBalance: this.treasuryBalance,
+            treasuryHistory: this.treasuryHistory,
             lastSaved: new Date().toISOString()
         });
     }
@@ -407,6 +415,16 @@ class FALPoolManager {
             pool.totalProfitGenerated += profitToDistribute;
         }
         
+        this.treasuryBalance += loan.platformFee;
+        this.treasuryHistory.push({
+            type: 'falp_platform_fee',
+            loanId,
+            poolId: loan.poolId,
+            amount: loan.platformFee,
+            timestamp: Date.now(),
+            note: '1% platform fee from FALP loan repayment'
+        });
+        
         this.poolHistory.push({
             type: 'loan_repaid',
             loanId,
@@ -414,6 +432,7 @@ class FALPoolManager {
             amount: loan.amount,
             profit: actualProfit,
             profitDistributed: profitToDistribute,
+            platformFeeToTreasury: loan.platformFee,
             timestamp: Date.now()
         });
         
@@ -424,7 +443,7 @@ class FALPoolManager {
         this.updatePoolAPY(loan.poolId);
         this.persistData();
         
-        console.log(`✅ Pool loan repaid: ${loan.amount} KENO to ${pool.name}, profit distributed: ${profitToDistribute.toFixed(2)} KENO`);
+        console.log(`✅ Pool loan repaid: ${loan.amount} KENO to ${pool.name}, profit distributed: ${profitToDistribute.toFixed(2)} KENO, treasury: +${loan.platformFee.toFixed(2)} KENO`);
         
         return {
             success: true,
@@ -432,7 +451,8 @@ class FALPoolManager {
             amountRepaid: totalRepayment,
             profitGenerated: actualProfit,
             profitDistributedToPool: profitToDistribute,
-            message: `Loan repaid! ${profitToDistribute.toFixed(2)} KENO distributed to pool contributors.`
+            platformFeeToTreasury: loan.platformFee,
+            message: `Loan repaid! ${profitToDistribute.toFixed(2)} KENO distributed to pool contributors. ${loan.platformFee.toFixed(2)} KENO to treasury.`
         };
     }
     
@@ -597,6 +617,23 @@ class FALPoolManager {
         };
     }
     
+    getTreasuryStats() {
+        const totalCollected = this.treasuryHistory.reduce((sum, e) => sum + e.amount, 0);
+        const recentHistory = this.treasuryHistory.slice(-20).reverse();
+        return {
+            balance: this.treasuryBalance,
+            address: this.treasuryAddress,
+            totalCollected,
+            totalTransactions: this.treasuryHistory.length,
+            recentHistory,
+            feeStructure: {
+                falpPlatformFee: `${this.config.platformFeePercentage}% of every FALP loan`,
+                distribution: '60% stakers — 40% treasury',
+                note: 'Platform fees self-fund the treasury without manual intervention'
+            }
+        };
+    }
+
     getPoolStats(poolId) {
         const pool = this.pools.get(poolId);
         if (!pool) return null;

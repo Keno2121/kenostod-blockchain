@@ -7647,18 +7647,19 @@ app.post('/api/fal/withdrawal/request', async (req, res) => {
                 subject: `🚨 New FAL Withdrawal Request: ${amount.toFixed(2)} KENO`,
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #10b981;">New FAL Withdrawal Request</h2>
+                        <h2 style="color: #10b981;">FAL KENO Distribution Request</h2>
                         <div style="background: #f3f4f6; padding: 20px; border-radius: 10px; margin: 20px 0;">
                             <p><strong>Request ID:</strong> ${requestId}</p>
-                            <p><strong>Amount:</strong> ${amount.toFixed(2)} KENO ($${amount.toFixed(2)} USD)</p>
+                            <p><strong>Amount:</strong> ${amount.toFixed(2)} KENO</p>
                             <p><strong>Simulator Wallet:</strong> ${simulatorWallet.substring(0, 30)}...</p>
-                            <p><strong>MetaMask Wallet:</strong> ${metaMaskWallet}</p>
+                            <p><strong>BSC MetaMask Wallet:</strong> ${metaMaskWallet}</p>
                             <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
                         </div>
-                        <p>Login to the <a href="https://kenostodblockchain.com/backoffice.html">Admin Backoffice</a> to review and process this request.</p>
+                        <p><strong>Student flow:</strong> KENO sent to their BSC wallet → student converts to USDK via Bridge.xyz. No admin cash handling required.</p>
+                        <p>View in <a href="https://kenostodblockchain.com/backoffice.html">Admin Backoffice</a> for distribution queue.</p>
                     </div>
                 `,
-                text: `New FAL Withdrawal Request\n\nRequest ID: ${requestId}\nAmount: ${amount.toFixed(2)} KENO\nMetaMask: ${metaMaskWallet}\n\nLogin to backoffice to process.`
+                text: `FAL KENO Distribution Request\n\nRequest ID: ${requestId}\nAmount: ${amount.toFixed(2)} KENO\nBSC MetaMask: ${metaMaskWallet}\n\nStudent converts to USDK via Bridge.xyz after receipt. View in backoffice.`
             });
             console.log('📧 Admin notification email sent for FAL withdrawal');
         } catch (emailError) {
@@ -7982,6 +7983,16 @@ app.get('/api/fal-pool/leaderboard', (req, res) => {
             error: 'Failed to fetch leaderboard',
             details: error.message 
         });
+    }
+});
+
+app.get('/api/fal-pool/treasury', (req, res) => {
+    try {
+        const stats = falPoolManager.getTreasuryStats();
+        res.json({ success: true, treasury: stats });
+    } catch (error) {
+        console.error('Treasury stats error:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch treasury stats', details: error.message });
     }
 });
 
