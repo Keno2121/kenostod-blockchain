@@ -414,7 +414,8 @@ app.get('/api/utl/dex/quote', async (req, res) => {
         const fromInfo = DEX_TOKEN_MAP[net]?.[fromToken?.toLowerCase()] || { symbol: 'UNKNOWN', decimals: 18 };
         const toInfo   = DEX_TOKEN_MAP[net]?.[toToken?.toLowerCase()]   || { symbol: 'UNKNOWN', decimals: 18 };
 
-        const url = `https://apiv5.paraswap.io/prices?srcToken=${fromToken}&destToken=${toToken}&srcDecimals=${fromInfo.decimals}&destDecimals=${toInfo.decimals}&amount=${amount}&side=SELL&network=${chainId}&userAddress=${userAddr}`;
+        const UTL_FEE_COLLECTOR = '0xfE537c43d202C455Cedc141B882c808287BB662f';
+        const url = `https://apiv5.paraswap.io/prices?srcToken=${fromToken}&destToken=${toToken}&srcDecimals=${fromInfo.decimals}&destDecimals=${toInfo.decimals}&amount=${amount}&side=SELL&network=${chainId}&userAddress=${userAddr}&partner=utl&partnerAddress=${UTL_FEE_COLLECTOR}&partnerFeeBps=10`;
         const resp = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) });
 
         if (resp.ok) {
@@ -485,6 +486,7 @@ app.post('/api/utl/dex/swap-data', async (req, res) => {
     }
 
     try {
+        const UTL_FEE_COLLECTOR = '0xfE537c43d202C455Cedc141B882c808287BB662f';
         const resp = await fetch(`https://apiv5.paraswap.io/transactions/${chainId}?ignoreChecks=true`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -496,7 +498,10 @@ app.post('/api/utl/dex/swap-data', async (req, res) => {
                 destAmount: priceRoute.destAmount,
                 slippage: Math.round((parseFloat(slippage) || 0.5) * 100),
                 userAddress: fromAddress,
-                deadline: Math.floor(Date.now() / 1000) + 600
+                deadline: Math.floor(Date.now() / 1000) + 600,
+                partner: 'utl',
+                partnerAddress: UTL_FEE_COLLECTOR,
+                partnerFeeBps: 10
             }),
             signal: AbortSignal.timeout(8000)
         });
