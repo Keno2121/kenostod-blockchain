@@ -95,7 +95,7 @@ class BSCTokenTransfer {
             }
             
             const bnbBalance = await this.provider.getBalance(this.wallet.address);
-            const minBNB = ethers.parseEther('0.001');
+            const minBNB = ethers.parseEther('0.0005');
             if (bnbBalance < minBNB) {
                 return {
                     success: false,
