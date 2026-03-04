@@ -777,6 +777,7 @@
 
         const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
         const FULL_DASHBOARD_URL = window.location.origin + '/utl-dashboard.html';
+        const isReplitPreview = window.location.hostname.includes('replit.dev') || window.location.hostname.includes('picard.replit');
 
         function copyDashboardUrl() {
             navigator.clipboard.writeText(FULL_DASHBOARD_URL).then(() => {
@@ -796,10 +797,20 @@
         function openWalletModal() {
             document.getElementById('walletModal').classList.remove('hidden');
             if (isMobile) {
-                document.getElementById('mobileWalletTip').classList.remove('hidden');
+                const tip = document.getElementById('mobileWalletTip');
+                tip.classList.remove('hidden');
                 document.getElementById('fullDashboardUrl').textContent = FULL_DASHBOARD_URL;
-                document.getElementById('wcSubtitle').textContent = 'Tap → approve in wallet → return here';
-                document.getElementById('mmSubtitle').textContent = 'Use MetaMask\'s built-in browser for best results';
+                if (isReplitPreview) {
+                    tip.style.borderColor = 'rgba(234,179,8,0.5)';
+                    tip.style.background = 'rgba(234,179,8,0.08)';
+                    tip.querySelector('.font-semibold').textContent = '⚠️ You are in the Replit Preview browser';
+                    tip.querySelector('.text-slate-300').innerHTML = 'Wallet connections need a real browser. Copy this URL and open it in <strong>Chrome</strong> or inside <strong>Trust Wallet browser tab</strong>:';
+                    document.getElementById('wcSubtitle').textContent = 'Use Chrome or Trust Wallet browser tab instead';
+                    document.getElementById('mmSubtitle').textContent = 'Use Chrome or MetaMask mobile app browser';
+                } else {
+                    document.getElementById('wcSubtitle').textContent = 'Tap → approve in wallet → return here';
+                    document.getElementById('mmSubtitle').textContent = isMobile ? "Open inside MetaMask's mobile app" : 'Browser extension';
+                }
             }
         }
 
@@ -825,7 +836,11 @@
 
                 showToast(`Connecting via ${walletId}...`, 'info');
 
-                if (walletConnector) {
+                // Phantom always uses direct connection (walletConnector does not handle it)
+                if (walletId === 'phantom') { await connectPhantomDirect(); return; }
+
+                // WalletConnect and MetaMask go through the walletConnector bundle
+                if (walletConnector && (walletId === 'walletconnect' || walletId === 'metamask')) {
                     const result = await walletConnector.connect(walletId, {
                         projectId: WALLETCONNECT_PROJECT_ID
                     });
@@ -842,11 +857,9 @@
 
                 if (walletId === 'metamask') {
                     await connectMetaMaskDirect();
-                } else if (walletId === 'phantom') {
-                    await connectPhantomDirect();
                 } else if (walletId === 'coinbase-sdk') {
                     await connectCoinbaseDirect();
-                } else {
+                } else if (!walletConnector) {
                     showToast('Wallet connector not loaded. Please refresh the page.', 'error');
                 }
             } catch (err) {
@@ -857,7 +870,7 @@
 
         async function connectMetaMaskDirect() {
             if (!window.ethereum) {
-                showToast('MetaMask not detected. Please install MetaMask.', 'error');
+                isMobile ? showToast('On mobile, open this page inside the MetaMask app browser — tap the browser icon inside MetaMask.', 'warning') : showToast('MetaMask not detected. Please install MetaMask from metamask.io', 'error');
                 return;
             }
             await window.ethereum.request({ method: 'eth_requestAccounts' });
