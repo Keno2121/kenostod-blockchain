@@ -64,11 +64,13 @@
             <p class="text-sm text-slate-400 mb-4">Choose how you'd like to connect to UTL on BNB Smart Chain.</p>
 
             <div id="mobileWalletTip" class="hidden mb-4 rounded-xl p-3 text-xs" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25);">
-                <div class="font-semibold text-blue-300 mb-1">📱 On Mobile? Here's how it works:</div>
-                <div class="text-slate-300 space-y-1">
-                    <div>• <strong>Best option:</strong> Open this page <em>inside</em> your wallet's built-in browser (Trust Wallet → Browser tab, MetaMask → Browser icon)</div>
-                    <div>• <strong>WalletConnect:</strong> Tap it → your wallet app opens → approve → <strong>come back to this tab</strong> to finish</div>
+                <div class="font-semibold text-blue-300 mb-2">📱 Best way on mobile — open inside your wallet's browser:</div>
+                <div class="text-slate-300 mb-2">In Trust Wallet: tap <strong>Browser</strong> tab at the bottom → paste this URL in the address bar:</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <div id="fullDashboardUrl" class="flex-1 rounded px-2 py-1 text-white font-mono break-all" style="background: rgba(0,0,0,0.3); font-size: 0.72rem;"></div>
+                    <button onclick="copyDashboardUrl()" id="copyUrlBtn" class="shrink-0 px-2 py-1 rounded font-semibold" style="background: rgba(99,102,241,0.7); color: white; font-size: 0.75rem; font-family: sans-serif;">Copy</button>
                 </div>
+                <div class="text-slate-400">Or use <strong>WalletConnect</strong> below → approve in wallet → <strong>come back to this tab</strong> to finish.</div>
             </div>
 
             <div class="space-y-3" id="walletOptions">
@@ -767,11 +769,28 @@
         }
 
         const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+        const FULL_DASHBOARD_URL = window.location.origin + '/utl-dashboard.html';
+
+        function copyDashboardUrl() {
+            navigator.clipboard.writeText(FULL_DASHBOARD_URL).then(() => {
+                const btn = document.getElementById('copyUrlBtn');
+                btn.textContent = 'Copied!';
+                btn.style.background = 'rgba(34,197,94,0.7)';
+                setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = 'rgba(99,102,241,0.7)'; }, 2500);
+            }).catch(() => {
+                const el = document.getElementById('fullDashboardUrl');
+                const range = document.createRange();
+                range.selectNode(el);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+            });
+        }
 
         function openWalletModal() {
             document.getElementById('walletModal').classList.remove('hidden');
             if (isMobile) {
                 document.getElementById('mobileWalletTip').classList.remove('hidden');
+                document.getElementById('fullDashboardUrl').textContent = FULL_DASHBOARD_URL;
                 document.getElementById('wcSubtitle').textContent = 'Tap → approve in wallet → return here';
                 document.getElementById('mmSubtitle').textContent = 'Use MetaMask\'s built-in browser for best results';
             }
