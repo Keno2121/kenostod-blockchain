@@ -1,6 +1,7 @@
 const pageParams = new URLSearchParams(window.location.search);
 const isStudentMode = pageParams.get('mode') === 'student';
 const isAdminMode = localStorage.getItem('kenostodAdmin') === 'true';
+const showAnswers = isAdminMode && pageParams.get('show_answers') === '1';
 
 let subscriptionVerified = localStorage.getItem('subscriptionActive') === 'true';
 const isSubscribed = () => subscriptionVerified || isAdminMode;
@@ -2663,13 +2664,13 @@ function loadCourse(courseId) {
         </div>
 
         <div class="section-block">
-            <h3>✅ Knowledge Check Quiz</h3>
+            <h3>✅ Knowledge Check Quiz${showAnswers ? ' <span style="background:#059669;color:white;padding:2px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;vertical-align:middle;margin-left:8px;">ANSWERS SHOWN</span>' : ''}</h3>
             ${course.quiz.map((q, idx) => `
-                <div class="quiz-question" data-correct="${btoa(q.correct)}">
+                <div class="quiz-question${showAnswers ? ' answered' : ''}" data-correct="${btoa(q.correct)}">
                     <strong>Question ${idx + 1}: ${q.question}</strong>
                     <ul>
                         ${q.options.map(opt => `
-                            <li onclick="checkAnswer(this)">${opt}</li>
+                            <li onclick="checkAnswer(this)" class="${showAnswers && opt === q.correct ? 'reveal-correct' : ''}">${opt}${showAnswers && opt === q.correct ? ' <span style="font-weight:700;color:#059669;margin-left:6px;">✓ Correct</span>' : ''}</li>
                         `).join('')}
                     </ul>
                 </div>
