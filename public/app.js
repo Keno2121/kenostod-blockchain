@@ -1585,7 +1585,7 @@ async function sendTransaction() {
             <p><strong>To:</strong> ${data.transaction.toAddress.substring(0, 20)}...</p>
             <p><strong>Amount:</strong> ${data.transaction.amount} KENO</p>
             <p><strong>Fee:</strong> ${data.transaction.fee} KENO</p>
-            ${message ? `<p><strong>Message:</strong> "${message}"</p>` : ''}
+            ${message ? `<p><strong>Message:</strong> "${escapeHtml(message)}"</p>` : ''}
             <p style="color: #ff9800; font-weight: bold; margin-top: 15px;">⏱️ You have 5 MINUTES to cancel this transaction!</p>
             <p style="color: #666;">Go to "View Pending Transactions" to cancel it before it's mined into a block.</p>
         `;
@@ -2158,7 +2158,7 @@ async function createProposal() {
             <h4>Proposal Created!</h4>
             <p>✅ ${data.message}</p>
             <p><strong>Proposal ID:</strong> ${data.proposal.id}</p>
-            <p><strong>Title:</strong> ${data.proposal.title}</p>
+            <p><strong>Title:</strong> ${escapeHtml(data.proposal.title)}</p>
             <p>Voting period: 7 days</p>
         `;
     } catch (error) {
@@ -2187,10 +2187,10 @@ async function viewActiveProposals() {
 
             html += `
                 <div class="transaction-item" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
-                    <h4>${prop.title}</h4>
+                    <h4>${escapeHtml(prop.title)}</h4>
                     <p><strong>ID:</strong> ${prop.id}</p>
-                    <p><strong>Description:</strong> ${prop.description}</p>
-                    <p><strong>Parameter:</strong> ${prop.parameterName}</p>
+                    <p><strong>Description:</strong> ${escapeHtml(prop.description)}</p>
+                    <p><strong>Parameter:</strong> ${escapeHtml(prop.parameterName)}</p>
                     <p><strong>Current Value:</strong> ${prop.currentValue} → <strong>Proposed:</strong> ${prop.newValue}</p>
                     <p><strong>Time Remaining:</strong> ${daysLeft}d ${hoursLeft}h</p>
                     <p><strong>Yes Votes:</strong> ${prop.yesVotingPower} | <strong>No Votes:</strong> ${prop.noVotingPower}</p>
@@ -2406,7 +2406,7 @@ async function loadTransactions() {
 function showError(elementId, message) {
     const element = document.getElementById(elementId);
     element.className = 'result error';
-    element.innerHTML = `<p>❌ Error: ${message}</p>`;
+    element.innerHTML = `<p>❌ Error: ${escapeHtml(message)}</p>`;
 }
 
 async function togglePoRVMode() {
@@ -2445,8 +2445,8 @@ async function loadComputationalJobs() {
         data.jobs.forEach(job => {
             html += `
                 <div class="transaction-item">
-                    <strong>Job ID:</strong> ${job.jobId}<br>
-                    <strong>Type:</strong> ${job.jobType}<br>
+                    <strong>Job ID:</strong> ${escapeHtml(job.jobId)}<br>
+                    <strong>Type:</strong> ${escapeHtml(job.jobType)}<br>
                     <strong>Status:</strong> <span style="color: ${job.status === 'pending' ? '#f39c12' : job.status === 'completed' ? '#3498db' : '#2ecc71'}">${job.status.toUpperCase()}</span><br>
                     <strong>Upfront Fee:</strong> ${job.upfrontFee} KENO<br>
                     <strong>Royalty Rate:</strong> ${job.royaltyRate}%<br>
@@ -2490,8 +2490,8 @@ async function minePoRVBlock() {
         if (data.job) {
             html += `
                 <div class="transaction-item">
-                    <strong>Job ID:</strong> ${data.job.jobId}<br>
-                    <strong>Job Type:</strong> ${data.job.jobType}<br>
+                    <strong>Job ID:</strong> ${escapeHtml(data.job.jobId)}<br>
+                    <strong>Job Type:</strong> ${escapeHtml(data.job.jobType)}<br>
                     <strong>Upfront Fee Earned:</strong> ${data.job.upfrontFee} KENO<br>
                     <strong>Royalty Rate:</strong> ${data.job.royaltyRate}%
                 </div>
@@ -2691,9 +2691,9 @@ async function registerEnterpriseClient() {
         resultDiv.innerHTML = `
             <h4>Enterprise Client Registered Successfully!</h4>
             <div class="transaction-item">
-                <strong>Client ID:</strong> ${data.client.clientId}<br>
-                <strong>Name:</strong> ${data.client.name}<br>
-                <strong>Wallet Address:</strong> ${data.client.walletAddress}<br>
+                <strong>Client ID:</strong> ${escapeHtml(data.client.clientId)}<br>
+                <strong>Name:</strong> ${escapeHtml(data.client.name)}<br>
+                <strong>Wallet Address:</strong> ${escapeHtml(data.client.walletAddress)}<br>
                 <strong>Status:</strong> ${data.client.isActive ? '✅ Active' : '❌ Inactive'}<br>
                 <strong>Registered:</strong> ${new Date(data.client.registeredAt).toLocaleString()}<br>
                 <p style="margin-top: 10px; color: #3498db; font-weight: 600;">
@@ -2757,8 +2757,8 @@ async function createComputationalJob() {
         resultDiv.innerHTML = `
             <h4>Computational Job Created Successfully!</h4>
             <div class="transaction-item">
-                <strong>Job ID:</strong> ${data.job.jobId}<br>
-                <strong>Type:</strong> ${data.job.jobType}<br>
+                <strong>Job ID:</strong> ${escapeHtml(data.job.jobId)}<br>
+                <strong>Type:</strong> ${escapeHtml(data.job.jobType)}<br>
                 <strong>Status:</strong> ${data.job.status.toUpperCase()}<br>
                 <strong>Upfront Fee:</strong> ${data.job.upfrontFee} KENO (escrowed)<br>
                 <strong>Royalty Rate:</strong> ${data.job.royaltyRate}%<br>
@@ -2850,9 +2850,9 @@ async function viewEnterpriseClient() {
         let html = '<h4>Enterprise Client Dashboard</h4>';
         html += `
             <div class="transaction-item">
-                <strong>Client ID:</strong> ${data.client.clientId}<br>
-                <strong>Name:</strong> ${data.client.name}<br>
-                <strong>Wallet Address:</strong> ${data.client.walletAddress}<br>
+                <strong>Client ID:</strong> ${escapeHtml(data.client.clientId)}<br>
+                <strong>Name:</strong> ${escapeHtml(data.client.name)}<br>
+                <strong>Wallet Address:</strong> ${escapeHtml(data.client.walletAddress)}<br>
                 <strong>Status:</strong> ${data.client.isActive ? '✅ Active' : '❌ Inactive'}<br>
                 <strong>Jobs Created:</strong> ${data.client.jobsCreated?.length || 0}<br>
                 <strong>Total Paid:</strong> ${data.client.totalPaid?.toFixed(2) || 0} KENO<br>
@@ -2885,8 +2885,8 @@ async function viewAllClients() {
         data.clients.forEach(client => {
             html += `
                 <div class="transaction-item">
-                    <strong>Client ID:</strong> ${client.clientId}<br>
-                    <strong>Name:</strong> ${client.name}<br>
+                    <strong>Client ID:</strong> ${escapeHtml(client.clientId)}<br>
+                    <strong>Name:</strong> ${escapeHtml(client.name)}<br>
                     <strong>Jobs:</strong> ${client.jobsCreated?.length || 0}<br>
                     <strong>Total Paid:</strong> ${client.totalPaid?.toFixed(2) || 0} KENO<br>
                     <strong>Status:</strong> ${client.isActive ? '✅ Active' : '❌ Inactive'}
@@ -3094,9 +3094,9 @@ async function registerMerchant() {
             <h4>Merchant Registered Successfully!</h4>
             <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
                 <strong>Merchant ID:</strong> ${data.merchant.merchantId}<br>
-                <strong>Business Name:</strong> ${data.merchant.businessName}<br>
-                <strong>Wallet Address:</strong> ${data.merchant.walletAddress}<br>
-                <strong>API Key:</strong> ${data.merchant.apiKey}<br>
+                <strong>Business Name:</strong> ${escapeHtml(data.merchant.businessName)}<br>
+                <strong>Wallet Address:</strong> ${escapeHtml(data.merchant.walletAddress)}<br>
+                <strong>API Key:</strong> ${escapeHtml(data.merchant.apiKey)}<br>
                 <strong>Status:</strong> ${data.merchant.isActive ? '✅ Active' : '❌ Inactive'}<br>
                 <p style="margin-top: 10px; color: #2ecc71; font-weight: 600;">
                     🎉 Your merchant account is ready! Save your Merchant ID and API Key.
@@ -3142,8 +3142,8 @@ async function createPaymentRequest() {
                 <strong>Payment ID:</strong> ${data.paymentRequest.paymentRequestId}<br>
                 <strong>Amount (KENO):</strong> ${data.paymentRequest.amountKENO.toFixed(2)} KENO<br>
                 <strong>Amount (USD):</strong> $${data.paymentRequest.amountUSD.toFixed(2)}<br>
-                <strong>Description:</strong> ${data.paymentRequest.description}<br>
-                <strong>Payment URL:</strong> ${data.paymentRequest.paymentUrl}<br>
+                <strong>Description:</strong> ${escapeHtml(data.paymentRequest.description)}<br>
+                <strong>Payment URL:</strong> ${escapeHtml(data.paymentRequest.paymentUrl)}<br>
                 <strong>QR Code String:</strong> <code style="word-break: break-all;">${data.paymentRequest.qrCode.qrString}</code><br>
                 <strong>Expires:</strong> ${new Date(data.paymentRequest.expiresAt).toLocaleString()}<br>
                 <p style="margin-top: 10px; color: #3498db; font-weight: 600;">
@@ -3170,13 +3170,13 @@ async function viewMerchantStats() {
         const resultDiv = document.getElementById('merchantDashboardResult');
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
-            <h4>Merchant Dashboard - ${data.merchant.businessName}</h4>
+            <h4>Merchant Dashboard - ${escapeHtml(data.merchant.businessName)}</h4>
             <div class="transaction-item">
                 <h5>Account Information</h5>
-                <strong>Merchant ID:</strong> ${data.merchant.merchantId}<br>
-                <strong>Business Type:</strong> ${data.merchant.businessType}<br>
-                <strong>Wallet:</strong> ${data.merchant.walletAddress}<br>
-                <strong>Email:</strong> ${data.merchant.contactEmail}<br>
+                <strong>Merchant ID:</strong> ${escapeHtml(data.merchant.merchantId)}<br>
+                <strong>Business Type:</strong> ${escapeHtml(data.merchant.businessType)}<br>
+                <strong>Wallet:</strong> ${escapeHtml(data.merchant.walletAddress)}<br>
+                <strong>Email:</strong> ${escapeHtml(data.merchant.contactEmail)}<br>
                 <strong>Status:</strong> ${data.merchant.isActive ? '✅ Active' : '❌ Inactive'}<br>
                 <strong>Registered:</strong> ${new Date(data.merchant.registeredAt).toLocaleString()}
             </div>
@@ -3212,9 +3212,9 @@ async function viewAllMerchants() {
         data.merchants.forEach(merchant => {
             html += `
                 <div class="transaction-item">
-                    <strong>Business:</strong> ${merchant.businessName}<br>
-                    <strong>Merchant ID:</strong> ${merchant.merchantId}<br>
-                    <strong>Type:</strong> ${merchant.businessType}<br>
+                    <strong>Business:</strong> ${escapeHtml(merchant.businessName)}<br>
+                    <strong>Merchant ID:</strong> ${escapeHtml(merchant.merchantId)}<br>
+                    <strong>Type:</strong> ${escapeHtml(merchant.businessType)}<br>
                     <strong>Payments:</strong> ${merchant.paymentCount || 0}<br>
                     <strong>Total Revenue:</strong> ${merchant.totalRevenueKENO?.toFixed(2) || 0} KENO<br>
                     <strong>Status:</strong> ${merchant.isActive ? '✅ Active' : '❌ Inactive'}
@@ -3750,9 +3750,9 @@ async function registerBankingAccount() {
             resultDiv.innerHTML = `
                 <h4>✅ Banking Account Registered!</h4>
                 <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
-                    <strong>Wallet:</strong> ${data.account.walletAddress}<br>
-                    <strong>Email:</strong> ${data.account.email}<br>
-                    <strong>Name:</strong> ${data.account.fullName}<br>
+                    <strong>Wallet:</strong> ${escapeHtml(data.account.walletAddress)}<br>
+                    <strong>Email:</strong> ${escapeHtml(data.account.email)}<br>
+                    <strong>Name:</strong> ${escapeHtml(data.account.fullName)}<br>
                     <strong>Registered:</strong> ${new Date(data.account.registeredAt).toLocaleString()}
                 </div>
             `;
