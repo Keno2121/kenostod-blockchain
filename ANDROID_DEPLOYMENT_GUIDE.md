@@ -23,6 +23,31 @@ Your web app has been converted into an **Android app** with **Google Play Billi
 Your app now supports **two payment methods**:
 
 1. **Website (Stripe)** - Desktop/mobile browser users
+# 📱 Kenostod Academy - Android App Deployment Guide (Google Play Store)
+
+## ✅ Setup Complete!
+
+Your web app has been converted into an **Android app** with **Google Play Billing** for subscriptions!
+
+---
+
+## 📊 Quick Facts
+
+- **App Name**: Kenostod Academy
+- **Package ID**: com.kenostod.academy  
+- **Platform**: Android 6.0+ (API 23+)
+- **Current Version**: 1.0 (Build 1)
+- **Billing**: Google Play In-App Subscriptions (15% fee)
+
+---
+
+## 💰 Revenue Model
+
+### **Dual Subscription System**
+
+Your app now supports **two payment methods**:
+
+1. **Website (Stripe)** - Desktop/mobile browser users
    - Fee: 2.9% + $0.30
    - Revenue: $14.41 per $15 student subscription (96%)
    

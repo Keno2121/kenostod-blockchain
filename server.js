@@ -1518,6 +1518,16 @@ app.post('/api/admin/grants/update', adminAuth, (req, res) => {
     }
 });
 
+// Owner curriculum preview — verifies admin password and returns unlock token
+app.get('/api/owner-preview', (req, res) => {
+    const { key } = req.query;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || !key || key !== adminPassword) {
+        return res.status(403).json({ ok: false, error: 'Invalid key' });
+    }
+    res.json({ ok: true, plan: 'professional', message: 'Owner preview unlocked' });
+});
+
 // Get blockchain info (with pagination support)
 app.get('/api/blockchain', (req, res) => {
     const limit = parseInt(req.query.limit) || 50;

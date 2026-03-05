@@ -2794,6 +2794,31 @@
                 );
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
+
+            // Owner curriculum preview — bypass Stripe for reviewing your own courses
+            const previewKey = urlParams.get('preview');
+            if (previewKey) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                fetch('/api/owner-preview?key=' + encodeURIComponent(previewKey))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.ok) {
+                            localStorage.setItem('subscriptionPlan', data.plan || 'professional');
+                            localStorage.setItem('subscriptionActive', 'true');
+                            localStorage.setItem('subscriptionDate', new Date().toISOString());
+                            showKenostodNotification(
+                                '🛡️ Owner Preview Active',
+                                'All courses and content are now unlocked for your review.'
+                            );
+                            setTimeout(() => {
+                                window.location.href = '/backoffice.html?mode=student&tab=courses';
+                            }, 1500);
+                        } else {
+                            showKenostodNotification('❌ Invalid Preview Key', 'Check your admin password and try again.');
+                        }
+                    })
+                    .catch(() => showKenostodNotification('❌ Preview Error', 'Could not connect to server.'));
+            }
         });
     </script>
 
