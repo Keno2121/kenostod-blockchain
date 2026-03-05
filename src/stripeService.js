@@ -1,5 +1,9 @@
 const { getUncachableStripeClient } = require('./stripeClient');
 
+let _cachedProducts = null;
+let _cacheExpiry = 0;
+const CACHE_TTL_MS = 60 * 60 * 1000;
+
 /**
  * StripeService: Handles direct Stripe API operations
  * Use Stripe client for write operations, StripeStorage for read operations
@@ -35,39 +39,40 @@ class StripeService {
   }
 
   async ensureSubscriptionProducts() {
+    const now = Date.now();
+    if (_cachedProducts && now < _cacheExpiry) {
+      return _cachedProducts;
+    }
+
     const stripe = await getUncachableStripeClient();
     
-    // Get or create Student product
     let studentProduct = await this.findOrCreateProduct(stripe, 'Kenostod Student', 'Student Subscription - Access to all courses and learning materials');
-    
-    // Get or create Professional product
     let proProduct = await this.findOrCreateProduct(stripe, 'Kenostod Professional', 'Professional Subscription - Everything in Student plus Corporate/B2B features');
 
-    // Create prices if they don't exist
-    const studentPrice = await this.findOrCreatePrice(stripe, studentProduct.id, 9.99, 'Student subscription');
-    const proPrice = await this.findOrCreatePrice(stripe, proProduct.id, 29.99, 'Professional subscription');
+    const studentPrice = await this.findOrCreatePrice(stripe, studentProduct.id, 9.99);
+    const proPrice = await this.findOrCreatePrice(stripe, proProduct.id, 29.99);
 
-    return {
+    _cachedProducts = {
       student: { product: studentProduct, price: studentPrice },
       professional: { product: proProduct, price: proPrice }
     };
+    _cacheExpiry = now + CACHE_TTL_MS;
+
+    return _cachedProducts;
   }
 
   async findOrCreateProduct(stripe, name, description) {
     try {
-      // List products to find existing one
-      const products = await stripe.products.list({ limit: 100 });
-      const existing = products.data.find(p => p.name === name);
+      const products = await stripe.products.list({ limit: 100, active: true });
+      const existing = products.data.find(p => p.name === name && p.active);
       
       if (existing) {
         return existing;
       }
       
-      // Create new product
       return await stripe.products.create({
         name,
         description,
-        type: 'service',
       });
     } catch (error) {
       console.error('Error in findOrCreateProduct:', error.message);
@@ -75,17 +80,15 @@ class StripeService {
     }
   }
 
-  async findOrCreatePrice(stripe, productId, amount, description) {
+  async findOrCreatePrice(stripe, productId, amount) {
     try {
-      // List prices for this product
-      const prices = await stripe.prices.list({ product: productId, limit: 100 });
-      const existing = prices.data.find(p => p.unit_amount === Math.round(amount * 100) && p.status === 'active');
+      const prices = await stripe.prices.list({ product: productId, active: true, limit: 100 });
+      const existing = prices.data.find(p => p.unit_amount === Math.round(amount * 100) && p.active === true && p.recurring?.interval === 'month');
       
       if (existing) {
         return existing;
       }
       
-      // Create new price
       return await stripe.prices.create({
         product: productId,
         unit_amount: Math.round(amount * 100),

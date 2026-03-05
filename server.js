@@ -3663,7 +3663,7 @@ app.get('/api/stripe/subscription-prices', async (req, res) => {
     try {
         const prices = await stripeService.listPrices();
         // Filter for active subscription prices
-        const subscriptionPrices = prices.filter(p => p.type === 'recurring' && p.status === 'active');
+        const subscriptionPrices = prices.filter(p => p.active === true && p.recurring != null);
         res.json(subscriptionPrices);
     } catch (error) {
         console.error('List prices error:', error);

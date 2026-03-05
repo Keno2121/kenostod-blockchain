@@ -1211,15 +1211,22 @@ function initializeApp() {
 
 async function updateCryptoTicker() {
     try {
-        const [statsResponse, pricesResponse, txResponse] = await Promise.all([
-            fetch(`${API_BASE}/api/stats`),
-            fetch(`${API_BASE}/api/crypto-prices`),
-            fetch(`${API_BASE}/api/recent-transactions?limit=5`)
+        const safeJson = async (response) => {
+            try { return response.ok ? await response.json() : null; } catch { return null; }
+        };
+        const safeFetch = async (url) => {
+            try { return await fetch(url); } catch { return { ok: false }; }
+        };
+
+        const [statsRes, pricesRes, txRes] = await Promise.all([
+            safeFetch(`${API_BASE}/api/stats`),
+            safeFetch(`${API_BASE}/api/crypto-prices`),
+            safeFetch(`${API_BASE}/api/recent-transactions?limit=5`)
         ]);
 
-        const stats = await statsResponse.json();
-        const prices = await pricesResponse.json();
-        const recentTx = await txResponse.json();
+        const stats = await safeJson(statsRes) || {};
+        const prices = await safeJson(pricesRes) || {};
+        const recentTx = await safeJson(txRes) || [];
 
         let tickerHTML = '';
 
