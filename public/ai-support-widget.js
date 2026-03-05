@@ -454,14 +454,22 @@ class AISupportWidget {
         const messagesContainer = document.getElementById('aiSupportMessages');
         const messageDiv = document.createElement('div');
         messageDiv.className = `ai-message ${role}`;
-        
-        const icon = role === 'assistant' ? '<span class="ai-icon">🤖</span>' : '';
-        messageDiv.innerHTML = `
-            <div class="ai-message-bubble">
-                ${icon}${this.formatMessage(content)}
-            </div>
-        `;
-        
+
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-message-bubble';
+
+        if (role === 'assistant') {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'ai-icon';
+            iconSpan.textContent = '🤖';
+            bubble.appendChild(iconSpan);
+        }
+
+        const contentSpan = document.createElement('span');
+        contentSpan.innerHTML = this.formatMessage(content);
+        bubble.appendChild(contentSpan);
+
+        messageDiv.appendChild(bubble);
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
