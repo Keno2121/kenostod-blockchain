@@ -331,9 +331,12 @@
         document.body.appendChild(modal);
     }
 
-    // Check course access (subscription OR scholarship)
+    // Check course access (subscription OR scholarship OR admin)
     async function checkCourseAccess(courseId) {
         if (courseId === 1) return { hasAccess: true, reason: 'free' };
+        
+        const isAdmin = localStorage.getItem('kenostodAdmin') === 'true';
+        if (isAdmin) return { hasAccess: true, reason: 'admin' };
         
         const subscriptionActive = localStorage.getItem('subscriptionActive') === 'true';
         if (subscriptionActive) return { hasAccess: true, reason: 'subscription' };

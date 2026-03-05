@@ -2626,6 +2626,32 @@ function loadCourse(courseId) {
         });
     }
     
+    // Map course IDs to their interactive HTML pages
+    const courseUrls = {
+        1: '/courses/course-1-wallet-basics.html',
+        2: '/courses/course-2-transactions.html',
+        3: '/courses/course-3-reversal.html',
+        4: '/courses/course-4-scheduled.html',
+        5: '/courses/course-5-recovery.html',
+        6: '/courses/course-6-messages.html',
+        7: '/courses/course-7-reputation.html',
+        8: '/courses/course-8-governance.html',
+        9: '/courses/course-9-pow.html',
+        10: '/courses/course-10-porv.html',
+        11: '/courses/course-11-rvt.html',
+        12: '/courses/course-12-enterprise.html',
+        13: '/courses/course-13-royalties.html',
+        14: '/courses/course-14-merchant.html',
+        15: '/courses/course-15-banking.html',
+        16: '/courses/course-16-exchange.html',
+        17: '/courses/course-17-finance.html',
+        18: '/courses/course-18-fal.html',
+        19: '/courses/course-19-falp.html',
+        20: '/courses/course-20-wealth.html',
+        21: '/courses/course-21-generational.html'
+    };
+    const courseUrl = courseUrls[courseId];
+
     // Render course content
     let html = `
         <div class="course-header-section">
@@ -2635,6 +2661,7 @@ function loadCourse(courseId) {
                 <div class="meta-item">📚 ${course.modules} Modules</div>
                 <div class="meta-item">📊 ${course.level}</div>
             </div>
+            ${courseUrl ? `<div style="margin-top: 16px;"><a href="${courseUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.9rem;box-shadow:0 4px 12px rgba(99,102,241,0.3);transition:all 0.2s;">📖 Open Full Interactive Course <span style="font-size:1rem;">→</span></a><span style="display:block;margin-top:6px;font-size:0.75rem;color:#64748b;">Opens the complete student learning experience with all lessons, exercises &amp; quizzes</span></div>` : ''}
         </div>
 
         <div class="section-block">
