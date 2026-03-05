@@ -2,6 +2,16 @@ const API_BASE = '';
 let ec;
 let currentLanguage = localStorage.getItem('language') || 'en';
 
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // KENO Token Contract Details
 const KENO_TOKEN = {
     address: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
@@ -1609,7 +1619,7 @@ async function loadPendingTransactions() {
                     <p><strong>To:</strong> ${tx.toAddress.substring(0, 20)}...</p>
                     <p><strong>Amount:</strong> ${tx.amount} KENO</p>
                     <p><strong>Time Remaining:</strong> ${canCancel ? `⏱️ ${seconds}s` : '❌ Expired'}</p>
-                    ${tx.message ? `<p><strong>Message:</strong> ${tx.message}</p>` : ''}
+                    ${tx.message ? `<p><strong>Message:</strong> ${escapeHtml(tx.message)}</p>` : ''}
                     ${canCancel ? 
                         `<button onclick="cancelTransaction('${tx.hash}', '${address}')" class="btn btn-danger">🔄 Cancel Transaction</button>` :
                         '<p style="color: #888;">Cannot cancel (past 5-minute window)</p>'
@@ -2333,7 +2343,7 @@ async function loadBlockchain(offset = 0) {
                             <strong>From:</strong> ${tx.fromAddress ? tx.fromAddress.substring(0, 20) + '...' : 'Mining Reward'}<br>
                             <strong>To:</strong> ${tx.toAddress.substring(0, 20)}...<br>
                             <strong>Amount:</strong> ${tx.amount} KENO<br>
-                            ${tx.message ? `<strong>Message:</strong> ${tx.message}<br>` : ''}
+                            ${tx.message ? `<strong>Message:</strong> ${escapeHtml(tx.message)}<br>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -2373,7 +2383,7 @@ async function loadTransactions() {
                     <strong>To:</strong> ${tx.toAddress}<br>
                     <strong>Amount:</strong> ${tx.amount} KENO<br>
                     <strong>Fee:</strong> ${tx.fee} KENO<br>
-                    ${tx.message ? `<strong>Message:</strong> ${tx.message}<br>` : ''}
+                    ${tx.message ? `<strong>Message:</strong> ${escapeHtml(tx.message)}<br>` : ''}
                     <strong>Timestamp:</strong> ${new Date(tx.timestamp).toLocaleString()}
                 </div>
             `;
