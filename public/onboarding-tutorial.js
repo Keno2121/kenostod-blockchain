@@ -254,7 +254,7 @@ class InteractiveTutorial {
     createModal(step) {
         this.modal = document.createElement('div');
         this.modal.className = 'tutorial-modal';
-        
+
         const progress = ((this.currentStep + 1) / this.steps.length) * 100;
         const isActionStep = step.requiresAction;
 
@@ -298,7 +298,7 @@ class InteractiveTutorial {
                 .tutorial-progress-fill {
                     background: linear-gradient(90deg, #667eea, #764ba2);
                     height: 100%;
-                    width: ${progress}%;
+                    width: 0%;
                     transition: width 0.5s ease;
                     border-radius: 4px;
                 }
@@ -333,7 +333,7 @@ class InteractiveTutorial {
                     align-items: center;
                     gap: 10px;
                     padding: 12px 15px;
-                    background: ${isActionStep ? 'rgba(255, 193, 7, 0.15)' : 'rgba(76, 175, 80, 0.15)'};
+                    background: rgba(76, 175, 80, 0.15);
                     border-radius: 10px;
                     margin-bottom: 20px;
                     font-weight: 500;
@@ -418,29 +418,19 @@ class InteractiveTutorial {
             </style>
             <div class="tutorial-modal-container">
                 <div class="tutorial-progress-bar">
-                    <div class="tutorial-progress-fill"></div>
+                    <div class="tutorial-progress-fill" id="tutorialProgressFill"></div>
                 </div>
-                <div class="tutorial-step-counter">Step ${this.currentStep + 1} of ${this.steps.length}</div>
-                <h2 class="tutorial-title">${step.title}</h2>
-                <p class="tutorial-message">${step.message}</p>
-                ${step.instruction ? `<div class="tutorial-instruction">${step.instruction}</div>` : ''}
-                ${isActionStep ? `
-                    <div class="tutorial-action-status pending" id="tutorialActionStatus">
-                        <div class="tutorial-spinner"></div>
-                        <span id="tutorialStatusText">${step.actionLabel}</span>
-                    </div>
-                ` : ''}
+                <div class="tutorial-step-counter" id="tutorialStepCounter"></div>
+                <h2 class="tutorial-title" id="tutorialTitle"></h2>
+                <p class="tutorial-message" id="tutorialMessage"></p>
+                <div class="tutorial-instruction" id="tutorialInstruction"></div>
+                <div class="tutorial-action-status pending" id="tutorialActionStatus">
+                    <div class="tutorial-spinner"></div>
+                    <span id="tutorialStatusText"></span>
+                </div>
                 <div class="tutorial-buttons">
-                    ${step.buttonText ? `
-                        <button class="tutorial-btn" id="tutorialNextBtn" ${isActionStep ? 'disabled' : ''}>
-                            ${step.buttonText}
-                        </button>
-                    ` : `
-                        <button class="tutorial-btn" id="tutorialNextBtn" disabled>
-                            Continue →
-                        </button>
-                    `}
-                    ${isActionStep ? `<button class="tutorial-btn-skip-step" id="tutorialSkipStepBtn">Skip This Step →</button>` : ''}
+                    <button class="tutorial-btn" id="tutorialNextBtn">Continue &#x2192;</button>
+                    <button class="tutorial-btn-skip-step" id="tutorialSkipStepBtn">Skip This Step &#x2192;</button>
                     <button class="tutorial-btn-skip" id="tutorialSkipBtn">Exit Tutorial</button>
                 </div>
             </div>
@@ -448,19 +438,40 @@ class InteractiveTutorial {
 
         document.body.appendChild(this.modal);
 
-        const nextBtn = document.getElementById('tutorialNextBtn');
-        const skipBtn = document.getElementById('tutorialSkipBtn');
-        const skipStepBtn = document.getElementById('tutorialSkipStepBtn');
+        document.getElementById('tutorialProgressFill').style.width = progress + '%';
+        document.getElementById('tutorialStepCounter').textContent = 'Step ' + (this.currentStep + 1) + ' of ' + this.steps.length;
+        document.getElementById('tutorialTitle').textContent = step.title;
+        document.getElementById('tutorialMessage').textContent = step.message;
 
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => this.nextStep());
+        const instrEl = document.getElementById('tutorialInstruction');
+        if (step.instruction) {
+            instrEl.innerHTML = step.instruction;
+        } else {
+            instrEl.style.display = 'none';
         }
-        if (skipBtn) {
-            skipBtn.addEventListener('click', () => this.skip());
+
+        const actionStatus = document.getElementById('tutorialActionStatus');
+        if (isActionStep) {
+            actionStatus.style.background = 'rgba(255, 193, 7, 0.15)';
+            document.getElementById('tutorialStatusText').textContent = step.actionLabel;
+        } else {
+            actionStatus.style.display = 'none';
         }
-        if (skipStepBtn) {
-            skipStepBtn.addEventListener('click', () => this.skipStep());
+
+        const nextBtn = document.getElementById('tutorialNextBtn');
+        nextBtn.textContent = step.buttonText || 'Continue \u2192';
+        nextBtn.disabled = isActionStep || !step.buttonText;
+
+        const skipStepBtn = document.getElementById('tutorialSkipStepBtn');
+        if (!isActionStep) {
+            skipStepBtn.style.display = 'none';
         }
+
+        const skipBtn = document.getElementById('tutorialSkipBtn');
+
+        nextBtn.addEventListener('click', () => this.nextStep());
+        skipBtn.addEventListener('click', () => this.skip());
+        skipStepBtn.addEventListener('click', () => this.skipStep());
 
         if (isActionStep && step.verification) {
             this.startVerification(step);
@@ -492,15 +503,19 @@ class InteractiveTutorial {
         if (statusDiv) {
             statusDiv.classList.remove('pending');
             statusDiv.classList.add('complete');
-            statusDiv.innerHTML = `
-                <span class="tutorial-checkmark">✅</span>
-                <span>${step.successLabel}</span>
-            `;
+            statusDiv.textContent = '';
+            const checkmark = document.createElement('span');
+            checkmark.className = 'tutorial-checkmark';
+            checkmark.textContent = '✅';
+            const label = document.createElement('span');
+            label.textContent = step.successLabel;
+            statusDiv.appendChild(checkmark);
+            statusDiv.appendChild(label);
         }
 
         if (nextBtn) {
             nextBtn.disabled = false;
-            nextBtn.innerHTML = 'Continue →';
+            nextBtn.textContent = 'Continue \u2192';
         }
 
         if (step.onComplete) {
