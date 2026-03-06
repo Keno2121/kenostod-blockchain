@@ -318,7 +318,15 @@ app.use((req, res, next) => {
     }
     next();
 });
-app.use(express.static('public'));
+app.use(express.static('public', {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        }
+    }
+}));
 
 
 app.use('/snap', express.static('utl/metamask-snap', {
