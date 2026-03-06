@@ -1439,10 +1439,10 @@ async function createWallet() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>New Wallet Created!</h4>
-            <p><strong>Address:</strong> <code>${data.address}</code></p>
-            <p><strong>Private Key:</strong> <code>${data.privateKey}</code></p>
-            <p style="color: #dc3545; margin-top: 10px;">⚠️ ${data.warning}</p>
-            <button onclick="useThisWallet('${data.address}', '${data.privateKey}')" class="btn btn-secondary" style="margin-top: 10px;">Use This Wallet</button>
+            <p><strong>Address:</strong> <code>${escapeHtml(data.address)}</code></p>
+            <p><strong>Private Key:</strong> <code>${escapeHtml(data.privateKey)}</code></p>
+            <p style="color: #dc3545; margin-top: 10px;">⚠️ ${escapeHtml(data.warning)}</p>
+            <button onclick="useThisWallet('${escapeHtml(data.address)}', '${escapeHtml(data.privateKey)}')" class="btn btn-secondary" style="margin-top: 10px;">Use This Wallet</button>
         `;
     } catch (error) {
         showError('newWallet', error.message);
@@ -1475,8 +1475,8 @@ async function importWallet() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>✅ Wallet Imported Successfully!</h4>
-            <p><strong>Address:</strong> <code>${publicKey.substring(0, 20)}...</code></p>
-            <p><strong>Balance:</strong> ${data.balance} KENO</p>
+            <p><strong>Address:</strong> <code>${escapeHtml(publicKey.substring(0, 20))}...</code></p>
+            <p><strong>Balance:</strong> ${escapeHtml(String(data.balance))} KENO</p>
             <p style="color: var(--accent-green); margin-top: 10px;">Your wallet is now loaded and ready to use!</p>
         `;
         
@@ -1532,8 +1532,8 @@ async function checkBalance() {
         
         resultDiv.innerHTML = `
             <h4>Balance Information</h4>
-            <p><strong>Address:</strong> <code>${data.address.substring(0, 20)}...</code></p>
-            <p><strong>Balance:</strong> ${data.balance.toLocaleString()} ${data.token}</p>
+            <p><strong>Address:</strong> <code>${escapeHtml(data.address.substring(0, 20))}...</code></p>
+            <p><strong>Balance:</strong> ${escapeHtml(String(data.balance.toLocaleString()))} ${escapeHtml(data.token)}</p>
             ${breakdownHtml}
         `;
     } catch (error) {
@@ -1580,11 +1580,11 @@ async function sendTransaction() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>✅ Transaction Created Successfully!</h4>
-            <p><strong>Transaction Hash:</strong> <code>${data.transactionHash.substring(0, 20)}...</code></p>
-            <p><strong>From:</strong> ${data.transaction.fromAddress.substring(0, 20)}...</p>
-            <p><strong>To:</strong> ${data.transaction.toAddress.substring(0, 20)}...</p>
-            <p><strong>Amount:</strong> ${data.transaction.amount} KENO</p>
-            <p><strong>Fee:</strong> ${data.transaction.fee} KENO</p>
+            <p><strong>Transaction Hash:</strong> <code>${escapeHtml(data.transactionHash.substring(0, 20))}...</code></p>
+            <p><strong>From:</strong> ${escapeHtml(data.transaction.fromAddress.substring(0, 20))}...</p>
+            <p><strong>To:</strong> ${escapeHtml(data.transaction.toAddress.substring(0, 20))}...</p>
+            <p><strong>Amount:</strong> ${escapeHtml(String(data.transaction.amount))} KENO</p>
+            <p><strong>Fee:</strong> ${escapeHtml(String(data.transaction.fee))} KENO</p>
             ${message ? `<p><strong>Message:</strong> "${escapeHtml(message)}"</p>` : ''}
             <p style="color: #ff9800; font-weight: bold; margin-top: 15px;">⏱️ You have 5 MINUTES to cancel this transaction!</p>
             <p style="color: #666;">Go to "View Pending Transactions" to cancel it before it's mined into a block.</p>
@@ -1623,12 +1623,12 @@ async function loadPendingTransactions() {
 
             html += `
                 <div class="transaction-item" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
-                    <p><strong>To:</strong> ${tx.toAddress.substring(0, 20)}...</p>
-                    <p><strong>Amount:</strong> ${tx.amount} KENO</p>
+                    <p><strong>To:</strong> ${escapeHtml(tx.toAddress.substring(0, 20))}...</p>
+                    <p><strong>Amount:</strong> ${escapeHtml(String(tx.amount))} KENO</p>
                     <p><strong>Time Remaining:</strong> ${canCancel ? `⏱️ ${seconds}s` : '❌ Expired'}</p>
                     ${tx.message ? `<p><strong>Message:</strong> ${escapeHtml(tx.message)}</p>` : ''}
                     ${canCancel ? 
-                        `<button onclick="cancelTransaction('${tx.hash}', '${address}')" class="btn btn-danger">🔄 Cancel Transaction</button>` :
+                        `<button onclick="cancelTransaction('${escapeHtml(tx.hash)}', '${escapeHtml(address)}')" class="btn btn-danger">🔄 Cancel Transaction</button>` :
                         '<p style="color: #888;">Cannot cancel (past 5-minute window)</p>'
                     }
                 </div>
@@ -1854,9 +1854,9 @@ async function setupRecovery() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>Recovery System Setup!</h4>
-            <p>✅ ${data.message}</p>
-            <p><strong>Guardians:</strong> ${data.guardians.length}</p>
-            <p><strong>Required Approvals:</strong> ${data.threshold}</p>
+            <p>✅ ${escapeHtml(data.message)}</p>
+            <p><strong>Guardians:</strong> ${escapeHtml(String(data.guardians.length))}</p>
+            <p><strong>Required Approvals:</strong> ${escapeHtml(String(data.threshold))}</p>
         `;
     } catch (error) {
         showError('recoverySetupResult', error.message);
@@ -1891,9 +1891,9 @@ async function initiateRecovery() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>Recovery Request Initiated!</h4>
-            <p>✅ ${data.message}</p>
-            <p><strong>Request ID:</strong> <code>${data.request.id}</code></p>
-            <p><strong>Required Approvals:</strong> ${data.request.threshold}</p>
+            <p>✅ ${escapeHtml(data.message)}</p>
+            <p><strong>Request ID:</strong> <code>${escapeHtml(data.request.id)}</code></p>
+            <p><strong>Required Approvals:</strong> ${escapeHtml(String(data.request.threshold))}</p>
             <p>Guardians have been notified. Request expires in 7 days.</p>
         `;
     } catch (error) {
@@ -1924,17 +1924,17 @@ async function viewRecoveryRequests() {
         data.forEach(req => {
             html += `
                 <div class="transaction-item" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
-                    <p><strong>Request ID:</strong> ${req.id}</p>
-                    <p><strong>Old Address:</strong> ${req.oldAddress.substring(0, 20)}...</p>
-                    <p><strong>New Address:</strong> ${req.newAddress.substring(0, 20)}...</p>
-                    <p><strong>Approvals:</strong> ${req.approvals}/${req.threshold}</p>
-                    <p><strong>Status:</strong> ${req.status}</p>
+                    <p><strong>Request ID:</strong> ${escapeHtml(req.id)}</p>
+                    <p><strong>Old Address:</strong> ${escapeHtml(req.oldAddress.substring(0, 20))}...</p>
+                    <p><strong>New Address:</strong> ${escapeHtml(req.newAddress.substring(0, 20))}...</p>
+                    <p><strong>Approvals:</strong> ${escapeHtml(String(req.approvals))}/${escapeHtml(String(req.threshold))}</p>
+                    <p><strong>Status:</strong> ${escapeHtml(req.status)}</p>
                     ${req.status === 'pending' ? `
-                        <button onclick="approveRecovery('${req.id}', '${guardianAddress}')" class="btn btn-primary">Approve</button>
-                        <button onclick="rejectRecovery('${req.id}', '${guardianAddress}')" class="btn btn-danger">Reject</button>
+                        <button onclick="approveRecovery('${escapeHtml(req.id)}', '${escapeHtml(guardianAddress)}')" class="btn btn-primary">Approve</button>
+                        <button onclick="rejectRecovery('${escapeHtml(req.id)}', '${escapeHtml(guardianAddress)}')" class="btn btn-danger">Reject</button>
                     ` : ''}
                     ${req.status === 'approved' ? `
-                        <button onclick="executeRecovery('${req.id}')" class="btn btn-primary">Execute Recovery</button>
+                        <button onclick="executeRecovery('${escapeHtml(req.id)}')" class="btn btn-primary">Execute Recovery</button>
                     ` : ''}
                 </div>
             `;
@@ -2067,13 +2067,13 @@ async function checkReputation() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>Reputation Score</h4>
-            <p><strong>Address:</strong> ${address.substring(0, 20)}...</p>
-            <p><strong>Average Rating:</strong> ${data.averageScore.toFixed(2)} ${'⭐'.repeat(Math.round(data.averageScore))}</p>
-            <p><strong>Total Ratings:</strong> ${data.totalRatings}</p>
-            <p><strong>Trust Level:</strong> ${data.trustLevel}</p>
+            <p><strong>Address:</strong> ${escapeHtml(address.substring(0, 20))}...</p>
+            <p><strong>Average Rating:</strong> ${escapeHtml(data.averageScore.toFixed(2))} ${'⭐'.repeat(Math.round(data.averageScore))}</p>
+            <p><strong>Total Ratings:</strong> ${escapeHtml(String(data.totalRatings))}</p>
+            <p><strong>Trust Level:</strong> ${escapeHtml(data.trustLevel)}</p>
             <p><strong>Rating Breakdown:</strong></p>
             <ul>
-                ${Object.entries(data.breakdown).map(([stars, count]) => `<li>${stars} stars: ${count}</li>`).join('')}
+                ${Object.entries(data.breakdown).map(([stars, count]) => `<li>${escapeHtml(String(stars))} stars: ${escapeHtml(String(count))}</li>`).join('')}
             </ul>
         `;
     } catch (error) {
@@ -2098,9 +2098,9 @@ async function viewTopRated() {
         data.topRated.forEach((item, index) => {
             html += `
                 <li style="margin: 10px 0;">
-                    <strong>${item.address.substring(0, 20)}...</strong><br>
-                    Average: ${item.averageScore.toFixed(2)} ${'⭐'.repeat(Math.round(item.averageScore))} 
-                    (${item.totalRatings} ratings) - ${item.trustLevel}
+                    <strong>${escapeHtml(item.address.substring(0, 20))}...</strong><br>
+                    Average: ${escapeHtml(item.averageScore.toFixed(2))} ${'⭐'.repeat(Math.round(item.averageScore))} 
+                    (${escapeHtml(String(item.totalRatings))} ratings) - ${escapeHtml(item.trustLevel)}
                 </li>
             `;
         });
@@ -2340,16 +2340,16 @@ async function loadBlockchain(offset = 0) {
             html += `
                 <div class="block-item">
                     <h4>Block #${blockNumber}</h4>
-                    <p><strong>Hash:</strong> <code>${block.hash}</code></p>
-                    <p><strong>Previous Hash:</strong> <code>${block.previousHash}</code></p>
+                    <p><strong>Hash:</strong> <code>${escapeHtml(block.hash)}</code></p>
+                    <p><strong>Previous Hash:</strong> <code>${escapeHtml(block.previousHash)}</code></p>
                     <p><strong>Timestamp:</strong> ${new Date(block.timestamp).toLocaleString()}</p>
-                    <p><strong>Nonce:</strong> ${block.nonce}</p>
+                    <p><strong>Nonce:</strong> ${escapeHtml(String(block.nonce))}</p>
                     <p><strong>Transactions:</strong> ${block.transactions.length}</p>
                     ${block.transactions.map(tx => `
                         <div class="transaction-item">
-                            <strong>From:</strong> ${tx.fromAddress ? tx.fromAddress.substring(0, 20) + '...' : 'Mining Reward'}<br>
-                            <strong>To:</strong> ${tx.toAddress.substring(0, 20)}...<br>
-                            <strong>Amount:</strong> ${tx.amount} KENO<br>
+                            <strong>From:</strong> ${tx.fromAddress ? escapeHtml(tx.fromAddress.substring(0, 20)) + '...' : 'Mining Reward'}<br>
+                            <strong>To:</strong> ${escapeHtml(tx.toAddress.substring(0, 20))}...<br>
+                            <strong>Amount:</strong> ${escapeHtml(String(tx.amount))} KENO<br>
                             ${tx.message ? `<strong>Message:</strong> ${escapeHtml(tx.message)}<br>` : ''}
                         </div>
                     `).join('')}
@@ -2386,10 +2386,10 @@ async function loadTransactions() {
         data.transactions.forEach(tx => {
             html += `
                 <div class="transaction-item">
-                    <strong>From:</strong> ${tx.fromAddress || 'Mining Reward'}<br>
-                    <strong>To:</strong> ${tx.toAddress}<br>
-                    <strong>Amount:</strong> ${tx.amount} KENO<br>
-                    <strong>Fee:</strong> ${tx.fee} KENO<br>
+                    <strong>From:</strong> ${escapeHtml(tx.fromAddress || 'Mining Reward')}<br>
+                    <strong>To:</strong> ${escapeHtml(tx.toAddress)}<br>
+                    <strong>Amount:</strong> ${escapeHtml(String(tx.amount))} KENO<br>
+                    <strong>Fee:</strong> ${escapeHtml(String(tx.fee))} KENO<br>
                     ${tx.message ? `<strong>Message:</strong> ${escapeHtml(tx.message)}<br>` : ''}
                     <strong>Timestamp:</strong> ${new Date(tx.timestamp).toLocaleString()}
                 </div>
@@ -2585,13 +2585,13 @@ async function loadMyRVTs() {
         data.rvts.forEach(rvt => {
             html += `
                 <div class="transaction-item" style="background: linear-gradient(135deg, rgba(142, 45, 226, 0.1), rgba(74, 0, 224, 0.1)); border-left: 4px solid #8e2de2;">
-                    <strong>RVT ID:</strong> ${rvt.rvtId}<br>
-                    <strong>Job ID:</strong> ${rvt.jobId}<br>
-                    <strong>Computation Type:</strong> ${rvt.computationType}<br>
-                    <strong>Block Height:</strong> ${rvt.blockHeight}<br>
+                    <strong>RVT ID:</strong> ${escapeHtml(rvt.rvtId)}<br>
+                    <strong>Job ID:</strong> ${escapeHtml(rvt.jobId)}<br>
+                    <strong>Computation Type:</strong> ${escapeHtml(rvt.computationType)}<br>
+                    <strong>Block Height:</strong> ${escapeHtml(String(rvt.blockHeight))}<br>
                     <strong>Status:</strong> ${rvt.isActive ? '✅ Active (Earning Royalties)' : '❌ Inactive'}<br>
                     <strong>Issued:</strong> ${new Date(rvt.issuedAt).toLocaleString()}<br>
-                    ${rvt.totalRoyaltiesEarned ? `<strong>Total Royalties Earned:</strong> ${rvt.totalRoyaltiesEarned.toFixed(2)} KENO<br>` : ''}
+                    ${rvt.totalRoyaltiesEarned ? `<strong>Total Royalties Earned:</strong> ${escapeHtml(rvt.totalRoyaltiesEarned.toFixed(2))} KENO<br>` : ''}
                 </div>
             `;
         });
@@ -2618,15 +2618,15 @@ async function loadRVTDetails() {
         let html = '<h4>RVT Details</h4>';
         html += `
             <div class="transaction-item" style="background: linear-gradient(135deg, rgba(142, 45, 226, 0.1), rgba(74, 0, 224, 0.1)); border-left: 4px solid #8e2de2;">
-                <strong>RVT ID:</strong> ${data.rvt.rvtId}<br>
-                <strong>Job ID:</strong> ${data.rvt.jobId}<br>
-                <strong>Holder Address:</strong> ${data.rvt.holderAddress}<br>
-                <strong>Computation Type:</strong> ${data.rvt.computationType}<br>
-                <strong>Block Height:</strong> ${data.rvt.blockHeight}<br>
+                <strong>RVT ID:</strong> ${escapeHtml(data.rvt.rvtId)}<br>
+                <strong>Job ID:</strong> ${escapeHtml(data.rvt.jobId)}<br>
+                <strong>Holder Address:</strong> ${escapeHtml(data.rvt.holderAddress)}<br>
+                <strong>Computation Type:</strong> ${escapeHtml(data.rvt.computationType)}<br>
+                <strong>Block Height:</strong> ${escapeHtml(String(data.rvt.blockHeight))}<br>
                 <strong>Status:</strong> ${data.rvt.isActive ? '✅ Active' : '❌ Inactive'}<br>
                 <strong>Issued:</strong> ${new Date(data.rvt.issuedAt).toLocaleString()}<br>
-                ${data.rvt.totalRoyaltiesEarned ? `<strong>Total Royalties Earned:</strong> ${data.rvt.totalRoyaltiesEarned.toFixed(2)} KENO<br>` : ''}
-                ${data.rvt.metadata ? `<strong>Metadata:</strong> ${JSON.stringify(data.rvt.metadata)}<br>` : ''}
+                ${data.rvt.totalRoyaltiesEarned ? `<strong>Total Royalties Earned:</strong> ${escapeHtml(data.rvt.totalRoyaltiesEarned.toFixed(2))} KENO<br>` : ''}
+                ${data.rvt.metadata ? `<strong>Metadata:</strong> ${escapeHtml(JSON.stringify(data.rvt.metadata))}<br>` : ''}
             </div>
         `;
         
@@ -2654,9 +2654,9 @@ async function loadAllRVTs() {
         data.rvts.forEach(rvt => {
             html += `
                 <div class="transaction-item" style="background: linear-gradient(135deg, rgba(142, 45, 226, 0.1), rgba(74, 0, 224, 0.1)); border-left: 4px solid #8e2de2;">
-                    <strong>RVT ID:</strong> ${rvt.rvtId}<br>
-                    <strong>Holder:</strong> ${rvt.holderAddress?.substring(0, 20)}...<br>
-                    <strong>Type:</strong> ${rvt.computationType}<br>
+                    <strong>RVT ID:</strong> ${escapeHtml(rvt.rvtId)}<br>
+                    <strong>Holder:</strong> ${escapeHtml(rvt.holderAddress?.substring(0, 20) || '')}...<br>
+                    <strong>Type:</strong> ${escapeHtml(rvt.computationType)}<br>
                     <strong>Status:</strong> ${rvt.isActive ? '✅ Active' : '❌ Inactive'}
                 </div>
             `;
@@ -2923,11 +2923,11 @@ async function loadRoyaltyCollections() {
         data.collections.forEach(collection => {
             html += `
                 <div class="transaction-item">
-                    <strong>Collection ID:</strong> ${collection.collectionId}<br>
-                    <strong>Job ID:</strong> ${collection.jobId}<br>
-                    <strong>RVT ID:</strong> ${collection.rvtId}<br>
-                    <strong>Amount:</strong> ${collection.amount} KENO<br>
-                    <strong>Source:</strong> ${collection.source}<br>
+                    <strong>Collection ID:</strong> ${escapeHtml(collection.collectionId)}<br>
+                    <strong>Job ID:</strong> ${escapeHtml(collection.jobId)}<br>
+                    <strong>RVT ID:</strong> ${escapeHtml(collection.rvtId)}<br>
+                    <strong>Amount:</strong> ${escapeHtml(String(collection.amount))} KENO<br>
+                    <strong>Source:</strong> ${escapeHtml(collection.source)}<br>
                     <strong>Status:</strong> ${collection.distributed ? '✅ Distributed' : '⏳ Pending'}<br>
                     <strong>Collected:</strong> ${new Date(collection.collectedAt).toLocaleString()}
                 </div>
@@ -2953,7 +2953,7 @@ async function loadBurnStats() {
                 <strong>Total Burned:</strong> ${data.stats.totalBurned} KENO<br>
                 <strong>Burn Count:</strong> ${data.stats.burnCount} burns<br>
                 <strong>Last Burn:</strong> ${data.stats.lastBurnDate ? new Date(data.stats.lastBurnDate).toLocaleString() : 'Never'}<br>
-                <strong>Burn Wallet:</strong> <code>${data.stats.burnAddress}</code><br>
+                <strong>Burn Wallet:</strong> <code>${escapeHtml(data.stats.burnAddress)}</code><br>
                 <p style="margin-top: 10px; color: #e74c3c; font-weight: 600;">
                     🔥 40% of all royalties are permanently burned, reducing total supply!
                 </p>
@@ -2984,10 +2984,10 @@ async function loadBurnHistory() {
         data.burns.forEach(burn => {
             html += `
                 <div class="transaction-item" style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)); border-left: 4px solid #e74c3c;">
-                    <strong>Burn ID:</strong> ${burn.burnId}<br>
-                    <strong>Amount:</strong> ${burn.amount} KENO<br>
-                    <strong>Source:</strong> ${burn.source}<br>
-                    <strong>Transaction Hash:</strong> <code>${burn.transactionHash || 'N/A'}</code><br>
+                    <strong>Burn ID:</strong> ${escapeHtml(burn.burnId)}<br>
+                    <strong>Amount:</strong> ${escapeHtml(String(burn.amount))} KENO<br>
+                    <strong>Source:</strong> ${escapeHtml(burn.source)}<br>
+                    <strong>Transaction Hash:</strong> <code>${escapeHtml(burn.transactionHash || 'N/A')}</code><br>
                     <strong>Burned:</strong> ${new Date(burn.burnedAt).toLocaleString()}
                 </div>
             `;
@@ -3093,7 +3093,7 @@ async function registerMerchant() {
         resultDiv.innerHTML = `
             <h4>Merchant Registered Successfully!</h4>
             <div class="transaction-item" style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.1)); border-left: 4px solid #2ecc71;">
-                <strong>Merchant ID:</strong> ${data.merchant.merchantId}<br>
+                <strong>Merchant ID:</strong> ${escapeHtml(data.merchant.merchantId)}<br>
                 <strong>Business Name:</strong> ${escapeHtml(data.merchant.businessName)}<br>
                 <strong>Wallet Address:</strong> ${escapeHtml(data.merchant.walletAddress)}<br>
                 <strong>API Key:</strong> ${escapeHtml(data.merchant.apiKey)}<br>
@@ -3139,12 +3139,12 @@ async function createPaymentRequest() {
         resultDiv.innerHTML = `
             <h4>Payment Request Created!</h4>
             <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
-                <strong>Payment ID:</strong> ${data.paymentRequest.paymentRequestId}<br>
-                <strong>Amount (KENO):</strong> ${data.paymentRequest.amountKENO.toFixed(2)} KENO<br>
-                <strong>Amount (USD):</strong> $${data.paymentRequest.amountUSD.toFixed(2)}<br>
+                <strong>Payment ID:</strong> ${escapeHtml(data.paymentRequest.paymentRequestId)}<br>
+                <strong>Amount (KENO):</strong> ${escapeHtml(data.paymentRequest.amountKENO.toFixed(2))} KENO<br>
+                <strong>Amount (USD):</strong> $${escapeHtml(data.paymentRequest.amountUSD.toFixed(2))}<br>
                 <strong>Description:</strong> ${escapeHtml(data.paymentRequest.description)}<br>
                 <strong>Payment URL:</strong> ${escapeHtml(data.paymentRequest.paymentUrl)}<br>
-                <strong>QR Code String:</strong> <code style="word-break: break-all;">${data.paymentRequest.qrCode.qrString}</code><br>
+                <strong>QR Code String:</strong> <code style="word-break: break-all;">${escapeHtml(data.paymentRequest.qrCode.qrString)}</code><br>
                 <strong>Expires:</strong> ${new Date(data.paymentRequest.expiresAt).toLocaleString()}<br>
                 <p style="margin-top: 10px; color: #3498db; font-weight: 600;">
                     📱 Share the payment URL or QR code with your customer!
@@ -3571,16 +3571,16 @@ async function placeOrder() {
         resultDiv.innerHTML = `
             <h4>Order Placed Successfully!</h4>
             <div class="transaction-item" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1)); border-left: 4px solid #3498db;">
-                <strong>Order ID:</strong> ${data.order.orderId}<br>
-                <strong>Pair:</strong> ${data.order.pair.replace('_', '/')}<br>
-                <strong>Side:</strong> ${data.order.side.toUpperCase()}<br>
-                <strong>Type:</strong> ${data.order.orderType}<br>
-                <strong>Quantity:</strong> ${data.order.quantity} KENO<br>
-                ${data.order.price ? `<strong>Price:</strong> ${data.order.price}<br>` : ''}
-                <strong>Status:</strong> ${data.order.status.toUpperCase()}<br>
-                <strong>Filled:</strong> ${data.order.filledQuantity} KENO<br>
+                <strong>Order ID:</strong> ${escapeHtml(data.order.orderId)}<br>
+                <strong>Pair:</strong> ${escapeHtml(data.order.pair.replace('_', '/'))}<br>
+                <strong>Side:</strong> ${escapeHtml(data.order.side.toUpperCase())}<br>
+                <strong>Type:</strong> ${escapeHtml(data.order.orderType)}<br>
+                <strong>Quantity:</strong> ${escapeHtml(String(data.order.quantity))} KENO<br>
+                ${data.order.price ? `<strong>Price:</strong> ${escapeHtml(String(data.order.price))}<br>` : ''}
+                <strong>Status:</strong> ${escapeHtml(data.order.status.toUpperCase())}<br>
+                <strong>Filled:</strong> ${escapeHtml(String(data.order.filledQuantity))} KENO<br>
                 <p style="margin-top: 10px; color: #3498db; font-weight: 600;">
-                    📊 Your order is ${data.order.status === 'open' ? 'live on the order book' : data.order.status}!
+                    📊 Your order is ${data.order.status === 'open' ? 'live on the order book' : escapeHtml(data.order.status)}!
                 </p>
             </div>
         `;
@@ -3612,7 +3612,7 @@ async function loadRecentTrades() {
                     <strong>Quantity:</strong> ${trade.quantity.toFixed(4)} KENO<br>
                     <strong>Total:</strong> ${trade.total.toFixed(8)}<br>
                     <strong>Time:</strong> ${new Date(trade.timestamp).toLocaleTimeString()}<br>
-                    <strong>Trade ID:</strong> ${trade.tradeId}
+                    <strong>Trade ID:</strong> ${escapeHtml(trade.tradeId)}
                 </div>
             `;
         });
@@ -3647,14 +3647,14 @@ async function loadUserOrders() {
         data.orders.forEach(order => {
             html += `
                 <div class="transaction-item">
-                    <strong>Order ID:</strong> ${order.orderId}<br>
-                    <strong>Pair:</strong> ${order.pair.replace('_', '/')}<br>
-                    <strong>Side:</strong> ${order.side.toUpperCase()}<br>
-                    <strong>Price:</strong> ${order.price?.toFixed(8) || 'Market'}<br>
-                    <strong>Quantity:</strong> ${order.quantity} KENO<br>
-                    <strong>Filled:</strong> ${order.filledQuantity} KENO<br>
-                    <strong>Remaining:</strong> ${order.remainingQuantity} KENO<br>
-                    <strong>Status:</strong> ${order.status.toUpperCase()}
+                    <strong>Order ID:</strong> ${escapeHtml(order.orderId)}<br>
+                    <strong>Pair:</strong> ${escapeHtml(order.pair.replace('_', '/'))}<br>
+                    <strong>Side:</strong> ${escapeHtml(order.side.toUpperCase())}<br>
+                    <strong>Price:</strong> ${order.price ? escapeHtml(order.price.toFixed(8)) : 'Market'}<br>
+                    <strong>Quantity:</strong> ${escapeHtml(String(order.quantity))} KENO<br>
+                    <strong>Filled:</strong> ${escapeHtml(String(order.filledQuantity))} KENO<br>
+                    <strong>Remaining:</strong> ${escapeHtml(String(order.remainingQuantity))} KENO<br>
+                    <strong>Status:</strong> ${escapeHtml(order.status.toUpperCase())}
                 </div>
             `;
         });
@@ -3677,7 +3677,7 @@ async function viewTradingPairs() {
         data.pairs.forEach(pair => {
             html += `
                 <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
-                    <strong style="font-size: 1.1rem;">${pair.baseAsset}/${pair.quoteAsset}</strong><br>
+                    <strong style="font-size: 1.1rem;">${escapeHtml(pair.baseAsset)}/${escapeHtml(pair.quoteAsset)}</strong><br>
                     <strong>Min Order Size:</strong> ${pair.minOrderSize}<br>
                     <strong>Max Order Size:</strong> ${pair.maxOrderSize.toLocaleString()}<br>
                     <strong>Trading Fee:</strong> ${(pair.tradingFee * 100).toFixed(2)}%<br>
@@ -4309,13 +4309,13 @@ async function loadAllLicenses() {
             <h4>🏢 All White-Label Licenses (${data.length})</h4>
             ${data.map(license => `
                 <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
-                    <strong>Organization:</strong> ${license.organizationName}<br>
-                    <strong>License ID:</strong> ${license.licenseId}<br>
-                    <strong>Tier:</strong> <span style="color: #9b59b6; font-weight: 700;">${license.tier}</span><br>
-                    <strong>Monthly Price:</strong> $${license.monthlyPrice}/mo<br>
-                    <strong>Total Revenue:</strong> $${license.totalRevenue}<br>
-                    <strong>Status:</strong> <span style="color: ${license.status === 'active' ? '#2ecc71' : '#e74c3c'};">${license.status.toUpperCase()}</span><br>
-                    <strong>Created:</strong> ${license.createdAt}
+                    <strong>Organization:</strong> ${escapeHtml(license.organizationName)}<br>
+                    <strong>License ID:</strong> ${escapeHtml(license.licenseId)}<br>
+                    <strong>Tier:</strong> <span style="color: #9b59b6; font-weight: 700;">${escapeHtml(license.tier)}</span><br>
+                    <strong>Monthly Price:</strong> $${escapeHtml(String(license.monthlyPrice))}/mo<br>
+                    <strong>Total Revenue:</strong> $${escapeHtml(String(license.totalRevenue))}<br>
+                    <strong>Status:</strong> <span style="color: ${license.status === 'active' ? '#2ecc71' : '#e74c3c'};">${escapeHtml(license.status.toUpperCase())}</span><br>
+                    <strong>Created:</strong> ${escapeHtml(String(license.createdAt))}
                 </div>
             `).join('')}
         `;
@@ -4370,10 +4370,10 @@ async function purchaseLicense() {
             resultDiv.innerHTML = `
                 <h4>✅ Checkout Session Created!</h4>
                 <div class="transaction-item" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(142, 68, 173, 0.1)); border-left: 4px solid #9b59b6;">
-                    <strong>Organization:</strong> ${organizationName}<br>
-                    <strong>Tier:</strong> ${tier}<br>
-                    <strong>Monthly Price:</strong> $${data.monthlyPrice}/month<br>
-                    <strong>Contact Email:</strong> ${contactEmail}<br><br>
+                    <strong>Organization:</strong> ${escapeHtml(organizationName)}<br>
+                    <strong>Tier:</strong> ${escapeHtml(tier)}<br>
+                    <strong>Monthly Price:</strong> $${escapeHtml(String(data.monthlyPrice))}/month<br>
+                    <strong>Contact Email:</strong> ${escapeHtml(contactEmail)}<br><br>
                     <p style="margin-top: 10px;">Redirecting to Stripe checkout...</p>
                 </div>
             `;

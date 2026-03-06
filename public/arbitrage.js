@@ -3,6 +3,16 @@ let activeLoan = null;
 let profileData = null;
 let currentOpportunities = [];
 
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadStats();
     loadOpportunities();
@@ -83,15 +93,15 @@ async function loadOpportunities() {
                 const profitPct = opp.profitPercent || opp.percentageDiff || 0;
                 return `
                 <div class="opportunity-card" id="opp-${index}">
-                    <div class="opportunity-profit">+${profitPct.toFixed(2)}% Profit Potential</div>
+                    <div class="opportunity-profit">+${escapeHtml(profitPct.toFixed(2))}% Profit Potential</div>
                     <div class="opportunity-details">
                         <div>
-                            <strong>Buy:</strong> ${opp.buyExchange}<br>
-                            Price: $${opp.buyPrice.toFixed(4)}
+                            <strong>Buy:</strong> ${escapeHtml(opp.buyExchange)}<br>
+                            Price: $${escapeHtml(opp.buyPrice.toFixed(4))}
                         </div>
                         <div>
-                            <strong>Sell:</strong> ${opp.sellExchange}<br>
-                            Price: $${opp.sellPrice.toFixed(4)}
+                            <strong>Sell:</strong> ${escapeHtml(opp.sellExchange)}<br>
+                            Price: $${escapeHtml(opp.sellPrice.toFixed(4))}
                         </div>
                     </div>
                     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
@@ -159,7 +169,7 @@ async function loadLeaderboard() {
                                     </td>
                                     <td>
                                         <span style="font-family: 'Courier New', monospace; font-size: 0.85rem;">
-                                            ${trader.walletAddress.substring(0, 20)}...
+                                            ${escapeHtml(trader.walletAddress.substring(0, 20))}...
                                         </span>
                                     </td>
                                     <td>
@@ -476,19 +486,19 @@ function displayProfile() {
     const profileHTML = `
         <div class="profile-card" style="margin-bottom: 20px;">
             <h2>👤 Your Arbitrage Profile</h2>
-            <div class="profile-address">${profileData.walletAddress}</div>
+            <div class="profile-address">${escapeHtml(profileData.walletAddress)}</div>
             
             <div class="profile-stats">
                 <div class="profile-stat">
-                    <div class="profile-stat-value">${profileData.successfulLoans}</div>
+                    <div class="profile-stat-value">${escapeHtml(String(profileData.successfulLoans))}</div>
                     <div class="profile-stat-label">Successful Trades</div>
                 </div>
                 <div class="profile-stat">
-                    <div class="profile-stat-value">${profileData.totalProfit.toFixed(2)}</div>
+                    <div class="profile-stat-value">${escapeHtml(profileData.totalProfit.toFixed(2))}</div>
                     <div class="profile-stat-label">Total Profit (KENO)</div>
                 </div>
                 <div class="profile-stat">
-                    <div class="profile-stat-value">#${profileData.rank}</div>
+                    <div class="profile-stat-value">#${escapeHtml(String(profileData.rank))}</div>
                     <div class="profile-stat-label">Global Rank</div>
                 </div>
             </div>
@@ -508,7 +518,7 @@ function displayProfile() {
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
                     <strong>🏆 Earned Badges:</strong><br>
                     <div style="margin-top: 10px;">
-                        ${profileData.badges.map(badge => `<span class="badge" style="background: #fbbf24; color: #92400e; margin: 5px;">${badge}</span>`).join('')}
+                        ${profileData.badges.map(badge => `<span class="badge" style="background: #fbbf24; color: #92400e; margin: 5px;">${escapeHtml(badge)}</span>`).join('')}
                     </div>
                 </div>
             ` : ''}
@@ -609,14 +619,14 @@ async function submitWithdrawalRequest() {
             statusDiv.innerHTML = `
                 <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin-top: 10px;">
                     <p style="font-weight: 700; margin-bottom: 10px;">Withdrawal Request Submitted!</p>
-                    <p style="opacity: 0.9;">Request ID: ${data.requestId}</p>
-                    <p style="opacity: 0.9;">Amount: ${amount.toFixed(2)} KENO</p>
+                    <p style="opacity: 0.9;">Request ID: ${escapeHtml(data.requestId)}</p>
+                    <p style="opacity: 0.9;">Amount: ${escapeHtml(amount.toFixed(2))} KENO</p>
                     <p style="opacity: 0.9; margin-top: 10px;">An admin will review your request. Once approved, tokens will be sent to your MetaMask wallet.</p>
                 </div>
             `;
             document.getElementById('withdrawAmount').value = '';
         } else {
-            statusDiv.innerHTML = `<p style="color: #fef08a;">Error: ${data.error}</p>`;
+            statusDiv.innerHTML = `<p style="color: #fef08a;">Error: ${escapeHtml(data.error)}</p>`;
         }
     } catch (error) {
         console.error('Error submitting withdrawal:', error);
