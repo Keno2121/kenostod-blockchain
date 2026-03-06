@@ -445,7 +445,7 @@ class InteractiveTutorial {
 
         const instrEl = document.getElementById('tutorialInstruction');
         if (step.instruction) {
-            instrEl.innerHTML = step.instruction;
+            instrEl.appendChild(document.createRange().createContextualFragment(step.instruction));
         } else {
             instrEl.style.display = 'none';
         }
