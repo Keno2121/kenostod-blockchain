@@ -28,8 +28,7 @@ const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
-const EC = require('elliptic').ec;
-const ec = new EC('secp256k1');
+const { secp256k1 } = require('@noble/curves/secp256k1.js');
 
 const app = express();
 const PORT = 5000;
@@ -1781,8 +1780,9 @@ app.post('/api/transaction/simple', (req, res) => {
         }
 
         // Verify private key matches from address
-        const key = ec.keyFromPrivate(privateKey, 'hex');
-        const derivedAddress = key.getPublic('hex');
+        const derivedAddress = Buffer.from(
+            secp256k1.getPublicKey(new Uint8Array(Buffer.from(privateKey, 'hex')), false)
+        ).toString('hex');
         
         if (derivedAddress !== fromAddress) {
             return res.status(400).json({ error: 'Private key does not match the sender address' });
@@ -1790,7 +1790,7 @@ app.post('/api/transaction/simple', (req, res) => {
 
         // Create transaction with message and sign it
         const transaction = new Transaction(fromAddress, toAddress, amount, fee, message);
-        transaction.signTransaction(key);
+        transaction.signTransaction(privateKey);
 
         // Validate the transaction
         if (!transaction.isValid()) {
@@ -1844,8 +1844,7 @@ app.post('/api/sign', (req, res) => {
 
         // Create transaction and sign it
         const transaction = new Transaction(fromAddress, toAddress, amount, fee);
-        const key = ec.keyFromPrivate(privateKey, 'hex');
-        transaction.signTransaction(key);
+        transaction.signTransaction(privateKey);
 
         res.json({
             message: 'Transaction signed successfully',
