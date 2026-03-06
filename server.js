@@ -28,7 +28,8 @@ const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
-const { secp256k1 } = require('@noble/curves/secp256k1.js');
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
 
 const app = express();
 const PORT = 5000;
@@ -1517,16 +1518,6 @@ app.post('/api/admin/grants/update', adminAuth, (req, res) => {
     }
 });
 
-// Owner curriculum preview — verifies admin password and returns unlock token
-app.get('/api/owner-preview', (req, res) => {
-    const { key } = req.query;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword || !key || key !== adminPassword) {
-        return res.status(403).json({ ok: false, error: 'Invalid key' });
-    }
-    res.json({ ok: true, plan: 'professional', message: 'Owner preview unlocked' });
-});
-
 // Get blockchain info (with pagination support)
 app.get('/api/blockchain', (req, res) => {
     const limit = parseInt(req.query.limit) || 50;
@@ -1780,9 +1771,8 @@ app.post('/api/transaction/simple', (req, res) => {
         }
 
         // Verify private key matches from address
-        const derivedAddress = Buffer.from(
-            secp256k1.getPublicKey(new Uint8Array(Buffer.from(privateKey, 'hex')), false)
-        ).toString('hex');
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        const derivedAddress = key.getPublic('hex');
         
         if (derivedAddress !== fromAddress) {
             return res.status(400).json({ error: 'Private key does not match the sender address' });
@@ -1790,7 +1780,7 @@ app.post('/api/transaction/simple', (req, res) => {
 
         // Create transaction with message and sign it
         const transaction = new Transaction(fromAddress, toAddress, amount, fee, message);
-        transaction.signTransaction(privateKey);
+        transaction.signTransaction(key);
 
         // Validate the transaction
         if (!transaction.isValid()) {
@@ -1844,7 +1834,8 @@ app.post('/api/sign', (req, res) => {
 
         // Create transaction and sign it
         const transaction = new Transaction(fromAddress, toAddress, amount, fee);
-        transaction.signTransaction(privateKey);
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        transaction.signTransaction(key);
 
         res.json({
             message: 'Transaction signed successfully',
@@ -3662,7 +3653,7 @@ app.get('/api/stripe/subscription-prices', async (req, res) => {
     try {
         const prices = await stripeService.listPrices();
         // Filter for active subscription prices
-        const subscriptionPrices = prices.filter(p => p.active === true && p.recurring != null);
+        const subscriptionPrices = prices.filter(p => p.type === 'recurring' && p.status === 'active');
         res.json(subscriptionPrices);
     } catch (error) {
         console.error('List prices error:', error);

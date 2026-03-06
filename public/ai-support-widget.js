@@ -454,38 +454,20 @@ class AISupportWidget {
         const messagesContainer = document.getElementById('aiSupportMessages');
         const messageDiv = document.createElement('div');
         messageDiv.className = `ai-message ${role}`;
-
-        const bubble = document.createElement('div');
-        bubble.className = 'ai-message-bubble';
-
-        if (role === 'assistant') {
-            const iconSpan = document.createElement('span');
-            iconSpan.className = 'ai-icon';
-            iconSpan.textContent = '🤖';
-            bubble.appendChild(iconSpan);
-        }
-
-        const contentSpan = document.createElement('span');
-        contentSpan.innerHTML = this.formatMessage(content);
-        bubble.appendChild(contentSpan);
-
-        messageDiv.appendChild(bubble);
+        
+        const icon = role === 'assistant' ? '<span class="ai-icon">🤖</span>' : '';
+        messageDiv.innerHTML = `
+            <div class="ai-message-bubble">
+                ${icon}${this.formatMessage(content)}
+            </div>
+        `;
+        
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
     formatMessage(message) {
-        const escaped = this.escapeHtml(message);
-        return escaped
+        return message
             .replace(/\n/g, '<br>')
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>');

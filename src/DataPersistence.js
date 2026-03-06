@@ -1,7 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
-const { encryptKey, decryptKey } = require('./WalletEncryption');
 
 class DataPersistence {
     constructor(dataDir = './data') {
@@ -66,14 +64,14 @@ class DataPersistence {
     saveWallet(wallet) {
         try {
             const data = {
-                privateKeyEnc: encryptKey(wallet.privateKey),
+                privateKey: wallet.privateKey,
                 publicKey: wallet.publicKey,
                 address: wallet.getAddress(),
                 timestamp: Date.now()
             };
             
             fs.writeFileSync(this.walletFile, JSON.stringify(data, null, 2));
-            console.log('✅ Miner wallet saved to disk (key encrypted)');
+            console.log('✅ Miner wallet saved to disk');
             return true;
         } catch (error) {
             console.error('❌ Error saving wallet:', error.message);
@@ -89,17 +87,6 @@ class DataPersistence {
             }
             
             const data = JSON.parse(fs.readFileSync(this.walletFile, 'utf8'));
-
-            // Decrypt if stored encrypted, fall back to plaintext for legacy files
-            if (data.privateKeyEnc) {
-                const decrypted = decryptKey(data.privateKeyEnc);
-                if (!decrypted) {
-                    console.warn('⚠️  Could not decrypt miner wallet — generating new wallet');
-                    return null;
-                }
-                data.privateKey = decrypted;
-            }
-
             console.log(`✅ Loaded miner wallet from disk (address: ${data.address})`);
             return data;
         } catch (error) {

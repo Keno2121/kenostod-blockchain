@@ -129,19 +129,15 @@ class ExchangeAPI {
         }
         
         const CryptoJS = require('crypto-js');
-        const { secp256k1 } = require('@noble/curves/secp256k1.js');
+        const EC = require('elliptic').ec;
+        const ec = new EC('secp256k1');
         
         try {
             const orderData = userAddress + pair + side + orderType + quantity + (price || 0) + timestamp;
             const hash = CryptoJS.SHA256(orderData).toString();
-            const hashBytes = Buffer.from(hash, 'hex');
             
-            const isValid = secp256k1.verify(
-                Buffer.from(signature, 'hex'),
-                hashBytes,
-                Buffer.from(userAddress, 'hex'),
-                { format: 'der' }
-            );
+            const publicKey = ec.keyFromPublic(userAddress, 'hex');
+            const isValid = publicKey.verify(hash, signature);
             
             if (!isValid) {
                 throw new Error('Invalid order signature');

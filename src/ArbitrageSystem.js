@@ -1,3 +1,5 @@
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
 const SHA256 = require('crypto-js/sha256');
 const CoinGeckoAPI = require('./CoinGeckoAPI');
 const MultiExchangeAPI = require('./MultiExchangeAPI');

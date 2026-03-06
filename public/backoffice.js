@@ -1,7 +1,6 @@
 const pageParams = new URLSearchParams(window.location.search);
 const isStudentMode = pageParams.get('mode') === 'student';
 const isAdminMode = localStorage.getItem('kenostodAdmin') === 'true';
-const showAnswers = isAdminMode && pageParams.get('show_answers') === '1';
 
 let subscriptionVerified = localStorage.getItem('subscriptionActive') === 'true';
 const isSubscribed = () => subscriptionVerified || isAdminMode;
@@ -2050,20 +2049,17 @@ const courses = {
 
     18: {
         icon: '⚡',
-        title: 'Course 18: Flash Arbitrage Loans & Loan Pools (FAL + FALP)',
-        duration: '11 hours',
-        modules: 16,
+        title: 'Course 18: Flash Arbitrage Loans (FAL)',
+        duration: '6 hours',
+        modules: 8,
         level: 'Intermediate',
-        overview: 'Master both sides of Kenostod\'s arbitrage ecosystem. Part 1 (FAL): Execute flash loans across exchanges, build reputation tiers from Bronze to Diamond, calculate profit margins, and manage risk as an active trader. Part 2 (FALP): Earn passive income by contributing to liquidity pools, choose risk tiers, maximize lock period bonuses up to 2x, and build a diversified pool portfolio.',
+        overview: 'Master Kenostod\'s revolutionary Flash Arbitrage Loan system. Understand arbitrage mechanics, execute flash loans across exchanges, build reputation tiers (Bronze to Diamond), calculate profit margins, and manage risk. Real case studies with actual profit calculations.',
         objectives: [
-            'Understand arbitrage fundamentals and cross-exchange price discrepancies',
-            'Execute Flash Arbitrage Loans and manage the full trade lifecycle',
-            'Build FAL reputation through successful trades (Bronze→Diamond)',
-            'Calculate profit margins, break-even points, and fees',
-            'Understand liquidity pool mechanics and the FAL+FALP relationship',
-            'Evaluate pools by risk tier and historical performance',
-            'Master lock period bonuses (1.1x to 2.0x multipliers)',
-            'Design a combined FAL active trading + FALP passive income strategy'
+            'Understand arbitrage fundamentals and price discrepancies',
+            'Master Flash Arbitrage Loan mechanics and execution',
+            'Build reputation through successful trades (Bronze→Diamond)',
+            'Calculate profit margins and break-even points',
+            'Implement risk management strategies'
         ],
         modules_content: [
             {
@@ -2113,7 +2109,7 @@ const courses = {
                 ]
             },
             {
-                title: 'FAL Risk Management',
+                title: 'Risk Management',
                 lessons: [
                     'Slippage: when prices move during execution',
                     'Liquidity risks on smaller exchanges',
@@ -2122,7 +2118,7 @@ const courses = {
                 ]
             },
             {
-                title: 'FAL Real Case Studies',
+                title: 'Real Case Studies',
                 lessons: [
                     'Case Study 1: Binance-Coinbase spread capture',
                     'Case Study 2: KuCoin arbitrage opportunity',
@@ -2138,7 +2134,61 @@ const courses = {
                     'Automation and bot considerations',
                     'Scaling from Bronze to Diamond'
                 ]
+            }
+        ],
+        quiz: [
+            {
+                question: 'What is a Flash Arbitrage Loan?',
+                options: [
+                    'A) A traditional bank loan',
+                    'B) A loan that must be borrowed and repaid in the same transaction',
+                    'C) A mortgage for buying houses',
+                    'D) A credit card'
+                ],
+                correct: 'B) A loan that must be borrowed and repaid in the same transaction'
             },
+            {
+                question: 'What is the Diamond Tier loan limit after 1,000 successful trades?',
+                options: [
+                    'A) 1,500 KENO',
+                    'B) 3,000 KENO',
+                    'C) 5,000 KENO',
+                    'D) 10,000 KENO'
+                ],
+                correct: 'D) 10,000 KENO'
+            },
+            {
+                question: 'Why do price differences exist between exchanges?',
+                options: [
+                    'A) Exchanges are broken',
+                    'B) Differences in liquidity, trading volume, and price update speed',
+                    'C) Government regulations',
+                    'D) Price differences don\'t exist'
+                ],
+                correct: 'B) Differences in liquidity, trading volume, and price update speed'
+            }
+        ],
+        skills: ['Flash Loans', 'Arbitrage Trading', 'Risk Management', 'Profit Calculation', 'Reputation Building'],
+        real_world: 'Transform KENO holdings into active income. Learn to spot price differences across exchanges and capture profits in single transactions. Graduates execute real FAL trades earning consistent returns.',
+        hands_on: 'Students analyze real arbitrage opportunities, calculate profit margins, simulate FAL trades, and build trading strategies based on market data.',
+        wealth_builder_reward: '250 KENO upon completion + progress toward Silver RVT NFT'
+    },
+
+    19: {
+        icon: '🌊',
+        title: 'Course 19: Flash Arbitrage Loan Pools (FALP)',
+        duration: '5 hours',
+        modules: 8,
+        level: 'Intermediate',
+        overview: 'Master passive income through liquidity pools. Understand pool mechanics, risk tiers (Conservative to Aggressive), lock period bonuses, profit distribution formulas, and pool management. Learn to evaluate pools and maximize yields safely.',
+        objectives: [
+            'Understand liquidity pool fundamentals and how they work',
+            'Evaluate pools based on risk tiers and historical performance',
+            'Master lock period bonuses (1.1x to 2.0x multipliers)',
+            'Calculate expected returns and profit distribution',
+            'Manage pool contributions and withdrawals strategically'
+        ],
+        modules_content: [
             {
                 title: 'Liquidity Pools Fundamentals',
                 lessons: [
@@ -2158,7 +2208,7 @@ const courses = {
                 ]
             },
             {
-                title: 'FALP Risk Tiers',
+                title: 'Risk Tiers Explained',
                 lessons: [
                     'Conservative pools: Lower risk, lower returns',
                     'Balanced pools: Medium risk, medium returns',
@@ -2204,49 +2254,18 @@ const courses = {
                 ]
             },
             {
-                title: 'Combined FAL + FALP Strategy',
+                title: 'Advanced FALP Strategies',
                 lessons: [
                     'Laddering lock periods for flexibility',
-                    'Optimal split: active FAL trading vs. passive FALP pooling',
+                    'Combining FAL trading with FALP pooling',
                     'Creating your own pool (for advanced users)',
-                    'Pool governance and voting rights',
-                    'Building a full arbitrage income ecosystem'
+                    'Pool governance and voting rights'
                 ]
             }
         ],
         quiz: [
             {
-                question: 'What is a Flash Arbitrage Loan?',
-                options: [
-                    'A) A traditional bank loan',
-                    'B) A loan that must be borrowed and repaid in the same transaction',
-                    'C) A mortgage for buying houses',
-                    'D) A credit card'
-                ],
-                correct: 'B) A loan that must be borrowed and repaid in the same transaction'
-            },
-            {
-                question: 'What is the Diamond Tier loan limit after 1,000 successful trades?',
-                options: [
-                    'A) 1,500 KENO',
-                    'B) 3,000 KENO',
-                    'C) 5,000 KENO',
-                    'D) 10,000 KENO'
-                ],
-                correct: 'D) 10,000 KENO'
-            },
-            {
-                question: 'Why do price differences exist between exchanges?',
-                options: [
-                    'A) Exchanges are broken',
-                    'B) Differences in liquidity, trading volume, and price update speed',
-                    'C) Government regulations',
-                    'D) Price differences don\'t exist'
-                ],
-                correct: 'B) Differences in liquidity, trading volume, and price update speed'
-            },
-            {
-                question: 'What is the profit multiplier for a 365-day lock period in FALP?',
+                question: 'What is the profit multiplier for a 365-day lock period?',
                 options: [
                     'A) 1.1x',
                     'B) 1.5x',
@@ -2256,7 +2275,7 @@ const courses = {
                 correct: 'C) 2.0x'
             },
             {
-                question: 'How is your share of FALP pool profits calculated?',
+                question: 'How is your share of pool profits calculated?',
                 options: [
                     'A) Everyone gets equal amounts',
                     'B) (Your Contribution ÷ Total Pool) × Profits × Lock Bonus',
@@ -2266,25 +2285,25 @@ const courses = {
                 correct: 'B) (Your Contribution ÷ Total Pool) × Profits × Lock Bonus'
             },
             {
-                question: 'What type of FALP pool is best for someone who cannot afford to lose money?',
+                question: 'What type of pool is best for someone who can\'t afford to lose money?',
                 options: [
                     'A) Aggressive pool for maximum returns',
                     'B) Conservative pool with lower risk',
                     'C) The newest pool available',
-                    'D) All pools carry the same risk'
+                    'D) All pools are the same risk'
                 ],
                 correct: 'B) Conservative pool with lower risk'
             }
         ],
-        skills: ['Flash Loans', 'Arbitrage Trading', 'Liquidity Pools', 'Passive Income', 'Risk Management', 'Yield Optimization'],
-        real_world: 'Master both sides of Kenostod\'s arbitrage ecosystem. Active traders use FAL to capture cross-exchange price spreads in real time, while pool contributors earn passive income funding those same trades through FALP.',
-        hands_on: 'Students analyze real arbitrage opportunities, simulate FAL trades, calculate profit margins, evaluate liquidity pools by risk tier, design pool contribution strategies with lock period bonuses, and build a combined FAL+FALP income plan.',
-        wealth_builder_reward: '250 KENO upon completion + Silver RVT NFT unlocked'
+        skills: ['Liquidity Pools', 'Passive Income', 'Risk Assessment', 'Yield Optimization', 'Pool Management'],
+        real_world: 'Earn passive income without active trading. Deposit KENO into pools and earn a share of arbitrage profits generated by other traders. Lock period bonuses up to 2x multiplier for patient investors.',
+        hands_on: 'Students evaluate sample pools, calculate expected returns with different lock periods, design pool contribution strategies, and create diversified pool portfolios.',
+        wealth_builder_reward: '250 KENO upon completion + progress toward Silver RVT NFT'
     },
 
-    19: {
+    20: {
         icon: '💎',
-        title: 'Course 19: Wealth Building & Asset Allocation',
+        title: 'Course 20: Wealth Building & Asset Allocation',
         duration: '5 hours',
         modules: 6,
         level: 'Advanced',
@@ -2361,7 +2380,7 @@ const courses = {
         ],
         quiz: [
             {
-                question: 'What is the recommended KENO deployment split?',
+                question: 'What is the recommended KENO deployment split in this course?',
                 options: [
                     'A) 100% holding',
                     'B) 100% FAL trading',
@@ -2394,130 +2413,22 @@ const courses = {
         skills: ['Asset Allocation', 'Portfolio Rebalancing', 'KENO Strategies', 'RVT Income', 'Wealth Planning'],
         real_world: 'Bridge the wealth gap. Build $500K-$2M+ net worth through strategic asset allocation. Integrate KENO and RVTs into a comprehensive wealth-building portfolio.',
         hands_on: 'Students design personalized asset allocations, create rebalancing schedules, plan KENO deployment strategies, and map RVT progression paths.',
-        wealth_builder_reward: '250 KENO upon completion + Gold RVT NFT progress'
-    },
-
-    20: {
-        icon: '🏛️',
-        title: 'Course 20: Generational Wealth',
-        duration: '4 hours',
-        modules: 6,
-        level: 'Advanced',
-        overview: 'Create wealth that lasts across generations. Understand the 3-generation wealth problem, estate planning basics, crypto inheritance via social recovery, family financial education, and how to build lasting structures that preserve wealth for your children and grandchildren.',
-        objectives: [
-            'Understand why 90% of families lose wealth by the 3rd generation',
-            'Create an estate plan with crypto-specific considerations',
-            'Implement social recovery for crypto inheritance',
-            'Design a family financial education system',
-            'Build lasting wealth structures through trusts and legacy planning'
-        ],
-        modules_content: [
-            {
-                title: 'The 3-Generation Wealth Problem',
-                lessons: [
-                    'Why 90% of family wealth is gone by the 3rd generation',
-                    'Shirtsleeves to shirtsleeves: the universal pattern',
-                    'The role of financial education in wealth preservation',
-                    'Case studies: wealthy families who succeeded and failed'
-                ]
-            },
-            {
-                title: 'Estate Planning Basics',
-                lessons: [
-                    'Wills: what they cover and what they don\'t',
-                    'Trusts: revocable vs. irrevocable',
-                    'Beneficiary designations and POD accounts',
-                    'Power of attorney and healthcare directives'
-                ]
-            },
-            {
-                title: 'Crypto Inheritance',
-                lessons: [
-                    'The crypto inheritance problem: keys die with owners',
-                    'Social recovery as an inheritance mechanism',
-                    'Seed phrase storage and secure handoff',
-                    'Hardware wallet inheritance protocols'
-                ]
-            },
-            {
-                title: 'Family Financial Education',
-                lessons: [
-                    'Teaching kids about money at every age',
-                    'Allowances, budgets, and junior investment accounts',
-                    'Family wealth meetings and financial transparency',
-                    'Building a family financial philosophy'
-                ]
-            },
-            {
-                title: 'Trust Structures for Crypto',
-                lessons: [
-                    'Crypto-specific trust considerations',
-                    'Naming a digital asset trustee',
-                    'Spendthrift provisions for inherited wealth',
-                    'Multi-generational trust design'
-                ]
-            },
-            {
-                title: 'Your Generational Wealth Blueprint',
-                lessons: [
-                    'Documenting your asset inventory',
-                    'Writing your family wealth mission statement',
-                    'Setting legacy goals: what do you want to leave behind?',
-                    'Annual family wealth review process'
-                ]
-            }
-        ],
-        quiz: [
-            {
-                question: 'What percentage of family wealth is typically lost by the 3rd generation?',
-                options: [
-                    'A) 30%',
-                    'B) 60%',
-                    'C) 90%',
-                    'D) 100%'
-                ],
-                correct: 'C) 90%'
-            },
-            {
-                question: 'What is the best mechanism Kenostod provides for crypto inheritance?',
-                options: [
-                    'A) Printing the private key on paper',
-                    'B) Social recovery system with trusted guardians',
-                    'C) Emailing the seed phrase to family',
-                    'D) Storing on an exchange'
-                ],
-                correct: 'B) Social recovery system with trusted guardians'
-            },
-            {
-                question: 'What is a spendthrift trust provision?',
-                options: [
-                    'A) A trust that spends money quickly',
-                    'B) A provision that restricts how and when beneficiaries can access funds',
-                    'C) A government savings program',
-                    'D) A type of cryptocurrency wallet'
-                ],
-                correct: 'B) A provision that restricts how and when beneficiaries can access funds'
-            }
-        ],
-        skills: ['Estate Planning', 'Crypto Inheritance', 'Trust Structures', 'Family Finance', 'Legacy Planning'],
-        real_world: 'Build wealth that survives you. Graduates implement crypto inheritance plans, create family financial education programs, and establish trust structures that protect assets across generations.',
-        hands_on: 'Students draft a family wealth plan, design a social recovery inheritance setup, write a family financial mission statement, and map a multi-generational legacy strategy.',
-        wealth_builder_reward: '250 KENO upon completion + Platinum RVT progress'
+        wealth_builder_reward: '250 KENO upon completion + progress toward Gold RVT NFT'
     },
 
     21: {
-        icon: '🌍',
-        title: 'Course 21: Economic Empowerment & Global Impact',
+        icon: '🏛️',
+        title: 'Course 21: Generational Wealth & Economic Empowerment',
         duration: '5 hours',
-        modules: 6,
+        modules: 7,
         level: 'Advanced',
-        overview: 'Turn your blockchain education into global impact. Understand the 1.7 billion unbanked, use blockchain for financial inclusion and remittances, explore microfinance, social entrepreneurship, and the Kenostod mission of using technology to lift communities out of poverty.',
+        overview: 'Create wealth that lasts for generations AND make global impact. Learn the 3-generation wealth problem, estate planning, trusts, crypto inheritance via social recovery, financial inclusion through blockchain, and the Kenostod mission.',
         objectives: [
-            'Understand the global financial inclusion crisis and blockchain\'s role',
-            'Leverage blockchain for remittances and reducing fees from 7% to <1%',
-            'Explore microfinance models and community lending on-chain',
-            'Design social entrepreneurship projects with blockchain',
-            'Create a personal poverty reduction and community impact plan'
+            'Understand why 90% of families lose wealth by 3rd generation',
+            'Create estate plans with crypto-specific considerations',
+            'Implement social recovery for crypto inheritance',
+            'Leverage blockchain for financial inclusion',
+            'Create economic empowerment strategies'
         ],
         modules_content: [
             {
@@ -2714,32 +2625,6 @@ function loadCourse(courseId) {
         });
     }
     
-    // Map course IDs to their interactive HTML pages
-    const courseUrls = {
-        1: '/courses/course-1-wallet-basics.html',
-        2: '/courses/course-2-transactions.html',
-        3: '/courses/course-3-reversal.html',
-        4: '/courses/course-4-scheduled.html',
-        5: '/courses/course-5-recovery.html',
-        6: '/courses/course-6-messages.html',
-        7: '/courses/course-7-reputation.html',
-        8: '/courses/course-8-governance.html',
-        9: '/courses/course-9-pow.html',
-        10: '/courses/course-10-porv.html',
-        11: '/courses/course-11-rvt.html',
-        12: '/courses/course-12-enterprise.html',
-        13: '/courses/course-13-royalties.html',
-        14: '/courses/course-14-merchant.html',
-        15: '/courses/course-15-banking.html',
-        16: '/courses/course-16-exchange.html',
-        17: '/courses/course-17-finance.html',
-        18: '/courses/course-18-fal.html',
-        19: '/courses/course-19-falp.html',
-        20: '/courses/course-20-wealth.html',
-        21: '/courses/course-21-generational.html'
-    };
-    const courseUrl = courseUrls[courseId];
-
     // Render course content
     let html = `
         <div class="course-header-section">
@@ -2749,7 +2634,6 @@ function loadCourse(courseId) {
                 <div class="meta-item">📚 ${course.modules} Modules</div>
                 <div class="meta-item">📊 ${course.level}</div>
             </div>
-            ${courseUrl ? `<div style="margin-top: 16px;"><a href="${courseUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.9rem;box-shadow:0 4px 12px rgba(99,102,241,0.3);transition:all 0.2s;">📖 Open Full Interactive Course <span style="font-size:1rem;">→</span></a><span style="display:block;margin-top:6px;font-size:0.75rem;color:#64748b;">Opens the complete student learning experience with all lessons, exercises &amp; quizzes</span></div>` : ''}
         </div>
 
         <div class="section-block">
@@ -2779,13 +2663,13 @@ function loadCourse(courseId) {
         </div>
 
         <div class="section-block">
-            <h3>✅ Knowledge Check Quiz${showAnswers ? ' <span style="background:#059669;color:white;padding:2px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;vertical-align:middle;margin-left:8px;">ANSWERS SHOWN</span>' : ''}</h3>
+            <h3>✅ Knowledge Check Quiz</h3>
             ${course.quiz.map((q, idx) => `
-                <div class="quiz-question${showAnswers ? ' answered' : ''}" data-correct="${btoa(q.correct)}">
+                <div class="quiz-question" data-correct="${btoa(q.correct)}">
                     <strong>Question ${idx + 1}: ${q.question}</strong>
                     <ul>
                         ${q.options.map(opt => `
-                            <li onclick="checkAnswer(this)" class="${showAnswers && opt === q.correct ? 'reveal-correct' : ''}">${opt}${showAnswers && opt === q.correct ? ' <span style="font-weight:700;color:#059669;margin-left:6px;">✓ Correct</span>' : ''}</li>
+                            <li onclick="checkAnswer(this)">${opt}</li>
                         `).join('')}
                     </ul>
                 </div>

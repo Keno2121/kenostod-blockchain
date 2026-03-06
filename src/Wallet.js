@@ -1,18 +1,18 @@
-const { secp256k1 } = require('@noble/curves/secp256k1.js');
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
 
 class Wallet {
     constructor() {
-        const privKeyBytes = secp256k1.utils.randomSecretKey();
-        this.privateKey = Buffer.from(privKeyBytes).toString('hex');
-        this.publicKey = Buffer.from(secp256k1.getPublicKey(privKeyBytes, false)).toString('hex');
+        this.keyPair = ec.genKeyPair();
+        this.publicKey = this.keyPair.getPublic('hex');
+        this.privateKey = this.keyPair.getPrivate('hex');
     }
 
     static fromPrivateKey(privateKey) {
-        const wallet = Object.create(Wallet.prototype);
+        const wallet = new Wallet();
+        wallet.keyPair = ec.keyFromPrivate(privateKey, 'hex');
+        wallet.publicKey = wallet.keyPair.getPublic('hex');
         wallet.privateKey = privateKey;
-        wallet.publicKey = Buffer.from(
-            secp256k1.getPublicKey(new Uint8Array(Buffer.from(privateKey, 'hex')), false)
-        ).toString('hex');
         return wallet;
     }
 

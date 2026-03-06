@@ -3,6 +3,8 @@
 const Blockchain = require('./src/Blockchain');
 const Transaction = require('./src/Transaction');
 const Wallet = require('./src/Wallet');
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
 
 // Initialize blockchain
 const kenostodChain = new Blockchain();
@@ -61,7 +63,8 @@ function sendTokens(fromAddress, toAddress, amount, privateKey) {
     
     try {
         const transaction = new Transaction(fromAddress, toAddress, parseFloat(amount));
-        transaction.signTransaction(privateKey);
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        transaction.signTransaction(key);
         
         kenostodChain.createTransaction(transaction);
         console.log('Transaction added to pending transactions');
