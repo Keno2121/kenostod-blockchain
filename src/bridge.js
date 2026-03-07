@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { randomUUID } = require('crypto');
 
 const BRIDGE_API_KEY = process.env.BRIDGE_API_KEY;
 const BRIDGE_SANDBOX_URL = 'https://api.sandbox.bridge.xyz/v0';
@@ -7,14 +8,15 @@ const BRIDGE_PROD_URL = 'https://api.bridge.xyz/v0';
 const USE_SANDBOX = true;
 const BASE_URL = USE_SANDBOX ? BRIDGE_SANDBOX_URL : BRIDGE_PROD_URL;
 
-function bridgeClient() {
-    return axios.create({
-        baseURL: BASE_URL,
-        headers: {
-            'Api-Key': BRIDGE_API_KEY,
-            'Content-Type': 'application/json',
-        },
-    });
+function bridgeClient(idempotencyKey) {
+    const headers = {
+        'Api-Key': BRIDGE_API_KEY,
+        'Content-Type': 'application/json',
+    };
+    if (idempotencyKey) {
+        headers['Idempotency-Key'] = idempotencyKey;
+    }
+    return axios.create({ baseURL: BASE_URL, headers });
 }
 
 async function getAccount() {
@@ -24,7 +26,7 @@ async function getAccount() {
 }
 
 async function createKycLink(email, fullName) {
-    const client = bridgeClient();
+    const client = bridgeClient(randomUUID());
     const res = await client.post('/kyc_links', {
         full_name: fullName,
         email: email,
@@ -52,7 +54,7 @@ async function listTransfers(limit = 20) {
 }
 
 async function createTransfer({ amount, currency, sourcePaymentRail, destinationPaymentRail, destinationAddress, customerId }) {
-    const client = bridgeClient();
+    const client = bridgeClient(randomUUID());
     const res = await client.post('/transfers', {
         amount: amount.toString(),
         on_behalf_of: customerId,
@@ -71,7 +73,7 @@ async function createTransfer({ amount, currency, sourcePaymentRail, destination
 }
 
 async function createLiquidationAddress({ customerId, chain, currency, externalAccountId }) {
-    const client = bridgeClient();
+    const client = bridgeClient(randomUUID());
     const res = await client.post('/liquidation_addresses', {
         customer_id: customerId,
         chain: chain || 'ethereum',
