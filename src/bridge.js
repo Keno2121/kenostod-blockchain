@@ -74,9 +74,8 @@ async function createTransfer({ amount, currency, sourcePaymentRail, destination
 
 async function createLiquidationAddress({ customerId, chain, currency, externalAccountId }) {
     const client = bridgeClient(randomUUID());
-    const res = await client.post('/liquidation_addresses', {
-        customer_id: customerId,
-        chain: chain || 'ethereum',
+    const res = await client.post(`/customers/${customerId}/liquidation_addresses`, {
+        chain: chain || 'base',
         currency: currency || 'usdb',
         external_account_id: externalAccountId,
     });
@@ -85,9 +84,7 @@ async function createLiquidationAddress({ customerId, chain, currency, externalA
 
 async function listLiquidationAddresses(customerId) {
     const client = bridgeClient();
-    const res = await client.get('/liquidation_addresses', {
-        params: { customer_id: customerId },
-    });
+    const res = await client.get(`/customers/${customerId}/liquidation_addresses`);
     return res.data;
 }
 
