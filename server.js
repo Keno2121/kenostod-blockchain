@@ -13,6 +13,7 @@ const StripeIntegration = require('./src/StripeIntegration');
 const PayPalIntegration = require('./src/PayPalIntegration');
 const { runMigrations } = require('stripe-replit-sync');
 const { getStripeSync } = require('./src/stripeClient');
+const bridge = require('./src/bridge');
 const stripeService = require('./src/stripeService');
 const WebhookHandlers = require('./src/webhookHandlers');
 const MerchantIncentives = require('./src/MerchantIncentives');
@@ -9807,6 +9808,89 @@ app.listen(PORT, '0.0.0.0', () => {
         }, 3600000);
         console.log('Governance proposal checker started (runs every hour)');
     }, 2000);
+});
+
+// ============================================================
+// BRIDGE.XYZ SANDBOX INTEGRATION ROUTES
+// ============================================================
+
+app.get('/api/bridge/status', async (req, res) => {
+    try {
+        const result = await bridge.testConnection();
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/bridge/customers', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 20;
+        const data = await bridge.listCustomers(limit);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
+});
+
+app.get('/api/bridge/customers/:id', async (req, res) => {
+    try {
+        const data = await bridge.getCustomer(req.params.id);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
+});
+
+app.post('/api/bridge/kyc_link', async (req, res) => {
+    try {
+        const { email, full_name } = req.body;
+        if (!email || !full_name) {
+            return res.status(400).json({ error: 'email and full_name are required' });
+        }
+        const data = await bridge.createKycLink(email, full_name);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
+});
+
+app.get('/api/bridge/transfers', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 20;
+        const data = await bridge.listTransfers(limit);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
+});
+
+app.post('/api/bridge/transfers', async (req, res) => {
+    try {
+        const data = await bridge.createTransfer(req.body);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
+});
+
+app.post('/api/bridge/liquidation_addresses', async (req, res) => {
+    try {
+        const data = await bridge.createLiquidationAddress(req.body);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
+});
+
+app.get('/api/bridge/liquidation_addresses', async (req, res) => {
+    try {
+        const customerId = req.query.customer_id;
+        const data = await bridge.listLiquidationAddresses(customerId);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
 });
 
 module.exports = { app, kenostodChain, minerWallet, wallet1, wallet2 };
