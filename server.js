@@ -5558,7 +5558,27 @@ app.post('/api/students/enroll', async (req, res) => {
         `, [normalizedEmail, normalizedWallet]);
         
         console.log(`✅ New student enrolled: ${studentId} - ${sanitizedName} (${normalizedEmail})`);
-        
+
+        // Auto-generate Bridge KYC link for new student
+        let bridgeKycLink = null;
+        let bridgeCustomerId = null;
+        try {
+            const kycResult = await bridge.createKycLink(normalizedEmail, sanitizedName);
+            if (kycResult && kycResult.kyc_link) {
+                bridgeKycLink = kycResult.kyc_link;
+                bridgeCustomerId = kycResult.customer_id || null;
+                await dbConnection.query(
+                    `UPDATE students SET bridge_customer_id = $1, bridge_kyc_link = $2, 
+                     bridge_kyc_status = 'not_started', bridge_kyc_updated_at = NOW()
+                     WHERE student_id = $3`,
+                    [bridgeCustomerId, bridgeKycLink, studentId]
+                );
+                console.log(`🔗 Bridge KYC link created for ${normalizedEmail}`);
+            }
+        } catch (bridgeErr) {
+            console.error('Bridge KYC link creation failed (non-fatal):', bridgeErr.message);
+        }
+
         res.json({ 
             success: true, 
             message: 'Welcome to Kenostod Blockchain Academy!',
@@ -5568,6 +5588,13 @@ app.post('/api/students/enroll', async (req, res) => {
                 email: normalizedEmail,
                 walletAddress: normalizedWallet,
                 enrollmentDate: new Date().toISOString()
+            },
+            bridge: {
+                kycRequired: true,
+                kycLink: bridgeKycLink,
+                message: bridgeKycLink 
+                    ? 'Complete your identity verification to unlock USDB earnings and the KUTL card.' 
+                    : 'Identity verification will be available shortly.'
             }
         });
     } catch (error) {
@@ -9844,6 +9871,86 @@ app.get('/api/bridge/status', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// ==================== BRIDGE STUDENT KYC ROUTES ====================
+
+app.get('/api/bridge/student-kyc/:walletAddress', async (req, res) => {
+    try {
+        const wallet = req.params.walletAddress.toLowerCase();
+        const result = await dbConnection.query(
+            `SELECT bridge_customer_id, bridge_kyc_status, bridge_kyc_link, 
+                    bridge_liquidation_address, bridge_kyc_updated_at, name, email
+             FROM students WHERE wallet_address = $1`,
+            [wallet]
+        );
+        if (!result.rows.length) return res.status(404).json({ error: 'Student not found' });
+        const student = result.rows[0];
+        res.json({
+            success: true,
+            kyc: {
+                customerId: student.bridge_customer_id,
+                status: student.bridge_kyc_status || 'not_started',
+                kycLink: student.bridge_kyc_link,
+                liquidationAddress: student.bridge_liquidation_address,
+                updatedAt: student.bridge_kyc_updated_at
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/bridge/student-kyc/refresh', async (req, res) => {
+    try {
+        const { walletAddress } = req.body;
+        if (!walletAddress) return res.status(400).json({ error: 'walletAddress required' });
+        const wallet = walletAddress.toLowerCase();
+
+        const result = await dbConnection.query(
+            `SELECT bridge_customer_id, bridge_kyc_status, name, email FROM students WHERE wallet_address = $1`,
+            [wallet]
+        );
+        if (!result.rows.length) return res.status(404).json({ error: 'Student not found' });
+        const student = result.rows[0];
+        if (!student.bridge_customer_id) return res.status(400).json({ error: 'No Bridge customer ID on record. Student may need to re-enroll.' });
+
+        const customer = await bridge.getCustomer(student.bridge_customer_id);
+        const newStatus = customer.kyc_status || customer.status || 'pending';
+
+        await dbConnection.query(
+            `UPDATE students SET bridge_kyc_status = $1, bridge_kyc_updated_at = NOW() WHERE wallet_address = $2`,
+            [newStatus, wallet]
+        );
+
+        // Auto-create liquidation address when KYC is approved
+        let liquidationAddress = null;
+        if (newStatus === 'approved') {
+            try {
+                const liq = await bridge.createLiquidationAddress({
+                    customerId: student.bridge_customer_id,
+                    chain: 'base',
+                    currency: 'usdb'
+                });
+                liquidationAddress = liq.address || liq.id || null;
+                if (liquidationAddress) {
+                    await dbConnection.query(
+                        `UPDATE students SET bridge_liquidation_address = $1 WHERE wallet_address = $2`,
+                        [liquidationAddress, wallet]
+                    );
+                    console.log(`✅ USDB liquidation address created for ${student.email}: ${liquidationAddress}`);
+                }
+            } catch (liqErr) {
+                console.error('Liquidation address creation failed:', liqErr.message);
+            }
+        }
+
+        res.json({ success: true, status: newStatus, liquidationAddress });
+    } catch (err) {
+        res.status(500).json({ error: err.response ? err.response.data : err.message });
+    }
+});
+
+// ==================== END BRIDGE STUDENT KYC ROUTES ====================
 
 app.get('/api/bridge/customers', async (req, res) => {
     try {
