@@ -1262,15 +1262,15 @@ app.post('/api/claims/request', async (req, res) => {
         const rewardsResult = await dbConnection.query(
             `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
              FROM student_rewards 
-             WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $1`,
-            [email.toLowerCase()]
+             WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $2`,
+            [email.toLowerCase(), walletAddress.toLowerCase()]
         );
         
         const existingClaimsResult = await dbConnection.query(
             `SELECT COALESCE(SUM(amount), 0) as total_claimed 
              FROM keno_claims 
-             WHERE LOWER(email) = $1 AND (status = 'completed' OR status = 'pending')`,
-            [email.toLowerCase()]
+             WHERE (LOWER(email) = $1 OR LOWER(wallet_address) = $2) AND (status = 'completed' OR status = 'pending')`,
+            [email.toLowerCase(), walletAddress.toLowerCase()]
         );
         
         const totalEarned = parseFloat(rewardsResult.rows[0]?.total_earned || 0);
