@@ -286,6 +286,11 @@
                     
                     if (!data.alreadyEnrolled) {
                         this.showWelcomeMessage(data.student.name);
+                        if (data.bridge && data.bridge.kycLink) {
+                            localStorage.setItem('kenostod_kyc_link', data.bridge.kycLink);
+                            localStorage.setItem('kenostod_kyc_status', 'not_started');
+                            setTimeout(() => this.showKycBanner(data.bridge.kycLink), 2000);
+                        }
                     }
                 } else {
                     errorDiv.textContent = data.error || 'Enrollment failed. Please try again.';
@@ -340,6 +345,70 @@
             }, 5000);
         },
         
+        showKycBanner: function(kycLink) {
+            if (document.getElementById('bridgeKycBanner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'bridgeKycBanner';
+            banner.innerHTML = `
+                <div style="
+                    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                    color: white; padding: 16px 24px; border-radius: 16px;
+                    box-shadow: 0 10px 40px rgba(99,102,241,0.5);
+                    z-index: 10002; max-width: 480px; width: calc(100% - 40px);
+                    display: flex; align-items: center; gap: 16px;
+                    animation: slideUp 0.4s ease;
+                ">
+                    <div style="font-size: 2rem;">🔐</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 1rem; margin-bottom: 4px;">Verify your identity</div>
+                        <div style="font-size: 0.85rem; opacity: 0.9;">Complete KYC to unlock USDB earnings and your KUTL card</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                        <a href="${kycLink}" target="_blank" style="
+                            background: white; color: #6366f1; font-weight: 700;
+                            padding: 8px 16px; border-radius: 8px; text-decoration: none;
+                            font-size: 0.85rem; text-align: center; white-space: nowrap;
+                        ">Verify Now</a>
+                        <button onclick="document.getElementById('bridgeKycBanner').remove()" style="
+                            background: transparent; border: 1px solid rgba(255,255,255,0.4);
+                            color: white; padding: 6px 16px; border-radius: 8px;
+                            font-size: 0.8rem; cursor: pointer;
+                        ">Later</button>
+                    </div>
+                </div>
+                <style>
+                    @keyframes slideUp {
+                        from { transform: translateX(-50%) translateY(100%); opacity: 0; }
+                        to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                    }
+                </style>
+            `;
+            document.body.appendChild(banner);
+        },
+
+        checkKycStatus: async function() {
+            const kycStatus = localStorage.getItem('kenostod_kyc_status');
+            const kycLink = localStorage.getItem('kenostod_kyc_link');
+            const student = this.getEnrolledStudent();
+            if (!student || !kycLink || kycStatus === 'approved') return;
+
+            if (kycStatus === 'not_started' || kycStatus === 'pending') {
+                try {
+                    const res = await fetch(`/api/bridge/student-kyc/${student.walletAddress}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        const status = data.kyc.status;
+                        localStorage.setItem('kenostod_kyc_status', status);
+                        if (status === 'approved') return;
+                        if (kycLink) setTimeout(() => this.showKycBanner(kycLink), 3000);
+                    }
+                } catch (e) {
+                    if (kycLink) setTimeout(() => this.showKycBanner(kycLink), 3000);
+                }
+            }
+        },
+
         requireEnrollment: async function(callback) {
             const stored = this.getEnrolledStudent();
             if (stored && stored.walletAddress) {
@@ -356,4 +425,13 @@
     };
     
     console.log('Enrollment modal loaded');
+
+    // Check KYC status on page load for returning students
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (window.EnrollmentModal) {
+                window.EnrollmentModal.checkKycStatus();
+            }
+        }, 4000);
+    });
 })();
