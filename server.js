@@ -7366,7 +7366,7 @@ app.post('/api/arbitrage/flash-loan/create', (req, res) => {
     }
 });
 
-app.post('/api/arbitrage/flash-loan/repay', (req, res) => {
+app.post('/api/arbitrage/flash-loan/repay', async (req, res) => {
     try {
         const { walletAddress, loanId, profit } = req.body;
         
@@ -7377,7 +7377,29 @@ app.post('/api/arbitrage/flash-loan/repay', (req, res) => {
             });
         }
         
-        const result = arbitrageSystem.repayFlashLoan(walletAddress, loanId, profit || 0);
+        const actualProfit = profit || 0;
+        const result = arbitrageSystem.repayFlashLoan(walletAddress, loanId, actualProfit);
+
+        if (result.success && actualProfit > 0 && dbConnection) {
+            try {
+                const bonusEarned = result.bonusEarned || 0;
+                const totalKeno = actualProfit + bonusEarned;
+                await dbConnection.query(
+                    `INSERT INTO student_rewards 
+                        (user_wallet_address, reward_type, reward_amount, description, status, created_at)
+                     VALUES ($1, 'fal_profit', $2, $3, 'available', NOW())`,
+                    [
+                        walletAddress.toLowerCase(),
+                        totalKeno,
+                        `FAL profit: ${actualProfit.toFixed(2)} KENO + ${bonusEarned.toFixed(2)} KENO bonus (Loan: ${loanId})`
+                    ]
+                );
+                console.log(`💾 FAL profit saved to DB: ${totalKeno.toFixed(2)} KENO for ${walletAddress.substring(0, 20)}...`);
+            } catch (dbErr) {
+                console.error('Failed to save FAL profit to DB:', dbErr.message);
+            }
+        }
+
         res.json(result);
     } catch (error) {
         console.error('Flash loan repayment error:', error);
