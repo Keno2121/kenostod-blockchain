@@ -1,4 +1,4 @@
-const EC = require('elliptic').ec;
+const EC = require('./secp256k1-compat').ec;
 const ec = new EC('secp256k1');
 const SHA256 = require('crypto-js/sha256');
 const CoinGeckoAPI = require('./CoinGeckoAPI');

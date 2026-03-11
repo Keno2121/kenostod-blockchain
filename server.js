@@ -29,7 +29,7 @@ const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
-const EC = require('elliptic').ec;
+const EC = require('./src/secp256k1-compat').ec;
 const ec = new EC('secp256k1');
 
 const app = express();

@@ -129,7 +129,7 @@ class ExchangeAPI {
         }
         
         const CryptoJS = require('crypto-js');
-        const EC = require('elliptic').ec;
+        const EC = require('./secp256k1-compat').ec;
         const ec = new EC('secp256k1');
         
         try {
