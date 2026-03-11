@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 12: Enterprise Integration | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+        
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .header-content { max-width: 1000px; margin: 0 auto; }
+        
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .course-title .icon { font-size: 1.2em; }
+        
+        .locked-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+        
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .toc-list { list-style: none; }
+        
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+        
+        .toc-item:hover, .toc-item.active { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
+        
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        
+        .content-area { flex: 1; min-width: 0; }
+        
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-icon { font-size: 1em; }
+        
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+        
+        .step-list { counter-reset: step-counter; list-style: none; }
+        
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+        
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+        
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+        
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .exercise-question input[type="text"], .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+        }
+        
+        .exercise-question textarea { min-height: 80px; resize: vertical; }
+        
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+        
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .practice-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 2px solid var(--primary);
+        }
+        
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+        
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+        
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+        
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--primary); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--primary); background: var(--primary); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+        
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+        
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--primary); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+        
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+        
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+        
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+        
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+        
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 12
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#127970;</span>
+                Course 12: Enterprise Integration
+                <span class="locked-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('why-enterprise')"><span class="toc-number">2</span>Why Enterprises Adopt Blockchain</li>
+                    <li class="toc-item" onclick="scrollToSection('platforms')"><span class="toc-number">3</span>Enterprise Platforms</li>
+                    <li class="toc-item" onclick="scrollToSection('network-types')"><span class="toc-number">4</span>Private vs Public vs Consortium</li>
+                    <li class="toc-item" onclick="scrollToSection('api-integration')"><span class="toc-number">5</span>API Integration Patterns</li>
+                    <li class="toc-item" onclick="scrollToSection('supply-chain')"><span class="toc-number">6</span>Supply Chain Use Cases</li>
+                    <li class="toc-item" onclick="scrollToSection('identity')"><span class="toc-number">7</span>Enterprise Identity Management</li>
+                    <li class="toc-item" onclick="scrollToSection('compliance')"><span class="toc-number">8</span>Compliance &amp; Regulatory</li>
+                    <li class="toc-item" onclick="scrollToSection('roi')"><span class="toc-number">9</span>Blockchain ROI Analysis</li>
+                    <li class="toc-item" onclick="scrollToSection('legacy')"><span class="toc-number">10</span>Legacy System Integration</li>
+                    <li class="toc-item" onclick="scrollToSection('kenostod-b2b')"><span class="toc-number">11</span>Kenostod B2B Offerings</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">12</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">13</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">14</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+        
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Articulate why Fortune 500 companies are adopting blockchain technology</div></li>
+                    <li class="step-item"><div class="step-title">Compare enterprise blockchain platforms: Hyperledger Fabric, R3 Corda, and Quorum</div></li>
+                    <li class="step-item"><div class="step-title">Distinguish between public, private, and consortium blockchain network architectures</div></li>
+                    <li class="step-item"><div class="step-title">Design API integration patterns for connecting blockchain to existing business systems</div></li>
+                    <li class="step-item"><div class="step-title">Evaluate supply chain management, identity, and financial use cases for blockchain</div></li>
+                    <li class="step-item"><div class="step-title">Navigate regulatory and compliance requirements including GDPR and SOC 2</div></li>
+                    <li class="step-item"><div class="step-title">Calculate ROI for enterprise blockchain implementations</div></li>
+                    <li class="step-item"><div class="step-title">Plan legacy system migration strategies and enterprise wallet management</div></li>
+                    <li class="step-item"><div class="step-title">Understand smart contract auditing standards for enterprise deployments</div></li>
+                    <li class="step-item"><div class="step-title">Leverage Kenostod&rsquo;s B2B platform for enterprise-grade blockchain solutions</div></li>
+                </ul>
+                
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This is an advanced course designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, case study analysis, and the final exam. Take breaks between sections. The 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <section id="why-enterprise" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127970;</span>Why Enterprises Adopt Blockchain</h2>
+                <div class="reading-content">
+                    <p>Enterprise blockchain adoption has moved far beyond the hype cycle. According to Deloitte&rsquo;s Global Blockchain Survey, over 80% of executives say blockchain technology is broadly scalable and has achieved mainstream adoption within their organizations. But why are large corporations investing billions in this technology?</p>
+                    
+                    <h3>The Core Enterprise Value Propositions</h3>
+                    <p>Enterprises don&rsquo;t adopt blockchain because it&rsquo;s trendy &mdash; they adopt it because it solves specific, expensive business problems that traditional databases and middleware cannot address effectively.</p>
+                    
+                    <h4>1. Trust Without Intermediaries</h4>
+                    <p>In traditional B2B transactions, companies rely on intermediaries (banks, clearinghouses, auditors) to establish trust. Each intermediary adds cost, latency, and points of failure. Blockchain creates a shared, immutable ledger where all parties can verify data without trusting a central authority. This eliminates reconciliation costs that can consume 5-10% of operational budgets in financial services.</p>
+                    
+                    <h4>2. Data Integrity and Auditability</h4>
+                    <p>Every transaction on a blockchain is cryptographically sealed and timestamped. This creates an unbreakable audit trail. For industries like pharmaceuticals, food safety, and aerospace &mdash; where proving the provenance of every component is legally required &mdash; blockchain provides an automated compliance mechanism.</p>
+                    
+                    <h4>3. Process Automation via Smart Contracts</h4>
+                    <p>Smart contracts execute automatically when conditions are met, eliminating manual processing. Insurance claims, trade finance letters of credit, royalty payments, and supply chain triggers can all be automated. McKinsey estimates that smart contracts could reduce operational costs in banking by $13-15 billion annually.</p>
+                    
+                    <h4>4. Multi-Party Data Sharing</h4>
+                    <p>In supply chains, healthcare networks, and financial consortiums, multiple organizations need to share data while maintaining sovereignty over their own information. Blockchain provides selective disclosure &mdash; each party sees only what they&rsquo;re authorized to see, while the underlying integrity of the shared ledger is maintained.</p>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128200; Enterprise Blockchain Market Size</div>
+                        <p>The enterprise blockchain market was valued at $7.18 billion in 2022 and is projected to reach $94.96 billion by 2030, growing at a CAGR of 38.4%. Financial services, supply chain, and healthcare are the top three adoption sectors.</p>
+                    </div>
+                    
+                    <h3>Key Enterprise Vocabulary</h3>
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Permissioned Ledger</div>
+                            <div class="vocab-def">A blockchain where participants must be authorized to join, read, or write data</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Consensus Mechanism</div>
+                            <div class="vocab-def">The protocol by which network nodes agree on the current state of the ledger</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Chaincode</div>
+                            <div class="vocab-def">Hyperledger Fabric&rsquo;s term for smart contracts that run in Docker containers</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">CorDapp</div>
+                            <div class="vocab-def">A distributed application running on the R3 Corda platform</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Oracle</div>
+                            <div class="vocab-def">A service that feeds real-world data into a blockchain smart contract</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Tokenization</div>
+                            <div class="vocab-def">Converting real-world assets (real estate, bonds, art) into digital tokens on a blockchain</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="platforms" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128736;&#65039;</span>Enterprise Blockchain Platforms</h2>
+                <div class="reading-content">
+                    <p>Not all blockchains are created equal. Public chains like Ethereum are designed for open, permissionless participation. Enterprise platforms are purpose-built for business requirements: privacy, performance, governance, and regulatory compliance. Let&rsquo;s examine the three dominant enterprise platforms in depth.</p>
+                    
+                    <h3>Hyperledger Fabric</h3>
+                    <p>Developed under the Linux Foundation, Hyperledger Fabric is the most widely deployed enterprise blockchain platform. It uses a modular architecture that allows enterprises to plug in their preferred consensus mechanism, membership services, and data storage.</p>
+                    
+                    <h4>Key Architecture Features</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Channels:</strong> Private sub-networks within the main network, allowing subsets of participants to share confidential data</li>
+                        <li><strong>Endorsement Policies:</strong> Define which organizations must sign off on a transaction before it&rsquo;s committed</li>
+                        <li><strong>Private Data Collections:</strong> Store sensitive data off-chain while maintaining a hash on the ledger for verification</li>
+                        <li><strong>Chaincode in Go, Java, or Node.js:</strong> Smart contracts run in isolated Docker containers</li>
+                    </ul>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Example: Hyperledger Fabric Chaincode (Go)</span>
+<span class="code-keyword">func</span> (s *SmartContract) <span class="code-function">CreateAsset</span>(ctx contractapi.TransactionContextInterface,
+    id <span class="code-keyword">string</span>, owner <span class="code-keyword">string</span>, value <span class="code-keyword">int</span>) <span class="code-keyword">error</span> {
+
+    asset := Asset{
+        ID:    id,
+        Owner: owner,
+        Value: value,
+    }
+    assetJSON, err := json.Marshal(asset)
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        <span class="code-keyword">return</span> err
+    }
+    <span class="code-keyword">return</span> ctx.GetStub().<span class="code-function">PutState</span>(id, assetJSON)
+}
+                    </div>
+                    
+                    <h3>R3 Corda</h3>
+                    <p>Corda was built specifically for financial services. Unlike traditional blockchains, Corda does not broadcast all transactions to all participants. Only the parties involved in a transaction (and any required validators) see the data. This &ldquo;need-to-know&rdquo; architecture makes it ideal for banking, insurance, and capital markets.</p>
+                    
+                    <h4>Key Architecture Features</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Point-to-Point Communication:</strong> Transactions are shared only between relevant parties, not broadcast</li>
+                        <li><strong>Notary Services:</strong> Prevent double-spending without a global broadcast consensus</li>
+                        <li><strong>Legal Prose Integration:</strong> Smart contracts can reference and encode legal agreements</li>
+                        <li><strong>JVM-Based:</strong> CorDapps are written in Kotlin or Java, familiar to enterprise Java developers</li>
+                    </ul>
+                    
+                    <h3>ConsenSys Quorum (formerly JPMorgan Quorum)</h3>
+                    <p>Quorum is an enterprise-grade version of Ethereum. It was originally developed by JPMorgan Chase and later acquired by ConsenSys. Quorum maintains Ethereum compatibility while adding privacy features and permissioned access controls.</p>
+                    
+                    <h4>Key Architecture Features</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Private Transactions:</strong> Tessera module enables encrypted, private transactions between parties</li>
+                        <li><strong>Ethereum Compatibility:</strong> Supports Solidity smart contracts and existing Ethereum tooling</li>
+                        <li><strong>Multiple Consensus:</strong> Supports IBFT 2.0, QBFT, Raft, and Clique consensus mechanisms</li>
+                        <li><strong>Permissioning:</strong> Node and account-level access control</li>
+                    </ul>
+                    
+                    <h3>Platform Comparison</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Hyperledger Fabric</th>
+                                <th>R3 Corda</th>
+                                <th>Quorum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Governance</td>
+                                <td>Linux Foundation</td>
+                                <td>R3 Consortium</td>
+                                <td>ConsenSys (open source)</td>
+                            </tr>
+                            <tr>
+                                <td>Smart Contract Language</td>
+                                <td>Go, Java, Node.js</td>
+                                <td>Kotlin, Java</td>
+                                <td>Solidity (EVM)</td>
+                            </tr>
+                            <tr>
+                                <td>Consensus</td>
+                                <td>Pluggable (Raft, Kafka)</td>
+                                <td>Notary-based</td>
+                                <td>IBFT, QBFT, Raft</td>
+                            </tr>
+                            <tr>
+                                <td>Privacy Model</td>
+                                <td>Channels + Private Data</td>
+                                <td>Need-to-know basis</td>
+                                <td>Tessera private txns</td>
+                            </tr>
+                            <tr>
+                                <td>Throughput (TPS)</td>
+                                <td>3,000-20,000</td>
+                                <td>1,000-10,000</td>
+                                <td>500-2,000</td>
+                            </tr>
+                            <tr>
+                                <td>Best For</td>
+                                <td>Supply chain, cross-industry</td>
+                                <td>Financial services</td>
+                                <td>Ethereum migration</td>
+                            </tr>
+                            <tr>
+                                <td>Token Support</td>
+                                <td>Via Fabric Token SDK</td>
+                                <td>Via token SDK</td>
+                                <td>Native ERC-20/ERC-721</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Choosing the Right Platform</div>
+                        <p>There is no universally &ldquo;best&rdquo; platform. The choice depends on your industry, existing technology stack, privacy requirements, and ecosystem. Financial services often lean toward Corda. Supply chain and manufacturing prefer Fabric. Organizations already invested in Ethereum tooling choose Quorum.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="network-types" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128279;</span>Private vs Public vs Consortium Blockchains</h2>
+                <div class="reading-content">
+                    <p>Understanding the spectrum of blockchain network types is fundamental to enterprise architecture decisions. Each type offers different trade-offs between decentralization, privacy, performance, and control.</p>
+                    
+                    <h3>Public Blockchains</h3>
+                    <p>Public blockchains (Bitcoin, Ethereum, Solana) are fully open &mdash; anyone can join as a node, submit transactions, and read all data. They achieve trust through cryptoeconomic incentives and consensus mechanisms like Proof of Work or Proof of Stake.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Advantages:</strong> Maximum decentralization, censorship resistance, transparency, large developer communities</li>
+                        <li><strong>Disadvantages:</strong> Limited throughput (15-65 TPS on Ethereum L1), all data is visible, regulatory uncertainty, volatile gas fees</li>
+                        <li><strong>Enterprise use:</strong> Public settlement layers, tokenization of assets, DeFi integrations</li>
+                    </ul>
+                    
+                    <h3>Private Blockchains</h3>
+                    <p>Private blockchains are controlled by a single organization. Only authorized participants can read or write data. The organization controls who joins, the consensus rules, and governance.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Advantages:</strong> Full privacy, high throughput (thousands of TPS), regulatory compliance, known participants</li>
+                        <li><strong>Disadvantages:</strong> Centralized control (defeats some blockchain benefits), limited ecosystem, less resilient to internal manipulation</li>
+                        <li><strong>Enterprise use:</strong> Internal audit trails, inter-departmental data sharing, document verification</li>
+                    </ul>
+                    
+                    <h3>Consortium Blockchains</h3>
+                    <p>Consortium blockchains are governed by a group of organizations rather than a single entity. This is the sweet spot for most enterprise deployments because it combines the privacy and performance of private chains with the distributed trust of public chains.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Advantages:</strong> Shared governance, no single point of control, privacy controls, high throughput</li>
+                        <li><strong>Disadvantages:</strong> Governance complexity (who makes decisions?), slower to evolve than private chains, onboarding new members requires consensus</li>
+                        <li><strong>Enterprise use:</strong> Trade finance networks, supply chain consortiums, healthcare data sharing</li>
+                    </ul>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Characteristic</th>
+                                <th>Public</th>
+                                <th>Consortium</th>
+                                <th>Private</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Access</td><td>Open to anyone</td><td>Invited members</td><td>Single organization</td></tr>
+                            <tr><td>Governance</td><td>Community/protocol</td><td>Consortium committee</td><td>Single authority</td></tr>
+                            <tr><td>Speed</td><td>Slow (15-65 TPS)</td><td>Fast (1,000+ TPS)</td><td>Very fast (10,000+ TPS)</td></tr>
+                            <tr><td>Privacy</td><td>Pseudonymous, all data visible</td><td>Selective disclosure</td><td>Full control</td></tr>
+                            <tr><td>Trust Model</td><td>Trustless (cryptoeconomic)</td><td>Semi-trusted (known parties)</td><td>Trusted (single entity)</td></tr>
+                            <tr><td>Examples</td><td>Ethereum, Bitcoin</td><td>Fabric consortiums, Corda</td><td>Internal Fabric/Quorum</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Common Misconception</div>
+                        <p>A private blockchain is <strong>not</strong> the same as a traditional database. Even in a private blockchain, data is tamper-evident and cryptographically linked. No single administrator can silently alter historical records. However, a private blockchain with a single controlling entity does share some centralization concerns with traditional systems.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="api-integration" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128268;</span>API Integration Patterns</h2>
+                <div class="reading-content">
+                    <p>Integrating blockchain into existing enterprise systems requires well-designed API layers. The blockchain itself is just the data layer &mdash; applications, ERPs, CRMs, and business intelligence tools need clean, reliable interfaces to read from and write to the ledger.</p>
+                    
+                    <h3>Common Integration Architectures</h3>
+                    
+                    <h4>Pattern 1: REST API Gateway</h4>
+                    <p>The most common pattern. A middleware layer exposes RESTful endpoints that abstract away blockchain complexity. Business applications call standard HTTP APIs without knowing they&rsquo;re interacting with a blockchain.</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// REST API Gateway Example (Node.js / Express)</span>
+<span class="code-keyword">const</span> express = <span class="code-function">require</span>(<span class="code-string">'express'</span>);
+<span class="code-keyword">const</span> { Gateway, Wallets } = <span class="code-function">require</span>(<span class="code-string">'fabric-network'</span>);
+
+app.<span class="code-function">post</span>(<span class="code-string">'/api/v1/assets'</span>, <span class="code-keyword">async</span> (req, res) => {
+    <span class="code-keyword">const</span> { assetId, owner, value } = req.body;
+    
+    <span class="code-comment">// Connect to Fabric network</span>
+    <span class="code-keyword">const</span> gateway = <span class="code-keyword">new</span> <span class="code-function">Gateway</span>();
+    <span class="code-keyword">await</span> gateway.<span class="code-function">connect</span>(connectionProfile, gatewayOptions);
+    
+    <span class="code-comment">// Get the smart contract</span>
+    <span class="code-keyword">const</span> network = <span class="code-keyword">await</span> gateway.<span class="code-function">getNetwork</span>(<span class="code-string">'mychannel'</span>);
+    <span class="code-keyword">const</span> contract = network.<span class="code-function">getContract</span>(<span class="code-string">'asset-contract'</span>);
+    
+    <span class="code-comment">// Submit transaction to blockchain</span>
+    <span class="code-keyword">await</span> contract.<span class="code-function">submitTransaction</span>(
+        <span class="code-string">'CreateAsset'</span>, assetId, owner, value
+    );
+    
+    res.<span class="code-function">json</span>({ success: <span class="code-keyword">true</span>, assetId });
+});
+                    </div>
+                    
+                    <h4>Pattern 2: Event-Driven Integration</h4>
+                    <p>Blockchain events trigger actions in downstream systems. When a smart contract emits an event (e.g., &ldquo;PaymentReceived&rdquo;), an event listener picks it up and routes it to the appropriate business system &mdash; updating an ERP, sending a notification, or triggering a workflow.</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Event Listener for Blockchain Events</span>
+contract.<span class="code-function">addContractListener</span>(<span class="code-keyword">async</span> (event) => {
+    <span class="code-keyword">if</span> (event.eventName === <span class="code-string">'AssetTransferred'</span>) {
+        <span class="code-keyword">const</span> data = JSON.<span class="code-function">parse</span>(event.payload.toString());
+        
+        <span class="code-comment">// Update ERP system</span>
+        <span class="code-keyword">await</span> erp.<span class="code-function">updateInventory</span>(data.assetId, data.newOwner);
+        
+        <span class="code-comment">// Send notification</span>
+        <span class="code-keyword">await</span> notifications.<span class="code-function">send</span>(data.newOwner,
+            <span class="code-string">`Asset ${data.assetId} transferred to you`</span>
+        );
+        
+        <span class="code-comment">// Update analytics dashboard</span>
+        <span class="code-keyword">await</span> analytics.<span class="code-function">trackTransfer</span>(data);
+    }
+});
+                    </div>
+                    
+                    <h4>Pattern 3: GraphQL Abstraction Layer</h4>
+                    <p>For complex queries across blockchain data, GraphQL provides a flexible query language. Clients request exactly the data they need, reducing over-fetching and simplifying frontend integration.</p>
+                    
+                    <h4>Pattern 4: Message Queue Integration</h4>
+                    <p>For high-throughput enterprise environments, message queues (RabbitMQ, Apache Kafka) buffer transactions between business systems and the blockchain. This decouples the speed of business operations from blockchain finality time and provides guaranteed delivery.</p>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Integration Best Practices</div>
+                        <p><strong>Idempotency:</strong> Design APIs so duplicate submissions don&rsquo;t create duplicate transactions. <strong>Retry Logic:</strong> Blockchain transactions can fail or timeout &mdash; implement exponential backoff. <strong>Off-Chain Storage:</strong> Store large files (documents, images) off-chain (IPFS, S3) and record only hashes on the blockchain. <strong>Versioning:</strong> Always version your APIs to support backward compatibility during smart contract upgrades.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="supply-chain" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128666;</span>Supply Chain Management Use Cases</h2>
+                <div class="reading-content">
+                    <p>Supply chain management is the single most impactful enterprise use case for blockchain technology. Global supply chains involve dozens of organizations across multiple countries, each maintaining their own records. This creates information silos, disputes, fraud, and massive inefficiency.</p>
+                    
+                    <h3>The Supply Chain Problem</h3>
+                    <p>A typical food product passes through 20-30 intermediaries from farm to shelf. Each handoff creates a potential data gap. When contamination is discovered, tracing the source can take <strong>weeks</strong>. In the 2018 romaine lettuce E. coli outbreak, the FDA took 3 months to trace the source &mdash; by then, the entire industry had suffered $350 million in losses.</p>
+                    
+                    <h3>How Blockchain Solves This</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Provenance Tracking</div>
+                            <p>Every product movement is recorded on the blockchain with timestamps, GPS coordinates, temperature readings (via IoT sensors), and digital signatures from each handler. The complete history is immutable and instantly verifiable.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Counterfeit Prevention</div>
+                            <p>Luxury goods, pharmaceuticals, and electronics are tagged with unique identifiers linked to blockchain records. Consumers can scan a QR code to verify authenticity. The WHO estimates 10% of medicines in developing countries are counterfeit &mdash; blockchain verification could save lives.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Automated Payments and Trade Finance</div>
+                            <p>Smart contracts can automatically release payment when goods arrive at their destination (verified by IoT sensors or GPS). This eliminates the need for letters of credit, reducing trade finance processing from 5-10 days to minutes.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Regulatory Compliance</div>
+                            <p>Regulators can be given read-only access to the blockchain, enabling real-time compliance monitoring without manual reporting. This is especially valuable in food safety (FDA), pharmaceuticals (DSCSA), and conflict minerals (Dodd-Frank Act).</p>
+                        </li>
+                    </ul>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127793; Real Impact: Walmart Food Safety</div>
+                        <p>Before blockchain, tracing a package of mangoes from store to farm took <strong>6 days, 18 hours, and 26 minutes</strong>. After implementing IBM Food Trust (Hyperledger Fabric), the same trace takes <strong>2.2 seconds</strong>. Walmart now requires all leafy green suppliers to use the blockchain system.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="identity" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128100;</span>Enterprise Identity Management</h2>
+                <div class="reading-content">
+                    <p>Identity management is a critical enterprise concern. Organizations need to know exactly who is accessing their systems, who is signing transactions, and how to comply with KYC (Know Your Customer) and AML (Anti-Money Laundering) regulations while preserving user privacy.</p>
+                    
+                    <h3>Decentralized Identity (DID)</h3>
+                    <p>Decentralized Identifiers (DIDs) are a W3C standard for creating verifiable, self-sovereign digital identities. Unlike traditional identity systems where a central authority (Google, Facebook, a government) controls your identity, DIDs are owned and controlled by the individual or organization.</p>
+                    
+                    <h4>How Enterprise DID Works</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Issuance:</strong> A trusted authority (university, employer, government) issues a Verifiable Credential to an individual</li>
+                        <li><strong>Storage:</strong> The individual stores the credential in their digital wallet (not on the blockchain)</li>
+                        <li><strong>Verification:</strong> When requested, the individual presents the credential. The verifier checks the issuer&rsquo;s signature on the blockchain without contacting the issuer</li>
+                        <li><strong>Selective Disclosure:</strong> The individual can prove specific claims (e.g., &ldquo;I am over 21&rdquo;) without revealing unnecessary information (their exact birth date)</li>
+                    </ul>
+                    
+                    <h3>Enterprise Wallet Management</h3>
+                    <p>Enterprise wallet management is fundamentally different from individual wallet management. Organizations must handle:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Key Management Services (KMS):</strong> Hardware Security Modules (HSMs) store private keys in tamper-resistant hardware. AWS CloudHSM, Azure Dedicated HSM, and Thales Luna are common enterprise solutions.</li>
+                        <li><strong>Multi-Signature Governance:</strong> Enterprise wallets typically require multiple authorized signers. A treasury transfer might need 3-of-5 C-suite approvals.</li>
+                        <li><strong>Role-Based Access Control (RBAC):</strong> Different employees have different transaction limits and authorization levels.</li>
+                        <li><strong>Audit Logging:</strong> Every wallet action is logged with who initiated it, who approved it, and when.</li>
+                        <li><strong>Key Rotation:</strong> Enterprise security policies require periodic rotation of cryptographic keys.</li>
+                    </ul>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#128274; Security Consideration</div>
+                        <p>In enterprise environments, no single individual should ever have unilateral control over a wallet holding significant value. This principle &mdash; separation of duties &mdash; is a fundamental control requirement in SOC 2, ISO 27001, and PCI-DSS compliance frameworks.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="compliance" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>Compliance &amp; Regulatory Requirements</h2>
+                <div class="reading-content">
+                    <p>Enterprise blockchain deployments must navigate a complex web of regulations. Unlike public blockchains that operate in regulatory gray areas, enterprise deployments are subject to the same compliance frameworks as any other business technology system.</p>
+                    
+                    <h3>GDPR (General Data Protection Regulation)</h3>
+                    <p>The EU&rsquo;s GDPR creates a fundamental tension with blockchain technology. GDPR grants individuals the &ldquo;right to erasure&rdquo; (Article 17) &mdash; the ability to request deletion of their personal data. But blockchain data is designed to be immutable. How do you delete data that can&rsquo;t be deleted?</p>
+                    
+                    <h4>Enterprise Solutions for GDPR Compliance</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Off-Chain Personal Data:</strong> Store personal data in a traditional database. Record only a hash or encrypted reference on the blockchain. To &ldquo;erase,&rdquo; delete the off-chain data &mdash; the on-chain hash becomes meaningless.</li>
+                        <li><strong>Encryption Key Destruction:</strong> Encrypt personal data with a unique key before writing to the blockchain. To &ldquo;erase,&rdquo; destroy the encryption key. The data remains but is permanently unreadable (cryptographic erasure).</li>
+                        <li><strong>Private Channels:</strong> Use Fabric channels or Corda&rsquo;s need-to-know architecture to limit who can access personal data.</li>
+                        <li><strong>Pseudonymization:</strong> Replace direct identifiers with pseudonyms. The mapping table is stored off-chain and can be deleted.</li>
+                    </ul>
+                    
+                    <h3>SOC 2 Compliance</h3>
+                    <p>SOC 2 (Service Organization Control 2) evaluates an organization&rsquo;s controls related to security, availability, processing integrity, confidentiality, and privacy. For blockchain deployments, SOC 2 auditors will examine:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Key management procedures (who has access to private keys?)</li>
+                        <li>Smart contract development and testing processes</li>
+                        <li>Node infrastructure security (firewalls, encryption, access controls)</li>
+                        <li>Incident response procedures for blockchain-specific threats</li>
+                        <li>Change management for smart contract upgrades</li>
+                    </ul>
+                    
+                    <h3>Smart Contract Auditing for Enterprises</h3>
+                    <p>Before deploying any smart contract to production, enterprises must conduct thorough security audits. A single vulnerability in a smart contract can result in millions of dollars in losses &mdash; and unlike traditional software bugs, blockchain transactions are irreversible.</p>
+                    
+                    <h4>The Enterprise Audit Process</h4>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Automated Static Analysis</div>
+                            <p>Tools like Slither, Mythril, and Securify scan smart contract code for known vulnerability patterns (reentrancy, integer overflow, access control issues).</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Manual Expert Review</div>
+                            <p>Experienced auditors review business logic, edge cases, and economic attack vectors that automated tools miss.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Formal Verification</div>
+                            <p>Mathematical proofs that the contract behaves exactly as specified under all possible inputs. Companies like Certora and Runtime Verification specialize in this.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Penetration Testing</div>
+                            <p>Ethical hackers attempt to exploit the contract in a staging environment, simulating real-world attack scenarios.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Ongoing Monitoring</div>
+                            <p>Post-deployment monitoring using tools like OpenZeppelin Defender or Forta to detect anomalous behavior in real-time.</p>
+                        </li>
+                    </ul>
+                    
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#9888;&#65039; The Cost of Skipping Audits</div>
+                        <p>The DAO hack (2016) exploited a reentrancy vulnerability to drain $60 million in ETH. The Wormhole bridge hack (2022) lost $320 million due to a signature verification flaw. The Ronin bridge hack (2022) lost $625 million. <strong>Every single one of these could have been prevented</strong> with thorough auditing.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="roi" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>Blockchain ROI Analysis</h2>
+                <div class="reading-content">
+                    <p>Enterprise decision-makers need concrete ROI projections before committing to blockchain initiatives. Unlike consumer-facing crypto projects, enterprise blockchain must justify itself through measurable business outcomes.</p>
+                    
+                    <h3>The ROI Framework</h3>
+                    
+                    <h4>Cost Reduction Metrics</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Reconciliation Savings:</strong> Banks spend $5-10 billion annually on reconciliation. Blockchain can reduce this by 70-80% by providing a single source of truth.</li>
+                        <li><strong>Intermediary Elimination:</strong> Removing middlemen from trade finance saves 1.5-3% per transaction. On $17 trillion in annual global trade, even a fraction represents massive savings.</li>
+                        <li><strong>Fraud Reduction:</strong> Supply chain fraud costs $600 billion globally per year. Blockchain provenance tracking can reduce this by 30-50%.</li>
+                        <li><strong>Manual Process Automation:</strong> Smart contracts eliminate manual processing. Insurance claim processing time drops from 30 days to 30 minutes.</li>
+                    </ul>
+                    
+                    <h4>Revenue Generation Metrics</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>New Business Models:</strong> Tokenization of assets creates new revenue streams (fractional ownership, programmable royalties)</li>
+                        <li><strong>Customer Trust Premium:</strong> Companies with verifiable supply chains can charge 10-15% price premiums</li>
+                        <li><strong>Ecosystem Participation:</strong> Joining industry consortiums opens access to new markets and partnerships</li>
+                    </ul>
+                    
+                    <h3>Typical Enterprise Blockchain Budget</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Cost Category</th>
+                                <th>Year 1 (Pilot)</th>
+                                <th>Year 2 (Scale)</th>
+                                <th>Year 3 (Production)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Infrastructure</td><td>$100K-$300K</td><td>$200K-$500K</td><td>$300K-$700K</td></tr>
+                            <tr><td>Development Team</td><td>$300K-$600K</td><td>$500K-$1M</td><td>$400K-$800K</td></tr>
+                            <tr><td>Smart Contract Audits</td><td>$50K-$200K</td><td>$100K-$300K</td><td>$100K-$200K</td></tr>
+                            <tr><td>Training &amp; Change Mgmt</td><td>$50K-$150K</td><td>$30K-$80K</td><td>$20K-$50K</td></tr>
+                            <tr><td>Compliance &amp; Legal</td><td>$100K-$250K</td><td>$50K-$150K</td><td>$50K-$100K</td></tr>
+                            <tr><td><strong>Total</strong></td><td><strong>$600K-$1.5M</strong></td><td><strong>$880K-$2M</strong></td><td><strong>$870K-$1.85M</strong></td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128176; ROI Reality Check</div>
+                        <p>According to Gartner, enterprise blockchain projects typically achieve breakeven within 2-3 years, with 3-5x ROI by year 5. However, 80% of blockchain pilots fail to progress past the proof-of-concept stage. The key differentiator is starting with a well-defined business problem &mdash; not starting with blockchain and searching for a problem to solve.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="legacy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128260;</span>Legacy System Integration Strategies</h2>
+                <div class="reading-content">
+                    <p>The biggest challenge in enterprise blockchain adoption isn&rsquo;t the blockchain technology itself &mdash; it&rsquo;s integrating it with decades-old legacy systems. Most enterprises run mission-critical operations on SAP, Oracle EBS, IBM mainframes, and custom-built systems that can&rsquo;t simply be replaced.</p>
+                    
+                    <h3>The Strangler Fig Pattern</h3>
+                    <p>Named after the tropical strangler fig tree that gradually envelops its host, this pattern involves gradually replacing legacy functionality with blockchain-based alternatives. The old and new systems run in parallel, with traffic gradually migrated.</p>
+                    
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Phase 1: Shadow Mode</div>
+                            <p>Deploy the blockchain system alongside the legacy system. Both process the same transactions, but the legacy system remains the system of record. Compare outputs to validate the blockchain system&rsquo;s accuracy.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Phase 2: Dual-Write</div>
+                            <p>Begin writing to both systems simultaneously. The blockchain system starts handling read traffic for new features (analytics dashboards, audit queries).</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Phase 3: Blockchain Primary</div>
+                            <p>Switch the blockchain to be the system of record. The legacy system is demoted to a backup/archive role. New features are built exclusively on the blockchain platform.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Phase 4: Legacy Retirement</div>
+                            <p>Once confidence is established and all dependent systems have migrated, the legacy system is decommissioned. Historical data is archived according to retention policies.</p>
+                        </li>
+                    </ul>
+                    
+                    <h3>Integration Middleware Options</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Middleware</th>
+                                <th>Blockchain Support</th>
+                                <th>Legacy Connectors</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>MuleSoft</td><td>Fabric, Ethereum</td><td>SAP, Salesforce, Oracle</td><td>API-first organizations</td></tr>
+                            <tr><td>IBM Integration Bus</td><td>Fabric (native)</td><td>CICS, MQ, DB2</td><td>IBM mainframe shops</td></tr>
+                            <tr><td>Oracle Blockchain Platform</td><td>Fabric-based</td><td>Oracle EBS, PeopleSoft</td><td>Oracle-centric enterprises</td></tr>
+                            <tr><td>Microsoft Azure BaaS</td><td>Quorum, Corda</td><td>Dynamics 365, Azure services</td><td>Microsoft ecosystem</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Migration Anti-Pattern: Big Bang</div>
+                        <p>Never attempt to replace a legacy system with blockchain in a single cutover. The &ldquo;big bang&rdquo; approach has an 80% failure rate for enterprise migrations. Always use gradual, phased approaches with rollback capabilities at every stage.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="kenostod-b2b" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9733;</span>Kenostod&rsquo;s B2B Offerings</h2>
+                <div class="reading-content">
+                    <p>Kenostod provides a comprehensive suite of enterprise blockchain tools and services designed to accelerate adoption while minimizing risk. Our B2B platform leverages the PoRV (Proof of Residual Value) consensus mechanism to create unique value propositions for enterprise clients.</p>
+                    
+                    <h3>Enterprise Task Marketplace</h3>
+                    <p>The Kenostod Enterprise Task Marketplace connects businesses with a global network of computational nodes. Enterprises submit tasks (AI/ML training, data processing, scientific simulations, financial modeling, rendering) and the network&rsquo;s distributed computing power processes them at 40-60% lower cost than traditional cloud providers.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Task Types:</strong> AI/ML Training, Data Processing, Scientific Simulations, 3D Rendering, Financial Modeling</li>
+                        <li><strong>Quality Assurance:</strong> Multi-node result verification ensures accuracy</li>
+                        <li><strong>Payment:</strong> KENO tokens for task payments, with RVT royalties for node operators</li>
+                    </ul>
+                    
+                    <h3>Enterprise Wallet-as-a-Service</h3>
+                    <p>Kenostod offers managed enterprise wallets with HSM-backed key storage, multi-signature governance, role-based access controls, and SOC 2-compliant audit logging. Companies can manage thousands of employee wallets from a single administrative dashboard.</p>
+                    
+                    <h3>Custom CorDapp / Chaincode Development</h3>
+                    <p>Our enterprise consulting team helps organizations design, develop, audit, and deploy custom smart contracts tailored to their specific business requirements. From supply chain tracking to automated compliance reporting, we deliver production-ready solutions.</p>
+                    
+                    <h3>Kenostod Academy Enterprise Training</h3>
+                    <p>This very course is part of our enterprise training offering. Organizations can license the full 21-course Kenostod Academy curriculum for their teams, with custom branding, progress tracking, and certification. Employees earn KENO tokens as they learn, creating an incentive structure for professional development.</p>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127919; Kenostod Enterprise Advantage</div>
+                        <p>Unlike generic blockchain platforms, Kenostod&rsquo;s PoRV consensus creates ongoing royalty revenue (RVTs) for enterprises that contribute computing power. This transforms blockchain infrastructure costs from a pure expense into a revenue-generating asset. Contact <strong>enterprise@kenostod.com</strong> to learn more.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These case studies illustrate how major enterprises have deployed blockchain technology at scale, demonstrating both the potential and the challenges:</p>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 1: Walmart &mdash; Food Safety on IBM Food Trust</h4>
+                        <p><strong>The Problem:</strong> Walmart&rsquo;s food supply chain involves thousands of suppliers across dozens of countries. When a foodborne illness outbreak occurs, tracing the contaminated product back to its source was a multi-day (sometimes multi-week) process, resulting in massive waste as entire product categories were pulled from shelves.</p>
+                        <p style="margin-top: 10px;"><strong>The Solution:</strong> Walmart partnered with IBM to deploy a Hyperledger Fabric-based food traceability system. Suppliers upload provenance data at each point in the supply chain &mdash; harvest date, packaging facility, transport conditions, distribution center, and store delivery.</p>
+                        <p style="margin-top: 10px;"><strong>The Results:</strong> Product tracing time reduced from 6.9 days to 2.2 seconds. Over 500 suppliers now participate. Walmart mandated that all leafy green suppliers onboard by 2019. The system has been credited with preventing several potential outbreak situations through rapid identification.</p>
+                        <p style="margin-top: 10px;"><strong>Key Takeaway:</strong> Blockchain adoption succeeds when a large buyer (Walmart) mandates participation. Start with a specific, high-value use case (food safety) and expand from there.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 2: Maersk &amp; IBM &mdash; TradeLens Global Shipping</h4>
+                        <p><strong>The Problem:</strong> International shipping involves 30+ organizations per shipment, generating hundreds of paper documents. A single container shipment from East Africa to Europe requires 200+ communications and interactions. Documentation costs represent 15-20% of physical transport costs.</p>
+                        <p style="margin-top: 10px;"><strong>The Solution:</strong> TradeLens, a joint venture between Maersk and IBM, built a Hyperledger Fabric blockchain to digitize global trade documentation. Port authorities, customs agencies, shipping lines, freight forwarders, and inland transportation providers all share a single source of truth.</p>
+                        <p style="margin-top: 10px;"><strong>The Results:</strong> At its peak, TradeLens processed over 30 million container events per week. Transit times were reduced by 40%, and documentation costs dropped significantly. However, TradeLens was discontinued in 2022 due to insufficient industry-wide adoption &mdash; competitors were reluctant to join a platform controlled by their largest competitor.</p>
+                        <p style="margin-top: 10px;"><strong>Key Takeaway:</strong> Governance matters as much as technology. Consortium platforms must be perceived as neutral. Single-company ownership creates adoption barriers.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 3: JPMorgan Chase &mdash; Onyx &amp; JPM Coin</h4>
+                        <p><strong>The Problem:</strong> Cross-border payments between banks take 3-5 business days, involve multiple correspondent banks, and cost $20-30 per transaction. JPMorgan processes $10 trillion in daily transactions, and even small efficiency gains represent massive savings.</p>
+                        <p style="margin-top: 10px;"><strong>The Solution:</strong> JPMorgan developed Quorum (now ConsenSys Quorum) and built JPM Coin &mdash; a stablecoin pegged 1:1 to USD, running on a permissioned blockchain. The Onyx platform handles wholesale payments, repo transactions, and cross-border transfers between institutional clients.</p>
+                        <p style="margin-top: 10px;"><strong>The Results:</strong> JPM Coin processes over $1 billion in daily transactions. Cross-border payments settle in minutes instead of days. The Onyx platform serves over 400 institutional clients globally. JPMorgan has expanded the platform to include tokenized collateral management and DeFi-inspired products.</p>
+                        <p style="margin-top: 10px;"><strong>Key Takeaway:</strong> Enterprise blockchain succeeds when it solves a clear pain point (slow, expensive cross-border payments) and is backed by a dominant industry player willing to invest long-term.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 4: De Beers &mdash; Tracr Diamond Provenance</h4>
+                        <p><strong>The Problem:</strong> Conflict diamonds (&ldquo;blood diamonds&rdquo;) fund armed conflict in Africa. Despite the Kimberley Process Certification Scheme, paper-based tracking is vulnerable to fraud. Consumers increasingly demand proof that their diamonds are ethically sourced.</p>
+                        <p style="margin-top: 10px;"><strong>The Solution:</strong> De Beers developed Tracr, a blockchain platform that creates a digital twin for every diamond at the point of mining. As the diamond moves through cutting, polishing, grading, and retail, each handler records their actions on the blockchain along with high-resolution imaging.</p>
+                        <p style="margin-top: 10px;"><strong>The Results:</strong> Tracr has registered over 3 million diamonds. Consumers can verify the complete journey of their diamond from mine to finger. The platform has been extended to include lab-grown diamond certification and is being adopted by other precious gem industries.</p>
+                        <p style="margin-top: 10px;"><strong>Key Takeaway:</strong> Blockchain excels at provenance verification for high-value goods where authenticity directly impacts consumer trust and willingness to pay.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension of enterprise blockchain concepts.</p>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Platform Selection</h4>
+                        <div class="exercise-question">
+                            <p>Your company is a mid-size bank that wants to implement a blockchain solution for inter-bank settlement between 15 partner banks. Which enterprise blockchain platform (Hyperledger Fabric, R3 Corda, or Quorum) would you recommend and why? Consider privacy requirements, performance needs, and the existing technology ecosystem.</p>
+                            <textarea id="ex1" placeholder="Write your recommendation and reasoning..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 2: GDPR Compliance Design</h4>
+                        <div class="exercise-question">
+                            <p>You are building a blockchain-based patient health records system for a European hospital network. A patient requests that their data be deleted under GDPR Article 17 (Right to Erasure). Describe your technical architecture for handling this request while maintaining blockchain integrity.</p>
+                            <textarea id="ex2" placeholder="Describe your GDPR-compliant architecture..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 3: ROI Justification</h4>
+                        <div class="exercise-question">
+                            <p>Your CEO asks: &ldquo;Why should we spend $1.5 million on blockchain when our existing Oracle database works fine?&rdquo; Write a 3-4 paragraph response that addresses this concern, identifying scenarios where blockchain provides value that a traditional database cannot, and scenarios where a traditional database is the better choice.</p>
+                            <textarea id="ex3" placeholder="Write your executive-level response..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Supply Chain Architecture</h4>
+                        <div class="exercise-question">
+                            <p>Design a high-level blockchain architecture for tracking organic coffee from farm to cup. Identify the participants (roles), the data recorded at each stage, the smart contract logic for automatic payments, and how a consumer could verify the origin of their coffee by scanning a QR code.</p>
+                            <textarea id="ex4" placeholder="Design your supply chain architecture..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Lessons from Failure</h4>
+                        <div class="exercise-question">
+                            <p>TradeLens (Maersk/IBM) was discontinued despite processing millions of events per week. Analyze why it failed and propose a governance model that could have prevented its demise. What can Kenostod learn from this for its own enterprise offerings?</p>
+                            <textarea id="ex5" placeholder="Analyze the failure and propose solutions..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+                
+                <div class="quiz-question" data-question="1" data-answer="c">
+                    <div class="question-text">1. What is the PRIMARY reason enterprises adopt blockchain over traditional databases?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Blockchain is faster than all databases</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Blockchain is cheaper to operate</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Blockchain provides trust and data integrity across multiple organizations without a central authority</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Blockchain stores more data than databases</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="b">
+                    <div class="question-text">2. Which enterprise blockchain platform was specifically designed for financial services with a need-to-know privacy model?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hyperledger Fabric</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>R3 Corda</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Quorum</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Ethereum Mainnet</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="d">
+                    <div class="question-text">3. What type of blockchain network is governed by a group of organizations rather than a single entity?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Public blockchain</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Private blockchain</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Sidechain</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Consortium blockchain</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="a">
+                    <div class="question-text">4. In the REST API Gateway pattern, what does the middleware layer do?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Abstracts blockchain complexity behind standard HTTP endpoints</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Replaces the blockchain entirely</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Stores all data in a traditional database</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mines new blocks for the network</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="c">
+                    <div class="question-text">5. How did Walmart reduce food traceability time from 6.9 days to 2.2 seconds?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By hiring more food safety inspectors</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By using a centralized Oracle database</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By deploying IBM Food Trust on Hyperledger Fabric</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By reducing the number of suppliers</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="b">
+                    <div class="question-text">6. What is the GDPR-compliant technique of encrypting data on-chain and destroying the encryption key called?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Data anonymization</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Cryptographic erasure</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Block pruning</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hard fork deletion</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. What is the recommended approach for migrating a legacy system to blockchain?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Strangler Fig Pattern &mdash; gradual, phased migration with parallel systems</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Big Bang &mdash; replace everything at once on a weekend</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Ignore the legacy system and build a completely separate blockchain</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Wait until the legacy system fails, then switch</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <div class="question-text">8. Why did TradeLens (Maersk/IBM shipping blockchain) fail despite strong technology?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The blockchain technology was too slow</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Maersk went bankrupt</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Shipping companies don&rsquo;t need digital solutions</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Competitors were reluctant to join a platform controlled by their largest rival</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="c">
+                    <div class="question-text">9. In enterprise wallet management, what does HSM stand for?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>High-Speed Memory</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hierarchical System Manager</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hardware Security Module</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hash Signing Mechanism</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="b">
+                    <div class="question-text">10. What is a Verifiable Credential in the context of Decentralized Identity (DID)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A password stored on the blockchain</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A cryptographically signed attestation issued by a trusted authority that the holder can present for verification</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A smart contract that stores user passwords</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A government-issued ID card scanned onto the blockchain</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. What unique advantage does Kenostod&rsquo;s PoRV consensus offer enterprises compared to traditional blockchain platforms?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Enterprises earn ongoing RVT royalties, transforming infrastructure costs into revenue</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV mines Bitcoin as a side effect</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV eliminates the need for private keys</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV makes all transactions public for transparency</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="c">
+                    <div class="question-text">12. According to the ROI analysis section, what is the typical timeframe for enterprise blockchain projects to achieve breakeven?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1-3 months</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>6-12 months</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>2-3 years</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10+ years</span></div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+                
+                <div id="quizResult" class="quiz-result">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h3 class="result-title" id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-11-rvt.html" style="color: var(--primary);">&larr; Course 11</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-13-royalties.html" style="color: var(--primary);">Course 13 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+        
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+        
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+            
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+            
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            
+            const passingScore = 10;
+            
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '\uD83C\uDF89';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}! You've mastered Enterprise Integration.`;
+                nextCourseContainer.innerHTML = `
+                    <p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You've earned 250 KENO!</p>
+                    <a href="/courses/course-13-royalties.html" class="next-course-btn">Continue to Course 13: Royalties \u2192</a>
+                `;
+                localStorage.setItem('course12_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(12, 'Course 12: Enterprise Integration');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '\uD83D\uDCDA';
+                resultTitle.textContent = 'Keep Studying!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}. You need at least ${passingScore} correct (80%) to pass. Review the material and try again.`;
+                nextCourseContainer.innerHTML = `
+                    <button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>
+                `;
+            }
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+            
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+            
+            const hints = {
+                1: 'Strong answer: R3 Corda is the best fit for inter-bank settlement because it was purpose-built for financial services. Its need-to-know privacy model ensures that only the two banks involved in a settlement see the transaction details. Notary services prevent double-spending without broadcasting to all 15 banks. Java/Kotlin development aligns with typical banking tech stacks. However, Quorum is also a strong choice if the consortium wants Ethereum compatibility.',
+                2: 'Key architecture elements: Store personal health data off-chain in a HIPAA-compliant database. Record only a cryptographic hash on the blockchain. To fulfill an erasure request, delete the off-chain data and destroy the encryption key (cryptographic erasure). The on-chain hash becomes meaningless without the corresponding data. Use Fabric private data collections or Corda for selective disclosure.',
+                3: 'Strong response differentiates blockchain from databases: Blockchain adds value when multiple organizations need to share data with trust guarantees (no single party can tamper with records). A traditional database is better for single-organization data storage. Blockchain shines for audit trails, cross-company supply chains, and settlement between institutions. The CEO should invest only if the use case involves multi-party trust.',
+                4: 'Good architecture includes: Participants (farmer, processor, exporter, importer, roaster, retailer, consumer). Data at each stage (harvest date, organic certification, lot number, transport temperature, roast date). Smart contract logic: auto-release payment when shipping IoT sensors confirm delivery. Consumer verification: scan QR code linked to blockchain record showing full provenance chain with timestamps.',
+                5: 'Key failure factors: Maersk (a competitor) co-owned the platform, creating trust issues. Competitors feared data advantage. Solution: Establish an independent foundation or consortium with equal governance rights, rotating leadership, and open-source code. Kenostod should ensure its enterprise platform has neutral governance, transparent pricing, and no data advantage for any single participant.'
+            };
+            
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+        
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'why-enterprise', 'platforms', 'network-types', 'api-integration', 'supply-chain', 'identity', 'compliance', 'roi', 'legacy', 'kenostod-b2b', 'case-studies', 'exercises', 'quiz'];
+            let current = '';
+            
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+            
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('onclick')?.includes(current)) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>
