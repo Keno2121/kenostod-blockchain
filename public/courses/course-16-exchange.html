@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 16: Exchange Platform | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .locked-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+
+        .flow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            padding: 20px 25px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .flow-box.buyer { background: linear-gradient(135deg, var(--success), #059669); }
+        .flow-box.engine { background: linear-gradient(135deg, var(--gold), #d97706); color: #000; }
+        .flow-box.seller { background: linear-gradient(135deg, var(--danger), #dc2626); }
+        .flow-box.pool { background: linear-gradient(135deg, var(--secondary), #2563eb); }
+        .flow-box.dex { background: linear-gradient(135deg, var(--purple), #7c3aed); }
+
+        .flow-label { font-weight: 600; margin-bottom: 8px; }
+        .flow-icon { font-size: 2em; margin-bottom: 10px; }
+        .arrow { font-size: 2em; color: var(--text-muted); }
+
+        .step-list { counter-reset: step-counter; list-style: none; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--success); background: var(--success); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .flow-diagram { flex-direction: column; }
+            .arrow { transform: rotate(90deg); }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 16
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#128200;</span>
+                Course 16: Exchange Platform
+                <span class="locked-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('intro')"><span class="toc-number">2</span>What Are Crypto Exchanges?</li>
+                    <li class="toc-item" onclick="scrollToSection('cex-vs-dex')"><span class="toc-number">3</span>CEX vs DEX</li>
+                    <li class="toc-item" onclick="scrollToSection('orderbook')"><span class="toc-number">4</span>Order Book Mechanics</li>
+                    <li class="toc-item" onclick="scrollToSection('matching')"><span class="toc-number">5</span>Matching Engine Architecture</li>
+                    <li class="toc-item" onclick="scrollToSection('pairs')"><span class="toc-number">6</span>Trading Pairs &amp; Liquidity</li>
+                    <li class="toc-item" onclick="scrollToSection('amm')"><span class="toc-number">7</span>AMM &amp; DEX Mechanics</li>
+                    <li class="toc-item" onclick="scrollToSection('impermanent')"><span class="toc-number">8</span>Impermanent Loss</li>
+                    <li class="toc-item" onclick="scrollToSection('security')"><span class="toc-number">9</span>Exchange Security</li>
+                    <li class="toc-item" onclick="scrollToSection('fees')"><span class="toc-number">10</span>Fees, Regulation &amp; MEV</li>
+                    <li class="toc-item" onclick="scrollToSection('kenostod')"><span class="toc-number">11</span>Kenostod Exchange</li>
+                    <li class="toc-item" onclick="scrollToSection('cases')"><span class="toc-number">12</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">13</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">14</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Explain what cryptocurrency exchanges are and how they facilitate trading</div></li>
+                    <li class="step-item"><div class="step-title">Compare centralized exchanges (CEX) and decentralized exchanges (DEX) in depth</div></li>
+                    <li class="step-item"><div class="step-title">Understand order book mechanics including limit orders, market orders, and stop-loss orders</div></li>
+                    <li class="step-item"><div class="step-title">Describe how a matching engine processes and fills orders</div></li>
+                    <li class="step-item"><div class="step-title">Explain trading pairs (KENO/USD, KENO/BTC, KENO/ETH) and how liquidity works</div></li>
+                    <li class="step-item"><div class="step-title">Understand Automated Market Maker (AMM) mechanics used by Uniswap and PancakeSwap</div></li>
+                    <li class="step-item"><div class="step-title">Calculate and explain impermanent loss in liquidity pools</div></li>
+                    <li class="step-item"><div class="step-title">Evaluate exchange security practices including hot/cold wallets and proof of reserves</div></li>
+                    <li class="step-item"><div class="step-title">Analyze trading fee structures, regulatory frameworks, front-running, and MEV</div></li>
+                    <li class="step-item"><div class="step-title">Navigate the Kenostod exchange platform and place trades confidently</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding takes time, and the 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <section id="intro" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127970;</span>What Are Cryptocurrency Exchanges?</h2>
+                <div class="reading-content">
+                    <p>A <strong>cryptocurrency exchange</strong> is a platform that allows users to buy, sell, and trade digital assets. Exchanges serve as the marketplace where buyers and sellers meet, agree on prices, and execute trades. They are the backbone of the crypto economy, providing the liquidity and price discovery mechanisms that make digital assets usable.</p>
+
+                    <p>Think of a crypto exchange like a stock exchange (NYSE, NASDAQ) but for digital currencies. Instead of trading shares of Apple or Google, you trade Bitcoin, Ethereum, KENO, and thousands of other tokens. The fundamental economics are the same: supply, demand, and an infrastructure to match buyers with sellers.</p>
+
+                    <h3>How Exchanges Work at a High Level</h3>
+                    <p>At its core, every exchange performs three critical functions:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Price Discovery:</strong> By aggregating buy and sell orders, the exchange determines the market price of an asset at any given moment</li>
+                        <li><strong>Order Matching:</strong> The exchange pairs buyers with sellers based on compatible prices and quantities</li>
+                        <li><strong>Settlement:</strong> After matching, the exchange ensures assets are transferred between parties correctly</li>
+                    </ul>
+
+                    <h3>A Brief History of Crypto Exchanges</h3>
+                    <p>The history of crypto exchanges is a story of rapid evolution and hard lessons:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>2010:</strong> BitcoinMarket.com launched as the first crypto exchange, followed by Mt. Gox</li>
+                        <li><strong>2012-2013:</strong> Coinbase, Bitstamp, and Kraken launched, bringing more professional infrastructure</li>
+                        <li><strong>2014:</strong> Mt. Gox collapsed after losing 850,000 BTC, shaking trust in centralized exchanges</li>
+                        <li><strong>2017:</strong> Binance launched and rapidly became the world's largest exchange by volume</li>
+                        <li><strong>2018:</strong> Uniswap pioneered the AMM model, creating truly decentralized trading</li>
+                        <li><strong>2020-2021:</strong> DeFi Summer brought explosive growth to DEXs, with billions in daily volume</li>
+                        <li><strong>2022:</strong> FTX collapsed, reinforcing the importance of transparency and self-custody</li>
+                        <li><strong>2023-2024:</strong> Regulatory frameworks matured, exchanges adopted proof of reserves</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Key Insight</div>
+                        <p>The total daily trading volume across all crypto exchanges exceeds $50 billion on average. Understanding how these platforms work is essential for anyone participating in the blockchain economy &mdash; whether you are trading KENO tokens, providing liquidity, or building exchange infrastructure.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cex-vs-dex" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9878;&#65039;</span>Centralized vs Decentralized Exchanges</h2>
+                <div class="reading-content">
+                    <p>The most fundamental distinction in crypto exchanges is between <strong>Centralized Exchanges (CEX)</strong> and <strong>Decentralized Exchanges (DEX)</strong>. Understanding their differences, strengths, and weaknesses is critical for making informed trading decisions.</p>
+
+                    <h3>Centralized Exchanges (CEX)</h3>
+                    <p>A centralized exchange is operated by a company that acts as an intermediary between buyers and sellers. The company maintains the order book, holds user funds in custodial wallets, and handles the matching of orders. Examples include Binance, Coinbase, Kraken, and OKX.</p>
+
+                    <p>When you deposit funds on a CEX, you are transferring custody of your assets to the exchange. The exchange holds your private keys and records your balance in their internal database. Trades happen off-chain in the exchange's internal system, and only deposits/withdrawals touch the actual blockchain.</p>
+
+                    <h3>Decentralized Exchanges (DEX)</h3>
+                    <p>A decentralized exchange operates entirely through smart contracts on a blockchain. There is no central company holding your funds. You trade directly from your own wallet, and every trade is a blockchain transaction. Examples include Uniswap, PancakeSwap, SushiSwap, and dYdX.</p>
+
+                    <p>On a DEX, you connect your wallet (e.g., MetaMask), approve the smart contract to interact with your tokens, and execute trades that settle on-chain. You maintain full custody of your assets at all times &mdash; the "not your keys, not your coins" principle in action.</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>CEX (Centralized)</th>
+                            <th>DEX (Decentralized)</th>
+                        </tr>
+                        <tr>
+                            <td>Custody</td>
+                            <td>Exchange holds your funds</td>
+                            <td>You hold your own funds</td>
+                        </tr>
+                        <tr>
+                            <td>KYC/Identity</td>
+                            <td>Required (passport, ID verification)</td>
+                            <td>Not required (pseudonymous)</td>
+                        </tr>
+                        <tr>
+                            <td>Speed</td>
+                            <td>Very fast (off-chain matching)</td>
+                            <td>Slower (on-chain settlement)</td>
+                        </tr>
+                        <tr>
+                            <td>Liquidity</td>
+                            <td>Generally higher</td>
+                            <td>Varies by pool</td>
+                        </tr>
+                        <tr>
+                            <td>Fees</td>
+                            <td>0.1% - 0.5% per trade</td>
+                            <td>0.3% swap fee + gas fees</td>
+                        </tr>
+                        <tr>
+                            <td>Fiat Support</td>
+                            <td>Yes (bank transfers, cards)</td>
+                            <td>No (crypto-to-crypto only)</td>
+                        </tr>
+                        <tr>
+                            <td>Token Selection</td>
+                            <td>Curated listings only</td>
+                            <td>Any token can be listed permissionlessly</td>
+                        </tr>
+                        <tr>
+                            <td>Risk</td>
+                            <td>Exchange hack, insolvency, frozen accounts</td>
+                            <td>Smart contract bugs, impermanent loss</td>
+                        </tr>
+                        <tr>
+                            <td>Regulation</td>
+                            <td>Subject to government regulation</td>
+                            <td>Largely unregulated (evolving)</td>
+                        </tr>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Important Tradeoff</div>
+                        <p>CEXs offer convenience and speed but require trust. DEXs offer sovereignty and censorship resistance but require more technical knowledge. Most experienced traders use <strong>both</strong> &mdash; CEXs for fiat on/off-ramps and high-frequency trading, DEXs for accessing new tokens and maintaining self-custody.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="orderbook" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128202;</span>Order Book Mechanics</h2>
+                <div class="reading-content">
+                    <p>The <strong>order book</strong> is the heart of any centralized exchange. It is a real-time, continuously updated list of all outstanding buy and sell orders for a specific trading pair, organized by price level.</p>
+
+                    <h3>Anatomy of an Order Book</h3>
+                    <p>An order book has two sides:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Bid Side (Buy Orders):</strong> Orders from traders who want to buy. Sorted from highest to lowest price. The highest bid is the best price a buyer is currently willing to pay.</li>
+                        <li><strong>Ask Side (Sell Orders):</strong> Orders from traders who want to sell. Sorted from lowest to highest price. The lowest ask is the best price a seller is currently willing to accept.</li>
+                    </ul>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">Order Book Visualization &mdash; KENO/USD</div>
+                        <table class="comparison-table" style="max-width: 600px; margin: 0 auto;">
+                            <tr>
+                                <th style="background: rgba(239,68,68,0.15); color: var(--danger);">Ask Price (Sell)</th>
+                                <th>Quantity (KENO)</th>
+                                <th>Total (USD)</th>
+                            </tr>
+                            <tr><td style="color: var(--danger);">$1.05</td><td>500</td><td>$525.00</td></tr>
+                            <tr><td style="color: var(--danger);">$1.04</td><td>1,200</td><td>$1,248.00</td></tr>
+                            <tr><td style="color: var(--danger);">$1.03</td><td>800</td><td>$824.00</td></tr>
+                            <tr><td style="color: var(--danger);">$1.02</td><td>2,500</td><td>$2,550.00</td></tr>
+                            <tr style="border-top: 3px solid var(--gold);"><td colspan="3" style="text-align: center; color: var(--gold); font-weight: 700; padding: 10px;">&#8593; SPREAD: $0.01 &#8595;</td></tr>
+                            <tr><td style="color: var(--success);">$1.01</td><td>3,000</td><td>$3,030.00</td></tr>
+                            <tr><td style="color: var(--success);">$1.00</td><td>5,000</td><td>$5,000.00</td></tr>
+                            <tr><td style="color: var(--success);">$0.99</td><td>1,500</td><td>$1,485.00</td></tr>
+                            <tr><td style="color: var(--success);">$0.98</td><td>4,200</td><td>$4,116.00</td></tr>
+                        </table>
+                        <p style="color: var(--text-muted); font-size: 0.9em; margin-top: 15px;">Green = buy orders (bids) | Red = sell orders (asks) | Gap = spread</p>
+                    </div>
+
+                    <h3>The Spread</h3>
+                    <p>The <strong>spread</strong> is the difference between the best bid and best ask. In our example, the best bid is $1.01 and the best ask is $1.02, so the spread is $0.01 (approximately 1%). A tight spread indicates high liquidity and active trading. A wide spread suggests low liquidity and can mean higher trading costs.</p>
+
+                    <h3>Order Types Explained</h3>
+
+                    <h4>Market Orders</h4>
+                    <p>A market order executes immediately at the best available price. If you place a market buy order for 1,000 KENO when the best ask is $1.02, your order will fill at $1.02 (or slightly higher if the quantity at $1.02 is less than 1,000). Market orders guarantee execution but not price.</p>
+
+                    <h4>Limit Orders</h4>
+                    <p>A limit order specifies the exact price at which you want to buy or sell. A limit buy at $0.98 will only execute if the price drops to $0.98. Limit orders guarantee price but not execution &mdash; the market may never reach your price. Limit orders add liquidity to the order book and typically receive lower fees (called "maker" fees).</p>
+
+                    <h4>Stop-Loss Orders</h4>
+                    <p>A stop-loss order triggers a market sell when the price drops below a specified level. If you hold KENO bought at $1.00 and set a stop-loss at $0.90, your position will automatically sell if the price drops to $0.90, limiting your loss to 10%. Stop-losses are essential risk management tools.</p>
+
+                    <h4>Stop-Limit Orders</h4>
+                    <p>A stop-limit combines a stop trigger with a limit order. When the stop price is reached, instead of executing at market price, it places a limit order. This gives more price control but risks non-execution in fast-moving markets.</p>
+
+                    <h4>Take-Profit Orders</h4>
+                    <p>The opposite of stop-loss: automatically sells when price rises to your target. If you set a take-profit at $1.50, your KENO will sell when the price hits $1.50, locking in your gains.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Example: Placing different order types on Kenostod</span>
+
+<span class="code-comment">// Market Buy - fills immediately at best ask</span>
+<span class="code-keyword">const</span> marketBuy = {
+  type: <span class="code-string">'market'</span>,
+  side: <span class="code-string">'buy'</span>,
+  pair: <span class="code-string">'KENO/USD'</span>,
+  quantity: <span class="code-number">500</span>
+};
+
+<span class="code-comment">// Limit Buy - only fills at $0.95 or lower</span>
+<span class="code-keyword">const</span> limitBuy = {
+  type: <span class="code-string">'limit'</span>,
+  side: <span class="code-string">'buy'</span>,
+  pair: <span class="code-string">'KENO/USD'</span>,
+  price: <span class="code-number">0.95</span>,
+  quantity: <span class="code-number">1000</span>
+};
+
+<span class="code-comment">// Stop-Loss - triggers market sell if price drops to $0.85</span>
+<span class="code-keyword">const</span> stopLoss = {
+  type: <span class="code-string">'stop-loss'</span>,
+  side: <span class="code-string">'sell'</span>,
+  pair: <span class="code-string">'KENO/USD'</span>,
+  stopPrice: <span class="code-number">0.85</span>,
+  quantity: <span class="code-number">500</span>
+};
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Pro Tip: Order Book Depth</div>
+                        <p>"Depth" refers to how many orders exist at different price levels. A deep order book (many orders at many price levels) means large trades can be executed with minimal price impact. A shallow order book means even moderate orders can cause significant price swings (called "slippage").</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="matching" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9881;&#65039;</span>Matching Engine Architecture</h2>
+                <div class="reading-content">
+                    <p>The <strong>matching engine</strong> is the core technology of any exchange. It is the software system that receives orders, validates them, and matches compatible buy and sell orders to execute trades. Performance of the matching engine directly determines the exchange's capacity and reliability.</p>
+
+                    <h3>How a Matching Engine Works</h3>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">Order Matching Flow</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box buyer">
+                                <div class="flow-icon">&#128101;</div>
+                                <div class="flow-label">Incoming Order</div>
+                                <div style="font-size: 0.85em;">Buy 500 KENO @ $1.02</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box engine">
+                                <div class="flow-icon">&#9881;&#65039;</div>
+                                <div class="flow-label">Matching Engine</div>
+                                <div style="font-size: 0.85em;">Price-Time Priority</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box seller">
+                                <div class="flow-icon">&#9989;</div>
+                                <div class="flow-label">Trade Executed</div>
+                                <div style="font-size: 0.85em;">500 KENO @ $1.02</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Price-Time Priority (FIFO)</h3>
+                    <p>Most exchanges use a <strong>price-time priority</strong> algorithm (also called FIFO &mdash; First In, First Out). The rules are simple:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Price Priority:</strong> Better-priced orders are matched first. A buy order at $1.05 gets matched before one at $1.01. A sell order at $1.02 gets matched before one at $1.05.</li>
+                        <li><strong>Time Priority:</strong> Among orders at the same price, the order submitted first is matched first. This prevents front-running at the exchange level.</li>
+                    </ul>
+
+                    <h3>Performance Benchmarks</h3>
+                    <p>Modern exchange matching engines are among the highest-performance software systems in the world:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Exchange</th>
+                            <th>Matching Speed</th>
+                            <th>Orders/Second</th>
+                        </tr>
+                        <tr><td>Binance</td><td>~5 microseconds</td><td>1,400,000+</td></tr>
+                        <tr><td>Nasdaq (traditional)</td><td>~50 microseconds</td><td>500,000+</td></tr>
+                        <tr><td>Coinbase</td><td>~100 microseconds</td><td>100,000+</td></tr>
+                        <tr><td>Uniswap (DEX)</td><td>~12 seconds (block time)</td><td>~30 per block</td></tr>
+                    </table>
+
+                    <h3>Partial Fills</h3>
+                    <p>If you place a limit buy for 5,000 KENO at $1.02 but only 2,500 KENO are available at that price, your order will be <strong>partially filled</strong>. You receive 2,500 KENO and the remaining 2,500 stays in the order book as an open order until more sellers appear at your price or you cancel it.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Simplified matching engine logic (pseudocode)</span>
+<span class="code-keyword">function</span> <span class="code-function">matchOrder</span>(incomingOrder, orderBook) {
+  <span class="code-keyword">const</span> oppositeBook = incomingOrder.side === <span class="code-string">'buy'</span>
+    ? orderBook.asks   <span class="code-comment">// buy orders match against asks</span>
+    : orderBook.bids;  <span class="code-comment">// sell orders match against bids</span>
+
+  <span class="code-keyword">let</span> remainingQty = incomingOrder.quantity;
+
+  <span class="code-keyword">for</span> (<span class="code-keyword">const</span> restingOrder <span class="code-keyword">of</span> oppositeBook) {
+    <span class="code-keyword">if</span> (!<span class="code-function">priceIsCompatible</span>(incomingOrder, restingOrder)) <span class="code-keyword">break</span>;
+
+    <span class="code-keyword">const</span> fillQty = Math.<span class="code-function">min</span>(remainingQty, restingOrder.quantity);
+    <span class="code-function">executeTrade</span>(incomingOrder, restingOrder, fillQty);
+    remainingQty -= fillQty;
+
+    <span class="code-keyword">if</span> (remainingQty === <span class="code-number">0</span>) <span class="code-keyword">break</span>;
+  }
+
+  <span class="code-keyword">if</span> (remainingQty > <span class="code-number">0</span> && incomingOrder.type === <span class="code-string">'limit'</span>) {
+    orderBook.<span class="code-function">addToBook</span>(incomingOrder, remainingQty);
+  }
+}
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Maker vs Taker</div>
+                        <p>A <strong>maker</strong> is someone who places a limit order that adds liquidity to the order book (it "makes" the market). A <strong>taker</strong> is someone who places an order that removes liquidity from the book (it "takes" from existing orders). Exchanges typically charge lower fees to makers because they improve market depth.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pairs" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128177;</span>Trading Pairs &amp; Liquidity</h2>
+                <div class="reading-content">
+                    <p>A <strong>trading pair</strong> represents two assets that can be traded against each other. When you see KENO/USD, it means you can buy KENO using USD or sell KENO to receive USD. The first asset (KENO) is called the <strong>base currency</strong>, and the second (USD) is the <strong>quote currency</strong>.</p>
+
+                    <h3>Kenostod Exchange Trading Pairs</h3>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Pair</th>
+                            <th>Base</th>
+                            <th>Quote</th>
+                            <th>Use Case</th>
+                        </tr>
+                        <tr>
+                            <td><strong>KENO/USD</strong></td>
+                            <td>KENO</td>
+                            <td>US Dollar</td>
+                            <td>Primary trading pair. Buy/sell KENO with fiat. Most liquid pair.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>KENO/BTC</strong></td>
+                            <td>KENO</td>
+                            <td>Bitcoin</td>
+                            <td>Trade KENO relative to Bitcoin. Used by crypto-native traders.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>KENO/ETH</strong></td>
+                            <td>KENO</td>
+                            <td>Ethereum</td>
+                            <td>Trade KENO relative to Ethereum. Useful for DeFi participants.</td>
+                        </tr>
+                    </table>
+
+                    <h3>Understanding Liquidity</h3>
+                    <p><strong>Liquidity</strong> measures how easily an asset can be bought or sold without significantly affecting its price. High liquidity means:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Tight spreads (small difference between bid and ask)</li>
+                        <li>Large order sizes can be filled without major price impact</li>
+                        <li>Fast trade execution</li>
+                        <li>More accurate price discovery</li>
+                    </ul>
+
+                    <h3>Market Making</h3>
+                    <p>A <strong>market maker</strong> is a trader (or algorithm) that continuously places both buy and sell orders on the order book, profiting from the spread. Market makers are essential to exchange health because they provide liquidity that other traders rely on.</p>
+
+                    <p>For example, a market maker might simultaneously place:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>A buy order for 10,000 KENO at $1.00</li>
+                        <li>A sell order for 10,000 KENO at $1.02</li>
+                    </ul>
+                    <p>If both orders fill, the maker earns $0.02 per KENO ($200 profit on 10,000 KENO). The risk is that the price moves significantly before both sides fill.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Slippage Explained</div>
+                        <p><strong>Slippage</strong> is the difference between the expected price and the actual execution price. If you place a market buy for 50,000 KENO but only 10,000 are available at $1.02, the remaining 40,000 will fill at higher prices ($1.03, $1.04, etc.). The average execution price may be $1.035 instead of $1.02 &mdash; that $0.015 difference is slippage. Large orders in illiquid markets can experience severe slippage.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="amm" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#129302;</span>AMM &amp; DEX Mechanics</h2>
+                <div class="reading-content">
+                    <p>Decentralized exchanges use a fundamentally different approach to trading than centralized exchanges. Instead of matching individual buy and sell orders, most DEXs use an <strong>Automated Market Maker (AMM)</strong> model that relies on mathematical formulas and liquidity pools.</p>
+
+                    <h3>How AMMs Work</h3>
+                    <p>An AMM replaces the traditional order book with a <strong>liquidity pool</strong> &mdash; a smart contract that holds reserves of two tokens. Anyone can trade against the pool, and the price is determined algorithmically based on the ratio of tokens in the pool.</p>
+
+                    <h4>The Constant Product Formula</h4>
+                    <p>The most famous AMM formula, pioneered by Uniswap, is the <strong>constant product formula</strong>:</p>
+
+                    <div class="code-example" style="text-align: center; font-size: 1.3em; padding: 20px;">
+x &times; y = k
+                    </div>
+
+                    <p>Where:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>x</strong> = quantity of Token A in the pool (e.g., KENO)</li>
+                        <li><strong>y</strong> = quantity of Token B in the pool (e.g., USD)</li>
+                        <li><strong>k</strong> = a constant that must be maintained after every trade</li>
+                    </ul>
+
+                    <h4>Example: Trading KENO/USD on an AMM</h4>
+                    <p>Imagine a KENO/USD pool with 100,000 KENO and 100,000 USD (k = 10,000,000,000). The implied price is 100,000 USD / 100,000 KENO = $1.00 per KENO.</p>
+
+                    <p>You want to buy 1,000 KENO. After your purchase:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Pool KENO: 100,000 - 1,000 = 99,000 KENO</li>
+                        <li>k must remain 10,000,000,000</li>
+                        <li>Required USD: 10,000,000,000 / 99,000 = 101,010.10 USD</li>
+                        <li>You pay: 101,010.10 - 100,000 = <strong>$1,010.10 for 1,000 KENO ($1.01 each)</strong></li>
+                    </ul>
+                    <p>The price moved from $1.00 to $1.01 because your trade changed the ratio of tokens in the pool. Larger trades cause more price impact.</p>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">AMM Liquidity Pool Architecture</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box buyer">
+                                <div class="flow-icon">&#128100;</div>
+                                <div class="flow-label">Trader</div>
+                                <div style="font-size: 0.85em;">Sends USD</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box pool">
+                                <div class="flow-icon">&#128167;</div>
+                                <div class="flow-label">Liquidity Pool</div>
+                                <div style="font-size: 0.85em;">x &times; y = k</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box dex">
+                                <div class="flow-icon">&#128176;</div>
+                                <div class="flow-label">Receives KENO</div>
+                                <div style="font-size: 0.85em;">At pool price</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Liquidity Providers (LPs)</h3>
+                    <p>Liquidity pools don't fill themselves &mdash; they require <strong>liquidity providers</strong> who deposit equal values of both tokens into the pool. In return, LPs earn a share of the trading fees (typically 0.3% per trade on Uniswap) proportional to their share of the pool.</p>
+
+                    <h3>Popular AMM Protocols</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Protocol</th>
+                            <th>Chain</th>
+                            <th>Innovation</th>
+                        </tr>
+                        <tr><td>Uniswap V3</td><td>Ethereum, Polygon, Arbitrum</td><td>Concentrated liquidity &mdash; LPs choose a price range</td></tr>
+                        <tr><td>PancakeSwap</td><td>BNB Chain, Ethereum</td><td>Lower fees, gamification, lottery features</td></tr>
+                        <tr><td>Curve Finance</td><td>Ethereum, multi-chain</td><td>Optimized for stablecoin swaps with minimal slippage</td></tr>
+                        <tr><td>Balancer</td><td>Ethereum, Polygon</td><td>Multi-token pools with custom weightings</td></tr>
+                    </table>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod DEX Integration</div>
+                        <p>The Kenostod exchange supports both order-book trading (like a CEX) and AMM pool trading (like a DEX). This hybrid approach lets users choose the model that best suits their needs &mdash; order books for precise price control, or AMM pools for instant, permissionless swaps.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="impermanent" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128201;</span>Impermanent Loss Explained</h2>
+                <div class="reading-content">
+                    <p><strong>Impermanent loss</strong> is the hidden cost of providing liquidity to AMM pools. It occurs when the price of tokens in the pool changes relative to when you deposited them, resulting in less value than if you had simply held the tokens.</p>
+
+                    <h3>How Impermanent Loss Works</h3>
+                    <p>Imagine you deposit $5,000 worth of KENO (5,000 KENO at $1.00 each) and $5,000 USD into a KENO/USD pool. Your total deposit is $10,000.</p>
+
+                    <p>Now KENO's price doubles to $2.00. Arbitrage traders buy cheap KENO from the pool until the pool price matches the market price. After rebalancing:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Pool now has ~3,536 KENO and ~7,071 USD (k is preserved)</li>
+                        <li>Your share is worth: 3,536 &times; $2.00 + $7,071 = <strong>$14,142</strong></li>
+                        <li>If you had simply held: 5,000 &times; $2.00 + $5,000 = <strong>$15,000</strong></li>
+                        <li>Impermanent loss: $15,000 - $14,142 = <strong>$858 (5.7%)</strong></li>
+                    </ul>
+
+                    <h3>Impermanent Loss by Price Change</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Price Change</th>
+                            <th>Impermanent Loss</th>
+                        </tr>
+                        <tr><td>1.25x (25% increase)</td><td>0.6%</td></tr>
+                        <tr><td>1.50x (50% increase)</td><td>2.0%</td></tr>
+                        <tr><td>2x (100% increase)</td><td>5.7%</td></tr>
+                        <tr><td>3x (200% increase)</td><td>13.4%</td></tr>
+                        <tr><td>5x (400% increase)</td><td>25.5%</td></tr>
+                    </table>
+
+                    <p>The loss is called "impermanent" because if the prices return to their original values, the loss disappears. However, if you withdraw while the prices differ, the loss becomes permanent.</p>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Critical Understanding</div>
+                        <p>Impermanent loss occurs in <strong>both directions</strong> &mdash; whether the price goes up or down. The only way to avoid impermanent loss entirely is if the ratio of tokens in the pool returns to exactly what it was when you deposited. Trading fees earned can offset impermanent loss, but for volatile pairs, the loss can exceed fee income.</p>
+                    </div>
+
+                    <h3>Mitigating Impermanent Loss</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Stablecoin pairs:</strong> USDC/USDT pools have minimal impermanent loss since both assets maintain ~$1.00</li>
+                        <li><strong>Correlated assets:</strong> ETH/stETH or WBTC/BTC pools move together, reducing divergence</li>
+                        <li><strong>Concentrated liquidity:</strong> Uniswap V3 lets you provide liquidity in a specific price range, increasing fee income per dollar deployed</li>
+                        <li><strong>High-fee pools:</strong> Pools with high trading volume generate more fees to offset losses</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="security" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Exchange Security</h2>
+                <div class="reading-content">
+                    <p>Exchange security is arguably the most critical aspect of the crypto ecosystem. Exchanges hold billions of dollars in customer assets, making them prime targets for hackers. Understanding how exchanges protect (and fail to protect) these assets is essential knowledge.</p>
+
+                    <h3>Hot Wallets vs Cold Wallets</h3>
+                    <p>Every reputable exchange splits its asset storage between hot and cold wallets:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Hot Wallet</th>
+                            <th>Cold Wallet</th>
+                        </tr>
+                        <tr>
+                            <td>Connection</td>
+                            <td>Internet-connected</td>
+                            <td>Completely offline (air-gapped)</td>
+                        </tr>
+                        <tr>
+                            <td>Purpose</td>
+                            <td>Process withdrawals instantly</td>
+                            <td>Long-term secure storage</td>
+                        </tr>
+                        <tr>
+                            <td>Typical Balance</td>
+                            <td>2-5% of total assets</td>
+                            <td>95-98% of total assets</td>
+                        </tr>
+                        <tr>
+                            <td>Risk Level</td>
+                            <td>Higher (vulnerable to hacking)</td>
+                            <td>Very low (physical access required)</td>
+                        </tr>
+                        <tr>
+                            <td>Access</td>
+                            <td>Automated systems</td>
+                            <td>Multi-person authorization, time delays</td>
+                        </tr>
+                    </table>
+
+                    <h3>Proof of Reserves (PoR)</h3>
+                    <p>After the FTX collapse revealed that the exchange had secretly misappropriated customer funds, the industry adopted <strong>Proof of Reserves</strong> &mdash; a cryptographic audit system that proves an exchange holds sufficient assets to cover all customer deposits.</p>
+
+                    <p>A proper PoR includes:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Merkle Tree proof:</strong> Cryptographically proves each user's balance is included in the total without revealing individual account details</li>
+                        <li><strong>On-chain wallet verification:</strong> Proves the exchange controls wallets with sufficient balance by signing a message</li>
+                        <li><strong>Third-party audit:</strong> An independent auditor verifies the proof (e.g., Mazars, Armanino)</li>
+                        <li><strong>Liability disclosure:</strong> Not just proving assets but also proving liabilities (what the exchange owes)</li>
+                    </ul>
+
+                    <h3>Additional Security Measures</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Multi-signature wallets:</strong> Require multiple authorized signers to move funds</li>
+                        <li><strong>HSM (Hardware Security Modules):</strong> Specialized hardware that stores cryptographic keys in tamper-proof environments</li>
+                        <li><strong>Rate limiting:</strong> Caps withdrawal amounts per time period to slow potential theft</li>
+                        <li><strong>Withdrawal whitelisting:</strong> Only allows withdrawals to pre-approved addresses</li>
+                        <li><strong>Insurance funds:</strong> Reserves set aside to cover potential losses (e.g., Binance's SAFU fund)</li>
+                        <li><strong>Bug bounty programs:</strong> Reward security researchers who find vulnerabilities</li>
+                    </ul>
+
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#128680; Red Flags for Unsafe Exchanges</div>
+                        <p>Avoid exchanges that: refuse to publish proof of reserves, have no withdrawal limits, store majority of funds in hot wallets, have anonymous founding teams, offer unrealistically high yields, or have had multiple security incidents without transparent postmortems.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="fees" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>Fees, Regulation &amp; MEV</h2>
+                <div class="reading-content">
+                    <h3>Trading Fee Structures</h3>
+                    <p>Exchanges charge fees to sustain their operations. Understanding fee structures helps you minimize trading costs:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Fee Type</th>
+                            <th>Typical Range</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td>Maker Fee</td>
+                            <td>0.00% - 0.10%</td>
+                            <td>Charged on limit orders that add liquidity to the book</td>
+                        </tr>
+                        <tr>
+                            <td>Taker Fee</td>
+                            <td>0.05% - 0.30%</td>
+                            <td>Charged on orders that remove liquidity from the book</td>
+                        </tr>
+                        <tr>
+                            <td>Withdrawal Fee</td>
+                            <td>Varies by coin</td>
+                            <td>Covers blockchain transaction costs for sending assets out</td>
+                        </tr>
+                        <tr>
+                            <td>Deposit Fee</td>
+                            <td>Usually free</td>
+                            <td>Most exchanges don't charge for deposits</td>
+                        </tr>
+                        <tr>
+                            <td>Gas Fee (DEX)</td>
+                            <td>$1 - $50+ (varies)</td>
+                            <td>Blockchain network fee paid to validators/miners</td>
+                        </tr>
+                    </table>
+
+                    <h3>Exchange Listing Process</h3>
+                    <p>Getting a token listed on a major exchange is a significant milestone for any project. The process typically involves:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Application:</strong> Project submits detailed documentation about the token, team, technology, and use case</li>
+                        <li><strong>Due diligence:</strong> Exchange evaluates the project's legitimacy, security, regulatory compliance, and market potential</li>
+                        <li><strong>Legal review:</strong> Ensuring the token complies with securities laws in relevant jurisdictions</li>
+                        <li><strong>Technical integration:</strong> Wallet integration, node deployment, deposit/withdrawal testing</li>
+                        <li><strong>Listing fee:</strong> Major exchanges may charge $100,000 to $2,000,000+ for listing (controversial practice)</li>
+                        <li><strong>Market making agreement:</strong> Many exchanges require the project to ensure sufficient liquidity at launch</li>
+                    </ul>
+
+                    <h3>Regulatory Landscape</h3>
+                    <p>The regulatory environment for crypto exchanges varies dramatically by jurisdiction:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>United States:</strong> SEC and CFTC oversight; exchanges must register as money transmitters; securities tokens face strict rules</li>
+                        <li><strong>European Union:</strong> MiCA (Markets in Crypto-Assets) framework provides unified regulation across EU member states</li>
+                        <li><strong>Singapore:</strong> MAS licenses crypto exchanges under the Payment Services Act</li>
+                        <li><strong>Japan:</strong> FSA requires exchange registration; among the most mature regulatory frameworks</li>
+                        <li><strong>El Salvador:</strong> Bitcoin is legal tender; progressive crypto regulation</li>
+                    </ul>
+
+                    <h3>Front-Running and MEV</h3>
+                    <p><strong>Maximal Extractable Value (MEV)</strong> refers to the profit that block producers (miners/validators) can extract by reordering, inserting, or censoring transactions within a block. On DEXs, this manifests as <strong>front-running</strong>:</p>
+
+                    <h4>How Front-Running Works</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>You submit a large swap transaction on a DEX (e.g., buy 100,000 KENO)</li>
+                        <li>A bot in the mempool sees your pending transaction and the price impact it will cause</li>
+                        <li>The bot submits its own buy order with a higher gas fee so it gets included first</li>
+                        <li>Your transaction executes at a higher price (because the bot's purchase moved the price)</li>
+                        <li>The bot immediately sells its KENO at the inflated price for a risk-free profit</li>
+                    </ul>
+
+                    <p>This is called a <strong>sandwich attack</strong> &mdash; the bot places one transaction before and one after yours, "sandwiching" your trade.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Sandwich Attack Illustration</span>
+<span class="code-comment">// 1. Your pending tx: Buy 100,000 KENO at market price</span>
+<span class="code-comment">// 2. Bot front-runs: Buy 10,000 KENO (price goes up)</span>
+<span class="code-comment">// 3. Your tx executes: Buy 100,000 KENO at higher price</span>
+<span class="code-comment">// 4. Bot back-runs: Sell 10,000 KENO at even higher price</span>
+<span class="code-comment">// Net result: Bot profits, you pay more than expected</span>
+
+<span class="code-comment">// Protection: Set slippage tolerance</span>
+<span class="code-keyword">const</span> swapConfig = {
+  tokenIn: <span class="code-string">'USD'</span>,
+  tokenOut: <span class="code-string">'KENO'</span>,
+  amount: <span class="code-number">100000</span>,
+  maxSlippage: <span class="code-number">0.005</span>, <span class="code-comment">// 0.5% - revert if price moves more</span>
+  deadline: Date.<span class="code-function">now</span>() + <span class="code-number">300000</span> <span class="code-comment">// 5 min deadline</span>
+};
+                    </div>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Protecting Against MEV</div>
+                        <p>To protect yourself: (1) Set tight slippage tolerance (0.5-1%), (2) Use private transaction services like Flashbots Protect that don't broadcast to the public mempool, (3) Break large trades into smaller chunks, (4) Use DEX aggregators like 1inch that route through multiple pools for better prices.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="kenostod" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#11088;</span>Kenostod Exchange Platform</h2>
+                <div class="reading-content">
+                    <p>The Kenostod Exchange is designed specifically for learners and educators in the blockchain space. It combines the best features of both centralized and decentralized exchange models with built-in safety features unique to the Kenostod ecosystem.</p>
+
+                    <h3>Platform Features</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Hybrid Trading Model</div>
+                            <p>Access both a traditional order book and AMM liquidity pools from a single interface. Switch between modes depending on your trading strategy and preference.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Three Major Trading Pairs</div>
+                            <p>Trade KENO against USD (fiat), BTC (Bitcoin), and ETH (Ethereum). Each pair has its own order book and liquidity pool.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">5-Minute Reversal Safety Net</div>
+                            <p>Leveraging Kenostod's unique transaction reversal feature (from Course 3), trades can be reversed within 5 minutes if you notice an error &mdash; a safety net no other exchange offers.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Educational Trading Simulator</div>
+                            <p>Practice trading with simulated funds before risking real assets. The simulator uses realistic market data and order book dynamics so you learn without financial risk.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Built-in Analytics Dashboard</div>
+                            <p>Track your portfolio performance, view historical trades, analyze price charts, and monitor your profit/loss in real time.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Low and Transparent Fees</div>
+                            <p>Maker fees of 0.05% and taker fees of 0.15%, with fee discounts for high-volume traders and KENO token holders. No hidden fees or surprise charges.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Why Kenostod's Exchange is Different</div>
+                        <p>Unlike traditional exchanges that prioritize speed and volume, Kenostod's exchange prioritizes <strong>education and safety</strong>. Every trade comes with contextual explanations, real-time fee breakdowns, and slippage warnings. The 5-minute reversal window protects learners from costly mistakes, and the trading simulator lets you practice until you're confident.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cases" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These real events demonstrate the risks, innovations, and lessons that have shaped the exchange landscape:</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: The FTX Collapse (November 2022)</h4>
+                        <p><strong>What happened:</strong> FTX, the third-largest crypto exchange by volume, collapsed in less than a week. It was revealed that FTX had secretly transferred $8 billion in customer funds to its sister trading firm, Alameda Research, which used the funds for risky bets that went wrong. When customers rushed to withdraw, FTX didn't have the funds.</p>
+                        <p style="margin-top: 10px;"><strong>Root cause:</strong> No separation between exchange assets and customer deposits, no independent board oversight, no proof of reserves, and a single point of authority (Sam Bankman-Fried) with unchecked power over customer funds.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Always verify an exchange's proof of reserves. Never store more funds on an exchange than you need for active trading. "Not your keys, not your coins" is not just a saying &mdash; it's a survival strategy.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: The Uniswap V3 Revolution (May 2021)</h4>
+                        <p><strong>What happened:</strong> Uniswap launched V3 with "concentrated liquidity," allowing LPs to provide liquidity within specific price ranges instead of across the entire price curve. This increased capital efficiency by up to 4,000x compared to V2.</p>
+                        <p style="margin-top: 10px;"><strong>Impact:</strong> Uniswap V3 regularly handles more volume than many centralized exchanges. It proved that decentralized exchanges can compete with and even surpass centralized venues on capital efficiency.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> AMM design is not static. Innovation in mathematical models and smart contract architecture continues to improve the tradeoffs between capital efficiency, complexity, and impermanent loss.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: The Binance BNB Bridge Hack (October 2022)</h4>
+                        <p><strong>What happened:</strong> An attacker exploited a vulnerability in the BNB Chain cross-chain bridge to mint 2 million BNB tokens worth ~$570 million. The BNB Chain team coordinated with validators to halt the entire chain to prevent the attacker from moving all the funds.</p>
+                        <p style="margin-top: 10px;"><strong>Root cause:</strong> A bug in the bridge's proof verification allowed the attacker to forge withdrawal proofs for tokens that didn't exist.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Cross-chain bridges are among the most vulnerable pieces of blockchain infrastructure. The ability to halt a chain raises centralization concerns. Exchange ecosystems are only as secure as their weakest component.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: The Flashbots MEV Solution (2021-Present)</h4>
+                        <p><strong>What happened:</strong> Flashbots created MEV-Boost and Flashbots Protect to address the growing problem of front-running and sandwich attacks on Ethereum. By allowing users to submit transactions through a private channel (not the public mempool), Flashbots dramatically reduced the amount of value extracted from regular users by MEV bots.</p>
+                        <p style="margin-top: 10px;"><strong>Impact:</strong> Over $600 million in MEV has been redistributed more fairly. Flashbots Protect is now used by major wallets including MetaMask.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> The community can build solutions to structural problems in decentralized systems. MEV is a fundamental feature of public blockchains, but its negative effects can be mitigated through clever protocol design.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: CEX vs DEX Decision Making</h4>
+                        <div class="exercise-question">
+                            <p>You have 10,000 KENO tokens and want to sell half for USD. Explain when you would choose a centralized exchange vs a decentralized exchange for this trade. Consider factors like fees, speed, security, and privacy.</p>
+                            <textarea id="ex1" placeholder="Write your analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Impermanent Loss Calculation</h4>
+                        <div class="exercise-question">
+                            <p>You provide liquidity to a KENO/USD pool with 2,000 KENO (at $1.00 each) and $2,000 USD. If KENO's price rises to $4.00, what would your position be worth in the pool vs simply holding? Show your reasoning step by step.</p>
+                            <textarea id="ex2" placeholder="Show your calculation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Exchange Security Audit</h4>
+                        <div class="exercise-question">
+                            <p>You're evaluating a new exchange that offers 20% APY on deposits and has no proof of reserves. The team is anonymous. What red flags do you see, and what minimum security standards would you require before depositing any funds?</p>
+                            <textarea id="ex3" placeholder="Describe the red flags and your requirements..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: MEV Protection Strategy</h4>
+                        <div class="exercise-question">
+                            <p>You want to swap 50,000 KENO for ETH on Uniswap. Describe the steps you would take to protect yourself from sandwich attacks and minimize slippage. What tools and settings would you use?</p>
+                            <textarea id="ex4" placeholder="Describe your protection strategy..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Market Making Analysis</h4>
+                        <div class="exercise-question">
+                            <p>Explain how a market maker profits from the bid-ask spread. If the KENO/USD spread is $0.02 and the market maker trades 100,000 KENO per day, estimate their daily revenue. What risks does the market maker face?</p>
+                            <textarea id="ex5" placeholder="Explain market making economics..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="lesson-section practice-section" style="display:none;">
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What is the primary difference between a CEX and a DEX?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>CEXs are faster than DEXs</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>CEXs hold custody of user funds; DEXs let users retain custody</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>DEXs have lower fees than CEXs</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>CEXs only trade Bitcoin</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. Which order type executes immediately at the best available price?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Limit order</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Stop-loss order</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Market order</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Take-profit order</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. What is the "spread" in an order book?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The difference between the best bid and best ask price</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The total trading volume in 24 hours</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The trading fee charged by the exchange</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The number of active traders on the platform</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. In the constant product formula x &times; y = k, what happens when you buy Token A from a pool?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Both x and y decrease</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>k increases proportionally</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The pool creates new tokens</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>x decreases and y increases to maintain k</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. What is impermanent loss?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The fee charged by DEXs for withdrawing liquidity</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The difference in value between holding tokens and providing them as liquidity when prices change</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A permanent loss of tokens due to a smart contract bug</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The gas fees lost during failed transactions</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="a">
+                    <div class="question-text">6. What is "Proof of Reserves" designed to prevent?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Exchanges secretly misappropriating customer funds (like FTX)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Users withdrawing more than their balance</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Front-running attacks on DEXs</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Impermanent loss in liquidity pools</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="c">
+                    <div class="question-text">7. What is a "sandwich attack" in the context of MEV?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Attacking an exchange by submitting millions of fake orders</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Draining a liquidity pool by exploiting a smart contract bug</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A bot placing a buy before and a sell after your transaction to profit from the price impact</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Using two exchanges simultaneously to arbitrage price differences</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="b">
+                    <div class="question-text">8. What is the difference between a "maker" and a "taker"?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers buy tokens; takers sell tokens</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers add liquidity to the order book; takers remove liquidity</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers create new tokens; takers burn tokens</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers use CEXs; takers use DEXs</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="d">
+                    <div class="question-text">9. Which trading pair is NOT supported on the Kenostod Exchange?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/USD</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/BTC</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/ETH</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/DOGE</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="a">
+                    <div class="question-text">10. What percentage of an exchange's assets are typically held in cold storage?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>95-98%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50-60%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10-20%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>100%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="c">
+                    <div class="question-text">11. What innovation did Uniswap V3 introduce?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Zero-fee trading</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Cross-chain atomic swaps</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Concentrated liquidity where LPs choose a specific price range</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Fiat-to-crypto on-ramp</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="b">
+                    <div class="question-text">12. What unique safety feature does the Kenostod Exchange offer that other exchanges do not?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Zero trading fees</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5-minute transaction reversal window</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Guaranteed 100% APY on deposits</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Anonymous trading with no KYC</span></div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <div id="resultIcon" class="result-icon"></div>
+                    <h3 id="resultTitle" class="result-title"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-15-banking.html" style="color: var(--primary);">&larr; Course 15</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-17-finance.html" style="color: var(--primary);">Course 17 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const text = textarea.value.trim();
+
+            if (text.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                feedback.innerHTML = '<strong>&#9888;&#65039; Too short.</strong> Please write a more detailed response (at least a few sentences) to demonstrate your understanding.';
+                return;
+            }
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+            feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+
+            const feedbackMessages = {
+                1: '<strong>&#9989; Good analysis!</strong> Key points to consider: CEXs offer fiat off-ramps (needed to convert to USD) but require KYC and custodial trust. DEXs give you sovereignty but only support crypto-to-crypto swaps. For USD conversion, a CEX is likely necessary unless you use a stablecoin bridge. Consider splitting the trade if the amount is large to reduce slippage risk.',
+                2: '<strong>&#9989; Good work!</strong> With the constant product formula (k = 2,000 &times; 2,000 = 4,000,000), if KENO goes to $4.00, pool rebalances to ~1,000 KENO and ~4,000 USD. Your LP position = $8,000. Simply holding = 2,000 &times; $4 + $2,000 = $10,000. Impermanent loss = $2,000 (20%). This illustrates why volatile pairs carry significant IL risk.',
+                3: '<strong>&#9989; Strong security thinking!</strong> Red flags include: unsustainably high APY (where does the yield come from?), no proof of reserves (could be fractional), anonymous team (no accountability). Minimum requirements: verifiable PoR, public team with track record, third-party security audits, insurance fund, regulatory licensing, and transparent fee structure.',
+                4: '<strong>&#9989; Well thought out!</strong> Protection steps: (1) Use Flashbots Protect or similar private mempool, (2) Set slippage tolerance to 0.5-1%, (3) Break the 50,000 KENO into 5-10 smaller swaps, (4) Use a DEX aggregator like 1inch for best routing, (5) Set a transaction deadline (5-10 minutes), (6) Consider using a limit order DEX like CoW Protocol.',
+                5: '<strong>&#9989; Excellent analysis!</strong> If the spread is $0.02 and the market maker trades 100,000 KENO/day (buying at bid, selling at ask), theoretical daily revenue = 100,000 &times; $0.02 = $2,000. However, risks include: inventory risk (holding KENO while price drops), adverse selection (informed traders take the other side), exchange downtime, and competition from other market makers compressing the spread.'
+            };
+
+            feedback.innerHTML = feedbackMessages[num] || '<strong>&#9989; Good response!</strong> Review the course material to verify your understanding covers all key concepts.';
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) {
+                        correct++;
+                    } else {
+                        selectedOption.classList.add('incorrect');
+                    }
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            const passThreshold = 10;
+
+            if (correct >= passThreshold) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\uD83C\uDF89';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + ' correct! You\'ve mastered Exchange Platform concepts!';
+                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 +250 KENO Earned!</p><a href="/courses/course-17-finance.html" class="next-course-btn">Course 17 \u2192</a>';
+                localStorage.setItem('course16_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(16, 'Course 16: Exchange Platform');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\uD83D\uDCDA';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + '. You need at least ' + passThreshold + ' correct (80%) to pass. Review the material and try again!';
+                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+<script src="/courses/course-common.js"></script>
+</body>
+</html>
