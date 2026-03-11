@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 7: Decentralized Reputation System | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root { --primary: #14b8a6; --primary-dark: #0d9488; --gold: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --danger: #ef4444; --secondary: #3b82f6; --purple: #8b5cf6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 10px 15px; margin-bottom: 4px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.92em; }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 26px; height: 26px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 600; flex-shrink: 0; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .section-title { font-size: 1.5em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; color: var(--primary); }
+        .section-icon { font-size: 1em; }
+        .reading-content { font-size: 1.05em; color: var(--text-primary); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; }
+        .objective-list li::before { content: "\2713"; color: var(--success); font-weight: bold; margin-right: 12px; }
+        .highlight-box { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .highlight-box.warning { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15)); border-color: rgba(245, 158, 11, 0.3); }
+        .highlight-box.success { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15)); border-color: rgba(16, 185, 129, 0.3); }
+        .highlight-box.danger { background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15)); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+        .case-study { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1)); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-box h4 { color: var(--success); margin-bottom: 10px; }
+        .star-rating { display: flex; gap: 5px; font-size: 1.5em; margin: 15px 0; }
+        .star { color: var(--text-muted); }
+        .star.filled { color: var(--gold); }
+        .code-block { background: #0d1117; border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Fira Code', monospace; font-size: 0.9em; overflow-x: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95em; }
+        .comparison-table th { background: rgba(59, 130, 246, 0.15); padding: 12px 16px; text-align: left; color: var(--secondary); border-bottom: 2px solid rgba(59, 130, 246, 0.2); }
+        .comparison-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); }
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .exercise-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        .exercise-question { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; margin: 10px 0; }
+        .exercise-question textarea { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95em; margin-top: 8px; min-height: 80px; resize: vertical; }
+        .check-answer-btn { background: var(--gold); color: #000; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 8px; font-size: 0.85em; }
+        .answer-feedback { margin-top: 8px; padding: 10px; border-radius: 6px; font-size: 0.9em; display: none; }
+        .practice-section { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border: 2px solid var(--primary); }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .quiz-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .quiz-question { background: var(--bg-dark); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .quiz-question h4 { margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .new-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .vocab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .vocab-card { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 16px; border-left: 3px solid var(--secondary); }
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+        .timeline-item { position: relative; padding-left: 30px; padding-bottom: 20px; border-left: 2px solid rgba(59, 130, 246, 0.3); }
+        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 5px; width: 10px; height: 10px; background: var(--secondary); border-radius: 50%; }
+        .timeline-item:last-child { border-left: none; }
+        .timeline-item h5 { color: var(--secondary); margin-bottom: 5px; }
+        .timeline-item p { color: var(--text-muted); font-size: 0.9em; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } .vocab-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">&#128218; Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('intro')"><span class="toc-number">2</span>Introduction</li>
+                <li class="toc-item" onclick="scrollToSection('history')"><span class="toc-number">3</span>History of Trust</li>
+                <li class="toc-item" onclick="scrollToSection('web2')"><span class="toc-number">4</span>Web2 Reputation</li>
+                <li class="toc-item" onclick="scrollToSection('blockchain-rep')"><span class="toc-number">5</span>Blockchain Reputation</li>
+                <li class="toc-item" onclick="scrollToSection('identity')"><span class="toc-number">6</span>Decentralized Identity</li>
+                <li class="toc-item" onclick="scrollToSection('how')"><span class="toc-number">7</span>Kenostod's Model</li>
+                <li class="toc-item" onclick="scrollToSection('sybil')"><span class="toc-number">8</span>Sybil Attacks</li>
+                <li class="toc-item" onclick="scrollToSection('onchain-offchain')"><span class="toc-number">9</span>On-Chain vs Off-Chain</li>
+                <li class="toc-item" onclick="scrollToSection('ens-sbt')"><span class="toc-number">10</span>ENS &amp; Soulbound Tokens</li>
+                <li class="toc-item" onclick="scrollToSection('defi-rep')"><span class="toc-number">11</span>Reputation in DeFi</li>
+                <li class="toc-item" onclick="scrollToSection('game-theory')"><span class="toc-number">12</span>Game Theory</li>
+                <li class="toc-item" onclick="scrollToSection('models')"><span class="toc-number">13</span>Reputation Models</li>
+                <li class="toc-item" onclick="scrollToSection('future')"><span class="toc-number">14</span>Future of Identity</li>
+                <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">15</span>Case Studies</li>
+                <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">16</span>Written Exercises</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">17</span>Hands-On Lab</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">18</span>Final Exam</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 7</div>
+            
+            <div class="course-header">
+                <h1>&#11088; Course 7: Decentralized Reputation System <span class="new-badge">NEW</span> <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>&#128214; 18 Lessons</span>
+                    <span>&#9201;&#65039; ~2 hours</span>
+                    <span>&#127919; Intermediate Level</span>
+                    <span>&#127942; 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <!-- SECTION 1: Learning Objectives -->
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <ul class="objective-list">
+                    <li>Trace the history of trust and reputation systems from ancient trade to digital platforms</li>
+                    <li>Analyze Web2 reputation systems (eBay, Uber, Airbnb) and understand their strengths and weaknesses</li>
+                    <li>Explain how blockchain reputation differs: immutable, portable, and decentralized</li>
+                    <li>Understand decentralized identity concepts including DIDs, Verifiable Credentials, and Self-Sovereign Identity</li>
+                    <li>Master how Kenostod's on-chain reputation scoring algorithm works in detail</li>
+                    <li>Identify and defend against Sybil attacks with real-world examples</li>
+                    <li>Compare on-chain vs off-chain reputation storage trade-offs</li>
+                    <li>Understand ENS, Soulbound Tokens (SBTs), and their role in decentralized identity</li>
+                    <li>Analyze reputation in DeFi: Aave credit delegation, under-collateralized lending, and trust-minimized finance</li>
+                    <li>Apply game theory to understand why rational actors behave honestly in reputation systems</li>
+                    <li>Compare different reputation models: stake-based, transaction-based, vouching, and Proof of Personhood</li>
+                    <li>Envision the future of decentralized identity and portable reputation</li>
+                </ul>
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128218; Course Commitment</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding takes time, and the 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <!-- SECTION 2: Introduction -->
+            <section id="intro" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#129309;</span>Introduction: Why Reputation Matters</h2>
+                <div class="reading-content">
+                    <p>In the physical world, trust is built through repeated interactions, shared communities, and institutional frameworks. You trust your local baker because you've bought bread there for years. You trust your bank because it's regulated by the government. You trust a stranger's online review because the platform (hopefully) prevents fake reviews.</p>
+                    
+                    <p>But in a decentralized system, there are no central authorities to vouch for anyone. No government, no corporation, no customer service department. So how do you decide whether to trust a pseudonymous wallet address you've never interacted with before?</p>
+                    
+                    <p>This is the <strong>trust problem</strong> in decentralized systems, and it's one of the most important challenges in blockchain technology. Without reputation, every interaction is a leap of faith. With reputation, participants can make informed decisions based on verifiable behavioral history.</p>
+
+                    <h3>The Trust Spectrum</h3>
+                    <p>Trust operates on a spectrum from <strong>zero trust</strong> (trustless, fully collateralized interactions like atomic swaps) to <strong>full trust</strong> (sending money to a stranger with no recourse). Most economic activity falls somewhere in between. Reputation systems allow us to expand the range of efficient economic activity by enabling <strong>partial trust</strong> &mdash; interactions where you know enough about the counterparty to take a calculated risk.</p>
+
+                    <p>Consider the difference: without reputation, a lending protocol must require 150% collateral to be safe. With reputation, a trusted borrower might need only 80% collateral or even receive an unsecured loan. The economic efficiency gains are enormous &mdash; reputation unlocks trillions of dollars in capital that would otherwise sit idle as over-collateralization.</p>
+                    
+                    <div class="visual-diagram">
+                        <img src="/assets/course-images/decentralized_reputation_network_diagram.png" alt="Reputation Network">
+                        <p class="caption">Figure: Decentralized reputation network connecting users through trust</p>
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Why Trustless Environments Need Reputation</h4>
+                        <p>The term "trustless" in blockchain doesn't mean "no trust needed." It means you don't need to trust any <strong>single party</strong>. Instead, trust is distributed across the network through cryptographic verification and economic incentives. Reputation adds another layer: while the blockchain ensures transactions execute correctly, reputation tells you <em>whether you should enter the transaction in the first place</em>. It's the difference between knowing a contract will execute (trustless guarantee) and knowing the counterparty is reliable (reputation signal).</p>
+                    </div>
+
+                    <h3>Reputation as Economic Infrastructure</h3>
+                    <p>Economists estimate that trust accounts for a significant portion of GDP in developed nations. Countries with higher levels of institutional trust have stronger economies, lower transaction costs, and more complex supply chains. In the blockchain world, reputation serves this same economic function &mdash; it's not just a nice-to-have feature, it's fundamental infrastructure that enables more sophisticated economic activity.</p>
+
+                    <p>Kenostod's reputation system solves the trust problem by creating a transparent, tamper-proof, on-chain record of every user's behavior &mdash; a decentralized credit score built from real economic activity. Unlike centralized platforms that can modify, censor, or delete reputation data, Kenostod's record is permanent and controlled by no single entity.</p>
+                </div>
+            </section>
+
+            <!-- SECTION 3: History of Trust -->
+            <section id="history" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>The History of Trust &amp; Reputation Systems</h2>
+                <div class="reading-content">
+                    <p>Trust systems have evolved dramatically through human history, and understanding this evolution reveals why blockchain-based reputation is such a significant innovation.</p>
+                    
+                    <h3>Ancient Trade Networks (3000 BCE &ndash; 1500s)</h3>
+                    <p>The earliest trade networks relied on <strong>personal reputation</strong> within small communities. In ancient Mesopotamia, merchants used clay tablets to record debts and transactions &mdash; essentially the first "on-chain" reputation records, permanently baked into clay. The Silk Road (the historical one, not the darknet market) relied on networks of trusted intermediaries called <strong>caravanserais</strong>, where a merchant's reputation traveled faster than their goods.</p>
+                    
+                    <p>Medieval European trade guilds served as reputation guarantors. A guild mark on goods was a <strong>brand promise</strong> &mdash; if the goods were substandard, the entire guild's reputation suffered, creating collective accountability. This is conceptually similar to how staking-based reputation systems work: you put something valuable at risk to guarantee your behavior.</p>
+
+                    <div class="timeline-item">
+                        <h5>3000 BCE &ndash; Mesopotamian Clay Tablets</h5>
+                        <p>First recorded debt and transaction records. Permanent, physical "on-chain" data.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>200 BCE &ndash; Roman "Fides" System</h5>
+                        <p>Roman merchants operated on "fides" (good faith). Breaking trust meant social and economic exile.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>1200s &ndash; Medieval Trade Guilds</h5>
+                        <p>Guild marks as brand promises. Collective reputation with mutual accountability.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>1600s &ndash; Hawala Networks</h5>
+                        <p>Islamic banking used trust-based money transfer without physical movement of funds. Pure reputation.</p>
+                    </div>
+                    
+                    <h3>Institutional Trust (1800s &ndash; 1990s)</h3>
+                    <p>The Industrial Revolution created a need for trust at scale. People could no longer rely on personal knowledge of every merchant. This gave rise to <strong>institutional trust intermediaries</strong>:</p>
+                    
+                    <h4>Credit Bureaus (1841 &ndash; Present)</h4>
+                    <p>The Mercantile Agency (later Dun &amp; Bradstreet) was founded in 1841 to aggregate information about businesses' creditworthiness. Today, FICO scores (created 1989) reduce a person's entire financial history to a single number between 300-850. This centralized model has enormous power &mdash; and enormous problems:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>The 2017 Equifax breach exposed personal data of 147 million Americans</li>
+                        <li>Credit scores contain errors affecting 1 in 5 consumers (FTC study)</li>
+                        <li>The system is opaque &mdash; most people don't understand how their score is calculated</li>
+                        <li>Access is controlled by three private companies with little accountability</li>
+                        <li>1.7 billion people worldwide are "credit invisible" &mdash; they have no credit history at all</li>
+                    </ul>
+                    
+                    <h4>Better Business Bureau (1912 &ndash; Present)</h4>
+                    <p>The BBB attempted to create trustworthy business ratings, but its "pay-to-play" model (businesses pay for accreditation) created perverse incentives. Investigations revealed that unaccredited businesses could receive low ratings regardless of quality, while accredited (paying) businesses received higher ratings. A cautionary tale about centralized reputation systems.</p>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; The Pattern</div>
+                        <p>Throughout history, reputation systems follow a pattern: they start as community-based and trustworthy, then scale to institutions that become powerful intermediaries, and eventually those intermediaries become gatekeepers who extract rent from the system. Blockchain-based reputation breaks this pattern by removing the intermediary entirely.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: Web2 Reputation Systems -->
+            <section id="web2" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127760;</span>Web2 Reputation Systems: Lessons Learned</h2>
+                <div class="reading-content">
+                    <p>The internet era created massive peer-to-peer marketplaces that required entirely new trust mechanisms. Web2 platforms became the most extensive reputation experiments in human history, providing valuable lessons for blockchain designers.</p>
+
+                    <h3>eBay's Feedback System (1995)</h3>
+                    <p>eBay pioneered online peer-to-peer reputation. After each transaction, buyers and sellers rate each other. This was revolutionary: for the first time, strangers could trade valuable items with confidence based on aggregated feedback from previous transactions. eBay's system proved that <strong>reputation capital</strong> has real economic value &mdash; sellers with higher ratings consistently commanded 8-12% higher prices for identical items.</p>
+                    
+                    <p>However, eBay's system suffered from critical flaws:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Feedback inflation:</strong> Over 99% of ratings were positive due to fear of retaliatory feedback</li>
+                        <li><strong>Shill feedback:</strong> Fake accounts could boost ratings artificially</li>
+                        <li><strong>Centralized control:</strong> In 2008, eBay unilaterally removed sellers' ability to leave negative buyer feedback, fundamentally altering power dynamics</li>
+                        <li><strong>Non-portability:</strong> A seller's 20-year eBay reputation is worthless on Amazon, Etsy, or anywhere else</li>
+                    </ul>
+                    
+                    <h3>Uber &amp; Lyft: Two-Sided Ratings (2009+)</h3>
+                    <p>Uber improved on eBay by making ratings <strong>mutual and mandatory</strong> &mdash; both parties rate each other after every ride. Key findings:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Drivers below 4.6 stars risk deactivation &mdash; a 1-star difference can mean loss of livelihood</li>
+                        <li>Average rating is 4.8/5.0, demonstrating severe "ratings inflation"</li>
+                        <li>The system is effectively binary: acceptable (4.6+) or deactivated</li>
+                        <li>Uber controls the algorithm, threshold, and appeal process unilaterally</li>
+                        <li>Research found ratings correlated with racial and gender bias</li>
+                    </ul>
+
+                    <h3>Airbnb: Trust Through Reviews (2008+)</h3>
+                    <p>Airbnb's challenge was even harder than eBay's &mdash; convincing people to sleep in a stranger's home. Their reputation system includes detailed reviews, profile verification, and the <strong>Superhost</strong> program that rewards consistent excellence with visibility badges. Airbnb demonstrated that sufficient reputation can overcome even the highest trust barriers.</p>
+
+                    <p>However, Airbnb's system also revealed problems: hosts could manipulate their rankings by deleting and relisting poorly-reviewed properties, and the platform's review removal policies were opaque and inconsistent.</p>
+
+                    <h3>Amazon Reviews: The Fake Review Crisis</h3>
+                    <p>Amazon's review system is perhaps the most cautionary tale. A 2020 investigation revealed that up to <strong>42% of Amazon reviews</strong> may be fake or incentivized. A leaked database exposed over 200,000 people participating in organized fake review schemes. Amazon spends billions annually fighting this problem but continues to struggle because the economic incentive to fake reviews is enormous &mdash; a product moving from 4.0 to 4.5 stars can see a 20-30% sales increase.</p>
+
+                    <h3>Stack Overflow &amp; Reddit: Contribution-Based Reputation</h3>
+                    <p>These platforms introduced <strong>contribution-based reputation</strong>. Your reputation comes not from purchases but from the quality of your contributions to the community. Stack Overflow's karma system is entirely based on peer assessment of knowledge, creating a meritocratic hierarchy. This model is closer to how blockchain reputation works &mdash; your score reflects the value you've contributed to the network.</p>
+
+                    <table class="comparison-table">
+                        <tr><th>Platform</th><th>Rating Type</th><th>Key Strength</th><th>Key Weakness</th></tr>
+                        <tr><td>eBay</td><td>Post-transaction</td><td>First P2P trust system at scale</td><td>Feedback inflation, centralized rule changes</td></tr>
+                        <tr><td>Uber</td><td>Mutual mandatory</td><td>Strong behavioral incentives</td><td>Rating inflation, bias, centralized control</td></tr>
+                        <tr><td>Airbnb</td><td>Detailed reviews</td><td>Overcame high trust barriers</td><td>Manipulation through relisting</td></tr>
+                        <tr><td>Amazon</td><td>Product reviews</td><td>Massive scale, verified purchases</td><td>Epidemic of fake reviews</td></tr>
+                        <tr><td>Stack Overflow</td><td>Contribution-based</td><td>Meritocratic, quality-focused</td><td>Elitism, barrier to newcomers</td></tr>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Central Problem with Web2 Reputation</div>
+                        <p>Every centralized reputation system shares the same fundamental flaw: <strong>a single entity controls the data</strong>. They can modify ratings, ban users arbitrarily, sell favorable placement, or simply go out of business (taking all reputation data with them). When Yahoo shut down Yahoo Answers in 2021, 16 years of community knowledge and reputation was permanently lost. Your Uber driver rating, Amazon seller score, and LinkedIn endorsements are not yours &mdash; they belong to the platform.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: How Blockchain Reputation Differs -->
+            <section id="blockchain-rep" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9939;&#65039;</span>How Blockchain Reputation Differs</h2>
+                <div class="reading-content">
+                    <p>Blockchain-based reputation systems represent a paradigm shift from Web2 approaches. The core differences aren't just technical &mdash; they fundamentally change the power dynamics between users and platforms.</p>
+
+                    <h3>Immutability: The Permanent Record</h3>
+                    <p>Once a reputation event is recorded on the blockchain, it cannot be altered, deleted, or censored by anyone &mdash; not the platform, not the rated party, not even a government. This creates <strong>true accountability</strong>. On eBay, a seller who receives a devastating 1-star review might negotiate with eBay support to remove it. On Kenostod, that rating lives forever on-chain. This permanence makes every interaction meaningful and creates powerful behavioral incentives.</p>
+
+                    <p>The flip side of immutability is that mistakes are also permanent. If someone receives an unfair rating, there's no customer service to appeal to. This is why Kenostod's time-decay mechanism is so important &mdash; old ratings gradually carry less weight, allowing users to recover from past negative interactions through sustained positive behavior.</p>
+
+                    <h3>Portability: Your Reputation Travels With You</h3>
+                    <p>In Web2, your reputation is locked inside each platform. A Uber driver with a perfect 5.0 rating starts from zero on Lyft. A top eBay seller has no reputation on Mercari. This is called the <strong>platform lock-in problem</strong> &mdash; platforms deliberately make reputation non-portable to prevent users from leaving.</p>
+
+                    <p>Blockchain reputation is fundamentally portable. Your Kenostod reputation score is linked to your wallet address, which works across any application that reads the blockchain. A future DeFi lending protocol could check your Kenostod reputation to offer you better loan terms. A DAO could verify your trustworthiness before granting governance rights. Your reputation becomes a <strong>portable asset</strong> that you carry across the entire Web3 ecosystem.</p>
+
+                    <div class="code-block">
+Web2 Reputation (Siloed):
+  eBay rating: 4.9 stars (15 years history) &rarr; Locked in eBay
+  Uber rating: 4.95 stars              &rarr; Locked in Uber
+  Amazon seller: 98% positive          &rarr; Locked in Amazon
+  Result: 3 separate reputations, none portable
+
+Web3 Reputation (Portable):
+  Kenostod wallet 0x1234...abcd:
+    - 4.7 stars from 200 transactions   &rarr; Readable by ANY dApp
+    - Diamond tier verified on-chain    &rarr; Usable in DeFi lending
+    - Transaction history transparent   &rarr; Verifiable by anyone
+  Result: ONE reputation, universally portable
+                    </div>
+
+                    <h3>Decentralization: No Single Point of Control</h3>
+                    <p>In centralized systems, the platform is the god of reputation. Facebook can shadow-ban you. Amazon can suppress your reviews. Uber can deactivate your account. In a decentralized system, <strong>no single entity controls</strong> the reputation data. The rules are encoded in smart contracts that execute autonomously &mdash; they can't be bent for political reasons, commercial interests, or executive whims.</p>
+
+                    <h3>Transparency: Open-Book Reputation</h3>
+                    <p>FICO scores are calculated using proprietary, opaque algorithms. You don't know exactly why your credit score is 720 instead of 750. On Kenostod, the reputation algorithm is <strong>fully transparent and verifiable</strong>. Anyone can audit the smart contract, verify any user's score calculation, and confirm that the same rules apply equally to everyone. This transparency eliminates the asymmetric information problem that plagues centralized credit systems.</p>
+
+                    <table class="comparison-table">
+                        <tr><th>Property</th><th>Web2 (Centralized)</th><th>Web3 (Blockchain)</th></tr>
+                        <tr><td>Data Ownership</td><td>Platform owns your data</td><td>You own your data (wallet)</td></tr>
+                        <tr><td>Mutability</td><td>Platform can edit/delete</td><td>Immutable on-chain record</td></tr>
+                        <tr><td>Portability</td><td>Locked to single platform</td><td>Portable across all dApps</td></tr>
+                        <tr><td>Transparency</td><td>Opaque proprietary algorithms</td><td>Open-source, auditable code</td></tr>
+                        <tr><td>Censorship</td><td>Platform can censor/ban</td><td>Uncensorable by design</td></tr>
+                        <tr><td>Persistence</td><td>Lost if platform shuts down</td><td>Permanent as long as blockchain exists</td></tr>
+                        <tr><td>Governance</td><td>Unilateral platform decisions</td><td>Community governance (DAOs)</td></tr>
+                    </table>
+
+                    <div class="success-box">
+                        <h4>&#10003; The Ownership Revolution</h4>
+                        <p>The most profound difference is <strong>ownership</strong>. In Web2, you don't own your reputation &mdash; you rent it from the platform. In Web3, your reputation is a self-sovereign asset controlled by your private key. No platform migration, shutdown, or policy change can take it away from you. This is as revolutionary as the shift from feudal land tenure to property rights.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: Decentralized Identity -->
+            <section id="identity" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128100;</span>Decentralized Identity &amp; Verifiable Credentials</h2>
+                <div class="reading-content">
+                    <p>Before we can build reputation, we need to understand <strong>identity</strong> in a decentralized context. In the traditional world, your identity is issued by authorities (government IDs, social security numbers). In blockchain, identity works fundamentally differently.</p>
+                    
+                    <h3>Decentralized Identifiers (DIDs)</h3>
+                    <p>A <strong>DID</strong> is a new type of identifier that is globally unique, cryptographically verifiable, and controlled entirely by the identity owner. Unlike a username on a platform (which the platform controls), a DID is yours forever.</p>
+                    
+                    <div class="code-block">
+Traditional Identity:
+  "john.smith@gmail.com" &larr; Google controls this
+  "SSN: 123-45-6789"     &larr; Government controls this
+  "@john_smith"           &larr; Twitter/X controls this
+
+Decentralized Identity (DID):
+  "did:keno:0x1234...abcd" &larr; YOU control this
+  Backed by your private key, stored on the blockchain
+  No company or government can revoke it
+                    </div>
+                    
+                    <p>DIDs are a W3C standard, meaning they're designed to work across different systems and blockchains. Your Kenostod wallet address is essentially a DID &mdash; a globally unique identifier controlled by your private key.</p>
+                    
+                    <h3>Verifiable Credentials (VCs)</h3>
+                    <p><strong>Verifiable Credentials</strong> are digital proofs that someone attests something about you. Think of them as digital certificates that can be cryptographically verified without contacting the issuer.</p>
+                    
+                    <p>In Kenostod, your reputation score is essentially a Verifiable Credential: it's a claim ("this wallet has a 4.7-star rating based on 150 transactions") that can be verified by anyone by checking the blockchain. No need to call a credit bureau or check with a central authority.</p>
+                    
+                    <h3>Self-Sovereign Identity (SSI)</h3>
+                    <p>The ultimate vision is <strong>Self-Sovereign Identity</strong> &mdash; where individuals fully own and control their digital identity without relying on any central authority. In this model:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>You</strong> hold your credentials (in your wallet)</li>
+                        <li><strong>You</strong> choose what to share and with whom</li>
+                        <li><strong>You</strong> can prove claims without revealing unnecessary information (using zero-knowledge proofs)</li>
+                        <li><strong>No one</strong> can revoke your identity or reputation without your consent</li>
+                    </ul>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">DID (Decentralized Identifier)</div>
+                            <div class="vocab-def">A globally unique, self-owned identifier backed by cryptographic keys. W3C standard.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Verifiable Credential (VC)</div>
+                            <div class="vocab-def">A tamper-proof digital attestation that can be cryptographically verified by anyone.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Self-Sovereign Identity (SSI)</div>
+                            <div class="vocab-def">Identity fully owned and controlled by the individual, without central authority dependency.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Zero-Knowledge Proof (ZKP)</div>
+                            <div class="vocab-def">Proving you know something without revealing the information itself (e.g., "I'm over 18" without showing your birthdate).</div>
+                        </div>
+                    </div>
+                    
+                    <div class="concept-box">
+                        <h4>&#128161; Web of Trust</h4>
+                        <p>The <strong>Web of Trust</strong> concept, originating from PGP encryption, creates a decentralized trust network where users vouch for each other. Instead of trusting a single authority, you trust people who are trusted by people you trust. Kenostod's reputation system creates a similar web: if you've had positive transactions with trusted wallets, your trustworthiness increases by association. The key difference is that Kenostod's web is backed by real economic activity (actual transactions), not just social vouching.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: Kenostod's Reputation Model -->
+            <section id="how" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9881;&#65039;</span>Kenostod's Reputation Model: Deep Dive</h2>
+                <div class="reading-content">
+                    <h3>The Rating System</h3>
+                    <p>After any transaction, both parties can rate each other on a 1-5 star scale:</p>
+                    <div class="star-rating">
+                        <span class="star filled">&#9733;</span>
+                        <span class="star filled">&#9733;</span>
+                        <span class="star filled">&#9733;</span>
+                        <span class="star filled">&#9733;</span>
+                        <span class="star">&#9733;</span>
+                        <span style="font-size: 0.7em; margin-left: 10px;">(4.0 Rating Example)</span>
+                    </div>
+                    
+                    <h3>Rating Rules</h3>
+                    <ul class="step-list">
+                        <li><strong>Transaction Required:</strong> You can only rate wallets you've actually transacted with. No drive-by reviews. This immediately eliminates the biggest problem with systems like Amazon reviews.</li>
+                        <li><strong>One Rating Per TX:</strong> Each transaction allows exactly one rating per party. You can't rate the same transaction multiple times or change your rating later.</li>
+                        <li><strong>Permanent Record:</strong> Ratings are stored on-chain forever. They cannot be edited or deleted by anyone, including the rated party or Kenostod's developers.</li>
+                        <li><strong>Weighted Average:</strong> More recent transactions and larger transaction amounts carry more weight in the final score. A 1,000 KENO transaction counts more than a 1 KENO transaction.</li>
+                        <li><strong>Time Decay:</strong> Older ratings gradually carry less weight, so your reputation reflects your current behavior, not something that happened years ago.</li>
+                    </ul>
+                    
+                    <h3>Reputation Score Calculation Algorithm</h3>
+                    <p>Kenostod's reputation score is calculated using a <strong>weighted exponential moving average</strong> (WEMA). This is more sophisticated than a simple average and produces fairer, more meaningful scores:</p>
+                    
+                    <div class="code-block">
+Reputation Score Formula:
+
+Score = Sum(rating_i * weight_i) / Sum(weight_i)
+
+Where weight_i = transaction_amount_i * decay_factor_i
+
+decay_factor = e^(-lambda * age_in_days)
+lambda = 0.003 (half-life of approximately 231 days)
+
+Example Calculation:
+  TX1: 500 KENO, 5 stars, 30 days ago  &rarr; weight = 500 * e^(-0.003*30) = 500 * 0.914 = 457.0
+  TX2: 100 KENO, 3 stars, 90 days ago  &rarr; weight = 100 * e^(-0.003*90) = 100 * 0.763 = 76.3
+  TX3: 200 KENO, 4 stars, 7 days ago   &rarr; weight = 200 * e^(-0.003*7)  = 200 * 0.979 = 195.8
+
+  Score = (5*457 + 3*76.3 + 4*195.8) / (457 + 76.3 + 195.8)
+        = (2285 + 228.9 + 783.2) / 729.1
+        = 3297.1 / 729.1
+        = 4.52 stars
+
+Why WEMA matters:
+  - Recent behavior counts more (time decay)
+  - Large transactions count more (amount weighting)
+  - Impossible to inflate with tiny spam transactions
+  - Naturally self-correcting over time
+                    </div>
+
+                    <h3>Why Each Component Matters</h3>
+                    <p><strong>Transaction Amount Weighting</strong> prevents spam attacks. Without it, an attacker could send 1,000 transactions of 0.001 KENO each and generate a massive number of 5-star ratings cheaply. With amount weighting, those 1,000 micro-transactions collectively carry less weight than a single 100 KENO transaction.</p>
+                    
+                    <p><strong>Time Decay (Exponential)</strong> ensures that your reputation reflects who you are <em>now</em>, not who you were three years ago. A user who was unreliable in 2023 but has been consistently excellent throughout 2024-2025 should not be permanently penalized. The half-life of 231 days means that a rating from 8 months ago carries only half the weight of a fresh rating.</p>
+
+                    <p><strong>Mutual Rating</strong> prevents the power imbalance seen in systems like Uber, where only one party (the rider) holds meaningful rating power. Both transaction parties have equal ability to rate the experience.</p>
+                    
+                    <h3>Reputation Tiers</h3>
+                    <table class="comparison-table">
+                        <tr><th>Tier</th><th>Score Range</th><th>Min Transactions</th><th>Benefits</th></tr>
+                        <tr><td>&#9898; New</td><td>No rating</td><td>0</td><td>Base access, standard fees</td></tr>
+                        <tr><td>&#128993; Bronze</td><td>2.0 - 3.4</td><td>5+</td><td>Slightly increased FAL limits</td></tr>
+                        <tr><td>&#11015;&#65039; Silver</td><td>3.5 - 4.2</td><td>15+</td><td>10% fee discount, moderate FAL limits</td></tr>
+                        <tr><td>&#128311; Gold</td><td>4.3 - 4.7</td><td>50+</td><td>25% fee discount, high FAL limits, governance bonus</td></tr>
+                        <tr><td>&#128142; Diamond</td><td>4.8 - 5.0</td><td>100+</td><td>50% fee discount, max FAL limits, 2x governance weight</td></tr>
+                    </table>
+
+                    <h3>Reputation Benefits in the Kenostod Ecosystem</h3>
+
+                    <h4>Flash Arbitrage Loan (FAL) Limits</h4>
+                    <p>Flash Arbitrage Loans (covered in detail in Course 4) allow users to borrow KENO for arbitrage within a single block. Higher reputation means higher borrowing limits:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>New users:</strong> Up to 500 KENO per FAL</li>
+                        <li><strong>Bronze:</strong> Up to 2,000 KENO per FAL</li>
+                        <li><strong>Silver:</strong> Up to 10,000 KENO per FAL</li>
+                        <li><strong>Gold:</strong> Up to 50,000 KENO per FAL</li>
+                        <li><strong>Diamond:</strong> Up to 200,000 KENO per FAL</li>
+                    </ul>
+
+                    <h4>Governance Weight &amp; Transaction Fee Discounts</h4>
+                    <p>In Kenostod's governance system (Course 8), your voting power is enhanced by reputation. A Diamond-tier user's votes count double, giving experienced, trusted community members more influence over network decisions. Higher reputation also earns progressive fee discounts &mdash; over hundreds of transactions, this adds up to significant savings.</p>
+
+                    <h4>Trust Badges &amp; Priority Processing</h4>
+                    <p>High-reputation wallets display trust badges visible to everyone in the network. When the network is congested, transactions from high-reputation users receive priority processing in the mempool.</p>
+                    
+                    <div class="success-box">
+                        <h4>&#10003; Economic Value of Reputation</h4>
+                        <p>Consider a Diamond-tier user who processes 100 transactions per month averaging 500 KENO each. With 50% fee discounts alone, they save approximately 250 KENO per month &mdash; 3,000 KENO per year. Add the higher FAL limits enabling larger arbitrage profits, and reputation easily generates thousands of KENO in value annually. Your reputation is quite literally a <strong>productive asset</strong>.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 8: Sybil Attacks -->
+            <section id="sybil" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128520;</span>Sybil Attacks: The Greatest Threat to Reputation</h2>
+                <div class="reading-content">
+                    <p>A <strong>Sybil attack</strong> is when a single entity creates multiple fake identities to gain disproportionate influence. Named after the 1973 book "Sybil" about a woman with dissociative identity disorder, this is the fundamental challenge facing any reputation system &mdash; both centralized and decentralized.</p>
+                    
+                    <h3>How Sybil Attacks Work</h3>
+                    <div class="code-block">
+Sybil Attack on a Naive Reputation System:
+
+1. Attacker creates 100 fake wallets (cost: free on most blockchains)
+2. Fake wallets transact with each other (cost: free or minimal gas)
+3. Fake wallets rate each other 5 stars
+4. Attacker's main wallet now shows "5.0 stars from 100 transactions"
+5. Victim trusts the high rating and sends a large transaction
+6. Attacker takes the money and disappears
+
+Total cost to attacker: Nearly zero
+Damage to victim: Could be thousands of dollars
+This is why naive reputation systems always fail.
+                    </div>
+                    
+                    <h3>Real-World Sybil Attack Examples</h3>
+                    
+                    <h4>Amazon Fake Reviews (Ongoing)</h4>
+                    <p>Amazon has spent billions fighting fake reviews. In 2020, a leaked database revealed over 200,000 people were involved in a fake review scheme, receiving free products in exchange for 5-star reviews. Some sellers operated networks of hundreds of fake accounts, each with unique shipping addresses and payment methods to avoid detection. The economic incentive is clear: moving from 4.0 to 4.5 stars can increase sales by 20-30%.</p>
+                    
+                    <h4>Airbnb Ghost Listings (2019)</h4>
+                    <p>Investigations revealed that some Airbnb "superhosts" operated fake listing networks. They would create multiple listings for the same property, use fake reviews from accomplice accounts, and switch guests to inferior properties upon arrival. The legitimate-looking reviews made it nearly impossible for guests to identify the scam until they arrived.</p>
+                    
+                    <h4>Airdrop Farming in DeFi (2020-Present)</h4>
+                    <p>When blockchain projects distribute free tokens (airdrops) based on user activity, Sybil attackers create thousands of wallets to multiply their rewards. The Arbitrum airdrop in 2023 saw individual attackers operating 1,000+ wallets, collectively claiming millions of dollars in tokens meant for genuine users. LayerZero's 2024 airdrop attempted to combat this with "self-reporting" mechanisms where Sybil attackers could confess for reduced penalties.</p>
+                    
+                    <h3>Kenostod's Multi-Layered Sybil Defenses</h3>
+                    <ul class="step-list">
+                        <li><strong>Transaction Fees:</strong> Every rating requires a real transaction with real fees. Creating 100 fake ratings costs real KENO, making attacks economically irrational.</li>
+                        <li><strong>Amount Weighting:</strong> Small transactions contribute less to reputation. An attacker would need to risk large amounts of KENO, which defeats the purpose of the attack.</li>
+                        <li><strong>Network Graph Analysis:</strong> The system detects suspicious patterns: wallets that only transact with each other, circular transaction patterns, or ratings that arrive in suspicious clusters.</li>
+                        <li><strong>Minimum Transaction Threshold:</strong> Only transactions above a minimum amount generate rateable events, preventing spam microtransactions.</li>
+                        <li><strong>Time Requirements:</strong> Building a credible reputation score requires months of consistent activity. Rushing the process triggers additional scrutiny and algorithmic flags.</li>
+                    </ul>
+                    
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#9888;&#65039; The Economics of Sybil Attacks</div>
+                        <p>The key insight is making Sybil attacks <strong>economically irrational</strong>. If it costs 500 KENO in transaction fees to build a fake reputation that can only steal 400 KENO before being detected, no rational attacker would bother. Kenostod's design ensures the cost of faking reputation always exceeds the potential benefit. This is called the <strong>cost-of-corruption threshold</strong> &mdash; the system is secure as long as attacking it costs more than the attacker can gain.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 9: On-Chain vs Off-Chain Reputation -->
+            <section id="onchain-offchain" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128279;</span>On-Chain vs Off-Chain Reputation</h2>
+                <div class="reading-content">
+                    <p>One of the most important design decisions in building a reputation system is <strong>where to store the data</strong>. This choice involves trade-offs between transparency, cost, privacy, and scalability.</p>
+
+                    <h3>On-Chain Reputation</h3>
+                    <p>On-chain reputation stores all reputation data directly on the blockchain. Every rating, every score calculation, and every tier change is recorded as a transaction.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Advantages:</strong> Maximum transparency, immutability, composability (other dApps can read it), censorship resistance</li>
+                        <li><strong>Disadvantages:</strong> Higher gas costs, less privacy (all ratings public), storage limitations, slower updates</li>
+                        <li><strong>Examples:</strong> Kenostod reputation scores, on-chain attestations (EAS), Lens Protocol social graph</li>
+                    </ul>
+
+                    <h3>Off-Chain Reputation</h3>
+                    <p>Off-chain reputation stores data on external servers, databases, or decentralized storage networks (like IPFS or Arweave), with only a cryptographic hash or summary stored on-chain for verification.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Advantages:</strong> Lower cost, better privacy (selective disclosure), faster updates, more storage capacity</li>
+                        <li><strong>Disadvantages:</strong> Weaker immutability guarantees, dependency on external infrastructure, harder for other dApps to access</li>
+                        <li><strong>Examples:</strong> Ceramic Network, Gitcoin Passport scores, off-chain attestation services</li>
+                    </ul>
+
+                    <h3>Hybrid Approaches</h3>
+                    <p>Many modern systems use a <strong>hybrid approach</strong>: store the most critical data (final reputation scores, tier changes) on-chain, while keeping detailed data (individual review text, metadata) off-chain with on-chain anchoring via cryptographic hashes.</p>
+
+                    <div class="code-block">
+Kenostod's Hybrid Approach:
+
+ON-CHAIN (Ethereum/L2):
+  &#10003; Final reputation score per wallet
+  &#10003; Reputation tier (Bronze/Silver/Gold/Diamond)
+  &#10003; Rating events (rater, ratee, score, tx hash)
+  &#10003; Score calculation parameters
+
+OFF-CHAIN (IPFS + Arweave):
+  &#10003; Detailed transaction metadata
+  &#10003; Historical score snapshots
+  &#10003; Analytics and reporting data
+  &#10003; Dispute documentation
+
+VERIFICATION:
+  On-chain Merkle root anchors off-chain data
+  Anyone can verify off-chain data matches on-chain hash
+  Best of both worlds: transparency + efficiency
+                    </div>
+
+                    <table class="comparison-table">
+                        <tr><th>Factor</th><th>On-Chain</th><th>Off-Chain</th><th>Hybrid</th></tr>
+                        <tr><td>Transparency</td><td>&#10003;&#10003;&#10003;</td><td>&#10003;</td><td>&#10003;&#10003;</td></tr>
+                        <tr><td>Cost</td><td>High gas fees</td><td>Low/free</td><td>Moderate</td></tr>
+                        <tr><td>Privacy</td><td>Low (all public)</td><td>High (selective)</td><td>Moderate</td></tr>
+                        <tr><td>Composability</td><td>Excellent</td><td>Limited</td><td>Good</td></tr>
+                        <tr><td>Immutability</td><td>Guaranteed</td><td>Trust-dependent</td><td>Core data guaranteed</td></tr>
+                        <tr><td>Scalability</td><td>Limited</td><td>Excellent</td><td>Good</td></tr>
+                    </table>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Why This Matters for Users</h4>
+                        <p>As a Kenostod user, the on-chain/off-chain distinction affects you directly. Your reputation score is on-chain, meaning any DeFi protocol, DAO, or marketplace can instantly verify your trustworthiness without asking Kenostod's permission. This <strong>composability</strong> is what makes blockchain reputation so powerful &mdash; your score becomes a building block that other applications can use, creating a network effect that makes your reputation more valuable over time.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 10: ENS & Soulbound Tokens -->
+            <section id="ens-sbt" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128293;</span>ENS &amp; Soulbound Tokens (SBTs)</h2>
+                <div class="reading-content">
+                    <p>Two of the most important innovations in blockchain identity and reputation are the <strong>Ethereum Name Service (ENS)</strong> and <strong>Soulbound Tokens (SBTs)</strong>. Together, they form the foundation of what many call "Web3 identity."</p>
+
+                    <h3>Ethereum Name Service (ENS)</h3>
+                    <p>ENS is a decentralized naming system built on Ethereum. Instead of using a long hexadecimal wallet address like <code>0x1234...abcd</code>, you can register a human-readable name like <code>alice.eth</code>. Think of it as DNS (Domain Name System) for the blockchain.</p>
+
+                    <div class="code-block">
+Without ENS:
+  "Send 100 KENO to 0x742d35Cc6634C0532925a3b844Bc9e7595f2bD08"
+  &rarr; Error-prone, intimidating, impossible to remember
+
+With ENS:
+  "Send 100 KENO to alice.eth"
+  &rarr; Human-readable, memorable, verifiable on-chain
+
+ENS Records Can Include:
+  - Wallet addresses (multiple chains)
+  - Website URLs (decentralized hosting)
+  - Social media handles
+  - Avatar/profile picture
+  - Text records (bio, email)
+  - Content hashes (IPFS websites)
+                    </div>
+
+                    <p>ENS names are more than just convenient labels &mdash; they serve as <strong>on-chain identities</strong>. When you see <code>vitalik.eth</code>, you know it's the real Vitalik Buterin because ENS ownership is cryptographically provable. This makes ENS names a form of reputation themselves: owning a recognizable ENS name signals legitimacy and permanence in the ecosystem.</p>
+
+                    <h3>Soulbound Tokens (SBTs)</h3>
+                    <p>Proposed by Vitalik Buterin, Glen Weyl, and Puja Ohlhaver in their 2022 paper "Decentralized Society: Finding Web3's Soul," <strong>Soulbound Tokens</strong> are non-transferable NFTs that represent credentials, achievements, and reputation.</p>
+
+                    <p>Unlike regular NFTs (which you can buy, sell, or transfer), SBTs are permanently bound to a specific wallet address &mdash; your "soul." They can't be sold on a marketplace, which means they represent <strong>earned</strong> credentials rather than purchased ones.</p>
+
+                    <h4>SBT Use Cases</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Educational Credentials:</strong> A university issues an SBT diploma. It can't be bought or transferred &mdash; you had to actually earn it</li>
+                        <li><strong>Professional Certifications:</strong> Completing Kenostod Academy courses could issue SBTs proving your blockchain knowledge</li>
+                        <li><strong>Reputation Badges:</strong> Achieving Diamond-tier reputation could mint an SBT that proves your long-term trustworthiness</li>
+                        <li><strong>Governance Participation:</strong> SBTs could prove you've participated in DAO votes, qualifying you for future governance roles</li>
+                        <li><strong>Credit History:</strong> Your on-chain lending and repayment history as non-transferable proof of creditworthiness</li>
+                    </ul>
+
+                    <h3>SBTs vs Traditional NFTs</h3>
+                    <table class="comparison-table">
+                        <tr><th>Property</th><th>Regular NFT</th><th>Soulbound Token (SBT)</th></tr>
+                        <tr><td>Transferable</td><td>Yes (can sell/trade)</td><td>No (permanently bound)</td></tr>
+                        <tr><td>Represents</td><td>Ownership of digital assets</td><td>Credentials, achievements, reputation</td></tr>
+                        <tr><td>Economic Model</td><td>Speculative/collectible</td><td>Non-financial, meritocratic</td></tr>
+                        <tr><td>Sybil Resistance</td><td>Low (can buy reputation)</td><td>High (must earn credentials)</td></tr>
+                        <tr><td>Identity Link</td><td>Weak (can resell)</td><td>Strong (bound to soul)</td></tr>
+                    </table>
+
+                    <h3>How This Connects to Kenostod</h3>
+                    <p>Kenostod's reputation system naturally aligns with the SBT vision. Your reputation score is already non-transferable (it's tied to your wallet's transaction history) and earned through real activity. Future Kenostod updates could formalize this by issuing SBTs for reputation milestones:</p>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128142; Potential Kenostod SBTs</div>
+                        <p><strong>"Diamond Achiever"</strong> &mdash; SBT issued when reaching Diamond tier (4.8+ stars, 100+ transactions). Non-transferable proof of sustained trustworthy behavior. Could unlock premium features across the entire Web3 ecosystem, not just Kenostod.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 11: Reputation in DeFi -->
+            <section id="defi-rep" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>Reputation in DeFi: Under-Collateralized Lending &amp; Beyond</h2>
+                <div class="reading-content">
+                    <p>Decentralized Finance (DeFi) is perhaps the most impactful application of blockchain reputation. Today's DeFi is almost entirely <strong>over-collateralized</strong> &mdash; to borrow $100, you must lock up $150 or more in collateral. This is extremely capital-inefficient. Reputation-based DeFi aims to change this fundamental limitation.</p>
+
+                    <h3>The Over-Collateralization Problem</h3>
+                    <p>In traditional finance, your credit score allows you to borrow money with little or no collateral. A mortgage requires only 3-20% down payment because the bank trusts your repayment based on your credit history. In DeFi, there's no credit score, so protocols demand 150-200% collateralization:</p>
+
+                    <div class="code-block">
+Traditional Finance (with credit scores):
+  Borrow: $100,000 mortgage
+  Collateral: $20,000 down payment (20%)
+  Trust basis: 750 FICO score, employment history
+  Capital efficiency: HIGH
+
+Current DeFi (without reputation):
+  Borrow: $100,000 in USDC
+  Collateral: $150,000 in ETH (150%)
+  Trust basis: None &mdash; pure collateral
+  Capital efficiency: VERY LOW
+
+Future DeFi (with on-chain reputation):
+  Borrow: $100,000 in USDC
+  Collateral: $80,000 in ETH (80%)
+  Trust basis: Diamond-tier on-chain reputation + repayment history
+  Capital efficiency: MUCH HIGHER
+                    </div>
+
+                    <h3>Aave Credit Delegation</h3>
+                    <p><strong>Aave</strong>, the largest DeFi lending protocol, pioneered <strong>credit delegation</strong> &mdash; a mechanism where a depositor can delegate their credit line to another user. The delegator's collateral backs the borrower's loan, essentially vouching for them.</p>
+
+                    <p>This is one of the first real-world implementations of reputation-adjacent DeFi. While current credit delegation requires a direct trust relationship (you delegate to someone you know), future versions could use on-chain reputation scores to enable delegation to strangers with proven track records.</p>
+
+                    <h4>How It Works</h4>
+                    <ul class="step-list">
+                        <li><strong>Depositor</strong> deposits ETH into Aave and earns interest as normal</li>
+                        <li><strong>Delegation:</strong> Depositor approves a specific borrower to use their credit line via smart contract</li>
+                        <li><strong>Borrowing:</strong> The approved borrower takes a loan using the delegator's collateral</li>
+                        <li><strong>Repayment:</strong> Borrower repays with interest. If they default, the delegator's collateral is liquidated</li>
+                    </ul>
+
+                    <h3>Under-Collateralized Lending Protocols</h3>
+                    <p>Several protocols are building reputation-based lending that requires <strong>less than 100% collateral</strong>:</p>
+
+                    <table class="comparison-table">
+                        <tr><th>Protocol</th><th>Approach</th><th>Collateral Ratio</th><th>Reputation Source</th></tr>
+                        <tr><td>Aave (Credit Delegation)</td><td>P2P vouching</td><td>0% for borrower</td><td>Direct trust relationship</td></tr>
+                        <tr><td>Goldfinch</td><td>Real-world credit assessment</td><td>0-20%</td><td>Off-chain due diligence</td></tr>
+                        <tr><td>Maple Finance</td><td>Institutional lending</td><td>0%</td><td>KYC + credit analysis</td></tr>
+                        <tr><td>TrueFi</td><td>Unsecured institutional</td><td>0%</td><td>On-chain history + governance vote</td></tr>
+                        <tr><td>Kenostod FAL</td><td>Flash arbitrage loans</td><td>Atomic (same-block)</td><td>On-chain reputation tier</td></tr>
+                    </table>
+
+                    <h3>The Role of Reputation in DeFi Governance</h3>
+                    <p>Beyond lending, reputation is increasingly important in <strong>DeFi governance</strong>. Protocols like Compound and Uniswap use token-weighted voting, which means wealthy users have more governance power. Reputation-weighted governance offers an alternative: your voting power reflects your <strong>contributions and trustworthiness</strong>, not just your token holdings.</p>
+
+                    <p>Kenostod's governance system (Course 8) already implements this: Diamond-tier users receive 2x voting weight, ensuring that long-term, trusted community members have stronger voices in protocol decisions.</p>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Why This Is Revolutionary</h4>
+                        <p>If blockchain reputation enables even a 20% reduction in required collateral across DeFi, it would <strong>unlock billions of dollars</strong> in capital efficiency. Currently, over $50 billion is locked as collateral in DeFi protocols. Reducing collateral requirements from 150% to 120% for reputable users would free up approximately $10 billion for productive use. Reputation isn't just about trust &mdash; it's about <strong>capital efficiency at scale</strong>.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 12: Game Theory -->
+            <section id="game-theory" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9823;</span>Game Theory in Reputation Systems</h2>
+                <div class="reading-content">
+                    <p><strong>Game theory</strong> is the mathematical study of strategic decision-making. It's fundamental to understanding why reputation systems work (or fail) by analyzing the incentives facing each participant.</p>
+                    
+                    <h3>The Prisoner's Dilemma</h3>
+                    <p>The classic game theory problem: two suspects are arrested. Each can either cooperate (stay silent) or defect (betray the other). If both cooperate, both get light sentences. If one defects while the other cooperates, the defector goes free while the cooperator gets a heavy sentence. If both defect, both get moderate sentences.</p>
+                    
+                    <p>In a <strong>one-shot</strong> game, the rational strategy is to defect (cheat). But in a <strong>repeated</strong> game (like ongoing transactions on Kenostod), cooperation becomes rational because your reputation from previous rounds affects future opportunities. This is called the <strong>shadow of the future</strong> &mdash; the future consequences of today's actions change today's optimal strategy.</p>
+                    
+                    <h3>Reputation as a Repeated Game</h3>
+                    <p>When transactions are repeated and reputation is tracked, the calculus changes dramatically:</p>
+                    
+                    <div class="code-block">
+One-Time Transaction (No Reputation):
+  Cheat: Gain 1000 KENO, never see this person again
+  Be Honest: Gain 500 KENO from fair trade
+  Rational choice: CHEAT &#10060;
+
+Repeated Transactions (With Reputation):
+  Cheat: Gain 1000 KENO once, but:
+    - Get rated 1 star
+    - Lose access to high-value transactions
+    - Pay higher fees forever
+    - Lose governance power
+    - Total future cost: 10,000+ KENO
+  Be Honest: Gain 500 KENO now, PLUS:
+    - Build 5-star reputation
+    - Unlock lower fees (save 25-50% on every future TX)
+    - Access to larger Flash Arbitrage Loans
+    - Stronger governance influence
+    - Total future benefit: 50,000+ KENO
+  Rational choice: BE HONEST &#10003;
+                    </div>
+                    
+                    <h3>The Nash Equilibrium in Reputation</h3>
+                    <p>A <strong>Nash Equilibrium</strong> is a state where no player can improve their outcome by unilaterally changing their strategy. In Kenostod's reputation system, the Nash Equilibrium is <strong>universal honest behavior</strong>, because:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>If everyone is honest, any individual who cheats is immediately punished (low rating, higher fees, reduced access)</li>
+                        <li>If some people cheat, the honest majority still benefits more in the long run</li>
+                        <li>The cost of cheating (reputation damage) always exceeds the one-time gain from dishonesty</li>
+                    </ul>
+                    
+                    <h3>Mechanism Design: Reverse Game Theory</h3>
+                    <p><strong>Mechanism design</strong> is "reverse game theory" &mdash; instead of analyzing existing games, you design the rules to produce the desired outcome. Kenostod's reputation system is a carefully crafted mechanism where the rules (transaction-based ratings, time decay, amount weighting) are specifically designed so that the rational self-interested strategy aligns with the socially optimal strategy (honest behavior).</p>
+
+                    <h3>The Tit-for-Tat Strategy</h3>
+                    <p>Robert Axelrod's famous 1984 tournament showed that <strong>Tit-for-Tat</strong> &mdash; cooperate first, then mirror what the other player does &mdash; is the most effective strategy in repeated games. Kenostod's rating system enables this naturally: start by treating new wallets fairly, reciprocate good behavior with good ratings, and punish bad behavior with poor ratings. The system creates a virtuous cycle where cooperation begets cooperation.</p>
+                    
+                    <div class="concept-box">
+                        <h4>&#128161; Why This Matters</h4>
+                        <p>The genius of a well-designed reputation system is that it doesn't require people to be altruistic. It just requires them to be rational. By making honest behavior the most profitable long-term strategy, the system harnesses self-interest to produce cooperative, trustworthy outcomes. You don't need to trust that people are good &mdash; you just need to trust that they can do math.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 13: Reputation Models Comparison -->
+            <section id="models" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128202;</span>Comparison of Reputation Models</h2>
+                <div class="reading-content">
+                    <p>Different blockchain projects approach reputation differently. Understanding these models helps you appreciate Kenostod's design choices and the broader landscape of trust systems.</p>
+                    
+                    <h3>Stake-Based Reputation</h3>
+                    <p>Users lock tokens as collateral ("stake") to signal trustworthiness. If they behave badly, their stake is "slashed" (partially or fully destroyed).</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Strong economic deterrent against bad behavior; quantifiable risk; easy to understand</li>
+                        <li><strong>Cons:</strong> Plutocratic (wealthy users automatically have more "reputation"); doesn't measure actual behavior quality; capital-intensive</li>
+                        <li><strong>Examples:</strong> Ethereum 2.0 validators (32 ETH stake), Chainlink oracle operators, Cosmos validators</li>
+                    </ul>
+                    
+                    <h3>Transaction-Based Reputation (Kenostod's Model)</h3>
+                    <p>Reputation is built from actual transaction history and peer ratings.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Measures actual behavior; reflects real-world interactions; harder to fake; meritocratic</li>
+                        <li><strong>Cons:</strong> New users start with no reputation (cold start problem); ratings can be subjective; requires active participation</li>
+                        <li><strong>Examples:</strong> Kenostod, OpenBazaar, Particl</li>
+                    </ul>
+                    
+                    <h3>Vouching / Social Recovery</h3>
+                    <p>Existing trusted members vouch for new users, essentially lending them reputation.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Solves cold start problem; creates social accountability; natural network effects</li>
+                        <li><strong>Cons:</strong> Vulnerable to collusion; can create echo chambers; reputation inheritance is problematic</li>
+                        <li><strong>Examples:</strong> BrightID, Proof of Humanity, Status network</li>
+                    </ul>
+                    
+                    <h3>Proof of Personhood</h3>
+                    <p>Systems that verify each account represents a unique real human, preventing Sybil attacks at the identity level.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Completely prevents Sybil attacks; enables true one-person-one-vote; strongest identity guarantee</li>
+                        <li><strong>Cons:</strong> Privacy concerns; technically challenging; can exclude people without required technology; centralization risk</li>
+                        <li><strong>Examples:</strong> Worldcoin (iris scanning), Gitcoin Passport (multi-source attestation), Idena (AI tests)</li>
+                    </ul>
+
+                    <h3>Attestation-Based Reputation</h3>
+                    <p>Third parties issue cryptographic attestations about a user's credentials, behavior, or achievements.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Flexible, composable, privacy-preserving (with ZK proofs); bridges Web2 and Web3</li>
+                        <li><strong>Cons:</strong> Relies on attestor trustworthiness; attestation quality varies; standardization challenges</li>
+                        <li><strong>Examples:</strong> EAS (Ethereum Attestation Service), Verax, Clique</li>
+                    </ul>
+                    
+                    <table class="comparison-table">
+                        <tr><th>Model</th><th>Sybil Resistance</th><th>Cold Start</th><th>Privacy</th><th>Fairness</th><th>Cost</th></tr>
+                        <tr><td>Stake-Based</td><td>High</td><td>Easy (just stake)</td><td>Good</td><td>Low (favors wealthy)</td><td>High</td></tr>
+                        <tr><td>Transaction-Based</td><td>High</td><td>Hard</td><td>Good</td><td>High (meritocratic)</td><td>Moderate</td></tr>
+                        <tr><td>Vouching</td><td>Medium</td><td>Easy</td><td>Good</td><td>Medium</td><td>Low</td></tr>
+                        <tr><td>Proof of Personhood</td><td>Very High</td><td>Easy</td><td>Low</td><td>Very High</td><td>Varies</td></tr>
+                        <tr><td>Attestation-Based</td><td>Medium-High</td><td>Moderate</td><td>High (ZK)</td><td>High</td><td>Low</td></tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 14: Future of Decentralized Identity -->
+            <section id="future" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128302;</span>The Future of Decentralized Identity &amp; Reputation</h2>
+                <div class="reading-content">
+                    <p>Decentralized identity and reputation are still in their early stages, but the trajectory is clear. Several converging trends will reshape how trust works in the digital economy over the next 5-10 years.</p>
+
+                    <h3>Cross-Chain Reputation</h3>
+                    <p>Today, your reputation on Kenostod doesn't automatically transfer to Ethereum mainnet or Solana. Future systems will enable <strong>cross-chain reputation aggregation</strong> &mdash; your reputation from multiple blockchains combined into a unified trust profile. Protocols like LayerZero and Axelar are building the cross-chain messaging infrastructure that will make this possible.</p>
+
+                    <h3>AI-Enhanced Reputation Analysis</h3>
+                    <p>Machine learning will enhance reputation systems by detecting sophisticated Sybil attacks, identifying behavioral patterns that simple algorithms miss, and providing nuanced reputation assessments beyond a single numeric score. Imagine an AI that can analyze your entire on-chain history and produce a multi-dimensional trust profile: reliability (do you complete transactions?), speed (how fast do you settle?), and fairness (are your ratings consistent with community norms?).</p>
+
+                    <h3>Privacy-Preserving Reputation (ZK Proofs)</h3>
+                    <p><strong>Zero-knowledge proofs</strong> will revolutionize reputation by allowing users to prove reputation claims without revealing underlying data. For example:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>"I have at least Silver-tier reputation" without revealing your exact score</li>
+                        <li>"I've completed 50+ transactions" without revealing any transaction details</li>
+                        <li>"My average transaction size exceeds 1,000 KENO" without revealing specific amounts</li>
+                        <li>"I've never been rated below 3 stars" without revealing individual ratings</li>
+                    </ul>
+                    <p>This solves the privacy paradox: maximum reputation utility with minimum information disclosure.</p>
+
+                    <h3>Decentralized Identity Standards</h3>
+                    <p>The W3C's DID and Verifiable Credential standards, combined with emerging standards from the Decentralized Identity Foundation (DIF), are creating an interoperable identity layer that works across blockchains, platforms, and even traditional institutions. Your Kenostod reputation could eventually be verified by a bank, employer, or government agency through standardized protocols.</p>
+
+                    <h3>Reputation DAOs</h3>
+                    <p>Future reputation systems may be governed by <strong>Reputation DAOs</strong> &mdash; decentralized autonomous organizations specifically designed to maintain and evolve reputation protocols. These DAOs would vote on parameter changes (like time-decay rates), dispute resolutions, and system upgrades, ensuring that no single entity controls the reputation infrastructure.</p>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127793; The Vision: Universal Portable Reputation</div>
+                        <p>Imagine a world where your on-chain reputation follows you everywhere: better DeFi loan rates, DAO voting rights, marketplace trust badges, employment verification, and even real-world benefits &mdash; all from a single, self-sovereign, privacy-preserving identity that you fully control. No credit bureau, no platform lock-in, no gatekeepers. This is what Kenostod and the broader Web3 ecosystem are building toward. We're not there yet, but the foundations are being laid today.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 15: Real-World Case Studies -->
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <div class="case-study">
+                        <h4>Case Study 1: eBay's Reputation Revolution &amp; Its Limits</h4>
+                        <p><strong>Context:</strong> When eBay launched in 1995, the idea of buying from anonymous strangers online seemed absurd. Why would you send money to someone you'd never met for an item you'd never inspected?</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> eBay's simple feedback system (positive/negative/neutral) created sufficient trust for a $10+ billion annual marketplace to emerge. Research by economists showed that sellers with one extra percentage point of positive feedback could charge 8% higher prices. Reputation had measurable economic value.</p>
+                        <p style="margin-top: 10px;"><strong>The limitation:</strong> eBay's system was centralized. eBay could (and did) modify feedback rules, causing seller revolts. When eBay removed the ability for sellers to leave negative feedback for buyers (2008), it fundamentally changed the power dynamics of the marketplace. A decentralized system like Kenostod's prevents any single party from unilaterally changing the rules.</p>
+                        <p style="margin-top: 10px;"><strong>Kenostod lesson:</strong> Transaction-based reputation has proven economic value, but the governing entity must be decentralized to maintain trust in the system itself.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 2: The 2023 Arbitrum Airdrop Sybil Attack</h4>
+                        <p><strong>Context:</strong> Arbitrum, an Ethereum Layer 2 scaling solution, distributed $ARB tokens to users based on on-chain activity. The airdrop was worth billions of dollars.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> Sophisticated Sybil attackers created thousands of wallets months in advance, performing minimal qualifying transactions on each. One cluster of 1,496 wallets linked to a single entity claimed over $3 million in tokens. Despite Arbitrum's Sybil detection efforts, it's estimated that 20-30% of airdrop recipients were Sybil accounts.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Simple activity-based metrics are easy to game. Kenostod's approach of requiring real transactions with real fees, combined with amount weighting and network analysis, provides much stronger Sybil resistance. You can't build reputation cheaply on Kenostod because every data point costs real economic value.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 3: China's Social Credit System &mdash; A Cautionary Tale</h4>
+                        <p><strong>Context:</strong> China has been developing a nationwide Social Credit System since 2014 that assigns citizens a score based on financial behavior, social conduct, and even online activity.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> While the system aims to promote trustworthiness, critics highlight severe problems: scores are opaque, criteria are unclear, and consequences can be extreme (travel bans, restricted access to education). The system is entirely controlled by the government with no user recourse or transparency.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Reputation systems have enormous power over people's lives. The difference between a beneficial reputation system and an oppressive one lies in: (1) transparency of scoring criteria, (2) user agency and appeal mechanisms, (3) decentralized control, and (4) proportional consequences. Kenostod's on-chain reputation is fully transparent &mdash; you can verify exactly how every score is calculated and no single entity controls it.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 4: Uber's Rating System &mdash; The Inflation Problem</h4>
+                        <p><strong>Context:</strong> Uber's mutual rating system (drivers and riders rate each other 1-5 stars after every ride) is one of the most widely used reputation systems in the world, with billions of ratings.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> Research revealed that Uber ratings suffer from severe inflation &mdash; the average rating is 4.8/5.0, making meaningful differentiation nearly impossible. Drivers below 4.6 risk deactivation, creating anxiety about a system where a single 1-star rating can significantly impact their livelihood. The threshold effectively makes the system binary (acceptable vs. deactivated) rather than a meaningful spectrum.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Kenostod's time-decay and amount-weighting help prevent rating inflation by ensuring that scores reflect genuine assessment rather than social pressure. The multi-tier reward structure (Bronze through Diamond) provides meaningful differentiation across the full rating spectrum.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 5: Goldfinch &mdash; Real-World Lending with On-Chain Reputation</h4>
+                        <p><strong>Context:</strong> Goldfinch is a DeFi protocol that provides crypto loans to real-world businesses in emerging markets, primarily in Africa, Southeast Asia, and Latin America.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> Goldfinch uses a combination of off-chain credit assessment and on-chain reputation to enable under-collateralized lending. "Backers" (community members) stake their capital to vouch for borrower pools, creating a decentralized credit assessment layer. The protocol has facilitated over $100 million in loans to real-world businesses.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Reputation-based lending can work in DeFi, bridging the gap between fully collateralized protocols and traditional finance. However, the reliance on off-chain credit assessment creates centralization risks. Kenostod's fully on-chain approach avoids this dependency while building toward a future where on-chain history alone can serve as creditworthiness proof.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 16: Written Exercises -->
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Design a Sybil Attack</h4>
+                        <div class="exercise-question">
+                            <p>Imagine you wanted to fake a high reputation on Kenostod (for educational purposes only!). Describe step by step how you would attempt it, and then explain why each step would fail or be prohibitively expensive due to Kenostod's defenses.</p>
+                            <textarea id="ex1" placeholder="Describe the attack and why it would fail..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Web2 vs Web3 Reputation Comparison</h4>
+                        <div class="exercise-question">
+                            <p>Compare Kenostod's on-chain reputation system with a traditional FICO credit score AND a Web2 platform rating (like Uber or eBay). What are the advantages and disadvantages of each approach? In what ways is Kenostod's system more fair, and in what ways might it be less fair?</p>
+                            <textarea id="ex2" placeholder="Write your comparison here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Game Theory Scenario</h4>
+                        <div class="exercise-question">
+                            <p>A user with Gold-tier reputation (4.5 stars, 75 transactions) is offered a one-time deal to scam someone for 5,000 KENO. Using the concepts from the Game Theory section, calculate the approximate economic cost of the reputation damage versus the gain from cheating. Should they do it? Why or why not?</p>
+                            <textarea id="ex3" placeholder="Show your reasoning..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 4: SBTs and DeFi Reputation</h4>
+                        <div class="exercise-question">
+                            <p>Explain how Soulbound Tokens (SBTs) could be used to create an under-collateralized lending protocol. Describe what SBTs a borrower would need, how a lender would verify them, and what happens if the borrower defaults. Address the privacy implications of this system.</p>
+                            <textarea id="ex4" placeholder="Design your SBT-based lending system..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Design Improvement</h4>
+                        <div class="exercise-question">
+                            <p>If you could add ONE feature to Kenostod's reputation system, what would it be and why? Consider the trade-offs (Sybil resistance, privacy, fairness, usability) and explain how your feature improves the system without introducing new vulnerabilities.</p>
+                            <textarea id="ex5" placeholder="Describe your improvement..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 17: Hands-On Lab -->
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128421;&#65039;</span>Hands-On Lab</h2>
+                <div class="reading-content">
+                    <p>Now it's time to put your knowledge into action! Complete ALL of the following tasks in the Kenostod blockchain simulator.</p>
+                    
+                    <h3>Lab Tasks:</h3>
+                    <ul class="step-list">
+                        <li><strong>Task 1: View Reputation Scores</strong> &mdash; Navigate to the Reputation tab and examine the reputation scores of various wallets. Note the differences in tier levels and what they indicate.</li>
+                        <li><strong>Task 2: Complete a Transaction &amp; Rate</strong> &mdash; Send a transaction to another wallet and leave a rating. Observe how the rating is recorded on-chain.</li>
+                        <li><strong>Task 3: Check Your Own Score</strong> &mdash; After receiving ratings from other wallets, check how your own reputation score has changed. Verify the weighted average calculation.</li>
+                        <li><strong>Task 4: Analyze Rating Patterns</strong> &mdash; Look at multiple wallets' rating histories. Can you identify any patterns that might indicate genuine vs. suspicious activity?</li>
+                        <li><strong>Task 5: Test Reputation Effects</strong> &mdash; Check how your reputation tier affects your available FAL limits and fee rates. Compare with wallets of different tiers.</li>
+                    </ul>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="/#reputation" class="practice-btn" onclick="goToPractice()">&#128640; Open Reputation Tab</a>
+                        <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9em;">Opens in the main platform. Complete all 5 tasks, then return here for the Final Exam!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 18: Final Exam -->
+            <section id="quiz" class="quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <h4>1. When can you rate another wallet on Kenostod?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Anytime you want</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Only after completing a real transaction with that wallet</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Only if you have high reputation yourself</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Only with admin approval</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="a">
+                    <h4>2. What is a Sybil attack?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Creating multiple fake identities to gain disproportionate influence in a system</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Hacking into someone else's wallet to steal tokens</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Overwhelming the network with transaction spam</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Stealing private keys through social engineering</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="c">
+                    <h4>3. What prevents fake accounts from gaming Kenostod's reputation system?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">CAPTCHA verification and phone number requirements</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Manual admin review of all accounts</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Real transactions with fees are required, making fake ratings economically costly</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Biometric identity verification through iris scanning</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <h4>4. What is a Soulbound Token (SBT)?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">A regular NFT that can be traded on OpenSea</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">A cryptocurrency pegged to the value of gold</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">A token used to pay gas fees on Ethereum</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">A non-transferable NFT representing earned credentials, achievements, or reputation</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <h4>5. Why does Kenostod weight ratings by transaction amount?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">To favor wealthy users over smaller participants</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Because larger transactions represent more meaningful interactions and are harder to fake</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">To make the mathematical calculation simpler</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Because the blockchain protocol requires it</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="a">
+                    <h4>6. Which is NOT a benefit of high reputation on Kenostod?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Free KENO tokens distributed monthly</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Higher Flash Arbitrage Loan limits</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">More governance voting power</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Lower transaction fees</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="c">
+                    <h4>7. What is the main advantage of blockchain reputation over Web2 platforms like eBay or Uber?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">It's always faster and cheaper</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">It requires no user participation</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">It's portable, immutable, and not controlled by any single entity</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">It guarantees all users will be honest</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <h4>8. In game theory, why does reputation make honest behavior rational?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Because people are naturally good and want to cooperate</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Because the government enforces blockchain transactions</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Because cheating is technically impossible on blockchain</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Because the long-term cost of reputation damage exceeds the short-term gain from cheating</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="b">
+                    <h4>9. How could reputation-based DeFi improve capital efficiency?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">By eliminating the need for any collateral in all loans</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">By allowing trusted borrowers to use less collateral, freeing up locked capital</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">By making all transactions free for high-reputation users</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">By replacing all centralized banks immediately</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="a">
+                    <h4>10. What is the "cold start problem" in reputation systems?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">New users have no reputation, making it hard for others to trust them initially</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">The system runs slowly when first launched on a new blockchain</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Wallets lose reputation during network downtime</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Mining difficulty resets when validators disconnect</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="c">
+                    <h4>11. What role does time decay play in Kenostod's reputation scoring?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">It automatically deletes old ratings after one year</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">It prevents new users from getting high scores quickly</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">It ensures reputation reflects current behavior by giving less weight to older ratings</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">It reduces storage requirements on the blockchain</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="b">
+                    <h4>12. What is mechanism design in the context of reputation systems?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Designing physical hardware for blockchain mining</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Designing system rules so that rational self-interest produces socially optimal outcomes</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Creating user interface designs for wallet applications</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Building consensus algorithms for proof-of-stake networks</div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                <div id="quizResult" class="quiz-result"><h3 id="resultIcon"></h3><h3 id="resultTitle"></h3><p id="resultMessage"></p><div id="nextCourseContainer"></div></div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-6-messages.html" style="color: var(--primary);">&larr; Course 6</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-8-governance.html" style="color: var(--primary);">Course 8 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            const passing = Math.ceil(total * 0.8);
+            if (correct >= passing) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\u{1F389}';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = `You got ${correct}/${total} correct! You passed!`;
+                document.getElementById('nextCourseContainer').innerHTML = `<p style="margin-top: 15px; color: var(--primary);">\u{1F393} +250 KENO!</p><a href="/courses/course-8-governance.html" class="next-course-btn">Course 8 \u2192</a>`;
+                localStorage.setItem('course7_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(7, 'Course 7: Reputation System');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\u{1F4DA}';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = `${correct}/${total} correct. You need at least ${passing} correct (80%) to pass. Review the material and try again!`;
+                document.getElementById('nextCourseContainer').innerHTML = `<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>`;
+            }
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+            const hints = {
+                1: 'Good effort! A thorough Sybil attack would involve: (1) Creating many wallets (free, but each needs KENO for fees), (2) Sending transactions between them (costs fees each time), (3) Rating each wallet 5 stars. This fails because: transaction fees make it expensive, amount weighting means small transactions barely count, network analysis detects circular patterns, and building credible history takes months. The total cost would exceed any potential scam profit.',
+                2: 'Strong comparison! Kenostod advantages over FICO: full transparency (you can see exactly how scores are calculated), immutability (no one can alter your history), global portability, and no credit bureau gatekeepers. Over Web2 platforms: no platform lock-in, no centralized rule changes, no data loss if platform shuts down. Potential disadvantages: cold start problem for newcomers, less history than FICO (decades of data), and full transparency means less privacy. FICO may also consider more diverse financial behavior types.',
+                3: 'Key calculation: The 5,000 KENO one-time gain vs. losses including: increased fees on all future transactions (if processing 50 TX/month at 500 KENO avg, losing 25% discount = ~6,250 KENO/year in extra fees), reduced FAL limits (losing access to 50,000 KENO loans vs 2,000 KENO), reduced governance power, and loss of trust badge. The reputation damage easily costs 10,000+ KENO in the first year alone. Rational conclusion: never worth it.',
+                4: 'Great analysis! An SBT-based lending system could work as follows: Borrowers would need SBTs proving: (1) repayment history (past loans repaid on time), (2) reputation tier (e.g., Gold or Diamond from Kenostod), (3) identity verification (Proof of Personhood SBT). Lenders verify these SBTs on-chain automatically via smart contract. On default, the borrower receives a "default" SBT that permanently marks their record, reducing future borrowing ability. Privacy concerns: ZK proofs could allow proving "I have sufficient reputation SBTs" without revealing specific details.',
+                5: 'Look for thoughtful features that address real weaknesses while maintaining Sybil resistance. Strong examples: dispute resolution mechanism for unfair ratings, ZK-proof reputation disclosure for privacy, cross-chain reputation portability, reputation delegation for onboarding new users, or AI-based anomaly detection. The key is showing awareness of trade-offs \u2014 any new feature could potentially be exploited, so the answer should address how to prevent that.'
+            };
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+
+        function goToPractice() {
+            localStorage.setItem('course7_practice_started', 'true');
+        }
+
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'intro', 'history', 'web2', 'blockchain-rep', 'identity', 'how', 'sybil', 'onchain-offchain', 'ens-sbt', 'defi-rep', 'game-theory', 'models', 'future', 'case-studies', 'exercises', 'practice', 'quiz'];
+            let current = '';
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(current)) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>
