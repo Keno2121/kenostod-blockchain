@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 8: Community Governance & Voting | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --gold: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --purple: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .premium-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .new-badge {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .vote-bar { background: var(--bg-dark); border-radius: 10px; overflow: hidden; height: 30px; margin: 15px 0; }
+        .vote-fill { height: 100%; display: flex; align-items: center; padding: 0 15px; font-weight: 600; font-size: 0.9em; }
+        .vote-fill.yes { background: linear-gradient(90deg, var(--success) 0%, #059669 100%); }
+        .vote-fill.no { background: linear-gradient(90deg, var(--danger) 0%, #dc2626 100%); }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--success); background: var(--success); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 8
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#128499;&#65039;</span>
+                Course 8: Community Governance &amp; Voting
+                <span class="new-badge">NEW</span>
+                <span class="premium-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Intermediate Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('what-is-governance')"><span class="toc-number">2</span>What Is Governance?</li>
+                    <li class="toc-item" onclick="scrollToSection('onchain-offchain')"><span class="toc-number">3</span>On-Chain vs Off-Chain</li>
+                    <li class="toc-item" onclick="scrollToSection('dao')"><span class="toc-number">4</span>DAO Structures</li>
+                    <li class="toc-item" onclick="scrollToSection('voting-mechanisms')"><span class="toc-number">5</span>Voting Mechanisms</li>
+                    <li class="toc-item" onclick="scrollToSection('frameworks')"><span class="toc-number">6</span>Governance Frameworks</li>
+                    <li class="toc-item" onclick="scrollToSection('proposals')"><span class="toc-number">7</span>Proposals &amp; Lifecycle</li>
+                    <li class="toc-item" onclick="scrollToSection('treasury')"><span class="toc-number">8</span>Treasury Management</li>
+                    <li class="toc-item" onclick="scrollToSection('voter-apathy')"><span class="toc-number">9</span>Voter Apathy</li>
+                    <li class="toc-item" onclick="scrollToSection('progressive')"><span class="toc-number">10</span>Progressive Decentralization</li>
+                    <li class="toc-item" onclick="scrollToSection('keno-governance')"><span class="toc-number">11</span>KENO Governance</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">12</span>Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">13</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">14</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Explain what blockchain governance is and why it matters for decentralized networks</div></li>
+                    <li class="step-item"><div class="step-title">Compare on-chain governance vs off-chain governance and their trade-offs</div></li>
+                    <li class="step-item"><div class="step-title">Understand DAO structures, legal frameworks, and organizational models</div></li>
+                    <li class="step-item"><div class="step-title">Evaluate voting mechanisms: token-weighted, quadratic, conviction, and rage-quit</div></li>
+                    <li class="step-item"><div class="step-title">Navigate governance frameworks like Compound Governor, Aragon, and Snapshot</div></li>
+                    <li class="step-item"><div class="step-title">Analyze real-world governance events: The DAO hack, Uniswap drama, MakerDAO</div></li>
+                    <li class="step-item"><div class="step-title">Design treasury management and participation incentive strategies</div></li>
+                    <li class="step-item"><div class="step-title">Understand progressive decentralization and KENO&#39;s governance roadmap</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, and practice. Governance is one of the most important &mdash; and most debated &mdash; topics in all of blockchain. Take your time with the case studies and exercises. The 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <section id="what-is-governance" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127963;&#65039;</span>What Is Blockchain Governance?</h2>
+                <div class="reading-content">
+                    <p><strong>Blockchain governance</strong> refers to the processes, rules, and structures that determine how a decentralized network evolves over time. Every blockchain faces fundamental questions: Who decides which upgrades get implemented? How are resources allocated? What happens when the community disagrees?</p>
+
+                    <p>In traditional companies, a CEO or board of directors makes these decisions. In nation-states, elected officials legislate on behalf of citizens. But blockchains are different &mdash; they aim to be <em>decentralized</em>, meaning no single entity should have unilateral control. This creates a fascinating challenge: how do you coordinate thousands (or millions) of stakeholders without a central authority?</p>
+
+                    <p>Governance is arguably the <strong>hardest unsolved problem</strong> in cryptocurrency. Get it right, and you create a self-sustaining, evolving ecosystem. Get it wrong, and you end up with contentious forks, plutocracy, or complete gridlock.</p>
+
+                    <h3>The Three Pillars of Blockchain Governance</h3>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Protocol Rules</div>
+                            <div class="vocab-def">The technical code and parameters that define how the blockchain operates &mdash; block sizes, fee structures, consensus algorithms.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Incentive Structures</div>
+                            <div class="vocab-def">The economic rewards and penalties that motivate participants to act in the network's interest &mdash; mining rewards, staking yields, slashing.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Decision-Making Processes</div>
+                            <div class="vocab-def">The mechanisms through which changes are proposed, debated, voted upon, and implemented &mdash; proposals, voting, delegation.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Social Layer</div>
+                            <div class="vocab-def">The informal norms, culture, and off-chain discussions that influence governance &mdash; forums, Twitter debates, developer calls.</div>
+                        </div>
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Why Governance Matters</h4>
+                        <p>Bitcoin's block size debate raged for years and ultimately led to a hard fork creating Bitcoin Cash. Ethereum's response to The DAO hack in 2016 led to Ethereum Classic. These events demonstrate that governance failures can literally split a blockchain in two, destroying billions of dollars in value and fracturing communities.</p>
+                    </div>
+
+                    <h3>Governance vs. Government</h3>
+                    <p>It's important to distinguish between governance and government. Governance is the broader concept of how decisions are made and enforced within a system. Government is a specific institution. Blockchain governance aims to provide the coordination benefits of government without the centralization risks. Think of it as <em>rules without rulers</em>.</p>
+
+                    <p>Traditional governance relies on <strong>identity and enforcement</strong> &mdash; citizens are identified, votes are tied to individuals, and laws are enforced by courts and police. Blockchain governance often relies on <strong>cryptoeconomic mechanisms</strong> &mdash; stakes, tokens, and game theory &mdash; to align incentives without requiring identity or centralized enforcement.</p>
+                </div>
+            </section>
+
+            <section id="onchain-offchain" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128279;</span>On-Chain vs Off-Chain Governance</h2>
+                <div class="reading-content">
+                    <p>One of the most fundamental distinctions in blockchain governance is whether decisions are made and enforced <em>on-chain</em> (through smart contracts and protocol rules) or <em>off-chain</em> (through social consensus, forums, and informal coordination).</p>
+
+                    <h3>On-Chain Governance</h3>
+                    <p>In on-chain governance, proposals are submitted as transactions, votes are recorded on the blockchain, and approved changes are automatically implemented by the protocol. Everything is transparent, verifiable, and binding.</p>
+
+                    <p><strong>How it works:</strong> A token holder submits a proposal (often with a required stake). Other token holders vote during a defined voting period. If the proposal reaches the required threshold (quorum + majority), the change is automatically executed by the smart contract &mdash; no human intermediary needed.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Transparent, immutable vote record; automatic execution; clear legitimacy; no ambiguity about whether a proposal passed</li>
+                        <li><strong>Cons:</strong> Low voter turnout; plutocratic (whales dominate); smart contract bugs can have catastrophic effects; difficult to make nuanced decisions</li>
+                        <li><strong>Examples:</strong> Tezos, Polkadot, Compound, MakerDAO</li>
+                    </ul>
+
+                    <h3>Off-Chain Governance</h3>
+                    <p>Off-chain governance relies on social consensus built through forums, developer meetings, social media, and informal discussions. Changes are implemented by developers who follow community sentiment.</p>
+
+                    <p><strong>How it works:</strong> Anyone can propose changes through discussion forums (BIPs for Bitcoin, EIPs for Ethereum). Community members debate the merits. Core developers assess technical feasibility. If rough consensus emerges, developers implement the change. Node operators choose whether to adopt it.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> More nuanced discussion; less susceptible to plutocracy; allows for complex technical debate; lower barrier to participation</li>
+                        <li><strong>Cons:</strong> Opaque decision-making; core developer capture risk; "rough consensus" is subjective; slow and contentious</li>
+                        <li><strong>Examples:</strong> Bitcoin (BIPs), Ethereum (EIPs), Linux kernel development</li>
+                    </ul>
+
+                    <h3>Hybrid Governance</h3>
+                    <p>Most modern protocols use a <strong>hybrid approach</strong> &mdash; combining on-chain voting for clear, quantifiable decisions (parameter changes, treasury allocations) with off-chain discussion for complex, nuanced topics (protocol upgrades, vision setting).</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>On-Chain</th>
+                                <th>Off-Chain</th>
+                                <th>Hybrid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Transparency</td>
+                                <td>Fully transparent</td>
+                                <td>Varies widely</td>
+                                <td>Mixed</td>
+                            </tr>
+                            <tr>
+                                <td>Execution</td>
+                                <td>Automatic via smart contract</td>
+                                <td>Manual by developers</td>
+                                <td>Automatic for some decisions</td>
+                            </tr>
+                            <tr>
+                                <td>Speed</td>
+                                <td>Fixed voting periods</td>
+                                <td>Can take months/years</td>
+                                <td>Depends on decision type</td>
+                            </tr>
+                            <tr>
+                                <td>Participation</td>
+                                <td>Requires token ownership</td>
+                                <td>Open to anyone</td>
+                                <td>Tiered access</td>
+                            </tr>
+                            <tr>
+                                <td>Plutocracy Risk</td>
+                                <td>High</td>
+                                <td>Lower</td>
+                                <td>Moderate</td>
+                            </tr>
+                            <tr>
+                                <td>Complexity Handling</td>
+                                <td>Simple binary decisions</td>
+                                <td>Nuanced discussions</td>
+                                <td>Both types supported</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Snapshot: The Best of Both Worlds</div>
+                        <p><strong>Snapshot</strong> is a popular off-chain voting tool that uses on-chain data. It lets token holders vote using their blockchain balances without paying gas fees. Votes are stored on IPFS (a decentralized file system), making them verifiable but not enforceable on-chain. Many DAOs use Snapshot for "temperature checks" before committing to on-chain votes, combining accessibility with accountability.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dao" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127963;&#65039;</span>DAO Structures &amp; Legal Frameworks</h2>
+                <div class="reading-content">
+                    <p>A <strong>Decentralized Autonomous Organization (DAO)</strong> is an organization where rules are encoded in smart contracts and decisions are made collectively by members, typically token holders. DAOs represent a radical experiment in human coordination &mdash; organizations without traditional management hierarchies.</p>
+
+                    <div class="visual-diagram">
+                        <img src="/assets/course-images/dao_governance_voting_process.png" alt="DAO Governance Process">
+                        <p class="caption">Figure: How proposals flow through the DAO governance process</p>
+                    </div>
+
+                    <h3>Types of DAOs</h3>
+
+                    <h4>Protocol DAOs</h4>
+                    <p>Govern DeFi protocols and blockchain infrastructure. Members vote on protocol parameters, upgrades, and treasury allocations. Examples: MakerDAO (governs the DAI stablecoin), Uniswap (governs the DEX), Aave (governs the lending protocol).</p>
+
+                    <h4>Investment DAOs</h4>
+                    <p>Pool capital from members and collectively decide on investments. Members vote on which projects, tokens, or assets to invest in. Examples: The LAO, MetaCartel Ventures, BitDAO.</p>
+
+                    <h4>Social DAOs</h4>
+                    <p>Built around communities, culture, and shared interests. Membership is often gated by token ownership. Examples: Friends With Benefits (FWB), PleasrDAO (NFT collecting), Developer DAO.</p>
+
+                    <h4>Service DAOs</h4>
+                    <p>Coordinate freelancers and service providers in a decentralized manner. Members contribute work and receive compensation from the DAO treasury. Examples: Raid Guild (web3 development), LexDAO (legal services).</p>
+
+                    <h3>Legal Frameworks for DAOs</h3>
+                    <p>One of the biggest challenges facing DAOs is their legal status. Traditional legal systems don't easily accommodate organizations without registered officers, physical addresses, or clear jurisdictions. Several approaches have emerged:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Legal Structure</th>
+                                <th>Jurisdiction</th>
+                                <th>Key Features</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>DAO LLC</td>
+                                <td>Wyoming, USA</td>
+                                <td>Limited liability for members; smart contract recognized as operating agreement; first U.S. state to recognize DAOs</td>
+                            </tr>
+                            <tr>
+                                <td>Foundation</td>
+                                <td>Cayman Islands, Switzerland</td>
+                                <td>No shareholders; council governs on behalf of DAO; used by Ethereum Foundation, Solana Foundation</td>
+                            </tr>
+                            <tr>
+                                <td>Unincorporated Association</td>
+                                <td>Various (UK, US)</td>
+                                <td>No formal registration; members may face unlimited personal liability; risky but fully decentralized</td>
+                            </tr>
+                            <tr>
+                                <td>DAO-Specific Legislation</td>
+                                <td>Marshall Islands, Vermont</td>
+                                <td>Purpose-built legal frameworks; emerging but not yet tested in courts</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Legal Risk Warning</div>
+                        <p>Without a legal wrapper, DAO members may be treated as a <strong>general partnership</strong> under many jurisdictions. This means <em>every member could be personally liable</em> for the DAO's debts and legal obligations. This is why many DAOs are now incorporating as LLCs, foundations, or other legal entities.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="voting-mechanisms" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128499;&#65039;</span>Voting Mechanisms Deep Dive</h2>
+                <div class="reading-content">
+                    <p>Not all voting systems are created equal. The choice of voting mechanism fundamentally shapes who has power, how decisions are made, and what outcomes are possible. Let's explore the major approaches.</p>
+
+                    <h3>Token-Weighted Voting (1 Token = 1 Vote)</h3>
+                    <p>The simplest and most common mechanism. Your voting power is directly proportional to the number of governance tokens you hold.</p>
+
+                    <div style="margin: 20px 0;">
+                        <p><strong>Example: Proposal to Reduce Transaction Fees by 50%</strong></p>
+                        <div class="vote-bar">
+                            <div class="vote-fill yes" style="width: 68%;">YES: 680,000 KENO (68%)</div>
+                        </div>
+                        <div class="vote-bar">
+                            <div class="vote-fill no" style="width: 32%;">NO: 320,000 KENO (32%)</div>
+                        </div>
+                        <p style="color: var(--success); margin-top: 10px;">&#9989; Proposal PASSED (60% threshold met)</p>
+                    </div>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Simple to understand; easy to implement; aligns with financial stake</li>
+                        <li><strong>Cons:</strong> Plutocratic &mdash; whales (large holders) dominate; encourages token accumulation for governance control; doesn't represent community breadth</li>
+                    </ul>
+
+                    <h3>Quadratic Voting</h3>
+                    <p>Quadratic voting reduces the influence of large holders by making each additional vote <em>increasingly expensive</em>. The cost of N votes is N&sup2; tokens. This means 1 vote costs 1 token, but 10 votes cost 100 tokens, and 100 votes cost 10,000 tokens.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Quadratic Voting Cost Formula</span>
+<span class="code-keyword">function</span> <span class="code-function">quadraticVoteCost</span>(votes) {
+    <span class="code-keyword">return</span> votes * votes;  <span class="code-comment">// N votes costs N&sup2; tokens</span>
+}
+
+<span class="code-comment">// Examples:</span>
+quadraticVoteCost(<span class="code-number">1</span>);   <span class="code-comment">// 1 token for 1 vote</span>
+quadraticVoteCost(<span class="code-number">5</span>);   <span class="code-comment">// 25 tokens for 5 votes</span>
+quadraticVoteCost(<span class="code-number">10</span>);  <span class="code-comment">// 100 tokens for 10 votes</span>
+quadraticVoteCost(<span class="code-number">100</span>); <span class="code-comment">// 10,000 tokens for 100 votes</span>
+
+<span class="code-comment">// A whale with 10,000 tokens gets only 100 votes</span>
+<span class="code-comment">// While 100 users with 100 tokens each get 1,000 total votes</span>
+<span class="code-comment">// This amplifies the voice of the many over the few</span>
+                    </div>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> More democratic; reduces whale dominance; encourages broad participation</li>
+                        <li><strong>Cons:</strong> Vulnerable to Sybil attacks (one person creating many wallets); requires identity verification to be truly effective</li>
+                        <li><strong>Used by:</strong> Gitcoin Grants, some Optimism governance proposals</li>
+                    </ul>
+
+                    <h3>Conviction Voting</h3>
+                    <p>Conviction voting is a continuous, time-based system where your voting power on a proposal increases the longer you stake your tokens on it. Instead of discrete voting periods, conviction accumulates over time like compound interest.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>How it works:</strong> You stake tokens on a proposal. Over time, your "conviction" builds. Once enough collective conviction is reached, the proposal passes automatically.</li>
+                        <li><strong>Pros:</strong> No rigid voting deadlines; rewards long-term commitment; less susceptible to last-minute manipulation; supports continuous proposal evaluation</li>
+                        <li><strong>Cons:</strong> More complex to understand; harder to predict outcomes; favors patient participants over urgent needs</li>
+                        <li><strong>Used by:</strong> 1Hive, Gardens (Commons Stack), some Aragon implementations</li>
+                    </ul>
+
+                    <h3>Delegated Voting (Liquid Democracy)</h3>
+                    <p>Token holders can <strong>delegate</strong> their voting power to trusted representatives (delegates) who vote on their behalf. Unlike traditional representative democracy, you can change your delegate at any time and can vote directly on any proposal, overriding your delegate.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>How it works:</strong> You choose a delegate who shares your values. They vote on proposals for you. You can override their vote or switch delegates anytime.</li>
+                        <li><strong>Pros:</strong> Reduces voter fatigue; enables informed decision-making through specialized delegates; maintains voter sovereignty</li>
+                        <li><strong>Cons:</strong> Can lead to delegate power concentration; delegates may not always represent your views; creates a pseudo-representative system</li>
+                        <li><strong>Used by:</strong> Compound, Uniswap, Optimism, ENS</li>
+                    </ul>
+
+                    <h3>Rage-Quit Mechanism</h3>
+                    <p>The "rage-quit" mechanism allows dissenting members to withdraw their proportional share of the treasury before a proposal they disagree with is executed. This provides a crucial safety valve against majority tyranny.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Used by:</strong> MolochDAO and its forks (DAOhaus)</li>
+                        <li><strong>Key benefit:</strong> No one is forced to participate in a decision they fundamentally disagree with</li>
+                    </ul>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Mechanism</th>
+                                <th>Whale Resistance</th>
+                                <th>Sybil Resistance</th>
+                                <th>Complexity</th>
+                                <th>Participation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Token-Weighted</td>
+                                <td>&#10060; Low</td>
+                                <td>&#9989; High</td>
+                                <td>&#9989; Simple</td>
+                                <td>&#10060; Low</td>
+                            </tr>
+                            <tr>
+                                <td>Quadratic</td>
+                                <td>&#9989; High</td>
+                                <td>&#10060; Low</td>
+                                <td>&#128310; Medium</td>
+                                <td>&#9989; High</td>
+                            </tr>
+                            <tr>
+                                <td>Conviction</td>
+                                <td>&#128310; Medium</td>
+                                <td>&#128310; Medium</td>
+                                <td>&#10060; Complex</td>
+                                <td>&#128310; Medium</td>
+                            </tr>
+                            <tr>
+                                <td>Delegated</td>
+                                <td>&#128310; Medium</td>
+                                <td>&#9989; High</td>
+                                <td>&#128310; Medium</td>
+                                <td>&#9989; High</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="frameworks" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128736;&#65039;</span>Governance Frameworks &amp; Tools</h2>
+                <div class="reading-content">
+                    <p>Building governance from scratch is extremely complex. Fortunately, several battle-tested frameworks have emerged that protocols can adopt or adapt.</p>
+
+                    <h3>Compound Governor (Governor Bravo / Governor Alpha)</h3>
+                    <p>Developed by Compound Finance, this is the most widely forked governance framework in DeFi. It defines a complete on-chain governance lifecycle.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Compound Governor Lifecycle</span>
+<span class="code-comment">// 1. Proposal Creation (requires proposalThreshold tokens)</span>
+<span class="code-keyword">function</span> <span class="code-function">propose</span>(targets, values, signatures, calldatas, description)
+
+<span class="code-comment">// 2. Voting Period (e.g., 3 days)</span>
+<span class="code-keyword">function</span> <span class="code-function">castVote</span>(proposalId, support)  <span class="code-comment">// 0=Against, 1=For, 2=Abstain</span>
+
+<span class="code-comment">// 3. Timelock (e.g., 2-day delay before execution)</span>
+<span class="code-keyword">function</span> <span class="code-function">queue</span>(proposalId)
+
+<span class="code-comment">// 4. Execution</span>
+<span class="code-keyword">function</span> <span class="code-function">execute</span>(proposalId)
+
+<span class="code-comment">// Key Parameters:</span>
+<span class="code-comment">// - Proposal Threshold: 25,000 COMP (~$1.5M) to create a proposal</span>
+<span class="code-comment">// - Quorum: 400,000 COMP votes required</span>
+<span class="code-comment">// - Voting Period: 3 days</span>
+<span class="code-comment">// - Timelock Delay: 2 days</span>
+                    </div>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Used by:</strong> Compound, Uniswap, Aave, Gitcoin, and 100+ protocols</li>
+                        <li><strong>Strengths:</strong> Battle-tested; extensive tooling; OpenZeppelin provides audited implementations</li>
+                        <li><strong>Weaknesses:</strong> High proposal thresholds exclude small holders; simple majority can be gamed</li>
+                    </ul>
+
+                    <h3>Aragon</h3>
+                    <p>Aragon provides a modular framework for creating and managing DAOs. It offers a suite of tools including voting, finance management, permissions, and agent contracts. Aragon DAOs are fully customizable through a plugin system.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Key Features:</strong> DAO creation in minutes; modular plugin architecture; built-in treasury management; permission management system</li>
+                        <li><strong>Used by:</strong> Lido, API3, Decentraland, and thousands of smaller DAOs</li>
+                        <li><strong>Strengths:</strong> User-friendly; highly customizable; good for non-technical teams</li>
+                    </ul>
+
+                    <h3>Snapshot</h3>
+                    <p>Snapshot is an off-chain, gasless voting platform. Votes are signed messages stored on IPFS, using on-chain token balances as voting power. This makes voting free for participants while maintaining verifiability.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Key Features:</strong> Zero gas fees for voting; customizable voting strategies; multi-chain support; integration with ENS</li>
+                        <li><strong>Used by:</strong> 30,000+ spaces including Aave, Sushi, Yearn, Balancer, ENS</li>
+                        <li><strong>Limitations:</strong> Votes are not binding on-chain; requires trust that results will be respected; no automatic execution</li>
+                    </ul>
+
+                    <h3>Tally</h3>
+                    <p>Tally provides a governance dashboard and interface for Governor-based DAOs. It makes on-chain governance accessible with user-friendly proposal creation, voting, and delegation interfaces.</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Framework</th>
+                                <th>Type</th>
+                                <th>Gas Cost</th>
+                                <th>Binding</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Compound Governor</td>
+                                <td>On-chain</td>
+                                <td>High</td>
+                                <td>Yes (auto-execute)</td>
+                                <td>Large DeFi protocols</td>
+                            </tr>
+                            <tr>
+                                <td>Aragon</td>
+                                <td>On-chain</td>
+                                <td>Medium</td>
+                                <td>Yes</td>
+                                <td>New DAOs, non-technical teams</td>
+                            </tr>
+                            <tr>
+                                <td>Snapshot</td>
+                                <td>Off-chain</td>
+                                <td>Free</td>
+                                <td>No (social contract)</td>
+                                <td>Temperature checks, broad participation</td>
+                            </tr>
+                            <tr>
+                                <td>Tally</td>
+                                <td>Interface</td>
+                                <td>Varies</td>
+                                <td>Yes (via Governor)</td>
+                                <td>Governor DAO frontends</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="proposals" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Proposals &amp; Governance Lifecycle</h2>
+                <div class="reading-content">
+                    <p>Every governance decision follows a lifecycle from initial idea to implementation. Understanding this process is essential for effective participation.</p>
+
+                    <h3>The Proposal Lifecycle</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Ideation &amp; Discussion</div>
+                            <p>Ideas are first discussed informally on forums (Discourse, Commonwealth), Discord, or Twitter. This "temperature check" phase helps refine proposals before formal submission. Many DAOs require a forum post and community discussion before a formal proposal can be created.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Formal Proposal Submission</div>
+                            <p>The proposer creates a formal proposal with clear specifications: what will change, why, expected impact, and implementation details. On-chain proposals typically require a minimum token threshold (e.g., 1,000 KENO for Kenostod proposals).</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Voting Period</div>
+                            <p>Token holders cast their votes during a defined window (typically 3-7 days). Some systems allow "For," "Against," and "Abstain" options. Abstain votes often count toward quorum but not the outcome.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Timelock / Grace Period</div>
+                            <p>If the proposal passes, there's typically a timelock delay (24-48 hours) before execution. This gives dissenting members time to exit positions or prepare for the change. It also serves as a security measure against governance attacks.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Execution</div>
+                            <p>The approved changes are implemented. In on-chain governance, execution is automatic via smart contract. In off-chain governance, developers manually implement the changes.</p>
+                        </li>
+                    </ul>
+
+                    <h3>What Can Be Proposed?</h3>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Parameter Changes</div>
+                            <div class="vocab-def">Fee adjustments, interest rates, collateral ratios, block rewards, quorum thresholds</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Treasury Allocations</div>
+                            <div class="vocab-def">Grants, development funding, marketing budgets, community rewards, liquidity incentives</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Protocol Upgrades</div>
+                            <div class="vocab-def">New features, smart contract upgrades, consensus changes, network improvements</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Social / Meta-Governance</div>
+                            <div class="vocab-def">Changes to governance rules themselves, delegation policies, working group formation</div>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Kenostod Proposal Requirements</div>
+                        <p>To create a proposal in Kenostod governance, you need at least <strong>1,000 KENO staked</strong>. Proposals have a <strong>7-day voting period</strong>. A <strong>60% supermajority</strong> with a <strong>10% quorum</strong> (of circulating supply participating) is required to pass. There is a <strong>48-hour timelock</strong> before execution.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="treasury" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>Treasury Management</h2>
+                <div class="reading-content">
+                    <p>The DAO treasury is the collective pool of assets owned by the community. Managing it wisely is critical for the long-term sustainability of the protocol. Think of the treasury as the "sovereign wealth fund" of a DAO &mdash; it must fund development, attract talent, grow the ecosystem, and survive market downturns.</p>
+
+                    <h3>Treasury Composition</h3>
+                    <p>A well-managed treasury typically holds a diversified mix of assets:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Native tokens (e.g., KENO):</strong> The protocol's own governance token. Usually the largest holding but also the most volatile &mdash; if the protocol struggles, the treasury value drops too.</li>
+                        <li><strong>Stablecoins (USDC, DAI):</strong> Provide runway for fixed expenses like developer salaries, audits, and infrastructure costs regardless of market conditions.</li>
+                        <li><strong>Blue-chip crypto (ETH, BTC):</strong> Diversification into established assets that are less correlated with the protocol's specific risk.</li>
+                        <li><strong>Yield-bearing positions:</strong> Staked assets, LP positions, or lending positions that enable arbitrage access for the treasury.</li>
+                    </ul>
+
+                    <h3>Common Treasury Spending Categories</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Typical Allocation</th>
+                                <th>Examples</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Development</td>
+                                <td>30-50%</td>
+                                <td>Core team salaries, contractor payments, audits</td>
+                            </tr>
+                            <tr>
+                                <td>Grants &amp; Ecosystem</td>
+                                <td>15-25%</td>
+                                <td>Developer grants, hackathon prizes, integrations</td>
+                            </tr>
+                            <tr>
+                                <td>Liquidity Mining</td>
+                                <td>10-20%</td>
+                                <td>Token incentives for liquidity providers</td>
+                            </tr>
+                            <tr>
+                                <td>Marketing &amp; Growth</td>
+                                <td>5-15%</td>
+                                <td>Community programs, partnerships, education</td>
+                            </tr>
+                            <tr>
+                                <td>Reserves</td>
+                                <td>10-20%</td>
+                                <td>Emergency funds, insurance, runway extension</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Treasury Pitfall: Token Selling Pressure</div>
+                        <p>When a DAO sells its native tokens from the treasury, it creates selling pressure that depresses the token price. This is why savvy DAOs diversify into stablecoins <em>before</em> they need them. MakerDAO famously spent years building a stablecoin reserve. Conversely, protocols that rely entirely on selling native tokens often enter a "death spiral" during bear markets.</p>
+                    </div>
+
+                    <h3>Treasury Governance Best Practices</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Streaming payments:</strong> Use tools like Sablier or Superfluid for continuous, revocable payment streams rather than lump-sum grants</li>
+                        <li><strong>Milestone-based funding:</strong> Release grants in tranches tied to deliverable milestones</li>
+                        <li><strong>Spending caps:</strong> Set maximum spending limits per proposal to prevent treasury drain</li>
+                        <li><strong>Multi-sig for execution:</strong> Use a multi-signature wallet (e.g., Gnosis Safe) for treasury transactions, requiring multiple signers</li>
+                        <li><strong>Regular reporting:</strong> Publish transparent treasury reports showing inflows, outflows, and balances</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="voter-apathy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128164;</span>Voter Apathy &amp; Participation Incentives</h2>
+                <div class="reading-content">
+                    <p>One of the greatest challenges in blockchain governance is <strong>voter apathy</strong> &mdash; the phenomenon where most token holders simply don't vote. Typical participation rates in DAO governance are shockingly low, often between 1-10% of eligible voters.</p>
+
+                    <h3>Why Don't People Vote?</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Rational ignorance:</strong> The cost of understanding a complex proposal (hours of research) exceeds the perceived impact of one's vote, especially for small holders.</li>
+                        <li><strong>Gas costs:</strong> On Ethereum mainnet, casting a vote can cost $5-50 in gas fees. For small holders, this exceeds the value of their governance influence.</li>
+                        <li><strong>Proposal fatigue:</strong> Active DAOs may have 5-10 proposals per month. Keeping up with all of them is a full-time job.</li>
+                        <li><strong>Complexity:</strong> Many proposals involve deeply technical changes that most token holders cannot evaluate.</li>
+                        <li><strong>Free-rider problem:</strong> "Someone else will vote, so I don't need to." When everyone thinks this way, no one votes.</li>
+                        <li><strong>Token purpose mismatch:</strong> Many people buy governance tokens for speculation, not for governance. They have no intention of participating.</li>
+                    </ul>
+
+                    <h3>Solutions to Boost Participation</h3>
+
+                    <h4>Delegation</h4>
+                    <p>Allow token holders to delegate their voting power to informed community members. Compound, Uniswap, and Optimism all support delegation. This lets passive holders still have their interests represented.</p>
+
+                    <h4>Voting Rewards</h4>
+                    <p>Some protocols reward token holders for voting, either with additional tokens or by making governance participation a requirement for receiving staking rewards. Curve Finance's "vote-locking" mechanism (veCRV) is a prominent example.</p>
+
+                    <h4>Gasless Voting</h4>
+                    <p>Using Snapshot or Layer 2 solutions for voting eliminates gas costs, dramatically lowering the barrier to participation.</p>
+
+                    <h4>Simplified Interfaces</h4>
+                    <p>Tools like Tally, Boardroom, and Messari Governor provide user-friendly interfaces that make proposals easy to understand and vote on, with clear summaries and risk assessments.</p>
+
+                    <h4>Conviction Mechanisms</h4>
+                    <p>Rather than requiring active voting on discrete proposals, conviction voting lets stakeholders "set and forget" their preferences, accumulating weight over time.</p>
+
+                    <div class="concept-box">
+                        <h4>&#128161; KENO's Participation Strategy</h4>
+                        <p>Kenostod combats voter apathy through multiple mechanisms: a <strong>reputation bonus</strong> that increases voting power for active participants, <strong>staking rewards tied to governance participation</strong>, and an <strong>educational program</strong> (you're in it right now!) that trains community members to be informed voters. Additionally, KENO's <strong>time-lock bonus</strong> rewards long-term commitment &mdash; tokens locked for longer periods get more voting weight.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="progressive" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>Progressive Decentralization</h2>
+                <div class="reading-content">
+                    <p><strong>Progressive decentralization</strong> is a strategy where a project starts with more centralized control and gradually transfers power to the community over time. This concept, popularized by a16z (Andreessen Horowitz), recognizes that fully decentralized governance from day one is often impractical or dangerous.</p>
+
+                    <h3>Why Not Decentralize Immediately?</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Product-market fit:</strong> Early-stage protocols need to iterate quickly. Governance votes for every change would be impossibly slow.</li>
+                        <li><strong>Security:</strong> Immature smart contracts and small token distributions make early governance vulnerable to attacks.</li>
+                        <li><strong>Knowledge asymmetry:</strong> Early on, the founding team understands the protocol far better than anyone else. Their judgment is often critical.</li>
+                        <li><strong>Token distribution:</strong> At launch, tokens are often concentrated among the team, investors, and early adopters. This isn't a representative governance base.</li>
+                    </ul>
+
+                    <h3>The Three Phases of Decentralization</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Phase 1: Team-Led (Benevolent Dictatorship)</div>
+                            <p>The founding team makes most decisions. Community input is sought through forums and feedback, but the team retains final authority. This phase focuses on building the product, achieving product-market fit, and establishing security. <em>Kenostod is currently in this phase.</em></p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Phase 2: Limited Governance (Council + Community)</div>
+                            <p>A governance council is established, often elected by token holders. The community votes on major decisions (treasury spending, parameter changes), but the council handles day-to-day operations. The team transitions from decision-maker to advisor and executor.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Phase 3: Full Decentralization (Community Sovereignty)</div>
+                            <p>The community has full control over the protocol. The original team becomes just another participant. Smart contracts are immutable or governed entirely by on-chain votes. Examples of protocols in this phase: Bitcoin, MakerDAO (mostly), Compound.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; The Decentralization Paradox</div>
+                        <p>There's a fundamental tension in progressive decentralization: the more decentralized a system becomes, the harder it is to make changes &mdash; including the change to decentralize further. This is why the transition path must be carefully designed upfront, with clear milestones and triggers for each phase transition.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="keno-governance" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128081;</span>Governance in KENO's Future</h2>
+                <div class="reading-content">
+                    <p>Kenostod is building toward a fully decentralized governance model. Here's the roadmap for how KENO governance will evolve.</p>
+
+                    <h3>Current State (Phase 1)</h3>
+                    <p>The Kenostod core team manages protocol development and key decisions. Community feedback is gathered through the Academy, forums, and social channels. Token distribution is expanding through the learn-to-earn program (you're earning KENO right now!), staking, and ecosystem growth.</p>
+
+                    <h3>Upcoming: KENO Governance Module</h3>
+                    <p>The Kenostod governance system will feature these mechanisms:</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">1 KENO = 1 Vote</div>
+                            <div class="vocab-def">Base voting power proportional to token holdings, with additional multipliers for reputation and time-locking.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Reputation Multiplier</div>
+                            <div class="vocab-def">Participants with high PoRV (Proof of Residual Value) reputation scores receive 1.5-3x voting power multipliers.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Time-Lock Bonus</div>
+                            <div class="vocab-def">Tokens locked for 3+ months get 1.5x votes; 6+ months get 2x; 12+ months get 3x. Rewards long-term commitment.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Delegation Support</div>
+                            <div class="vocab-def">Any KENO holder can delegate their voting power to a trusted community member while retaining override capability.</div>
+                        </div>
+                    </div>
+
+                    <h3>Proposal Categories in KENO Governance</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Fee Changes:</strong> Adjust transaction fee percentages and distribution</li>
+                        <li><strong>Mining/PoRV Rewards:</strong> Modify block rewards, PoRV parameters, and distribution schedules</li>
+                        <li><strong>Network Parameters:</strong> Block size, confirmation times, reversal window duration</li>
+                        <li><strong>Treasury Spending:</strong> Fund development, marketing, grants, and community programs</li>
+                        <li><strong>Protocol Upgrades:</strong> New features, smart contract upgrades, and improvements</li>
+                        <li><strong>Ecosystem Partnerships:</strong> Integration approvals, exchange listings, cross-chain bridges</li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Your Role in KENO Governance</div>
+                        <p>By completing this course and others in the Academy, you're not just earning KENO tokens &mdash; you're building the <strong>knowledge and reputation</strong> needed to be an effective governance participant. The learn-to-earn program is specifically designed to create an informed, engaged electorate. When KENO governance launches, graduates of the Academy will be among the most prepared voters in the ecosystem.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>History is the greatest teacher. These landmark governance events shaped the blockchain industry and offer crucial lessons for anyone participating in or designing governance systems.</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: The DAO Hack &amp; Ethereum Fork (2016)</h4>
+                        <p><strong>What happened:</strong> "The DAO" was an early decentralized venture fund built on Ethereum. It raised $150 million worth of ETH &mdash; the largest crowdfund in history at that time. However, a reentrancy vulnerability in its smart contract allowed an attacker to drain 3.6 million ETH (~$60 million).</p>
+                        <p style="margin-top: 10px;"><strong>The governance crisis:</strong> The Ethereum community faced an existential question: should they hard fork the blockchain to reverse the theft, violating the principle of "code is law"? Or should they accept the loss, preserving blockchain immutability?</p>
+                        <p style="margin-top: 10px;"><strong>The outcome:</strong> After heated debate, the community voted (via Carbonvote, an early on-chain signaling tool) to hard fork. Ethereum forked to reverse the hack, creating the Ethereum we know today. Those who disagreed continued on the original chain, now called <strong>Ethereum Classic (ETC)</strong>.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Governance decisions can be existential. The DAO fork showed that social consensus can override technical immutability &mdash; but at a cost. It also demonstrated the importance of smart contract security, code audits, and the danger of "too big to fail" governance experiments.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: Uniswap Governance Drama (2021-2023)</h4>
+                        <p><strong>What happened:</strong> Uniswap, the largest decentralized exchange, has seen several controversial governance events. The most notable was the "fee switch" debate &mdash; whether Uniswap should turn on protocol fees (charging liquidity providers a cut) to fund the DAO treasury.</p>
+                        <p style="margin-top: 10px;"><strong>The controversy:</strong> Venture capital firm a16z, which held a massive amount of UNI tokens, used its voting power to block proposals it disagreed with, including efforts to deploy Uniswap on certain chains. This led to accusations of "governance capture" by a centralized entity.</p>
+                        <p style="margin-top: 10px;"><strong>The DeFi Education Fund:</strong> In 2021, Uniswap governance approved a controversial $20 million grant to the "DeFi Education Fund." Shortly after, the fund sold $10 million of UNI tokens for USDC, crashing the price. Community members who voted for it felt betrayed by the immediate sell-off.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Token-weighted voting can lead to whale dominance. Large institutional holders may not always align with the broader community's interests. Governance proposals need clear vesting/lockup terms to prevent immediate dumping. The tension between institutional and retail governance participants is one of the defining challenges of DAOs.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: MakerDAO &mdash; Pioneer of DAO Governance</h4>
+                        <p><strong>What happened:</strong> MakerDAO governs the DAI stablecoin system, one of the most critical pieces of DeFi infrastructure. MKR holders vote on risk parameters (collateral types, stability fees, debt ceilings) that directly affect a $5+ billion stablecoin.</p>
+                        <p style="margin-top: 10px;"><strong>"Black Thursday" (March 2020):</strong> When ETH crashed 50% in a single day, MakerDAO's liquidation system failed. $8 million in collateral was auctioned for $0 because the system was overwhelmed. Governance had to rapidly respond, adjusting risk parameters, adding USDC as collateral (a controversial centralization step), and minting new MKR tokens to cover the deficit.</p>
+                        <p style="margin-top: 10px;"><strong>The "Endgame" Plan (2022-2023):</strong> MakerDAO founder Rune Christensen proposed "The Endgame Plan" &mdash; a radical restructuring that would split MakerDAO into multiple "SubDAOs" and rebrand DAI. This highly controversial proposal passed despite significant opposition, showing how a founder's influence can persist even in decentralized governance.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> MakerDAO demonstrates both the promise and peril of DAO governance. It has survived multiple crises through governance, but also shows how complex, high-stakes decisions in DAOs are extremely difficult to get right. The tension between decentralization ideals and practical necessity (adding centralized collateral like USDC) is a recurring theme.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: Optimism &amp; The Bicameral Governance Experiment</h4>
+                        <p><strong>What happened:</strong> Optimism, an Ethereum Layer 2 scaling solution, introduced a novel <strong>bicameral governance system</strong> with two houses: the "Token House" (token holders voting on protocol upgrades and treasury) and the "Citizens' House" (identity-based voting for retroactive public goods funding).</p>
+                        <p style="margin-top: 10px;"><strong>Why it matters:</strong> This is one of the first attempts to solve the plutocracy problem of token-weighted voting by creating a separate governance body based on identity/reputation rather than token holdings. The Citizens' House allocates funds via "Retroactive Public Goods Funding" (RPGF), rewarding builders for past contributions.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Innovation in governance structures is possible and necessary. Single-chamber, token-weighted systems are not the only option. Checks and balances between different governance bodies &mdash; similar to legislative bicameralism in traditional government &mdash; can create more balanced and representative outcomes.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Governance Trade-offs</h4>
+                        <div class="exercise-question">
+                            <p>A new blockchain project has 100,000 token holders. 10 whales hold 60% of all tokens. The project currently uses simple token-weighted voting. The community is unhappy because the whales control every decision. Propose a governance redesign that addresses the whale problem while still giving stakeholders proportional influence. Justify your choices.</p>
+                            <textarea id="ex1" placeholder="Describe your proposed governance redesign..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: The DAO Fork Dilemma</h4>
+                        <div class="exercise-question">
+                            <p>Imagine you are an Ethereum developer in June 2016. The DAO has been hacked for $60 million. You must decide: fork the chain to reverse the theft, or let the hack stand to preserve immutability. Write 3-4 paragraphs arguing BOTH sides, then state which you would choose and why.</p>
+                            <textarea id="ex2" placeholder="Present both arguments and your conclusion..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Treasury Strategy</h4>
+                        <div class="exercise-question">
+                            <p>You are the treasury manager for a DAO with $10 million in its treasury (80% in the native token, 20% in ETH). A bear market just started and your native token has dropped 40%. Your development team needs $500K per quarter to keep building. Design a 12-month treasury strategy that ensures the project survives the bear market. Include asset allocation, spending priorities, and risk management.</p>
+                            <textarea id="ex3" placeholder="Design your treasury strategy..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Voter Apathy Solutions</h4>
+                        <div class="exercise-question">
+                            <p>Your DAO has 50,000 token holders but only 800 participate in governance votes (1.6% participation). Propose 5 specific, actionable strategies to increase voter participation to at least 10%. For each strategy, explain the mechanism, expected impact, and potential drawbacks.</p>
+                            <textarea id="ex4" placeholder="Propose your 5 participation strategies..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: KENO Governance Design</h4>
+                        <div class="exercise-question">
+                            <p>If you could design one new governance feature for the Kenostod network, what would it be? Describe the feature in detail: what problem does it solve, how would it work technically, what voting mechanism would it use, and how would it interact with existing KENO governance features (reputation system, PoRV, time-locking)?</p>
+                            <textarea id="ex5" placeholder="Design your governance feature for KENO..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="c">
+                    <div class="question-text">1. What does DAO stand for?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Digital Asset Organization</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Distributed Approval Office</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Decentralized Autonomous Organization</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Democratic Authority Operator</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="a">
+                    <div class="question-text">2. In on-chain governance, what happens when a proposal passes the required threshold?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The change is automatically executed by the smart contract</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Developers manually implement the change</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The proposal is forwarded to a central committee</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Nothing happens until the next network upgrade</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="b">
+                    <div class="question-text">3. In quadratic voting, how many tokens does it cost to cast 10 votes?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10 tokens</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>100 tokens</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>20 tokens</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1,000 tokens</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. What percentage supermajority is required for a Kenostod governance proposal to pass?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>51%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>67%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>60%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="c">
+                    <div class="question-text">5. What was the key governance outcome of The DAO hack in 2016?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bitcoin forked into Bitcoin Cash</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The stolen funds were returned by the hacker</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Ethereum hard forked, creating Ethereum Classic</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A DAO was created to repay victims</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="b">
+                    <div class="question-text">6. What is the "rage-quit" mechanism in governance?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Voting against a proposal multiple times</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Withdrawing your proportional share of the treasury before a proposal executes</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Leaving a DAO and selling all your tokens</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Vetoing a proposal with enough tokens</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. Which governance framework is the most widely forked in DeFi?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Compound Governor (Governor Bravo)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Aragon</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Snapshot</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>MolochDAO</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <div class="question-text">8. What is the main vulnerability of quadratic voting?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It's too expensive for whale holders</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It doesn't support delegation</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It requires high gas fees</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Sybil attacks (one person creating many wallets)</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="c">
+                    <div class="question-text">9. What is "progressive decentralization"?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Making all nodes equal from day one</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Slowly increasing the token supply over time</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Starting with centralized control and gradually transferring power to the community</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Requiring progressively more tokens to vote</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="b">
+                    <div class="question-text">10. Without a legal wrapper, DAO members may be treated as which legal structure?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Limited liability company</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>General partnership (with personal liability)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Non-profit foundation</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Corporation</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. What is the primary reason for voter apathy in DAOs?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Rational ignorance: the cost of understanding proposals exceeds the perceived impact of one vote</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Token holders are prohibited from voting more than once per month</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Most DAOs don't allow voting at all</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Voting requires expensive hardware wallets</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="c">
+                    <div class="question-text">12. What unique governance innovation did Optimism introduce?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Quadratic voting for all proposals</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>AI-powered automated governance</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bicameral governance with a Token House and Citizens' House</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mandatory voting for all token holders</span></div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <h3 id="resultIcon"></h3>
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-7-reputation.html" style="color: var(--primary);">&larr; Course 7</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-9-pow.html" style="color: var(--primary);">Course 9 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            const passingScore = 10;
+
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '🎉';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = `You got ${correct}/${total} correct! (${Math.round(correct/total*100)}%)`;
+                document.getElementById('nextCourseContainer').innerHTML = `<p style="margin-top: 15px; color: var(--success);">🎓 +250 KENO Reward!</p><a href="/courses/course-9-pow.html" class="next-course-btn">Course 9: Proof of Work →</a>`;
+                localStorage.setItem('course8_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(8, 'Course 8: Governance');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '📚';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = `You got ${correct}/${total} correct (${Math.round(correct/total*100)}%). You need at least ${passingScore}/${total} (80%) to pass. Review the material and try again!`;
+                document.getElementById('nextCourseContainer').innerHTML = `<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>`;
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            document.getElementById('quizResult').classList.remove('show', 'passed', 'failed');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+
+            if (answer.length < 50) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed response (at least 50 characters). Thoughtful answers demonstrate true understanding.';
+                return;
+            }
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+            feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+            feedback.style.color = '#6ee7b7';
+
+            const feedbackMessages = {
+                1: 'Great analysis! Key considerations include: balancing whale influence with broad participation (quadratic voting, delegation), maintaining Sybil resistance, and ensuring the system remains practical. Consider whether identity solutions, conviction voting, or a bicameral approach could help.',
+                2: 'Excellent ethical reasoning! The core tension is between "code is law" (immutability as a feature) and pragmatic protection of users. Both sides have valid philosophical and practical arguments. Your personal stance shows thoughtful engagement with governance philosophy.',
+                3: 'Strong treasury management thinking! Key elements include: diversifying out of the native token into stablecoins before the bear deepens, reducing non-essential spending, establishing a stablecoin runway of 12-18 months, and using milestone-based grants to control outflows.',
+                4: 'Well-reasoned participation strategies! Effective approaches include: delegation systems, gasless voting (Snapshot/L2), voting rewards/staking incentives, simplified proposal summaries, and education programs. Each has trade-offs between cost, effectiveness, and decentralization.',
+                5: 'Creative governance design! Strong proposals connect to existing KENO features (PoRV reputation, time-locking) and address real problems (apathy, whale dominance, proposal quality). Consider how your feature interacts with the progressive decentralization roadmap.'
+            };
+
+            feedback.textContent = feedbackMessages[num] || 'Good response! Your understanding of governance concepts is developing well.';
+        }
+
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.lesson-section');
+            const tocItems = document.querySelectorAll('.toc-item');
+            let current = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocItems.forEach(item => {
+                item.classList.remove('active');
+                const onclick = item.getAttribute('onclick');
+                if (onclick && onclick.includes(current)) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+<script src="/courses/course-common.js"></script>
+</body>
+</html>
