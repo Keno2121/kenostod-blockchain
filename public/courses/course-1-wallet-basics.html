@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 1: Wallet Management & Cryptography | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+        
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .header-content { max-width: 1000px; margin: 0 auto; }
+        
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .course-title .icon { font-size: 1.2em; }
+        
+        .free-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 600;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+        
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .toc-list { list-style: none; }
+        
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+        
+        .toc-item:hover, .toc-item.active { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
+        
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        
+        .content-area { flex: 1; min-width: 0; }
+        
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-icon { font-size: 1em; }
+        
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+        
+        .key-pair-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .key-box {
+            padding: 25px 30px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 170px;
+        }
+        
+        .key-box.private { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .key-box.public { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .key-box.address { background: linear-gradient(135deg, var(--secondary), #2563eb); }
+        
+        .key-label { font-weight: 600; margin-bottom: 8px; }
+        .key-icon { font-size: 2em; margin-bottom: 10px; }
+        .arrow { font-size: 2em; color: var(--text-muted); }
+        
+        .term-definition {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .term { font-weight: 600; color: var(--primary); min-width: 150px; }
+        .definition { color: var(--text-muted); }
+        
+        .step-list { counter-reset: step-counter; list-style: none; }
+        
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+        
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+        
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+        
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .exercise-question input[type="text"], .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+        }
+        
+        .exercise-question textarea { min-height: 80px; resize: vertical; }
+        
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+        
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .practice-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 2px solid var(--primary);
+        }
+        
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+        
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+        
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+        
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--primary); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--primary); background: var(--primary); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+        
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+        
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--primary); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+        
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+        
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            padding-bottom: 20px;
+            border-left: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 50%;
+        }
+        
+        .timeline-item:last-child { border-left: none; }
+        .timeline-item h5 { color: var(--secondary); margin-bottom: 5px; }
+        .timeline-item p { color: var(--text-muted); font-size: 0.9em; }
+        
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+        
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+        
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .key-pair-diagram { flex-direction: column; }
+            .arrow { transform: rotate(90deg); }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 1
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#128188;</span>
+                Course 1: Wallet Management & Cryptography
+                <span class="free-badge">FREE</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>12 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2-3 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Beginner Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('intro')"><span class="toc-number">2</span>Introduction to Wallets</li>
+                    <li class="toc-item" onclick="scrollToSection('history')"><span class="toc-number">3</span>History of Digital Money</li>
+                    <li class="toc-item" onclick="scrollToSection('cryptography')"><span class="toc-number">4</span>Cryptography Foundations</li>
+                    <li class="toc-item" onclick="scrollToSection('keypairs')"><span class="toc-number">5</span>Key Pairs Deep Dive</li>
+                    <li class="toc-item" onclick="scrollToSection('signatures')"><span class="toc-number">6</span>Digital Signatures</li>
+                    <li class="toc-item" onclick="scrollToSection('wallet-types')"><span class="toc-number">7</span>Types of Wallets</li>
+                    <li class="toc-item" onclick="scrollToSection('security')"><span class="toc-number">8</span>Security Best Practices</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">9</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">10</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">11</span>Hands-On Lab</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">12</span>Final Exam (15 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+        
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Explain what a blockchain wallet is and how it differs from traditional financial accounts</div></li>
+                    <li class="step-item"><div class="step-title">Understand the complete history of digital money from e-gold to modern cryptocurrency</div></li>
+                    <li class="step-item"><div class="step-title">Describe asymmetric cryptography, hash functions, and the secp256k1 elliptic curve</div></li>
+                    <li class="step-item"><div class="step-title">Explain the relationship between private keys, public keys, and wallet addresses</div></li>
+                    <li class="step-item"><div class="step-title">Understand how digital signatures provide authentication, integrity, and non-repudiation</div></li>
+                    <li class="step-item"><div class="step-title">Compare and evaluate different wallet types (hot, cold, hardware, paper, multisig)</div></li>
+                    <li class="step-item"><div class="step-title">Apply security best practices to protect cryptocurrency assets</div></li>
+                    <li class="step-item"><div class="step-title">Create your own wallet using the Kenostod blockchain simulator</div></li>
+                </ul>
+                
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>2-3 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding takes time, and the 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <section id="intro" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128214;</span>Introduction to Blockchain Wallets</h2>
+                <div class="reading-content">
+                    <p>A <strong>blockchain wallet</strong> is your gateway to the world of cryptocurrency. Unlike a traditional wallet that holds physical cash, a blockchain wallet doesn't actually "store" your coins. Instead, it stores the <em>cryptographic keys</em> that prove you own those coins on the blockchain.</p>
+                    
+                    <p>Think of it this way: the blockchain is like a giant public ledger that records who owns what. Your wallet is like having the keys to a safety deposit box &mdash; the box (your coins) sits in the bank (the blockchain), but only you have the key to access it.</p>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Key Insight</div>
+                        <p>Your cryptocurrency isn't actually "in" your wallet. It's recorded on the blockchain. Your wallet simply holds the keys that prove ownership and allow you to authorize transactions. This is one of the most common misconceptions in cryptocurrency.</p>
+                    </div>
+                    
+                    <h3>Why Wallets Are Foundational</h3>
+                    <p>Every transaction on a blockchain requires proof that you're the legitimate owner of the funds. This proof comes from your wallet's <strong>digital signature</strong> &mdash; a unique cryptographic fingerprint that only your private key can create. Without this, anyone could claim to own your coins!</p>
+                    
+                    <p>The wallet concept is fundamental to ALL blockchain systems, including:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 20px;">
+                        <li><strong>Bitcoin (BTC)</strong> &mdash; The original cryptocurrency, launched 2009</li>
+                        <li><strong>Ethereum (ETH)</strong> &mdash; Smart contract platform with wallets that can interact with dApps</li>
+                        <li><strong>Binance Smart Chain (BSC)</strong> &mdash; Where KENO lives! Compatible with Ethereum wallets</li>
+                        <li><strong>Solana, Cardano, Polkadot</strong> &mdash; Each has their own wallet ecosystem</li>
+                    </ul>
+                    
+                    <h3>Traditional Bank Account vs. Blockchain Wallet</h3>
+                    <p>Understanding the differences is crucial for anyone entering the crypto space:</p>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Bank Account</th>
+                                <th>Blockchain Wallet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Control</td><td>Bank controls your money</td><td>You have full control</td></tr>
+                            <tr><td>Access</td><td>Can be frozen or restricted</td><td>Cannot be frozen by anyone</td></tr>
+                            <tr><td>Identity</td><td>Requires ID, SSN, proof of address</td><td>Can be created anonymously</td></tr>
+                            <tr><td>Hours</td><td>Business hours, 3-5 day transfers</td><td>24/7, minutes to confirm</td></tr>
+                            <tr><td>Recovery</td><td>Call the bank, prove identity</td><td>Lose your key = lose everything</td></tr>
+                            <tr><td>Fees</td><td>Monthly fees, overdraft, wire fees</td><td>Small transaction fees only</td></tr>
+                            <tr><td>Privacy</td><td>Bank sees all transactions</td><td>Pseudonymous on public ledger</td></tr>
+                            <tr><td>Insurance</td><td>FDIC insured up to $250K</td><td>No insurance (you are the bank)</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Double-Edged Sword</div>
+                        <p>With a blockchain wallet, you are your own bank. This means complete freedom &mdash; but also complete responsibility. There's no "forgot password" button, no customer service to call, and no way to reverse a transaction sent to the wrong address. This is why education matters, and why you're earning KENO for learning!</p>
+                    </div>
+                    
+                    <h3>How Wallets Interact with the Blockchain</h3>
+                    <p>When you use a wallet to send cryptocurrency, here's what actually happens step by step:</p>
+                    
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">You Create a Transaction</div>
+                            <p>Your wallet software creates a message saying "Send X amount from my address to this other address." This message includes the exact amount, the recipient, and a transaction fee.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Your Wallet Signs It</div>
+                            <p>Using your private key, the wallet creates a digital signature. This signature mathematically proves you authorized this specific transaction without revealing your private key.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Broadcast to the Network</div>
+                            <p>The signed transaction is broadcast to the blockchain network. Thousands of nodes receive it and can verify the signature using your public key.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Miners/Validators Confirm</div>
+                            <p>Miners (Proof of Work) or validators (Proof of Stake) verify the signature is valid, check you have sufficient balance, and include the transaction in a new block.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Permanent Record</div>
+                            <p>Once included in a block, the transaction becomes a permanent part of the blockchain. The recipient's balance increases, yours decreases, and the record exists forever.</p>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="history" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128218;</span>The History of Digital Money</h2>
+                <div class="reading-content">
+                    <p>To truly understand wallets and cryptocurrency, you need to understand the decades of innovation that led to Bitcoin. The idea of digital money didn't start in 2009 &mdash; it started in the 1980s.</p>
+                    
+                    <h3>The Timeline of Digital Currency</h3>
+                    
+                    <div class="timeline-item">
+                        <h5>1983 &mdash; David Chaum's eCash</h5>
+                        <p>Cryptographer David Chaum invented "blind signatures" and created eCash &mdash; the first digital currency that offered true anonymity. His company DigiCash went bankrupt in 1998, but the ideas lived on. Chaum proved that mathematics could replace trust in financial transactions.</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>1996 &mdash; e-gold</h5>
+                        <p>e-gold allowed users to open accounts denominated in grams of gold. At its peak, it processed $2 billion in transactions annually. However, it was centralized (one company controlled everything), making it vulnerable to government shutdown &mdash; which happened in 2009.</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>1997 &mdash; Adam Back's Hashcash</h5>
+                        <p>Adam Back invented Hashcash, a proof-of-work system originally designed to prevent email spam. The concept of "computational work as proof" became a cornerstone of Bitcoin's mining system. Back is now CEO of Blockstream.</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>1998 &mdash; Wei Dai's b-money & Nick Szabo's Bit Gold</h5>
+                        <p>Two separate proposals for decentralized digital currency. Wei Dai's b-money proposed a system where digital money is created through computational work. Nick Szabo's Bit Gold was remarkably similar to what Bitcoin would become, including proof-of-work, timestamping, and digital property rights. Both are cited in the Bitcoin whitepaper.</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>2004 &mdash; Hal Finney's RPOW</h5>
+                        <p>Hal Finney created Reusable Proof of Work (RPOW), a system that allowed proof-of-work tokens to be reused. Finney would later become the recipient of the first-ever Bitcoin transaction from Satoshi Nakamoto.</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>2008 &mdash; Bitcoin Whitepaper Published</h5>
+                        <p>On October 31, 2008, an anonymous person (or group) using the name "Satoshi Nakamoto" published "Bitcoin: A Peer-to-Peer Electronic Cash System." The 9-page paper solved the "double-spending problem" without needing a trusted third party &mdash; one of the greatest innovations in computer science history.</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>2009 &mdash; Bitcoin Network Launches</h5>
+                        <p>On January 3, 2009, Satoshi mined the "genesis block" (Block 0), embedding the headline: "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks." This was a statement about the financial system that Bitcoin was designed to replace. The first wallet was born.</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>2015 &mdash; Ethereum Launches Smart Contracts</h5>
+                        <p>Vitalik Buterin created Ethereum, extending Bitcoin's concept with programmable "smart contracts." Now wallets weren't just for sending money &mdash; they could interact with complex applications, creating an entire ecosystem of decentralized finance (DeFi).</p>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <h5>2020 &mdash; Binance Smart Chain (BSC)</h5>
+                        <p>Binance launched BSC, an EVM-compatible blockchain with faster transactions and lower fees than Ethereum. KENO is a BEP-20 token on BSC, meaning it uses the same wallet technology as Ethereum but benefits from BSC's speed and affordability.</p>
+                    </div>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Why This History Matters</div>
+                        <p>Every innovation in this timeline solved a problem that the previous system couldn't. David Chaum gave us cryptographic privacy. Adam Back gave us proof of work. Satoshi combined everything into Bitcoin. Understanding this history helps you appreciate why wallet security matters &mdash; millions of dollars have been lost by people who didn't understand the technology they were using.</p>
+                    </div>
+                    
+                    <h3>The Evolution of Wallet Technology</h3>
+                    <p>Wallets have evolved dramatically since Bitcoin's early days:</p>
+                    
+                    <ul style="margin-left: 25px; margin-bottom: 20px;">
+                        <li><strong>2009-2011:</strong> Command-line only. Users had to run full Bitcoin nodes and manage raw key files. Extremely technical.</li>
+                        <li><strong>2011-2013:</strong> First GUI wallets (Bitcoin-Qt). Still required downloading the entire blockchain (100+ GB).</li>
+                        <li><strong>2013-2015:</strong> Web wallets and mobile wallets emerged (Blockchain.info, Mycelium). Accessibility improved dramatically.</li>
+                        <li><strong>2014-present:</strong> Hardware wallets (Trezor 2014, Ledger 2016) brought bank-grade security to consumers.</li>
+                        <li><strong>2017-present:</strong> Multi-chain wallets (MetaMask, Trust Wallet) that work across multiple blockchains.</li>
+                        <li><strong>2020-present:</strong> Social recovery wallets, smart contract wallets (Argent, Safe), and Account Abstraction making wallets more user-friendly.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="cryptography" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128274;</span>Cryptography Foundations</h2>
+                <div class="reading-content">
+                    <p><strong>Cryptography</strong> is the science of secure communication. In blockchain, we use a specific type called <strong>asymmetric cryptography</strong> (also known as public-key cryptography). This section will take you from the basics to a working understanding of the math that secures billions of dollars.</p>
+                    
+                    <h3>Symmetric vs. Asymmetric Cryptography</h3>
+                    <p>Before we dive into blockchain cryptography, you need to understand the two main types:</p>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Symmetric (AES, DES)</th>
+                                <th>Asymmetric (RSA, ECC)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Keys</td><td>One shared key</td><td>Two keys (public + private)</td></tr>
+                            <tr><td>Speed</td><td>Very fast</td><td>Slower</td></tr>
+                            <tr><td>Key Distribution</td><td>Must share key securely</td><td>Public key is shared openly</td></tr>
+                            <tr><td>Use Case</td><td>Encrypting files, disk encryption</td><td>Digital signatures, key exchange</td></tr>
+                            <tr><td>Blockchain Use</td><td>Encrypting messages (Course 6)</td><td>Signing transactions (THIS!)</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Hash Functions: The Foundation</h3>
+                    <p>A <strong>hash function</strong> takes any input and produces a fixed-length output called a "hash" or "digest." In blockchain, we use SHA-256 (Secure Hash Algorithm, 256-bit), the same algorithm used by Bitcoin.</p>
+                    
+                    <p>Key properties of cryptographic hash functions:</p>
+                    
+                    <div class="term-definition">
+                        <span class="term">Deterministic</span>
+                        <span class="definition">The same input ALWAYS produces the same output. Hash("Hello") always equals the same 64-character hex string.</span>
+                    </div>
+                    
+                    <div class="term-definition">
+                        <span class="term">One-Way</span>
+                        <span class="definition">Given a hash output, it's computationally impossible to determine the input. You can't "reverse" a hash.</span>
+                    </div>
+                    
+                    <div class="term-definition">
+                        <span class="term">Avalanche Effect</span>
+                        <span class="definition">Changing even one character in the input produces a completely different hash. "Hello" and "hello" produce totally unrelated outputs.</span>
+                    </div>
+                    
+                    <div class="term-definition">
+                        <span class="term">Collision Resistant</span>
+                        <span class="definition">It's virtually impossible to find two different inputs that produce the same hash output. SHA-256 has 2^256 possible outputs &mdash; more than atoms in the observable universe.</span>
+                    </div>
+                    
+                    <div class="code-example">
+                        <span class="code-comment">// SHA-256 hash examples showing the avalanche effect</span><br><br>
+                        <span class="code-function">SHA256</span>(<span class="code-string">"Hello"</span>)<br>
+                        = <span class="code-string">"185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969"</span><br><br>
+                        <span class="code-function">SHA256</span>(<span class="code-string">"hello"</span>) <span class="code-comment">// Just changed H to h</span><br>
+                        = <span class="code-string">"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"</span><br><br>
+                        <span class="code-comment">// Completely different! One character change = totally new hash</span>
+                    </div>
+                    
+                    <h3>The secp256k1 Elliptic Curve</h3>
+                    <p>KENO (and Bitcoin, Ethereum, and most major cryptocurrencies) use a specific mathematical curve called <strong>secp256k1</strong> for generating key pairs. This is an <em>elliptic curve</em> defined by the equation:</p>
+                    
+                    <div class="code-example" style="text-align: center; font-size: 1.2em;">
+                        y<sup>2</sup> = x<sup>3</sup> + 7 &nbsp; (mod p)
+                    </div>
+                    
+                    <p>Where p is a very large prime number (2<sup>256</sup> - 2<sup>32</sup> - 977). The security comes from the <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong>: given a point on the curve, it's easy to multiply it by a number, but virtually impossible to figure out what number was used just from the result.</p>
+                    
+                    <p><strong>Why secp256k1 specifically?</strong></p>
+                    <ul style="margin-left: 25px; margin-bottom: 20px;">
+                        <li><strong>Security:</strong> 256-bit security level. To brute-force a private key, you'd need to try 2<sup>256</sup> combinations &mdash; that's more attempts than there are atoms in the observable universe.</li>
+                        <li><strong>Efficiency:</strong> Specially constructed (non-random) parameters make computation ~30% faster than random curves.</li>
+                        <li><strong>No backdoors:</strong> Unlike NIST curves (which some suspect may have NSA backdoors), secp256k1's parameters are transparent and verifiable.</li>
+                        <li><strong>Standardization:</strong> Used by Bitcoin since 2009, battle-tested with trillions of dollars at stake.</li>
+                    </ul>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Quantum Computing Threat</div>
+                        <p>While classical computers can't break secp256k1, a sufficiently powerful quantum computer theoretically could using Shor's algorithm. However, quantum-resistant cryptography (lattice-based, hash-based signatures) is being actively developed. Bitcoin and Ethereum plan to transition before quantum computers become powerful enough. This is estimated to be at least 15-20 years away.</p>
+                    </div>
+                    
+                    <h3>Key Vocabulary Review</h3>
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Asymmetric Cryptography</div>
+                            <div class="vocab-def">Encryption using two mathematically linked keys (public + private)</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">SHA-256</div>
+                            <div class="vocab-def">Secure Hash Algorithm producing a 256-bit (64 hex character) hash</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Elliptic Curve</div>
+                            <div class="vocab-def">A mathematical curve used for generating extremely secure key pairs</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">ECDLP</div>
+                            <div class="vocab-def">The hard math problem that makes elliptic curve cryptography secure</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Hash Function</div>
+                            <div class="vocab-def">One-way function that converts any input into a fixed-size output</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Avalanche Effect</div>
+                            <div class="vocab-def">Tiny input changes cause completely different hash outputs</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="keypairs" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128273;</span>Key Pairs Deep Dive</h2>
+                <div class="reading-content">
+                    <p>The relationship between your private key, public key, and wallet address follows a one-way path. You can always derive the public key from the private key, and the address from the public key &mdash; but NEVER in reverse.</p>
+                    
+                    <div class="diagram-container">
+                        <div class="diagram-title">Key Derivation Flow</div>
+                        <div class="key-pair-diagram">
+                            <div class="key-box private">
+                                <div class="key-icon">&#128274;</div>
+                                <div class="key-label">Private Key</div>
+                                <div style="font-size: 0.8em; opacity: 0.8;">Secret (256 bits)</div>
+                            </div>
+                            <div class="arrow">&rarr;</div>
+                            <div class="key-box public">
+                                <div class="key-icon">&#128275;</div>
+                                <div class="key-label">Public Key</div>
+                                <div style="font-size: 0.8em; opacity: 0.8;">Shareable (512 bits)</div>
+                            </div>
+                            <div class="arrow">&rarr;</div>
+                            <div class="key-box address">
+                                <div class="key-icon">&#128205;</div>
+                                <div class="key-label">Wallet Address</div>
+                                <div style="font-size: 0.8em; opacity: 0.8;">User-Friendly (40 chars)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3>The Private Key</h3>
+                    <p>A private key is simply a random 256-bit number. That's 32 bytes, or 64 hexadecimal characters. Here's what one looks like:</p>
+                    
+                    <div class="code-example">
+                        <span class="code-comment">// Example private key (NEVER use this one &mdash; it's been published!)</span><br>
+                        <span class="code-string">"e9873d79c6d87dc0fb6a5778633389f4453213303da61f20bd67fc233aa33262"</span><br><br>
+                        <span class="code-comment">// The total number of possible private keys:</span><br>
+                        <span class="code-number">2^256</span> = <span class="code-number">1.15 x 10^77</span> possible keys<br><br>
+                        <span class="code-comment">// For comparison, estimated atoms in the observable universe:</span><br>
+                        <span class="code-number">~10^80</span> atoms<br><br>
+                        <span class="code-comment">// So the number of possible keys is nearly as large as the number</span><br>
+                        <span class="code-comment">// of atoms in the universe. Guessing your key is impossible.</span>
+                    </div>
+                    
+                    <h3>From Private Key to Public Key</h3>
+                    <p>The public key is derived by multiplying a "generator point" (G) on the secp256k1 curve by your private key number. This is called <strong>scalar multiplication</strong> on an elliptic curve.</p>
+                    
+                    <div class="code-example">
+                        <span class="code-comment">// Conceptual derivation (simplified)</span><br>
+                        <span class="code-keyword">const</span> privateKey = <span class="code-number">BigInt</span>(<span class="code-string">"0xe9873d..."</span>);<br>
+                        <span class="code-keyword">const</span> publicKey = G.<span class="code-function">multiply</span>(privateKey); <span class="code-comment">// Point on the curve</span><br><br>
+                        <span class="code-comment">// The public key is two 256-bit numbers (x, y coordinates)</span><br>
+                        <span class="code-comment">// Uncompressed format: 04 + x + y (65 bytes)</span><br>
+                        <span class="code-comment">// Compressed format: 02/03 + x (33 bytes)</span>
+                    </div>
+                    
+                    <h3>From Public Key to Wallet Address</h3>
+                    <p>The wallet address is created by hashing the public key. On Ethereum/BSC (where KENO lives), the process is:</p>
+                    
+                    <div class="code-example">
+                        <span class="code-comment">// Ethereum/BSC Address Derivation</span><br>
+                        <span class="code-keyword">const</span> hash = <span class="code-function">keccak256</span>(publicKey);<br>
+                        <span class="code-keyword">const</span> address = <span class="code-string">"0x"</span> + hash.<span class="code-function">slice</span>(-<span class="code-number">40</span>); <span class="code-comment">// Last 20 bytes</span><br><br>
+                        <span class="code-comment">// Result: "0x742d35Cc6634C0532925a3b844Bc9e7595f..."</span><br>
+                        <span class="code-comment">// This is what you share with others to receive funds!</span>
+                    </div>
+                    
+                    <h3>Seed Phrases (Mnemonic Recovery)</h3>
+                    <p>Modern wallets don't show you the raw private key. Instead, they use a <strong>seed phrase</strong> (also called mnemonic phrase) &mdash; 12 or 24 English words that encode your private key in a human-readable format.</p>
+                    
+                    <div class="code-example">
+                        <span class="code-comment">// Example 12-word seed phrase (DO NOT USE THIS!)</span><br>
+                        <span class="code-string">"abandon ability able about above absent absorb abstract absurd abuse access accident"</span><br><br>
+                        <span class="code-comment">// BIP-39 standard: 2048 possible words per position</span><br>
+                        <span class="code-comment">// 12 words = 2048^12 = 2^132 possible combinations</span><br>
+                        <span class="code-comment">// That's 5.4 x 10^39 possibilities &mdash; unguessable</span>
+                    </div>
+                    
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#128680; CRITICAL: Seed Phrase Security</div>
+                        <p>Your seed phrase IS your wallet. Anyone who has these 12/24 words can access ALL your funds across ALL blockchains derived from that seed. Write it on paper. Store it in a safe. NEVER type it into a website. NEVER take a screenshot. NEVER store it in a text file, cloud storage, or email.</p>
+                    </div>
+                    
+                    <h3>HD Wallets: One Seed, Many Accounts</h3>
+                    <p>Modern wallets use <strong>Hierarchical Deterministic (HD)</strong> key derivation (BIP-32/44). From a single seed phrase, your wallet can generate billions of unique addresses. Each blockchain and account gets its own derivation path:</p>
+                    
+                    <div class="code-example">
+                        <span class="code-comment">// BIP-44 Derivation Paths</span><br>
+                        m/44'/60'/0'/0/0 &nbsp;&nbsp;<span class="code-comment">// Ethereum account 1</span><br>
+                        m/44'/60'/0'/0/1 &nbsp;&nbsp;<span class="code-comment">// Ethereum account 2</span><br>
+                        m/44'/0'/0'/0/0 &nbsp;&nbsp;&nbsp;<span class="code-comment">// Bitcoin account 1</span><br>
+                        m/44'/56'/0'/0/0 &nbsp;&nbsp;<span class="code-comment">// BSC account 1 (where KENO lives)</span>
+                    </div>
+                    
+                    <p>This means one seed phrase backs up ALL your wallets across ALL blockchains. Lose the seed phrase = lose access to everything.</p>
+                </div>
+            </section>
+
+            <section id="signatures" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9997;&#65039;</span>Digital Signatures Explained</h2>
+                <div class="reading-content">
+                    <p>Digital signatures are the mechanism that makes blockchain transactions trustworthy without a central authority. Every time you send KENO, your wallet creates a digital signature that proves three things:</p>
+                    
+                    <div class="term-definition">
+                        <span class="term">Authentication</span>
+                        <span class="definition">The signature proves you are the legitimate owner of the sending address. Only the holder of the private key could create this signature.</span>
+                    </div>
+                    
+                    <div class="term-definition">
+                        <span class="term">Integrity</span>
+                        <span class="definition">The signature is mathematically linked to the exact transaction data. If anyone changes even one digit of the amount or recipient, the signature becomes invalid.</span>
+                    </div>
+                    
+                    <div class="term-definition">
+                        <span class="term">Non-Repudiation</span>
+                        <span class="definition">Once signed and broadcast, you cannot deny making the transaction. The cryptographic proof is irrefutable and permanently recorded.</span>
+                    </div>
+                    
+                    <h3>How ECDSA Signing Works</h3>
+                    <p>Blockchain uses <strong>ECDSA</strong> (Elliptic Curve Digital Signature Algorithm). Here's the conceptual process:</p>
+                    
+                    <div class="code-example">
+                        <span class="code-comment">// Step 1: Create the transaction message</span><br>
+                        <span class="code-keyword">const</span> transaction = {<br>
+                        &nbsp;&nbsp;from: <span class="code-string">"0xYourAddress"</span>,<br>
+                        &nbsp;&nbsp;to: <span class="code-string">"0xRecipientAddress"</span>,<br>
+                        &nbsp;&nbsp;amount: <span class="code-number">100</span>, <span class="code-comment">// KENO</span><br>
+                        &nbsp;&nbsp;fee: <span class="code-number">0.5</span>,<br>
+                        &nbsp;&nbsp;timestamp: <span class="code-number">1706817600</span><br>
+                        };<br><br>
+                        <span class="code-comment">// Step 2: Hash the transaction</span><br>
+                        <span class="code-keyword">const</span> txHash = <span class="code-function">SHA256</span>(JSON.<span class="code-function">stringify</span>(transaction));<br><br>
+                        <span class="code-comment">// Step 3: Sign the hash with your private key</span><br>
+                        <span class="code-keyword">const</span> signature = <span class="code-function">ecdsaSign</span>(txHash, privateKey);<br>
+                        <span class="code-comment">// Produces (r, s, v) values &mdash; the signature</span><br><br>
+                        <span class="code-comment">// Step 4: Anyone can verify using ONLY the public key</span><br>
+                        <span class="code-keyword">const</span> isValid = <span class="code-function">ecdsaVerify</span>(txHash, signature, publicKey);<br>
+                        <span class="code-comment">// Returns: true (if signature matches)</span><br><br>
+                        <span class="code-comment">// The private key is NEVER transmitted or revealed!</span>
+                    </div>
+                    
+                    <h3>Signature Verification in Practice</h3>
+                    <p>When a node on the network receives your transaction, it performs these checks:</p>
+                    
+                    <ul class="step-list">
+                        <li class="step-item"><div class="step-title">Extract the Signature</div><p>Parse the (r, s, v) values from the transaction data.</p></li>
+                        <li class="step-item"><div class="step-title">Recover the Public Key</div><p>Using the signature and transaction hash, mathematically recover the signer's public key. This is a unique property of ECDSA.</p></li>
+                        <li class="step-item"><div class="step-title">Derive the Address</div><p>Hash the recovered public key to get the wallet address.</p></li>
+                        <li class="step-item"><div class="step-title">Compare Addresses</div><p>If the derived address matches the "from" address in the transaction, the signature is valid. The transaction is legitimate.</p></li>
+                    </ul>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod's Transaction Signing</div>
+                        <p>In the Kenostod blockchain simulator, you'll see this process in action. When you send KENO in Course 2 (Transactions), the simulator shows you the hash, the signature components, and the verification result in real-time. This is the same process that secures billions of dollars on Bitcoin and Ethereum.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="wallet-types" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128188;</span>Types of Wallets</h2>
+                <div class="reading-content">
+                    <p>Not all wallets are created equal. Each type makes different tradeoffs between security, convenience, and control. Understanding these tradeoffs is essential for protecting your assets.</p>
+                    
+                    <h3>Hot Wallets (Internet Connected)</h3>
+                    <p>Hot wallets are connected to the internet, making them convenient but more vulnerable to hacking.</p>
+                    
+                    <h4>Software Wallets (Desktop/Mobile)</h4>
+                    <p>Applications installed on your computer or phone. Examples: MetaMask, Trust Wallet, Exodus, Electrum.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Free, easy to use, support multiple currencies, can interact with DeFi</li>
+                        <li><strong>Cons:</strong> Vulnerable to malware, keyloggers, and phishing attacks. If your device is compromised, your keys are compromised.</li>
+                        <li><strong>Best for:</strong> Day-to-day transactions with small-to-medium amounts</li>
+                    </ul>
+                    
+                    <h4>Web Wallets (Browser-Based)</h4>
+                    <p>Accessed through a web browser. Examples: MyEtherWallet (MEW), Blockchain.com wallet.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Access from any device, no installation needed</li>
+                        <li><strong>Cons:</strong> Server could be hacked, phishing risk is high, you might be trusting a third party with your keys</li>
+                        <li><strong>Best for:</strong> Quick access, small amounts only</li>
+                    </ul>
+                    
+                    <h4>Exchange Wallets (Custodial)</h4>
+                    <p>Wallets provided by exchanges like Coinbase, Binance, Kraken.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Easy to use, customer support, insurance in some cases</li>
+                        <li><strong>Cons:</strong> "Not your keys, not your coins." The exchange controls your private keys. If they get hacked or go bankrupt, you could lose everything.</li>
+                        <li><strong>Best for:</strong> Trading, but NOT long-term storage</li>
+                    </ul>
+                    
+                    <h3>Cold Wallets (Offline Storage)</h3>
+                    <p>Cold wallets keep your private keys completely offline, making them virtually immune to remote hacking.</p>
+                    
+                    <h4>Hardware Wallets</h4>
+                    <p>Physical devices (USB-like) that store your private keys in a secure chip. Examples: Ledger Nano S/X, Trezor Model T, GridPlus Lattice1.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Keys never leave the device, immune to malware, physical button confirmation required</li>
+                        <li><strong>Cons:</strong> Cost ($60-$250), can be lost or damaged, supply chain attacks possible</li>
+                        <li><strong>Best for:</strong> Long-term storage of significant amounts</li>
+                    </ul>
+                    
+                    <h4>Paper Wallets</h4>
+                    <p>Your private key and address printed on physical paper. The most basic form of cold storage.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Free, immune to hacking, no electronic failure points</li>
+                        <li><strong>Cons:</strong> Can be destroyed (fire, water), stolen physically, difficult to use for transactions</li>
+                        <li><strong>Best for:</strong> Very long-term "vault" storage</li>
+                    </ul>
+                    
+                    <h3>Advanced Wallet Types</h3>
+                    
+                    <h4>Multisignature (Multisig) Wallets</h4>
+                    <p>Require multiple private keys to authorize a transaction (e.g., 2-of-3 or 3-of-5). Used by organizations and high-value individuals.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Example:</strong> A company treasury requires 3 out of 5 executives to sign any withdrawal</li>
+                        <li><strong>Pros:</strong> No single point of failure, prevents insider theft</li>
+                        <li><strong>Cons:</strong> More complex to set up and manage</li>
+                    </ul>
+                    
+                    <h4>Smart Contract Wallets</h4>
+                    <p>Wallets that are themselves smart contracts on the blockchain, enabling features impossible with regular wallets.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Social Recovery:</strong> Designate trusted contacts who can help you recover access (Kenostod teaches this in Course 5!)</li>
+                        <li><strong>Spending Limits:</strong> Set daily transaction limits for security</li>
+                        <li><strong>Account Abstraction:</strong> Pay gas fees in any token, batch transactions, use sessions</li>
+                    </ul>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Which Wallet Should You Use?</div>
+                        <p>The best strategy is to use <strong>multiple wallets for different purposes</strong>. Keep a small amount in a hot wallet (like MetaMask) for daily transactions and DeFi. Store the majority of your holdings in a hardware wallet (like Ledger) for security. Think of it like keeping some cash in your pocket and the rest in a safe at home.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="security" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Security Best Practices</h2>
+                <div class="reading-content">
+                    <p>Your private key is the ONLY thing standing between your crypto and anyone who wants to steal it. Here are the comprehensive rules of wallet security:</p>
+                    
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Never Share Your Private Key or Seed Phrase</div>
+                            <p>No legitimate service, support team, or blockchain developer will EVER ask for your private key. If someone asks, it's a scam &mdash; 100% of the time. This includes "customer support" on Discord, Telegram, Twitter DMs, and emails.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Use Secure Backup Methods</div>
+                            <p>Write your seed phrase on paper (or stamp it in metal) and store it in a secure location like a safe or safety deposit box. Consider making two copies stored in different locations. Never store it digitally &mdash; no photos, no cloud storage, no text files.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Verify Every Address Before Sending</div>
+                            <p>Always double-check the recipient address before confirming a transaction. Clipboard-hijacking malware can replace the address you copied with the attacker's address. Verify at least the first 6 and last 6 characters.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Use Hardware Wallets for Significant Holdings</div>
+                            <p>If you hold more than you'd be comfortable losing, invest in a hardware wallet. A $80 Ledger is cheap insurance for thousands of dollars in crypto.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Beware of Phishing</div>
+                            <p>Always verify you're on the correct website before entering any wallet information. Bookmark important sites. Check the URL carefully &mdash; "metamaask.io" is not "metamask.io". Never click wallet links in emails or messages.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Enable Two-Factor Authentication (2FA)</div>
+                            <p>For any exchange accounts, enable 2FA using an authenticator app (Google Authenticator, Authy) &mdash; NOT SMS 2FA, which is vulnerable to SIM-swapping attacks.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Keep Software Updated</div>
+                            <p>Always update your wallet software, browser extensions, and operating system. Security patches fix known vulnerabilities that attackers actively exploit.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Use Separate Devices for High-Value Transactions</div>
+                            <p>Consider using a dedicated device (phone or computer) exclusively for crypto transactions. Don't install random apps or visit risky websites on this device.</p>
+                        </li>
+                    </ul>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod Advantage: Social Recovery</div>
+                        <p>In Course 5, you'll learn about Kenostod's innovative <strong>Social Recovery</strong> feature &mdash; a safety net that lets trusted guardians help you recover your wallet if you ever lose your private key. Combined with the <strong>5-minute transaction reversal window</strong> (Course 3), Kenostod is designed to be one of the safest blockchain platforms for learners.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These real events demonstrate why wallet security and understanding are absolutely critical:</p>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 1: The Mt. Gox Disaster (2014)</h4>
+                        <p><strong>What happened:</strong> Mt. Gox, once handling 70% of all Bitcoin transactions globally, was hacked. 850,000 Bitcoin (worth ~$450 million at the time, over $50 billion at peak prices) were stolen.</p>
+                        <p style="margin-top: 10px;"><strong>The cause:</strong> Users trusted a centralized exchange to hold their private keys. The exchange had poor security practices, including storing keys on internet-connected servers.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> "Not your keys, not your coins." If you don't control the private keys, you don't truly own the cryptocurrency. This event is why experienced crypto users always recommend self-custody wallets.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 2: The Lost Bitcoin Fortune (Stefan Thomas, 2021)</h4>
+                        <p><strong>What happened:</strong> Stefan Thomas, a programmer, lost the password to his IronKey hardware wallet containing 7,002 Bitcoin (worth over $220 million). The IronKey allows only 10 incorrect password attempts before permanently encrypting the drive. He had 2 attempts remaining.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Backup your recovery seed phrase. A hardware wallet protects against remote attacks, but it cannot protect against human forgetfulness. Multiple secure backups of your seed phrase are essential.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 3: The $600M Ronin Bridge Hack (2022)</h4>
+                        <p><strong>What happened:</strong> North Korean hackers (Lazarus Group) compromised 5 of 9 validator private keys on the Ronin Network (Axie Infinity's blockchain bridge). They drained $600 million in ETH and USDC.</p>
+                        <p style="margin-top: 10px;"><strong>The cause:</strong> The validator nodes were poorly secured, and the multisig requirement (5 of 9) was too low. One organization controlled 4 keys.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Multisig wallets are only secure if the keys are truly distributed among independent parties. Concentration of key control defeats the purpose.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 4: The FTX Collapse (2022)</h4>
+                        <p><strong>What happened:</strong> FTX, the second-largest crypto exchange, filed for bankruptcy after it was revealed that customer funds ($8 billion) were secretly transferred to sister company Alameda Research for risky trading.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Even billion-dollar companies with celebrity endorsements can fail. The core principle remains: if someone else holds your private keys, your funds are at risk. Self-custody is the only way to guarantee your assets are safe.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Explain It Like I'm Five</h4>
+                        <div class="exercise-question">
+                            <p>Your friend asks: "What's a crypto wallet?" Write an explanation using a real-world analogy (like a mailbox, locker, etc.) that a complete beginner would understand. Avoid using any technical terms.</p>
+                            <textarea id="ex1" placeholder="Write your explanation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Security Scenario Analysis</h4>
+                        <div class="exercise-question">
+                            <p>You receive this message on Discord: "Hey! I'm from Kenostod Support. We noticed suspicious activity on your account. Please send us your seed phrase so we can verify your identity and protect your KENO tokens." What do you do and why?</p>
+                            <textarea id="ex2" placeholder="Write your response here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Wallet Selection</h4>
+                        <div class="exercise-question">
+                            <p>You just earned 5,250 KENO (worth $5,250) from completing all 21 Kenostod courses. Describe your wallet strategy: What type(s) of wallet would you use? How would you split your holdings? What security measures would you implement?</p>
+                            <textarea id="ex3" placeholder="Describe your wallet strategy..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Key Derivation Understanding</h4>
+                        <div class="exercise-question">
+                            <p>Explain why it's safe to share your public key and wallet address with anyone, but dangerous to share your private key. What mathematical property makes this possible?</p>
+                            <textarea id="ex4" placeholder="Explain the security model..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Historical Analysis</h4>
+                        <div class="exercise-question">
+                            <p>Choose one of the case studies above (Mt. Gox, Stefan Thomas, Ronin, or FTX). If you were in charge of security for that organization, what specific measures would you have implemented to prevent the incident?</p>
+                            <textarea id="ex5" placeholder="Describe the preventive measures..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128421;&#65039;</span>Hands-On Lab</h2>
+                <div class="reading-content">
+                    <p>Now it's time to put your knowledge into action! Complete ALL of the following tasks in the Kenostod blockchain simulator.</p>
+                    
+                    <h3>Lab Tasks:</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Task 1: Generate a New Wallet</div>
+                            <p>Go to the Wallet tab and click "Create Wallet." Observe the private key, public key, and wallet address that are generated. Notice how the address is much shorter than the public key.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 2: Examine Your Key Pair</div>
+                            <p>Look at your generated keys. Count the characters in each: Private key (64 hex chars), Public key (128 hex chars), Address (42 chars including 0x prefix). This confirms the derivation hierarchy you learned.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 3: Create a Second Wallet</div>
+                            <p>Generate another wallet. Compare the two addresses. Notice how they're completely different even though they were generated moments apart &mdash; this is because each private key is randomly generated with 2^256 possibilities.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 4: Check Your Balance</div>
+                            <p>New wallets receive 1,000 KENO from the faucet. Verify this appears in your balance. This simulates receiving funds to a new wallet address.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 5: Explore the Interface</div>
+                            <p>Browse the other tabs (Transactions, Blockchain Explorer) to see the broader ecosystem your wallet operates in. You'll learn to use these in upcoming courses.</p>
+                        </li>
+                    </ul>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="/#wallet" class="practice-btn" onclick="goToPractice()">&#128640; Go to Wallet Simulator</a>
+                        <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9em;">Opens in the main platform. Complete all 5 tasks, then return here for the Final Exam!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (15 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>12 out of 15 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+                
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What does a blockchain wallet actually store?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Your cryptocurrency coins</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Cryptographic keys that prove ownership of coins on the blockchain</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A copy of the entire blockchain</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Your bank account information</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. Which key must you NEVER share with anyone?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Public key</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Wallet address</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Private key</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Transaction hash</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. What cryptographic curve does KENO (and Bitcoin/Ethereum) use?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>secp256k1</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>RSA-2048</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>AES-256</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>SHA-512</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. Why is it impossible to derive a private key from a public key?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The private key is encrypted with a password</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The private key is stored on a separate server</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They use different encryption algorithms</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The mathematical derivation is a one-way function (ECDLP)</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. What is the "avalanche effect" in cryptographic hash functions?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hashes get progressively larger with more input</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A tiny change in input produces a completely different hash output</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Multiple inputs always produce the same hash</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The hash function gets slower as more data is processed</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. What happened in the Mt. Gox disaster?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A user lost their seed phrase and couldn't access funds</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A smart contract bug drained user funds</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A centralized exchange was hacked and 850,000 Bitcoin were stolen</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A quantum computer broke Bitcoin's encryption</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. What does "not your keys, not your coins" mean?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>If you don't control the private keys, you don't truly own the crypto</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>You need physical keys to access cryptocurrency</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Cryptocurrency can only be accessed with car keys</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>All keys should be kept in a hardware wallet</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <div class="question-text">8. What three properties does a digital signature prove?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Speed, security, and scalability</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Identity, location, and time</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Encryption, decryption, and hashing</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Authentication, integrity, and non-repudiation</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="b">
+                    <div class="question-text">9. Which wallet type is MOST secure for long-term storage of large amounts?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Exchange wallet (Coinbase, Binance)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hardware wallet (Ledger, Trezor)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Browser extension wallet (MetaMask)</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mobile wallet app</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="c">
+                    <div class="question-text">10. What is a seed phrase (mnemonic phrase)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A password for your exchange account</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A secret code given by customer support</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>12 or 24 words that encode your private key in human-readable format</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A verification code sent to your email</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. Who published the Bitcoin whitepaper in 2008?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Satoshi Nakamoto (pseudonym)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Vitalik Buterin</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>David Chaum</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Nick Szabo</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="b">
+                    <div class="question-text">12. Why should you NOT use SMS-based two-factor authentication for crypto exchanges?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It's too slow</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It's vulnerable to SIM-swapping attacks</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It costs money per message</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It only works on iPhones</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="13" data-answer="d">
+                    <div class="question-text">13. What is the primary advantage of a multisignature (multisig) wallet?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It's faster than regular wallets</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It stores more types of cryptocurrency</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It's free to use</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>No single point of failure &mdash; multiple keys required to authorize transactions</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="14" data-answer="c">
+                    <div class="question-text">14. What blockchain is the KENO token deployed on?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bitcoin</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Ethereum mainnet</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Binance Smart Chain (BSC) as a BEP-20 token</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Solana</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="15" data-answer="a">
+                    <div class="question-text">15. What is the correct order of key derivation in a blockchain wallet?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Private Key &rarr; Public Key &rarr; Wallet Address</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Public Key &rarr; Private Key &rarr; Wallet Address</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Wallet Address &rarr; Public Key &rarr; Private Key</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Private Key &rarr; Wallet Address &rarr; Public Key</span></div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+                
+                <div id="quizResult" class="quiz-result">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h3 class="result-title" id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/" style="color: var(--primary);">&larr; Back to Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-2-transactions.html" style="color: var(--primary);">Course 2: Transactions &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+        
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+        
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+            
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+            
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            
+            const passingScore = 12;
+            
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '\uD83C\uDF89';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}! You've mastered Wallet Management & Cryptography.`;
+                nextCourseContainer.innerHTML = `
+                    <p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You've earned 250 KENO!</p>
+                    <a href="/courses/course-2-transactions.html" class="next-course-btn">Continue to Course 2: Transactions \u2192</a>
+                `;
+                localStorage.setItem('course1_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(1, 'Course 1: Wallet Management & Cryptography');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '\uD83D\uDCDA';
+                resultTitle.textContent = 'Keep Studying!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}. You need at least ${passingScore} correct (80%) to pass. Review the material and try again.`;
+                nextCourseContainer.innerHTML = `
+                    <button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>
+                `;
+            }
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+            
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+            
+            const hints = {
+                1: 'Good effort! A strong analogy would compare a wallet to a mailbox (address is public, key to open is private), a locker (combination is the private key), or a home (address is public, key to the door is private). The key insight is that the wallet holds the KEYS, not the money itself.',
+                2: 'Key points: This is 100% a SCAM. No legitimate support will ever ask for your seed phrase. You should ignore the message, block the sender, and report them. Your seed phrase should never be shared with anyone under any circumstances.',
+                3: 'Strong answer elements: Split holdings between a hardware wallet (majority) and a hot wallet (spending amount). Back up the seed phrase on paper in a secure location. Enable 2FA on any exchange accounts. Consider a multisig setup for the largest portion.',
+                4: 'The key concept is the one-way function (ECDLP). Going from private to public key is easy multiplication on the elliptic curve. Going backwards is computationally infeasible - it would take billions of years with current computers. This is what makes public-key cryptography secure.',
+                5: 'Look for specific measures: better key management, cold storage for majority of funds, regular security audits, multisig requirements with truly independent key holders, proof of reserves, and transparent operations.'
+            };
+            
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+        
+        function goToPractice() {
+            localStorage.setItem('course1_practice_started', 'true');
+        }
+        
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'intro', 'history', 'cryptography', 'keypairs', 'signatures', 'wallet-types', 'security', 'case-studies', 'exercises', 'practice', 'quiz'];
+            let current = '';
+            
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+            
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('onclick')?.includes(current)) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>
