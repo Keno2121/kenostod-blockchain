@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Meeting Prep - March 6, 2026</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 30px 24px;
+        }
+
+        @media print {
+            body { background: white; color: #1a1a2e; }
+            .print-btn { display: none !important; }
+            .section { border-color: #ddd !important; background: #f8f9fa !important; }
+            .header { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            border-radius: 16px;
+            padding: 30px 36px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+
+        .header .subtitle {
+            color: #93c5fd;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .header .date-badge {
+            display: inline-block;
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+
+        .section {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+        }
+
+        .section-title.gold { color: #fbbf24; border-bottom-color: rgba(251, 191, 36, 0.2); }
+        .section-title.green { color: #34d399; border-bottom-color: rgba(52, 211, 153, 0.2); }
+        .section-title.purple { color: #a78bfa; border-bottom-color: rgba(167, 139, 250, 0.2); }
+        .section-title.red { color: #f87171; border-bottom-color: rgba(248, 113, 113, 0.2); }
+
+        .two-token-model {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .token-card {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .token-card.keno {
+            border: 2px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .token-card.usdk {
+            border: 2px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .token-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .token-name.keno-color { color: #fbbf24; }
+        .token-name.usdk-color { color: #34d399; }
+
+        .token-type {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .token-features {
+            list-style: none;
+            text-align: left;
+        }
+
+        .token-features li {
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            padding: 4px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .token-features li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+        }
+
+        .token-card.keno .token-features li::before { color: #fbbf24; }
+        .token-card.usdk .token-features li::before { color: #34d399; }
+
+        .plus-sign {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        .flow-diagram {
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #93c5fd;
+        }
+
+        .flow-step.highlight {
+            background: rgba(52, 211, 153, 0.1);
+            border-color: rgba(52, 211, 153, 0.3);
+            color: #6ee7b7;
+        }
+
+        .flow-arrow {
+            color: #475569;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .talking-points {
+            list-style: none;
+        }
+
+        .talking-points li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .talking-points li:last-child { border-bottom: none; }
+
+        .tp-number {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tp-content h4 {
+            font-size: 0.9rem;
+            color: #f1f5f9;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .tp-content p {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .ask-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .ask-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .ask-item h4 {
+            font-size: 0.85rem;
+            color: #60a5fa;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .ask-item p {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .revenue-flow {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .rev-box {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .rev-box h5 {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .rev-box .amount {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #34d399;
+        }
+
+        .rev-box p {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .qa-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .qa-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .qa-item .question {
+            font-size: 0.82rem;
+            color: #f87171;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .qa-item .answer {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            padding: 8px 0;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .check-box {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #475569;
+            border-radius: 4px;
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .check-box.checked {
+            background: #34d399;
+            border-color: #34d399;
+        }
+
+        .check-box.checked::after {
+            content: '\2713';
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .credentials-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .cred-item {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .cred-item .label {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cred-item .value {
+            font-size: 0.85rem;
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .opening-statement {
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: #c7d2fe;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .opening-statement strong {
+            color: #a5b4fc;
+            font-style: normal;
+        }
+
+        @media (max-width: 768px) {
+            .two-token-model { grid-template-columns: 1fr; }
+            .plus-sign { text-align: center; }
+            .ask-grid, .qa-grid, .credentials-grid { grid-template-columns: 1fr; }
+            .revenue-flow { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">Print / Save PDF</button>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Bridge.xyz Meeting Preparation</h1>
+        <div class="subtitle">USDK Stablecoin Launch via Open Issuance Platform</div>
+        <div class="date-badge">Meeting: March 6, 2026</div>
+    </div>
+
+    <div class="section" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(139, 92, 246, 0.04)); border-color: rgba(6, 182, 212, 0.3);">
+        <div class="section-title" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Progress Since February 18 Meeting</div>
+        <ul class="talking-points">
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>UTL Protocol — 4 Smart Contracts Live on BSC Mainnet</h4>
+                    <p>FeeCollector (0xfE537c43d202C455Cedc141B882c808287BB662f), Staking (0x49961979c93f43f823BB3593b207724194019d1d), Treasury (0x3B3538b955647d811D42400084e9409e6593bE97), Distribution (0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7). 0.1% fee capture — 60% to stakers, 40% to treasury. Live and verified on BscScan.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>MetaMask Snap Published — npm:@kenostod/utl-snap</h4>
+                    <p>UTL Fee Rewards snap is live on npm and submitted to the MetaMask Snaps Directory (Issue #625). Users earn fee rewards from on-chain transaction volume directly inside MetaMask. Features: transaction insight, staking, auto-compound, weekly reports.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>USDC Staking Live + Multi-Wallet Dashboard</h4>
+                    <p>USDC staking fully operational on BSC. Multi-wallet dashboard supports MetaMask, WalletConnect (300+ mobile wallets), and Coinbase Wallet. ParaSwap DEX integration enables live token swaps. Real-time price feeds for BNB, ETH, BTC, USDC.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>USDC Revenue Model Active (Bridge-Ready)</h4>
+                    <p>UTL currently operates USDC-only — aligned with Bridge's stablecoin infrastructure. USDK integration post-March 6 meeting will replace USDC with our own branded stablecoin, unlocking 3-4% reserve allocation revenue and full economic control.</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <div class="section-title gold">The Two-Token Model: KENO + USDK</div>
+
+        <div class="two-token-model">
+            <div class="token-card keno">
+                <div class="token-name keno-color">KENO</div>
+                <div class="token-type">Native Utility / Governance Token</div>
+                <ul class="token-features">
+                    <li>Earned through 21 courses (5,250 total)</li>
+                    <li>Governance voting rights</li>
+                    <li>Staking for FAL/FALP access</li>
+                    <li>Gas token on Kenostod chain</li>
+                    <li>Existing BEP-20 on BNB Chain</li>
+                    <li>Current price: $1.00</li>
+                </ul>
+            </div>
+
+            <div class="plus-sign">+</div>
+
+            <div class="token-card usdk">
+                <div class="token-name usdk-color">USDK</div>
+                <div class="token-type">USD-Kenostod Stablecoin</div>
+                <ul class="token-features">
+                    <li>1:1 USD backed via Bridge reserves</li>
+                    <li>Payment/transaction currency</li>
+                    <li>Student cashout vehicle</li>
+                    <li>Course purchase medium</li>
+                    <li>Interoperable with USDC, CASH, USDH</li>
+                    <li>3-4% reserve revenue for operations</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="flow-diagram">
+            <p style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Student Cashout Flow with USDK</p>
+            <div class="flow-steps">
+                <div class="flow-step">Student earns KENO</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step">Swaps KENO for USDK</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step highlight">Bridge Off-Ramp</div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-step">USD via ACH to Bank</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Your Opening Statement</div>
+        <div class="opening-statement">
+            "We're <strong>Kenostod Blockchain Academy</strong>, a FinCEN-registered MSB operating an educational platform
+            where students earn KENO tokens by completing blockchain courses. We want to launch <strong>USDK</strong> &mdash;
+            a USD-backed stablecoin through Bridge's Open Issuance &mdash; to create a seamless cashout experience for our graduates.
+            Instead of forcing students through complex DEX swaps, USDK gives them a <strong>direct path from earned tokens to
+            dollars in their bank account</strong>. We see Bridge as the perfect infrastructure partner because you handle compliance,
+            reserves, and liquidity while we focus on education and growth."
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title green">Key Talking Points</div>
+        <ul class="talking-points">
+            <li>
+                <div class="tp-number">1</div>
+                <div class="tp-content">
+                    <h4>Why USDK, Not Just USDC?</h4>
+                    <p>USDK gives us our own branded stablecoin within Bridge's network. Students see "USDK" as part of the Kenostod ecosystem, building brand loyalty. Plus, we earn 3-4% on reserves held in US Treasuries &mdash; that's platform revenue for us to fund operations and growth.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number">2</div>
+                <div class="tp-content">
+                    <h4>Open Issuance Network Access</h4>
+                    <p>Instant 1:1 swaps with Phantom CASH (15M users), MetaMask, USDH, and others. Our students get access to millions of potential trading partners without us building liquidity from scratch.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number">3</div>
+                <div class="tp-content">
+                    <h4>The Two-Token Model Works</h4>
+                    <p>Ethereum has ETH + USDC. We have KENO + USDK. KENO is the utility/governance token earned through education. USDK is the payment/settlement layer. This follows proven successful models.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number">4</div>
+                <div class="tp-content">
+                    <h4>Compliance-First Approach</h4>
+                    <p>We're already FinCEN MSB registered (MRX26-00001866), Wyoming LLC, and pursuing banking partnerships. Bridge's GENIUS Act readiness aligns perfectly with our compliance-first strategy.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number">5</div>
+                <div class="tp-content">
+                    <h4>Revenue Growth for Both Parties</h4>
+                    <p>Every student who graduates = USDK minting demand. With 21 courses and growing enrollment, USDK circulation grows organically. Bridge earns from the infrastructure, we earn from reserve allocations and platform fees.</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <div class="section-title">USDK Revenue Opportunities</div>
+        <div class="revenue-flow">
+            <div class="rev-box">
+                <h5>Reserve Allocation</h5>
+                <div class="amount">3-4%</div>
+                <p>Annual return on USDK reserves held in US Treasuries (funds operations)</p>
+            </div>
+            <div class="rev-box">
+                <h5>Transaction Fees</h5>
+                <div class="amount">0.1-0.5%</div>
+                <p>Fee on KENO-to-USDK swaps within the platform</p>
+            </div>
+            <div class="rev-box">
+                <h5>Off-Ramp Spread</h5>
+                <div class="amount">0.5-1%</div>
+                <p>Margin on USDK-to-USD bank withdrawals</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title purple">Questions to Ask Bridge</div>
+        <div class="ask-grid">
+            <div class="ask-item">
+                <h4>Minimum Reserve Requirements?</h4>
+                <p>What's the minimum USDK issuance to get started? Can we begin small and scale?</p>
+            </div>
+            <div class="ask-item">
+                <h4>BNB Chain Support?</h4>
+                <p>KENO is on BNB Chain (BEP-20). Can USDK be deployed on BNB Chain alongside EVM chains?</p>
+            </div>
+            <div class="ask-item">
+                <h4>Timeline to Launch?</h4>
+                <p>How quickly can we go from approval to live USDK? Days? Weeks?</p>
+            </div>
+            <div class="ask-item">
+                <h4>KYC Integration?</h4>
+                <p>How does Bridge's built-in KYC work with our existing student verification system?</p>
+            </div>
+            <div class="ask-item">
+                <h4>API Integration Complexity?</h4>
+                <p>What does the technical integration look like? How many dev hours to go live?</p>
+            </div>
+            <div class="ask-item">
+                <h4>Cost Structure?</h4>
+                <p>What are the fees for issuance, off-ramping, and ongoing maintenance? Any setup costs?</p>
+            </div>
+            <div class="ask-item">
+                <h4>Reserve Custody Details?</h4>
+                <p>Which custodians hold USDK reserves? BlackRock/Fidelity? What's the insurance coverage?</p>
+            </div>
+            <div class="ask-item">
+                <h4>Visa Card Program?</h4>
+                <p>Can our students get USDK-funded Visa cards for direct spending? What are the requirements?</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title red">Tough Questions They Might Ask (Be Ready)</div>
+        <div class="qa-grid">
+            <div class="qa-item">
+                <div class="question">"What's your current user base?"</div>
+                <div class="answer">We're early-stage with a live platform and growing enrollment. Our model is designed to scale &mdash; each graduate creates organic USDK demand through cashouts.</div>
+            </div>
+            <div class="qa-item">
+                <div class="question">"What's your projected USDK volume?"</div>
+                <div class="answer">Starting at $10K-$50K monthly, scaling with enrollment. Each graduate earns 5,250 KENO ($5,250 at $1.00) so even 100 graduates = $525K in potential USDK demand.</div>
+            </div>
+            <div class="qa-item">
+                <div class="question">"How is KENO different from other edu-tokens?"</div>
+                <div class="answer">KENO is the world's first Knowledge Utility Token (KUT) &mdash; earned through education, provides access to Flash Arbitrage features. It's a utility token with real educational value, not a speculative coin.</div>
+            </div>
+            <div class="qa-item">
+                <div class="question">"Why not just use USDC directly?"</div>
+                <div class="answer">USDK builds our brand, earns us reserve allocations, and gives our ecosystem its own settlement layer. Using someone else's stablecoin means we're dependent on their decisions and earn nothing from reserves.</div>
+            </div>
+            <div class="qa-item">
+                <div class="question">"Is KENO a security?"</div>
+                <div class="answer">No. KENO is a utility token earned through completing educational courses &mdash; it provides platform access, governance rights, and feature access. There is no expectation of profit from the efforts of others. We're pursuing progressive decentralization via DAO structure, and consulting securities counsel for full compliance. KENO satisfies utility token criteria under current regulatory guidance.</div>
+            </div>
+            <div class="qa-item">
+                <div class="question">"What's your funding situation?"</div>
+                <div class="answer">We have active VC meetings this week, utility token ICO in progress, node sales ($299-$1,999), and 15+ platform revenue sources. We're building sustainably with multiple funding sources.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Your Credentials (Have Ready)</div>
+        <div class="credentials-grid">
+            <div class="cred-item">
+                <div class="label">Company</div>
+                <div class="value">Kenostod Blockchain Academy LLC</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">Wyoming LLC ID</div>
+                <div class="value">2026-001863120</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">FinCEN MSB</div>
+                <div class="value">MRX26-00001866</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">KENO Contract</div>
+                <div class="value">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">Website</div>
+                <div class="value">kenostodblockchain.com</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">Email</div>
+                <div class="value">keno@kenostodblockchain.com</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">Banking</div>
+                <div class="value">Mercury Business Checking</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">BscScan Verified</div>
+                <div class="value">Yes - Live on BNB Chain</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">UTL FeeCollector</div>
+                <div class="value">0xfE537c43d202C455Cedc141B882c808287BB662f</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">UTL Staking</div>
+                <div class="value">0x49961979c93f43f823BB3593b207724194019d1d</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">UTL Treasury</div>
+                <div class="value">0x3B3538b955647d811D42400084e9409e6593bE97</div>
+            </div>
+            <div class="cred-item">
+                <div class="label">MetaMask Snap</div>
+                <div class="value">npm:@kenostod/utl-snap (published)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title green">Pre-Meeting Checklist — March 6, 2026</div>
+        <ul class="checklist">
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Demo UTL dashboard live — show USDC staking, MetaMask Snap install, multi-wallet support
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Show MetaMask Snap listing submission (Issue #625 on MetaMask Snaps Directory GitHub)
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Show all 4 UTL contracts verified live on BscScan
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Review Bridge Open Issuance docs — confirm USDK on BNB Chain availability
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Have FinCEN MSB registration ready (MRX26-00001866) — key compliance credential
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Prepare screen share of Kenostod Academy (courses, FAL pools, ICO dashboard)
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Show USDK revenue model: 3-4% reserve allocation + 0.5% KENO-to-USDK swap fee
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Confirm minimum USDK issuance threshold — ask if $10K-$50K/month qualifies
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Ask about USDK deployment on BNB Chain (existing KENO + UTL infrastructure is BEP-20)
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Ask about USDK-funded Visa card for graduates — spending layer for earned tokens
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Have investor one-pager ready (KENO ICO, node sales, revenue projections)
+            </li>
+            <li>
+                <div class="check-box" onclick="this.classList.toggle('checked')"></div>
+                Dress professionally / clean background / test mic and internet before call
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" style="background: linear-gradient(135deg, rgba(52, 211, 153, 0.08), rgba(16, 185, 129, 0.04)); border-color: rgba(52, 211, 153, 0.2);">
+        <div class="section-title green">Closing Statement for the Meeting</div>
+        <div class="opening-statement" style="border-color: rgba(52, 211, 153, 0.2); background: rgba(52, 211, 153, 0.05);">
+            "Since our last conversation we've moved fast — we deployed 4 live smart contracts on BSC Mainnet, launched
+            a MetaMask Snap so users earn fee rewards from on-chain transaction volume, and built a full multi-wallet DeFi
+            dashboard. We're not just an education platform anymore — we're becoming a DeFi ecosystem. USDK through Bridge Open
+            Issuance is the final piece: it gives our graduates a branded stablecoin to cash out with, and gives us 3-4% reserve
+            yield to fund operations. We've done the infrastructure work. Bridge brings the compliance layer and shared liquidity.
+            <strong>What are the next steps to get USDK launched on BNB Chain?</strong>"
+        </div>
+    </div>
+
+    <div class="section" style="background: rgba(251, 191, 36, 0.05); border-color: rgba(251, 191, 36, 0.2);">
+        <div class="section-title gold">Compliance Readiness Summary</div>
+        <ul class="talking-points">
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #34d399, #059669);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>AML/KYC Program</h4>
+                    <p>Active compliance program per Bank Secrecy Act. Ready to integrate with Bridge's KYC verification (Persona) or apply for KYX reliance arrangement.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #34d399, #059669);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>FinCEN MSB Registration</h4>
+                    <p>Registered Money Services Business (MRX26-00001866). Satisfies Bridge's developer compliance requirements.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #34d399, #059669);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>KENO Utility Token Classification</h4>
+                    <p>KENO is classified as a Knowledge Utility Token (KUT) &mdash; earned through education, not purchased for investment. Clear utility: platform access, governance, FAL feature access. Not a security.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #34d399, #059669);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>GENIUS Act Readiness</h4>
+                    <p>USDK through Bridge will be GENIUS-compliant by design: 1:1 reserve backing, monthly disclosures, independent audits, freeze/burn capability for law enforcement.</p>
+                </div>
+            </li>
+            <li>
+                <div class="tp-number" style="background: linear-gradient(135deg, #34d399, #059669);">&#10003;</div>
+                <div class="tp-content">
+                    <h4>Disclaimers &amp; Legal Pages</h4>
+                    <p>Updated Terms of Service, Risk Disclosure, and site-wide utility token disclaimers. No securities language, no profit guarantees, no "guaranteed returns" promises on public pages.</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; font-size: 0.7rem; color: #475569; margin-top: 20px; padding: 10px;">
+        Internal document - Kenostod Blockchain Academy LLC - Updated February 25, 2026 | Meeting: March 6, 2026
+    </div>
+
+</div>
+
+</body>
+</html>
