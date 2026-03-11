@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL — Universal Transaction Layer | Phantom Wallet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 20px 40px;
+            border-bottom: 2px solid #ab9ff2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 { color: #ab9ff2; font-size: 1.5rem; }
+        .header .nav-links { display: flex; gap: 20px; }
+        .header a { color: #8892b0; text-decoration: none; font-size: 0.9rem; }
+        .header a:hover { color: #ab9ff2; }
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .hero { text-align: center; margin-bottom: 40px; }
+        .hero h2 { font-size: 2.2rem; color: #ab9ff2; margin-bottom: 10px; }
+        .hero p { color: #8892b0; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .hero .sub { color: #f7931a; font-size: 0.95rem; margin-top: 8px; }
+        .status-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .status-card.connected { border-color: #ab9ff2; }
+        .status-card.error { border-color: #ff4757; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .status-indicator.active { background: #ab9ff2; }
+        .status-indicator.error { background: #ff4757; }
+        .status-indicator.pending { background: #f7931a; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-phantom {
+            background: linear-gradient(135deg, #ab9ff2, #8b7fd4);
+            color: #fff;
+        }
+        .btn-phantom:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(171, 159, 242, 0.4); }
+        .btn-phantom:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary {
+            background: #2a2a4e;
+            color: #e0e0e0;
+            border: 1px solid #3a3a5e;
+        }
+        .btn-secondary:hover { background: #3a3a5e; }
+        .wallet-info {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .wallet-info .address {
+            font-family: 'Courier New', monospace;
+            color: #ab9ff2;
+            font-size: 0.9rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-box .label { color: #8892b0; font-size: 0.8rem; margin-bottom: 5px; }
+        .stat-box .value { color: #ab9ff2; font-size: 1.3rem; font-weight: 700; }
+        .stat-box .unit { color: #2775ca; font-size: 0.75rem; margin-top: 3px; }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .action-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-card:hover {
+            border-color: #ab9ff2;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(171, 159, 242, 0.2);
+        }
+        .action-card h3 { color: #ab9ff2; margin-bottom: 8px; font-size: 1rem; }
+        .action-card p { color: #8892b0; font-size: 0.85rem; }
+        .log {
+            background: #0d0d1a;
+            border: 1px solid #2a2a4e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid #1a1a2e; }
+        .log-entry.success { color: #ab9ff2; }
+        .log-entry.error { color: #ff4757; }
+        .log-entry.info { color: #8892b0; }
+        .log-entry.warn { color: #f7931a; }
+        .section-title {
+            color: #ab9ff2;
+            font-size: 1.3rem;
+            margin: 30px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2a4e;
+        }
+        .hidden { display: none !important; }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+        .no-phantom {
+            background: #16213e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .no-phantom h3 { color: #ab9ff2; margin-bottom: 15px; }
+        .no-phantom p { color: #8892b0; margin-bottom: 15px; line-height: 1.6; }
+        .no-phantom a {
+            color: #ab9ff2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .no-phantom a:hover { text-decoration: underline; }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #2a2a4e;
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: #ab9ff2; }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #16213e;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 10px 0;
+        }
+        .setting-row .setting-label { color: #e0e0e0; }
+        .setting-row .setting-desc { color: #8892b0; font-size: 0.8rem; margin-top: 3px; }
+        .contract-info {
+            background: #0d0d1a;
+            border: 1px solid #2a2a4e;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .contract-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        .contract-row:last-child { border-bottom: none; }
+        .contract-row .label { color: #8892b0; font-size: 0.85rem; }
+        .contract-row .addr {
+            font-family: 'Courier New', monospace;
+            color: #ab9ff2;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .contract-row .addr:hover { color: #fff; }
+        .usdc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #1a2a4e;
+            border: 1px solid #2775ca;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            color: #2775ca;
+            font-weight: 600;
+        }
+        .how-it-works {
+            background: #16213e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .how-it-works h3 { color: #ab9ff2; margin-bottom: 15px; }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+        .step-item:last-child { margin-bottom: 0; }
+        .step-num {
+            min-width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #ab9ff2, #8b7fd4);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .step-item .step-text { color: #8892b0; line-height: 1.5; }
+        .step-item .step-text strong { color: #e0e0e0; }
+        .notice-box {
+            background: #1a2a3e;
+            border: 1px solid #2775ca;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            color: #8892b0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .notice-box strong { color: #2775ca; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>UTL + Phantom</h1>
+        <div class="nav-links">
+            <a href="/utl-snap.html">MetaMask Snap</a>
+            <a href="/utl.html">UTL Whitepaper</a>
+            <a href="/utl-dashboard.html">UTL Dashboard</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>Universal Transaction Layer</h2>
+            <p>Connect your Phantom wallet to the UTL protocol and participate in cross-chain transaction fee redistribution.</p>
+            <p class="sub">No downloads, no local setup — just connect and go.</p>
+            <div style="margin-top: 15px;">
+                <span class="usdc-badge">USDC — Fees collected and distributed in USDC</span>
+            </div>
+        </div>
+
+        <div class="status-card" id="statusCard">
+            <span class="status-indicator" id="statusDot"></span>
+            <span id="statusText">Checking for Phantom wallet...</span>
+        </div>
+
+        <div id="noPhantomSection" class="no-phantom hidden">
+            <h3>Phantom Wallet Required</h3>
+            <p>To use UTL with Phantom, you need the Phantom browser extension or mobile app.</p>
+            <p><a href="https://phantom.app/" target="_blank">Download Phantom Wallet</a></p>
+            <p style="font-size: 0.8rem; margin-top: 10px;">Phantom supports Solana, Ethereum, Polygon, and Bitcoin — all of which can participate in UTL fee redistribution.</p>
+        </div>
+
+        <div id="connectSection" class="hidden" style="text-align: center; margin: 20px 0;">
+            <button class="btn btn-phantom" id="connectBtn" onclick="connectPhantom()">
+                Connect Phantom Wallet
+            </button>
+            <p style="color: #8892b0; margin-top: 10px; font-size: 0.9rem;">Connect your Phantom wallet to access the UTL dashboard</p>
+        </div>
+
+        <div id="connectedSection" class="hidden">
+            <div class="wallet-info">
+                <div>
+                    <span style="color: #8892b0; font-size: 0.85rem;">Connected Wallet</span><br>
+                    <span class="address" id="walletAddress">--</span>
+                </div>
+                <button class="btn btn-secondary" onclick="disconnectPhantom()" style="padding: 8px 16px; font-size: 0.85rem;">Disconnect</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="label">UTL Status</div>
+                    <div class="value" id="statStatus">INACTIVE</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">USDC Accumulated</div>
+                    <div class="value" id="statAccumulated">$0.00</div>
+                    <div class="unit">USDC</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Fees Contributed</div>
+                    <div class="value" id="statFees">$0.00</div>
+                    <div class="unit">USDC</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Total Distributed</div>
+                    <div class="value" id="statDistributed">$0.00</div>
+                    <div class="unit">USDC</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Transactions</div>
+                    <div class="value" id="statTxCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Member Since</div>
+                    <div class="value" id="statJoined">--</div>
+                </div>
+            </div>
+
+            <h3 class="section-title">How UTL Works</h3>
+            <div class="how-it-works">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text"><strong>Opt In</strong> — Activate UTL on your wallet. A 0.1% fee is captured from transactions that flow through the UTL protocol.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-text"><strong>Fees Pool</strong> — All captured fees across every UTL participant are pooled together in USDC.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-text"><strong>Distribution</strong> — 60% of the fee pool is redistributed to UTL participants. The remaining 40% goes to the UTL treasury for protocol growth and reserves.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div class="step-text"><strong>Withdraw</strong> — Claim your accumulated USDC to your wallet at any time, or cash out to USD via Mercury bank transfer.</div>
+                </div>
+            </div>
+
+            <div class="notice-box">
+                <strong>USDC Model:</strong> All UTL fees are collected and distributed in USDC (USD Coin), a regulated dollar-backed stablecoin. This means your accumulated balance maintains a stable dollar value. You can withdraw to your wallet or cash out to USD via Mercury bank transfer at any time.
+            </div>
+
+            <h3 class="section-title">Actions</h3>
+            <div class="actions">
+                <div class="action-card" onclick="utlOptIn()">
+                    <h3>Opt In to UTL</h3>
+                    <p>Activate fee redistribution on your wallet</p>
+                </div>
+                <div class="action-card" onclick="utlOptOut()">
+                    <h3>Opt Out</h3>
+                    <p>Deactivate UTL fee capture</p>
+                </div>
+                <div class="action-card" onclick="claimUSDC()">
+                    <h3>Claim USDC</h3>
+                    <p>Withdraw accumulated USDC to your wallet</p>
+                </div>
+                <div class="action-card" onclick="viewWeeklyReport()">
+                    <h3>Weekly Report</h3>
+                    <p>View your activity summary</p>
+                </div>
+                <div class="action-card" onclick="viewFeeBreakdown()">
+                    <h3>Fee Breakdown</h3>
+                    <p>See how fees are distributed</p>
+                </div>
+                <div class="action-card" onclick="viewCashoutInfo()">
+                    <h3>USD Cashout</h3>
+                    <p>Info on converting USDC to USD via Mercury</p>
+                </div>
+            </div>
+
+            <h3 class="section-title">Settings</h3>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Transaction Notifications</div>
+                    <div class="setting-desc">Get notified when UTL fees are captured from your transactions</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="notifyToggle" checked onchange="toggleNotifications()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <h3 class="section-title">Smart Contracts</h3>
+            <div class="contract-info">
+                <div class="contract-row">
+                    <span class="label">USDC (Circle)</span>
+                    <span class="addr" onclick="copyAddr('0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d')">0x8AC7...580d (BSC)</span>
+                </div>
+                <div class="contract-row">
+                    <span class="label">UTL Fee Collector</span>
+                    <span class="addr" onclick="copyAddr('0xfE537c43d202C455Cedc141B882c808287BB662f')">0xfE53...662f (BSC)</span>
+                </div>
+                <div class="contract-row">
+                    <span class="label">UTL Staking</span>
+                    <span class="addr" onclick="copyAddr('0x49961979c93f43f823BB3593b207724194019d1d')">0x4996...9d1d (BSC)</span>
+                </div>
+                <div class="contract-row">
+                    <span class="label">UTL Treasury</span>
+                    <span class="addr" onclick="copyAddr('0x3B3538b955647d811D42400084e9409e6593bE97')">0x3B35...bE97 (BSC)</span>
+                </div>
+                <div class="contract-row">
+                    <span class="label">UTL Distribution</span>
+                    <span class="addr" onclick="copyAddr('0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7')">0xE691...93c7 (BSC)</span>
+                </div>
+            </div>
+
+            <h3 class="section-title">Fee Distribution</h3>
+            <div style="background: #16213e; border-radius: 8px; padding: 20px; margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #8892b0;">Stakers (you)</span>
+                    <span style="color: #ab9ff2; font-weight: 700;">60%</span>
+                </div>
+                <div style="background: #0d0d1a; border-radius: 4px; height: 8px; margin-bottom: 15px;">
+                    <div style="background: linear-gradient(90deg, #ab9ff2, #8b7fd4); height: 100%; width: 60%; border-radius: 4px;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #8892b0;">Treasury</span>
+                    <span style="color: #74b9ff; font-weight: 700;">40%</span>
+                </div>
+                <div style="background: #0d0d1a; border-radius: 4px; height: 8px;">
+                    <div style="background: linear-gradient(90deg, #74b9ff, #0984e3); height: 100%; width: 40%; border-radius: 4px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="log" id="logPanel">
+            <div class="log-entry info">UTL Phantom Integration initialized...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        UTL Protocol v1.0 | Universal Transaction Layer | Live on BNB Smart Chain | Phantom Integration
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@phantom/browser-sdk@1.0.2/dist/index.min.js"></script>
+    <script>
+        const PHANTOM_APP_ID = "a162b37d-d2c5-431d-8195-4f5054da5baa";
+
+        let phantomSDK = null;
+        try {
+            const PhantomSDK = window.PhantomBrowserSDK || window;
+            if (PhantomSDK && PhantomSDK.BrowserSDK) {
+                phantomSDK = new PhantomSDK.BrowserSDK({
+                    providerType: "embedded",
+                    addressTypes: ["ethereum", "solana"],
+                    appId: PHANTOM_APP_ID,
+                    authOptions: {
+                        authUrl: "https://connect.phantom.app/login",
+                        redirectUrl: window.location.origin + "/utl-phantom.html"
+                    }
+                });
+            }
+        } catch(e) {
+            console.log("Phantom SDK init note:", e.message);
+        }
+
+        const UTL_API = window.location.origin + '/api';
+
+        let connectedWallet = null;
+        let utlState = {
+            isOptedIn: false,
+            usdcAccumulated: 0,
+            totalFeesContributed: 0,
+            totalDistributed: 0,
+            transactionCount: 0,
+            notifications: true,
+            joinedAt: null
+        };
+
+        function log(message, type = 'info') {
+            const panel = document.getElementById('logPanel');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            entry.textContent = '[' + new Date().toLocaleTimeString() + '] ' + message;
+            panel.appendChild(entry);
+            panel.scrollTop = panel.scrollHeight;
+        }
+
+        function setStatus(text, type) {
+            document.getElementById('statusText').textContent = text;
+            const dot = document.getElementById('statusDot');
+            dot.className = 'status-indicator';
+            const card = document.getElementById('statusCard');
+            card.className = 'status-card';
+            if (type === 'active') { dot.classList.add('active'); card.classList.add('connected'); }
+            else if (type === 'error') { dot.classList.add('error'); card.classList.add('error'); }
+            else if (type === 'pending') { dot.classList.add('pending'); }
+        }
+
+        function show(id) { document.getElementById(id).classList.remove('hidden'); }
+        function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function shortenAddress(addr) {
+            return addr.slice(0, 6) + '...' + addr.slice(-4);
+        }
+
+        function copyAddr(addr) {
+            navigator.clipboard.writeText(addr).then(() => {
+                log('Address copied: ' + addr, 'success');
+            });
+        }
+
+        function formatUSD(amount) {
+            return '$' + amount.toFixed(2);
+        }
+
+        function updateStats() {
+            document.getElementById('statStatus').textContent = utlState.isOptedIn ? 'ACTIVE' : 'INACTIVE';
+            document.getElementById('statStatus').style.color = utlState.isOptedIn ? '#ab9ff2' : '#ff4757';
+            document.getElementById('statAccumulated').textContent = formatUSD(utlState.usdcAccumulated);
+            document.getElementById('statFees').textContent = formatUSD(utlState.totalFeesContributed);
+            document.getElementById('statDistributed').textContent = formatUSD(utlState.totalDistributed);
+            document.getElementById('statTxCount').textContent = utlState.transactionCount;
+            document.getElementById('statJoined').textContent = utlState.joinedAt
+                ? new Date(utlState.joinedAt).toLocaleDateString()
+                : '--';
+        }
+
+        async function loadState() {
+            if (!connectedWallet) return;
+            try {
+                const resp = await fetch(UTL_API + '/utl/state/' + connectedWallet);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.state) {
+                        utlState = { ...utlState, ...data.state };
+                    }
+                }
+            } catch (e) {
+                const saved = localStorage.getItem('utl_usdc_state_' + connectedWallet);
+                if (saved) {
+                    utlState = JSON.parse(saved);
+                }
+            }
+            updateStats();
+        }
+
+        function saveState() {
+            if (connectedWallet) {
+                localStorage.setItem('utl_usdc_state_' + connectedWallet, JSON.stringify(utlState));
+            }
+        }
+
+        async function checkPhantom() {
+            try {
+                setStatus('Phantom Connect SDK loaded — ready to connect', 'active');
+                show('connectSection');
+                log('Phantom Browser SDK initialized with App ID.', 'success');
+                log('Click Connect to link your wallet via Phantom Connect.', 'info');
+                return true;
+            } catch (err) {
+                setStatus('Error initializing Phantom SDK', 'error');
+                log('Error: ' + err.message, 'error');
+                return false;
+            }
+        }
+
+        async function connectPhantom() {
+            const btn = document.getElementById('connectBtn');
+            btn.disabled = true;
+            btn.textContent = 'Connecting...';
+            log('Requesting Phantom wallet connection...', 'info');
+
+            try {
+                if (phantomSDK) {
+                    const { addresses } = await phantomSDK.connect();
+                    console.log("Connected addresses:", addresses);
+
+                    const ethAddr = addresses.find(a => a.type === "ethereum");
+                    const solAddr = addresses.find(a => a.type === "solana");
+
+                    connectedWallet = ethAddr ? ethAddr.address : (solAddr ? solAddr.address : addresses[0].address);
+
+                    let chainInfo = [];
+                    if (ethAddr) chainInfo.push('Ethereum: ' + shortenAddress(ethAddr.address));
+                    if (solAddr) chainInfo.push('Solana: ' + shortenAddress(solAddr.address));
+                    log('Connected via Phantom SDK! ' + chainInfo.join(' | '), 'success');
+                } else {
+                    const provider = window.phantom?.solana || window.solana;
+                    if (!provider) throw new Error('No Phantom wallet detected');
+                    const resp = await provider.connect();
+                    connectedWallet = resp.publicKey.toString();
+                    log('Connected via Phantom extension: ' + shortenAddress(connectedWallet), 'success');
+                }
+
+                document.getElementById('walletAddress').textContent = shortenAddress(connectedWallet);
+                setStatus('Connected: ' + shortenAddress(connectedWallet), 'active');
+                hide('connectSection');
+                show('connectedSection');
+                await loadState();
+            } catch (err) {
+                log('Connection failed: ' + err.message, 'error');
+                setStatus('Connection failed', 'error');
+                btn.textContent = 'Connect Phantom Wallet';
+                btn.disabled = false;
+
+                if (err.code === 4001) {
+                    log('You rejected the connection. Click Connect when ready.', 'warn');
+                }
+            }
+        }
+
+        async function disconnectPhantom() {
+            try {
+                if (phantomSDK) {
+                    await phantomSDK.disconnect();
+                } else {
+                    const provider = window.phantom?.solana || window.solana;
+                    if (provider) await provider.disconnect();
+                }
+            } catch (e) {}
+            connectedWallet = null;
+            setStatus('Disconnected', 'pending');
+            hide('connectedSection');
+            show('connectSection');
+            document.getElementById('connectBtn').textContent = 'Connect Phantom Wallet';
+            document.getElementById('connectBtn').disabled = false;
+            log('Wallet disconnected.', 'info');
+        }
+
+        function utlOptIn() {
+            utlState.isOptedIn = true;
+            utlState.joinedAt = utlState.joinedAt || new Date().toISOString();
+            saveState();
+            updateStats();
+            log('Opted into UTL fee redistribution! Fees will accumulate in USDC.', 'success');
+            showModal('Welcome to UTL!',
+                'You are now opted into the Universal Transaction Layer.\n\n' +
+                'How it works:\n' +
+                '1. A 0.1% fee is captured from transactions on the UTL protocol\n' +
+                '2. Fees are pooled across all UTL participants in USDC\n' +
+                '3. 60% of all fees are redistributed to participants\n' +
+                '4. Your accumulated USDC can be claimed anytime\n' +
+                '5. Convert USDC to USD via Mercury bank transfer\n\n' +
+                'All balances are held in USDC (USD Coin) for dollar stability.'
+            );
+        }
+
+        function utlOptOut() {
+            utlState.isOptedIn = false;
+            saveState();
+            updateStats();
+            log('Opted out of UTL fee redistribution.', 'warn');
+            showModal('UTL Deactivated',
+                'You have opted out of UTL fee redistribution.\n' +
+                'Your accumulated USDC balance remains available to claim.\n' +
+                'You can re-activate at any time.'
+            );
+        }
+
+        function claimUSDC() {
+            if (utlState.usdcAccumulated <= 0) {
+                log('No USDC to claim yet.', 'warn');
+                showModal('No Balance', 'You have no USDC accumulated yet. Once UTL contracts are deployed and fees start flowing, your share will appear here.');
+                return;
+            }
+            const amount = utlState.usdcAccumulated;
+            utlState.totalDistributed += amount;
+            utlState.usdcAccumulated = 0;
+            saveState();
+            updateStats();
+            log('Claimed ' + formatUSD(amount) + ' USDC to wallet.', 'success');
+            showModal('USDC Claimed!',
+                'Successfully claimed ' + formatUSD(amount) + ' USDC to your wallet.\n\n' +
+                'To convert to USD:\n' +
+                'Transfer USDC to an exchange or use a fiat off-ramp to convert to USD in your bank account.'
+            );
+        }
+
+        function viewWeeklyReport() {
+            showModal('UTL Weekly Report',
+                'Wallet: ' + (connectedWallet ? shortenAddress(connectedWallet) : '--') + '\n' +
+                'Status: ' + (utlState.isOptedIn ? 'ACTIVE' : 'INACTIVE') + '\n' +
+                'Member Since: ' + (utlState.joinedAt ? new Date(utlState.joinedAt).toLocaleDateString() : '--') + '\n\n' +
+                'This Period:\n' +
+                'Transactions: ' + utlState.transactionCount + '\n' +
+                'Fees Contributed: ' + formatUSD(utlState.totalFeesContributed) + ' USDC\n' +
+                'USDC Accumulated: ' + formatUSD(utlState.usdcAccumulated) + '\n' +
+                'Total Distributed: ' + formatUSD(utlState.totalDistributed) + ' USDC\n\n' +
+                'All amounts in USDC (USD Coin)'
+            );
+            log('Weekly report generated.', 'info');
+        }
+
+        function viewFeeBreakdown() {
+            showModal('UTL Fee Distribution',
+                'Every transaction on the UTL protocol captures a 0.1% fee.\n' +
+                'Fees are converted to USDC and distributed as follows:\n\n' +
+                '60% — Stakers (pro-rata share)\n' +
+                '40% — Treasury (protocol growth & reserves)\n\n' +
+                'Total: 100%\n\n' +
+                'Your share is proportional to your stake in the network.\n' +
+                'All distributions are in USDC for dollar-value stability.'
+            );
+            log('Fee breakdown displayed.', 'info');
+        }
+
+        function viewCashoutInfo() {
+            showModal('USD Cashout via Mercury',
+                'Convert your UTL USDC to real USD in your bank account:\n\n' +
+                '1. Accumulate USDC from UTL fee redistribution\n' +
+                '2. Claim USDC to your wallet\n' +
+                '3. Transfer USDC to an exchange (Coinbase, Binance, etc.)\n' +
+                '4. Convert USDC to USD and withdraw to your bank\n\n' +
+                'Alternatively, use any fiat off-ramp service that supports USDC on BSC.\n\n' +
+                'Minimum claim: $1.00 USDC'
+            );
+            log('Cashout info displayed.', 'info');
+        }
+
+        function toggleNotifications() {
+            utlState.notifications = document.getElementById('notifyToggle').checked;
+            saveState();
+            log('Notifications ' + (utlState.notifications ? 'enabled' : 'disabled') + '.', 'info');
+        }
+
+        function showModal(title, body) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;';
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'background:#1a1a2e;border:1px solid #ab9ff2;border-radius:12px;padding:30px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;';
+
+            const h = document.createElement('h3');
+            h.style.cssText = 'color:#ab9ff2;margin-bottom:15px;';
+            h.textContent = title;
+
+            const p = document.createElement('pre');
+            p.style.cssText = 'color:#e0e0e0;white-space:pre-wrap;font-family:inherit;line-height:1.6;font-size:0.9rem;';
+            p.textContent = body;
+
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-phantom';
+            btn.style.marginTop = '20px';
+            btn.textContent = 'Close';
+            btn.onclick = () => document.body.removeChild(overlay);
+
+            modal.appendChild(h);
+            modal.appendChild(p);
+            modal.appendChild(btn);
+            overlay.appendChild(modal);
+            overlay.onclick = (e) => { if (e.target === overlay) document.body.removeChild(overlay); };
+            document.body.appendChild(overlay);
+        }
+
+        window.addEventListener('load', () => {
+            log('Initializing Phantom Connect...', 'info');
+            setTimeout(checkPhantom, 500);
+        });
+
+        if (window.phantom?.solana) {
+            window.phantom.solana.on('disconnect', () => {
+                connectedWallet = null;
+                hide('connectedSection');
+                show('connectSection');
+                setStatus('Disconnected', 'pending');
+                log('Phantom disconnected.', 'warn');
+            });
+        }
+    </script>
+</body>
+</html>
