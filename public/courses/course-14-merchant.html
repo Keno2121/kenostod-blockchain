@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 14: Merchant Payment Gateway | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .premium-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+
+        .flow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            padding: 20px 25px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 130px;
+        }
+
+        .flow-box.customer { background: linear-gradient(135deg, var(--secondary), #2563eb); }
+        .flow-box.gateway { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .flow-box.merchant { background: linear-gradient(135deg, var(--gold), #d97706); color: #000; }
+        .flow-box.bank { background: linear-gradient(135deg, var(--purple), #7c3aed); }
+
+        .flow-label { font-weight: 600; margin-bottom: 6px; }
+        .flow-icon { font-size: 1.8em; margin-bottom: 8px; }
+        .arrow { font-size: 2em; color: var(--text-muted); }
+
+        .step-list { counter-reset: step-counter; list-style: none; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--primary); background: var(--primary); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(20, 184, 166, 0.15); border: 2px solid var(--primary); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .flow-diagram { flex-direction: column; }
+            .arrow { transform: rotate(90deg); }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 14
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#127978;</span>
+                Course 14: Merchant Payment Gateway
+                <span class="premium-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('what-is-gateway')"><span class="toc-number">2</span>What Is a Payment Gateway?</li>
+                    <li class="toc-item" onclick="scrollToSection('traditional')"><span class="toc-number">3</span>Traditional Payment Processing</li>
+                    <li class="toc-item" onclick="scrollToSection('crypto-gateways')"><span class="toc-number">4</span>Crypto Payment Gateways</li>
+                    <li class="toc-item" onclick="scrollToSection('kenostod-api')"><span class="toc-number">5</span>Kenostod Merchant API</li>
+                    <li class="toc-item" onclick="scrollToSection('onboarding')"><span class="toc-number">6</span>Onboarding &amp; KYC</li>
+                    <li class="toc-item" onclick="scrollToSection('qr-invoicing')"><span class="toc-number">7</span>QR Codes &amp; Invoicing</li>
+                    <li class="toc-item" onclick="scrollToSection('settlement')"><span class="toc-number">8</span>Settlement &amp; Conversion</li>
+                    <li class="toc-item" onclick="scrollToSection('fees-tiers')"><span class="toc-number">9</span>Fees &amp; Incentive Tiers</li>
+                    <li class="toc-item" onclick="scrollToSection('security')"><span class="toc-number">10</span>API Security &amp; PCI DSS</li>
+                    <li class="toc-item" onclick="scrollToSection('comparison')"><span class="toc-number">11</span>Platform Comparison</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">12</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">13</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">14</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Explain what a payment gateway is and how it bridges merchants and customers</div></li>
+                    <li class="step-item"><div class="step-title">Describe the traditional credit card payment flow (Visa/Mastercard) and its limitations</div></li>
+                    <li class="step-item"><div class="step-title">Understand how cryptocurrency payment gateways differ from traditional card networks</div></li>
+                    <li class="step-item"><div class="step-title">Set up a Kenostod merchant account with API keys, QR codes, and invoicing</div></li>
+                    <li class="step-item"><div class="step-title">Explain the merchant onboarding and KYC compliance process</div></li>
+                    <li class="step-item"><div class="step-title">Implement QR code payment flows and automated invoicing systems</div></li>
+                    <li class="step-item"><div class="step-title">Understand settlement mechanics and KENO-to-USD conversion options</div></li>
+                    <li class="step-item"><div class="step-title">Navigate the 4-tier incentive program and fee optimization strategies</div></li>
+                    <li class="step-item"><div class="step-title">Apply API key security best practices and understand PCI DSS compliance</div></li>
+                    <li class="step-item"><div class="step-title">Compare Kenostod with BitPay, Coinbase Commerce, and the Lightning Network</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>approximately 2 hours</strong> of reading, exercises, and practice. Take breaks between sections. The 250 KENO reward reflects the depth of material covered.</p>
+                </div>
+            </section>
+
+            <section id="what-is-gateway" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128179;</span>What Is a Payment Gateway?</h2>
+                <div class="reading-content">
+                    <p>A <strong>payment gateway</strong> is the technology that sits between a customer who wants to pay and a merchant who wants to receive money. Think of it as a digital cashier &mdash; it securely captures payment information, validates the transaction, communicates with the financial network, and confirms the result back to both parties.</p>
+
+                    <p>Every time you tap your credit card at a coffee shop, buy something online, or scan a QR code to pay, a payment gateway is working behind the scenes. It handles the complexity of authorization, fraud detection, currency conversion, and settlement so that merchants don't have to build these systems themselves.</p>
+
+                    <h3>The Core Functions of a Payment Gateway</h3>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Authorization</div>
+                            <div class="vocab-def">Verifying that the customer has sufficient funds and that the transaction is legitimate</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Encryption</div>
+                            <div class="vocab-def">Securing sensitive payment data during transmission between parties</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Settlement</div>
+                            <div class="vocab-def">Transferring funds from the customer's account to the merchant's account</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Reporting</div>
+                            <div class="vocab-def">Providing transaction records, analytics, and reconciliation tools to the merchant</div>
+                        </div>
+                    </div>
+
+                    <p>Payment gateways exist because direct money transfers between strangers are inherently risky. The gateway acts as a trusted intermediary that ensures the customer's money actually reaches the merchant, while protecting both parties from fraud.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Key Insight</div>
+                        <p>A payment gateway is NOT the same as a payment processor. The <strong>gateway</strong> is the front door &mdash; it captures and encrypts payment data. The <strong>processor</strong> is the engine &mdash; it routes transactions through the card network for approval. In cryptocurrency, these functions are often combined into a single platform because the blockchain handles processing natively.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="traditional" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128179;</span>Traditional Payment Processing</h2>
+                <div class="reading-content">
+                    <p>To appreciate why cryptocurrency payment gateways are revolutionary, you first need to understand how the traditional credit card system works. It's a surprisingly complex chain involving multiple intermediaries, each taking a cut.</p>
+
+                    <h3>The Visa/Mastercard Payment Flow</h3>
+                    <p>When a customer swipes their card at a store, the following happens in roughly 2-3 seconds:</p>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">Traditional Credit Card Transaction Flow</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box customer">
+                                <div class="flow-icon">&#128100;</div>
+                                <div class="flow-label">Customer</div>
+                                <div style="font-size:0.8em;">Swipes card</div>
+                            </div>
+                            <div class="arrow">&rarr;</div>
+                            <div class="flow-box gateway">
+                                <div class="flow-icon">&#128187;</div>
+                                <div class="flow-label">POS/Gateway</div>
+                                <div style="font-size:0.8em;">Captures data</div>
+                            </div>
+                            <div class="arrow">&rarr;</div>
+                            <div class="flow-box bank">
+                                <div class="flow-icon">&#127974;</div>
+                                <div class="flow-label">Card Network</div>
+                                <div style="font-size:0.8em;">Visa/MC route</div>
+                            </div>
+                            <div class="arrow">&rarr;</div>
+                            <div class="flow-box merchant">
+                                <div class="flow-icon">&#128176;</div>
+                                <div class="flow-label">Settlement</div>
+                                <div style="font-size:0.8em;">2-3 days later</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Customer Initiates Payment</div>
+                            <p>The customer taps, swipes, or enters their card details online. The POS terminal or website's payment form captures the card number, expiry date, and CVV.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Gateway Encrypts and Transmits</div>
+                            <p>The payment gateway (e.g., Stripe, Square) encrypts the card data and sends an authorization request to the merchant's acquiring bank.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Card Network Routes the Request</div>
+                            <p>The acquiring bank forwards the request through the card network (Visa, Mastercard, Amex) to the customer's issuing bank. The issuing bank checks the customer's available credit and fraud indicators.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Authorization Response</div>
+                            <p>The issuing bank approves or declines the transaction. The response travels back through the card network, acquiring bank, and gateway to the merchant's terminal &mdash; all in about 2 seconds.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Settlement (2-3 Business Days Later)</div>
+                            <p>At the end of the day, the merchant submits a "batch" of authorized transactions. Funds move from issuing banks through the network to the acquiring bank, which deposits them into the merchant's account &mdash; minus fees. This process takes 2-3 business days.</p>
+                        </li>
+                    </ul>
+
+                    <h3>The Hidden Cost: Who Takes a Cut?</h3>
+                    <p>On a typical $100 credit card transaction, here's where the money goes:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Party</th>
+                                <th>Fee Name</th>
+                                <th>Typical Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Issuing Bank (customer's bank)</td>
+                                <td>Interchange Fee</td>
+                                <td>1.5% - 2.0% ($1.50 - $2.00)</td>
+                            </tr>
+                            <tr>
+                                <td>Card Network (Visa/MC)</td>
+                                <td>Assessment Fee</td>
+                                <td>0.13% - 0.15% ($0.13 - $0.15)</td>
+                            </tr>
+                            <tr>
+                                <td>Payment Processor</td>
+                                <td>Processing Fee</td>
+                                <td>0.2% - 0.5% ($0.20 - $0.50)</td>
+                            </tr>
+                            <tr>
+                                <td>Payment Gateway</td>
+                                <td>Gateway Fee</td>
+                                <td>$0.10 - $0.30 per transaction</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total to Merchant</strong></td>
+                                <td><strong>All Fees Combined</strong></td>
+                                <td><strong>2.5% - 3.5% ($2.50 - $3.50)</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Problem for Small Businesses</div>
+                        <p>For a small business making $50,000/month in card sales, traditional processing fees cost <strong>$1,250 - $1,750 per month</strong>. That's $15,000 - $21,000 per year &mdash; money that comes straight out of profit margins. For restaurants and retailers operating on thin margins (5-10%), this can be the difference between profit and loss. And they still have to wait 2-3 days to access their own money.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="crypto-gateways" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9889;</span>How Crypto Payment Gateways Differ</h2>
+                <div class="reading-content">
+                    <p>Cryptocurrency payment gateways fundamentally change the payment equation by removing intermediaries. Instead of routing transactions through banks and card networks, crypto payments move directly on the blockchain &mdash; a public, decentralized ledger.</p>
+
+                    <h3>The Crypto Payment Flow</h3>
+                    <p>Here's how a cryptocurrency payment works compared to traditional cards:</p>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Customer Initiates Payment</div>
+                            <p>The customer scans a QR code or clicks a payment link. The gateway generates a unique payment address and displays the exact amount of cryptocurrency to send (calculated from the current exchange rate).</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Customer Sends Crypto from Their Wallet</div>
+                            <p>The customer confirms the transaction in their wallet app. The transaction is broadcast to the blockchain network. There is no bank involved, no credit check, and no card number to steal.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Blockchain Confirms the Transaction</div>
+                            <p>Network nodes (miners or validators) verify the transaction and add it to a block. Depending on the blockchain, confirmation takes seconds (KENO) to minutes (Bitcoin). The gateway monitors the blockchain and detects the incoming payment.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Merchant Receives Notification</div>
+                            <p>The gateway sends a webhook callback to the merchant's server confirming receipt. The merchant can choose to hold the crypto, convert to stablecoin, or cash out to fiat currency.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Key Advantages Over Traditional Systems</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Traditional (Visa/MC)</th>
+                                <th>Crypto Gateway (KENO)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Transaction Fees</td><td>2.5% - 3.5%</td><td>0.25% - 1.0%</td></tr>
+                            <tr><td>Settlement Time</td><td>2-3 business days</td><td>Instant (on-chain confirmation)</td></tr>
+                            <tr><td>Chargebacks</td><td>Yes (costly for merchants)</td><td>No (transactions are final)</td></tr>
+                            <tr><td>Geographic Limits</td><td>Country/region restricted</td><td>Global, borderless</td></tr>
+                            <tr><td>Fraud Risk</td><td>Card data can be stolen</td><td>No sensitive data exchanged</td></tr>
+                            <tr><td>Minimum Age / Credit</td><td>Requires bank account</td><td>Anyone with a wallet</td></tr>
+                            <tr><td>Operating Hours</td><td>Banking hours affect settlement</td><td>24/7/365</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Payment Channel Networks: The Lightning Network</h3>
+                    <p>One innovation worth understanding is <strong>payment channel networks</strong>, most famously Bitcoin's Lightning Network. These are "Layer 2" solutions that process transactions off the main blockchain for speed and lower fees, then settle the net result on-chain later.</p>
+                    <p>The concept is like running a bar tab: instead of paying the bartender for every individual drink (each requiring a blockchain transaction), you open a "tab" (payment channel), order multiple drinks, and settle the final total at the end. This reduces on-chain congestion and enables near-instant micropayments.</p>
+                    <p>Kenostod's blockchain processes transactions quickly enough that Layer 2 isn't required for most merchant use cases. However, understanding payment channels is important for comparing platforms and evaluating future scaling strategies.</p>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod Advantage</div>
+                        <p>Kenostod's built-in <strong>5-minute transaction reversal window</strong> (from Course 3) gives merchants an additional safety net. If a customer accidentally overpays or sends to the wrong address, the transaction can be reversed within 5 minutes &mdash; something impossible on Bitcoin or Ethereum. This makes KENO uniquely merchant-friendly.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="kenostod-api" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128187;</span>Kenostod Merchant API System</h2>
+                <div class="reading-content">
+                    <p>The Kenostod Merchant API is a RESTful interface that allows businesses to programmatically create invoices, generate payment addresses, track transaction status, and manage their merchant account. It's designed to be developer-friendly while maintaining enterprise-grade security.</p>
+
+                    <h3>API Architecture Overview</h3>
+                    <p>The API follows a request-response model over HTTPS. All requests require authentication via API keys, and all responses are in JSON format. The base URL for the API is:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Base API URL</span><br>
+                        <span class="code-string">https://api.kenostod.io/v1/merchant/</span>
+                    </div>
+
+                    <h3>Core API Endpoints</h3>
+
+                    <h4>1. Create a Payment Invoice</h4>
+                    <div class="code-example">
+                        <span class="code-comment">// POST /v1/merchant/invoices</span><br>
+                        <span class="code-keyword">const</span> response = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(<span class="code-string">'https://api.kenostod.io/v1/merchant/invoices'</span>, {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">method</span>: <span class="code-string">'POST'</span>,<br>
+                        &nbsp;&nbsp;<span class="code-keyword">headers</span>: {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'Authorization'</span>: <span class="code-string">'Bearer sk_live_your_api_key'</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'Content-Type'</span>: <span class="code-string">'application/json'</span><br>
+                        &nbsp;&nbsp;},<br>
+                        &nbsp;&nbsp;<span class="code-keyword">body</span>: JSON.<span class="code-function">stringify</span>({<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">amount_usd</span>: <span class="code-number">49.99</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">currency</span>: <span class="code-string">'USD'</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">description</span>: <span class="code-string">'Premium Widget - SKU #12345'</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">customer_email</span>: <span class="code-string">'customer@example.com'</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">webhook_url</span>: <span class="code-string">'https://mystore.com/webhooks/keno'</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">expiry_minutes</span>: <span class="code-number">30</span><br>
+                        &nbsp;&nbsp;})<br>
+                        });<br><br>
+                        <span class="code-comment">// Response:</span><br>
+                        <span class="code-comment">// {</span><br>
+                        <span class="code-comment">//   "invoice_id": "inv_7f8a9b2c",</span><br>
+                        <span class="code-comment">//   "payment_address": "0x1a2b3c4d...",</span><br>
+                        <span class="code-comment">//   "amount_keno": 499.9,</span><br>
+                        <span class="code-comment">//   "amount_usd": 49.99,</span><br>
+                        <span class="code-comment">//   "qr_code_url": "https://api.kenostod.io/qr/inv_7f8a9b2c",</span><br>
+                        <span class="code-comment">//   "status": "pending",</span><br>
+                        <span class="code-comment">//   "expires_at": "2026-02-09T14:30:00Z"</span><br>
+                        <span class="code-comment">// }</span>
+                    </div>
+
+                    <h4>2. Check Payment Status</h4>
+                    <div class="code-example">
+                        <span class="code-comment">// GET /v1/merchant/invoices/:invoice_id</span><br>
+                        <span class="code-keyword">const</span> status = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(<br>
+                        &nbsp;&nbsp;<span class="code-string">'https://api.kenostod.io/v1/merchant/invoices/inv_7f8a9b2c'</span>,<br>
+                        &nbsp;&nbsp;{ <span class="code-keyword">headers</span>: { <span class="code-string">'Authorization'</span>: <span class="code-string">'Bearer sk_live_your_api_key'</span> } }<br>
+                        );<br><br>
+                        <span class="code-comment">// Response includes: status ("pending", "paid", "expired", "refunded")</span><br>
+                        <span class="code-comment">// plus transaction hash, confirmation count, and timestamp</span>
+                    </div>
+
+                    <h4>3. Webhook Notification</h4>
+                    <p>When a payment is received, Kenostod sends a POST request to your configured webhook URL:</p>
+                    <div class="code-example">
+                        <span class="code-comment">// Webhook payload sent to your server:</span><br>
+                        {<br>
+                        &nbsp;&nbsp;<span class="code-string">"event"</span>: <span class="code-string">"payment.confirmed"</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"invoice_id"</span>: <span class="code-string">"inv_7f8a9b2c"</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"amount_keno"</span>: <span class="code-number">499.9</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"amount_usd"</span>: <span class="code-number">49.99</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"tx_hash"</span>: <span class="code-string">"0xabc123..."</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"confirmations"</span>: <span class="code-number">6</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"signature"</span>: <span class="code-string">"hmac_sha256_signature_here"</span><br>
+                        }
+                    </div>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Always Verify Webhook Signatures</div>
+                        <p>Every webhook includes an HMAC-SHA256 signature computed using your webhook secret. <strong>Always verify this signature</strong> before processing the payment. Without verification, an attacker could send fake payment confirmations to your server and trick you into shipping products without payment.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="onboarding" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128203;</span>Merchant Onboarding &amp; KYC</h2>
+                <div class="reading-content">
+                    <p>Before a business can start accepting KENO payments, it must complete the merchant onboarding process. This involves identity verification (KYC), business validation, and configuration of payment settings.</p>
+
+                    <h3>Know Your Customer (KYC) Requirements</h3>
+                    <p>KYC is a regulatory requirement designed to prevent money laundering, terrorism financing, and fraud. All payment gateways &mdash; whether traditional or crypto &mdash; must comply with KYC regulations in the jurisdictions where they operate.</p>
+
+                    <h4>Individual Merchant Requirements</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Government-issued photo ID (passport, driver's license, or national ID)</li>
+                        <li>Proof of address (utility bill or bank statement dated within 90 days)</li>
+                        <li>Tax identification number (SSN, EIN, or local equivalent)</li>
+                        <li>Bank account details for optional fiat settlement</li>
+                    </ul>
+
+                    <h4>Business Merchant Requirements</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Business registration documents (certificate of incorporation, business license)</li>
+                        <li>Proof of business address</li>
+                        <li>Beneficial ownership information (anyone owning 25%+ of the business)</li>
+                        <li>Description of products/services offered</li>
+                        <li>Estimated monthly transaction volume</li>
+                    </ul>
+
+                    <h3>The Onboarding Process</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Submit Application</div>
+                            <p>Fill out the merchant registration form with business details, upload KYC documents, and specify your intended use case (e-commerce, retail, services, etc.).</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Automated Verification</div>
+                            <p>Kenostod's system performs initial document verification, cross-references against sanctions lists, and runs basic fraud checks. Most applications are processed within 24 hours.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Manual Review (if needed)</div>
+                            <p>High-risk categories (gambling, adult content, firearms) or unusual applications receive manual review by the compliance team. This may take 3-5 business days.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Account Activation</div>
+                            <p>Upon approval, you receive your API keys (test and live), access to the merchant dashboard, and can begin accepting payments.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Test Mode First</div>
+                        <p>Kenostod provides a complete <strong>sandbox environment</strong> with test API keys (<code>sk_test_...</code>) that let you simulate payment flows without real money. Always build and test your integration in sandbox mode before going live. Test keys can be used immediately, before KYC is completed.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="qr-invoicing" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128242;</span>QR Code Payments &amp; Invoicing</h2>
+                <div class="reading-content">
+                    <p>QR codes are the bridge between the physical and digital worlds of cryptocurrency payments. They encode payment information into a scannable image, making it as easy to pay with KENO as it is to scan a barcode at the grocery store.</p>
+
+                    <h3>How QR Code Payments Work</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Merchant Generates QR Code</div>
+                            <p>Through the dashboard or API, the merchant creates a QR code containing the payment address, amount in KENO, and an invoice reference ID. Static QR codes can be printed for fixed-price items; dynamic QR codes are generated per transaction for variable amounts.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Customer Scans with Wallet App</div>
+                            <p>The customer opens their Kenostod wallet app and scans the QR code. The app automatically populates the payment address and amount &mdash; no manual entry needed, eliminating typo errors.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Customer Confirms Payment</div>
+                            <p>The customer reviews the payment details and confirms. The transaction is signed with their private key and broadcast to the KENO network.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Real-Time Confirmation</div>
+                            <p>The merchant's POS terminal or dashboard updates in real-time as the transaction is confirmed on-chain. A chime or visual indicator signals successful payment.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Invoice Generation System</h3>
+                    <p>The invoicing system supports both simple and complex billing scenarios:</p>
+
+                    <h4>Simple Invoice (Single Item)</h4>
+                    <div class="code-example">
+                        <span class="code-comment">// Quick invoice for a single item</span><br>
+                        {<br>
+                        &nbsp;&nbsp;<span class="code-string">"amount_usd"</span>: <span class="code-number">25.00</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"description"</span>: <span class="code-string">"Artisan Coffee - Large"</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"expiry_minutes"</span>: <span class="code-number">15</span><br>
+                        }
+                    </div>
+
+                    <h4>Itemized Invoice (Multiple Line Items)</h4>
+                    <div class="code-example">
+                        <span class="code-comment">// Detailed invoice with line items, tax, and tip</span><br>
+                        {<br>
+                        &nbsp;&nbsp;<span class="code-string">"items"</span>: [<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"name"</span>: <span class="code-string">"Laptop Stand"</span>, <span class="code-string">"qty"</span>: <span class="code-number">1</span>, <span class="code-string">"price"</span>: <span class="code-number">45.00</span> },<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"name"</span>: <span class="code-string">"USB-C Cable"</span>, <span class="code-string">"qty"</span>: <span class="code-number">2</span>, <span class="code-string">"price"</span>: <span class="code-number">12.99</span> },<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"name"</span>: <span class="code-string">"Mouse Pad"</span>, <span class="code-string">"qty"</span>: <span class="code-number">1</span>, <span class="code-string">"price"</span>: <span class="code-number">8.50</span> }<br>
+                        &nbsp;&nbsp;],<br>
+                        &nbsp;&nbsp;<span class="code-string">"tax_rate"</span>: <span class="code-number">0.08</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"tip_enabled"</span>: <span class="code-keyword">true</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"customer_email"</span>: <span class="code-string">"buyer@email.com"</span>,<br>
+                        &nbsp;&nbsp;<span class="code-string">"memo"</span>: <span class="code-string">"Order #10042 - Thank you!"</span><br>
+                        }
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Static vs. Dynamic QR Codes</div>
+                        <p><strong>Static QR codes</strong> are perfect for tips jars, donations, or fixed-price items (e.g., a $5 coffee). They always point to the same address and can be printed on signs or business cards. <strong>Dynamic QR codes</strong> are generated per transaction and include a specific amount and invoice ID. They expire after a set time to prevent underpayment due to price fluctuations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="settlement" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128178;</span>Settlement &amp; Conversion</h2>
+                <div class="reading-content">
+                    <p>Settlement is the process of transferring the payment from the customer's wallet to the merchant's account. With Kenostod, merchants have multiple options for how they receive and manage their funds.</p>
+
+                    <h3>Settlement Options</h3>
+
+                    <h4>Option 1: Hold as KENO</h4>
+                    <p>The simplest option. Payments arrive directly in your merchant wallet as KENO tokens. This is ideal for merchants who believe in KENO's long-term value or who have KENO-denominated expenses (like paying KENO-accepting suppliers).</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Zero conversion fees, instant settlement, maintain exposure to KENO appreciation</li>
+                        <li><strong>Cons:</strong> Subject to KENO price volatility, may need to convert later for fiat expenses</li>
+                    </ul>
+
+                    <h4>Option 2: Auto-Convert to Stablecoin (PUSD)</h4>
+                    <p>Kenostod can automatically convert received KENO to PUSD (a USD-pegged stablecoin) at the moment of receipt. This locks in the USD value and eliminates price volatility risk.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Price stability, still on-chain, easy to convert to fiat later</li>
+                        <li><strong>Cons:</strong> Small conversion fee (0.1%), miss out on KENO price increases</li>
+                    </ul>
+
+                    <h4>Option 3: Auto-Convert to Fiat (USD/EUR/GBP)</h4>
+                    <p>For merchants who need traditional currency, Kenostod partners with licensed exchange partners to offer automatic conversion to fiat with direct bank deposit.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pros:</strong> Familiar currency, easy accounting, no crypto management needed</li>
+                        <li><strong>Cons:</strong> Conversion fee (0.5%), bank deposit takes 1-2 business days</li>
+                    </ul>
+
+                    <h4>Option 4: Split Settlement</h4>
+                    <p>The most flexible option. Configure a split: for example, hold 50% as KENO and convert 50% to USD. This balances growth potential with operational cash flow needs.</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Configure split settlement via API</span><br>
+                        <span class="code-keyword">const</span> config = {<br>
+                        &nbsp;&nbsp;<span class="code-string">"settlement_rules"</span>: [<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"type"</span>: <span class="code-string">"hold_keno"</span>, <span class="code-string">"percentage"</span>: <span class="code-number">40</span> },<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"type"</span>: <span class="code-string">"convert_pusd"</span>, <span class="code-string">"percentage"</span>: <span class="code-number">30</span> },<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"type"</span>: <span class="code-string">"convert_fiat"</span>, <span class="code-string">"percentage"</span>: <span class="code-number">30</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"fiat_currency"</span>: <span class="code-string">"USD"</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"bank_account_id"</span>: <span class="code-string">"ba_abc123"</span> }<br>
+                        &nbsp;&nbsp;]<br>
+                        };
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Exchange Rate Locking</div>
+                        <p>When an invoice is created, the KENO/USD exchange rate is <strong>locked for the invoice duration</strong> (e.g., 30 minutes). This means neither the merchant nor the customer bears the risk of price changes during the payment window. If the customer pays after the invoice expires, the payment is automatically refunded.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="fees-tiers" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127942;</span>Fee Structure &amp; 4-Tier Incentive Program</h2>
+                <div class="reading-content">
+                    <p>Kenostod's fee structure is designed to reward merchants who grow their KENO payment volume. The more transactions you process, the lower your fees become &mdash; creating a positive feedback loop that benefits both the merchant and the KENO ecosystem.</p>
+
+                    <h3>The 4-Tier Program</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Tier</th>
+                                <th>Monthly Volume (USD)</th>
+                                <th>Transaction Fee</th>
+                                <th>Perks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong style="color: #cd7f32;">&#129353; Bronze</strong></td>
+                                <td>$0 - $9,999</td>
+                                <td>1.0%</td>
+                                <td>Dashboard, QR codes, webhooks, email support</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #c0c0c0;">&#129352; Silver</strong></td>
+                                <td>$10,000 - $49,999</td>
+                                <td>0.75%</td>
+                                <td>+ Priority support, custom branding, analytics</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: var(--gold);">&#129351; Gold</strong></td>
+                                <td>$50,000 - $199,999</td>
+                                <td>0.5%</td>
+                                <td>+ Dedicated account manager, API rate limit increase, early feature access</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #e5e4e2;">&#128142; Platinum</strong></td>
+                                <td>$200,000+</td>
+                                <td>0.25%</td>
+                                <td>+ Custom integration support, SLA guarantee, volume bonuses in KENO</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Fee Comparison: Kenostod vs. Competitors</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Provider</th>
+                                <th>Base Fee</th>
+                                <th>Best Available Fee</th>
+                                <th>Settlement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Visa/Mastercard</td><td>2.5% - 3.5%</td><td>~1.5% (high volume)</td><td>2-3 days</td></tr>
+                            <tr><td>PayPal</td><td>2.9% + $0.30</td><td>2.2% (volume pricing)</td><td>Instant (to PayPal balance)</td></tr>
+                            <tr><td>Stripe</td><td>2.9% + $0.30</td><td>Custom enterprise pricing</td><td>2 days</td></tr>
+                            <tr><td>BitPay</td><td>1.0%</td><td>1.0% (flat)</td><td>Next business day</td></tr>
+                            <tr><td>Coinbase Commerce</td><td>1.0%</td><td>1.0% (flat)</td><td>Instant (to Coinbase)</td></tr>
+                            <tr><td><strong style="color: var(--primary);">Kenostod</strong></td><td><strong>1.0%</strong></td><td><strong>0.25% (Platinum)</strong></td><td><strong>Instant</strong></td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Understanding Your Tier Savings</h3>
+                    <p>Let's see the real impact of tier progression on a business doing $100,000/month in KENO payments:</p>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128200; Annual Savings Example</div>
+                        <p>At <strong>Bronze (1.0%)</strong>: $1,000/month in fees = $12,000/year<br>
+                        At <strong>Gold (0.5%)</strong>: $500/month in fees = $6,000/year<br>
+                        At <strong>Platinum (0.25%)</strong>: $250/month in fees = $3,000/year<br><br>
+                        Moving from Bronze to Platinum saves <strong>$9,000 per year</strong>. Compare this to credit cards at 3%: that's $36,000/year in fees &mdash; making Kenostod Platinum <strong>12x cheaper</strong> than traditional card processing.</p>
+                    </div>
+
+                    <h3>Pricing Models for Merchants</h3>
+                    <p>Kenostod supports two pricing approaches that merchants can choose from:</p>
+                    <h4>Auto-Pricing (Exchange Rate)</h4>
+                    <p>Set prices in USD and let the gateway automatically calculate the KENO amount at the current exchange rate. Best for merchants who think in fiat terms and want stable revenue.</p>
+                    <h4>KENO-Native Pricing</h4>
+                    <p>Set prices directly in KENO. Best for crypto-native businesses or when targeting KENO-holding customers who prefer to think in token terms.</p>
+                </div>
+            </section>
+
+            <section id="security" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128274;</span>API Security &amp; PCI DSS Compliance</h2>
+                <div class="reading-content">
+                    <p>Security is paramount when handling payments. A single breach can destroy customer trust and potentially expose a business to massive liability. Kenostod's merchant gateway is designed with security-first principles.</p>
+
+                    <h3>API Key Management</h3>
+                    <p>Kenostod uses a dual-key system for API authentication:</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Publishable Key (pk_live_...)</div>
+                            <div class="vocab-def">Safe to include in client-side code. Can only create payment intents and display QR codes. Cannot access account data or initiate withdrawals.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Secret Key (sk_live_...)</div>
+                            <div class="vocab-def">Must NEVER be exposed in client-side code. Full API access including creating invoices, managing webhooks, and initiating settlements.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Webhook Secret (whsec_...)</div>
+                            <div class="vocab-def">Used to verify that incoming webhook requests are genuinely from Kenostod and haven't been tampered with.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Test Keys (sk_test_..., pk_test_...)</div>
+                            <div class="vocab-def">Sandbox keys for development and testing. No real transactions are processed. Free to use without limits.</div>
+                        </div>
+                    </div>
+
+                    <h3>Security Best Practices</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Never Expose Secret Keys in Frontend Code</div>
+                            <p>Your secret key should only exist on your server. Never include it in JavaScript bundles, mobile app code, or version control (git). Use environment variables to store keys.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Rotate Keys Regularly</div>
+                            <p>Rotate your API keys every 90 days. The Kenostod dashboard supports seamless key rotation with a grace period where both old and new keys work simultaneously.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Restrict API Key Permissions</div>
+                            <p>Use IP whitelisting to restrict which servers can use your API keys. Set spending limits and configure alerts for unusual activity.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Verify All Webhook Signatures</div>
+                            <p>Compute the HMAC-SHA256 of the webhook payload using your webhook secret and compare it to the signature header. Reject any request with an invalid signature.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Use HTTPS Everywhere</div>
+                            <p>All API calls and webhook endpoints must use HTTPS. Never transmit payment data over unencrypted HTTP connections.</p>
+                        </li>
+                    </ul>
+
+                    <h3>PCI DSS Compliance Considerations</h3>
+                    <p>PCI DSS (Payment Card Industry Data Security Standard) is a set of security standards designed to protect cardholder data. While Kenostod doesn't process credit cards directly, merchants who accept both crypto and card payments need to understand PCI compliance.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Crypto Advantage: Reduced PCI Scope</div>
+                        <p>One major advantage of cryptocurrency payments is that they <strong>dramatically reduce PCI DSS compliance scope</strong>. With card payments, you're handling sensitive card numbers that require extensive security controls. With KENO payments, the customer sends from their wallet using their own private key &mdash; no sensitive card data ever touches your servers. This means fewer security audits, less compliance overhead, and lower risk.</p>
+                    </div>
+
+                    <p>If you also accept credit cards alongside KENO, you still need PCI compliance for the card processing portion. The recommended approach is to use a PCI-compliant payment processor (like Stripe) for cards and Kenostod for crypto, keeping the two systems separate.</p>
+                </div>
+            </section>
+
+            <section id="comparison" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128203;</span>Platform Comparison: BitPay, Coinbase Commerce &amp; Kenostod</h2>
+                <div class="reading-content">
+                    <p>Understanding how Kenostod compares to established crypto payment platforms helps merchants make informed decisions. Let's examine the three major options:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>BitPay</th>
+                                <th>Coinbase Commerce</th>
+                                <th>Kenostod Gateway</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Supported Coins</td><td>BTC, ETH, LTC, + 10 others</td><td>BTC, ETH, USDC, DOGE, + others</td><td>KENO (+ PUSD stablecoin)</td></tr>
+                            <tr><td>Transaction Fee</td><td>1.0% flat</td><td>1.0% flat</td><td>0.25% - 1.0% (tiered)</td></tr>
+                            <tr><td>Settlement Speed</td><td>Next business day</td><td>Instant to Coinbase</td><td>Instant on-chain</td></tr>
+                            <tr><td>Fiat Conversion</td><td>Yes (auto)</td><td>Manual via Coinbase</td><td>Yes (auto, split, or hold)</td></tr>
+                            <tr><td>Chargebacks</td><td>None</td><td>None</td><td>None (5-min reversal window)</td></tr>
+                            <tr><td>KYC Required</td><td>Yes (full)</td><td>Yes (Coinbase account)</td><td>Yes (tiered by volume)</td></tr>
+                            <tr><td>QR Code Payments</td><td>Yes</td><td>Yes</td><td>Yes (static + dynamic)</td></tr>
+                            <tr><td>Invoicing API</td><td>Yes</td><td>Limited</td><td>Yes (full itemized)</td></tr>
+                            <tr><td>Webhook Support</td><td>Yes</td><td>Yes</td><td>Yes (signed)</td></tr>
+                            <tr><td>Volume Discounts</td><td>No</td><td>No</td><td>Yes (4-tier program)</td></tr>
+                            <tr><td>Transaction Reversal</td><td>No</td><td>No</td><td>Yes (5-minute window)</td></tr>
+                            <tr><td>Merchant Rewards</td><td>No</td><td>No</td><td>Yes (KENO bonuses at Platinum)</td></tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127919; When to Choose Kenostod</div>
+                        <p>Kenostod is the best choice when: you want the lowest possible fees (Platinum at 0.25% is unmatched), you value instant settlement, you want the safety net of the 5-minute reversal window, or you're building in the Kenostod ecosystem. BitPay is better if you need to accept multiple cryptocurrencies. Coinbase Commerce is easier for merchants already using Coinbase for trading.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These case studies illustrate the real challenges and opportunities of merchant cryptocurrency adoption:</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: Overstock.com &mdash; The Pioneer (2014-Present)</h4>
+                        <p><strong>What happened:</strong> Overstock.com became one of the first major retailers to accept Bitcoin in January 2014. CEO Patrick Byrne was a vocal crypto advocate, and Overstock partnered with Coinbase to process Bitcoin payments.</p>
+                        <p style="margin-top: 10px;"><strong>Results:</strong> In the first year, Overstock processed over $1 million in Bitcoin sales. By 2017, crypto accounted for a small but growing percentage of revenue. The company even held some Bitcoin on its balance sheet, benefiting from the 2017 bull run.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Early adoption creates brand differentiation and attracts a tech-savvy customer base. However, crypto payments remain a small percentage of total volume &mdash; merchants should view it as an additional payment option, not a replacement for cards.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: BitPay &amp; Restaurant Chains &mdash; The Volatility Challenge</h4>
+                        <p><strong>What happened:</strong> Several restaurant chains integrated BitPay to accept crypto payments in 2021-2022. When Bitcoin's price dropped 70% in 2022, merchants who held BTC instead of converting to fiat saw their revenue shrink dramatically in dollar terms.</p>
+                        <p style="margin-top: 10px;"><strong>Results:</strong> Merchants who used BitPay's instant fiat conversion were protected from volatility. Those who held crypto suffered significant losses on their revenue.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> <strong>Auto-conversion to fiat or stablecoin is essential for merchants who have fiat-denominated expenses</strong> (rent, salaries, suppliers). Kenostod's split settlement option solves this elegantly &mdash; hold some for growth potential, convert the rest for stability.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: El Salvador &mdash; National Bitcoin Adoption (2021)</h4>
+                        <p><strong>What happened:</strong> El Salvador became the first country to adopt Bitcoin as legal tender in September 2021. The government launched the "Chivo" wallet and required all businesses to accept Bitcoin. They rolled out thousands of Bitcoin ATMs and POS terminals.</p>
+                        <p style="margin-top: 10px;"><strong>Challenges:</strong> Technical glitches with the Chivo wallet frustrated early users. Many merchants found the transaction confirmation time (10+ minutes for Bitcoin) too slow for retail. Internet connectivity issues in rural areas made the system unreliable. Most citizens preferred to immediately convert BTC to USD.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Merchant adoption requires <strong>fast confirmations</strong> (KENO confirms in seconds, not minutes), <strong>reliable infrastructure</strong>, <strong>easy fiat off-ramps</strong>, and <strong>user-friendly interfaces</strong>. Simply mandating crypto acceptance doesn't work without addressing these practical concerns.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: Shopify &amp; Multi-Gateway Integration (2022-Present)</h4>
+                        <p><strong>What happened:</strong> Shopify integrated multiple crypto payment gateways (BitPay, Coinbase Commerce, and others) as optional checkout methods for its 4+ million merchants. Rather than replacing traditional payments, crypto was offered alongside credit cards, PayPal, and Apple Pay.</p>
+                        <p style="margin-top: 10px;"><strong>Results:</strong> Adoption was slow but steady. Merchants in emerging markets (where card penetration is low) saw the highest crypto payment rates. Cross-border e-commerce merchants benefited from avoiding international card fees.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> The "alongside, not instead of" approach works best. Kenostod merchants should <strong>offer KENO as an additional payment option</strong> rather than exclusively &mdash; give customers choice. The merchants who succeed with crypto are those in niches where it provides clear advantages: international sales, digital goods, privacy-focused markets, and unbanked customer bases.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Fee Comparison Analysis</h4>
+                        <div class="exercise-question">
+                            <p>A bakery processes $30,000/month in sales. Calculate the monthly payment processing fees under three scenarios: (a) traditional credit cards at 2.9% + $0.30/transaction (assume 600 transactions), (b) Kenostod Bronze tier (1.0%), and (c) Kenostod Silver tier (0.75%). What are the annual savings of switching from credit cards to Kenostod Silver?</p>
+                            <textarea id="ex1" placeholder="Show your calculations here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Settlement Strategy Design</h4>
+                        <div class="exercise-question">
+                            <p>You run an online clothing store that accepts KENO payments. Your monthly expenses are $15,000 (rent, salaries, inventory) paid in USD, and you believe KENO will appreciate 50% over the next year. Design a split settlement strategy and explain your reasoning. What percentage would you hold as KENO, convert to stablecoin, or send to your bank?</p>
+                            <textarea id="ex2" placeholder="Describe your settlement strategy..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: API Security Scenario</h4>
+                        <div class="exercise-question">
+                            <p>A junior developer on your team accidentally commits the Kenostod secret API key (sk_live_...) to a public GitHub repository. The commit has been live for 6 hours before anyone notices. What steps do you take immediately, and what preventive measures would you implement to ensure this never happens again?</p>
+                            <textarea id="ex3" placeholder="Describe your incident response plan..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Merchant Adoption Challenges</h4>
+                        <div class="exercise-question">
+                            <p>You're trying to convince a local restaurant owner to accept KENO payments. They say: "Why would I bother? My customers all use credit cards, and crypto is too volatile." Write a persuasive response addressing their specific concerns with concrete benefits.</p>
+                            <textarea id="ex4" placeholder="Write your persuasive argument..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Integration Architecture</h4>
+                        <div class="exercise-question">
+                            <p>Describe how you would integrate Kenostod's payment gateway into an e-commerce website. Cover: where API keys should be stored, how the checkout flow works (frontend to backend), how you would handle webhook notifications, and how you would update order status in your database when payment is confirmed.</p>
+                            <textarea id="ex5" placeholder="Describe your integration architecture..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128736;&#65039;</span>Hands-On Practice</h2>
+                <div class="reading-content">
+                    <p>Now it's time to put your knowledge into action! Complete the following tasks in the Kenostod merchant simulator.</p>
+
+                    <h3>Lab Tasks:</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Task 1: Create a Test Merchant Account</div>
+                            <p>Navigate to the Merchant tab and register a test merchant account. Observe the API keys generated for you (test mode).</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 2: Generate Your First Invoice</div>
+                            <p>Create an invoice for $25.00 with a description. Notice how the system calculates the KENO equivalent and generates a QR code.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 3: Process a Test Payment</div>
+                            <p>Use your wallet to scan the QR code and pay the invoice. Watch the real-time status update from "pending" to "paid."</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 4: Review Transaction History</div>
+                            <p>Check the merchant dashboard for your completed transaction. Note the fee deducted and the net amount received.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 5: Explore Settlement Options</div>
+                            <p>Browse the settlement configuration options. Try setting up a split settlement rule (even in test mode).</p>
+                        </li>
+                    </ul>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="/#merchant" class="practice-btn">&#128640; Open Merchant Tab</a>
+                        <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9em;">Opens in the main platform. Complete all tasks, then return here for the Final Exam!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What is the primary function of a payment gateway?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To store cryptocurrency in a vault</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To securely bridge payment transactions between customers and merchants</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To mine new blocks on the blockchain</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To issue new credit cards to customers</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. In traditional credit card processing, how long does settlement typically take?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Instant</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>30 minutes</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>2-3 business days</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1 month</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. What is the standard transaction fee for Kenostod's Bronze tier?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1.0%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>2.5%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>0.5%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>3.0%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. What is the lowest fee rate available through the Platinum tier?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1.0%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>0.75%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>0.5%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>0.25%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. Which API key type should NEVER be included in client-side (frontend) code?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Publishable key (pk_live_...)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Secret key (sk_live_...)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Test key (pk_test_...)</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>QR code identifier</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="a">
+                    <div class="question-text">6. How do in-store customers pay with KENO at a physical retailer?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Scan a QR code with their wallet app</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Swipe a KENO debit card</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Wire transfer through a bank</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mail a paper check</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="c">
+                    <div class="question-text">7. What major advantage does crypto payment processing have over credit cards regarding PCI DSS compliance?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Crypto payments require more compliance</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PCI DSS doesn't apply to any digital payments</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>No sensitive card data touches merchant servers, reducing compliance scope</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Crypto merchants are exempt from all regulations</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="b">
+                    <div class="question-text">8. What is Kenostod's "split settlement" feature?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Splitting a payment between two customers</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Configuring what percentage of revenue to hold as KENO vs. convert to fiat/stablecoin</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Dividing transaction fees between merchant and customer</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Splitting one large payment into smaller installments</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="a">
+                    <div class="question-text">9. Why should you always verify webhook signatures from Kenostod?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To prevent attackers from sending fake payment confirmations to your server</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To speed up the payment processing time</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Webhook signatures are optional and not important</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To reduce the transaction fee percentage</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="d">
+                    <div class="question-text">10. What unique safety feature does Kenostod offer that Bitcoin and Ethereum payment gateways do not?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Multi-signature wallets</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Encrypted QR codes</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Proof of Work mining</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A 5-minute transaction reversal window</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="c">
+                    <div class="question-text">11. What lesson did the El Salvador Bitcoin adoption teach about merchant crypto payments?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>All countries should immediately mandate crypto</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bitcoin is too expensive for developing countries</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Success requires fast confirmations, reliable infrastructure, easy fiat off-ramps, and user-friendly interfaces</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Paper wallets are the best solution for retail payments</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="b">
+                    <div class="question-text">12. What is the minimum monthly volume required to qualify for Kenostod's Gold tier (0.5% fee)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>$10,000</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>$50,000</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>$100,000</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>$200,000</span></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+
+                <div id="quizResult" class="quiz-result">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h3 class="result-title" id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-13-royalties.html" style="color: var(--primary);">&larr; Course 13: Royalties</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-15-banking.html" style="color: var(--primary);">Course 15: Banking &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+
+            const passingScore = 10;
+
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '\uD83C\uDF89';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}! You've mastered the Merchant Payment Gateway.`;
+                nextCourseContainer.innerHTML = `
+                    <p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You've earned 250 KENO!</p>
+                    <a href="/courses/course-15-banking.html" class="next-course-btn">Continue to Course 15: Banking \u2192</a>
+                `;
+                localStorage.setItem('course14_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(14, 'Course 14: Merchant Gateway');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '\uD83D\uDCDA';
+                resultTitle.textContent = 'Keep Studying!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}. You need at least ${passingScore} correct (80%) to pass. Review the material and try again.`;
+                nextCourseContainer.innerHTML = `
+                    <button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>
+                `;
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+
+            const hints = {
+                1: 'Good effort! Credit cards: ($30,000 x 2.9%) + (600 x $0.30) = $870 + $180 = $1,050/month. Kenostod Bronze: $30,000 x 1.0% = $300/month. Kenostod Silver: $30,000 x 0.75% = $225/month. Annual savings (CC vs Silver): ($1,050 - $225) x 12 = $9,900/year. That\'s nearly $10,000 back in the bakery\'s pocket!',
+                2: 'Strong answer elements: Convert enough to cover $15,000/month in fiat expenses (e.g., 60-70% to USD/stablecoin). Hold the remainder (30-40%) as KENO for potential appreciation. Consider converting via stablecoin first for flexibility rather than direct bank deposit. Adjust the ratio over time based on KENO price performance and business needs.',
+                3: 'Key steps: (1) Immediately rotate/revoke the compromised key in the Kenostod dashboard. (2) Audit recent transactions for unauthorized activity. (3) Generate new API keys and update all server configurations. (4) Remove the commit from git history using git filter-branch or BFG Repo Cleaner. Prevention: use .gitignore for .env files, use environment variables, implement pre-commit hooks that scan for API key patterns, and consider using a secrets manager like HashiCorp Vault.',
+                4: 'Strong arguments: Lower fees (1% vs 2.9%) save thousands per year. No chargebacks eliminate a major pain point for restaurants. Instant settlement means better cash flow vs. waiting 2-3 days. Auto-conversion to USD removes volatility concern. KENO can be offered alongside cards (not a replacement). The 5-minute reversal window handles mistakes. Tier progression rewards growth with even lower fees.',
+                5: 'Key architecture points: Store secret key (sk_live_) in environment variables on the server only. Frontend displays QR code/payment button using publishable key. On checkout, backend creates invoice via POST to Kenostod API. Frontend displays QR code and polls for status or listens to webhook. Webhook endpoint on your server receives payment confirmation, verifies HMAC signature, then updates order status in database to "paid" and triggers order fulfillment.'
+            };
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(20,184,166,0.15)';
+            feedback.style.border = '1px solid rgba(20,184,166,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'what-is-gateway', 'traditional', 'crypto-gateways', 'kenostod-api', 'onboarding', 'qr-invoicing', 'settlement', 'fees-tiers', 'security', 'comparison', 'case-studies', 'exercises', 'quiz'];
+            let current = '';
+
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('onclick')?.includes(current)) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>
