@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenostod Blockchain - API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: rgba(255,255,255,0.95);
+            padding: 30px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            text-align: center;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+            font-size: 1.2em;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .nav {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 10px;
+            display: block;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover {
+            background: rgba(102, 126, 234, 0.2);
+            padding-left: 20px;
+        }
+
+        .section {
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .endpoint {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+
+        .method.get { background: #28a745; }
+        .method.post { background: #007bff; }
+        .method.delete { background: #dc3545; }
+
+        .path {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #c7254e;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 5px 5px 5px 0;
+        }
+
+        .badge.revolutionary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 10px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+
+        .feature-list li::before {
+            content: "✨ ";
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔗 Kenostod Blockchain</h1>
+        <p>Complete API Documentation</p>
+    </div>
+
+    <div class="container">
+        <!-- Quick Navigation -->
+        <div class="nav">
+            <h3>📚 Quick Navigation</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#features">Revolutionary Features</a></li>
+                <li><a href="#blockchain">Blockchain APIs</a></li>
+                <li><a href="#transactions">Transaction APIs</a></li>
+                <li><a href="#reversal">Transaction Reversal</a></li>
+                <li><a href="#scheduled">Scheduled Payments</a></li>
+                <li><a href="#recovery">Social Recovery</a></li>
+                <li><a href="#reputation">Reputation System</a></li>
+                <li><a href="#governance">Governance</a></li>
+                <li><a href="#mining">Mining</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview -->
+        <div class="section" id="overview">
+            <h2>📖 Overview</h2>
+            <p><strong>Kenostod</strong> is a revolutionary blockchain platform featuring the native cryptocurrency <strong>KENO</strong>. It implements proof-of-work mining, secure transactions with digital signatures, and includes six innovative features that address real-world pain points in blockchain technology.</p>
+            
+            <h3>Base URL</h3>
+            <pre>https://kenostodblockchain.com</pre>
+            
+            <h3>API Endpoints</h3>
+            <p>All endpoints return JSON responses. The API supports CORS for cross-origin requests.</p>
+        </div>
+
+        <!-- Revolutionary Features -->
+        <div class="section" id="features">
+            <h2>✨ Six Revolutionary Features</h2>
+            <p>Kenostod introduces features that Bitcoin, Ethereum, and Solana don't have:</p>
+            
+            <ul class="feature-list">
+                <li><strong>Transaction Reversal Window:</strong> 5-minute grace period to cancel pending transactions</li>
+                <li><strong>Smart Scheduled Payments:</strong> Native recurring and future-dated transactions</li>
+                <li><strong>Social Recovery System:</strong> Guardian-based wallet recovery without exposing private keys</li>
+                <li><strong>Transaction Messages:</strong> Cryptographically secured messages attached to transactions</li>
+                <li><strong>Reputation System:</strong> Decentralized 1-5 star ratings for transactions</li>
+                <li><strong>Community Governance:</strong> Token-weighted voting on network parameters</li>
+            </ul>
+        </div>
+
+        <!-- Blockchain APIs -->
+        <div class="section" id="blockchain">
+            <h2>⛓️ Blockchain APIs</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/chain</span>
+                <p><strong>Description:</strong> Get the entire blockchain</p>
+                <p><strong>Response:</strong></p>
+                <pre>[
+  {
+    "timestamp": 1640000000000,
+    "transactions": [],
+    "previousHash": "0",
+    "hash": "00abc...",
+    "nonce": 12345,
+    "difficulty": 2
+  }
+]</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/chain/latest</span>
+                <p><strong>Description:</strong> Get the latest block</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "timestamp": 1640000000000,
+  "transactions": [],
+  "previousHash": "00abc...",
+  "hash": "00def...",
+  "nonce": 12345
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/chain/height</span>
+                <p><strong>Description:</strong> Get blockchain height</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "height": 42
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/valid</span>
+                <p><strong>Description:</strong> Check if blockchain is valid</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "valid": true
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/supply</span>
+                <p><strong>Description:</strong> Get token supply information</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "totalMinted": 1000,
+  "totalBurned": 50,
+  "circulatingSupply": 950
+}</pre>
+            </div>
+        </div>
+
+        <!-- Transaction APIs -->
+        <div class="section" id="transactions">
+            <h2>💸 Transaction APIs</h2>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/transaction/simple</span>
+                <span class="badge" style="background: #f45c43;">⚠️ DEV ONLY</span>
+                <p><strong>Description:</strong> Send a transaction (server-side signing)</p>
+                <p style="background: #fff3cd; padding: 10px; border-left: 4px solid #f45c43; margin: 10px 0;">
+                    <strong>⚠️ SECURITY WARNING:</strong> This endpoint accepts private keys from clients and is <strong>ONLY for development/testing</strong>. 
+                    It is automatically disabled in production environments. <strong>Never use this with real wallets or funds!</strong>
+                </p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "fromAddress": "04abc...",
+  "privateKey": "ee3b69...",  // ⚠️ Never send real private keys!
+  "toAddress": "04def...",
+  "amount": 10,
+  "fee": 1,
+  "message": "Payment for services" // optional
+}</pre>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "success": true,
+  "message": "Transaction created successfully! You have 5 minutes to cancel it.",
+  "transactionHash": "89616db...",
+  "reversalWindow": {
+    "seconds": 300,
+    "expiresAt": "2025-10-24T06:14:45.847Z"
+  }
+}</pre>
+                <p><strong>Production Alternative:</strong> Use client-side signing and submit to <code>/api/transaction</code> endpoint.</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/balance/:address</span>
+                <p><strong>Description:</strong> Get wallet balance</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "address": "04abc...",
+  "balance": 100
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/transactions/:address</span>
+                <p><strong>Description:</strong> Get all transactions for an address</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "address": "04abc...",
+  "transactions": [...],
+  "count": 5
+}</pre>
+            </div>
+        </div>
+
+        <!-- Transaction Reversal -->
+        <div class="section" id="reversal">
+            <h2>🔄 Transaction Reversal <span class="badge revolutionary">REVOLUTIONARY</span></h2>
+            <p>Kenostod's unique 5-minute reversal window allows users to cancel transactions before they're mined into a block.</p>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/pending/:address</span>
+                <p><strong>Description:</strong> View pending transactions that can be cancelled</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "address": "04abc...",
+  "pendingTransactions": [
+    {
+      "hash": "89616db...",
+      "fromAddress": "04abc...",
+      "toAddress": "04def...",
+      "amount": 10,
+      "fee": 1,
+      "reversalWindowExpiry": "2025-10-24T06:14:45.847Z"
+    }
+  ],
+  "count": 1
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/transaction/cancel</span>
+                <p><strong>Description:</strong> Cancel a pending transaction</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "transactionHash": "89616db...",
+  "senderAddress": "04abc..."
+}</pre>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "message": "Transaction cancelled successfully!",
+  "transaction": {
+    "hash": "89616db...",
+    "fromAddress": "04abc...",
+    "toAddress": "04def...",
+    "amount": 10,
+    "fee": 1
+  }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Scheduled Payments -->
+        <div class="section" id="scheduled">
+            <h2>⏰ Scheduled Payments <span class="badge revolutionary">REVOLUTIONARY</span></h2>
+            <p>Native support for recurring and future-dated transactions.</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/scheduled/create</span>
+                <p><strong>Description:</strong> Create a scheduled payment</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "fromAddress": "04abc...",
+  "privateKey": "ee3b69...",
+  "toAddress": "04def...",
+  "amount": 50,
+  "fee": 1,
+  "scheduleType": "recurring",  // "once" or "recurring"
+  "executeAt": "2025-10-25T10:00:00Z",
+  "interval": "daily",  // "daily", "weekly", "monthly" (for recurring)
+  "endDate": "2025-12-31T23:59:59Z"  // optional, for recurring
+}</pre>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "success": true,
+  "message": "Scheduled payment created successfully!",
+  "scheduleId": "sched_abc123..."
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/scheduled/:address</span>
+                <p><strong>Description:</strong> View scheduled payments</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "address": "04abc...",
+  "scheduledTransactions": [...],
+  "count": 3
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/scheduled/cancel</span>
+                <p><strong>Description:</strong> Cancel a scheduled payment</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "scheduleId": "sched_abc123...",
+  "senderAddress": "04abc..."
+}</pre>
+            </div>
+        </div>
+
+        <!-- Social Recovery -->
+        <div class="section" id="recovery">
+            <h2>👥 Social Recovery <span class="badge revolutionary">REVOLUTIONARY</span></h2>
+            <p>Guardian-based wallet recovery system that protects private keys.</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/recovery/setup</span>
+                <p><strong>Description:</strong> Set up social recovery guardians</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "walletAddress": "04abc...",
+  "guardians": ["04def...", "04ghi...", "04jkl..."],
+  "threshold": 2  // number of guardians needed for recovery
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/recovery/initiate</span>
+                <p><strong>Description:</strong> Initiate wallet recovery</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "lostWalletAddress": "04abc...",
+  "newWalletAddress": "04xyz...",
+  "guardianAddress": "04def..."
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/recovery/approve</span>
+                <p><strong>Description:</strong> Approve a recovery request (as guardian)</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "recoveryId": "rec_abc123...",
+  "guardianAddress": "04def..."
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/recovery/:address</span>
+                <p><strong>Description:</strong> View recovery setup and pending requests</p>
+            </div>
+        </div>
+
+        <!-- Reputation System -->
+        <div class="section" id="reputation">
+            <h2>⭐ Reputation System <span class="badge revolutionary">REVOLUTIONARY</span></h2>
+            <p>Decentralized rating system for building trust.</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/reputation/rate</span>
+                <p><strong>Description:</strong> Rate a transaction or user</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "raterAddress": "04abc...",
+  "ratedAddress": "04def...",
+  "transactionHash": "89616db...",  // optional
+  "rating": 5,  // 1-5 stars
+  "comment": "Great transaction, fast and reliable!"
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/reputation/:address</span>
+                <p><strong>Description:</strong> Get reputation score and reviews</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "address": "04abc...",
+  "averageRating": 4.5,
+  "totalRatings": 10,
+  "trustLevel": "High",
+  "ratings": [...]
+}</pre>
+            </div>
+        </div>
+
+        <!-- Governance -->
+        <div class="section" id="governance">
+            <h2>🗳️ Community Governance <span class="badge revolutionary">REVOLUTIONARY</span></h2>
+            <p>Token-weighted voting on network parameters.</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/governance/propose</span>
+                <p><strong>Description:</strong> Create a governance proposal</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "proposerAddress": "04abc...",
+  "proposalType": "mining_reward",  // "mining_reward", "difficulty", "min_fee"
+  "newValue": 150,
+  "description": "Increase mining reward to 150 KENO",
+  "votingDuration": 604800000  // 7 days in milliseconds
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/governance/vote</span>
+                <p><strong>Description:</strong> Vote on a proposal</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "proposalId": "prop_abc123...",
+  "voterAddress": "04abc...",
+  "vote": "yes"  // "yes" or "no"
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/governance/proposals</span>
+                <p><strong>Description:</strong> View all governance proposals</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/governance/proposal/:id</span>
+                <p><strong>Description:</strong> View specific proposal details</p>
+            </div>
+        </div>
+
+        <!-- Mining -->
+        <div class="section" id="mining">
+            <h2>⛏️ Mining</h2>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/mine</span>
+                <p><strong>Description:</strong> Mine a new block</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+  "minerAddress": "04abc..."
+}</pre>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "message": "Block mined successfully!",
+  "balance": 100,
+  "blockHeight": 3
+}</pre>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/difficulty</span>
+                <p><strong>Description:</strong> Get current mining difficulty</p>
+                <p><strong>Response:</strong></p>
+                <pre>{
+  "difficulty": 2
+}</pre>
+            </div>
+        </div>
+
+        <!-- Test Wallets -->
+        <div class="section">
+            <h2>🔑 Test Wallets</h2>
+            <p>Use these pre-generated wallets for testing:</p>
+            
+            <h3>Wallet 1</h3>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Address</td>
+                    <td><code>04b6a0b893704436390333a2ad5d37a164678a9542799f44b6bdfac88476ae8bc79d62c57ae387f7dd6ec2fc582956927c54514e219d501961598e765e55a9e83a</code></td>
+                </tr>
+                <tr>
+                    <td>Private Key</td>
+                    <td><code>ee3b69dd5f88b8c25f3e4b44ef1707b2cde6c03a3911478fa8a11579269bb2dc</code></td>
+                </tr>
+            </table>
+
+            <h3>Wallet 2</h3>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Address</td>
+                    <td><code>0477733462078bfe987ed76909896ff6b8be1bad4234383b1ff6ee93e16f97768b30f657ec275d2e8cbbcf4749b1576bf4b0727f47c1a2f610fd9f9c92535b9a9f</code></td>
+                </tr>
+                <tr>
+                    <td>Private Key</td>
+                    <td><code>5c032b80f6fb11e9e1afb4fa2c6cf1c0d8c4f0e4e5e7c8d9a0b1c2d3e4f5a6b7</code></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>🚀 Getting Started</h2>
+            <p>Visit the <a href="/test.html" style="color: #667eea;">Simple Test Interface</a> to try out the blockchain features!</p>
+            <p>All API endpoints are available at the base URL of this deployment.</p>
+        </div>
+    </div>
+
+    <footer style="background: var(--text-dark); color: white; padding: 32px 24px; margin-top: 80px;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 1rem; font-weight: 600;">© 2025 Kenostod Blockchain Academy. All Rights Reserved.</p>
+                <p style="margin: 16px 0 0 0; font-size: 0.9rem; color: #cbd5e1;">
+                    <a href="/terms-of-service.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Terms of Service</a> |
+                    <a href="/licensing.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Commercial Licensing</a> |
+                    <a href="/privacy-policy.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Privacy Policy</a>
+                </p>
+            </div>
+            <div style="border-top: 1px solid #475569; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
+                    <strong style="color: #cbd5e1;">Protected Intellectual Property:</strong><br>
+                    Proof-of-Residual-Value (PoRV), Residual Value Token (RVT) System, Wealth Builder Program,<br>
+                    Social Recovery, Transaction Reversal, and all proprietary features are protected by intellectual property rights.<br>
+                    Commercial use requires a valid license. <a href="/licensing.html" style="color: #3b82f6; text-decoration: none;">Learn more about licensing</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
