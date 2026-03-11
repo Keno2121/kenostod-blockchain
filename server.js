@@ -35,6 +35,18 @@ const ec = new EC('secp256k1');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ==================== GLOBAL CRASH PROTECTION ====================
+// Prevents any unhandled promise rejection or exception from killing
+// the autoscale pod and causing deployment failures
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('⚠️ Unhandled Promise Rejection (non-fatal):', reason?.message || reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('⚠️ Uncaught Exception (non-fatal):', err.message);
+});
+// ================================================================
+
 // CRITICAL: Enable trust proxy for Replit deployment (behind reverse proxy)
 // This allows rate limiting to correctly identify users via X-Forwarded-For header
 app.set('trust proxy', 1);
