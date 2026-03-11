@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL — Universal Transaction Layer | MetaMask Snap</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 20px 40px;
+            border-bottom: 2px solid #f7931a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 { color: #f7931a; font-size: 1.5rem; }
+        .header a { color: #8892b0; text-decoration: none; font-size: 0.9rem; }
+        .header a:hover { color: #f7931a; }
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .hero { text-align: center; margin-bottom: 40px; }
+        .hero h2 { font-size: 2.2rem; color: #f7931a; margin-bottom: 10px; }
+        .hero p { color: #8892b0; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .status-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .status-card.connected { border-color: #00d4aa; }
+        .status-card.error { border-color: #ff4757; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .status-indicator.active { background: #00d4aa; }
+        .status-indicator.error { background: #ff4757; }
+        .status-indicator.pending { background: #f7931a; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #f7931a, #e67e22);
+            color: #fff;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(247, 147, 26, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary {
+            background: #2a2a4e;
+            color: #e0e0e0;
+            border: 1px solid #3a3a5e;
+        }
+        .btn-secondary:hover { background: #3a3a5e; }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .action-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-card:hover {
+            border-color: #f7931a;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(247, 147, 26, 0.2);
+        }
+        .action-card h3 { color: #f7931a; margin-bottom: 8px; font-size: 1rem; }
+        .action-card p { color: #8892b0; font-size: 0.85rem; }
+        .log {
+            background: #0d0d1a;
+            border: 1px solid #2a2a4e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid #1a1a2e; }
+        .log-entry.success { color: #00d4aa; }
+        .log-entry.error { color: #ff4757; }
+        .log-entry.info { color: #8892b0; }
+        .log-entry.warn { color: #f7931a; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-box .label { color: #8892b0; font-size: 0.8rem; margin-bottom: 5px; }
+        .stat-box .value { color: #f7931a; font-size: 1.3rem; font-weight: 700; }
+        .setup-section {
+            background: #16213e;
+            border: 1px solid #2a2a4e;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .setup-section h3 { color: #f7931a; margin-bottom: 15px; }
+        .setup-section ol { padding-left: 20px; }
+        .setup-section li { margin-bottom: 12px; color: #8892b0; line-height: 1.6; }
+        .setup-section li strong { color: #e0e0e0; }
+        .code-block {
+            background: #0d0d1a;
+            border: 1px solid #2a2a4e;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #00d4aa;
+            margin: 8px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+        .code-block .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #2a2a4e;
+            border: 1px solid #3a3a5e;
+            color: #8892b0;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .code-block .copy-btn:hover { background: #3a3a5e; color: #fff; }
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: #f7931a;
+            color: #0a0a1a;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 700;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+        .hidden { display: none !important; }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2a2a4e;
+        }
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            color: #8892b0;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+        .tab:hover { color: #f7931a; }
+        .tab.active { color: #f7931a; border-bottom-color: #f7931a; }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #00d4aa, #00b894);
+            color: #0a0a1a;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .download-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>UTL Snap Control Panel</h1>
+        <a href="/utl-dashboard.html">UTL Dashboard</a>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h2>Universal Transaction Layer</h2>
+            <p>Connect your MetaMask Flask to the UTL Snap and participate in cross-chain transaction fee redistribution. All fees collected and distributed in USDC.</p>
+        </div>
+
+        <div class="status-card" id="statusCard">
+            <span class="status-indicator" id="statusDot"></span>
+            <span id="statusText">Checking MetaMask Flask...</span>
+        </div>
+
+        <div class="tab-bar" id="tabBar">
+            <div class="tab active" onclick="switchTab('setup')">Setup Guide</div>
+            <div class="tab" onclick="switchTab('control')">Control Panel</div>
+        </div>
+
+        <div id="setupTab">
+            <div class="setup-section">
+                <h3>Quick Setup (3 minutes)</h3>
+                <p style="color: #8892b0; margin-bottom: 20px;">MetaMask Flask requires snaps to run from your local computer for security. Follow these steps to get running:</p>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+                        <span class="step-number">1</span>
+                        <div>
+                            <strong style="color: #e0e0e0;">Download the UTL Snap package</strong>
+                            <p style="color: #8892b0; margin-top: 5px;">Click below to download all the files you need:</p>
+                            <div style="margin-top: 10px;">
+                                <button class="download-btn" onclick="downloadSnapPackage()">
+                                    Download UTL Snap Package
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+                        <span class="step-number">2</span>
+                        <div>
+                            <strong style="color: #e0e0e0;">Create a folder and save the files</strong>
+                            <p style="color: #8892b0; margin-top: 5px;">Create a folder called <code style="color: #00d4aa;">utl-snap</code> on your computer. Inside it, create a <code style="color: #00d4aa;">dist</code> subfolder. Save the downloaded files like this:</p>
+                            <div class="code-block">
+utl-snap/<br>
+&nbsp;&nbsp;snap.manifest.json<br>
+&nbsp;&nbsp;serve-snap.js<br>
+&nbsp;&nbsp;dist/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;bundle.js
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+                        <span class="step-number">3</span>
+                        <div>
+                            <strong style="color: #e0e0e0;">Open a terminal and run the server</strong>
+                            <p style="color: #8892b0; margin-top: 5px;">Open Command Prompt (Windows) or Terminal (Mac), navigate to the folder, and run:</p>
+                            <div class="code-block" id="cmdBlock">
+                                node serve-snap.js
+                                <button class="copy-btn" onclick="copyText('node serve-snap.js')">Copy</button>
+                            </div>
+                            <p style="color: #8892b0; margin-top: 5px;">You should see "UTL Snap Server Running!" — keep this terminal open.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+                        <span class="step-number">4</span>
+                        <div>
+                            <strong style="color: #e0e0e0;">Come back here and install the Snap</strong>
+                            <p style="color: #8892b0; margin-top: 5px;">Once the local server is running, click the button below. MetaMask Flask will pop up asking you to approve the installation.</p>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-primary" id="connectBtn" onclick="connectSnap()">
+                                    Install UTL Snap
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #0d0d1a; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                    <p style="color: #8892b0; font-size: 0.85rem;">
+                        <strong style="color: #f7931a;">Why localhost?</strong> MetaMask Flask requires development snaps to run from your own computer (localhost) for security. This prevents malicious snaps from being loaded from unknown servers. Once the UTL Snap is published to npm, this local setup won't be needed anymore.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="controlTab" class="hidden">
+            <div id="connectedSection">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-box">
+                        <div class="label">Status</div>
+                        <div class="value" id="statStatus">--</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">USDC Accumulated</div>
+                        <div class="value" id="statAccumulated">--</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Fees Contributed</div>
+                        <div class="value" id="statFees">--</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Total Distributed</div>
+                        <div class="value" id="statDistributed">--</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Transactions</div>
+                        <div class="value" id="statTxCount">--</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Member Since</div>
+                        <div class="value" id="statJoined">--</div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <div class="action-card" onclick="callSnap('utl_optIn')">
+                        <h3>Opt In</h3>
+                        <p>Activate UTL fee redistribution on your wallet</p>
+                    </div>
+                    <div class="action-card" onclick="callSnap('utl_optOut')">
+                        <h3>Opt Out</h3>
+                        <p>Deactivate UTL fee redistribution</p>
+                    </div>
+                    <div class="action-card" onclick="callSnap('utl_dashboard')">
+                        <h3>Dashboard</h3>
+                        <p>View your full UTL activity dashboard</p>
+                    </div>
+                    <div class="action-card" onclick="callSnap('utl_claimUSDC')">
+                        <h3>Claim USDC</h3>
+                        <p>Withdraw accumulated USDC to wallet</p>
+                    </div>
+                    <div class="action-card" onclick="callSnap('utl_weeklyReport')">
+                        <h3>Weekly Report</h3>
+                        <p>Get summary of weekly activity</p>
+                    </div>
+                    <div class="action-card" onclick="callSnap('utl_cashoutInfo')">
+                        <h3>USD Cashout</h3>
+                        <p>Info on converting USDC to USD via Mercury</p>
+                    </div>
+                </div>
+
+                <div style="background: #16213e; border: 1px solid #2a2a4e; border-radius: 10px; padding: 25px; margin-top: 25px;">
+                    <h3 style="color: #f7931a; margin-bottom: 15px;">How UTL Works</h3>
+                    <div style="color: #8892b0; line-height: 1.8;">
+                        <p><strong style="color: #e0e0e0;">1. Opt In</strong> — Activate UTL on your wallet. A 0.1% fee is captured from transactions on the UTL protocol.</p>
+                        <p style="margin-top: 8px;"><strong style="color: #e0e0e0;">2. Fees Pool</strong> — All captured fees across every UTL participant are pooled together in USDC.</p>
+                        <p style="margin-top: 8px;"><strong style="color: #e0e0e0;">3. Distribution</strong> — 60% of the fee pool is redistributed to UTL participants. The remaining 40% goes to the UTL treasury for protocol growth and reserves.</p>
+                        <p style="margin-top: 8px;"><strong style="color: #e0e0e0;">4. Withdraw</strong> — Claim your accumulated USDC to your wallet at any time, or cash out to USD via Mercury bank transfer.</p>
+                    </div>
+                </div>
+
+                <div style="background: #16213e; border: 1px solid #2a2a4e; border-radius: 10px; padding: 25px; margin-top: 15px;">
+                    <h3 style="color: #f7931a; margin-bottom: 15px;">Fee Distribution</h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #8892b0;">Stakers (you)</span>
+                        <span style="color: #00d4aa; font-weight: 700;">60%</span>
+                    </div>
+                    <div style="background: #0d0d1a; border-radius: 4px; height: 8px; margin-bottom: 12px;">
+                        <div style="background: linear-gradient(90deg, #00d4aa, #00b894); height: 100%; width: 60%; border-radius: 4px;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #8892b0;">Treasury</span>
+                        <span style="color: #74b9ff; font-weight: 700;">40%</span>
+                    </div>
+                    <div style="background: #0d0d1a; border-radius: 4px; height: 8px;">
+                        <div style="background: linear-gradient(90deg, #74b9ff, #0984e3); height: 100%; width: 40%; border-radius: 4px;"></div>
+                    </div>
+                </div>
+
+                <div style="background: #1a2a3e; border: 1px solid #2775ca; border-radius: 8px; padding: 15px 20px; margin-top: 15px; color: #8892b0; font-size: 0.9rem; line-height: 1.6;">
+                    <strong style="color: #2775ca;">USD Cashout:</strong> Accumulated USDC can be converted to USD in your bank account. Claim USDC to your wallet, then transfer to an exchange (Coinbase, Binance, etc.) to convert to USD and withdraw to your bank. Alternatively, use any fiat off-ramp service that supports USDC on BSC.
+                </div>
+            </div>
+        </div>
+
+        <div class="log" id="logPanel">
+            <div class="log-entry info">UTL Snap Control Panel initialized...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        UTL Protocol v1.0 | Universal Transaction Layer | Live on BNB Smart Chain | MetaMask Snap
+    </div>
+
+    <script>
+        const SNAP_ORIGIN = 'local:http://localhost:8080';
+        const SNAP_ID = SNAP_ORIGIN;
+
+        function log(message, type = 'info') {
+            const panel = document.getElementById('logPanel');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            panel.appendChild(entry);
+            panel.scrollTop = panel.scrollHeight;
+        }
+
+        function setStatus(text, type) {
+            document.getElementById('statusText').textContent = text;
+            const dot = document.getElementById('statusDot');
+            dot.className = 'status-indicator';
+            const card = document.getElementById('statusCard');
+            card.className = 'status-card';
+            if (type === 'active') { dot.classList.add('active'); card.classList.add('connected'); }
+            else if (type === 'error') { dot.classList.add('error'); card.classList.add('error'); }
+            else if (type === 'pending') { dot.classList.add('pending'); }
+        }
+
+        function show(id) { document.getElementById(id).classList.remove('hidden'); }
+        function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (tab === 'setup') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                show('setupTab');
+                hide('controlTab');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                hide('setupTab');
+                show('controlTab');
+            }
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                log('Copied to clipboard!', 'success');
+            });
+        }
+
+        async function downloadSnapPackage() {
+            log('Downloading snap package files...', 'info');
+            const files = [
+                { url: '/snap-package/snap.manifest.json', name: 'snap.manifest.json' },
+                { url: '/snap-package/serve-snap.js', name: 'serve-snap.js' },
+                { url: '/snap-package/dist/bundle.js', name: 'dist/bundle.js' }
+            ];
+
+            for (const file of files) {
+                try {
+                    const a = document.createElement('a');
+                    a.href = file.url;
+                    a.download = file.name.split('/').pop();
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    await new Promise(r => setTimeout(r, 500));
+                } catch (e) {
+                    log('Error downloading ' + file.name + ': ' + e.message, 'error');
+                }
+            }
+            log('Files downloaded! Create the folder structure as shown above.', 'success');
+        }
+
+        async function checkFlask() {
+            try {
+                const provider = window.ethereum;
+                if (!provider || !provider.isMetaMask) {
+                    setStatus('MetaMask Flask not detected', 'error');
+                    log('MetaMask Flask not found. Please install it first.', 'error');
+                    return false;
+                }
+
+                let hasSnapSupport = false;
+                try {
+                    await provider.request({ method: 'wallet_getSnaps' });
+                    hasSnapSupport = true;
+                } catch (e) {
+                    hasSnapSupport = false;
+                }
+
+                if (!hasSnapSupport) {
+                    setStatus('MetaMask detected but no Snap support — need Flask', 'error');
+                    log('Regular MetaMask detected. Flask is needed for Snap development.', 'warn');
+                    return false;
+                }
+
+                setStatus('MetaMask Flask detected — ready to connect', 'active');
+                log('MetaMask Flask detected! Follow the setup steps below.', 'success');
+
+                const snaps = await provider.request({ method: 'wallet_getSnaps' });
+                if (snaps && snaps[SNAP_ID]) {
+                    log('UTL Snap is already installed!', 'success');
+                    setStatus('UTL Snap Connected', 'active');
+                    switchTab('control');
+                    document.getElementById('connectBtn').textContent = 'Reinstall UTL Snap';
+                    await refreshStats();
+                }
+
+                return true;
+            } catch (err) {
+                setStatus('Error checking MetaMask: ' + err.message, 'error');
+                log('Error: ' + err.message, 'error');
+                return false;
+            }
+        }
+
+        async function connectSnap() {
+            const btn = document.getElementById('connectBtn');
+            btn.disabled = true;
+            btn.textContent = 'Installing...';
+            setStatus('Installing UTL Snap...', 'pending');
+            log('Requesting MetaMask Flask to install UTL Snap from localhost:8080...', 'info');
+            log('Make sure "node serve-snap.js" is running in your Command Prompt!', 'warn');
+
+            try {
+                const result = await window.ethereum.request({
+                    method: 'wallet_requestSnaps',
+                    params: {
+                        [SNAP_ID]: {}
+                    }
+                });
+
+                log('Snap installed successfully!', 'success');
+                setStatus('UTL Snap Connected!', 'active');
+                switchTab('control');
+                btn.textContent = 'Reinstall UTL Snap';
+                btn.disabled = false;
+                await refreshStats();
+            } catch (err) {
+                log('Installation failed: ' + err.message, 'error');
+                setStatus('Installation failed — check log', 'error');
+                btn.textContent = 'Retry Installation';
+                btn.disabled = false;
+
+                if (err.code === 4001) {
+                    log('You rejected the Snap installation. Click Install again when ready.', 'warn');
+                }
+            }
+        }
+
+        async function callSnap(method, params = {}) {
+            log('Calling ' + method + '...', 'info');
+            try {
+                const result = await window.ethereum.request({
+                    method: 'wallet_invokeSnap',
+                    params: {
+                        snapId: SNAP_ID,
+                        request: { method, params }
+                    }
+                });
+
+                log(method + ' completed successfully', 'success');
+                if (result && typeof result === 'object') {
+                    log('Response: ' + JSON.stringify(result), 'info');
+                }
+
+                await refreshStats();
+                return result;
+            } catch (err) {
+                log(method + ' failed: ' + err.message, 'error');
+            }
+        }
+
+        async function refreshStats() {
+            try {
+                const stats = await window.ethereum.request({
+                    method: 'wallet_invokeSnap',
+                    params: {
+                        snapId: SNAP_ID,
+                        request: { method: 'utl_getStats' }
+                    }
+                });
+
+                if (stats) {
+                    document.getElementById('statStatus').textContent = stats.isOptedIn ? 'ACTIVE' : 'INACTIVE';
+                    document.getElementById('statStatus').style.color = stats.isOptedIn ? '#00d4aa' : '#ff4757';
+                    document.getElementById('statAccumulated').textContent = formatUSD(stats.usdcAccumulated) + ' USDC';
+                    document.getElementById('statFees').textContent = formatUSD(stats.totalFeesContributed) + ' USDC';
+                    document.getElementById('statDistributed').textContent = formatUSD(stats.totalDistributed) + ' USDC';
+                    document.getElementById('statTxCount').textContent = stats.transactionCount || '0';
+                    document.getElementById('statJoined').textContent = stats.joinedAt ? new Date(stats.joinedAt).toLocaleDateString() : '--';
+                    log('Stats refreshed', 'info');
+                }
+            } catch (err) {
+                log('Could not refresh stats: ' + err.message, 'warn');
+            }
+        }
+
+        function formatUSD(amount) {
+            if (!amount || amount === '0' || amount === 0) return '$0.00';
+            return '$' + parseFloat(amount).toFixed(2);
+        }
+
+        window.addEventListener('load', () => {
+            log('Checking for MetaMask Flask...', 'info');
+            setTimeout(checkFlask, 500);
+        });
+    </script>
+</body>
+</html>
