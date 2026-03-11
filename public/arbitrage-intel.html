@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitrage Intelligence Dashboard | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(138, 43, 226, 0.1));
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        
+        .refresh-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .opportunity-tile {
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .opportunity-tile:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .profit-0 { background: rgba(255, 100, 100, 0.2); }
+        .profit-1 { background: rgba(255, 150, 0, 0.2); }
+        .profit-2 { background: rgba(255, 200, 0, 0.2); }
+        .profit-3 { background: rgba(100, 255, 100, 0.2); }
+        .profit-4 { background: rgba(0, 255, 100, 0.3); }
+        .profit-5 { background: rgba(0, 255, 100, 0.5); }
+        
+        .tile-pair {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #00d4ff;
+        }
+        
+        .tile-profit {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #00ff64;
+        }
+        
+        .tile-spread {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+        
+        .tile-select {
+            padding: 8px 12px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            color: #00d4ff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .tile-select:hover {
+            background: rgba(0, 212, 255, 0.4);
+        }
+        
+        .recommendation-card {
+            background: rgba(0, 255, 100, 0.1);
+            border: 1px solid rgba(0, 255, 100, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .recommendation-info h3 {
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+        
+        .recommendation-info p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .recommendation-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00ff64;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+        
+        .calculator {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.95rem;
+        }
+        
+        .calc-row:last-child {
+            border-bottom: none;
+        }
+        
+        .calc-label {
+            opacity: 0.7;
+        }
+        
+        .calc-value {
+            font-weight: 600;
+            color: #00d4ff;
+        }
+        
+        .calc-value.profit {
+            color: #00ff64;
+        }
+        
+        .calc-value.fee {
+            color: #ff9500;
+        }
+        
+        .execute-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #ffd700, #ff9500);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .execute-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .execute-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .trending-section {
+            margin-top: 30px;
+        }
+        
+        .trending-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .trending-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #00d4ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .trending-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .trending-pair {
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+        
+        .trending-profit {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #00ff64;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .heatmap {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+            
+            .recommendation-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Arbitrage Intelligence Dashboard</h1>
+            <p>Real-time profit opportunities & smart pool recommendations</p>
+            <button class="refresh-btn" onclick="loadData()">🔄 Refresh Data</button>
+        </div>
+        
+        <div class="grid-2">
+            <div class="panel">
+                <h2>🌡️ Opportunity Heatmap</h2>
+                <p style="opacity: 0.7; margin-bottom: 15px;">Color intensity = profit potential</p>
+                <div class="heatmap" id="heatmap">
+                    <div class="empty-state">Loading opportunities...</div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>💡 Smart Pool Match</h2>
+                <p style="opacity: 0.7; margin-bottom: 15px;">Best pool for selected opportunity</p>
+                <div id="poolRecommendation">
+                    <div class="empty-state">Select an opportunity to see recommendations</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>📊 Profit Calculator</h2>
+            <p style="opacity: 0.7; margin-bottom: 15px;">See exactly how much you'll earn</p>
+            <div id="calculator">
+                <div class="empty-state">Select an opportunity to calculate profits</div>
+            </div>
+        </div>
+        
+        <div class="panel trending-section">
+            <h2>🏆 Trending Pairs (Last 24h)</h2>
+            <p style="opacity: 0.7; margin-bottom: 15px;">Most profitable arbitrage pairs right now</p>
+            <div class="trending-list" id="trendingList">
+                <div class="empty-state">Loading trending data...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="customDialogModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: linear-gradient(135deg, #1a1a3a 0%, #0a0a2a 100%); border-radius: 20px; padding: 30px; max-width: 420px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div id="dialogIcon" style="font-size: 3rem; margin-bottom: 16px;">✅</div>
+            <h3 id="dialogTitle" style="margin-bottom: 12px; font-size: 1.25rem;">Kenostod Academy</h3>
+            <p id="dialogMessage" style="opacity: 0.8; margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
+            <button id="dialogOkBtn" style="padding: 12px 25px; background: linear-gradient(135deg, #00d4ff, #0099cc); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;" onclick="closeDialog()">OK</button>
+        </div>
+    </div>
+    
+    <script>
+        let opportunities = [];
+        let pools = [];
+        let selectedOpp = null;
+        let selectedPool = null;
+        
+        async function loadData() {
+            try {
+                const [oppRes, poolRes] = await Promise.all([
+                    fetch('/api/arbitrage/opportunities'),
+                    fetch('/api/fal-pool/list')
+                ]);
+                
+                const oppData = await oppRes.json();
+                const poolData = await poolRes.json();
+                
+                opportunities = oppData.success ? oppData.opportunities : [];
+                pools = poolData.success ? poolData.pools : [];
+                
+                renderHeatmap();
+                renderTrending();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('heatmap').innerHTML = '<div class="empty-state">Failed to load opportunities</div>';
+            }
+        }
+        
+        function getProfitLevel(profit) {
+            if (profit < 0.5) return 0;
+            if (profit < 1) return 1;
+            if (profit < 2) return 2;
+            if (profit < 3) return 3;
+            if (profit < 5) return 4;
+            return 5;
+        }
+        
+        function renderHeatmap() {
+            const heatmap = document.getElementById('heatmap');
+            
+            if (opportunities.length === 0) {
+                heatmap.innerHTML = '<div class="empty-state">No opportunities available</div>';
+                return;
+            }
+            
+            heatmap.innerHTML = opportunities.map((opp, idx) => {
+                const profitPct = opp.profitPercent || opp.percentageDiff || 0;
+                const level = getProfitLevel(profitPct);
+                const pair = `${opp.asset || 'TOKEN'} ${opp.buyExchange}→${opp.sellExchange}`.toUpperCase();
+                
+                return `
+                    <div class="opportunity-tile profit-${level}" onclick="selectOpportunity(${idx})">
+                        <div class="tile-pair">${pair}</div>
+                        <div class="tile-profit">${profitPct.toFixed(2)}%</div>
+                        <div class="tile-spread">
+                            💵 ${opp.buyExchange.charAt(0).toUpperCase()}: $${opp.buyPrice.toFixed(4)}<br>
+                            💵 ${opp.sellExchange.charAt(0).toUpperCase()}: $${opp.sellPrice.toFixed(4)}
+                        </div>
+                        <button class="tile-select">Select</button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function selectOpportunity(idx) {
+            selectedOpp = opportunities[idx];
+            selectedPool = null;
+            renderPoolRecommendation();
+            renderCalculator();
+        }
+        
+        function getPoolScore(pool, opp) {
+            let score = 0;
+            score += (100 - pool.riskLevel === 'aggressive' ? 10 : pool.riskLevel === 'balanced' ? 20 : 30);
+            score += (pool.estimatedAPY || 15) * 0.5;
+            score += (pool.availableLiquidity > 5000 ? 20 : 10);
+            score += (pool.successRate || 100) * 0.3;
+            return score;
+        }
+        
+        function renderPoolRecommendation() {
+            const rec = document.getElementById('poolRecommendation');
+            
+            if (!selectedOpp) {
+                rec.innerHTML = '<div class="empty-state">Select an opportunity to see recommendations</div>';
+                return;
+            }
+            
+            if (pools.length === 0) {
+                rec.innerHTML = '<div class="empty-state">No pools available. Create a pool first!</div>';
+                return;
+            }
+            
+            const poolScores = pools.map(p => ({
+                pool: p,
+                score: getPoolScore(p, selectedOpp)
+            })).sort((a, b) => b.score - a.score);
+            
+            rec.innerHTML = poolScores.slice(0, 3).map((ps, idx) => {
+                const pool = ps.pool;
+                const profitPct = selectedOpp.profitPercent || selectedOpp.percentageDiff || 0;
+                const fee = pool.riskLevel === 'conservative' ? 0.05 : pool.riskLevel === 'balanced' ? 0.06 : 0.07;
+                
+                return `
+                    <div class="recommendation-card" onclick="selectPool('${pool.id}', '${pool.name}')">
+                        <div class="recommendation-info">
+                            <h3>${idx === 0 ? '⭐ ' : ''}${pool.name}</h3>
+                            <p>Risk: ${pool.riskLevel.toUpperCase()} | Fee: ${(fee * 100).toFixed(0)}%</p>
+                        </div>
+                        <div class="recommendation-stats">
+                            <div class="stat">
+                                <div class="stat-value">${(pool.estimatedAPY || 15).toFixed(1)}%</div>
+                                <div class="stat-label">APY</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${formatNumber(pool.availableLiquidity)}</div>
+                                <div class="stat-label">Available</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function selectPool(poolId, poolName) {
+            selectedPool = { id: poolId, name: poolName };
+            renderCalculator();
+        }
+        
+        function renderCalculator() {
+            const calc = document.getElementById('calculator');
+            
+            if (!selectedOpp) {
+                calc.innerHTML = '<div class="empty-state">Select an opportunity to calculate profits</div>';
+                return;
+            }
+            
+            const profitPct = selectedOpp.profitPercent || selectedOpp.percentageDiff || 0;
+            const loanAmount = 1000;
+            
+            let fee = 0;
+            if (selectedPool) {
+                const pool = pools.find(p => p.id === selectedPool.id);
+                if (pool) {
+                    fee = pool.riskLevel === 'conservative' ? 0.05 : pool.riskLevel === 'balanced' ? 0.06 : 0.07;
+                }
+            } else {
+                fee = 0;
+            }
+            
+            const grossProfit = loanAmount * (profitPct / 100);
+            const feeAmount = loanAmount * fee;
+            const netProfit = Math.max(0, grossProfit - feeAmount);
+            const roi = ((netProfit / loanAmount) * 100).toFixed(2);
+            
+            calc.innerHTML = `
+                <div class="calculator">
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 1.3rem; font-weight: 700; color: #00d4ff; margin-bottom: 10px;">
+                            ${selectedOpp.asset || 'TOKEN'} - ${(selectedOpp.buyExchange || 'Exchange1')} → ${(selectedOpp.sellExchange || 'Exchange2')}
+                        </div>
+                    </div>
+                    
+                    <div class="calc-row">
+                        <span class="calc-label">Loan Amount</span>
+                        <span class="calc-value">${loanAmount.toLocaleString()} KENO</span>
+                    </div>
+                    
+                    <div class="calc-row">
+                        <span class="calc-label">Price Spread</span>
+                        <span class="calc-value">${profitPct.toFixed(2)}%</span>
+                    </div>
+                    
+                    <div class="calc-row">
+                        <span class="calc-label">Gross Profit</span>
+                        <span class="calc-value profit">${grossProfit.toFixed(2)} KENO</span>
+                    </div>
+                    
+                    <div class="calc-row">
+                        <span class="calc-label">${selectedPool ? selectedPool.name + ' Fee (' + (fee * 100).toFixed(0) + '%)' : 'Direct Loan Fee'}</span>
+                        <span class="calc-value fee">-${feeAmount.toFixed(2)} KENO</span>
+                    </div>
+                    
+                    <div class="calc-row" style="border-top: 2px solid rgba(255, 255, 255, 0.2); padding-top: 15px; margin-top: 15px;">
+                        <span class="calc-label" style="font-weight: 700;">NET PROFIT</span>
+                        <span class="calc-value profit" style="font-size: 1.2rem;">${netProfit.toFixed(2)} KENO</span>
+                    </div>
+                    
+                    <div class="calc-row">
+                        <span class="calc-label">Return on Investment</span>
+                        <span class="calc-value profit">${roi}% ROI</span>
+                    </div>
+                    
+                    ${selectedPool ? `
+                        <button class="execute-btn" onclick="executeArbitrage()">
+                            ⚡ Execute with ${selectedPool.name}
+                        </button>
+                    ` : `
+                        <button class="execute-btn" disabled>
+                            👆 Select a pool first
+                        </button>
+                    `}
+                </div>
+            `;
+        }
+        
+        async function executeArbitrage() {
+            if (!selectedOpp || !selectedPool) return;
+            
+            const confirmed = await showCustomConfirm(
+                `Execute Arbitrage?\n\nPool: ${selectedPool.name}\nProfit Potential: ${(selectedOpp.profitPercent || 0).toFixed(2)}%\n\nYou'll be redirected to complete the trade.`,
+                '⚡'
+            );
+            
+            if (confirmed) {
+                window.location.href = `/fal-pools.html?executeArbitrage=${selectedOpp.id}&profit=${(selectedOpp.profitPercent || 0).toFixed(2)}`;
+            }
+        }
+        
+        function renderTrending() {
+            const trending = document.getElementById('trendingList');
+            
+            const sorted = [...opportunities]
+                .sort((a, b) => (b.profitPercent || b.percentageDiff || 0) - (a.profitPercent || a.percentageDiff || 0))
+                .slice(0, 6);
+            
+            if (sorted.length === 0) {
+                trending.innerHTML = '<div class="empty-state">No trending pairs</div>';
+                return;
+            }
+            
+            trending.innerHTML = sorted.map((opp, idx) => {
+                const profitPct = opp.profitPercent || opp.percentageDiff || 0;
+                const pair = `${opp.asset || 'TOKEN'}/${(opp.buyExchange || 'EX1').charAt(0)}→${(opp.sellExchange || 'EX2').charAt(0)}`;
+                
+                return `
+                    <div class="trending-item" onclick="selectOpportunity(${opportunities.indexOf(opp)})">
+                        <div style="font-size: 1.5rem; margin-bottom: 8px;">
+                            ${idx === 0 ? '🔥' : idx === 1 ? '💥' : '⚡'}
+                        </div>
+                        <div class="trending-pair">${pair}</div>
+                        <div class="trending-profit">${profitPct.toFixed(2)}% profit</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function formatNumber(num) {
+            if (!num && num !== 0) return '0';
+            return parseFloat(num).toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+        
+        function showCustomConfirm(message, icon = '❓') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customDialogModal');
+                document.getElementById('dialogIcon').textContent = icon;
+                document.getElementById('dialogTitle').textContent = 'Confirm Action';
+                document.getElementById('dialogMessage').textContent = message;
+                modal.style.display = 'flex';
+                window.confirmResolve = resolve;
+                window.confirmMode = true;
+            });
+        }
+        
+        function closeDialog() {
+            document.getElementById('customDialogModal').style.display = 'none';
+            if (window.confirmMode) {
+                window.confirmResolve(true);
+                window.confirmMode = false;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
