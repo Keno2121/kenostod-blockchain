@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENO Logo Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 40px;
+            text-align: center;
+        }
+        h1 { color: #ffd700; margin-bottom: 30px; }
+        .logo-container {
+            display: inline-block;
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px;
+        }
+        .logo-container.dark {
+            background: #1a1a2e;
+            border: 2px solid #333;
+        }
+        .logo-container img, .logo-container svg {
+            width: 200px;
+            height: 240px;
+        }
+        .download-btn {
+            display: block;
+            margin-top: 15px;
+            background: #ffd700;
+            color: #000;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .download-btn:hover { background: #ffed4a; }
+        .instructions {
+            background: rgba(255,215,0,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+    <h1>KENO Logo Download</h1>
+    <p>Right-click and "Save Image As" or use the download buttons</p>
+    
+    <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 30px;">
+        <div>
+            <h3>Gold K Shield (Recommended)</h3>
+            <div class="logo-container">
+                <img id="logo1" src="/assets/keno-token/keno-token-logo.svg" alt="KENO Token Logo">
+            </div>
+            <br>
+            <button class="download-btn" onclick="downloadLogo('logo1', 'keno-logo.png')">Download PNG</button>
+        </div>
+        
+        <div>
+            <h3>Emerald Gem Shield</h3>
+            <div class="logo-container">
+                <img id="logo2" src="/assets/keno-token/keno-emerald-shield.svg" alt="KENO Emerald Shield">
+            </div>
+            <br>
+            <button class="download-btn" onclick="downloadLogo('logo2', 'keno-emerald-shield.png')">Download PNG</button>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h3>For DappBay Submission:</h3>
+        <p>1. Click "Download PNG" on your preferred logo</p>
+        <p>2. Upload that PNG file to the DappBay form</p>
+        <p>3. Logo should be square - these are 200x240, which works fine</p>
+    </div>
+    
+    <canvas id="canvas"></canvas>
+    
+    <script>
+        function downloadLogo(imgId, filename) {
+            const img = document.getElementById(imgId);
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Create a new image to ensure it's loaded
+            const tempImg = new Image();
+            tempImg.crossOrigin = "anonymous";
+            tempImg.onload = function() {
+                canvas.width = 512;
+                canvas.height = 512;
+                
+                // White background
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, 512, 512);
+                
+                // Center the logo
+                const scale = Math.min(480 / tempImg.width, 480 / tempImg.height);
+                const x = (512 - tempImg.width * scale) / 2;
+                const y = (512 - tempImg.height * scale) / 2;
+                
+                ctx.drawImage(tempImg, x, y, tempImg.width * scale, tempImg.height * scale);
+                
+                // Download
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+            tempImg.src = img.src;
+        }
+    </script>
+</body>
+</html>
