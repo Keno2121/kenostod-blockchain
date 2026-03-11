@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat History - Kenostod Blockchain Academy</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .chat-history-container {
+            max-width: 1400px;
+            margin: 100px auto 40px;
+            padding: 0 24px;
+        }
+
+        .chat-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .chat-header h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+
+        .chat-header p {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+        }
+
+        .chat-controls {
+            background: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chat-controls-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .chat-controls input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .chat-controls input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .chat-btn {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .chat-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .chat-btn-secondary {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+
+        .chat-btn-secondary:hover {
+            background: var(--border-light);
+        }
+
+        .chat-btn-danger {
+            background: #dc2626;
+        }
+
+        .chat-btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 968px) {
+            .chat-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .conversations-list {
+            background: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .conversations-list h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .conversation-item {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .conversation-item:hover {
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(2px);
+        }
+
+        .conversation-item.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .conversation-item.active .conversation-title {
+            color: white;
+        }
+
+        .conversation-item.active .conversation-meta {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .conversation-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-meta {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conversation-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .conversation-actions button {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+
+        .chat-display {
+            background: var(--bg-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            min-height: 600px;
+        }
+
+        .chat-display-header {
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-display-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .messages-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .message-item {
+            margin-bottom: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .message-item.user {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left-color: var(--primary-blue);
+        }
+
+        .message-item.assistant {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-left-color: var(--accent-green);
+        }
+
+        .message-item.system {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left-color: var(--accent-orange);
+        }
+
+        .message-role {
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .message-content {
+            color: var(--text-dark);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .message-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-gray);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .status-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .status-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .status-message.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .new-chat-form {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .new-chat-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <nav class="professional-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="logo.png" alt="Kenostod Logo" class="logo-image">
+                <div>
+                    <div class="logo-text">Kenostod</div>
+                    <div class="logo-subtitle">Blockchain Academy</div>
+                </div>
+            </a>
+            <div class="nav-menu">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/wealth-builder.html" class="nav-link">Wealth Builder</a>
+                <a href="/docs.html" class="nav-link">API Docs</a>
+                <a href="/chat-history.html" class="nav-link" style="color: var(--primary-blue);">Chat History</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="chat-history-container">
+        <div class="chat-header">
+            <h1>💬 Chat History</h1>
+            <p>View and manage your previous conversations</p>
+        </div>
+
+        <div id="statusMessage"></div>
+
+        <div class="chat-controls">
+            <div class="chat-controls-row">
+                <input type="email" id="userEmail" placeholder="Your Email (optional)">
+                <input type="text" id="userWallet" placeholder="Your Wallet Address (optional)">
+                <button class="chat-btn" onclick="loadConversations()">Load Conversations</button>
+                <button class="chat-btn chat-btn-secondary" onclick="toggleNewChatForm()">+ New Chat</button>
+            </div>
+        </div>
+
+        <div class="new-chat-form" id="newChatForm">
+            <h3 style="margin-bottom: 16px;">Create New Conversation</h3>
+            <div class="form-group">
+                <label>Conversation Title</label>
+                <input type="text" id="newChatTitle" placeholder="e.g., Blockchain Questions">
+            </div>
+            <div class="form-group">
+                <label>First Message</label>
+                <textarea id="firstMessage" placeholder="What would you like to discuss?"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="chat-btn chat-btn-secondary" onclick="toggleNewChatForm()">Cancel</button>
+                <button class="chat-btn" onclick="createNewChat()">Create Chat</button>
+            </div>
+        </div>
+
+        <div class="chat-layout">
+            <div class="conversations-list">
+                <h2>Your Conversations</h2>
+                <div id="conversationsList">
+                    <div class="empty-state">
+                        <p>No conversations loaded yet. Enter your details and click "Load Conversations" above.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-display">
+                <div class="chat-display-header">
+                    <h2 id="currentChatTitle">Select a conversation</h2>
+                    <div id="chatActions"></div>
+                </div>
+                <div class="messages-container" id="messagesContainer">
+                    <div class="empty-state">
+                        <h3>👈 Select a conversation from the left</h3>
+                        <p>Your chat messages will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let currentConversationId = null;
+        let userEmail = '';
+        let userWallet = '';
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status-message ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function toggleNewChatForm() {
+            const form = document.getElementById('newChatForm');
+            form.classList.toggle('active');
+        }
+
+        async function createNewChat() {
+            const title = document.getElementById('newChatTitle').value.trim();
+            const firstMessage = document.getElementById('firstMessage').value.trim();
+            
+            if (!title || !firstMessage) {
+                showStatus('Please provide both a title and first message', 'error');
+                return;
+            }
+
+            userEmail = document.getElementById('userEmail').value.trim();
+            userWallet = document.getElementById('userWallet').value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chat/conversations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userEmail,
+                        userWalletAddress: userWallet,
+                        conversationTitle: title
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const conversationId = data.conversation.id;
+                    
+                    await fetch(`${API_BASE}/api/chat/conversations/${conversationId}/messages`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messageRole: 'user',
+                            messageContent: firstMessage
+                        })
+                    });
+
+                    showStatus('Chat created successfully!', 'success');
+                    document.getElementById('newChatTitle').value = '';
+                    document.getElementById('firstMessage').value = '';
+                    toggleNewChatForm();
+                    await loadConversations();
+                } else {
+                    showStatus('Failed to create chat: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error creating chat: ' + error.message, 'error');
+            }
+        }
+
+        async function loadConversations() {
+            userEmail = document.getElementById('userEmail').value.trim();
+            userWallet = document.getElementById('userWallet').value.trim();
+            
+            if (!userEmail && !userWallet) {
+                showStatus('Please provide either an email or wallet address', 'error');
+                return;
+            }
+
+            showStatus('<span class="loading-spinner"></span> Loading conversations...', 'info');
+
+            try {
+                const params = new URLSearchParams();
+                if (userEmail) params.append('userEmail', userEmail);
+                if (userWallet) params.append('userWalletAddress', userWallet);
+                
+                const response = await fetch(`${API_BASE}/api/chat/conversations?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayConversations(data.conversations);
+                    showStatus(`Loaded ${data.conversations.length} conversation(s)`, 'success');
+                } else {
+                    showStatus('Failed to load conversations: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error loading conversations: ' + error.message, 'error');
+            }
+        }
+
+        function displayConversations(conversations) {
+            const container = document.getElementById('conversationsList');
+            
+            if (conversations.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No conversations found. Create your first chat above!</p></div>';
+                return;
+            }
+
+            container.innerHTML = conversations.map(conv => `
+                <div class="conversation-item" onclick="loadConversation(${conv.id})">
+                    <div class="conversation-title">${escapeHtml(conv.conversation_title)}</div>
+                    <div class="conversation-meta">
+                        <span>${new Date(conv.updated_at).toLocaleDateString()}</span>
+                        <span>${new Date(conv.updated_at).toLocaleTimeString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadConversation(conversationId) {
+            currentConversationId = conversationId;
+            
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            showStatus('<span class="loading-spinner"></span> Loading messages...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chat/conversations/${conversationId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayConversation(data.conversation, data.messages);
+                    showStatus('', 'info');
+                } else {
+                    showStatus('Failed to load conversation: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error loading conversation: ' + error.message, 'error');
+            }
+        }
+
+        function displayConversation(conversation, messages) {
+            document.getElementById('currentChatTitle').textContent = conversation.conversation_title;
+            
+            document.getElementById('chatActions').innerHTML = `
+                <button class="chat-btn chat-btn-danger" style="padding: 8px 16px; font-size: 0.9rem;" onclick="deleteConversation(${conversation.id})">Delete Chat</button>
+            `;
+
+            const container = document.getElementById('messagesContainer');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No messages in this conversation yet.</p></div>';
+                return;
+            }
+
+            container.innerHTML = messages.map(msg => `
+                <div class="message-item ${msg.message_role}">
+                    <div class="message-role">${escapeHtml(msg.message_role)}</div>
+                    <div class="message-content">${escapeHtml(msg.message_content)}</div>
+                    <div class="message-timestamp">${new Date(msg.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        async function deleteConversation(conversationId) {
+            if (!confirm('Are you sure you want to delete this conversation? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chat/conversations/${conversationId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Conversation deleted successfully', 'success');
+                    currentConversationId = null;
+                    document.getElementById('messagesContainer').innerHTML = `
+                        <div class="empty-state">
+                            <h3>👈 Select a conversation from the left</h3>
+                            <p>Your chat messages will appear here</p>
+                        </div>
+                    `;
+                    document.getElementById('currentChatTitle').textContent = 'Select a conversation';
+                    document.getElementById('chatActions').innerHTML = '';
+                    await loadConversations();
+                } else {
+                    showStatus('Failed to delete conversation: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error deleting conversation: ' + error.message, 'error');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+
+    <footer style="background: var(--text-dark); color: white; padding: 32px 24px; margin-top: 80px;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 1rem; font-weight: 600;">© 2025 Kenostod Blockchain Academy. All Rights Reserved.</p>
+                <p style="margin: 16px 0 0 0; font-size: 0.9rem; color: #cbd5e1;">
+                    <a href="/terms-of-service.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Terms of Service</a> |
+                    <a href="/licensing.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Commercial Licensing</a> |
+                    <a href="/privacy-policy.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Privacy Policy</a>
+                </p>
+            </div>
+            <div style="border-top: 1px solid #475569; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
+                    <strong style="color: #cbd5e1;">Protected Intellectual Property:</strong><br>
+                    Proof-of-Residual-Value (PoRV), Residual Value Token (RVT) System, Wealth Builder Program,<br>
+                    Social Recovery, Transaction Reversal, and all proprietary features are protected by intellectual property rights.<br>
+                    Commercial use requires a valid license. <a href="/licensing.html" style="color: #3b82f6; text-decoration: none;">Learn more about licensing</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

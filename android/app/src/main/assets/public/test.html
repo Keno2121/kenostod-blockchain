@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenostod Blockchain - Simple Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: monospace;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            border-left: 5px solid #38ef7d;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.error {
+            border-left-color: #f45c43;
+        }
+
+        .result pre {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+
+        .wallet-info {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .tx-list {
+            margin-top: 20px;
+        }
+
+        .tx-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Kenostod Blockchain</h1>
+        <p class="subtitle">Revolutionary Blockchain with 6 Unique Features - Simple Test Interface</p>
+        <div style="background: rgba(255,100,100,0.2); padding: 15px; border-radius: 10px; border-left: 4px solid #f45c43; margin-bottom: 20px;">
+            <strong>⚠️ DEVELOPMENT/TESTING ONLY</strong><br>
+            This interface sends private keys to the server for convenience. <strong>DO NOT use with real wallets or in production!</strong> This feature is automatically disabled when deployed to production.
+        </div>
+
+        <!-- Test Wallet Credentials -->
+        <div class="card">
+            <h2>🔑 Test Wallet Credentials</h2>
+            <p style="margin-bottom: 20px;">Use these pre-generated wallets for testing:</p>
+            
+            <div class="wallet-info">
+                <strong>Wallet 1 (Has KENO):</strong><br>
+                <strong>Address:</strong> 04b6a0b893704436390333a2ad5d37a164678a9542799f44b6bdfac88476ae8bc79d62c57ae387f7dd6ec2fc582956927c54514e219d501961598e765e55a9e83a<br>
+                <strong>Private Key:</strong> ee3b69dd5f88b8c25f3e4b44ef1707b2cde6c03a3911478fa8a11579269bb2dc
+            </div>
+            
+            <div class="wallet-info">
+                <strong>Wallet 2 (Recipient):</strong><br>
+                <strong>Address:</strong> 0477733462078bfe987ed76909896ff6b8be1bad4234383b1ff6ee93e16f97768b30f657ec275d2e8cbbcf4749b1576bf4b0727f47c1a2f610fd9f9c92535b9a9f<br>
+                <strong>Private Key:</strong> 5c032b80f6fb11e9e1afb4fa2c6cf1c0d8c4f0e4e5e7c8d9a0b1c2d3e4f5a6b7
+            </div>
+        </div>
+
+        <!-- Mine Block -->
+        <div class="card">
+            <h2>⛏️ Mine a Block</h2>
+            <div class="form-group">
+                <label>Miner Address:</label>
+                <input type="text" id="minerAddress" value="04b6a0b893704436390333a2ad5d37a164678a9542799f44b6bdfac88476ae8bc79d62c57ae387f7dd6ec2fc582956927c54514e219d501961598e765e55a9e83a">
+            </div>
+            <button class="btn btn-success" onclick="mineBlock()">⛏️ Mine Block (Get 100 KENO)</button>
+            <div id="mineResult" class="result"></div>
+        </div>
+
+        <!-- Send Transaction -->
+        <div class="card">
+            <h2>💸 Send KENO (with 5-Minute Reversal Window)</h2>
+            <div class="form-group">
+                <label>From Address:</label>
+                <input type="text" id="fromAddress" value="04b6a0b893704436390333a2ad5d37a164678a9542799f44b6bdfac88476ae8bc79d62c57ae387f7dd6ec2fc582956927c54514e219d501961598e765e55a9e83a">
+            </div>
+            <div class="form-group">
+                <label>Private Key:</label>
+                <input type="text" id="privateKey" value="ee3b69dd5f88b8c25f3e4b44ef1707b2cde6c03a3911478fa8a11579269bb2dc">
+            </div>
+            <div class="form-group">
+                <label>To Address:</label>
+                <input type="text" id="toAddress" value="0477733462078bfe987ed76909896ff6b8be1bad4234383b1ff6ee93e16f97768b30f657ec275d2e8cbbcf4749b1576bf4b0727f47c1a2f610fd9f9c92535b9a9f">
+            </div>
+            <div class="form-group">
+                <label>Amount (KENO):</label>
+                <input type="number" id="amount" value="10">
+            </div>
+            <div class="form-group">
+                <label>Transaction Fee (KENO):</label>
+                <input type="number" id="fee" value="1">
+            </div>
+            <div class="form-group">
+                <label>Message (Optional):</label>
+                <input type="text" id="message" placeholder="e.g., Payment for services">
+            </div>
+            <button class="btn" onclick="sendTransaction()">💸 Send Transaction</button>
+            <div id="sendResult" class="result"></div>
+        </div>
+
+        <!-- Check Balance -->
+        <div class="card">
+            <h2>💰 Check Balance</h2>
+            <div class="form-group">
+                <label>Wallet Address:</label>
+                <input type="text" id="balanceAddress" value="04b6a0b893704436390333a2ad5d37a164678a9542799f44b6bdfac88476ae8bc79d62c57ae387f7dd6ec2fc582956927c54514e219d501961598e765e55a9e83a">
+            </div>
+            <button class="btn" onclick="checkBalance()">💰 Check Balance</button>
+            <div id="balanceResult" class="result"></div>
+        </div>
+
+        <!-- View Pending Transactions -->
+        <div class="card">
+            <h2>🔄 Pending Transactions (Reversal Window)</h2>
+            <div class="form-group">
+                <label>Your Address:</label>
+                <input type="text" id="pendingAddress" value="04b6a0b893704436390333a2ad5d37a164678a9542799f44b6bdfac88476ae8bc79d62c57ae387f7dd6ec2fc582956927c54514e219d501961598e765e55a9e83a">
+            </div>
+            <button class="btn" onclick="viewPending()">🔄 View Pending Transactions</button>
+            <div id="pendingResult" class="result"></div>
+        </div>
+
+        <!-- Blockchain Info -->
+        <div class="card">
+            <h2>📊 Blockchain Statistics</h2>
+            <button class="btn btn-success" onclick="loadStats()">📊 Load Statistics</button>
+            <div id="statsResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        function showResult(elementId, content, isError = false) {
+            const el = document.getElementById(elementId);
+            el.className = 'result show' + (isError ? ' error' : '');
+            el.innerHTML = content;
+        }
+
+        async function mineBlock() {
+            const minerAddress = document.getElementById('minerAddress').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/mine`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ minerAddress })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showResult('mineResult', `<strong>❌ Error:</strong> ${data.error}`, true);
+                } else {
+                    showResult('mineResult', `
+                        <strong>✅ Block Mined Successfully!</strong><br><br>
+                        <strong>Block Height:</strong> ${data.blockHeight}<br>
+                        <strong>Your Balance:</strong> ${data.balance} KENO<br>
+                        <strong>Reward:</strong> 100 KENO
+                    `);
+                }
+            } catch (error) {
+                showResult('mineResult', `<strong>❌ Error:</strong> ${error.message}`, true);
+            }
+        }
+
+        async function sendTransaction() {
+            const fromAddress = document.getElementById('fromAddress').value;
+            const privateKey = document.getElementById('privateKey').value;
+            const toAddress = document.getElementById('toAddress').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const fee = parseFloat(document.getElementById('fee').value);
+            const message = document.getElementById('message').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/transaction/simple`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fromAddress,
+                        privateKey,
+                        toAddress,
+                        amount,
+                        fee,
+                        message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showResult('sendResult', `<strong>❌ Error:</strong> ${data.error}`, true);
+                } else {
+                    showResult('sendResult', `
+                        <strong>✅ Transaction Sent Successfully!</strong><br><br>
+                        <strong>Transaction Hash:</strong> ${data.transactionHash}<br>
+                        <strong>Amount:</strong> ${amount} KENO<br>
+                        <strong>Fee:</strong> ${fee} KENO<br>
+                        <strong>⏱️ Reversal Window:</strong> You have <strong>5 minutes</strong> to cancel this transaction!<br>
+                        <strong>Expires At:</strong> ${new Date(data.reversalWindow.expiresAt).toLocaleString()}<br><br>
+                        <button class="btn btn-danger" onclick="cancelTransaction('${data.transactionHash}', '${fromAddress}')">🔄 Cancel This Transaction</button>
+                    `);
+                }
+            } catch (error) {
+                showResult('sendResult', `<strong>❌ Error:</strong> ${error.message}`, true);
+            }
+        }
+
+        async function cancelTransaction(txHash, senderAddress) {
+            if (!confirm('Are you sure you want to cancel this transaction?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/transaction/cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transactionHash: txHash, senderAddress })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert('❌ Error: ' + data.error);
+                } else {
+                    alert('✅ Transaction cancelled successfully!');
+                    viewPending();
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function checkBalance() {
+            const address = document.getElementById('balanceAddress').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/balance/${encodeURIComponent(address)}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showResult('balanceResult', `<strong>❌ Error:</strong> ${data.error}`, true);
+                } else {
+                    showResult('balanceResult', `
+                        <strong>💰 Balance Information</strong><br><br>
+                        <div class="stat-value">${data.balance} KENO</div>
+                        <strong>Address:</strong> ${data.address.substring(0, 20)}...${data.address.substring(data.address.length - 20)}
+                    `);
+                }
+            } catch (error) {
+                showResult('balanceResult', `<strong>❌ Error:</strong> ${error.message}`, true);
+            }
+        }
+
+        async function viewPending() {
+            const address = document.getElementById('pendingAddress').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/pending/${encodeURIComponent(address)}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showResult('pendingResult', `<strong>❌ Error:</strong> ${data.error}`, true);
+                } else if (data.count === 0) {
+                    showResult('pendingResult', `<strong>ℹ️ No pending transactions found.</strong>`);
+                } else {
+                    let html = `<strong>🔄 Pending Transactions (${data.count})</strong><br><br>`;
+                    
+                    data.pendingTransactions.forEach(tx => {
+                        const timeLeft = Math.max(0, Math.floor((new Date(tx.reversalWindowExpiry) - new Date()) / 1000));
+                        const canCancel = timeLeft > 0;
+                        
+                        html += `
+                            <div class="tx-item">
+                                <strong>Hash:</strong> ${tx.hash}<br>
+                                <strong>To:</strong> ${tx.toAddress.substring(0, 20)}...<br>
+                                <strong>Amount:</strong> ${tx.amount} KENO<br>
+                                <strong>Time Left:</strong> ${canCancel ? `${timeLeft} seconds` : 'Expired'}<br>
+                                ${canCancel ? 
+                                    `<button class="btn btn-danger" style="margin-top: 10px;" onclick="cancelTransaction('${tx.hash}', '${address}')">🔄 Cancel</button>` :
+                                    '<p style="color: #f45c43; margin-top: 10px;">Cannot cancel (past 5-minute window)</p>'
+                                }
+                            </div>
+                        `;
+                    });
+                    
+                    showResult('pendingResult', html);
+                }
+            } catch (error) {
+                showResult('pendingResult', `<strong>❌ Error:</strong> ${error.message}`, true);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const [chainRes, supplyRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/chain`),
+                    fetch(`${API_BASE}/api/supply`)
+                ]);
+                
+                const chain = await chainRes.json();
+                const supply = await supplyRes.json();
+                
+                showResult('statsResult', `
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value">${chain.length}</div>
+                            <div class="stat-label">Total Blocks</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${supply.circulatingSupply}</div>
+                            <div class="stat-label">Circulating Supply</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${supply.totalMinted}</div>
+                            <div class="stat-label">Total Minted</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${supply.totalBurned}</div>
+                            <div class="stat-label">Total Burned</div>
+                        </div>
+                    </div>
+                `);
+            } catch (error) {
+                showResult('statsResult', `<strong>❌ Error:</strong> ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

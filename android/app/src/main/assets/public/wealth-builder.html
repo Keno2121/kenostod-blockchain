@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealth Builder Program - Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .wealth-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .wealth-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .wealth-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
+        }
+
+        .wealth-header p {
+            margin: 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .wealth-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+
+        .stat-card.keno { border-left-color: #10b981; }
+        .stat-card.rewards { border-left-color: #667eea; }
+        .stat-card.rvt { border-left-color: #f59e0b; }
+        .stat-card.referrals { border-left-color: #ec4899; }
+        .stat-card.courses { border-left-color: #06b6d4; }
+        .stat-card.networth { border-left-color: #8b5cf6; }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .stat-subvalue {
+            font-size: 0.9rem;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+
+        .wealth-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #1f2937;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .job-card {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .job-company {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .job-details {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .nft-card {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .nft-type {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .nft-royalty {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .referral-code-box {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .referral-code {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            letter-spacing: 3px;
+            margin: 10px 0;
+        }
+
+        .copy-btn {
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .wealth-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .wealth-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wealth-container">
+        <div class="wealth-header">
+            <h1>🌟 Wealth Builder Program</h1>
+            <p>Build generational wealth through blockchain education and passive income</p>
+            <div style="margin-top: 20px;">
+                <button id="connectMetaMaskBtn" onclick="initializeWealthBuilder()" style="padding: 12px 30px; font-size: 1.1rem; background: white; color: #667eea; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s;">
+                    🦊 Connect MetaMask to Get Started
+                </button>
+                <div id="walletStatus" style="margin-top: 15px; font-size: 0.95rem; opacity: 0.9;"></div>
+            </div>
+        </div>
+
+        <div id="wealthStats" class="wealth-stats-grid">
+            <div class="stat-card keno">
+                <div class="stat-label">💎 Total KENO Balance</div>
+                <div class="stat-value" id="totalKeno">0</div>
+                <div class="stat-subvalue">From all sources</div>
+            </div>
+
+            <div class="stat-card rewards">
+                <div class="stat-label">🎁 Course Rewards</div>
+                <div class="stat-value" id="totalRewards">0</div>
+                <div class="stat-subvalue">KENO earned from learning</div>
+            </div>
+
+            <div class="stat-card rvt">
+                <div class="stat-label">🏆 RVT Royalties</div>
+                <div class="stat-value" id="totalRvt">0</div>
+                <div class="stat-subvalue">Passive income from NFTs</div>
+            </div>
+
+            <div class="stat-card referrals">
+                <div class="stat-label">👥 Referral Earnings</div>
+                <div class="stat-value" id="totalReferrals">0</div>
+                <div class="stat-subvalue">KENO from inviting others</div>
+            </div>
+
+            <div class="stat-card courses">
+                <div class="stat-label">📚 Courses Completed</div>
+                <div class="stat-value" id="coursesCompleted">0</div>
+                <div class="stat-subvalue">Out of 16 total courses</div>
+            </div>
+
+            <div class="stat-card networth">
+                <div class="stat-label">💰 Estimated Net Worth</div>
+                <div class="stat-value" id="estimatedUSD">$0</div>
+                <div class="stat-subvalue">Based on current KENO price</div>
+            </div>
+        </div>
+
+        <div class="wealth-section">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('jobs')">💼 Career Center</button>
+                <button class="tab-btn" onclick="switchTab('scholarship')">🎓 Scholarships</button>
+                <button class="tab-btn" onclick="switchTab('referrals')">👥 Referrals</button>
+                <button class="tab-btn" onclick="switchTab('rvt')">🏆 My RVT NFTs</button>
+            </div>
+
+            <div id="dashboard" class="tab-content active">
+                <h2 class="section-title">Your Wealth Building Journey</h2>
+                <div class="alert alert-info">
+                    <strong>🌟 Welcome to the Wealth Builder Program!</strong><br>
+                    Complete courses to earn KENO tokens, apply for scholarships, find blockchain jobs, refer friends, and earn RVT NFTs with perpetual royalties. This program is designed to help you build generational wealth through education and passive income.
+                </div>
+
+                <div id="rewardsHistory"></div>
+            </div>
+
+            <div id="jobs" class="tab-content">
+                <h2 class="section-title">Career Center - Blockchain Jobs</h2>
+                <div class="alert alert-info">
+                    Find blockchain development jobs from $50K-$150K/year. Remote positions available worldwide.
+                </div>
+
+                <div id="jobListings" class="loading">Loading jobs...</div>
+            </div>
+
+            <div id="scholarship" class="tab-content">
+                <h2 class="section-title">Apply for Free Education Scholarship</h2>
+                <div class="alert alert-info">
+                    <strong>Financial Need-Based Scholarships Available!</strong><br>
+                    If you cannot afford our courses, apply for a full scholarship. We prioritize students from low-income backgrounds who demonstrate strong motivation to learn blockchain technology.
+                </div>
+
+                <form id="scholarshipForm">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="scholarshipName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address *</label>
+                        <input type="email" id="scholarshipEmail" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Country *</label>
+                        <input type="text" id="scholarshipCountry" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="scholarshipAge" min="13" max="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Current Monthly Income (USD)</label>
+                        <input type="number" id="scholarshipIncome" min="0" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Education Level</label>
+                        <select id="scholarshipEducation">
+                            <option value="">Select...</option>
+                            <option value="High School">High School</option>
+                            <option value="Some College">Some College</option>
+                            <option value="Bachelor's Degree">Bachelor's Degree</option>
+                            <option value="Master's Degree">Master's Degree</option>
+                            <option value="Self-Taught">Self-Taught</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Why do you want to learn blockchain? * (Tell us your story)</label>
+                        <textarea id="scholarshipMotivation" required placeholder="Share your passion for blockchain technology and how it aligns with your goals..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Describe your financial situation * (Why do you need this scholarship?)</label>
+                        <textarea id="scholarshipFinancial" required placeholder="Explain your current financial situation and why you cannot afford the course fees..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Career Goals (What will you do after completing these courses?)</label>
+                        <textarea id="scholarshipGoals" placeholder="Share your career aspirations and how blockchain education will help you achieve them..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary">📝 Submit Scholarship Application</button>
+                </form>
+
+                <div id="scholarshipResult"></div>
+            </div>
+
+            <div id="referrals" class="tab-content">
+                <h2 class="section-title">Earn 100 KENO Per Referral</h2>
+                <div class="alert alert-info">
+                    Share your referral code with friends and family. You'll earn 100 KENO when they complete their first course!
+                </div>
+
+                <div class="referral-code-box">
+                    <p><strong>Your Referral Code:</strong></p>
+                    <div class="referral-code" id="referralCode">LOADING...</div>
+                    <button class="copy-btn" onclick="copyReferralCode()">📋 Copy Code</button>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3>Share Your Link:</h3>
+                    <input type="text" id="referralLink" readonly style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e5e7eb; margin-top: 10px;">
+                </div>
+            </div>
+
+            <div id="rvt" class="tab-content">
+                <h2 class="section-title">My RVT NFTs - Perpetual Royalties</h2>
+                <div class="alert alert-info">
+                    <strong>Earn RVT NFTs by completing courses!</strong><br>
+                    • Complete 5 courses = Bronze RVT (0.25% royalties)<br>
+                    • Complete 10 courses = Silver RVT (0.50% royalties)<br>
+                    • Complete 16 courses = Gold RVT (1.00% royalties)<br><br>
+                    These NFTs generate passive income from enterprise AI/ML computations forever!
+                </div>
+
+                <div id="rvtNFTs" class="loading">Loading your RVT NFTs...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWallet = '';
+        let currentEmail = '';
+        let userReferralCode = '';
+        let isMetaMaskConnected = false;
+
+        async function connectMetaMask() {
+            if (!window.ethereum) {
+                alert('❌ MetaMask not detected!\n\nPlease install MetaMask browser extension to use the Wealth Builder Program.\n\nVisit: https://metamask.io/');
+                return false;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                currentWallet = accounts[0];
+                isMetaMaskConnected = true;
+                console.log('✅ MetaMask connected:', currentWallet);
+                return true;
+            } catch (error) {
+                console.error('MetaMask connection failed:', error);
+                alert('Failed to connect to MetaMask. Please try again.');
+                return false;
+            }
+        }
+
+        async function signMessageWithMetaMask(action) {
+            if (!isMetaMaskConnected || !currentWallet) {
+                alert('Please connect MetaMask first');
+                return null;
+            }
+
+            const timestamp = Date.now();
+            const message = `Kenostod Blockchain Academy\nAction: ${action}\nWallet: ${currentWallet}\nTimestamp: ${timestamp}`;
+
+            try {
+                const msgHex = '0x' + Array.from(new TextEncoder().encode(message))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join('');
+
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [msgHex, currentWallet]
+                });
+
+                return {
+                    walletAddress: currentWallet,
+                    action,
+                    signature,
+                    timestamp,
+                    message
+                };
+            } catch (error) {
+                if (error.code === 4001) {
+                    alert('Signature rejected. You must sign the message to proceed.');
+                } else {
+                    console.error('Signing error:', error);
+                    alert('Failed to sign message. Please try again.');
+                }
+                return null;
+            }
+        }
+
+        async function authenticatedFetch(url, options = {}, action) {
+            const authPayload = await signMessageWithMetaMask(action);
+            if (!authPayload) {
+                throw new Error('Authentication cancelled');
+            }
+
+            const body = options.body ? JSON.parse(options.body) : {};
+            const authenticatedBody = {
+                ...body,
+                ...authPayload
+            };
+
+            const authenticatedOptions = {
+                ...options,
+                body: JSON.stringify(authenticatedBody)
+            };
+
+            const response = await fetch(url, authenticatedOptions);
+            const data = await response.json();
+
+            if (response.status === 429) {
+                alert('⏰ Rate Limit Exceeded\n\n' + (data.message || 'Too many requests. Please wait before trying again.'));
+                throw new Error('Rate limit exceeded');
+            }
+
+            if (response.status === 401) {
+                alert('🔒 Authentication Failed\n\n' + (data.error || 'Invalid signature. Please try again.'));
+                throw new Error('Authentication failed');
+            }
+
+            if (!response.ok && data.error) {
+                throw new Error(data.error);
+            }
+
+            return { response, data };
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function initializeWealthBuilder() {
+            const connectBtn = document.getElementById('connectMetaMaskBtn');
+            const statusDiv = document.getElementById('walletStatus');
+
+            statusDiv.textContent = 'Connecting to MetaMask...';
+            connectBtn.disabled = true;
+
+            const connected = await connectMetaMask();
+            
+            if (connected) {
+                connectBtn.textContent = '✅ Connected';
+                connectBtn.style.background = '#10b981';
+                connectBtn.style.color = 'white';
+                statusDiv.textContent = `Wallet: ${currentWallet.substring(0,6)}...${currentWallet.substring(38)}`;
+                
+                await loadWealthDashboard();
+            } else {
+                connectBtn.disabled = false;
+                connectBtn.textContent = '🦊 Try Again';
+                statusDiv.textContent = 'Connection failed. Please try again.';
+            }
+        }
+
+        async function loadWealthDashboard() {
+            if (!currentWallet) {
+                console.error('No wallet connected');
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            currentEmail = params.get('email') || '';
+
+            try {
+                const response = await fetch(`/api/wealth/dashboard/${currentWallet}?email=${currentEmail}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const wealth = data.wealth;
+                    document.getElementById('totalKeno').textContent = wealth.totalKeno.toFixed(2);
+                    document.getElementById('totalRewards').textContent = wealth.totalRewards.toFixed(2);
+                    document.getElementById('totalRvt').textContent = wealth.totalRvtRoyalties.toFixed(2);
+                    document.getElementById('totalReferrals').textContent = wealth.totalReferrals.toFixed(2);
+                    document.getElementById('coursesCompleted').textContent = wealth.coursesCompleted;
+                    document.getElementById('estimatedUSD').textContent = '$' + wealth.estimatedUSD.toFixed(2);
+                }
+
+                await loadRVTNFTs();
+                await loadJobListings();
+                await loadReferralCode();
+            } catch (error) {
+                console.error('Error loading wealth dashboard:', error);
+            }
+        }
+
+        async function loadRVTNFTs() {
+            try {
+                const response = await fetch(`/api/wealth/rvt/${currentWallet}`);
+                const data = await response.json();
+
+                const container = document.getElementById('rvtNFTs');
+                
+                if (data.success && data.nfts.length > 0) {
+                    container.innerHTML = data.nfts.map(nft => `
+                        <div class="nft-card">
+                            <div class="nft-type">${nft.nft_type}</div>
+                            <div class="nft-royalty">💰 Royalty Rate: ${nft.royalty_percentage}%</div>
+                            <div>Total Earned: ${nft.total_royalties_earned} KENO</div>
+                            <div style="margin-top: 10px; opacity: 0.9;">Reason: ${nft.reason}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>You haven\'t earned any RVT NFTs yet. Complete more courses to earn them!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading RVT NFTs:', error);
+            }
+        }
+
+        async function loadJobListings() {
+            try {
+                const response = await fetch('/api/wealth/jobs');
+                const data = await response.json();
+
+                const container = document.getElementById('jobListings');
+                
+                if (data.success && data.jobs.length > 0) {
+                    container.innerHTML = data.jobs.map(job => `
+                        <div class="job-card">
+                            <div class="job-title">${job.job_title}</div>
+                            <div class="job-company">${job.company_name}</div>
+                            <div class="job-details">
+                                <span>📍 ${job.location}</span>
+                                ${job.remote_allowed ? '<span>🌍 Remote OK</span>' : ''}
+                                ${job.salary_min ? `<span>💰 $${job.salary_min.toLocaleString()} - $${job.salary_max.toLocaleString()}</span>` : ''}
+                            </div>
+                            <p>${job.description}</p>
+                            ${job.apply_url ? `<a href="${job.apply_url}" target="_blank" class="btn-primary" style="display: inline-block; text-decoration: none;">Apply Now</a>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>No jobs available right now. Check back soon!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                document.getElementById('jobListings').innerHTML = '<p>Unable to load jobs. Please try again later.</p>';
+            }
+        }
+
+        async function loadReferralCode() {
+            try {
+                const { data } = await authenticatedFetch(
+                    '/api/wealth/referrals/generate',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ referrerWallet: currentWallet, email: currentEmail })
+                    },
+                    'Generate Referral Code'
+                );
+
+                if (data.success) {
+                    userReferralCode = data.referralCode;
+                    document.getElementById('referralCode').textContent = userReferralCode;
+                    
+                    const referralLink = `${window.location.origin}/?ref=${userReferralCode}`;
+                    document.getElementById('referralLink').value = referralLink;
+                }
+            } catch (error) {
+                console.error('Error loading referral code:', error.message);
+            }
+        }
+
+        function copyReferralCode() {
+            const code = document.getElementById('referralCode').textContent;
+            navigator.clipboard.writeText(code);
+            alert('Referral code copied to clipboard!');
+        }
+
+        document.getElementById('scholarshipForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const applicationData = {
+                applicant_wallet: currentWallet,
+                applicant_email: document.getElementById('scholarshipEmail').value,
+                applicant_name: document.getElementById('scholarshipName').value,
+                country: document.getElementById('scholarshipCountry').value,
+                age: parseInt(document.getElementById('scholarshipAge').value) || null,
+                current_income: parseFloat(document.getElementById('scholarshipIncome').value) || 0,
+                education_level: document.getElementById('scholarshipEducation').value,
+                motivation: document.getElementById('scholarshipMotivation').value,
+                financial_need_description: document.getElementById('scholarshipFinancial').value,
+                career_goals: document.getElementById('scholarshipGoals').value
+            };
+
+            try {
+                const { data } = await authenticatedFetch(
+                    '/api/wealth/scholarships/apply',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(applicationData)
+                    },
+                    'Apply for Scholarship'
+                );
+
+                if (data.success) {
+                    document.getElementById('scholarshipResult').innerHTML = `
+                        <div class="alert alert-success" style="margin-top: 20px; padding: 15px; background: #d1fae5; border-left: 4px solid #10b981; border-radius: 8px;">
+                            <strong>✅ Application Submitted Successfully!</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+                    document.getElementById('scholarshipForm').reset();
+                }
+            } catch (error) {
+                document.getElementById('scholarshipResult').innerHTML = `
+                    <div class="alert alert-error" style="margin-top: 20px; padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px;">
+                        <strong>❌ Submission Failed</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadJobListings();
+            
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) {
+                        location.reload();
+                    } else if (accounts[0] !== currentWallet) {
+                        currentWallet = accounts[0];
+                        loadWealthDashboard();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <footer style="background: var(--text-dark); color: white; padding: 32px 24px; margin-top: 80px;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 1rem; font-weight: 600;">© 2025 Kenostod Blockchain Academy. All Rights Reserved.</p>
+                <p style="margin: 16px 0 0 0; font-size: 0.9rem; color: #cbd5e1;">
+                    <a href="/terms-of-service.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Terms of Service</a> |
+                    <a href="/licensing.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Commercial Licensing</a> |
+                    <a href="/privacy-policy.html" style="color: #cbd5e1; text-decoration: none; margin: 0 12px; transition: color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#cbd5e1'">Privacy Policy</a>
+                </p>
+            </div>
+            <div style="border-top: 1px solid #475569; padding-top: 20px; text-align: center;">
+                <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
+                    <strong style="color: #cbd5e1;">Protected Intellectual Property:</strong><br>
+                    Proof-of-Residual-Value (PoRV), Residual Value Token (RVT) System, Wealth Builder Program,<br>
+                    Social Recovery, Transaction Reversal, and all proprietary features are protected by intellectual property rights.<br>
+                    Commercial use requires a valid license. <a href="/licensing.html" style="color: #3b82f6; text-decoration: none;">Learn more about licensing</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

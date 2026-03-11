@@ -1,0 +1,57 @@
+modules = ["nodejs-20", "java-graalvm22.3", "python-3.11", "postgresql-16"]
+[agent]
+expertMode = true
+integrations = [
+  "javascript_database:1.0.0",
+  "javascript_openai_ai_integrations:1.0.0",
+  "stripe:1.0.0",
+]
+
+[nix]
+channel = "stable-25_05"
+packages = ["chromium"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Kenostod Blockchain Server"
+
+[[workflows.workflow]]
+name = "Kenostod Blockchain Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+
+[deployment]
+deploymentTarget = "vm"
+run = ["node", "server.js"]
+build = ["npm", "run", "build"]
+publicDir = "public"
+
+[userenv]
+
+[userenv.shared]
+"STRIPE _PUBLISHABLE_KEY" = "pk_live_51QlLbhGsmOeVe4nIowdVFxPzRJAiTUEBDEti9tmUApGufqt65znRs1tH0Ne46dO6Ums0ELXHhtlSNfvNNZkAUaGN00IPwUbSBw"
+MOONPAY_PUBLISHABLE_KEY = "pk_live_8MNi3S8EOKIqRQie6Lct2if2AiframBO"
+BANK_ENCRYPTION_KEY = "e722810327296293b59adc68f96e8c864a03817ddde48003863f6eef77c157be"
+ADMIN_KEY = "32c03a79d694e39afdc96d70b696b78a"
+DEPLOYER_PRIVATE_KEY = "88fba995bfc0e70cccb05443e773482e1be9790c5c321fdaa43e909e222bca1b"
+WALLETCONNECT_PROJECT_ID = "b5a74d48402f00067b4979c315e7350a"
