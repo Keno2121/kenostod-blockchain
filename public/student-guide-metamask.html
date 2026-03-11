@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Add KENO to MetaMask - Student Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --secondary: #7b2cbf;
+            --accent: #ff6b35;
+            --dark: #0a0a1a;
+            --darker: #050510;
+            --text: #e0e0e0;
+            --text-bright: #ffffff;
+            --success: #00ff88;
+            --warning: #ffaa00;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--dark) 0%, #1a0a2e 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text);
+            font-size: 1.2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .important-box {
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.1), rgba(255, 107, 53, 0.1));
+            border: 1px solid var(--warning);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .important-box h3 {
+            color: var(--warning);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .contract-box {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .contract-box h3 {
+            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 1rem;
+        }
+
+        .contract-address {
+            font-family: monospace;
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            word-break: break-all;
+            color: var(--success);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .contract-address:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .copy-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .step-section {
+            margin-bottom: 3rem;
+        }
+
+        .step-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .step-content p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .step-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .step-content li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .step-content li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .highlight {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .highlight code {
+            font-family: monospace;
+            color: var(--success);
+        }
+
+        .warning-box {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box strong {
+            color: var(--accent);
+        }
+
+        .claim-process {
+            background: linear-gradient(135deg, rgba(123, 44, 191, 0.1), rgba(0, 212, 255, 0.1));
+            border: 1px solid var(--secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .claim-process h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+
+        .process-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .process-step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .process-step span {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .process-arrow {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .faq-section {
+            margin-top: 3rem;
+        }
+
+        .faq-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--text-bright);
+        }
+
+        .faq-question:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem 1rem;
+            display: none;
+            color: var(--text);
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        footer {
+            background: var(--dark);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 3rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .contract-address {
+                font-size: 0.8rem;
+            }
+
+            .process-flow {
+                flex-direction: column;
+            }
+
+            .process-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>How to Add KENO to MetaMask</h1>
+        <p>Complete guide for students to receive and view their KENO tokens</p>
+    </div>
+
+    <div class="container">
+        <div class="important-box">
+            <h3>Before You Start</h3>
+            <p>You need MetaMask installed and connected to <strong>Binance Smart Chain (BSC)</strong>. KENO is a BEP-20 token on BSC, so you must be on the correct network to see your tokens.</p>
+        </div>
+
+        <div class="contract-box">
+            <h3>KENO Token Contract Address</h3>
+            <p style="margin-bottom: 1rem; color: var(--text);">Copy this address to add KENO to MetaMask:</p>
+            <div class="contract-address" id="contractAddress" onclick="copyContract()">
+                0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+            </div>
+            <button class="copy-btn" onclick="copyContract()">Copy Address</button>
+            <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text);">
+                <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" style="color: var(--primary);">View on BscScan</a>
+            </p>
+        </div>
+
+        <section class="step-section">
+            <h2><span class="step-number">1</span>Install MetaMask</h2>
+            <div class="step-content">
+                <p>If you don't have MetaMask installed:</p>
+                <ul>
+                    <li>Go to <a href="https://metamask.io/download/" target="_blank" style="color: var(--primary);">metamask.io/download</a></li>
+                    <li>Install the browser extension (Chrome, Firefox, Brave) or mobile app</li>
+                    <li>Create a new wallet and <strong>save your seed phrase securely!</strong></li>
+                </ul>
+                <div class="warning-box">
+                    <strong>Never share your seed phrase with anyone!</strong> Kenostod staff will never ask for it.
+                </div>
+            </div>
+        </section>
+
+        <section class="step-section">
+            <h2><span class="step-number">2</span>Add Binance Smart Chain (BSC)</h2>
+            <div class="step-content">
+                <p>KENO runs on BSC, so you need to add this network to MetaMask:</p>
+                <ul>
+                    <li>Open MetaMask</li>
+                    <li>Click the network dropdown (top of the app)</li>
+                    <li>Click "Add Network" or "Add a network manually"</li>
+                    <li>Enter these settings:</li>
+                </ul>
+                <div class="highlight">
+                    <p><strong>Network Name:</strong> <code>Binance Smart Chain</code></p>
+                    <p><strong>RPC URL:</strong> <code>https://bsc-dataseed.binance.org/</code></p>
+                    <p><strong>Chain ID:</strong> <code>56</code></p>
+                    <p><strong>Symbol:</strong> <code>BNB</code></p>
+                    <p><strong>Block Explorer:</strong> <code>https://bscscan.com</code></p>
+                </div>
+                <ul>
+                    <li>Click "Save" and switch to BSC network</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="step-section">
+            <h2><span class="step-number">3</span>Import KENO Token</h2>
+            <div class="step-content">
+                <p>Now add KENO to see your balance:</p>
+                <ul>
+                    <li>Make sure you're on <strong>Binance Smart Chain</strong> network</li>
+                    <li>Scroll down and click "Import tokens"</li>
+                    <li>Select "Custom Token" tab</li>
+                    <li>Paste the KENO contract address:</li>
+                </ul>
+                <div class="highlight">
+                    <code>0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</code>
+                </div>
+                <ul>
+                    <li>Token Symbol should auto-fill as "KENO"</li>
+                    <li>Decimals should auto-fill as "18"</li>
+                    <li>Click "Add Custom Token" then "Import Tokens"</li>
+                </ul>
+                <p style="color: var(--success); margin-top: 1rem;">You should now see KENO in your token list!</p>
+            </div>
+        </section>
+
+        <section class="step-section">
+            <h2><span class="step-number">4</span>Get Your Wallet Address</h2>
+            <div class="step-content">
+                <p>You need your MetaMask wallet address to receive KENO:</p>
+                <ul>
+                    <li>Open MetaMask</li>
+                    <li>At the top, you'll see your address starting with <code>0x...</code></li>
+                    <li>Click on it to copy your full address</li>
+                    <li>This is what you'll use when claiming tokens</li>
+                </ul>
+                <div class="warning-box">
+                    <strong>Important:</strong> Your wallet address is NOT the same as the KENO contract address. Use YOUR wallet address (shown at the top of MetaMask) when claiming tokens, not the contract address above.
+                </div>
+            </div>
+        </section>
+
+        <div class="claim-process">
+            <h3>How to Claim Your KENO Tokens</h3>
+            <p>After completing courses, here's how to claim your earned KENO:</p>
+            <div class="process-flow">
+                <div class="process-step">
+                    <span>1</span>
+                    <strong>Complete Course</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Finish quizzes & assignments</p>
+                </div>
+                <span class="process-arrow">→</span>
+                <div class="process-step">
+                    <span>2</span>
+                    <strong>Submit Claim</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Go to Claim Tokens page</p>
+                </div>
+                <span class="process-arrow">→</span>
+                <div class="process-step">
+                    <span>3</span>
+                    <strong>Admin Approves</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Usually within 24 hours</p>
+                </div>
+                <span class="process-arrow">→</span>
+                <div class="process-step">
+                    <span>4</span>
+                    <strong>Tokens Sent!</strong>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Check MetaMask balance</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <a href="/claim-tokens.html" class="btn-primary">Go to Claim Tokens Page</a>
+            </div>
+        </div>
+
+        <section class="faq-section">
+            <h2 style="font-family: 'Orbitron', sans-serif; color: var(--primary); margin-bottom: 1.5rem;">Frequently Asked Questions</h2>
+            
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>I don't see my KENO balance after claiming</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Check these things:</p>
+                    <ul>
+                        <li>Make sure you're on <strong>Binance Smart Chain</strong> network (not Ethereum)</li>
+                        <li>Verify you've imported the KENO token using the contract address</li>
+                        <li>Confirm your claim was approved in the Claim Tokens page</li>
+                        <li>Wait a few minutes and refresh MetaMask</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>I accidentally used the contract address instead of my wallet</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Don't worry! The system now blocks the contract address from being used as a destination. If you submitted a request with the wrong address before this protection was added, contact support at kenostod21@gmail.com for help.</p>
+                </div>
+            </div>
+            
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>How long does it take to receive tokens?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>After you submit a claim request:</p>
+                    <ul>
+                        <li>Admin review: Usually within 24 hours</li>
+                        <li>Token transfer: Instant once approved (BSC is fast!)</li>
+                        <li>You'll see tokens in MetaMask immediately after approval</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>What's the difference between my wallet address and the contract address?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    <p><strong>Your Wallet Address (starts with 0x):</strong> This is YOUR personal address where you receive tokens. It's shown at the top of MetaMask.</p>
+                    <p><strong>KENO Contract Address:</strong> This is the token's "home" on BSC. You use it to ADD the token to MetaMask so you can SEE your balance. Never send tokens TO this address!</p>
+                </div>
+            </div>
+            
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <span>Do I need BNB for gas fees?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>You don't need BNB to RECEIVE tokens - Kenostod pays the gas fees when sending KENO to you.</p>
+                    <p>However, if you want to SEND or TRADE your KENO tokens later, you'll need a small amount of BNB (usually less than $1) for transaction fees.</p>
+                </div>
+            </div>
+        </section>
+
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: rgba(0, 212, 255, 0.05); border-radius: 12px;">
+            <h3 style="color: var(--primary); font-family: 'Orbitron', sans-serif; margin-bottom: 1rem;">Need Help?</h3>
+            <p>Contact us at <a href="mailto:kenostod21@gmail.com" style="color: var(--primary);">kenostod21@gmail.com</a></p>
+            <p style="margin-top: 0.5rem;">Or use the AI Support chat on any page for instant help!</p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/wealth-builder.html">Wealth Builder</a>
+            <a href="/claim-tokens.html">Claim Tokens</a>
+            <a href="/backoffice.html">Admin Panel</a>
+        </div>
+        <p style="color: var(--text); font-size: 0.9rem;">Kenostod Blockchain Academy - Where Knowledge Yields Value</p>
+        <p style="color: #666; font-size: 0.8rem; margin-top: 0.5rem;">KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E (BSC)</p>
+    </footer>
+
+    <script>
+        function copyContract() {
+            const address = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+            navigator.clipboard.writeText(address).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                btn.style.background = 'linear-gradient(135deg, #00ff88, #00cc6a)';
+                setTimeout(() => {
+                    btn.textContent = 'Copy Address';
+                    btn.style.background = 'linear-gradient(135deg, var(--primary), var(--secondary))';
+                }, 2000);
+            });
+        }
+
+        function toggleFaq(element) {
+            element.classList.toggle('active');
+            const icon = element.querySelector('.faq-question span:last-child');
+            icon.textContent = element.classList.contains('active') ? '-' : '+';
+        }
+    </script>
+</body>
+</html>
