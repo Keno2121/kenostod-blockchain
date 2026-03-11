@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Get KENO Contract</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0B6F44 0%, #1a1a1a 100%);
+            font-family: Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            border: 3px solid #FFD700;
+        }
+        h1 {
+            color: #FFD700;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: block;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: black;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 10px;
+            margin: 20px 0;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: scale(1.02);
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            background: #0a0a0a;
+            color: #50C878;
+            border: 2px solid #50C878;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 20px 0;
+        }
+        .info {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .success {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #10b981;
+            color: white;
+            padding: 30px 60px;
+            border-radius: 15px;
+            font-size: 2em;
+            font-weight: bold;
+            display: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 KENO Contract Code</h1>
+        
+        <div class="info">
+            <p><strong>File:</strong> KENO-flattened.sol</p>
+            <p><strong>Lines:</strong> 1,030 lines ready for BscScan</p>
+        </div>
+
+        <button class="btn" onclick="downloadContract()">📥 DOWNLOAD AS FILE</button>
+        <button class="btn" onclick="copyContract()">📋 COPY TO CLIPBOARD</button>
+        
+        <p style="text-align: center; margin: 30px 0; color: #50C878; font-size: 1.2em;">
+            OR view the code below:
+        </p>
+        
+        <textarea id="contractCode" readonly>Loading contract code...</textarea>
+    </div>
+
+    <div id="successMsg" class="success">✅ SUCCESS!</div>
+
+    <script>
+        let contractCode = '';
+
+        // Load contract when page loads
+        async function loadContract() {
+            try {
+                const response = await fetch('/KENO-flattened.sol?t=' + Date.now());
+                contractCode = await response.text();
+                document.getElementById('contractCode').value = contractCode;
+            } catch (error) {
+                document.getElementById('contractCode').value = 'Error loading contract. Please try refreshing the page.';
+                console.error('Error:', error);
+            }
+        }
+
+        function downloadContract() {
+            const blob = new Blob([contractCode], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'KENO-flattened.sol';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showSuccess('📥 DOWNLOADED!');
+        }
+
+        function copyContract() {
+            const textarea = document.getElementById('contractCode');
+            textarea.select();
+            document.execCommand('copy');
+            
+            // Also try modern clipboard API
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(contractCode);
+            }
+            
+            showSuccess('✅ COPIED!');
+        }
+
+        function showSuccess(msg) {
+            const successDiv = document.getElementById('successMsg');
+            successDiv.textContent = msg;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 2000);
+        }
+
+        // Load on page load
+        loadContract();
+    </script>
+</body>
+</html>
