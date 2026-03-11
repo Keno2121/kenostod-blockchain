@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copy KENO Contract</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            background: #00c853;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #00a043;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .alert {
+            padding: 15px;
+            background: #4caf50;
+            color: white;
+            border-radius: 5px;
+            display: none;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .steps {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        .steps ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🎯 KENO Contract - Ready to Verify!</h1>
+        <p style="text-align: center; color: #666;">Click the button below to copy, then paste into BscScan</p>
+    </div>
+
+    <div class="box">
+        <button onclick="copyCode()">📋 CLICK HERE TO COPY CONTRACT CODE</button>
+        <div id="alert" class="alert">✅ COPIED! Now go to BscScan and paste it!</div>
+    </div>
+
+    <div class="steps">
+        <h3>📝 After Copying, Do This:</h3>
+        <ol>
+            <li>Go to: <strong>https://bscscan.com/verifyContract</strong></li>
+            <li>Contract Address: <code>0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</code></li>
+            <li>Compiler: <code>v0.8.20+commit.a1b79de6</code></li>
+            <li>Optimization: <strong>YES</strong> | Runs: <strong>200</strong></li>
+            <li>License: <code>MIT License (MIT)</code></li>
+            <li>Paste code in the BIG text box</li>
+            <li>Constructor Arguments: AUTO-FILLED (don't change!)</li>
+            <li>Click "Verify and Publish"</li>
+        </ol>
+    </div>
+
+    <div class="box">
+        <h3>Contract Code Preview:</h3>
+        <textarea id="contractCode" readonly>Loading...</textarea>
+        <p style="text-align: center; color: #666; margin-top: 10px;">
+            <span id="stats">...</span>
+        </p>
+    </div>
+
+    <script>
+        let contractText = '';
+        
+        async function loadContract() {
+            try {
+                const response = await fetch('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt');
+                contractText = await response.text();
+                document.getElementById('contractCode').value = contractText;
+                
+                const lines = contractText.split('\n').length;
+                document.getElementById('stats').textContent = `${lines} lines | ${contractText.length.toLocaleString()} characters`;
+            } catch (error) {
+                document.getElementById('contractCode').value = 'Error loading. Please refresh the page.';
+            }
+        }
+        
+        function copyCode() {
+            const textarea = document.getElementById('contractCode');
+            textarea.select();
+            textarea.setSelectionRange(0, 999999);
+            
+            try {
+                document.execCommand('copy');
+                showAlert();
+            } catch (err) {
+                navigator.clipboard.writeText(contractText).then(() => {
+                    showAlert();
+                }).catch(() => {
+                    alert('Please select the text and press Ctrl+C to copy');
+                });
+            }
+        }
+        
+        function showAlert() {
+            const alert = document.getElementById('alert');
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 4000);
+        }
+        
+        loadContract();
+    </script>
+</body>
+</html>
