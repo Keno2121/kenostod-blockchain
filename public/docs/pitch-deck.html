@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENO Investment Pitch Deck</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #10B981;
+            --primary-dark: #059669;
+            --secondary: #1E3A5F;
+            --gold: #F59E0B;
+            --dark: #111827;
+            --gray: #6B7280;
+            --light: #F9FAFB;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: white;
+        }
+        
+        /* Print Styles - Hide everything except slides */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0;
+            }
+            
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .slide {
+                page-break-after: always;
+                page-break-inside: avoid;
+                min-height: 100vh;
+                height: 100vh;
+            }
+            
+            .slide:last-child {
+                page-break-after: auto;
+            }
+            
+            /* Hide any external elements */
+            body > *:not(.slide) {
+                display: none !important;
+            }
+        }
+        
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 80px;
+            position: relative;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(30, 58, 95, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .slide-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .slide-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.3);
+            font-weight: 500;
+        }
+        
+        /* Title Slide */
+        .title-slide {
+            text-align: center;
+        }
+        
+        .logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 900;
+            margin: 0 auto 40px auto;
+            box-shadow: 0 20px 60px rgba(16, 185, 129, 0.4);
+        }
+        
+        .main-title {
+            font-size: 80px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+        
+        .subtitle {
+            font-size: 28px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 300;
+            margin-bottom: 50px;
+        }
+        
+        .tagline {
+            display: inline-block;
+            padding: 16px 40px;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .token-address {
+            margin-top: 60px;
+            font-family: monospace;
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* Content Slides */
+        h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        h1 span {
+            color: var(--primary);
+        }
+        
+        h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: white;
+        }
+        
+        h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+        
+        p {
+            font-size: 20px;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 40px;
+            margin: 40px 0;
+        }
+        
+        .stat-box {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 56px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+        }
+        
+        /* Comparison Table */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            margin: 40px 0;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .comparison-col {
+            padding: 40px;
+        }
+        
+        .comparison-col.old {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .comparison-col.new {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .comparison-col h3 {
+            color: #ef4444;
+            margin-bottom: 24px;
+        }
+        
+        .comparison-col.new h3 {
+            color: var(--primary);
+        }
+        
+        .comparison-col ul {
+            list-style: none;
+        }
+        
+        .comparison-col li {
+            padding: 12px 0;
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .comparison-col li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin: 50px 0;
+        }
+        
+        .flow-box {
+            background: linear-gradient(135deg, var(--secondary) 0%, #0f2744 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            min-width: 200px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .flow-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .flow-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .flow-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .flow-arrow {
+            font-size: 32px;
+            color: var(--primary);
+        }
+        
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin: 40px 0;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .feature-card h4 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .feature-card p {
+            font-size: 16px;
+            margin: 0;
+        }
+        
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+        }
+        
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 16px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        tr:nth-child(even) {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        /* List */
+        ul {
+            margin: 20px 0 20px 24px;
+        }
+        
+        li {
+            padding: 8px 0;
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        /* Quote */
+        .quote {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .quote p {
+            font-size: 28px;
+            font-weight: 500;
+            font-style: italic;
+            color: white;
+            margin: 0;
+        }
+        
+        /* Timeline */
+        .timeline {
+            display: flex;
+            gap: 24px;
+            margin: 40px 0;
+        }
+        
+        .timeline-phase {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+        }
+        
+        .timeline-phase.completed {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .timeline-phase .phase-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        .timeline-phase h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .timeline-phase ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .timeline-phase li {
+            font-size: 14px;
+            padding: 4px 0;
+        }
+        
+        /* CTA */
+        .cta-box {
+            background: linear-gradient(135deg, var(--secondary) 0%, #0f2744 100%);
+            border: 2px solid var(--primary);
+            border-radius: 24px;
+            padding: 60px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .cta-box h2 {
+            font-size: 40px;
+            margin-bottom: 24px;
+        }
+        
+        .cta-box p {
+            font-size: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 16px 48px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        /* TDIR Diagram */
+        .tdir-diagram {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 48px;
+            margin: 40px 0;
+        }
+        
+        .tdir-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .tdir-header h3 {
+            font-size: 32px;
+            color: var(--gold);
+        }
+        
+        .tdir-header p {
+            font-size: 16px;
+        }
+        
+        .tdir-boxes {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+        }
+        
+        .tdir-box {
+            flex: 1;
+            max-width: 280px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+        
+        .tdir-box h4 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        
+        .tdir-box p {
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        @media print {
+            .slide {
+                page-break-after: always;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Slide 1: Title -->
+    <div class="slide title-slide">
+        <div class="slide-content">
+            <div class="logo">K</div>
+            <h1 class="main-title">KENO</h1>
+            <p class="subtitle">The World's First Knowledge Utility Token</p>
+            <div class="tagline">Earn Through Education. Yield Through Innovation.</div>
+            <p class="token-address">
+                <strong>BSC:</strong> 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+            </p>
+        </div>
+        <div class="slide-number">01</div>
+    </div>
+    
+    <!-- Slide 2: The Problem -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>The <span>Problem</span></h1>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-value">$1.7T</div>
+                    <div class="stat-label">Global Student Debt</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">95%</div>
+                    <div class="stat-label">Crypto Investors Lose Money</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">5M+</div>
+                    <div class="stat-label">DeFi Users Need Education</div>
+                </div>
+            </div>
+            <p style="font-size: 28px; text-align: center; margin-top: 40px; color: rgba(255,255,255,0.6);">
+                <strong style="color: white;">The Gap:</strong> No pathway connects education → skills → earning opportunities
+            </p>
+        </div>
+        <div class="slide-number">02</div>
+    </div>
+    
+    <!-- Slide 3: The Solution -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>The <span>Solution</span>: Knowledge Utility Token</h1>
+            <div class="comparison">
+                <div class="comparison-col old">
+                    <h3>Traditional Crypto</h3>
+                    <ul>
+                        <li>Bought through speculation</li>
+                        <li>Value from hype</li>
+                        <li>Passive holding</li>
+                        <li>Wealth to early adopters</li>
+                    </ul>
+                </div>
+                <div class="comparison-col new">
+                    <h3>KENO (KUT)</h3>
+                    <ul>
+                        <li>Earned through education</li>
+                        <li>Value from utility + yield</li>
+                        <li>Active income generation</li>
+                        <li>Wealth to ALL participants</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">03</div>
+    </div>
+    
+    <!-- Slide 4: How It Works -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>How It <span>Works</span></h1>
+            <div class="flow-diagram">
+                <div class="flow-box">
+                    <div class="flow-icon">📚</div>
+                    <div class="flow-title">LEARN</div>
+                    <div class="flow-desc">21 Blockchain Courses</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box">
+                    <div class="flow-icon">🪙</div>
+                    <div class="flow-title">EARN</div>
+                    <div class="flow-desc">5,250 KENO (BEP-20)</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box">
+                    <div class="flow-icon">💰</div>
+                    <div class="flow-title">YIELD</div>
+                    <div class="flow-desc">FAL Arbitrage Earnings</div>
+                </div>
+            </div>
+            <div class="quote">
+                <p>"KENO is king, Kenostod is his kingdom — but everyone receives royalties."</p>
+            </div>
+        </div>
+        <div class="slide-number">04</div>
+    </div>
+    
+    <!-- Slide 5: Platform Features -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>Platform <span>Features</span></h1>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>21-Course Curriculum</h4>
+                    <p>From blockchain basics to advanced DeFi strategies</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Interactive Simulator</h4>
+                    <p>Hands-on practice with PoW, PoRV, transactions</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Real Token Distribution</h4>
+                    <p>Automated BSC transfers upon course completion</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Flash Arbitrage Loans</h4>
+                    <p>Collateral-free loans for token utility</p>
+                </div>
+                <div class="feature-card">
+                    <h4>FALP Pools</h4>
+                    <p>Collective liquidity with profit sharing</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Graduate Club</h4>
+                    <p>Exclusive earning opportunities for completers</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">05</div>
+    </div>
+    
+    <!-- Slide 6: Proprietary Technology -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>Proprietary <span>Technology</span></h1>
+            <h2>Flash Arbitrage Loans (FAL)</h2>
+            <ul>
+                <li><strong>Instant Loans:</strong> Borrow KENO without collateral</li>
+                <li><strong>Same-Block Settlement:</strong> Execute arbitrage atomically</li>
+                <li><strong>Risk-Free:</strong> Automatic rollback if unprofitable</li>
+                <li><strong>Patent-Pending:</strong> Proprietary FAL technology</li>
+            </ul>
+            <h2 style="margin-top: 40px;">FALP Pools</h2>
+            <ul>
+                <li>Users pool KENO for collective arbitrage</li>
+                <li>Automated profit distribution</li>
+                <li>Risk tiers (Conservative, Balanced, Aggressive)</li>
+                <li>Lock period bonuses up to 2x multiplier</li>
+            </ul>
+        </div>
+        <div class="slide-number">06</div>
+    </div>
+    
+    <!-- Slide 7: Tokenomics -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1><span>Tokenomics</span></h1>
+            <table>
+                <tr>
+                    <th>Allocation</th>
+                    <th>%</th>
+                    <th>Amount</th>
+                    <th>Vesting</th>
+                </tr>
+                <tr>
+                    <td>Student Rewards</td>
+                    <td>40%</td>
+                    <td>400M KENO</td>
+                    <td>On completion</td>
+                </tr>
+                <tr>
+                    <td>FALP Liquidity</td>
+                    <td>25%</td>
+                    <td>250M KENO</td>
+                    <td>Pool locked</td>
+                </tr>
+                <tr>
+                    <td>ICO Sale</td>
+                    <td>15%</td>
+                    <td>150M KENO</td>
+                    <td>At TGE</td>
+                </tr>
+                <tr>
+                    <td>Team & Advisors</td>
+                    <td>10%</td>
+                    <td>100M KENO</td>
+                    <td>2-year vest</td>
+                </tr>
+                <tr>
+                    <td>Scholarship + Reserve</td>
+                    <td>10%</td>
+                    <td>100M KENO</td>
+                    <td>Perpetual</td>
+                </tr>
+            </table>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-value">1B</div>
+                    <div class="stat-label">Total Supply</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">5,250</div>
+                    <div class="stat-label">KENO per Graduate</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">21</div>
+                    <div class="stat-label">Courses</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">07</div>
+    </div>
+    
+    <!-- Slide 8: Revenue Model -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>Revenue <span>Model</span> (15+ Streams)</h1>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>MACRO Revenue</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li>ICO Token Sales</li>
+                        <li>Subscriptions ($29-$199/mo)</li>
+                        <li>Corporate B2B Training</li>
+                        <li>White-Label Licensing</li>
+                        <li>G.I.F.T. Smart Apparel</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>PASSIVE Revenue</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li>Trading Fees (0.1-0.5%)</li>
+                        <li>FAL/FALP Fees (5%)</li>
+                        <li>Merchant Gateway (1-2%)</li>
+                        <li>NFT Royalties (2.5%)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">08</div>
+    </div>
+    
+    <!-- Slide 9: Market Opportunity -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>Market <span>Opportunity</span></h1>
+            <table>
+                <tr>
+                    <th>Market</th>
+                    <th>Size</th>
+                    <th>KENO Target</th>
+                </tr>
+                <tr>
+                    <td>Global EdTech</td>
+                    <td>$350B by 2030</td>
+                    <td>Blockchain education niche</td>
+                </tr>
+                <tr>
+                    <td>Crypto Education</td>
+                    <td>$15B by 2027</td>
+                    <td>Primary target market</td>
+                </tr>
+                <tr>
+                    <td>DeFi Users</td>
+                    <td>5M+ active</td>
+                    <td>FAL/FALP adoption</td>
+                </tr>
+                <tr>
+                    <td>Corporate Training</td>
+                    <td>$380B</td>
+                    <td>B2B blockchain courses</td>
+                </tr>
+            </table>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-value">300%+</div>
+                    <div class="stat-label">Blockchain Job Growth</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">First</div>
+                    <div class="stat-label">KUT Asset Class</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">09</div>
+    </div>
+    
+    <!-- Slide 10: Traction -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1><span>Traction</span></h1>
+            <h2>Completed</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>KENO Token Live</h4>
+                    <p>Verified on BSC, automated distribution working</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Platform Operational</h4>
+                    <p>Full feature set with 80+ API endpoints</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Real Transactions</h4>
+                    <p>BSC token transfers executed successfully</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Payment Integration</h4>
+                    <p>Stripe & PayPal in LIVE mode</p>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 40px; font-size: 24px;">
+                <span style="color: var(--primary);">Status:</span> Production-ready platform with real blockchain integration
+            </p>
+        </div>
+        <div class="slide-number">10</div>
+    </div>
+    
+    <!-- Slide 11: Roadmap -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1><span>Roadmap</span></h1>
+            <div class="timeline">
+                <div class="timeline-phase completed">
+                    <div class="phase-label">Phase 1 - Done</div>
+                    <h4>Foundation (2024)</h4>
+                    <ul>
+                        <li>Token on BSC</li>
+                        <li>Platform launch</li>
+                        <li>FAL/FALP system</li>
+                    </ul>
+                </div>
+                <div class="timeline-phase">
+                    <div class="phase-label">Phase 2</div>
+                    <h4>ICO (Nov 4, 2025)</h4>
+                    <ul>
+                        <li>ICO Launch</li>
+                        <li>Mobile apps</li>
+                        <li>10K students</li>
+                    </ul>
+                </div>
+                <div class="timeline-phase">
+                    <div class="phase-label">Phase 3</div>
+                    <h4>Expansion</h4>
+                    <ul>
+                        <li>DEX/CEX listings</li>
+                        <li>50K graduates</li>
+                        <li>White-label</li>
+                    </ul>
+                </div>
+                <div class="timeline-phase">
+                    <div class="phase-label">Phase 4</div>
+                    <h4>Ecosystem</h4>
+                    <ul>
+                        <li>T.D.I.R. Foundation</li>
+                        <li>Solar integration</li>
+                        <li>100K+ users</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">11</div>
+    </div>
+    
+    <!-- Slide 12: B.U.K. Security Banking -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>B.U.K. <span>Security Banking</span></h1>
+            <p style="font-size: 24px; text-align: center; margin-bottom: 32px;">
+                <strong>B.U.K. = "Back-Up Key"</strong> — The world's first bank that protects your money AND your physical assets
+            </p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Full Banking Services</h4>
+                    <p>Checking, savings, credit with chip + contactless</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Home Monitoring</h4>
+                    <p>Video feeds, motion detection, door/window sensors</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Vehicle Tracking</h4>
+                    <p>GPS, movement alerts, tampering detection 24/7</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Auto Police Alerts</h4>
+                    <p>Break-in detected? System contacts authorities automatically</p>
+                </div>
+                <div class="feature-card">
+                    <h4>B.U.K. Lock/Unlock</h4>
+                    <p>Lock/unlock home & car remotely from your card</p>
+                </div>
+                <div class="feature-card">
+                    <h4>The "Ping" Feature</h4>
+                    <p>Card emits sounds for alerts, status, and locator</p>
+                </div>
+            </div>
+            <div class="stats-row" style="margin-top: 32px;">
+                <div class="stat-box">
+                    <div class="stat-value">$350B+</div>
+                    <div class="stat-label">Home Security Market</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">First</div>
+                    <div class="stat-label">Unified Bank + Security</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">KENO</div>
+                    <div class="stat-label">Rewards & Staking</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">12</div>
+    </div>
+    
+    <!-- Slide 13: T.D.I.R. Vision -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>Future Vision: <span>T.D.I.R.</span></h1>
+            <div class="tdir-diagram">
+                <div class="tdir-header">
+                    <h3>T.D.I.R. Foundation</h3>
+                    <p>"Turn Dreams Into Reality" - Offshore Umbrella</p>
+                </div>
+                <div class="tdir-boxes">
+                    <div class="tdir-box">
+                        <div class="flow-icon">📚</div>
+                        <h4>Kenostod Academy</h4>
+                        <p>Education + KENO Earning</p>
+                    </div>
+                    <div class="tdir-box" style="border: 2px solid var(--gold);">
+                        <div class="flow-icon">🏦</div>
+                        <h4>B.U.K. Security Banking</h4>
+                        <p>Protection + KENO Staking</p>
+                    </div>
+                    <div class="tdir-box">
+                        <div class="flow-icon">☀️</div>
+                        <h4>Solar Project</h4>
+                        <p>Clean Energy + KENO Discounts</p>
+                    </div>
+                </div>
+            </div>
+            <p style="text-align: center;">
+                KENO = Universal currency across Education → Banking → Energy
+            </p>
+        </div>
+        <div class="slide-number">13</div>
+    </div>
+    
+    <!-- Slide 14: Founder -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>The <span>Founder</span></h1>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <h2 style="color: var(--primary); margin-bottom: 8px;">Nickeo Coleman</h2>
+                <p style="color: rgba(255,255,255,0.6); font-size: 18px; margin-bottom: 24px;">Founder & CEO</p>
+                
+                <p style="font-size: 24px; font-style: italic; color: var(--gold); margin-bottom: 32px;">
+                    "Creating innovations since 2007. Coding since 2020. Crypto enthusiast since conception."
+                </p>
+                
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value">18+</div>
+                        <div class="stat-label">Years Innovating</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">5+</div>
+                        <div class="stat-label">Years Coding</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">OG</div>
+                        <div class="stat-label">Crypto Since Day 1</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 40px; text-align: left; background: rgba(0,0,0,0.2); padding: 24px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                    <p style="font-size: 18px; line-height: 1.8; margin-bottom: 16px;">
+                        <strong>The Vision:</strong> From serial innovator to software developer to blockchain pioneer — this journey led to creating something that didn't exist: the world's first <strong>Knowledge Utility Token</strong>.
+                    </p>
+                    <p style="font-size: 18px; font-style: italic; color: var(--gold);">
+                        "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">14</div>
+    </div>
+    
+    <!-- Slide 15: The Ask -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>The <span>Ask</span></h1>
+            <div class="cta-box">
+                <h2>Seeking Strategic Investment</h2>
+                <p>Partner with us to scale the first Knowledge Utility Token ecosystem</p>
+                <table style="max-width: 600px; margin: 32px auto;">
+                    <tr>
+                        <th>Use of Funds</th>
+                        <th>%</th>
+                    </tr>
+                    <tr>
+                        <td>Development & Engineering</td>
+                        <td>40%</td>
+                    </tr>
+                    <tr>
+                        <td>Marketing & User Acquisition</td>
+                        <td>25%</td>
+                    </tr>
+                    <tr>
+                        <td>Operations & Team</td>
+                        <td>20%</td>
+                    </tr>
+                    <tr>
+                        <td>Legal & Compliance</td>
+                        <td>10%</td>
+                    </tr>
+                    <tr>
+                        <td>Reserve</td>
+                        <td>5%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="slide-number">15</div>
+    </div>
+    
+    <!-- Slide 17: T.D.I.R. Foundation -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>The <span>T.D.I.R.</span> Foundation</h1>
+            <div class="tdir-diagram">
+                <div class="tdir-header">
+                    <h3>"Turn Dreams Into Reality"</h3>
+                    <p>An Offshore Umbrella Foundation for Multi-Sector Innovation</p>
+                </div>
+                <div class="tdir-boxes">
+                    <div class="tdir-box">
+                        <h4 style="color: var(--primary);">Kenostod Academy</h4>
+                        <p>Education & Knowledge Utility Token Ecosystem (KUT)</p>
+                    </div>
+                    <div class="tdir-box">
+                        <h4 style="color: var(--gold);">Solar Project</h4>
+                        <p>Renewable Energy Infrastructure & Token Utility Integration</p>
+                    </div>
+                    <div class="tdir-box">
+                        <h4 style="color: #60a5fa;">B.U.K. Security</h4>
+                        <p>Banking & Security Infrastructure for the Digital Economy</p>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 40px; text-align: center;">
+                <p style="font-size: 20px; color: rgba(255,255,255,0.7);">
+                    Consolidating high-growth investments under one global strategic umbrella.
+                </p>
+            </div>
+        </div>
+        <div class="slide-number">17</div>
+    </div>
+    
+    <!-- Slide 18: The Wealth Formula -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>The <span>Wealth</span> Formula</h1>
+            <div class="stats-row" style="margin-top: 60px;">
+                <div class="stat-box" style="border-color: var(--primary);">
+                    <div class="stat-value" style="font-size: 40px;">KNOWLEDGE</div>
+                    <div class="stat-label">21 Courses Completed</div>
+                </div>
+                <div class="stat-box" style="border-color: var(--gold); background: rgba(245, 158, 11, 0.1);">
+                    <div class="stat-value" style="font-size: 40px; color: var(--gold);">+</div>
+                </div>
+                <div class="stat-box" style="border-color: #60a5fa;">
+                    <div class="stat-value" style="font-size: 40px; color: #60a5fa;">YIELD</div>
+                    <div class="stat-label">FAL™ Arbitrage Rewards</div>
+                </div>
+                <div class="stat-box" style="border-color: var(--primary); background: rgba(16, 185, 129, 0.1);">
+                    <div class="stat-value" style="font-size: 40px;">=</div>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);">
+                    <div class="stat-value" style="font-size: 40px; color: white;">FREEDOM</div>
+                    <div class="stat-label" style="color: white;">Generational Wealth</div>
+                </div>
+            </div>
+            <div class="quote" style="background: rgba(255,255,255,0.05); border: 1px solid var(--primary);">
+                <p style="font-size: 24px; font-style: normal;">"The ultimate goal is a self-funding ecosystem where every graduate is an owner."</p>
+            </div>
+        </div>
+        <div class="slide-number">18</div>
+    </div>
+
+    <!-- Slide 19: Security & Centralization Risk Mitigation -->
+    <div class="slide">
+        <div class="slide-content">
+            <h1>Security & <span>Mitigation</span></h1>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Multi-Sig Transition</h4>
+                    <p>Ownership moving to Gnosis Safe (3-of-5 signers) post-DEX listing.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Timelock Implementation</h4>
+                    <p>48-hour delay on all administrative contract functions.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Liquidity Locking</h4>
+                    <p>50% of BNB pair liquidity locked for 24 months via PinkLock/Unicrypt.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Audit Roadmap</h4>
+                    <p>Hacken/CertiK audits scheduled for Q1 2026.</p>
+                </div>
+            </div>
+            <p style="text-align: center; color: rgba(255,255,255,0.6); margin-top: 40px;">
+                Current single-owner setup is temporary for rapid pre-launch deployment.
+            </p>
+        </div>
+        <div class="slide-number">19</div>
+    </div>
+
+    <!-- Slide 20: Contact -->
+    <div class="slide title-slide">
+        <div class="slide-content">
+            <div class="logo">K</div>
+            <h1 class="main-title">Let's Build Together</h1>
+            <p class="subtitle">The future of learn-to-earn starts here</p>
+            <div style="margin: 40px 0;">
+                <p style="font-size: 24px;"><strong>Nickeo Coleman</strong> | keno@kenostodblockchain.com</p>
+                <p style="font-size: 16px; color: rgba(255,255,255,0.6);">Kenostod Blockchain Academy LLC | Wyoming, USA</p>
+                <p style="font-size: 18px; font-family: monospace; color: rgba(255,255,255,0.6);">
+                    Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+                </p>
+            </div>
+            <div class="tagline">
+                First Mover in Knowledge Utility Tokens
+            </div>
+        </div>
+        <div class="slide-number">20</div>
+    </div>
+</body>
+</html>
