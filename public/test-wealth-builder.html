@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealth Builder Testing Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .wallet-status {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .wallet-status.connected {
+            border-left: 5px solid #10b981;
+        }
+
+        .wallet-status.disconnected {
+            border-left: 5px solid #f59e0b;
+        }
+
+        .connect-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102,126,234,0.6);
+        }
+
+        .connect-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .test-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .test-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .test-btn:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .test-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .test-btn.success {
+            background: #10b981;
+        }
+
+        .test-btn.danger {
+            background: #ef4444;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+            display: block;
+        }
+
+        .result.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+            display: block;
+        }
+
+        .result.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+            display: block;
+        }
+
+        .stats-display {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .stats-display h4 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .course-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .help-text {
+            color: #718096;
+            font-size: 12px;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Wealth Builder Testing Interface</h1>
+            <p>Test all Wealth Builder features with MetaMask authentication</p>
+        </div>
+
+        <div id="walletStatus" class="wallet-status disconnected">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 id="statusTitle">Wallet Not Connected</h3>
+                    <p id="statusMessage">Connect your MetaMask wallet to begin testing</p>
+                </div>
+                <button id="connectBtn" class="connect-btn" onclick="connectMetaMask()">
+                    🦊 Connect MetaMask
+                </button>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <!-- Course Completion Test -->
+            <div class="test-card">
+                <h3>📚 Course Completion Test</h3>
+                <div class="form-group">
+                    <label for="courseId">Select Course (1-21)</label>
+                    <select id="courseId">
+                        <option value="">-- Choose a course --</option>
+                        <option value="1">Course 1: Introduction to Blockchain</option>
+                        <option value="2">Course 2: Cryptography Fundamentals</option>
+                        <option value="3">Course 3: Bitcoin Architecture</option>
+                        <option value="4">Course 4: Ethereum & Smart Contracts</option>
+                        <option value="5">Course 5: Consensus Mechanisms</option>
+                        <option value="6">Course 6: Mining & Proof of Work</option>
+                        <option value="7">Course 7: Proof of Stake Systems</option>
+                        <option value="8">Course 8: DeFi Fundamentals</option>
+                        <option value="9">Course 9: NFTs & Digital Assets</option>
+                        <option value="10">Course 10: Blockchain Security</option>
+                        <option value="11">Course 11: Wallet Management</option>
+                        <option value="12">Course 12: Transaction Processing</option>
+                        <option value="13">Course 13: Scalability Solutions</option>
+                        <option value="14">Course 14: Layer 2 Protocols</option>
+                        <option value="15">Course 15: Governance & DAOs</option>
+                        <option value="16">Course 16: Enterprise Blockchain</option>
+                        <option value="17">Course 17: Personal Finance Foundations</option>
+                        <option value="18">Course 18: Investment Strategies</option>
+                        <option value="19">Course 19: Wealth Building & Asset Allocation</option>
+                        <option value="20">Course 20: Generational Wealth Planning</option>
+                        <option value="21">Course 21: Economic Empowerment</option>
+                    </select>
+                    <p class="help-text">Reward: 250 KENO per course</p>
+                </div>
+                <button class="test-btn" onclick="testCourseCompletion()" disabled id="courseBtn">
+                    Complete Course
+                </button>
+                <div id="courseResult" class="result"></div>
+            </div>
+
+            <!-- Scholarship Test -->
+            <div class="test-card">
+                <h3>🎓 Scholarship Application Test</h3>
+                <div class="form-group">
+                    <label for="studentName">Full Name</label>
+                    <input type="text" id="studentName" placeholder="John Doe" />
+                </div>
+                <div class="form-group">
+                    <label for="studentEmail">Email</label>
+                    <input type="email" id="studentEmail" placeholder="john@example.com" />
+                </div>
+                <div class="form-group">
+                    <label for="country">Country</label>
+                    <input type="text" id="country" placeholder="United States" />
+                </div>
+                <div class="form-group">
+                    <label for="need">Financial Need (Brief)</label>
+                    <textarea id="need" rows="3" placeholder="Explain your financial situation..."></textarea>
+                    <p class="help-text">Limit: 3 applications per day</p>
+                </div>
+                <button class="test-btn" onclick="testScholarship()" disabled id="scholarshipBtn">
+                    Submit Scholarship
+                </button>
+                <div id="scholarshipResult" class="result"></div>
+            </div>
+
+            <!-- Job Application Test -->
+            <div class="test-card">
+                <h3>💼 Job Application Test</h3>
+                <div class="form-group">
+                    <label for="jobId">Select Job</label>
+                    <select id="jobId">
+                        <option value="">-- Choose a job --</option>
+                    </select>
+                    <p class="help-text">Loading jobs from database...</p>
+                </div>
+                <div class="form-group">
+                    <label for="coverLetter">Cover Letter</label>
+                    <textarea id="coverLetter" rows="3" placeholder="Why are you a good fit..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="resumeUrl">Resume/LinkedIn URL</label>
+                    <input type="url" id="resumeUrl" placeholder="https://linkedin.com/in/johndoe" />
+                    <p class="help-text">Limit: 20 applications per day</p>
+                </div>
+                <button class="test-btn" onclick="testJobApplication()" disabled id="jobBtn">
+                    Submit Application
+                </button>
+                <div id="jobResult" class="result"></div>
+            </div>
+
+            <!-- Referral Test -->
+            <div class="test-card">
+                <h3>👥 Referral System Test</h3>
+                <div class="stats-display">
+                    <h4>Your Referral Info</h4>
+                    <div class="stat-item">
+                        <span class="stat-label">Referral Code:</span>
+                        <span class="stat-value" id="refCode">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Referrals:</span>
+                        <span class="stat-value" id="refCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Earnings:</span>
+                        <span class="stat-value" id="refEarnings">0 KENO</span>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="referredWallet">Simulate Referral (Test Wallet)</label>
+                    <input type="text" id="referredWallet" placeholder="0x..." />
+                    <p class="help-text">Enter a different wallet address to test</p>
+                </div>
+                <button class="test-btn" onclick="testReferral()" disabled id="referralBtn">
+                    Process Referral
+                </button>
+                <div id="referralResult" class="result"></div>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="test-card">
+                <h3>📊 Current Stats</h3>
+                <div class="stats-display">
+                    <h4>Wealth Overview</h4>
+                    <div class="stat-item">
+                        <span class="stat-label">Total KENO:</span>
+                        <span class="stat-value" id="totalKeno">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Course Rewards:</span>
+                        <span class="stat-value" id="courseRewards">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Courses Completed:</span>
+                        <span class="stat-value" id="coursesCompleted">0/21</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">RVT Royalties:</span>
+                        <span class="stat-value" id="rvtRoyalties">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Estimated Worth:</span>
+                        <span class="stat-value" id="netWorth">$0</span>
+                    </div>
+                </div>
+                <button class="test-btn success" onclick="refreshStats()" disabled id="refreshBtn" style="margin-top: 15px;">
+                    🔄 Refresh Stats
+                </button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="test-card">
+                <h3>⚡ Quick Actions</h3>
+                <button class="test-btn" onclick="viewCompletedCourses()" disabled id="viewCoursesBtn">
+                    📚 View Completed Courses
+                </button>
+                <button class="test-btn" onclick="viewRVTNFTs()" disabled id="viewRVTBtn">
+                    🏆 View RVT NFTs
+                </button>
+                <button class="test-btn danger" onclick="clearAllTests()" disabled id="clearBtn">
+                    🗑️ Clear Test Data
+                </button>
+                <div id="quickResult" class="result"></div>
+                <div class="course-list" id="completedCoursesList" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWallet = null;
+
+        async function connectMetaMask() {
+            if (typeof window.ethereum === 'undefined') {
+                alert('MetaMask is not installed! Please install MetaMask to test.');
+                window.open('https://metamask.io/download/', '_blank');
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                currentWallet = accounts[0];
+
+                document.getElementById('statusTitle').textContent = 'Wallet Connected';
+                document.getElementById('statusMessage').textContent = `Connected: ${currentWallet.substring(0, 6)}...${currentWallet.substring(38)}`;
+                document.getElementById('walletStatus').className = 'wallet-status connected';
+                document.getElementById('connectBtn').textContent = '✅ Connected';
+                document.getElementById('connectBtn').disabled = true;
+
+                // Enable all test buttons
+                document.getElementById('courseBtn').disabled = false;
+                document.getElementById('scholarshipBtn').disabled = false;
+                document.getElementById('jobBtn').disabled = false;
+                document.getElementById('referralBtn').disabled = false;
+                document.getElementById('refreshBtn').disabled = false;
+                document.getElementById('viewCoursesBtn').disabled = false;
+                document.getElementById('viewRVTBtn').disabled = false;
+                document.getElementById('clearBtn').disabled = false;
+
+                await loadJobListings();
+                await refreshStats();
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                showResult('courseResult', 'error', 'Failed to connect: ' + error.message);
+            }
+        }
+
+        async function signMessage(action) {
+            const timestamp = Date.now();
+            const message = `Kenostod Blockchain Academy\nAction: ${action}\nWallet: ${currentWallet}\nTimestamp: ${timestamp}`;
+
+            try {
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, currentWallet]
+                });
+
+                return { signature, timestamp };
+            } catch (error) {
+                throw new Error('User rejected signature');
+            }
+        }
+
+        async function testCourseCompletion() {
+            const courseId = document.getElementById('courseId').value;
+            
+            if (!courseId) {
+                showResult('courseResult', 'error', 'Please select a course');
+                return;
+            }
+
+            try {
+                showResult('courseResult', 'info', 'Requesting signature...');
+                const { signature, timestamp } = await signMessage('complete_course');
+
+                showResult('courseResult', 'info', 'Submitting course completion...');
+                
+                const response = await fetch('/api/wealth/complete-course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: currentWallet,
+                        action: 'complete_course',
+                        signature,
+                        timestamp,
+                        courseId: parseInt(courseId),
+                        timeSpent: 300,
+                        quizScore: 85
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('courseResult', 'success', `✅ ${data.message}\nReward: ${data.reward} KENO\nTotal Courses: ${data.totalCourses}`);
+                    await refreshStats();
+                } else {
+                    showResult('courseResult', 'error', '❌ ' + data.error);
+                }
+            } catch (error) {
+                showResult('courseResult', 'error', '❌ ' + error.message);
+            }
+        }
+
+        async function testScholarship() {
+            const name = document.getElementById('studentName').value;
+            const email = document.getElementById('studentEmail').value;
+            const country = document.getElementById('country').value;
+            const need = document.getElementById('need').value;
+
+            if (!name || !email || !country || !need) {
+                showResult('scholarshipResult', 'error', 'Please fill all fields');
+                return;
+            }
+
+            try {
+                showResult('scholarshipResult', 'info', 'Requesting signature...');
+                const { signature, timestamp } = await signMessage('apply_scholarship');
+
+                showResult('scholarshipResult', 'info', 'Submitting application...');
+
+                const response = await fetch('/api/wealth/scholarships/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: currentWallet,
+                        action: 'apply_scholarship',
+                        signature,
+                        timestamp,
+                        fullName: name,
+                        email,
+                        country,
+                        educationLevel: 'University',
+                        financialNeed: need
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('scholarshipResult', 'success', `✅ ${data.message}\nApplication ID: ${data.applicationId}`);
+                } else {
+                    showResult('scholarshipResult', 'error', '❌ ' + data.error);
+                }
+            } catch (error) {
+                showResult('scholarshipResult', 'error', '❌ ' + error.message);
+            }
+        }
+
+        async function testJobApplication() {
+            const jobId = document.getElementById('jobId').value;
+            const coverLetter = document.getElementById('coverLetter').value;
+            const resumeUrl = document.getElementById('resumeUrl').value;
+
+            if (!jobId || !coverLetter || !resumeUrl) {
+                showResult('jobResult', 'error', 'Please fill all fields');
+                return;
+            }
+
+            try {
+                showResult('jobResult', 'info', 'Requesting signature...');
+                const { signature, timestamp } = await signMessage('apply_job');
+
+                showResult('jobResult', 'info', 'Submitting application...');
+
+                const response = await fetch('/api/wealth/jobs/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: currentWallet,
+                        action: 'apply_job',
+                        signature,
+                        timestamp,
+                        jobId: parseInt(jobId),
+                        coverLetter,
+                        resumeUrl
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('jobResult', 'success', `✅ ${data.message}\nApplication ID: ${data.applicationId}`);
+                } else {
+                    showResult('jobResult', 'error', '❌ ' + data.error);
+                }
+            } catch (error) {
+                showResult('jobResult', 'error', '❌ ' + error.message);
+            }
+        }
+
+        async function testReferral() {
+            const referredWallet = document.getElementById('referredWallet').value;
+
+            if (!referredWallet || !referredWallet.startsWith('0x')) {
+                showResult('referralResult', 'error', 'Please enter a valid wallet address');
+                return;
+            }
+
+            try {
+                showResult('referralResult', 'info', 'Requesting signature...');
+                const { signature, timestamp } = await signMessage('process_referral');
+
+                showResult('referralResult', 'info', 'Processing referral...');
+
+                const response = await fetch('/api/wealth/referrals/claim', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: currentWallet,
+                        action: 'process_referral',
+                        signature,
+                        timestamp,
+                        referredWallet
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('referralResult', 'success', `✅ ${data.message}\nReward: ${data.reward} KENO\nTotal Referrals: ${data.totalReferrals}`);
+                    await refreshStats();
+                } else {
+                    showResult('referralResult', 'error', '❌ ' + data.error);
+                }
+            } catch (error) {
+                showResult('referralResult', 'error', '❌ ' + error.message);
+            }
+        }
+
+        async function refreshStats() {
+            if (!currentWallet) return;
+
+            try {
+                const response = await fetch(`/api/wealth/dashboard/${currentWallet}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const wealth = data.wealth;
+                    document.getElementById('totalKeno').textContent = wealth.totalKeno.toFixed(2);
+                    document.getElementById('courseRewards').textContent = wealth.totalRewards.toFixed(2);
+                    document.getElementById('coursesCompleted').textContent = `${wealth.coursesCompleted}/21`;
+                    document.getElementById('rvtRoyalties').textContent = wealth.totalRvtRoyalties.toFixed(2);
+                    document.getElementById('netWorth').textContent = '$' + wealth.estimatedUSD.toFixed(2);
+
+                    // Update referral info
+                    document.getElementById('refCode').textContent = wealth.referralCode || 'KENO-' + currentWallet.substring(2, 8).toUpperCase();
+                    document.getElementById('refCount').textContent = wealth.totalReferrals || 0;
+                    document.getElementById('refEarnings').textContent = (wealth.totalReferrals * 50 || 0) + ' KENO';
+                }
+            } catch (error) {
+                console.error('Failed to refresh stats:', error);
+            }
+        }
+
+        async function loadJobListings() {
+            try {
+                const response = await fetch('/api/wealth/jobs');
+                const data = await response.json();
+
+                if (data.success) {
+                    const select = document.getElementById('jobId');
+                    select.innerHTML = '<option value="">-- Choose a job --</option>';
+                    
+                    data.jobs.forEach(job => {
+                        const option = document.createElement('option');
+                        option.value = job.id;
+                        option.textContent = `${job.title} - ${job.company} ($${job.salary_min}k-$${job.salary_max}k)`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load jobs:', error);
+            }
+        }
+
+        async function viewCompletedCourses() {
+            try {
+                const response = await fetch(`/api/wealth/completed-courses/${currentWallet}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const listDiv = document.getElementById('completedCoursesList');
+                    listDiv.innerHTML = '<h4 style="margin: 10px 0;">Completed Courses:</h4>';
+                    
+                    if (data.courses.length === 0) {
+                        listDiv.innerHTML += '<p style="color: #718096;">No courses completed yet.</p>';
+                    } else {
+                        data.courses.forEach(course => {
+                            listDiv.innerHTML += `
+                                <div style="padding: 8px; border-bottom: 1px solid #e2e8f0;">
+                                    Course ${course.course_id} - ${new Date(course.completed_at).toLocaleDateString()}
+                                </div>
+                            `;
+                        });
+                    }
+                    listDiv.style.display = 'block';
+                    showResult('quickResult', 'success', `Found ${data.courses.length} completed courses`);
+                }
+            } catch (error) {
+                showResult('quickResult', 'error', '❌ ' + error.message);
+            }
+        }
+
+        async function viewRVTNFTs() {
+            try {
+                const response = await fetch(`/api/wealth/rvt/${currentWallet}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const nfts = data.nfts;
+                    if (nfts.length === 0) {
+                        showResult('quickResult', 'info', 'No RVT NFTs earned yet. Complete courses to unlock!');
+                    } else {
+                        let message = `🏆 You have ${nfts.length} RVT NFT(s):\n`;
+                        nfts.forEach(nft => {
+                            message += `\n${nft.tier}: ${nft.royalty_percentage}% royalties (${nft.courses_milestone} courses)`;
+                        });
+                        showResult('quickResult', 'success', message);
+                    }
+                }
+            } catch (error) {
+                showResult('quickResult', 'error', '❌ ' + error.message);
+            }
+        }
+
+        async function clearAllTests() {
+            if (!confirm('⚠️ This will delete ALL test data for your wallet. Continue?')) {
+                return;
+            }
+
+            showResult('quickResult', 'info', 'This feature is not implemented to protect production data. Use database tools for cleanup.');
+        }
+
+        function showResult(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        // Auto-connect if already approved
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    connectMetaMask();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
