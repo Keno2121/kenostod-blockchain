@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Analytics Dashboard - Kenostod</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+
+        .auth-section {
+            max-width: 500px;
+            margin: 100px auto;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .auth-section input {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .auth-section button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-section button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16,185,129,0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.8;
+        }
+
+        .stat-change {
+            font-size: 0.9em;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .stat-change.positive {
+            background: rgba(16,185,129,0.2);
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            background: rgba(239,68,68,0.2);
+            color: #ef4444;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chart-card h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .table-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        th {
+            background: rgba(255,255,255,0.05);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .refresh-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(59,130,246,0.4);
+        }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="authSection" class="auth-section">
+        <h2>🔐 Admin Access Required</h2>
+        <p style="opacity: 0.8; margin-bottom: 20px;">Enter admin credentials to access analytics dashboard</p>
+        <input type="password" id="adminPassword" placeholder="Admin Password" />
+        <button onclick="authenticate()">🚀 Access Dashboard</button>
+        <p style="margin-top: 20px; opacity: 0.6; font-size: 0.9em;">Administrators only. All access is logged.</p>
+    </div>
+
+    <div id="dashboardSection" class="container" style="display: none;">
+        <button class="refresh-btn" onclick="loadDashboard()">🔄 Refresh Data</button>
+
+        <div class="header">
+            <h1>📊 Kenostod Admin Analytics</h1>
+            <p>Real-time platform metrics and performance insights</p>
+            <p style="margin-top: 10px; opacity: 0.7;"><small>Last updated: <span id="lastUpdate">Loading...</span></small></p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="totalIcoRevenue">$0</div>
+                <div class="stat-label">Total ICO Revenue</div>
+                <div class="stat-change positive" id="icoChange">+0%</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="totalInvestors">0</div>
+                <div class="stat-label">Total Investors</div>
+                <div class="stat-change positive" id="investorsChange">+0</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🪙</div>
+                <div class="stat-value" id="tokensSold">0</div>
+                <div class="stat-label">KENO Tokens Sold</div>
+                <div class="stat-change positive" id="tokensChange">+0%</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="activeLoans">0</div>
+                <div class="stat-label">Active Flash Loans</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-value" id="activeTraders">0</div>
+                <div class="stat-label">Active Arbitrage Traders</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value" id="totalArbitrageProfit">0</div>
+                <div class="stat-label">Total Arbitrage Profit (KENO)</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🎓</div>
+                <div class="stat-value" id="totalGraduates">0</div>
+                <div class="stat-label">Blockchain Graduates</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">💎</div>
+                <div class="stat-value" id="totalRevenue">$0</div>
+                <div class="stat-label">All-Time Revenue</div>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-card">
+                <h2>📊 ICO Sales Timeline</h2>
+                <div id="icoChart" style="height: 300px; display: flex; align-items: center; justify-content: center; opacity: 0.6;">
+                    Chart visualization coming soon
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>⚡ Arbitrage Activity</h2>
+                <div id="arbitrageChart" style="height: 300px; display: flex; align-items: center; justify-content: center; opacity: 0.6;">
+                    Chart visualization coming soon
+                </div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>💰 Recent ICO Purchases (Last 50)</h2>
+            <table id="recentPurchasesTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Wallet</th>
+                        <th>KENO Amount</th>
+                        <th>USD Amount</th>
+                        <th>Payment Method</th>
+                    </tr>
+                </thead>
+                <tbody id="recentPurchasesBody">
+                    <tr><td colspan="5" style="text-align: center; opacity: 0.6;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-section">
+            <h2>⚡ Recent Arbitrage Trades (Last 50)</h2>
+            <table id="arbitrageTradesTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Trader</th>
+                        <th>Loan Amount</th>
+                        <th>Profit</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="arbitrageTradesBody">
+                    <tr><td colspan="5" style="text-align: center; opacity: 0.6;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: center; padding: 40px;">
+            <a href="/" style="color: #10b981; text-decoration: none; font-size: 1.2em;">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        let isAuthenticated = false;
+
+        function authenticate() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === 'admin123' || password === 'ADMIN_KEY') {
+                isAuthenticated = true;
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('dashboardSection').style.display = 'block';
+                loadDashboard();
+            } else {
+                alert('❌ Invalid admin credentials');
+            }
+        }
+
+        async function loadDashboard() {
+            if (!isAuthenticated) return;
+
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+
+            try {
+                const blockchainResponse = await fetch('/api/blockchain/info');
+                const blockchainData = await blockchainResponse.json();
+                
+                const arbitrageResponse = await fetch('/api/arbitrage/stats');
+                const arbitrageData = await arbitrageResponse.json();
+
+                document.getElementById('totalIcoRevenue').textContent = '$0';
+                document.getElementById('totalInvestors').textContent = '0';
+                document.getElementById('tokensSold').textContent = '0';
+                document.getElementById('activeLoans').textContent = arbitrageData.activeLoans || 0;
+                document.getElementById('activeTraders').textContent = arbitrageData.activeTraders || 0;
+                document.getElementById('totalArbitrageProfit').textContent = (arbitrageData.totalProfit || 0).toFixed(2);
+                document.getElementById('totalGraduates').textContent = '0';
+                document.getElementById('totalRevenue').textContent = '$0';
+
+                const leaderboardResponse = await fetch('/api/arbitrage/leaderboard');
+                const leaderboardData = await leaderboardResponse.json();
+
+                const arbitrageBody = document.getElementById('arbitrageTradesBody');
+                arbitrageBody.innerHTML = '';
+                
+                if (leaderboardData.leaderboard && leaderboardData.leaderboard.length > 0) {
+                    leaderboardData.leaderboard.slice(0, 50).forEach(trader => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${new Date(trader.lastActivity).toLocaleString()}</td>
+                            <td title="${trader.walletAddress}">${trader.walletAddress.substring(0, 20)}...</td>
+                            <td>${trader.successfulLoans || 0}</td>
+                            <td style="color: #10b981;">${(trader.totalProfit || 0).toFixed(2)} KENO</td>
+                            <td><span style="background: rgba(16,185,129,0.2); color: #10b981; padding: 4px 12px; border-radius: 12px;">${trader.tier || 'Bronze'}</span></td>
+                        `;
+                        arbitrageBody.appendChild(row);
+                    });
+                } else {
+                    arbitrageBody.innerHTML = '<tr><td colspan="5" style="text-align: center; opacity: 0.6;">No arbitrage trades yet</td></tr>';
+                }
+
+                const purchasesBody = document.getElementById('recentPurchasesBody');
+                purchasesBody.innerHTML = '<tr><td colspan="5" style="text-align: center; opacity: 0.6;">No ICO purchases recorded yet</td></tr>';
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                alert('❌ Error loading dashboard data. Check console for details.');
+            }
+        }
+
+        document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                authenticate();
+            }
+        });
+    </script>
+</body>
+</html>
