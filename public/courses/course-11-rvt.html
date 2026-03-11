@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 11: RVT Portfolio Management | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .locked-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .diagram-container img { max-width: 100%; border-radius: 8px; }
+
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+        .diagram-caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+
+        .tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 15px; margin: 20px 0; }
+        .tier-card { padding: 20px; border-radius: 12px; text-align: center; }
+        .tier-card.bronze { background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%); }
+        .tier-card.silver { background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%); }
+        .tier-card.gold-tier { background: linear-gradient(135deg, #ffd700 0%, #daa520 100%); color: #000; }
+        .tier-card.platinum { background: linear-gradient(135deg, #e5e4e2 0%, #a0b2c6 100%); color: #000; }
+        .tier-card.diamond { background: linear-gradient(135deg, #b9f2ff 0%, #4fc3f7 100%); color: #000; }
+        .tier-card h4 { margin-bottom: 10px; }
+
+        .step-list { counter-reset: step-counter; list-style: none; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--success); background: var(--success); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .tier-grid { grid-template-columns: 1fr 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 11
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#128142;</span>
+                Course 11: RVT Portfolio Management
+                <span class="locked-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>12 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('what-are-rvts')"><span class="toc-number">2</span>What Are RVTs?</li>
+                    <li class="toc-item" onclick="scrollToSection('token-standards')"><span class="toc-number">3</span>Token Standards</li>
+                    <li class="toc-item" onclick="scrollToSection('tier-system')"><span class="toc-number">4</span>Tiered NFT System</li>
+                    <li class="toc-item" onclick="scrollToSection('royalty-mechanics')"><span class="toc-number">5</span>Royalty Mechanics</li>
+                    <li class="toc-item" onclick="scrollToSection('recurring-income')"><span class="toc-number">6</span>Token Rewards</li>
+                    <li class="toc-item" onclick="scrollToSection('portfolio-strategy')"><span class="toc-number">7</span>Portfolio Strategy</li>
+                    <li class="toc-item" onclick="scrollToSection('marketplace')"><span class="toc-number">8</span>Marketplace &amp; Valuation</li>
+                    <li class="toc-item" onclick="scrollToSection('risk-management')"><span class="toc-number">9</span>Risk Management</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">10</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">11</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">12</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Define Residual Value Tokens (RVTs) and explain how they differ from standard NFTs</div></li>
+                    <li class="step-item"><div class="step-title">Compare ERC-721 and ERC-1155 token standards and their implications for RVTs</div></li>
+                    <li class="step-item"><div class="step-title">Explain Kenostod's five-tier NFT system (Bronze through Diamond) and the royalty multiplier for each</div></li>
+                    <li class="step-item"><div class="step-title">Describe perpetual royalty mechanics and how smart contracts enforce on-chain royalty distribution</div></li>
+                    <li class="step-item"><div class="step-title">Calculate projected token rewards from an RVT portfolio across multiple tiers</div></li>
+                    <li class="step-item"><div class="step-title">Apply diversification strategies to build a resilient RVT portfolio across industries</div></li>
+                    <li class="step-item"><div class="step-title">Evaluate floor price dynamics, rarity scores, and marketplace mechanics for RVT valuation</div></li>
+                    <li class="step-item"><div class="step-title">Identify and mitigate risks in NFT portfolio management including liquidity, smart contract, and market risk</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for deep, thorough learning. Plan for <strong>approximately 2 hours</strong> of reading, code examples, exercises, and practice. Take breaks between sections. The 250 KENO reward reflects this commitment to mastering RVT portfolio management.</p>
+                </div>
+            </section>
+
+            <section id="what-are-rvts" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128142;</span>What Are Residual Value Tokens?</h2>
+                <div class="reading-content">
+                    <p><strong>Residual Value Tokens (RVTs)</strong> are a new class of NFTs pioneered by the Kenostod blockchain ecosystem. Unlike traditional NFTs that represent static digital art or collectibles, RVTs represent your <em>contribution to enterprise computations</em> &mdash; and they generate <strong>perpetual royalty income</strong> every time that computation is used commercially.</p>
+
+                    <p>Think of an RVT like owning a patent on a small piece of an AI model. When you contribute computing resources, data labeling, or validation work through the Kenostod network, the system mints an RVT that permanently records your contribution. Every time an enterprise pays to use the model or dataset you helped create, a percentage of that payment is automatically routed to your wallet via smart contract.</p>
+
+                    <div class="diagram-container">
+                        <img src="/assets/course-images/rvt_portfolio_management_dashboard.png" alt="RVT Portfolio Dashboard">
+                        <p class="diagram-caption">Figure 1: RVT portfolio dashboard showing holdings, tier distribution, and royalty earnings over time</p>
+                    </div>
+
+                    <h3>How RVTs Differ from Traditional NFTs</h3>
+                    <p>Most people think of NFTs as digital art &mdash; a JPEG you buy and hope appreciates in value. RVTs are fundamentally different in several critical ways:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Traditional NFTs</th>
+                                <th>Kenostod RVTs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Value Source</td>
+                                <td>Speculative / aesthetic</td>
+                                <td>Real enterprise usage revenue</td>
+                            </tr>
+                            <tr>
+                                <td>Income</td>
+                                <td>None (unless resold at profit)</td>
+                                <td>Perpetual royalty payments</td>
+                            </tr>
+                            <tr>
+                                <td>Underlying Asset</td>
+                                <td>Image, video, or metadata</td>
+                                <td>Computational contribution record</td>
+                            </tr>
+                            <tr>
+                                <td>Price Floor</td>
+                                <td>Driven by hype and community</td>
+                                <td>Driven by measurable revenue yield</td>
+                            </tr>
+                            <tr>
+                                <td>Royalty Enforcement</td>
+                                <td>Optional, often bypassed</td>
+                                <td>On-chain, mandatory via smart contract</td>
+                            </tr>
+                            <tr>
+                                <td>Utility</td>
+                                <td>Social status, community access</td>
+                                <td>Token rewards, governance rights</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128161; Key Insight</div>
+                        <p>RVTs bridge the gap between <strong>cryptocurrency</strong> and <strong>real-world income assets</strong>. They function more like dividend-paying stocks or rental properties than collectible trading cards. The value of an RVT is ultimately backed by the commercial demand for the computation it represents.</p>
+                    </div>
+
+                    <h3>The RVT Lifecycle</h3>
+                    <p>Understanding the complete lifecycle of an RVT is essential for effective portfolio management:</p>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Contribution</div>
+                            <p>You contribute computing power, data labeling, model training, or validation work through the Kenostod network. The Proof of Residual Value (PoRV) consensus mechanism records and validates your contribution.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Minting</div>
+                            <p>Based on the quality and value of your contribution, an RVT NFT is minted to your wallet. The tier level (Bronze through Diamond) is determined by the contribution's assessed value.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Commercial Usage</div>
+                            <p>Enterprises purchase access to the AI models, datasets, or computational results your work helped produce. Each commercial usage event triggers the royalty distribution smart contract.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Royalty Distribution</div>
+                            <p>The smart contract automatically calculates your share based on your RVT tier and distributes KENO tokens to your wallet. This happens in real-time with every usage event.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Secondary Market</div>
+                            <p>You can hold your RVTs indefinitely for ongoing income, or sell them on the marketplace. When sold, royalty rights transfer to the new owner, but the original creator retains a small creator royalty.</p>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="token-standards" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>ERC-721 vs ERC-1155 Token Standards</h2>
+                <div class="reading-content">
+                    <p>Before diving deeper into RVT portfolio management, it is essential to understand the two primary token standards used for NFTs on Ethereum-compatible blockchains. Kenostod's RVTs leverage aspects of both standards.</p>
+
+                    <h3>ERC-721: The Original NFT Standard</h3>
+                    <p>ERC-721 was the first widely adopted standard for non-fungible tokens, introduced in 2018. Each ERC-721 token has a <strong>unique token ID</strong> and is completely distinct from every other token in the same contract. This makes it ideal for one-of-a-kind assets.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Simplified ERC-721 interface</span>
+<span class="code-keyword">interface</span> <span class="code-function">IERC721</span> {
+    <span class="code-keyword">function</span> <span class="code-function">ownerOf</span>(uint256 tokenId) <span class="code-keyword">external view returns</span> (address);
+    <span class="code-keyword">function</span> <span class="code-function">transferFrom</span>(address from, address to, uint256 tokenId) <span class="code-keyword">external</span>;
+    <span class="code-keyword">function</span> <span class="code-function">approve</span>(address to, uint256 tokenId) <span class="code-keyword">external</span>;
+    <span class="code-keyword">function</span> <span class="code-function">balanceOf</span>(address owner) <span class="code-keyword">external view returns</span> (uint256);
+}
+                    </div>
+
+                    <h3>ERC-1155: The Multi-Token Standard</h3>
+                    <p>ERC-1155, sometimes called the "multi-token standard," allows a single contract to manage <strong>both fungible and non-fungible tokens</strong>. This is more gas-efficient for collections where multiple copies of the same token type exist.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Simplified ERC-1155 interface</span>
+<span class="code-keyword">interface</span> <span class="code-function">IERC1155</span> {
+    <span class="code-keyword">function</span> <span class="code-function">balanceOf</span>(address account, uint256 id) <span class="code-keyword">external view returns</span> (uint256);
+    <span class="code-keyword">function</span> <span class="code-function">safeTransferFrom</span>(address from, address to, uint256 id, uint256 amount, bytes data) <span class="code-keyword">external</span>;
+    <span class="code-keyword">function</span> <span class="code-function">safeBatchTransferFrom</span>(address from, address to, uint256[] ids, uint256[] amounts, bytes data) <span class="code-keyword">external</span>;
+}
+                    </div>
+
+                    <h3>Which Standard Do Kenostod RVTs Use?</h3>
+                    <p>Kenostod RVTs use a <strong>hybrid approach</strong>. Each RVT is individually unique (like ERC-721) because it records a specific computational contribution, but the tiered system and batch operations borrow concepts from ERC-1155 for efficiency.</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>ERC-721</th>
+                                <th>ERC-1155</th>
+                                <th>Kenostod RVT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Uniqueness</td>
+                                <td>Each token unique</td>
+                                <td>Fungible + non-fungible</td>
+                                <td>Each token unique</td>
+                            </tr>
+                            <tr>
+                                <td>Batch Transfers</td>
+                                <td>One at a time</td>
+                                <td>Multiple in one TX</td>
+                                <td>Batch supported</td>
+                            </tr>
+                            <tr>
+                                <td>Gas Efficiency</td>
+                                <td>Higher per transfer</td>
+                                <td>Lower per transfer</td>
+                                <td>Optimized batching</td>
+                            </tr>
+                            <tr>
+                                <td>Royalty Standard</td>
+                                <td>EIP-2981 (optional)</td>
+                                <td>EIP-2981 (optional)</td>
+                                <td>Mandatory on-chain</td>
+                            </tr>
+                            <tr>
+                                <td>Metadata</td>
+                                <td>Per-token URI</td>
+                                <td>Shared URI template</td>
+                                <td>Per-token + tier data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Why This Matters for You</div>
+                        <p>Understanding token standards helps you evaluate RVTs on different marketplaces. Some marketplaces only support ERC-721, others support ERC-1155, and Kenostod's native marketplace supports both. When trading RVTs on external marketplaces, verify they support the royalty enforcement mechanism &mdash; otherwise, you might purchase an RVT and not receive the expected royalties.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tier-system" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127942;</span>Kenostod's Five-Tier NFT System</h2>
+                <div class="reading-content">
+                    <p>Kenostod uses a <strong>five-tier system</strong> to categorize RVTs based on the value, complexity, and impact of the underlying computational contribution. Each tier carries a different royalty multiplier, affecting how much token rewards you earn.</p>
+
+                    <div class="tier-grid">
+                        <div class="tier-card bronze">
+                            <h4>&#129353; Bronze</h4>
+                            <p>Standard tasks</p>
+                            <p><strong>1x Royalty</strong></p>
+                            <p style="font-size:0.85em;margin-top:8px;">Data labeling, basic validation</p>
+                        </div>
+                        <div class="tier-card silver">
+                            <h4>&#129352; Silver</h4>
+                            <p>Above-average</p>
+                            <p><strong>2x Royalty</strong></p>
+                            <p style="font-size:0.85em;margin-top:8px;">Complex datasets, model testing</p>
+                        </div>
+                        <div class="tier-card gold-tier">
+                            <h4>&#129351; Gold</h4>
+                            <p>High-value</p>
+                            <p><strong>5x Royalty</strong></p>
+                            <p style="font-size:0.85em;margin-top:8px;">ML model training, algorithm design</p>
+                        </div>
+                        <div class="tier-card platinum">
+                            <h4>&#128142; Platinum</h4>
+                            <p>Exceptional</p>
+                            <p><strong>10x Royalty</strong></p>
+                            <p style="font-size:0.85em;margin-top:8px;">Novel research, breakthrough models</p>
+                        </div>
+                        <div class="tier-card diamond">
+                            <h4>&#128167; Diamond</h4>
+                            <p>Legendary</p>
+                            <p><strong>25x Royalty</strong></p>
+                            <p style="font-size:0.85em;margin-top:8px;">Industry-transforming contributions</p>
+                        </div>
+                    </div>
+
+                    <h3>Tier Distribution and Rarity</h3>
+                    <p>Not all tiers are created equal in terms of supply. Rarity directly impacts both marketplace value and perceived prestige:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Tier</th>
+                                <th>Approx. Supply %</th>
+                                <th>Royalty Multiplier</th>
+                                <th>Typical Floor Price</th>
+                                <th>Rarity Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>&#129353; Bronze</td>
+                                <td>50%</td>
+                                <td>1x</td>
+                                <td>50 &ndash; 200 KENO</td>
+                                <td>Common</td>
+                            </tr>
+                            <tr>
+                                <td>&#129352; Silver</td>
+                                <td>25%</td>
+                                <td>2x</td>
+                                <td>300 &ndash; 800 KENO</td>
+                                <td>Uncommon</td>
+                            </tr>
+                            <tr>
+                                <td>&#129351; Gold</td>
+                                <td>15%</td>
+                                <td>5x</td>
+                                <td>1,000 &ndash; 3,000 KENO</td>
+                                <td>Rare</td>
+                            </tr>
+                            <tr>
+                                <td>&#128142; Platinum</td>
+                                <td>8%</td>
+                                <td>10x</td>
+                                <td>5,000 &ndash; 15,000 KENO</td>
+                                <td>Epic</td>
+                            </tr>
+                            <tr>
+                                <td>&#128167; Diamond</td>
+                                <td>2%</td>
+                                <td>25x</td>
+                                <td>20,000+ KENO</td>
+                                <td>Legendary</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Tier Upgrade Mechanics</h3>
+                    <p>Under certain conditions, your RVT tier can be upgraded. If the computational result your RVT represents becomes significantly more popular or generates unexpected commercial value, the PoRV consensus mechanism can trigger a <strong>tier promotion</strong>. For example, a Bronze RVT tied to a dataset that becomes the foundation of a widely-used AI model may be upgraded to Silver or even Gold.</p>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Important: Tier Downgrades</div>
+                        <p>Tier upgrades are permanent, but if the underlying computation is found to be plagiarized, corrupted, or otherwise invalid, the RVT can be <strong>burned</strong> (permanently destroyed). Always ensure your contributions are original and high-quality.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="royalty-mechanics" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>Perpetual Royalty Mechanics</h2>
+                <div class="reading-content">
+                    <p>The royalty mechanism is the heart of the RVT system. Unlike traditional creative royalties that often require intermediaries, legal agreements, and manual enforcement, Kenostod's royalty system is <strong>fully automated, on-chain, and perpetual</strong>.</p>
+
+                    <h3>How Royalties Are Calculated</h3>
+                    <p>When an enterprise pays to use a computational result (such as an AI model inference), the payment is split according to a predefined formula:</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Royalty Distribution Formula</span>
+<span class="code-comment">// enterprisePayment = total amount paid by the enterprise</span>
+
+<span class="code-keyword">const</span> platformFee = enterprisePayment * <span class="code-number">0.10</span>;       <span class="code-comment">// 10% to Kenostod platform</span>
+<span class="code-keyword">const</span> validatorReward = enterprisePayment * <span class="code-number">0.05</span>;   <span class="code-comment">// 5% to network validators</span>
+<span class="code-keyword">const</span> royaltyPool = enterprisePayment * <span class="code-number">0.85</span>;      <span class="code-comment">// 85% to RVT holders</span>
+
+<span class="code-comment">// Individual royalty = (your tier multiplier / total weighted shares) * royaltyPool</span>
+<span class="code-keyword">const</span> totalWeightedShares = bronzeCount * <span class="code-number">1</span> + silverCount * <span class="code-number">2</span>
+    + goldCount * <span class="code-number">5</span> + platinumCount * <span class="code-number">10</span> + diamondCount * <span class="code-number">25</span>;
+
+<span class="code-keyword">const</span> yourRoyalty = (yourTierMultiplier / totalWeightedShares) * royaltyPool;
+                    </div>
+
+                    <h3>Comparison: RVT Royalties vs Traditional Royalty Income</h3>
+                    <p>To appreciate how revolutionary RVT royalties are, let's compare them to traditional royalty models:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>Traditional Royalties</th>
+                                <th>RVT Royalties</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Payment Speed</td>
+                                <td>Monthly/quarterly, often delayed</td>
+                                <td>Real-time, per-usage event</td>
+                            </tr>
+                            <tr>
+                                <td>Intermediaries</td>
+                                <td>Publishers, agents, collecting societies</td>
+                                <td>None &mdash; smart contract only</td>
+                            </tr>
+                            <tr>
+                                <td>Transparency</td>
+                                <td>Opaque; hard to audit</td>
+                                <td>Fully transparent on blockchain</td>
+                            </tr>
+                            <tr>
+                                <td>Enforcement</td>
+                                <td>Requires legal action</td>
+                                <td>Automatic via smart contract</td>
+                            </tr>
+                            <tr>
+                                <td>Transferability</td>
+                                <td>Complex contracts, lawyers needed</td>
+                                <td>Instant NFT transfer on marketplace</td>
+                            </tr>
+                            <tr>
+                                <td>Geographic Limits</td>
+                                <td>Jurisdiction-dependent</td>
+                                <td>Global, borderless</td>
+                            </tr>
+                            <tr>
+                                <td>Duration</td>
+                                <td>Contract-defined (often limited)</td>
+                                <td>Perpetual (forever)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Secondary Market Royalty Enforcement</h3>
+                    <p>One of the biggest challenges in the NFT industry is <strong>royalty enforcement on secondary sales</strong>. Many marketplaces have made creator royalties optional, allowing buyers and sellers to bypass them. Kenostod takes a different approach:</p>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128274; Kenostod's Mandatory Royalty Solution</div>
+                        <p>Kenostod RVTs embed royalty logic directly into the token's smart contract using an enhanced version of EIP-2981. When an RVT is transferred, the <code>_beforeTokenTransfer</code> hook automatically calculates and distributes the royalty payment. This means royalties <strong>cannot be bypassed</strong>, even on external marketplaces that attempt to skip them &mdash; the transfer will simply fail if the royalty is not paid.</p>
+                    </div>
+
+                    <div class="code-example">
+<span class="code-comment">// Kenostod RVT - Mandatory Royalty on Transfer</span>
+<span class="code-keyword">function</span> <span class="code-function">_beforeTokenTransfer</span>(
+    address from,
+    address to,
+    uint256 tokenId
+) <span class="code-keyword">internal override</span> {
+    <span class="code-keyword">if</span> (from != address(<span class="code-number">0</span>) && to != address(<span class="code-number">0</span>)) {
+        <span class="code-comment">// Calculate 5% creator royalty on sale price</span>
+        uint256 royalty = salePrice * <span class="code-number">500</span> / <span class="code-number">10000</span>;
+        <span class="code-comment">// Transfer royalty to original contributor</span>
+        <span class="code-function">require</span>(
+            kenoToken.<span class="code-function">transferFrom</span>(msg.sender, originalCreator[tokenId], royalty),
+            <span class="code-string">"Royalty payment required"</span>
+        );
+    }
+    <span class="code-keyword">super</span>.<span class="code-function">_beforeTokenTransfer</span>(from, to, tokenId);
+}
+                    </div>
+                </div>
+            </section>
+
+            <section id="passive-income" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128184;</span>How RVTs Enable Arbitrage Access</h2>
+                <div class="reading-content">
+                    <p>The primary financial appeal of RVTs is their ability to generate <strong>token rewards</strong> &mdash; money you earn without active work. Once your RVT is minted, it earns royalties automatically every time the underlying computation is used commercially. Here is how to think about the income potential:</p>
+
+                    <h3>Income Projection Example</h3>
+                    <p>Let's model a realistic scenario. Imagine you hold a portfolio of RVTs across different tiers:</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Portfolio Income Projection</span>
+<span class="code-comment">// Assumptions: Average enterprise usage generates 100 KENO/month per weighted share</span>
+
+<span class="code-keyword">const</span> portfolio = {
+    bronze: <span class="code-number">10</span>,    <span class="code-comment">// 10 Bronze RVTs  x 1x = 10 weighted shares</span>
+    silver: <span class="code-number">5</span>,     <span class="code-comment">// 5 Silver RVTs   x 2x = 10 weighted shares</span>
+    gold: <span class="code-number">2</span>,       <span class="code-comment">// 2 Gold RVTs     x 5x = 10 weighted shares</span>
+    platinum: <span class="code-number">1</span>,   <span class="code-comment">// 1 Platinum RVT  x 10x = 10 weighted shares</span>
+};
+
+<span class="code-keyword">const</span> totalWeightedShares = <span class="code-number">10</span> + <span class="code-number">10</span> + <span class="code-number">10</span> + <span class="code-number">10</span>;  <span class="code-comment">// = 40</span>
+<span class="code-keyword">const</span> revenuePerShare = <span class="code-number">100</span>;  <span class="code-comment">// KENO per month</span>
+<span class="code-keyword">const</span> monthlyIncome = totalWeightedShares * revenuePerShare;
+<span class="code-comment">// = 40 * 100 = 4,000 KENO per month</span>
+<span class="code-comment">// = 48,000 KENO per year</span>
+                    </div>
+
+                    <h3>Compounding Through Reinvestment</h3>
+                    <p>Smart RVT portfolio managers don't just collect royalties &mdash; they <strong>reinvest</strong>. By using royalty income to purchase additional RVTs on the marketplace, you create a compounding effect similar to dividend reinvestment in traditional finance.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128200; The Power of Compounding</div>
+                        <p>If you earn 4,000 KENO/month and reinvest half (2,000 KENO) to buy additional Bronze RVTs at a floor price of 100 KENO each, you acquire 20 new Bronze RVTs per month. After one year, your additional Bronze holdings alone would generate an extra 2,000 KENO/month &mdash; a 50% increase in income from reinvestment.</p>
+                    </div>
+
+                    <h3>Factors That Affect Royalty Income</h3>
+                    <p>Your royalty income is not fixed. It fluctuates based on several factors:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Enterprise Adoption:</strong> More enterprises using your computation = more royalty events</li>
+                        <li><strong>Total RVT Supply:</strong> More RVTs minted for the same computation = smaller individual share</li>
+                        <li><strong>Seasonal Demand:</strong> Some industries have cyclical demand (e.g., retail AI peaks during holidays)</li>
+                        <li><strong>KENO Token Price:</strong> Royalties are paid in KENO, so the fiat value depends on market price</li>
+                        <li><strong>Network Growth:</strong> As Kenostod's enterprise customer base grows, overall royalty pools increase</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="portfolio-strategy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128202;</span>NFT Portfolio Diversification Strategies</h2>
+                <div class="reading-content">
+                    <p>Like traditional investment portfolios, your RVT portfolio benefits enormously from thoughtful diversification. Concentrating all your holdings in a single tier, industry, or computation type exposes you to unnecessary risk.</p>
+
+                    <h3>Strategy 1: Tier Diversification</h3>
+                    <p>Spread your holdings across multiple tier levels. Lower tiers (Bronze, Silver) provide steady, reliable income from high-volume computations. Higher tiers (Gold, Platinum, Diamond) provide larger payouts but from fewer, more specialized use cases.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Recommended Tier Allocation</div>
+                        <p><strong>Conservative:</strong> 50% Bronze, 30% Silver, 15% Gold, 5% Platinum/Diamond<br>
+                        <strong>Balanced:</strong> 30% Bronze, 25% Silver, 25% Gold, 15% Platinum, 5% Diamond<br>
+                        <strong>Aggressive:</strong> 10% Bronze, 15% Silver, 30% Gold, 30% Platinum, 15% Diamond</p>
+                    </div>
+
+                    <h3>Strategy 2: Industry Diversification</h3>
+                    <p>RVTs are tied to computations across different industries. Diversifying across industries protects you from sector-specific downturns:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Healthcare AI:</strong> Medical imaging analysis, drug discovery models, patient data processing</li>
+                        <li><strong>Financial Modeling:</strong> Risk assessment, fraud detection, algorithmic trading signals</li>
+                        <li><strong>Climate Research:</strong> Weather prediction models, carbon tracking, environmental monitoring</li>
+                        <li><strong>Supply Chain:</strong> Logistics optimization, demand forecasting, inventory management</li>
+                        <li><strong>Creative AI:</strong> Content generation, language models, image recognition</li>
+                    </ul>
+
+                    <h3>Strategy 3: Temporal Diversification (Dollar-Cost Averaging)</h3>
+                    <p>Don't buy all your RVTs at once. Spread purchases over time to average out price fluctuations. This is especially important during volatile market conditions where floor prices can swing significantly.</p>
+
+                    <h3>Portfolio Rebalancing</h3>
+                    <p>Periodically review your RVT portfolio and rebalance. If one industry's RVTs have appreciated significantly, consider selling some to reinvest in underrepresented sectors. A quarterly review cycle is recommended for most investors.</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Floor Price</div>
+                            <div class="vocab-def">The lowest price at which any RVT of a given tier or collection is listed for sale on the marketplace.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Weighted Share</div>
+                            <div class="vocab-def">The effective royalty weight of your RVT, determined by multiplying quantity by tier multiplier.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Rarity Score</div>
+                            <div class="vocab-def">A numerical rating reflecting how rare an RVT is within its collection, based on tier, industry, and supply.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Yield Rate</div>
+                            <div class="vocab-def">The annualized return on an RVT investment, calculated as (annual royalties / purchase price) x 100%.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="marketplace" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127978;</span>Marketplace Mechanics &amp; Valuation</h2>
+                <div class="reading-content">
+                    <p>The Kenostod RVT marketplace is where holders can buy, sell, and trade RVTs. Understanding marketplace mechanics is critical for making informed investment decisions.</p>
+
+                    <h3>Floor Price Dynamics</h3>
+                    <p>The <strong>floor price</strong> is the lowest listed price for any RVT in a given category. Floor prices are driven by several forces:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Supply:</strong> More RVTs minted in a tier pushes floor prices down</li>
+                        <li><strong>Demand:</strong> More buyers competing for scarce high-tier RVTs pushes floors up</li>
+                        <li><strong>Royalty Yield:</strong> Higher-yielding RVTs command premium prices (buyers are paying for income)</li>
+                        <li><strong>Market Sentiment:</strong> Overall crypto market conditions affect NFT prices broadly</li>
+                        <li><strong>Enterprise Announcements:</strong> New enterprise partnerships increase demand for related RVTs</li>
+                    </ul>
+
+                    <h3>Valuation Methods</h3>
+                    <p>How do you determine the fair price of an RVT? There are several approaches:</p>
+
+                    <h4>1. Yield-Based Valuation</h4>
+                    <p>Calculate the annual royalty yield and compare it to alternative investments. If a Gold RVT generates 500 KENO/year in royalties and is priced at 2,000 KENO, the yield is 25%. Compare this to DeFi yields, staking rewards, or traditional dividend stocks.</p>
+
+                    <h4>2. Comparable Sales (Comps)</h4>
+                    <p>Look at recent sales of similar RVTs. What did the last Gold-tier Healthcare AI RVT sell for? Use this as a reference point, adjusting for differences in royalty history and computation popularity.</p>
+
+                    <h4>3. Discounted Cash Flow (DCF)</h4>
+                    <p>Project future royalty payments and discount them back to present value. This is the most sophisticated method and accounts for growth expectations, but requires assumptions about future enterprise usage.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// Simplified DCF Valuation for an RVT</span>
+<span class="code-keyword">function</span> <span class="code-function">calculateRVTValue</span>(annualRoyalty, growthRate, discountRate, years) {
+    <span class="code-keyword">let</span> totalPV = <span class="code-number">0</span>;
+    <span class="code-keyword">for</span> (<span class="code-keyword">let</span> year = <span class="code-number">1</span>; year <= years; year++) {
+        <span class="code-keyword">const</span> futureRoyalty = annualRoyalty * Math.<span class="code-function">pow</span>(<span class="code-number">1</span> + growthRate, year);
+        <span class="code-keyword">const</span> presentValue = futureRoyalty / Math.<span class="code-function">pow</span>(<span class="code-number">1</span> + discountRate, year);
+        totalPV += presentValue;
+    }
+    <span class="code-keyword">return</span> totalPV;
+}
+
+<span class="code-comment">// Example: Gold RVT earning 500 KENO/year, 10% growth, 15% discount, 10 years</span>
+<span class="code-keyword">const</span> fairValue = <span class="code-function">calculateRVTValue</span>(<span class="code-number">500</span>, <span class="code-number">0.10</span>, <span class="code-number">0.15</span>, <span class="code-number">10</span>);
+<span class="code-comment">// fairValue &#8776; 3,800 KENO</span>
+                    </div>
+
+                    <h3>Listing and Selling on the Marketplace</h3>
+                    <p>When you list an RVT for sale, you set your asking price. Buyers can either purchase at your price or make counter-offers. Key considerations when listing:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Check the current floor price for your RVT's tier and industry</li>
+                        <li>Review your RVT's royalty history &mdash; higher-earning RVTs justify higher prices</li>
+                        <li>Factor in the marketplace fee (typically 2.5% on Kenostod's native marketplace)</li>
+                        <li>Consider using auction format for rare Platinum/Diamond RVTs to maximize price</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="risk-management" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Risk Management for NFT Portfolios</h2>
+                <div class="reading-content">
+                    <p>Every investment carries risk, and RVT portfolios are no exception. Understanding and managing these risks is what separates successful investors from those who lose money.</p>
+
+                    <h3>Types of Risk</h3>
+
+                    <h4>1. Market Risk</h4>
+                    <p>The overall cryptocurrency market can experience significant downturns. Even if your RVTs continue generating the same amount of KENO in royalties, the fiat value of KENO itself may decline. Mitigation: Don't invest more than you can afford to lose, and consider converting some royalty income to stablecoins or fiat regularly.</p>
+
+                    <h4>2. Liquidity Risk</h4>
+                    <p>Higher-tier RVTs (Platinum, Diamond) may be difficult to sell quickly because there are fewer buyers at those price points. You might have to accept a lower price to sell quickly. Mitigation: Maintain a portion of your portfolio in Bronze and Silver RVTs, which have higher trading volume.</p>
+
+                    <h4>3. Smart Contract Risk</h4>
+                    <p>While Kenostod's smart contracts are audited, no code is 100% bug-free. A vulnerability could potentially affect royalty distribution or token transfers. Mitigation: Kenostod uses multi-audited contracts and has a bug bounty program, but stay informed about any security updates.</p>
+
+                    <h4>4. Computation Obsolescence Risk</h4>
+                    <p>The computational result your RVT represents could become outdated as newer, better models are developed. If enterprises stop using your computation, royalty income drops to zero. Mitigation: Diversify across multiple computations and industries.</p>
+
+                    <h4>5. Regulatory Risk</h4>
+                    <p>Governments may introduce regulations that affect NFT trading, royalty income taxation, or cryptocurrency markets broadly. Mitigation: Stay informed about regulations in your jurisdiction and consult a tax professional about reporting royalty income.</p>
+
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#9888;&#65039; Red Flags to Watch For</div>
+                        <p><strong>Never</strong> invest in RVTs based solely on someone else's recommendation, Discord hype, or promises of guaranteed returns. Always do your own research (DYOR). Legitimate RVTs have verifiable on-chain royalty history. If someone is selling an "exclusive Diamond RVT" at a steep discount via direct message, it is almost certainly a scam.</p>
+                    </div>
+
+                    <h3>The 5% Rule</h3>
+                    <p>A common risk management guideline: never allocate more than <strong>5% of your total investment portfolio</strong> to any single RVT or RVT category. This ensures that even a total loss on one position doesn't devastate your overall portfolio.</p>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These real-world examples illustrate the opportunities and pitfalls of NFT-based income investing:</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: The Bored Ape Yacht Club Floor Price Collapse</h4>
+                        <p><strong>What happened:</strong> Bored Ape Yacht Club (BAYC) NFTs peaked at a floor price of ~100 ETH ($300,000+) in April 2022. By late 2023, the floor had dropped below 30 ETH, and by 2024 it fell under 10 ETH &mdash; a decline of over 90% from peak.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> NFTs driven primarily by hype, celebrity endorsements, and community sentiment (rather than underlying utility or income) can lose value rapidly. RVTs mitigate this risk because their value is tied to measurable enterprise revenue, not social status.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: Royalty Wars &mdash; OpenSea vs Blur</h4>
+                        <p><strong>What happened:</strong> In late 2022, the NFT marketplace Blur launched with zero creator royalties, undercutting OpenSea. OpenSea responded by making royalties optional. Creators saw their royalty income collapse overnight, even though their NFTs were still being traded.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Creator royalties are only as strong as their enforcement mechanism. Kenostod solves this by embedding mandatory royalty logic into the smart contract itself &mdash; the transfer fails if royalties aren't paid, regardless of which marketplace facilitates the sale.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: Music NFTs and Perpetual Royalties</h4>
+                        <p><strong>What happened:</strong> Artists like Daniel Allan and RAC pioneered music NFTs that give holders a share of streaming royalties. Allan's "Overstimulated" EP raised 50 ETH, and holders continue to receive streaming income years later. This model proved that NFTs can be genuine income-generating assets.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> NFTs backed by real, recurring revenue streams retain value better than speculative collectibles. This is precisely the model Kenostod RVTs follow &mdash; but applied to enterprise computation rather than music streaming.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: The Importance of Portfolio Diversification (2022 Crypto Winter)</h4>
+                        <p><strong>What happened:</strong> During the 2022 crypto winter, investors concentrated in a single NFT project (e.g., Moonbirds, Azuki, or Doodles) saw their portfolio value drop 80-95%. However, investors who diversified across multiple projects, utility types, and blockchains experienced much smaller drawdowns.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Diversification is the closest thing to a "free lunch" in investing. Spreading your RVT holdings across tiers, industries, and time periods dramatically reduces risk.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: RVT vs Traditional NFT</h4>
+                        <div class="exercise-question">
+                            <p>Explain to a friend who only knows about "JPEG NFTs" what makes Kenostod's RVTs different. Use a real-world analogy (like owning rental property or a patent) to illustrate how RVTs generate perpetual income.</p>
+                            <textarea id="ex1" placeholder="Write your explanation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Portfolio Allocation</h4>
+                        <div class="exercise-question">
+                            <p>You have 10,000 KENO to invest in RVTs. Design a portfolio allocation across the five tiers and at least three industries. Justify your choices in terms of risk tolerance, income goals, and diversification principles.</p>
+                            <textarea id="ex2" placeholder="Describe your portfolio allocation..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Royalty Calculation</h4>
+                        <div class="exercise-question">
+                            <p>An enterprise pays 10,000 KENO for computation usage. The royalty pool has 100 Bronze (1x), 40 Silver (2x), 15 Gold (5x), 5 Platinum (10x), and 1 Diamond (25x) RVTs. Calculate: (a) the total weighted shares, (b) the royalty pool amount, and (c) how much a single Gold RVT holder earns from this payment.</p>
+                            <textarea id="ex3" placeholder="Show your calculations..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Risk Assessment</h4>
+                        <div class="exercise-question">
+                            <p>You discover a Diamond-tier RVT listed at 50% below its typical floor price. List at least four possible reasons for the discount and explain how you would investigate each one before deciding whether to buy.</p>
+                            <textarea id="ex4" placeholder="Analyze the potential risks..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Token Standard Analysis</h4>
+                        <div class="exercise-question">
+                            <p>Explain why Kenostod chose to embed mandatory royalty enforcement directly into the smart contract rather than relying on marketplace-level enforcement (like EIP-2981). What are the advantages and potential drawbacks of this approach?</p>
+                            <textarea id="ex5" placeholder="Explain the trade-offs..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What makes Kenostod RVTs fundamentally different from traditional NFTs?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They have higher resolution images</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They generate perpetual royalty income from enterprise usage</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They can only be traded on OpenSea</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They expire after five years</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. What is the royalty multiplier for a Diamond-tier RVT?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10x</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>15x</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>25x</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50x</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="d">
+                    <div class="question-text">3. Which token standard allows both fungible and non-fungible tokens in a single contract?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>ERC-20</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>ERC-721</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>ERC-777</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>ERC-1155</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="a">
+                    <div class="question-text">4. What percentage of enterprise payments goes to the RVT holder royalty pool?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>85%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>70%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>95%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. How does Kenostod enforce royalties on secondary market sales?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By asking marketplaces to voluntarily honor royalties</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By embedding mandatory royalty logic in the smart contract transfer function</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Through legal contracts with each buyer</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Royalties are not enforced on secondary sales</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. What is the primary advantage of industry diversification in an RVT portfolio?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It guarantees higher returns</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It reduces marketplace fees</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It protects against sector-specific downturns</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It increases the tier of your RVTs</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. What is the "floor price" in an NFT marketplace?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The lowest listed price for any NFT in a given category</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The maximum price an NFT can be sold for</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The price set by the marketplace platform</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The minting cost of an NFT</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <div class="question-text">8. What lesson did the OpenSea vs Blur "Royalty Wars" teach NFT creators?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Lower fees always attract more buyers</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>NFT marketplaces should be decentralized</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Royalties should be paid in stablecoins</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Marketplace-level royalty enforcement is unreliable; on-chain enforcement is necessary</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="b">
+                    <div class="question-text">9. What is "computation obsolescence risk" in RVT investing?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The risk that your computer breaks down</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The risk that the underlying computation becomes outdated as newer models replace it</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The risk that KENO token price goes to zero</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The risk of a network fork</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="c">
+                    <div class="question-text">10. How long do RVT royalties continue paying out?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>One year from minting</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Five years from minting</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Perpetually, as long as the computation is used commercially</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Until the RVT is sold on the secondary market</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. What is the recommended maximum allocation to a single RVT or RVT category according to the 5% rule?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5% of your total investment portfolio</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5% of your annual income</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5 RVTs per tier</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5% of the marketplace listing fee</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="d">
+                    <div class="question-text">12. What valuation method projects future royalty payments and discounts them to present value?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Yield-Based Valuation</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Comparable Sales (Comps)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Market Capitalization</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Discounted Cash Flow (DCF)</span></div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <h3 id="resultIcon" class="result-icon"></h3>
+                    <h3 id="resultTitle" class="result-title"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-10-porv.html" style="color: var(--primary);">&larr; Course 10</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-12-enterprise.html" style="color: var(--primary);">Course 12 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.lesson-section');
+            const tocItems = document.querySelectorAll('.toc-item');
+            let currentSection = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.scrollY >= sectionTop) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            tocItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(currentSection)) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    opt.style.pointerEvents = 'none';
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) {
+                        correct++;
+                    } else {
+                        selectedOption.classList.add('incorrect');
+                    }
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+
+            if (correct >= 10) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\u{1F389}';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + ' correct! You passed!';
+                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--success);">\u{1F393} +250 KENO Reward!</p><a href="/courses/course-12-enterprise.html" class="next-course-btn">Course 12: Enterprise Integration \u2192</a>';
+                localStorage.setItem('course11_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(11, 'Course 11: RVT Portfolio Management');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\u{1F4DA}';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + ' correct. You need at least 10/12 (80%) to pass. Review the material and try again!';
+                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+                opt.style.pointerEvents = 'auto';
+            });
+            document.getElementById('quizResult').classList.remove('show', 'passed', 'failed');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed response (at least a few sentences).';
+                return;
+            }
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+            feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+            feedback.style.color = '#6ee7b7';
+
+            const feedbackMessages = {
+                1: 'Great explanation! Key points: RVTs represent computational contributions (not art), they generate ongoing royalty income (like rent or patents), and their value is tied to real enterprise usage rather than speculation.',
+                2: 'Good portfolio design! Strong answers include tier diversification (not all in one tier), industry diversification (healthcare, finance, etc.), and justification based on risk tolerance. Consider the trade-off between high-yield Platinum/Diamond and reliable Bronze/Silver.',
+                3: 'Check your math: Total weighted shares = 100(1) + 40(2) + 15(5) + 5(10) + 1(25) = 100 + 80 + 75 + 50 + 25 = 330. Royalty pool = 10,000 x 0.85 = 8,500 KENO. One Gold RVT = (5/330) x 8,500 = ~128.8 KENO.',
+                4: 'Thorough analysis! Possible reasons include: declining enterprise usage, smart contract vulnerability discovered, seller needs urgent liquidity, computation becoming obsolete, or a simple pricing mistake. Investigation should include checking on-chain royalty history, smart contract audit status, and marketplace activity trends.',
+                5: 'Excellent analysis! Advantages of on-chain enforcement: royalties cannot be bypassed regardless of marketplace, provides reliable income for holders, increases investor confidence. Drawbacks: adds gas cost to every transfer, may reduce trading volume if buyers prefer royalty-free marketplaces, and makes the contract more complex (higher audit costs).'
+            };
+
+            feedback.textContent = feedbackMessages[num] || 'Good answer! Review the course material to verify your understanding.';
+        }
+    </script>
+<script src="/courses/course-common.js"></script>
+</body>
+</html>
