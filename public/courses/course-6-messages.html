@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 6: Encrypted Messages | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root { --primary: #14b8a6; --primary-dark: #0d9488; --gold: #f59e0b; --bg-dark: #0f172a; --bg-card: #1e293b; --text-primary: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --danger: #ef4444; --secondary: #3b82f6; --purple: #8b5cf6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 10px 15px; margin-bottom: 4px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.92em; }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 26px; height: 26px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 600; flex-shrink: 0; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .section-title { font-size: 1.5em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; color: var(--primary); }
+        .section-icon { font-size: 1em; }
+        .reading-content { font-size: 1.05em; color: var(--text-primary); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; }
+        .objective-list li::before { content: "&#10003;"; color: var(--success); font-weight: bold; margin-right: 12px; }
+        .highlight-box { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .highlight-box.warning { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15)); border-color: rgba(245, 158, 11, 0.3); }
+        .highlight-box.success { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15)); border-color: rgba(16, 185, 129, 0.3); }
+        .highlight-box.danger { background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15)); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+        .case-study { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1)); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-box h4 { color: var(--success); margin-bottom: 10px; }
+        .code-block { background: #0d1117; border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Fira Code', monospace; font-size: 0.9em; overflow-x: auto; border: 1px solid rgba(255,255,255,0.1); }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95em; }
+        .comparison-table th { background: rgba(59, 130, 246, 0.15); padding: 12px 16px; text-align: left; color: var(--secondary); border-bottom: 2px solid rgba(59, 130, 246, 0.2); }
+        .comparison-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); }
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .exercise-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        .exercise-question { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; margin: 10px 0; }
+        .exercise-question textarea { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95em; margin-top: 8px; min-height: 80px; resize: vertical; }
+        .check-answer-btn { background: var(--gold); color: #000; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 8px; font-size: 0.85em; }
+        .answer-feedback { margin-top: 8px; padding: 10px; border-radius: 6px; font-size: 0.9em; display: none; }
+        .practice-section { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border: 2px solid var(--primary); }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .quiz-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .quiz-question { background: var(--bg-dark); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .quiz-question h4 { margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .timeline-item { position: relative; padding-left: 30px; padding-bottom: 20px; border-left: 2px solid rgba(59, 130, 246, 0.3); }
+        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 5px; width: 10px; height: 10px; background: var(--secondary); border-radius: 50%; }
+        .timeline-item:last-child { border-left: none; }
+        .timeline-item h5 { color: var(--secondary); margin-bottom: 5px; }
+        .timeline-item p { color: var(--text-muted); font-size: 0.9em; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">&#128218; Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('intro')"><span class="toc-number">2</span>Introduction</li>
+                <li class="toc-item" onclick="scrollToSection('history')"><span class="toc-number">3</span>History of Encryption</li>
+                <li class="toc-item" onclick="scrollToSection('symmetric')"><span class="toc-number">4</span>Symmetric Encryption</li>
+                <li class="toc-item" onclick="scrollToSection('asymmetric')"><span class="toc-number">5</span>Asymmetric Encryption</li>
+                <li class="toc-item" onclick="scrollToSection('e2e')"><span class="toc-number">6</span>End-to-End Encryption</li>
+                <li class="toc-item" onclick="scrollToSection('pgp')"><span class="toc-number">7</span>PGP &amp; Web of Trust</li>
+                <li class="toc-item" onclick="scrollToSection('blockchain-messaging')"><span class="toc-number">8</span>Blockchain Messaging</li>
+                <li class="toc-item" onclick="scrollToSection('signing')"><span class="toc-number">9</span>Message Signing</li>
+                <li class="toc-item" onclick="scrollToSection('metadata')"><span class="toc-number">10</span>Metadata Protection</li>
+                <li class="toc-item" onclick="scrollToSection('privacy')"><span class="toc-number">11</span>Privacy &amp; Zero-Knowledge</li>
+                <li class="toc-item" onclick="scrollToSection('workflows')"><span class="toc-number">12</span>Practical Workflows</li>
+                <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">13</span>Case Studies</li>
+                <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">14</span>Written Exercises</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">15</span>Hands-On Lab</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">16</span>Final Exam</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 6</div>
+            
+            <div class="course-header">
+                <h1>&#128172; Course 6: Encrypted Messages <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>&#128214; 16 Lessons</span>
+                    <span>&#9201;&#65039; ~2 hours</span>
+                    <span>&#127919; Intermediate Level</span>
+                    <span>&#127942; 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <ul class="objective-list">
+                    <li>Understand the complete history of encrypted communication from ancient ciphers to modern cryptography</li>
+                    <li>Master the difference between symmetric and asymmetric encryption and when to use each</li>
+                    <li>Explain how AES-256 works and why it is considered unbreakable</li>
+                    <li>Understand how end-to-end encryption works and why it matters for privacy</li>
+                    <li>Learn about the Signal Protocol and how it achieves forward secrecy</li>
+                    <li>Understand PGP, the Web of Trust model, and their role in cryptocurrency culture</li>
+                    <li>Understand on-chain vs off-chain messaging architectures in blockchain systems</li>
+                    <li>Learn how Kenostod's transaction messages are cryptographically signed and verified</li>
+                    <li>Analyze metadata protection challenges and traffic analysis attacks</li>
+                    <li>Explore zero-knowledge proofs and their application to private messaging</li>
+                    <li>Compare privacy coins and their messaging features (Monero, Zcash, Secret Network)</li>
+                    <li>Apply practical encryption workflows to real-world business and compliance scenarios</li>
+                </ul>
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128218; Course Commitment</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding takes time, and the 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+            
+            <section id="intro" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128231;</span>Introduction: Why Encrypted Messages Matter</h2>
+                <div class="reading-content">
+                    <p>Traditional blockchain transactions are just numbers &mdash; an amount transferred from address A to address B. But in the real world, context matters enormously. When you pay a contractor, you need to reference an invoice. When you send money to family overseas, compliance regulations may require a purpose code. When two businesses settle accounts, both parties need a verifiable record of what the payment was for.</p>
+                    
+                    <p>Kenostod solves this by allowing you to attach <strong>cryptographically-signed, optionally encrypted messages</strong> to any transaction. These messages become part of the immutable blockchain record &mdash; they cannot be altered, denied, or forged after sending.</p>
+                    
+                    <p>Think of it this way: a traditional blockchain transaction is like handing someone an envelope of cash. A Kenostod transaction message is like handing them cash with a notarized letter &mdash; everyone can see the letter was sent and who signed it, but only the recipient can read the contents if it's encrypted.</p>
+                    
+                    <div class="visual-diagram">
+                        <img src="/assets/course-images/cryptographic_message_transaction_diagram.png" alt="Cryptographic Message Transaction">
+                        <p class="caption">Figure: Messages embedded in transactions with cryptographic verification</p>
+                    </div>
+                    
+                    <p>This capability transforms a simple payment network into a <strong>verifiable communication layer</strong>. Every message is timestamped, attributed, and permanent. This has profound implications for business, law, compliance, and personal privacy that we'll explore throughout this course.</p>
+                    
+                    <h3>The Communication Gap in Blockchain</h3>
+                    <p>Most blockchain networks were designed purely as financial ledgers. Bitcoin, for example, has a tiny OP_RETURN field that allows storing up to 80 bytes of arbitrary data &mdash; barely enough for a short sentence. Ethereum allows input data in transactions, but this data is stored as raw hex and isn't designed for human-readable communication. Neither network was built with structured, encrypted messaging as a first-class feature.</p>
+                    
+                    <p>This creates a fundamental disconnect: businesses adopt blockchain for transparent, verifiable financial transactions, but then must use <em>separate, unverifiable</em> channels (email, Slack, phone calls) to communicate about those transactions. The payment says "$5,000 to 0xABC..." but the context &mdash; what was it for? Was the work satisfactory? Were the terms met? &mdash; lives outside the chain, vulnerable to disputes, forgery, and loss.</p>
+                    
+                    <div class="concept-box">
+                        <h4>&#128161; Tamper-Proof Communication</h4>
+                        <p>Unlike email or text messages, transaction messages are cryptographically signed and permanently recorded on the blockchain. The message becomes part of the transaction itself &mdash; it cannot be altered, deleted, or denied after sending. This is called <strong>non-repudiation</strong>: the sender cannot later claim they didn't write or send the message, because the cryptographic signature mathematically proves they did.</p>
+                    </div>
+                    
+                    <h3>Three Modes of Kenostod Messages</h3>
+                    <p>Kenostod supports three distinct messaging modes, each serving different use cases:</p>
+                    <table class="comparison-table">
+                        <tr><th>Mode</th><th>Visibility</th><th>Use Case</th><th>Example</th></tr>
+                        <tr><td><strong>Plaintext</strong></td><td>Anyone can read</td><td>Public records, donations, tips</td><td>"Donation to Kenostod Dev Fund - Q4 2024"</td></tr>
+                        <tr><td><strong>Encrypted</strong></td><td>Only recipient</td><td>Invoices, salary, private notes</td><td>"Invoice #2024-001: Web development - $500"</td></tr>
+                        <tr><td><strong>Hashed Reference</strong></td><td>Verifiable but private</td><td>Legal documents, contracts</td><td>SHA-256 hash of a PDF contract stored off-chain</td></tr>
+                    </table>
+                </div>
+            </section>
+
+            <section id="history" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>The History of Encrypted Communication</h2>
+                <div class="reading-content">
+                    <p>The desire to communicate secretly is as old as civilization itself. Understanding the evolution of cryptography helps us appreciate why modern blockchain-based messaging is such a breakthrough &mdash; and why the techniques used in Kenostod represent thousands of years of human ingenuity.</p>
+                    
+                    <h3>Ancient Cryptography (2000 BCE &ndash; 1800s)</h3>
+                    <p>The earliest known use of cryptography dates back to ancient Egypt around 1900 BCE, where scribes used non-standard hieroglyphics in inscriptions. However, the first well-documented cipher system was the <strong>Spartan Scytale</strong> (700 BCE) &mdash; a leather strip wrapped around a rod of specific diameter. The message was readable only when wrapped around a rod of the same size.</p>
+                    
+                    <p>The most famous ancient cipher is the <strong>Caesar Cipher</strong> (100 BCE), used by Julius Caesar to communicate with his generals. Each letter was shifted by a fixed number: with a shift of 3, A becomes D, B becomes E, and so on. While trivially easy to break today, it was effective 2,000 years ago when most people were illiterate.</p>
+                    
+                    <div class="code-block">
+Caesar Cipher Example (Shift = 3):
+
+Plain:    ATTACK AT DAWN
+Cipher:   DWWDFN DW GDZQ
+
+A &rarr; D    T &rarr; W    C &rarr; F    K &rarr; N
+                    </div>
+                    
+                    <p>The <strong>Vigen&egrave;re Cipher</strong> (1553) improved on Caesar by using a keyword to vary the shift for each letter, making frequency analysis much harder. It was considered "the indecipherable cipher" for three centuries until Charles Babbage and Friedrich Kasiski independently broke it in the mid-1800s.</p>
+                    
+                    <h3>The Mechanical Age (1900s &ndash; 1940s)</h3>
+                    <p>World War II brought cryptography into the mechanical age. The German <strong>Enigma machine</strong> used rotating electromechanical rotors to create enormously complex substitution ciphers. The machine had approximately 158,962,555,217,826,360,000 possible settings for each message.</p>
+                    
+                    <p>Breaking Enigma at Bletchley Park, led by Alan Turing and his team, is estimated to have shortened World War II by two years and saved millions of lives. Turing's work also laid the theoretical foundations for modern computing &mdash; the same mathematics that eventually enabled blockchain technology.</p>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; From Enigma to Blockchain</div>
+                        <p>The direct line from Turing's codebreaking to modern cryptography is remarkable. Turing's concept of a "universal computing machine" led to electronic computers, which led to computational cryptography, which led to public-key cryptography in the 1970s, which is the exact foundation of blockchain wallets and transaction signing today. When you sign a transaction in Kenostod, you're using mathematics that traces directly back to Bletchley Park.</p>
+                    </div>
+                    
+                    <h3>A Timeline of Cryptographic Milestones</h3>
+                    <div style="margin: 20px 0;">
+                        <div class="timeline-item">
+                            <h5>1900 BCE &mdash; Egyptian Hieroglyphic Substitution</h5>
+                            <p>Scribes in Khnumhotep II's tomb used non-standard symbols to obscure inscriptions, the earliest known cryptographic technique.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>700 BCE &mdash; Spartan Scytale</h5>
+                            <p>First transposition cipher using a physical device (wooden rod) to scramble messages on leather strips.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>100 BCE &mdash; Caesar Cipher</h5>
+                            <p>Julius Caesar shifts alphabet letters by a fixed amount. Simple but effective for its era.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>1553 &mdash; Vigen&egrave;re Cipher</h5>
+                            <p>Polyalphabetic substitution using a keyword. Called "le chiffre ind&eacute;chiffrable" for 300 years.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>1918 &mdash; Enigma Machine Patented</h5>
+                            <p>Arthur Scherbius patents the electromechanical rotor cipher machine later used by Nazi Germany.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>1943 &mdash; Colossus Computer</h5>
+                            <p>Built at Bletchley Park to break the Lorenz cipher. One of the world's first programmable electronic computers.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>1976 &mdash; Diffie-Hellman Key Exchange</h5>
+                            <p>The concept of public-key cryptography is born. Two parties can establish a shared secret over a public channel.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>1977 &mdash; RSA &amp; DES</h5>
+                            <p>RSA provides the first practical public-key encryption. DES becomes the government standard for symmetric encryption.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>1991 &mdash; PGP Released</h5>
+                            <p>Phil Zimmermann publishes Pretty Good Privacy, bringing strong encryption to ordinary citizens.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>2001 &mdash; AES Adopted</h5>
+                            <p>Advanced Encryption Standard replaces DES as the global standard. AES-256 remains unbroken to this day.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>2009 &mdash; Bitcoin Launches</h5>
+                            <p>Satoshi Nakamoto combines cryptographic signatures, hashing, and peer-to-peer networking into the first cryptocurrency.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>2013 &mdash; Signal Protocol</h5>
+                            <p>Moxie Marlinspike develops the Double Ratchet Algorithm, enabling forward secrecy in messaging.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <h5>Present &mdash; Kenostod Encrypted Messages</h5>
+                            <p>Combining blockchain immutability with ECIES encryption to create verifiable, private transaction communication.</p>
+                        </div>
+                    </div>
+                    
+                    <h3>The Digital Revolution (1970s &ndash; 2000s)</h3>
+                    <p>Three pivotal developments transformed cryptography forever:</p>
+                    
+                    <h4>1. DES &mdash; Data Encryption Standard (1977)</h4>
+                    <p>The U.S. government standardized DES as the first publicly available encryption algorithm. Using a 56-bit key, it became the backbone of electronic financial transactions. Though eventually broken by brute force, DES proved that standardized, publicly scrutinized algorithms are stronger than secret, proprietary ones &mdash; a principle called <strong>Kerckhoffs's principle</strong>.</p>
+                    
+                    <h4>2. Diffie-Hellman Key Exchange (1976)</h4>
+                    <p>Whitfield Diffie and Martin Hellman published the revolutionary concept of <strong>public-key cryptography</strong>. For the first time, two parties could establish a shared secret over a public channel without ever meeting. This solved the fundamental problem of key distribution that had plagued cryptography for millennia.</p>
+                    
+                    <p>Imagine this analogy: Alice and Bob each have a color of paint (their private keys). They agree on a shared base color publicly (yellow). Each mixes their private color with yellow and sends the result. Then each mixes their private color with the other's result. Both end up with the same final color, but an eavesdropper who only saw the mixed colors cannot determine the final result.</p>
+                    
+                    <h4>3. RSA (1977) and Elliptic Curve Cryptography (1985)</h4>
+                    <p>RSA, developed by Rivest, Shamir, and Adleman, was the first practical public-key encryption system. Based on the difficulty of factoring large prime numbers, RSA enabled both encryption and digital signatures. Later, <strong>Elliptic Curve Cryptography (ECC)</strong> achieved the same security with much smaller keys &mdash; a 256-bit ECC key provides equivalent security to a 3,072-bit RSA key. ECC is what Bitcoin, Ethereum, and Kenostod use today.</p>
+                    
+                    <h3>The Cypherpunk Movement (1992 &ndash; Present)</h3>
+                    <p>The <strong>cypherpunk</strong> movement believed that cryptography was essential for privacy in the digital age. Members included many who would later influence cryptocurrency: Adam Back (inventor of Hashcash, a precursor to Bitcoin's proof-of-work), Wei Dai (inventor of b-money), and Hal Finney (received the first Bitcoin transaction from Satoshi Nakamoto). The cypherpunk mailing list directly shaped the ideas that became Bitcoin and, by extension, all blockchain technology including Kenostod.</p>
+                    
+                    <div class="concept-box">
+                        <h4>&#128161; The Cypherpunk Vision Realized</h4>
+                        <p>Eric Hughes wrote in the 1993 <em>A Cypherpunk's Manifesto</em>: "Privacy is necessary for an open society in the electronic age... We must defend our own privacy if we expect to have any." Kenostod's encrypted transaction messages are a direct realization of this vision &mdash; private, verifiable communication built on cryptographic foundations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="symmetric" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128273;</span>Symmetric Encryption Deep Dive</h2>
+                <div class="reading-content">
+                    <p><strong>Symmetric encryption</strong> uses the same key for both encrypting and decrypting data. Think of it like a physical lockbox &mdash; the same key opens and closes it. Both the sender and receiver must possess the identical key.</p>
+                    
+                    <h3>How Symmetric Encryption Works</h3>
+                    <p>The process is straightforward:</p>
+                    <ul class="step-list">
+                        <li><strong>Key Generation:</strong> A random secret key is generated (e.g., 256 random bits for AES-256). The quality of randomness is critical &mdash; a predictable key generator can compromise even the strongest algorithm.</li>
+                        <li><strong>Encryption:</strong> The plaintext message is combined with the key using a mathematical algorithm to produce ciphertext. Modern ciphers like AES use multiple rounds of substitution and permutation.</li>
+                        <li><strong>Transmission:</strong> The ciphertext is sent over the (potentially insecure) channel. Even if intercepted, the ciphertext is computationally indistinguishable from random data.</li>
+                        <li><strong>Decryption:</strong> The recipient uses the same key to reverse the process and recover the plaintext. The algorithm's inverse operations are applied in reverse order.</li>
+                    </ul>
+                    
+                    <h3>AES-256 &mdash; The Gold Standard</h3>
+                    <p><strong>Advanced Encryption Standard (AES)</strong> is the most widely used symmetric cipher today. Adopted by the U.S. government in 2001 after a five-year international competition involving 15 candidate algorithms from around the world, AES (originally called Rijndael, after its Belgian creators Joan Daemen and Vincent Rijmen) is considered unbreakable by any known technology.</p>
+                    
+                    <p>AES operates on 128-bit blocks of data. In AES-256 mode, it uses a 256-bit key and performs <strong>14 rounds</strong> of transformation. Each round consists of four operations:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>SubBytes:</strong> Each byte is replaced using a substitution table (S-box), providing non-linearity</li>
+                        <li><strong>ShiftRows:</strong> Rows of the state matrix are cyclically shifted, providing diffusion</li>
+                        <li><strong>MixColumns:</strong> Columns are mixed using matrix multiplication in a finite field</li>
+                        <li><strong>AddRoundKey:</strong> The round key (derived from the original key) is XORed with the state</li>
+                    </ul>
+                    
+                    <p>To brute-force AES-256, you would need to try 2<sup>256</sup> possible keys. That's approximately 1.16 &times; 10<sup>77</sup> combinations. If every atom in the observable universe (approximately 10<sup>80</sup>) were a computer trying one billion keys per second, it would still take longer than the age of the universe to try all possibilities.</p>
+                    
+                    <div class="code-block">
+AES-256 Encryption Example:
+
+Plaintext: "Payment for Invoice #2024-001"
+Key:       a3f2b8c9d1e4f5a6b7c8d9e0f1a2b3c4... (256 bits)
+IV:        7d8e9f0a1b2c3d4e... (initialization vector)
+
+        &#8681; 14 rounds of SubBytes + ShiftRows + MixColumns + AddRoundKey
+
+Ciphertext: 7f8a9b2c3d4e5f6a1b2c3d4e5f6a7b8c
+            9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a...
+
+Same Key + IV + Ciphertext = Original Plaintext &#10003;
+Wrong Key + Ciphertext = Random Garbage &#10007;
+                    </div>
+                    
+                    <h3>Block Cipher Modes of Operation</h3>
+                    <p>AES encrypts data in fixed 128-bit blocks. When messages are longer than 128 bits (16 bytes), a <strong>mode of operation</strong> determines how blocks are chained together:</p>
+                    
+                    <table class="comparison-table">
+                        <tr><th>Mode</th><th>Description</th><th>Security</th><th>Use Case</th></tr>
+                        <tr><td><strong>ECB</strong></td><td>Each block encrypted independently</td><td>Weak &mdash; identical blocks produce identical ciphertext</td><td>Never use for messages</td></tr>
+                        <tr><td><strong>CBC</strong></td><td>Each block XORed with previous ciphertext</td><td>Good, but vulnerable to padding oracle attacks</td><td>Legacy systems, TLS 1.2</td></tr>
+                        <tr><td><strong>CTR</strong></td><td>Encrypts a counter value, XORed with plaintext</td><td>Good, parallelizable</td><td>High-speed encryption</td></tr>
+                        <tr><td><strong>GCM</strong></td><td>CTR mode + authentication tag</td><td>Excellent &mdash; authenticated encryption</td><td>TLS 1.3, Kenostod messages</td></tr>
+                    </table>
+                    
+                    <p>Kenostod uses <strong>AES-256-GCM</strong> (Galois/Counter Mode) for message encryption. GCM provides both confidentiality (no one can read the message) and authenticity (no one can tamper with the ciphertext without detection). The authentication tag ensures that if even a single bit of the ciphertext is modified, decryption will fail &mdash; protecting against both eavesdropping and tampering.</p>
+                    
+                    <h3>The Key Distribution Problem</h3>
+                    <p>Symmetric encryption has one fundamental weakness: <strong>how do you securely share the key?</strong> If you could securely send the key to the recipient, you could have just securely sent the message instead. This is called the <strong>key distribution problem</strong>, and it plagued cryptography for centuries until public-key cryptography solved it.</p>
+                    
+                    <p>In practice, modern systems use a <strong>hybrid approach</strong>: asymmetric encryption (slow but no key sharing needed) is used to securely exchange a symmetric key, which is then used for the actual data encryption (fast and efficient). This is exactly how HTTPS, Signal, WhatsApp, and Kenostod's encrypted messages work.</p>
+                    
+                    <table class="comparison-table">
+                        <tr><th>Property</th><th>Symmetric</th><th>Asymmetric</th></tr>
+                        <tr><td>Key count</td><td>One shared key</td><td>Key pair (public + private)</td></tr>
+                        <tr><td>Speed</td><td>Very fast (1000x+)</td><td>Slow</td></tr>
+                        <tr><td>Key distribution</td><td>Must be shared secretly</td><td>Public key shared openly</td></tr>
+                        <tr><td>Key size (equiv. security)</td><td>128-256 bits</td><td>2048-4096 bits (RSA) / 256 bits (ECC)</td></tr>
+                        <tr><td>Best for</td><td>Bulk data encryption</td><td>Key exchange, signatures</td></tr>
+                        <tr><td>Example algorithms</td><td>AES, ChaCha20, Twofish</td><td>RSA, ECDSA, Ed25519, X25519</td></tr>
+                        <tr><td>Quantum resistance</td><td>AES-256 remains secure (Grover's reduces to 128-bit)</td><td>RSA/ECC broken by Shor's algorithm</td></tr>
+                    </table>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Quantum Threat</div>
+                        <p>Quantum computers running Shor's algorithm could break RSA and ECC, but AES-256 remains quantum-resistant (Grover's algorithm only halves the effective key length, reducing it to 128-bit equivalent security &mdash; still unbreakable). This is why the cryptography community is actively developing <strong>post-quantum cryptographic</strong> algorithms. Kenostod's roadmap includes migration to quantum-resistant signature schemes when standardized.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="asymmetric" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128274;</span>Asymmetric Encryption Deep Dive</h2>
+                <div class="reading-content">
+                    <p><strong>Asymmetric encryption</strong> (also called public-key cryptography) uses a mathematically linked pair of keys: a <strong>public key</strong> that anyone can know, and a <strong>private key</strong> that only the owner possesses. Data encrypted with the public key can only be decrypted with the corresponding private key, and vice versa.</p>
+                    
+                    <h3>The Mailbox Analogy</h3>
+                    <p>Think of a mailbox with a slot (the public key) and a key to open it (the private key). Anyone can drop a letter into the slot, but only the person with the key can retrieve the letters. Even the person who dropped the letter in cannot get it back. This is exactly how asymmetric encryption works: anyone can encrypt a message with your public key, but only you can decrypt it with your private key.</p>
+                    
+                    <h3>Elliptic Curve Cryptography in Kenostod</h3>
+                    <p>Kenostod uses <strong>secp256k1</strong>, the same elliptic curve used by Bitcoin and Ethereum. An elliptic curve is defined by the equation y<sup>2</sup> = x<sup>3</sup> + ax + b. For secp256k1, the specific equation is y<sup>2</sup> = x<sup>3</sup> + 7.</p>
+                    
+                    <p>The security relies on the <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong>: given a point P on the curve and another point Q = kP (where k is the private key), it's computationally infeasible to determine k from P and Q. This is a one-way function &mdash; easy to compute in one direction, virtually impossible to reverse.</p>
+                    
+                    <div class="code-block">
+Kenostod Key Usage for Message Encryption:
+
+1. Alice wants to send an encrypted message to Bob
+2. Alice obtains Bob's PUBLIC key (from his wallet address)
+3. Alice generates an ephemeral key pair (one-time use)
+4. Alice performs ECDH: shared_secret = ECDH(ephemeral_private, Bob_public)
+5. Alice derives AES key: aes_key = KDF(shared_secret)
+6. Alice encrypts: ciphertext = AES-256-GCM(message, aes_key)
+7. Alice attaches {ephemeral_public_key, ciphertext, auth_tag} to transaction
+8. Bob receives the transaction
+9. Bob computes: shared_secret = ECDH(Bob_private, ephemeral_public)
+10. Bob derives: aes_key = KDF(shared_secret)  [same key as Alice derived]
+11. Bob decrypts: message = AES-256-GCM-Decrypt(ciphertext, aes_key)
+
+&#10003; Only Bob can read the message
+&#10003; The encrypted ciphertext is visible on the blockchain
+&#10003; Without Bob's private key, the message is unreadable
+&#10003; The ephemeral key ensures each message has a unique encryption key
+                    </div>
+                    
+                    <h3>ECIES &mdash; Elliptic Curve Integrated Encryption Scheme</h3>
+                    <p>Kenostod uses <strong>ECIES</strong> for message encryption, which combines the best of both worlds. The full process is elegant in its design:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Step 1:</strong> Generate a random ephemeral key pair (used once, then discarded)</li>
+                        <li><strong>Step 2:</strong> Use ECDH (Elliptic Curve Diffie-Hellman) with the recipient's public key to derive a shared secret</li>
+                        <li><strong>Step 3:</strong> Use a Key Derivation Function (KDF) to derive an AES key and MAC key from the shared secret</li>
+                        <li><strong>Step 4:</strong> Encrypt the message with AES-256-GCM (symmetric, fast, authenticated)</li>
+                        <li><strong>Step 5:</strong> Include the ephemeral public key with the ciphertext so the recipient can reconstruct the shared secret</li>
+                    </ul>
+                    <p>This hybrid approach gives us the convenience of asymmetric encryption (no need to pre-share keys) with the speed of symmetric encryption (AES for bulk data). Each message gets a unique symmetric key, so compromising one message's key doesn't affect any other message.</p>
+                    
+                    <h3>RSA vs ECC: Why Kenostod Chose Elliptic Curves</h3>
+                    <table class="comparison-table">
+                        <tr><th>Property</th><th>RSA-3072</th><th>ECC-256 (secp256k1)</th></tr>
+                        <tr><td>Security level</td><td>128-bit equivalent</td><td>128-bit equivalent</td></tr>
+                        <tr><td>Key size</td><td>3072 bits (384 bytes)</td><td>256 bits (32 bytes)</td></tr>
+                        <tr><td>Signature size</td><td>384 bytes</td><td>64 bytes</td></tr>
+                        <tr><td>Sign speed</td><td>Slower</td><td>Faster</td></tr>
+                        <tr><td>Verify speed</td><td>Faster</td><td>Slightly slower</td></tr>
+                        <tr><td>Blockchain suitability</td><td>Poor (large signatures waste block space)</td><td>Excellent (compact signatures)</td></tr>
+                    </table>
+                    <p>ECC's compact key and signature sizes make it ideal for blockchain systems where every byte stored on-chain costs money. A 64-byte ECDSA signature vs a 384-byte RSA signature means 6x less storage per transaction &mdash; a massive savings at scale.</p>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128161; Why This Matters for Kenostod</div>
+                        <p>Every Kenostod wallet already has a public-private key pair (that's what a wallet IS). This means every wallet is automatically capable of receiving encrypted messages &mdash; no additional setup required. Your wallet's public key doubles as your encryption key, and your private key doubles as your decryption key. The infrastructure for secure communication was built into the payment system from day one.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="e2e" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128272;</span>End-to-End Encryption Explained</h2>
+                <div class="reading-content">
+                    <p><strong>End-to-end encryption (E2EE)</strong> means that only the communicating parties can read the messages. No intermediary &mdash; not the service provider, not the network operators, not even the developers &mdash; can access the plaintext content.</p>
+                    
+                    <h3>How E2EE Differs from Transport Encryption</h3>
+                    <p>Many services claim to use encryption but only encrypt data "in transit" (like HTTPS). This is called <strong>transport encryption</strong> &mdash; the data is encrypted between your device and the server, but the server itself can read everything. This is how most email services work: Google can read your Gmail, Microsoft can read your Outlook.</p>
+                    
+                    <p>With E2EE, the message is encrypted on the sender's device and only decrypted on the recipient's device. The server (or blockchain) only ever sees ciphertext. Even if the server is compromised, the messages remain unreadable.</p>
+                    
+                    <div class="code-block">
+Transport Encryption (e.g., regular email):
+Alice &rarr; [encrypted in transit] &rarr; SERVER (reads plaintext) &rarr; [encrypted in transit] &rarr; Bob
+                                        &#10060; Server can read messages
+                                        &#10060; Government subpoena reveals all
+                                        &#10060; Data breach exposes everything
+
+End-to-End Encryption (e.g., Kenostod messages):
+Alice &rarr; [encrypted on device] &rarr; BLOCKCHAIN (sees only ciphertext) &rarr; [decrypted on device] &rarr; Bob
+                                       &#10003; Nobody in between can read messages
+                                       &#10003; No central server to subpoena
+                                       &#10003; Data breach reveals only ciphertext
+                    </div>
+                    
+                    <h3>The Signal Protocol</h3>
+                    <p>The <strong>Signal Protocol</strong>, developed by Moxie Marlinspike and Open Whisper Systems, is widely considered the gold standard for encrypted messaging. Used by Signal, WhatsApp (2+ billion users), and Facebook Messenger, it provides three groundbreaking properties:</p>
+                    
+                    <h4>Forward Secrecy (via the Double Ratchet)</h4>
+                    <p>Even if a key is compromised, past messages remain secure. Signal achieves this through the <strong>Double Ratchet Algorithm</strong>, which continuously generates new encryption keys. Think of it like a ratchet wrench &mdash; it can only move forward, never backward. Each message uses a new key derived from the previous state, so compromising the current key reveals nothing about past keys.</p>
+                    
+                    <h4>Future Secrecy (Self-Healing)</h4>
+                    <p>Even if a key is compromised, future messages become secure again after a few exchanges. The Diffie-Hellman ratchet generates new key material with each exchange, so the attacker's advantage is temporary.</p>
+                    
+                    <h4>Deniability</h4>
+                    <p>Messages cannot be cryptographically proven to come from a specific person to a third party. This is a deliberate design choice &mdash; it means a leaked conversation cannot be mathematically verified as authentic, protecting sources and whistleblowers.</p>
+                    
+                    <h3>How Kenostod Messaging Compares to Signal</h3>
+                    <p>Kenostod's approach differs from Signal in important ways, each with trade-offs:</p>
+                    
+                    <table class="comparison-table">
+                        <tr><th>Feature</th><th>Signal Protocol</th><th>Kenostod Messages</th></tr>
+                        <tr><td>Permanence</td><td>Messages can be deleted</td><td>Messages are permanent (on-chain)</td></tr>
+                        <tr><td>Non-repudiation</td><td>Deniable by design</td><td>Cryptographically signed (non-deniable)</td></tr>
+                        <tr><td>Forward secrecy</td><td>Yes (Double Ratchet)</td><td>No (static wallet keys)</td></tr>
+                        <tr><td>Metadata privacy</td><td>Minimal metadata (sealed sender)</td><td>Transaction metadata is public</td></tr>
+                        <tr><td>Use case</td><td>Private conversation</td><td>Verifiable business communication</td></tr>
+                        <tr><td>Legal standing</td><td>Weak (deniable by design)</td><td>Strong (signed, timestamped, immutable)</td></tr>
+                        <tr><td>Key management</td><td>Automatic (app handles it)</td><td>Wallet-based (user controls keys)</td></tr>
+                        <tr><td>Cost per message</td><td>Free (centralized infrastructure)</td><td>Transaction fee (block space)</td></tr>
+                        <tr><td>Offline delivery</td><td>Yes (server queues)</td><td>Yes (stored on-chain permanently)</td></tr>
+                    </table>
+                    
+                    <div class="concept-box">
+                        <h4>&#128161; Different Tools for Different Jobs</h4>
+                        <p>Signal is designed for private conversation where deniability is a feature. Kenostod messages are designed for <strong>verifiable business communication</strong> where non-repudiation is the feature. You wouldn't use Signal for a legally binding contract acknowledgment, and you wouldn't use Kenostod messages for casual private chats. Understanding which tool fits which purpose is key to using them correctly.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pgp" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128271;</span>PGP &amp; the Web of Trust</h2>
+                <div class="reading-content">
+                    <p><strong>PGP (Pretty Good Privacy)</strong> was created by Phil Zimmermann in 1991 and represents one of the most important chapters in the history of civilian cryptography. Its creation, the legal battles it sparked, and the trust model it introduced all directly influenced the cryptocurrency movement.</p>
+                    
+                    <h3>The Birth of PGP</h3>
+                    <p>In 1991, the U.S. government was considering Senate Bill 266, which would have required all electronic communications to include a "backdoor" for government access. Phil Zimmermann, a software engineer and political activist, decided to release PGP as freeware before the bill could pass, believing that strong encryption was a fundamental right.</p>
+                    
+                    <p>The U.S. government responded by investigating Zimmermann for three years under the Arms Export Control Act, which classified strong encryption software as "munitions" &mdash; the same category as missiles and tanks. The investigation was eventually dropped in 1996, but the <strong>Crypto Wars</strong> it sparked established crucial legal precedents for the right to use strong encryption.</p>
+                    
+                    <h3>How PGP Works</h3>
+                    <p>PGP uses a hybrid encryption approach similar to what Kenostod employs:</p>
+                    <div class="code-block">
+PGP Encryption Process:
+
+1. Generate random session key (symmetric, e.g., AES-256)
+2. Encrypt the message with the session key (fast)
+3. Encrypt the session key with recipient's RSA/ECC public key (slow, small data)
+4. Bundle: {encrypted_session_key + encrypted_message}
+5. Optionally: Sign the message with sender's private key
+
+Decryption:
+1. Decrypt session key using recipient's private key
+2. Decrypt message using session key
+3. Verify signature using sender's public key
+                    </div>
+                    
+                    <h3>The Web of Trust</h3>
+                    <p>PGP introduced the <strong>Web of Trust</strong> model for establishing identity without a central authority. Instead of a Certificate Authority (like in HTTPS), PGP users verify each other's identities and sign each other's public keys. If Alice trusts Bob, and Bob has signed Charlie's key, Alice can reasonably trust Charlie's key through Bob's endorsement.</p>
+                    
+                    <p>This decentralized trust model is conceptually identical to how blockchain networks establish trust without a central authority. In fact, many early Bitcoin adopters were PGP users who understood the power of decentralized cryptographic systems. Satoshi Nakamoto's first Bitcoin announcement was posted to a cryptography mailing list where PGP signatures were standard practice.</p>
+                    
+                    <h3>PGP in Cryptocurrency Culture</h3>
+                    <p>PGP remains deeply embedded in cryptocurrency culture:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Key Signing Parties:</strong> Cryptocurrency meetups often include PGP key signing sessions where participants verify each other's identities</li>
+                        <li><strong>Canary Statements:</strong> Exchanges and services use PGP-signed "warrant canary" statements to indicate they haven't been served with secret government orders</li>
+                        <li><strong>Developer Communication:</strong> Bitcoin Core developers sign their commits and communications with PGP keys, establishing a chain of trusted development</li>
+                        <li><strong>Darknet Markets:</strong> PGP encryption was standard for buyer-seller communication on early cryptocurrency marketplaces</li>
+                    </ul>
+                    
+                    <h3>PGP's Limitations (and How Kenostod Improves)</h3>
+                    <p>Despite its technical soundness, PGP email encryption never achieved mass adoption. The reasons are instructive for understanding why Kenostod's approach is better:</p>
+                    
+                    <table class="comparison-table">
+                        <tr><th>PGP Problem</th><th>Kenostod Solution</th></tr>
+                        <tr><td>Complex key management (import, export, verify)</td><td>Wallet keys serve as encryption keys automatically</td></tr>
+                        <tr><td>No forward secrecy (one key compromise = all messages)</td><td>Each message uses unique ephemeral keys (ECIES)</td></tr>
+                        <tr><td>Metadata leaks (subject, sender, recipient, timestamps)</td><td>Only transaction metadata is public; message content encrypted</td></tr>
+                        <tr><td>Key discovery problem (how to find someone's public key?)</td><td>Public key is derivable from wallet address</td></tr>
+                        <tr><td>No built-in financial context</td><td>Messages are inherently tied to financial transactions</td></tr>
+                    </table>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; PGP's Legacy</div>
+                        <p>While PGP itself may be declining in everyday use, its core innovations &mdash; hybrid encryption, the Web of Trust, and the principle that civilians deserve strong encryption &mdash; are the foundation of every modern encrypted system, including Kenostod. Understanding PGP helps you understand why blockchain-based encrypted messaging exists at all.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="blockchain-messaging" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9939;&#65039;</span>Blockchain Messaging: On-Chain vs Off-Chain</h2>
+                <div class="reading-content">
+                    <p>When we talk about "blockchain messaging," there are fundamentally two architectures, each with significant trade-offs:</p>
+                    
+                    <h3>On-Chain Messaging (Kenostod's Approach)</h3>
+                    <p>On-chain messaging stores the message data directly on the blockchain as part of a transaction. This is Kenostod's approach, and it provides unmatched guarantees:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Permanence:</strong> Messages are immutable &mdash; stored forever on every node in the network</li>
+                        <li><strong>Verifiability:</strong> Anyone can verify the message exists and who sent it by checking the blockchain</li>
+                        <li><strong>Timestamping:</strong> The block timestamp provides a tamper-proof time record, accepted as evidence in many jurisdictions</li>
+                        <li><strong>Censorship resistance:</strong> No single entity can delete or censor the message once confirmed</li>
+                        <li><strong>Cost:</strong> Messages consume block space, so they incur transaction fees proportional to message size</li>
+                        <li><strong>Size limits:</strong> Block size constraints limit message length (Kenostod allows up to 4KB per message)</li>
+                        <li><strong>Privacy trade-off:</strong> Even encrypted messages reveal that communication occurred between two addresses</li>
+                    </ul>
+                    
+                    <h3>Off-Chain Messaging</h3>
+                    <p>Off-chain messaging stores messages separately from the blockchain, using it only for verification or key exchange:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Scalability:</strong> No block space consumed, so no size limits and no additional fees</li>
+                        <li><strong>Lower cost:</strong> No transaction fees for messages</li>
+                        <li><strong>Privacy:</strong> Communication patterns not recorded on public chain</li>
+                        <li><strong>Rich media:</strong> Can include images, files, and large documents</li>
+                        <li><strong>Fragility:</strong> If the off-chain storage fails, messages are permanently lost</li>
+                        <li><strong>Trust requirement:</strong> Must trust the off-chain storage provider to not tamper with or delete data</li>
+                        <li><strong>No guaranteed delivery:</strong> The storage provider could censor specific messages</li>
+                    </ul>
+                    
+                    <h3>The Hybrid Model</h3>
+                    <p>Many projects use a hybrid approach: a hash of the message is stored on-chain (proving it existed at a certain time and hasn't been altered), while the full message is stored off-chain (IPFS, Arweave, or private servers). This provides verifiability without the cost of storing large messages on-chain.</p>
+                    
+                    <div class="code-block">
+Kenostod On-Chain Message Structure:
+
+{
+  "txId": "0x7f3a9b2c...",
+  "from": "0x1234...abcd",
+  "to": "0x5678...efgh",
+  "amount": 500,
+  "currency": "KENO",
+  "message": {
+    "content": "encrypted:7f8a9b2c3d4e5f...",
+    "ephemeralPubKey": "04a1b2c3d4e5...",
+    "authTag": "9f8e7d6c5b4a...",
+    "signature": "0x9abc...def0",
+    "timestamp": 1706745600,
+    "encoding": "ECIES-secp256k1-AES256GCM",
+    "version": "1.0"
+  },
+  "fee": 0.5,
+  "blockNumber": 42851
+}
+                    </div>
+                    
+                    <h3>Real-World Blockchain Messaging Protocols</h3>
+                    <p>Several blockchain projects have tackled messaging in different ways. Understanding the landscape helps you appreciate Kenostod's unique position:</p>
+                    
+                    <table class="comparison-table">
+                        <tr><th>Protocol</th><th>Architecture</th><th>Key Feature</th><th>Limitation</th></tr>
+                        <tr><td><strong>XMTP</strong></td><td>Off-chain (own network)</td><td>Wallet-to-wallet messaging, E2EE</td><td>Not tied to transactions</td></tr>
+                        <tr><td><strong>Push Protocol</strong></td><td>Hybrid</td><td>Decentralized notifications</td><td>Focused on notifications, not conversation</td></tr>
+                        <tr><td><strong>Waku</strong></td><td>Off-chain (libp2p)</td><td>Censorship-resistant, minimal metadata</td><td>No built-in financial context</td></tr>
+                        <tr><td><strong>Ethereum Input Data</strong></td><td>On-chain</td><td>Arbitrary data in transactions</td><td>No encryption standard, raw hex</td></tr>
+                        <tr><td><strong>Kenostod Messages</strong></td><td>On-chain</td><td>Integrated with payments, ECIES encryption</td><td>Size limited, transaction fee required</td></tr>
+                    </table>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Kenostod's Unique Advantage</div>
+                        <p>Kenostod's approach is unique in tying messages directly to transactions. While protocols like XMTP provide general messaging, Kenostod messages have an inherent financial context &mdash; they're always associated with a specific payment, creating an unbreakable link between communication and economic activity. This makes them ideal for business applications where you need to prove not just that you communicated, but exactly what you communicated in relation to a specific financial transaction.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="signing" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Digital Signatures &amp; Message Signing</h2>
+                <div class="reading-content">
+                    <p>Every Kenostod transaction message is <strong>digitally signed</strong> with the sender's private key. This provides three critical guarantees:</p>
+                    
+                    <ul class="step-list">
+                        <li><strong>Authentication:</strong> The message was definitely sent by the owner of the wallet. No one else could have produced the signature without the private key. This is stronger than any physical signature &mdash; it's mathematically impossible to forge.</li>
+                        <li><strong>Integrity:</strong> The message has not been altered since it was signed. Changing even a single character would invalidate the signature. Even adding a space or period produces a completely different hash.</li>
+                        <li><strong>Non-repudiation:</strong> The sender cannot deny having sent the message. The mathematical proof is irrefutable and can be verified by anyone with access to the public key (which is everyone, since public keys are public).</li>
+                    </ul>
+                    
+                    <h3>How Message Signing Works</h3>
+                    <div class="code-block">
+Step 1: Hash the Message
+  Message: "Invoice #2024-001 for consulting services - 500 KENO"
+  Hash:    SHA-256(message) = 3a7f2b8c9d1e4f5a...
+
+Step 2: Sign the Hash with Private Key
+  Signature = ECDSA_Sign(hash, private_key)
+  Result:    { r: "0x9abc1d2e3f...", s: "0x4567890ab...", v: 27 }
+
+Step 3: Attach to Transaction
+  TX { from, to, amount, message, signature }
+
+Step 4: Anyone Can Verify
+  ECDSA_Verify(hash, signature, public_key) = TRUE &#10003;
+  "This message was definitely written by the owner of 0x1234..."
+
+Step 5: Tamper Detection
+  Modified message: "Invoice #2024-001 for consulting services - 5000 KENO"
+  New hash:  SHA-256(modified) = 8b2f1c7a...  (completely different!)
+  ECDSA_Verify(new_hash, original_signature, public_key) = FALSE &#10007;
+  "This signature does not match the message - tampering detected!"
+                    </div>
+                    
+                    <h3>ECDSA vs EdDSA</h3>
+                    <p>Kenostod uses <strong>ECDSA (Elliptic Curve Digital Signature Algorithm)</strong> on secp256k1 for compatibility with the broader blockchain ecosystem. However, newer systems are adopting <strong>EdDSA (Edwards-curve Digital Signature Algorithm)</strong> on Curve25519, which offers several advantages:</p>
+                    
+                    <table class="comparison-table">
+                        <tr><th>Property</th><th>ECDSA (secp256k1)</th><th>EdDSA (Ed25519)</th></tr>
+                        <tr><td>Deterministic</td><td>No (requires random nonce)</td><td>Yes (deterministic nonce)</td></tr>
+                        <tr><td>Nonce vulnerability</td><td>Reused nonce = key leak</td><td>No risk (deterministic)</td></tr>
+                        <tr><td>Speed</td><td>Good</td><td>Faster</td></tr>
+                        <tr><td>Ecosystem</td><td>Bitcoin, Ethereum, Kenostod</td><td>Solana, Cardano, newer chains</td></tr>
+                        <tr><td>Batch verification</td><td>Limited</td><td>Excellent</td></tr>
+                    </table>
+                    
+                    <h3>Legal Implications of Signed Messages</h3>
+                    <p>Cryptographically signed messages have increasingly recognized legal standing. In many jurisdictions, a digital signature carries the same weight as a handwritten signature under laws like:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>U.S. E-SIGN Act (2000):</strong> Electronic signatures are legally valid for commerce</li>
+                        <li><strong>EU eIDAS Regulation (2014):</strong> Establishes three levels of electronic signatures, with "qualified electronic signatures" having the highest legal standing</li>
+                        <li><strong>UNCITRAL Model Law:</strong> Provides international framework for electronic signatures</li>
+                    </ul>
+                    
+                    <p>This means Kenostod transaction messages can potentially serve as:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Proof of agreement to contract terms</li>
+                        <li>Acknowledgment of receipt of goods or services</li>
+                        <li>Timestamped evidence in disputes</li>
+                        <li>Audit trails for regulatory compliance</li>
+                        <li>Tax documentation with verifiable payment records</li>
+                        <li>Supply chain provenance verification</li>
+                    </ul>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Important Caveat</div>
+                        <p>While cryptographic signatures are mathematically irrefutable, their legal standing depends on jurisdiction and the specific legal framework. The challenge is often proving the connection between a cryptographic key and a real-world identity. Always consult a legal professional for matters requiring formal contracts or compliance documentation.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="metadata" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128065;&#65039;</span>Metadata Protection Challenges</h2>
+                <div class="reading-content">
+                    <p>Encrypting message content is only half the privacy battle. <strong>Metadata</strong> &mdash; information about the communication itself &mdash; can be just as revealing as the content. As former NSA General Counsel Stewart Baker said: "Metadata absolutely tells you everything about somebody's life. If you have enough metadata, you don't really need content."</p>
+                    
+                    <h3>What Metadata Reveals</h3>
+                    <p>Even with perfectly encrypted message content, blockchain transactions reveal:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Sender address:</strong> Who initiated the communication</li>
+                        <li><strong>Recipient address:</strong> Who received it</li>
+                        <li><strong>Timestamp:</strong> When the communication occurred</li>
+                        <li><strong>Transaction amount:</strong> The financial value attached</li>
+                        <li><strong>Message size:</strong> How long the encrypted message is (reveals rough content length)</li>
+                        <li><strong>Frequency:</strong> How often two addresses communicate</li>
+                        <li><strong>Network analysis:</strong> Who communicates with whom, forming a social graph</li>
+                    </ul>
+                    
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#9888;&#65039; The Metadata Problem in Practice</div>
+                        <p>Consider this scenario: An encrypted message is sent from a known corporate wallet to a regulator's wallet, followed by a large sell-off of the company's tokens. An observer can't read the message, but the metadata alone suggests insider knowledge of an upcoming regulatory action. The <em>pattern</em> of communication reveals intent, even without knowing the content.</p>
+                    </div>
+                    
+                    <h3>Traffic Analysis Attacks</h3>
+                    <p><strong>Traffic analysis</strong> is the study of communication patterns to extract intelligence without reading message contents. It has a long history in military intelligence and has become increasingly relevant in the blockchain era:</p>
+                    
+                    <h4>Timing Correlation</h4>
+                    <p>If Alice sends a transaction at 3:47:22 PM and a "anonymous" transaction appears on another network at 3:47:25 PM, the timing correlation suggests they're related. Sophisticated adversaries can correlate timing across chains, exchanges, and IP addresses.</p>
+                    
+                    <h4>Amount Correlation</h4>
+                    <p>Sending exactly 1,337.42 KENO is distinctive. Even after mixing or tumbling, if the same unusual amount appears elsewhere, it can be traced. This is why privacy-focused users often use round numbers or add random noise to amounts.</p>
+                    
+                    <h4>Graph Analysis</h4>
+                    <p>By mapping which addresses transact with which, analysts can build a social graph. Clustering algorithms can group addresses belonging to the same entity. Companies like Chainalysis, Elliptic, and CipherTrace have built billion-dollar businesses doing exactly this.</p>
+                    
+                    <h3>Metadata Protection Techniques</h3>
+                    <p>Various techniques exist to mitigate metadata leakage, each with trade-offs:</p>
+                    
+                    <table class="comparison-table">
+                        <tr><th>Technique</th><th>What It Protects</th><th>Trade-off</th></tr>
+                        <tr><td><strong>Stealth Addresses</strong></td><td>Recipient identity (one-time addresses)</td><td>More complex key management</td></tr>
+                        <tr><td><strong>Tor/I2P</strong></td><td>IP address of sender</td><td>Slower transaction broadcasting</td></tr>
+                        <tr><td><strong>CoinJoin/Mixing</strong></td><td>Transaction graph (who paid whom)</td><td>Higher fees, requires coordination</td></tr>
+                        <tr><td><strong>Confidential Transactions</strong></td><td>Transaction amounts</td><td>Larger transaction sizes</td></tr>
+                        <tr><td><strong>Decoy Traffic</strong></td><td>Communication patterns</td><td>Wasted bandwidth and fees</td></tr>
+                        <tr><td><strong>Delayed Broadcasting</strong></td><td>Timing correlation</td><td>Slower message delivery</td></tr>
+                    </table>
+                    
+                    <h3>Kenostod's Metadata Posture</h3>
+                    <p>Kenostod takes a pragmatic approach: transaction metadata (amounts, addresses, timestamps) is transparent, but message <em>content</em> is optionally encrypted. This is a deliberate design choice that prioritizes:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Auditability:</strong> Financial regulators can verify transaction flows without reading private messages</li>
+                        <li><strong>Reputation system:</strong> The reputation system (Course 7) requires transparent transactions to verify that ratings come from real economic activity</li>
+                        <li><strong>Simplicity:</strong> Full metadata protection adds enormous complexity and cost</li>
+                    </ul>
+                    
+                    <div class="concept-box">
+                        <h4>&#128161; The Privacy Spectrum</h4>
+                        <p>Privacy exists on a spectrum, not as a binary. At one end: everything is public (Bitcoin). At the other: everything is hidden (Monero). Kenostod sits in the middle: financial flows are transparent (enabling compliance and reputation), but communication content is private (protecting business secrets and personal information). This balanced approach serves the majority of legitimate use cases while remaining regulatory-friendly.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="privacy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128373;&#65039;</span>Privacy Technologies &amp; Zero-Knowledge Proofs</h2>
+                <div class="reading-content">
+                    <p>While Kenostod's encrypted messages protect message content, the broader blockchain privacy landscape includes technologies that can protect not just message contents but also transaction amounts, sender/receiver identities, and communication patterns.</p>
+                    
+                    <h3>Zero-Knowledge Proofs &mdash; A Deep Dive</h3>
+                    <p>A <strong>zero-knowledge proof (ZKP)</strong> allows one party (the prover) to prove to another party (the verifier) that a statement is true without revealing any information beyond the validity of the statement itself. ZKPs are perhaps the most revolutionary cryptographic tool since public-key encryption.</p>
+                    
+                    <h4>The Ali Baba Cave Analogy</h4>
+                    <p>Imagine a cave shaped like a ring with a locked door in the middle. Peggy (prover) claims she knows the secret word to open the door. Victor (verifier) wants proof without learning the word:</p>
+                    <ul class="step-list">
+                        <li>Victor waits outside. Peggy enters the cave and randomly takes path A or B.</li>
+                        <li>Victor enters and shouts which path he wants Peggy to emerge from (A or B).</li>
+                        <li>If Peggy knows the secret, she can always exit from the requested path (going through the door if needed).</li>
+                        <li>After 20 rounds, if Peggy emerges correctly every time, Victor is 99.9999% certain she knows the secret &mdash; but he learned nothing about the secret word itself.</li>
+                    </ul>
+                    
+                    <h4>Types of Zero-Knowledge Proofs</h4>
+                    <table class="comparison-table">
+                        <tr><th>Type</th><th>Full Name</th><th>Proof Size</th><th>Setup</th><th>Used By</th></tr>
+                        <tr><td><strong>zk-SNARK</strong></td><td>Succinct Non-Interactive Argument of Knowledge</td><td>~200 bytes</td><td>Trusted setup required</td><td>Zcash, Tornado Cash</td></tr>
+                        <tr><td><strong>zk-STARK</strong></td><td>Scalable Transparent Argument of Knowledge</td><td>~50 KB</td><td>No trusted setup</td><td>StarkNet, StarkEx</td></tr>
+                        <tr><td><strong>Bulletproofs</strong></td><td>Short non-interactive ZKPs</td><td>~700 bytes</td><td>No trusted setup</td><td>Monero, Mimblewimble</td></tr>
+                        <tr><td><strong>PLONK</strong></td><td>Permutations over Lagrange-bases</td><td>~400 bytes</td><td>Universal setup</td><td>zkSync, Aztec</td></tr>
+                    </table>
+                    
+                    <h3>ZKPs for Private Messaging</h3>
+                    <p>Zero-knowledge proofs open fascinating possibilities for private messaging on public blockchains:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Prove you sent a message without revealing the content:</strong> "I certify that a message was delivered to address 0xABC at time T" without revealing what was said</li>
+                        <li><strong>Prove message properties without revealing the message:</strong> "The invoice amount is between $1,000 and $10,000" without revealing the exact amount</li>
+                        <li><strong>Anonymous group membership:</strong> "I am a member of the authorized senders list" without revealing which member</li>
+                        <li><strong>Selective disclosure:</strong> Reveal specific fields of a message to specific verifiers while keeping the rest private</li>
+                    </ul>
+                    
+                    <h3>Privacy Coins and Their Messaging Features</h3>
+                    <p>Some blockchains are designed with privacy as a core feature. Understanding them helps contextualize Kenostod's approach:</p>
+                    
+                    <h4>Monero (XMR)</h4>
+                    <p>Uses three key technologies working in concert: <strong>Ring Signatures</strong> (hide the sender among a group of possible senders), <strong>Stealth Addresses</strong> (one-time addresses for each transaction), and <strong>RingCT</strong> (hides transaction amounts using Pedersen commitments). On Monero, all transactions are private by default &mdash; there's no option for transparent transactions. Monero supports encrypted payment IDs (similar to Kenostod's message field) that allow recipients to identify payments.</p>
+                    
+                    <h4>Zcash (ZEC)</h4>
+                    <p>Uses <strong>zk-SNARKs</strong> to prove a transaction is valid without revealing any details. You can prove you have enough funds to make a payment without revealing your balance, the payment amount, or the recipient. Zcash supports both transparent (t-addresses) and shielded (z-addresses) transactions, allowing users to choose their privacy level. The "encrypted memo" field in shielded transactions functions similarly to Kenostod messages.</p>
+                    
+                    <h4>Secret Network</h4>
+                    <p>Uses <strong>Trusted Execution Environments (TEEs)</strong> to process encrypted data inside hardware enclaves. Smart contracts can operate on encrypted inputs and produce encrypted outputs. This enables private smart contracts and encrypted messaging at the application layer, with the hardware providing privacy guarantees.</p>
+                    
+                    <h3>Confidential Transactions</h3>
+                    <p><strong>Confidential Transactions (CT)</strong>, proposed by Adam Back and implemented by Greg Maxwell, use <strong>Pedersen commitments</strong> to hide transaction amounts while still allowing the network to verify that no coins were created or destroyed. The math ensures that inputs equal outputs without revealing what those values are.</p>
+                    
+                    <div class="code-block">
+Pedersen Commitment (simplified):
+
+Commitment = (amount * G) + (blinding_factor * H)
+
+Where:
+  G, H = generator points on the elliptic curve
+  amount = the value being hidden
+  blinding_factor = random number known only to the parties
+
+Properties:
+  &#10003; Hiding: Cannot determine 'amount' from the commitment
+  &#10003; Binding: Cannot find a different amount that produces the same commitment
+  &#10003; Additive: Commitments can be added to verify inputs = outputs
+    C(a) + C(b) = C(a + b) [approximately, with blinding factor math]
+                    </div>
+                    
+                    <div class="success-box">
+                        <h4>&#10003; Kenostod's Privacy Model</h4>
+                        <p>Kenostod takes a balanced approach: transactions are transparent (amounts and addresses are public), but message contents can be encrypted. This balances the need for network transparency and auditability with the need for private communication. The reputation system (Course 7) also benefits from transparent transactions &mdash; you can verify that ratings come from real economic activity.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="workflows" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128736;&#65039;</span>Practical Encryption Workflows</h2>
+                <div class="reading-content">
+                    <p>Understanding encryption theory is essential, but applying it to real-world business scenarios is what makes the knowledge valuable. This section covers practical workflows for using Kenostod's encrypted messaging system.</p>
+                    
+                    <h3>Workflow 1: Freelancer Invoice Payment</h3>
+                    <p>A freelancer completes a web development project and needs to receive payment with a proper invoice reference:</p>
+                    <div class="code-block">
+Scenario: Alice (freelancer) invoices Bob (client)
+
+Step 1: Alice sends an off-chain invoice (PDF) to Bob via email
+Step 2: Alice calculates SHA-256 hash of the PDF: "a1b2c3d4..."
+Step 3: Bob reviews and approves the invoice
+Step 4: Bob sends 500 KENO to Alice with encrypted message:
+  {
+    "type": "invoice_payment",
+    "invoiceHash": "a1b2c3d4...",
+    "invoiceRef": "INV-2024-001",
+    "description": "Web development - Phase 2 delivery",
+    "taxId": "XX-XXXXXXX",
+    "paymentTerms": "Net 0 - Paid in full"
+  }
+Step 5: Alice decrypts the message and matches the invoice hash
+Step 6: Both parties now have:
+  &#10003; Proof of payment (on-chain transaction)
+  &#10003; Proof of invoice reference (encrypted, only parties can read)
+  &#10003; Proof of timestamp (block timestamp)
+  &#10003; Proof of sender identity (cryptographic signature)
+                    </div>
+                    
+                    <h3>Workflow 2: Multi-Sig Approval with Commentary</h3>
+                    <p>A DAO treasury requires 3-of-5 signers to approve large expenditures. Each signer can attach an encrypted message explaining their vote:</p>
+                    <div class="code-block">
+Multi-Sig Approval Process:
+
+Signer 1 (Alice): APPROVE
+  Encrypted message: "Reviewed vendor proposal. Competitive pricing.
+  Recommend approval. Budget code: R&amp;D-2024-Q4."
+
+Signer 2 (Bob): APPROVE  
+  Encrypted message: "Verified deliverables match SOW. 
+  Legal review completed - no issues."
+
+Signer 3 (Carol): APPROVE
+  Encrypted message: "Financial analysis shows positive ROI within 6 months.
+  Cash flow impact acceptable."
+
+Result: 3/5 approved. Transaction executes.
+  &#10003; Each vote is signed and timestamped
+  &#10003; Rationale is encrypted (only signers can read)
+  &#10003; Complete audit trail for governance records
+                    </div>
+                    
+                    <h3>Workflow 3: Supply Chain Provenance</h3>
+                    <p>Tracking goods through a supply chain with verifiable, timestamped messages at each stage:</p>
+                    <div class="code-block">
+Supply Chain Message Trail:
+
+TX 1: Manufacturer &rarr; Distributor (1000 KENO)
+  Message: "Batch #2024-A1: 500 units. QC passed. 
+  Certificate: SHA256(qc_cert.pdf) = abc123..."
+
+TX 2: Distributor &rarr; Retailer (1200 KENO)  
+  Message: "Received Batch #2024-A1. Cold chain maintained.
+  Temperature log: min 2&deg;C, max 6&deg;C. Transit time: 48hrs."
+
+TX 3: Retailer &rarr; Customer (refund, 50 KENO)
+  Message: "Return accepted. Product defect confirmed.
+  RMA #R-2024-001. Refund processed."
+                    </div>
+                    
+                    <h3>Workflow 4: Regulatory Compliance Reporting</h3>
+                    <p>Using hashed references to link on-chain transactions to off-chain regulatory filings:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Step 1:</strong> Prepare compliance report (SAR, CTR, or other regulatory filing)</li>
+                        <li><strong>Step 2:</strong> Hash the report document: SHA-256(report.pdf)</li>
+                        <li><strong>Step 3:</strong> Send a nominal transaction (0.01 KENO) with plaintext message containing the hash</li>
+                        <li><strong>Step 4:</strong> The on-chain hash proves the report existed at a specific time</li>
+                        <li><strong>Step 5:</strong> If the report is later disputed, the original can be verified against the on-chain hash</li>
+                    </ul>
+                    
+                    <h3>Encryption Best Practices Checklist</h3>
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#10003; Always Do</div>
+                        <p>&#10003; Encrypt messages containing personal or financial details<br>
+                        &#10003; Verify recipient addresses before sending sensitive encrypted messages<br>
+                        &#10003; Keep your private key secure (it's also your decryption key)<br>
+                        &#10003; Use hashed references for large documents (hash on-chain, full document off-chain)<br>
+                        &#10003; Include structured data (JSON) for machine-readable messages<br>
+                        &#10003; Back up your wallet &mdash; if you lose your keys, you lose access to all encrypted messages sent to you</p>
+                    </div>
+                    
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#10007; Never Do</div>
+                        <p>&#10007; Send sensitive information in plaintext messages (visible to everyone forever)<br>
+                        &#10007; Assume encrypted content hides the fact that communication occurred (metadata is public)<br>
+                        &#10007; Include private keys, seed phrases, or passwords in any transaction message<br>
+                        &#10007; Rely on message encryption alone for regulatory compliance (consult legal counsel)<br>
+                        &#10007; Send encrypted messages to the wrong address (they can never be recalled)</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These real events demonstrate why encrypted, verifiable communication matters. Each case illustrates different aspects of the encryption landscape that Kenostod's messaging system addresses.</p>
+                    
+                    <div class="case-study">
+                        <h4>&#128196; Case Study 1: The Sony Pictures Hack (2014)</h4>
+                        <p><strong>What happened:</strong> North Korean hackers (Guardians of Peace) breached Sony Pictures, stealing and publishing 100 terabytes of data including unreleased films, private emails between executives, salary data, and Social Security numbers of 47,000 employees.</p>
+                        <p style="margin-top: 10px;"><strong>The communication failure:</strong> Internal emails discussing sensitive business decisions, personal opinions about celebrities, and confidential negotiations were sent as plain text through corporate email. None were encrypted. The resulting public exposure of executive emails caused massive reputational damage beyond the financial losses.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson for Kenostod users:</strong> If Sony's internal communications had used end-to-end encryption, the stolen data would have been useless ciphertext. With blockchain-based signed and encrypted messaging, even a server breach reveals nothing about message contents. The key insight: <em>always encrypt sensitive business communication, even within your own organization</em>.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>&#128241; Case Study 2: WhatsApp's E2EE Rollout (2016)</h4>
+                        <p><strong>What happened:</strong> WhatsApp enabled end-to-end encryption for all 1+ billion users, implementing the Signal Protocol. This meant that WhatsApp itself could no longer read user messages, even if compelled by law enforcement.</p>
+                        <p style="margin-top: 10px;"><strong>The impact:</strong> Governments worldwide protested. Brazil temporarily blocked WhatsApp multiple times. The UK, Australia, and US pushed for "backdoors." However, security experts uniformly warned that any backdoor for law enforcement would inevitably be exploited by criminals and hostile nations.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson for Kenostod users:</strong> E2EE is either secure for everyone or secure for no one. There is no mathematical way to create a "golden key" that only good actors can use. This same principle applies to Kenostod's message encryption &mdash; the encryption is unconditional. This is a feature, not a bug: weakened encryption protects nobody.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>&#9939;&#65039; Case Study 3: The Silk Road Bitcoin Trail (2013-2015)</h4>
+                        <p><strong>What happened:</strong> The Silk Road, an online darknet marketplace, was shut down by the FBI in 2013. Despite using Bitcoin for transactions, law enforcement traced Bitcoin transactions through blockchain analysis, identifying Ross Ulbricht as the operator. Over $1 billion in Bitcoin was eventually seized.</p>
+                        <p style="margin-top: 10px;"><strong>The communication angle:</strong> While Silk Road used PGP for messages between buyers and sellers, the Bitcoin transactions themselves were fully transparent on the blockchain. Chainalysis and other firms traced the flow of funds, eventually connecting pseudonymous addresses to real identities through exchange KYC records.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson for Kenostod users:</strong> Encrypting message content is not enough if transaction metadata (who paid whom, how much, when) is public. This illustrates why understanding the difference between <em>content privacy</em> and <em>metadata privacy</em> is critical. Kenostod encrypts message content but transaction metadata remains transparent &mdash; know what is and isn't protected.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>&#128274; Case Study 4: Lavabit Shutdown (2013)</h4>
+                        <p><strong>What happened:</strong> Lavabit, an encrypted email service reportedly used by Edward Snowden, was ordered by the U.S. government to hand over its SSL encryption keys, which would have allowed surveillance of all 410,000 users. Rather than comply, founder Ladar Levison shut down the entire service.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson for Kenostod users:</strong> Centralized services are vulnerable to government pressure. Even with encryption, a centralized provider holds keys that can be demanded. Blockchain-based messaging eliminates this single point of failure &mdash; there's no company to subpoena, no server to seize, no master key to demand. Each user holds their own keys, and the blockchain is distributed across thousands of nodes. This is the fundamental advantage of decentralized encrypted communication.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>&#128176; Case Study 5: The DAO Hack Communication Chaos (2016)</h4>
+                        <p><strong>What happened:</strong> The DAO (Decentralized Autonomous Organization) on Ethereum lost $60 million worth of ETH due to a reentrancy vulnerability. In the chaotic aftermath, the Ethereum community debated whether to hard fork to recover the funds. Communication happened across dozens of platforms &mdash; Reddit, Twitter, Slack, forums &mdash; with no verifiable attribution or timestamps.</p>
+                        <p style="margin-top: 10px;"><strong>The communication failure:</strong> Fake "insider" posts influenced market panic. There was no way to verify who actually voted for or against the fork. Community members impersonated core developers. The lack of signed, verifiable communication channels contributed to confusion and market manipulation.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson for Kenostod users:</strong> If DAO governance communications were cryptographically signed and tied to on-chain identity (as Kenostod messages are), impersonation would be impossible. Every governance communication would be verifiable, timestamped, and attributable. This is exactly the use case Kenostod's message signing was designed for.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Explain Encryption to a Friend</h4>
+                        <div class="exercise-question">
+                            <p>Your non-technical friend asks: "What's the difference between symmetric and asymmetric encryption?" Explain both using real-world analogies (no technical jargon). Include why we need both types and how they work together in a hybrid system.</p>
+                            <textarea id="ex1" placeholder="Write your explanation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Privacy Analysis</h4>
+                        <div class="exercise-question">
+                            <p>A company wants to use Kenostod for payroll. They want to include salary details in transaction messages. What privacy considerations should they think about? Consider both the message content AND the transaction metadata. What would you recommend regarding encryption vs. plaintext messages, and why?</p>
+                            <textarea id="ex2" placeholder="Write your analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Comparing Messaging Systems</h4>
+                        <div class="exercise-question">
+                            <p>Compare Kenostod's on-chain encrypted messaging with Signal messaging and PGP-encrypted email. For each, describe: (1) who can read the messages, (2) how long messages persist, (3) what metadata is exposed, and (4) what legal evidence value they have. When would you choose each system?</p>
+                            <textarea id="ex3" placeholder="Write your comparison here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Case Study Analysis</h4>
+                        <div class="exercise-question">
+                            <p>Choose one of the case studies above (Sony, WhatsApp, Silk Road, Lavabit, or The DAO). If that organization had used Kenostod's encrypted transaction messages instead of their actual communication method, how would the outcome have been different? Analyze both what would improve AND what limitations would remain.</p>
+                            <textarea id="ex4" placeholder="Write your analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Design a Messaging Use Case</h4>
+                        <div class="exercise-question">
+                            <p>Design a real-world business scenario where Kenostod's encrypted transaction messages would be superior to any existing communication method. Describe: the scenario, what information would be in the message, whether it should be encrypted or plaintext, what metadata considerations exist, and why blockchain-based messaging is the best fit.</p>
+                            <textarea id="ex5" placeholder="Describe your use case design..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128421;&#65039;</span>Hands-On Lab</h2>
+                <div class="reading-content">
+                    <p>Now it's time to put your knowledge into action! Complete ALL of the following tasks in the Kenostod blockchain simulator.</p>
+                    
+                    <h3>Lab Tasks:</h3>
+                    <ul class="step-list">
+                        <li><strong>Task 1: Send a Plain Message</strong> &mdash; Go to the Send KENO tab and send a transaction with a plaintext message attached. Observe how the message appears in the transaction record.</li>
+                        <li><strong>Task 2: Send an Encrypted Message</strong> &mdash; Send another transaction, this time with encryption enabled. Notice how the message appears as ciphertext in the blockchain explorer.</li>
+                        <li><strong>Task 3: Verify a Signature</strong> &mdash; Receive a transaction with a message and verify the cryptographic signature. Confirm that the message was indeed sent by the claimed sender.</li>
+                        <li><strong>Task 4: Decrypt a Received Message</strong> &mdash; Open a transaction you received that contains an encrypted message. Use your private key to decrypt and read the contents.</li>
+                        <li><strong>Task 5: Explore the Blockchain</strong> &mdash; Browse transactions in the Blockchain Explorer. Compare how plaintext messages vs encrypted messages appear. Note the metadata that's visible even for encrypted messages.</li>
+                    </ul>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="/#transaction" class="practice-btn" onclick="goToPractice()">&#128640; Open Send KENO Tab</a>
+                        <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9em;">Opens in the main platform. Complete all 5 tasks, then return here for the Final Exam!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <h4>1. What makes Kenostod transaction messages different from regular email?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">They're faster to send</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">They're cryptographically signed, tamper-proof, and permanently recorded on the blockchain</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">They can include file attachments</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">They're free to send</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <h4>2. Who can decrypt an encrypted Kenostod transaction message?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Anyone on the blockchain</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Only the sender</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Only the intended recipient with their private key</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Network miners who validate the transaction</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="d">
+                    <h4>3. What was the significance of the Diffie-Hellman key exchange (1976)?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">It was the first encryption algorithm ever created</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">It broke the Enigma machine used in World War II</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">It created the first cryptocurrency</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">It allowed two parties to establish a shared secret over a public channel without prior contact</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="b">
+                    <h4>4. What is the main advantage of symmetric encryption over asymmetric?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">It doesn't require any keys at all</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">It's much faster (1000x+) for encrypting large amounts of data</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">It's inherently more secure than asymmetric</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">It doesn't require the parties to communicate first</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="c">
+                    <h4>5. What is ECIES and why does Kenostod use it?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">A type of cryptocurrency mining algorithm</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">A blockchain consensus mechanism for validating blocks</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">A hybrid encryption scheme combining elliptic curve key exchange with AES symmetric encryption</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">A decentralized messaging protocol for Web3 applications</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="a">
+                    <h4>6. What is the difference between transport encryption and end-to-end encryption?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Transport encryption protects data in transit but the server can read it; E2EE means only sender and recipient can read it</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">They are the same thing with different names</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Transport encryption is stronger than E2EE</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">E2EE only works for text messages, transport encryption works for all data types</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="b">
+                    <h4>7. What three guarantees does a digital signature provide?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Speed, cost-efficiency, and convenience</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Authentication, integrity, and non-repudiation</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Encryption, compression, and validation</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Privacy, anonymity, and decentralization</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="a">
+                    <h4>8. What is a zero-knowledge proof?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">A method to prove a statement is true without revealing any information beyond the statement's validity</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">An encryption method that uses no keys whatsoever</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">A way to send messages without any data transmission</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">A mathematical proof that nobody knows the answer to a problem</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="d">
+                    <h4>9. Why is metadata still a privacy concern even when message content is encrypted?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Metadata is always encrypted along with the content</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Metadata contains the encryption keys</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Metadata is not stored on the blockchain</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Metadata reveals who communicated with whom, when, and how much was sent, which can be as revealing as message content</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="a">
+                    <h4>10. What key feature does the Signal Protocol provide that Kenostod messages do NOT?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Forward secrecy (past messages stay safe even if keys are later compromised)</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">End-to-end encryption of message content</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Digital signatures for message authentication</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">Message delivery to the intended recipient</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="d">
+                    <h4>11. What is Kerckhoffs's principle?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">Encryption algorithms should always be kept secret</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">Longer encryption keys are always more secure</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">Symmetric encryption should always be preferred over asymmetric</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">A cryptographic system should be secure even if everything about the system is public, except the key</div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="c">
+                    <h4>12. Why is on-chain messaging valuable for business despite being more expensive than off-chain alternatives?</h4>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)">On-chain messages load faster than off-chain</div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)">On-chain messages support larger file sizes</div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)">On-chain messages are immutable, timestamped, and linked to financial transactions, providing strong legal evidence</div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)">On-chain messages are free for business accounts</div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+                <div id="quizResult" class="quiz-result"><h3 id="resultIcon"></h3><h3 id="resultTitle"></h3><p id="resultMessage"></p><div id="nextCourseContainer"></div></div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-5-recovery.html" style="color: var(--primary);">&larr; Course 5</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-7-reputation.html" style="color: var(--primary);">Course 7 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            const passing = 10;
+            if (correct >= passing) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\uD83C\uDF89';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + ' out of ' + total + '! You\'ve mastered Encrypted Messages.';
+                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You\'ve earned 250 KENO!</p><a href="/courses/course-7-reputation.html" class="next-course-btn">Continue to Course 7: Reputation System \u2192</a>';
+                localStorage.setItem('course6_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(6, 'Course 6: Encrypted Messages');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\uD83D\uDCDA';
+                document.getElementById('resultTitle').textContent = 'Keep Studying!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + ' out of ' + total + '. You need at least ' + passing + ' correct (80%) to pass. Review the material and try again.';
+                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            document.getElementById('quizResult').classList.remove('show', 'passed', 'failed');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+            var hints = {
+                1: 'Good effort! Symmetric encryption is like a shared padlock where both people have identical keys \u2014 fast and simple, but you must somehow get the key to the other person securely. Asymmetric encryption is like a mailbox with a slot (public key) anyone can drop letters into, but only the owner has the key (private key) to open it. We need both because asymmetric solves the key-sharing problem but is slow, while symmetric is fast but requires a pre-shared key. Modern systems (including Kenostod) use asymmetric to exchange a symmetric key, then symmetric for the actual data \u2014 this is the hybrid approach.',
+                2: 'Key points: Salary data is highly sensitive and must be encrypted. However, transaction amounts are visible on-chain even with encrypted messages, so the amount itself reveals salary info. The company should: (1) encrypt all message content containing employee ID, pay period, tax details; (2) consider whether transparent transaction amounts are acceptable or if they need to batch payments to obscure individual salaries; (3) evaluate whether a private/permissioned chain might be more appropriate for payroll; (4) consider splitting sensitive details across multiple smaller transactions.',
+                3: 'Strong comparison: Kenostod messages \u2014 only recipient can read (if encrypted), permanent and immutable, transaction metadata exposed (amounts, addresses, times), strong legal evidence due to cryptographic signatures and timestamps. Signal \u2014 E2EE with forward secrecy, ephemeral (can be deleted), minimal metadata (sealed sender), deniable by design (weak legal value). PGP email \u2014 E2EE but no forward secrecy, persistent until deleted, extensive metadata exposed (subject, headers, timestamps), moderate legal value. Choose Kenostod for verifiable business records, Signal for private conversations, PGP for secure email with tech-savvy contacts.',
+                4: 'Look for nuanced analysis. For Sony: encrypted messages would protect content, but metadata (communication patterns) might still reveal business relationships. For WhatsApp: Kenostod adds permanence and non-repudiation, which differs from Signal\'s deniability design. For Silk Road: transparent transaction metadata would actually make tracing easier, not harder \u2014 only message content would be protected. For Lavabit: decentralized key management means no company to subpoena, but each user must manage their own keys. For The DAO: signed messages would prevent impersonation but governance discussions might be too expensive as on-chain transactions.',
+                5: 'Strong answers identify a scenario where all three properties matter: (1) financial context (payment attached), (2) immutability (permanent record needed), and (3) cryptographic verification (proof of who said what). Consider metadata implications too. Examples: international supply chain payments with customs documentation, freelance contract milestones with encrypted deliverable approvals, cross-border regulatory compliance with timestamped filings, escrow services with verifiable condition fulfillment.'
+            };
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+
+        function goToPractice() {
+            localStorage.setItem('course6_practice_started', 'true');
+        }
+
+        window.addEventListener('scroll', function() {
+            var sections = ['objectives', 'intro', 'history', 'symmetric', 'asymmetric', 'e2e', 'pgp', 'blockchain-messaging', 'signing', 'metadata', 'privacy', 'workflows', 'case-studies', 'exercises', 'practice', 'quiz'];
+            var current = '';
+            sections.forEach(function(id) {
+                var section = document.getElementById(id);
+                if (section) {
+                    var rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(function(item) {
+                    item.classList.remove('active');
+                    var onclick = item.getAttribute('onclick');
+                    if (onclick && onclick.indexOf(current) !== -1) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>
