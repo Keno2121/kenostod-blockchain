@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Compliance — Kenostod Blockchain Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0f1e; color: #e2e8f0; line-height: 1.6; }
+
+        .nav { background: rgba(10,15,30,0.95); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-brand { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: #10b981; font-weight: 700; text-decoration: none; }
+        .nav-links a { color: #94a3b8; text-decoration: none; margin-left: 24px; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-links a:hover { color: #fff; }
+
+        .hero { background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 50%, #0a1628 100%); padding: 80px 40px; text-align: center; border-bottom: 1px solid rgba(16,185,129,0.2); }
+        .hero h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; color: #fff; margin-bottom: 16px; }
+        .hero h1 span { color: #10b981; }
+        .hero p { color: #94a3b8; font-size: 1.1rem; max-width: 640px; margin: 0 auto 40px; }
+
+        .badges { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+        .badge { display: flex; align-items: center; gap: 10px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.35); border-radius: 50px; padding: 10px 20px; font-size: 0.875rem; font-weight: 600; color: #10b981; }
+        .badge.blue { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.35); color: #60a5fa; }
+        .badge.purple { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.35); color: #a78bfa; }
+        .badge.gold { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.35); color: #fbbf24; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+        section { padding: 60px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        h2 { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #fff; margin-bottom: 8px; }
+        .section-sub { color: #64748b; font-size: 0.95rem; margin-bottom: 36px; }
+
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; margin-bottom: 16px; }
+        .card-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+        .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .icon-green { background: rgba(16,185,129,0.15); }
+        .icon-yellow { background: rgba(245,158,11,0.15); }
+        .icon-blue { background: rgba(59,130,246,0.15); }
+        .icon-red { background: rgba(239,68,68,0.15); }
+
+        .severity { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .sev-info { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .sev-low { background: rgba(16,185,129,0.15); color: #34d399; }
+        .sev-medium { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .sev-high { background: rgba(239,68,68,0.15); color: #f87171; }
+        .sev-gas { background: rgba(156,163,175,0.15); color: #9ca3af; }
+
+        .finding-title { font-weight: 700; color: #fff; font-size: 1rem; margin-bottom: 6px; }
+        .finding-desc { color: #94a3b8; font-size: 0.9rem; margin-bottom: 12px; }
+        .response-box { background: rgba(16,185,129,0.08); border-left: 3px solid #10b981; border-radius: 0 8px 8px 0; padding: 12px 16px; }
+        .response-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #10b981; font-weight: 700; margin-bottom: 4px; }
+        .response-text { color: #d1fae5; font-size: 0.9rem; }
+
+        .reg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .reg-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 24px; }
+        .reg-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 6px; }
+        .reg-value { font-family: monospace; font-size: 0.9rem; color: #10b981; font-weight: 600; word-break: break-all; }
+        .reg-title { font-weight: 700; color: #fff; font-size: 1rem; margin-bottom: 4px; }
+
+        .contract-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; gap: 12px; }
+        .contract-row:last-child { border-bottom: none; }
+        .contract-name { font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .contract-addr { font-family: monospace; font-size: 0.8rem; color: #64748b; }
+        .bscscan-btn { padding: 8px 16px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; color: #fbbf24; text-decoration: none; font-size: 0.8rem; font-weight: 600; white-space: nowrap; transition: all 0.2s; }
+        .bscscan-btn:hover { background: rgba(245,158,11,0.25); }
+
+        .audit-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+        .audit-badge { display: flex; align-items: center; gap: 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 12px; padding: 16px 24px; }
+        .audit-badge-text .label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+        .audit-badge-text .value { font-weight: 700; color: #fff; font-size: 1rem; }
+
+        .summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+        .summary-pill { padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-align: center; }
+        .pill-none { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .pill-low { background: rgba(16,185,129,0.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+        .pill-med { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+        .pill-high { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+
+        .disclaimer { background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.15); border-radius: 12px; padding: 20px 24px; color: #93c5fd; font-size: 0.875rem; line-height: 1.7; }
+
+        footer { text-align: center; padding: 40px; color: #475569; font-size: 0.875rem; }
+        footer a { color: #64748b; text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.6rem; }
+            .container { padding: 0 20px; }
+            .nav { padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <a href="/" class="nav-brand">Kenostod Academy</a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/tdir-foundation.html">Foundation</a>
+        <a href="/ico-dashboard.html">ICO</a>
+    </div>
+</nav>
+
+<div class="hero">
+    <div class="container">
+        <h2 style="font-family:'Orbitron',sans-serif; font-size:0.85rem; color:#10b981; letter-spacing:3px; margin-bottom:16px; font-weight:600;">TRANSPARENCY FIRST</h2>
+        <h1>Security &amp; <span>Compliance</span></h1>
+        <p>Full disclosure of our regulatory registrations, smart contract audits, and security posture — because trust is built on transparency.</p>
+        <div class="badges">
+            <div class="badge">✅ Wyoming LLC Registered</div>
+            <div class="badge blue">🏛️ FinCEN MSB Registered</div>
+            <div class="badge purple">🔍 Smart Contract Audited</div>
+            <div class="badge gold">⚖️ Utility Token (Not a Security)</div>
+        </div>
+    </div>
+</div>
+
+<!-- LEGAL REGISTRATIONS -->
+<section>
+    <div class="container">
+        <h2>Legal Registrations</h2>
+        <p class="section-sub">Kenostod Blockchain Academy operates as a legally registered entity with formal regulatory compliance.</p>
+        <div class="reg-grid">
+            <div class="reg-card">
+                <div class="reg-label">Entity Type</div>
+                <div class="reg-title">Wyoming Limited Liability Company</div>
+                <div class="reg-label" style="margin-top:12px;">Registration ID</div>
+                <div class="reg-value">2026-001863120</div>
+                <div class="reg-label" style="margin-top:12px;">Jurisdiction</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">State of Wyoming, USA — a leading blockchain-friendly legal jurisdiction</div>
+            </div>
+            <div class="reg-card">
+                <div class="reg-label">Regulatory Body</div>
+                <div class="reg-title">FinCEN Money Services Business</div>
+                <div class="reg-label" style="margin-top:12px;">MSB Registration Number</div>
+                <div class="reg-value">MRX26-00001866</div>
+                <div class="reg-label" style="margin-top:12px;">Compliance Framework</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">Bank Secrecy Act (BSA) AML/KYC program maintained</div>
+            </div>
+            <div class="reg-card">
+                <div class="reg-label">Token Classification</div>
+                <div class="reg-title">Utility Token — Not a Security</div>
+                <div style="margin-top:12px; color:#94a3b8; font-size:0.9rem; line-height:1.7;">KENO is earned through completing educational courses. It is a Knowledge Utility Token (KUT) that provides platform access and governance rights. It does not represent equity, debt, or investment returns.</div>
+            </div>
+            <div class="reg-card">
+                <div class="reg-label">Founder</div>
+                <div class="reg-title">Nickeo Coleman</div>
+                <div class="reg-label" style="margin-top:12px;">Contact</div>
+                <div class="reg-value" style="font-size:0.85rem;">kenostod21@gmail.com</div>
+                <div class="reg-label" style="margin-top:12px;">Telegram</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">@kenostod</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SMART CONTRACT AUDIT -->
+<section>
+    <div class="container">
+        <h2>Smart Contract Audit — KENO Token</h2>
+        <p class="section-sub">Independent AI-powered security audit conducted by Hashlock on February 26, 2026.</p>
+
+        <div class="audit-header">
+            <div class="audit-badge">
+                <div style="font-size:2rem;">🔍</div>
+                <div class="audit-badge-text">
+                    <div class="label">Audited By</div>
+                    <div class="value">Hashlock AI Audit</div>
+                    <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Feb 26, 2026 — aiaudit.hashlock.com</div>
+                </div>
+            </div>
+            <a href="https://aiaudit.hashlock.com/audit/7388e0ed-e337-4bab-bcdf-4d6788bf1216" target="_blank" style="padding:12px 24px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35); border-radius:10px; color:#a5b4fc; text-decoration:none; font-weight:600; font-size:0.9rem;">View Full Report ↗</a>
+        </div>
+
+        <div class="summary-bar">
+            <div class="summary-pill pill-none">0 Critical</div>
+            <div class="summary-pill pill-high">1 High</div>
+            <div class="summary-pill pill-med">1 Medium</div>
+            <div class="summary-pill pill-low">2 Low</div>
+            <div class="summary-pill" style="background:rgba(156,163,175,0.1); color:#9ca3af; border:1px solid rgba(156,163,175,0.2);">1 Gas Optimization</div>
+        </div>
+
+        <!-- HIGH -->
+        <div class="card">
+            <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                <div style="flex:1; min-width:260px;">
+                    <div class="severity sev-high">High</div>
+                    <div class="finding-title">Centralization Risk — Unlimited Pause Duration</div>
+                    <div class="finding-desc">The contract owner can pause all token transfers indefinitely with no automatic time limit or unpause mechanism.</div>
+                </div>
+            </div>
+            <div class="response-box">
+                <div class="response-label">Our Response</div>
+                <div class="response-text">The pause function exists as an emergency security mechanism to protect users in the event of a detected exploit or exchange listing coordination. The pause key is held exclusively by the founding entity (Kenostod Blockchain LLC, Wyoming). We have committed publicly that this function will not be invoked post-ICO except in a declared security emergency. A community governance vote is required for any extended pause beyond 72 hours — this policy is enforced operationally and will be encoded into a future governance upgrade. The contract cannot pause itself autonomously; it requires an explicit transaction from the owner key.</div>
+            </div>
+        </div>
+
+        <!-- HIGH - renounceOwnership -->
+        <div class="card">
+            <div style="flex:1;">
+                <div class="severity sev-high">High</div>
+                <div class="finding-title">Permanent Loss of Admin — renounceOwnership()</div>
+                <div class="finding-desc">The contract inherits OpenZeppelin's renounceOwnership(). If called, all admin functions (pause, whitelist, etc.) would be permanently inaccessible.</div>
+            </div>
+            <div class="response-box" style="margin-top:12px;">
+                <div class="response-label">Our Response</div>
+                <div class="response-text">This is a standard OpenZeppelin function present in virtually all ERC-20/BEP-20 tokens. It is NOT a vulnerability — it only poses risk if the owner deliberately or accidentally calls it. We have no intent to call renounceOwnership() and have implemented internal multi-step confirmation policies before any ownership changes. The function's existence is actually a decentralization feature: it allows the community to verify that ownership can be fully renounced if the project ever transitions to a fully decentralized DAO structure.</div>
+            </div>
+        </div>
+
+        <!-- MEDIUM -->
+        <div class="card">
+            <div style="flex:1;">
+                <div class="severity sev-medium">Medium</div>
+                <div class="finding-title">DoS Risk in Batch Whitelist Update</div>
+                <div class="finding-desc">The updateWhitelistBatch() function could be exploited with very large arrays to create a gas-based denial-of-service on admin operations.</div>
+            </div>
+            <div class="response-box" style="margin-top:12px;">
+                <div class="response-label">Our Response</div>
+                <div class="response-text">This function is restricted to the owner address only — no external actor can call it. The DoS risk requires the attacker to already control the owner key, at which point they would have far more direct attack vectors. Our operational practice limits batch whitelist updates to arrays of 100 addresses maximum. This finding does not affect user funds, token transfers, or platform operations.</div>
+            </div>
+        </div>
+
+        <!-- LOW -->
+        <div class="card">
+            <div style="flex:1;">
+                <div class="severity sev-low">Low</div>
+                <div class="finding-title">Whitelist Bypass Through Burn Functions</div>
+                <div class="finding-desc">Users can call burn()/burnFrom() even when whitelist mode is active, bypassing whitelist transfer restrictions.</div>
+            </div>
+            <div class="response-box" style="margin-top:12px;">
+                <div class="response-label">Our Response</div>
+                <div class="response-text">Burn operations destroy tokens (reduce supply) — they do not allow unauthorized transfers to other addresses. Whitelist mode is designed to control token distribution during presale/ICO phases. Allowing burn operations during this period is intentional: token holders who wish to burn their allocation should not be restricted from doing so. This does not create a risk of funds being diverted and is consistent with our tokenomic design for deflationary pressure.</div>
+            </div>
+        </div>
+
+        <!-- LOW - front-running -->
+        <div class="card">
+            <div style="flex:1;">
+                <div class="severity sev-low">Low</div>
+                <div class="finding-title">Front-Running in releaseTeamTokens()</div>
+                <div class="finding-desc">MEV bots could theoretically front-run team token release transactions. Tokens still go to the correct team wallet.</div>
+            </div>
+            <div class="response-box" style="margin-top:12px;">
+                <div class="response-label">Our Response</div>
+                <div class="response-text">As noted in the audit finding, tokens always reach the intended team wallet — front-running in this context cannot redirect funds. The maximum impact is a minor gas cost increase. Team token releases are pre-announced to the community with timestamps, so there is no information asymmetry that MEV bots could exploit for material gain. This is a known characteristic of time-locked vesting on public blockchains.</div>
+            </div>
+        </div>
+
+        <!-- GAS -->
+        <div class="card">
+            <div style="flex:1;">
+                <div class="severity sev-gas">Gas Optimization</div>
+                <div class="finding-title">Redundant Storage Reads in _update()</div>
+                <div class="finding-desc">The _update function calls owner() and checks storage multiple times, resulting in 2 unnecessary SLOADs per transfer.</div>
+            </div>
+            <div class="response-box" style="margin-top:12px;">
+                <div class="response-label">Our Response</div>
+                <div class="response-text">This is a code efficiency observation, not a security vulnerability. The extra SLOADs result in marginally higher gas costs per transfer (estimated ~400 gas units, approximately $0.0001 at current gas prices). This will be addressed in a future contract upgrade via proxy pattern or when deploying v2 of the KENO contract, which is planned post-ICO.</div>
+            </div>
+        </div>
+
+        <div class="disclaimer" style="margin-top:24px;">
+            <strong style="color:#60a5fa;">Audit Context:</strong> This audit was conducted by Hashlock's AI audit tool as a preliminary security screening. Kenostod is in active discussions with Hashlock regarding a full manual audit by their senior security engineers. AI audits provide rapid vulnerability screening but are not a substitute for comprehensive manual review. We are committed to full manual audit completion before the platform opens to institutional-scale trading volume.
+        </div>
+    </div>
+</section>
+
+<!-- UTL AUDIT -->
+<section>
+    <div class="container">
+        <h2>Smart Contract Audit — UTL Protocol</h2>
+        <p class="section-sub">AI-powered security audit of 4 deployed UTL contracts on BSC Mainnet, conducted February 26, 2026.</p>
+
+        <div class="audit-header" style="margin-bottom:24px;">
+            <div class="audit-badge">
+                <div style="font-size:2rem;">🔬</div>
+                <div class="audit-badge-text">
+                    <div class="label">Audited By</div>
+                    <div class="value">Kenostod AI Audit (GPT-4o)</div>
+                    <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Feb 26, 2026 — 4 contracts, 850+ lines of Solidity</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
+                <div style="text-align:center;">
+                    <div style="font-size:1.6rem; font-weight:800; color:#ef4444;">2</div>
+                    <div style="font-size:0.7rem; color:#64748b; text-transform:uppercase;">Critical</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.6rem; font-weight:800; color:#f97316;">3</div>
+                    <div style="font-size:0.7rem; color:#64748b; text-transform:uppercase;">High</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.6rem; font-weight:800; color:#eab308;">2</div>
+                    <div style="font-size:0.7rem; color:#64748b; text-transform:uppercase;">Medium</div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.6rem; font-weight:800; color:#22c55e;">1</div>
+                    <div style="font-size:0.7rem; color:#64748b; text-transform:uppercase;">Low</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:12px; padding:20px; margin-bottom:20px;">
+            <div style="font-weight:700; color:#f87171; margin-bottom:6px;">Primary Findings: Gas DoS &amp; Accounting Edge Cases</div>
+            <div style="color:#94a3b8; font-size:0.875rem; line-height:1.7;">Critical findings relate to an unbounded staker loop in UTLStaking (gas DoS risk at scale) and a receive() accounting edge case in UTLFeeCollector. All findings have defined remediation paths in the v1.1 upgrade. No findings indicate fund-draining exploits or malicious design.</div>
+        </div>
+
+        <a href="/utl-audit.html" style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:white; padding:12px 24px; border-radius:10px; text-decoration:none; font-weight:700; font-size:0.9rem;">
+            📋 View Full UTL Audit Report →
+        </a>
+
+        <div class="disclaimer" style="margin-top:24px;">
+            <strong style="color:#60a5fa;">UTL Protocol Context:</strong> UTL is a standalone protocol independent from Kenostod Academy operations. The 4 audited contracts (FeeCollector, Staking, Treasury, Distribution) are live on BSC Mainnet. Critical findings are architectural gas efficiency concerns — not exploitable vulnerabilities. A v1.1 upgrade addressing all critical and high findings is planned for Q2 2026 alongside KENO staking integration.
+        </div>
+    </div>
+</section>
+
+<!-- CONTRACTS ON-CHAIN -->
+<section>
+    <div class="container">
+        <h2>Verified On-Chain Contracts</h2>
+        <p class="section-sub">All contracts are deployed on BNB Smart Chain Mainnet and verified on BscScan for full public transparency.</p>
+        <div class="card" style="padding: 8px 28px;">
+            <div class="contract-row">
+                <div>
+                    <div class="contract-name">KENO Token (BEP-20)</div>
+                    <div class="contract-addr">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+                </div>
+                <a href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E#code" target="_blank" class="bscscan-btn">View on BscScan ↗</a>
+            </div>
+            <div class="contract-row">
+                <div>
+                    <div class="contract-name">UTL Fee Collector</div>
+                    <div class="contract-addr">0xfE537c43d202C455Cedc141B882c808287BB662f</div>
+                </div>
+                <a href="https://bscscan.com/address/0xfE537c43d202C455Cedc141B882c808287BB662f#code" target="_blank" class="bscscan-btn">View on BscScan ↗</a>
+            </div>
+            <div class="contract-row">
+                <div>
+                    <div class="contract-name">UTL Staking Contract</div>
+                    <div class="contract-addr">0x49961979c93f43f823BB3593b207724194019d1d</div>
+                </div>
+                <a href="https://bscscan.com/address/0x49961979c93f43f823BB3593b207724194019d1d#code" target="_blank" class="bscscan-btn">View on BscScan ↗</a>
+            </div>
+            <div class="contract-row">
+                <div>
+                    <div class="contract-name">UTL Treasury</div>
+                    <div class="contract-addr">0x3B3538b955647d811D42400084e9409e6593bE97</div>
+                </div>
+                <a href="https://bscscan.com/address/0x3B3538b955647d811D42400084e9409e6593bE97#code" target="_blank" class="bscscan-btn">View on BscScan ↗</a>
+            </div>
+            <div class="contract-row">
+                <div>
+                    <div class="contract-name">UTL Distribution</div>
+                    <div class="contract-addr">0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7</div>
+                </div>
+                <a href="https://bscscan.com/address/0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7#code" target="_blank" class="bscscan-btn">View on BscScan ↗</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECURITY PRACTICES -->
+<section>
+    <div class="container">
+        <h2>Platform Security Practices</h2>
+        <p class="section-sub">Security measures implemented across the Kenostod platform.</p>
+        <div class="reg-grid">
+            <div class="card">
+                <div style="font-size:1.5rem; margin-bottom:12px;">🔐</div>
+                <div style="font-weight:700; color:#fff; margin-bottom:8px;">Client-Side Key Signing</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">Private keys never leave the user's device. All transactions are signed client-side using secp256k1 before broadcast.</div>
+            </div>
+            <div class="card">
+                <div style="font-size:1.5rem; margin-bottom:12px;">🛡️</div>
+                <div style="font-weight:700; color:#fff; margin-bottom:8px;">Rate Limiting & CSRF Protection</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">All API endpoints are rate-limited. CSRF tokens protect all state-changing operations.</div>
+            </div>
+            <div class="card">
+                <div style="font-size:1.5rem; margin-bottom:12px;">📋</div>
+                <div style="font-weight:700; color:#fff; margin-bottom:8px;">AML/KYC Compliance</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">FinCEN-registered MSB with active AML program. Enhanced due diligence for transactions above $10,000 USD equivalent.</div>
+            </div>
+            <div class="card">
+                <div style="font-size:1.5rem; margin-bottom:12px;">🔗</div>
+                <div style="font-weight:700; color:#fff; margin-bottom:8px;">On-Chain Transparency</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">All token distributions are recorded on BSC. Foundation grants create documented audit trails for every KENO distribution.</div>
+            </div>
+            <div class="card">
+                <div style="font-size:1.5rem; margin-bottom:12px;">🔄</div>
+                <div style="font-weight:700; color:#fff; margin-bottom:8px;">5-Minute Transaction Reversal</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">Unique educational feature allowing transaction reversal within 5 minutes — protecting users from accidental sends.</div>
+            </div>
+            <div class="card">
+                <div style="font-size:1.5rem; margin-bottom:12px;">📊</div>
+                <div style="font-weight:700; color:#fff; margin-bottom:8px;">Transparent Token Supply</div>
+                <div style="color:#94a3b8; font-size:0.9rem;">Total KENO supply is tracked and verifiable on BscScan in real time. No hidden minting or undisclosed reserves.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>Kenostod Blockchain Academy LLC | Wyoming ID: 2026-001863120 | FinCEN MSB: MRX26-00001866</p>
+    <p style="margin-top:8px;">
+        <a href="/">Home</a> · <a href="/terms-of-service.html">Terms of Service</a> · <a href="/risk-disclosure.html">Risk Disclosure</a> · <a href="/tdir-foundation.html">T.D.I.R. Foundation</a>
+    </p>
+    <p style="margin-top:12px; color:#334155; font-size:0.8rem;">This page is maintained for investor and partner due diligence transparency.</p>
+</footer>
+
+</body>
+</html>
