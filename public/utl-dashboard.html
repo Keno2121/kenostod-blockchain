@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>UTL Dashboard — Universal Transaction Layer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="/js/utl-wallets.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a0e1a; color: #e2e8f0; min-height: 100vh; }
+        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(99, 102, 241, 0.15); }
+        .glass-hover:hover { border-color: rgba(99, 102, 241, 0.4); transform: translateY(-2px); transition: all 0.3s; }
+        .gradient-text { background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); } 50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.4); } }
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); transition: all 0.3s; }
+        .btn-primary:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed); transform: scale(1.02); }
+        .btn-outline { border: 1px solid rgba(99, 102, 241, 0.4); transition: all 0.3s; }
+        .btn-outline:hover { background: rgba(99, 102, 241, 0.1); border-color: #6366f1; }
+        .btn-metamask { background: linear-gradient(135deg, #f6851b, #e2761b); }
+        .btn-metamask:hover { background: linear-gradient(135deg, #e2761b, #cd6116); }
+        .btn-walletconnect { background: linear-gradient(135deg, #3b99fc, #2d7dd2); }
+        .btn-walletconnect:hover { background: linear-gradient(135deg, #2d7dd2, #1f6ab5); }
+        .btn-coinbase { background: linear-gradient(135deg, #0052ff, #003dcc); }
+        .btn-coinbase:hover { background: linear-gradient(135deg, #003dcc, #002d99); }
+        .tier-badge { padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .tier-observer { background: rgba(100, 116, 139, 0.3); color: #94a3b8; }
+        .tier-participant { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .tier-advocate { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .tier-champion { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .tier-guardian { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .stat-card { position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366f1, #a78bfa); }
+        .network-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .network-dot.connected { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.6); }
+        .network-dot.disconnected { background: #ef4444; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .live-tag { background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; }
+        .wallet-option { cursor: pointer; transition: all 0.3s; border: 1px solid rgba(99, 102, 241, 0.1); }
+        .wallet-option:hover { border-color: rgba(99, 102, 241, 0.5); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .modal-overlay { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
+        .wallet-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .wallet-icon-mm { background: linear-gradient(135deg, #f6851b20, #e2761b30); color: #f6851b; }
+        .wallet-icon-wc { background: linear-gradient(135deg, #3b99fc20, #2d7dd230); color: #3b99fc; }
+        .wallet-icon-cb { background: linear-gradient(135deg, #0052ff20, #003dcc30); color: #0052ff; }
+        .connected-badge { background: rgba(34, 197, 94, 0.15); color: #22c55e; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        #toast { transition: all 0.3s; }
+    </style>
+</head>
+<body>
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden glass rounded-lg px-4 py-3 text-sm max-w-sm"></div>
+
+    <div id="walletModal" class="fixed inset-0 z-50 hidden modal-overlay flex items-center justify-center p-4">
+        <div class="glass rounded-2xl p-6 max-w-md w-full fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">Connect Wallet</h2>
+                <button onclick="closeWalletModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <p class="text-sm text-slate-400 mb-5">Choose how you'd like to connect to UTL on BNB Smart Chain.</p>
+
+            <div class="space-y-3" id="walletOptions">
+                <div onclick="connectWallet('metamask')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon wallet-icon-mm"><i class="fa-brands fa-ethereum"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">MetaMask</div>
+                        <div class="text-xs text-slate-400">Browser extension & mobile</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
+
+                <div onclick="connectWallet('walletconnect')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon wallet-icon-wc"><i class="fas fa-qrcode"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">WalletConnect</div>
+                        <div class="text-xs text-slate-400">Trust Wallet, Rainbow, 300+ wallets</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
+
+                <div onclick="connectWallet('coinbase-sdk')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon wallet-icon-cb"><i class="fas fa-coins"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Coinbase Wallet</div>
+                        <div class="text-xs text-slate-400">Mobile app & Smart Wallet</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
+
+                <div onclick="connectWallet('phantom')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
+                    <div class="wallet-icon" style="background: linear-gradient(135deg, #ab9ff220, #534bb130); color: #ab9ff2;"><i class="fas fa-ghost"></i></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-white">Phantom</div>
+                        <div class="text-xs text-slate-400">Browser extension & mobile app</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-500"></i>
+                </div>
+            </div>
+
+            <div class="mt-5 text-center">
+                <p class="text-xs text-slate-500">By connecting, you agree to the UTL Protocol Terms of Service</p>
+            </div>
+        </div>
+    </div>
+
+    <nav class="glass sticky top-0 z-40 px-6 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm">U</div>
+                <span class="font-bold text-lg">UTL <span class="text-indigo-400 text-sm font-normal">Dashboard</span></span>
+                <span class="live-tag ml-2">LIVE on BSC</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="networkStatus" class="flex items-center gap-2 text-sm text-slate-400">
+                    <span class="network-dot disconnected"></span>
+                    <span>Not Connected</span>
+                </div>
+                <button id="connectBtn" onclick="openWalletModal()" class="btn-primary px-5 py-2 rounded-lg text-sm font-semibold text-white">
+                    <i class="fas fa-wallet mr-2"></i>Connect Wallet
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="notConnected" class="max-w-4xl mx-auto px-6 py-16 text-center">
+        <div class="mb-8">
+            <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center mb-6 pulse-glow">
+                <i class="fas fa-layer-group text-3xl text-indigo-400"></i>
+            </div>
+            <h1 class="text-4xl font-bold mb-4">Universal Transaction Layer</h1>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-2">Asset-agnostic fee redistribution protocol. Stake USDC, earn passive income from every transaction processed through UTL.</p>
+            <p class="text-indigo-400 text-sm">Now supporting MetaMask, Phantom, WalletConnect (300+ wallets), and Coinbase Wallet</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-3xl mx-auto">
+            <div class="glass rounded-xl p-5 text-center">
+                <div class="text-2xl font-bold text-indigo-400 mb-1">0.1%</div>
+                <div class="text-sm text-slate-400">Fee Per Transaction</div>
+            </div>
+            <div class="glass rounded-xl p-5 text-center">
+                <div class="text-2xl font-bold text-green-400 mb-1">60%</div>
+                <div class="text-sm text-slate-400">To Stakers</div>
+            </div>
+            <div class="glass rounded-xl p-5 text-center">
+                <div class="text-2xl font-bold text-purple-400 mb-1">5 Tiers</div>
+                <div class="text-sm text-slate-400">Staking Levels</div>
+            </div>
+        </div>
+
+        <div id="priceTicker" class="glass rounded-xl px-4 py-3 mb-8 max-w-3xl mx-auto">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+                <span class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Live Prices</span>
+                <div class="flex items-center gap-5 flex-wrap">
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">BNB</span><span id="tickerBNB" class="text-sm font-bold text-white">—</span><span id="tickerBNBchg" class="text-xs">—</span></div>
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">ETH</span><span id="tickerETH" class="text-sm font-bold text-white">—</span><span id="tickerETHchg" class="text-xs">—</span></div>
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">BTC</span><span id="tickerBTC" class="text-sm font-bold text-white">—</span><span id="tickerBTCchg" class="text-xs">—</span></div>
+                    <div class="flex items-center gap-2"><span class="text-xs text-slate-400 font-semibold">USDC</span><span id="tickerUSDC" class="text-sm font-bold text-white">—</span><span id="tickerUSDCchg" class="text-xs">—</span></div>
+                </div>
+                <span id="tickerUpdated" class="text-xs text-slate-600">Updating...</span>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8 max-w-3xl mx-auto">
+            <h3 class="font-semibold mb-4 text-center text-lg">Connect With Your Favorite Wallet</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button onclick="connectWallet('metamask')" class="btn-metamask rounded-xl p-5 text-center text-white transition-all hover:scale-105">
+                    <i class="fa-brands fa-ethereum text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">MetaMask</div>
+                    <div class="text-xs opacity-80">Browser & Mobile</div>
+                </button>
+                <button onclick="connectWallet('walletconnect')" class="btn-walletconnect rounded-xl p-5 text-center text-white transition-all hover:scale-105">
+                    <i class="fas fa-qrcode text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">WalletConnect</div>
+                    <div class="text-xs opacity-80">300+ Wallets</div>
+                </button>
+                <button onclick="connectWallet('coinbase-sdk')" class="btn-coinbase rounded-xl p-5 text-center text-white transition-all hover:scale-105">
+                    <i class="fas fa-coins text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">Coinbase Wallet</div>
+                    <div class="text-xs opacity-80">Mobile & Smart Wallet</div>
+                </button>
+                <button onclick="connectWallet('phantom')" class="rounded-xl p-5 text-center text-white transition-all hover:scale-105" style="background: linear-gradient(135deg, #ab9ff2, #534bb1);">
+                    <i class="fas fa-ghost text-3xl mb-3 block"></i>
+                    <div class="font-semibold mb-1">Phantom</div>
+                    <div class="text-xs opacity-80">Browser & Mobile</div>
+                </button>
+            </div>
+        </div>
+
+        <div id="snapInstallSection" class="mb-8 max-w-3xl mx-auto">
+            <div class="rounded-2xl p-1" style="background: linear-gradient(135deg, #f97316, #f59e0b, #6366f1);">
+                <div class="rounded-xl p-6" style="background: #0f172a;">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #f97316, #f59e0b);">
+                            <i class="fa-brands fa-ethereum text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-white">UTL MetaMask Snap</h3>
+                            <p class="text-xs text-amber-400 font-semibold">Lives inside your MetaMask wallet permanently</p>
+                        </div>
+                        <div id="snapStatusBadge" class="ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-400">Checking...</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                        <div class="rounded-lg p-3 bg-slate-800/60 text-center">
+                            <i class="fas fa-eye text-indigo-400 text-xl mb-1 block"></i>
+                            <div class="text-xs font-semibold text-white">Transaction Insight</div>
+                            <div class="text-xs text-slate-400 mt-0.5">See UTL fee on every tx before you confirm</div>
+                        </div>
+                        <div class="rounded-lg p-3 bg-slate-800/60 text-center">
+                            <i class="fas fa-coins text-green-400 text-xl mb-1 block"></i>
+                            <div class="text-xs font-semibold text-white">Earnings Tracker</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Live staking tier, rewards & totals</div>
+                        </div>
+                        <div class="rounded-lg p-3 bg-slate-800/60 text-center">
+                            <i class="fas fa-bell text-amber-400 text-xl mb-1 block"></i>
+                            <div class="text-xs font-semibold text-white">Weekly Reports</div>
+                            <div class="text-xs text-slate-400 mt-0.5">In-wallet notifications for earnings</div>
+                        </div>
+                    </div>
+
+                    <div id="snapMobileNote" class="hidden rounded-xl p-4 border border-blue-500/30 bg-blue-500/10 mb-2">
+                        <p class="text-sm text-blue-300 font-semibold mb-1"><i class="fas fa-mobile-screen mr-2"></i>Desktop Only Feature</p>
+                        <p class="text-xs text-slate-400">MetaMask Snaps only work in the <strong class="text-white">desktop browser extension</strong> — not the mobile app. To install the UTL Snap:</p>
+                        <ol class="text-xs text-slate-400 mt-2 space-y-1 list-decimal list-inside">
+                            <li>Open this page on your desktop computer</li>
+                            <li>Make sure MetaMask browser extension is installed</li>
+                            <li>Click "Install UTL Snap" on desktop</li>
+                        </ol>
+                        <a href="https://metamask.io/download/" target="_blank" class="inline-block mt-3 text-xs text-blue-400 underline">Get MetaMask for desktop →</a>
+                    </div>
+
+                    <div id="snapNotInstalled" class="">
+                        <button id="installSnapBtn" onclick="installSnap()" class="w-full py-3.5 rounded-xl font-bold text-white text-base transition-all hover:scale-[1.02] mb-3" style="background: linear-gradient(135deg, #f97316, #f59e0b);">
+                            <i class="fa-brands fa-ethereum mr-2"></i>Install UTL Snap into MetaMask
+                        </button>
+                        <p class="text-xs text-slate-500 text-center mb-3">One click — no gas fees. Works with MetaMask Flask (developer build).</p>
+
+                        <div class="rounded-xl p-3 border border-purple-500/30 bg-purple-500/10 mb-2">
+                            <p class="text-xs text-purple-300 font-semibold mb-1"><i class="fas fa-flask mr-1"></i>Requires MetaMask Flask</p>
+                            <p class="text-xs text-slate-400 mb-2">Regular MetaMask requires official allowlist approval for new snaps — UTL's review is in progress. Use <strong class="text-white">MetaMask Flask</strong> (the free official developer build) to install now:</p>
+                            <ol class="text-xs text-slate-400 space-y-1 list-decimal list-inside mb-3">
+                                <li>Disable your regular MetaMask extension in browser settings</li>
+                                <li>Install MetaMask Flask from the link below</li>
+                                <li>Import your wallet (same seed phrase)</li>
+                                <li>Return here and click "Install UTL Snap" above</li>
+                            </ol>
+                            <a href="https://metamask.io/flask/" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+                                <i class="fas fa-flask"></i> Get MetaMask Flask (Free)
+                            </a>
+                        </div>
+
+                        <div id="snapAllowlistNote" style="display:none;" class="mt-3 rounded-xl p-3 border border-red-500/30 bg-red-500/10">
+                            <p class="text-xs text-red-300 font-semibold mb-1"><i class="fas fa-shield-halved mr-1"></i>Not on allowlist yet</p>
+                            <p class="text-xs text-slate-400 mb-2">Regular MetaMask blocks unapproved snaps. UTL's review is pending. Use MetaMask Flask to install without this restriction.</p>
+                            <a href="https://metamask.io/flask/" target="_blank" class="text-xs text-purple-400 underline">→ Download MetaMask Flask (developer build)</a>
+                        </div>
+
+                        <div id="snapUpgradeNote" style="display:none;" class="mt-3 rounded-xl p-3 border border-amber-500/30 bg-amber-500/10">
+                            <p class="text-xs text-amber-300 font-semibold mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>MetaMask needs updating</p>
+                            <p class="text-xs text-slate-400 mb-2">Snaps require MetaMask v11 or newer. Here's how to update:</p>
+                            <ol class="text-xs text-slate-400 space-y-1 list-decimal list-inside">
+                                <li>Open MetaMask extension</li>
+                                <li>Click the 3-dot menu → Settings</li>
+                                <li>Go to About → check for updates</li>
+                                <li>Or reinstall from <a href="https://metamask.io/download/" target="_blank" class="text-amber-400 underline">metamask.io/download</a></li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div id="snapInstalled" class="hidden">
+                        <div class="rounded-xl p-4 bg-green-500/10 border border-green-500/30 mb-3">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                                <div>
+                                    <div class="font-semibold text-green-400">UTL Snap is Active</div>
+                                    <div class="text-xs text-slate-400">You'll see UTL fee insights on every MetaMask transaction</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="snapOptIn()" class="py-2 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors">
+                                <i class="fas fa-play mr-1"></i>Activate UTL
+                            </button>
+                            <button onclick="snapDashboard()" class="py-2 rounded-lg text-sm font-semibold text-indigo-300 border border-indigo-500/40 hover:bg-indigo-500/10 transition-colors">
+                                <i class="fas fa-chart-bar mr-1"></i>Snap Dashboard
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="snapNoMetaMask" class="hidden">
+                        <div class="rounded-xl p-4 bg-amber-500/10 border border-amber-500/30">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-exclamation-triangle text-amber-400 text-xl"></i>
+                                <div>
+                                    <div class="font-semibold text-amber-400">MetaMask Not Detected</div>
+                                    <div class="text-xs text-slate-400">Install MetaMask browser extension first, then return here to add the UTL Snap.</div>
+                                </div>
+                                <a href="https://metamask.io/download/" target="_blank" class="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-black hover:bg-amber-400 whitespace-nowrap">Get MetaMask</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-10 max-w-3xl mx-auto text-left">
+            <h3 class="font-semibold mb-4 text-indigo-300"><i class="fas fa-chart-bar mr-2"></i>Staking Tiers & Multipliers</h3>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-observer">Observer</span><span class="text-sm text-slate-400">0 USDC</span></div>
+                    <span class="text-sm font-mono text-slate-400">0.1x</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-participant">Participant</span><span class="text-sm text-slate-400">1,000 USDC</span></div>
+                    <span class="text-sm font-mono text-blue-400">1.0x</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-advocate">Advocate</span><span class="text-sm text-slate-400">10,000 USDC</span></div>
+                    <span class="text-sm font-mono text-green-400">1.2x</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-slate-700/50">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-champion">Champion</span><span class="text-sm text-slate-400">100,000 USDC</span></div>
+                    <span class="text-sm font-mono text-yellow-400">1.5x</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <div class="flex items-center gap-3"><span class="tier-badge tier-guardian">Guardian</span><span class="text-sm text-slate-400">1,000,000 USDC</span></div>
+                    <span class="text-sm font-mono text-purple-400">2.0x</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden max-w-7xl mx-auto px-6 py-8 fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Total Fees Collected</div>
+                <div id="totalFees" class="text-2xl font-bold text-white">-</div>
+                <div class="text-xs text-slate-500 mt-1">BNB</div>
+            </div>
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Transactions Processed</div>
+                <div id="totalTx" class="text-2xl font-bold text-white">-</div>
+                <div class="text-xs text-slate-500 mt-1">Total</div>
+            </div>
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Contract Balance</div>
+                <div id="contractBalance" class="text-2xl font-bold text-white">-</div>
+                <div class="text-xs text-slate-500 mt-1">BNB held</div>
+            </div>
+            <div class="glass rounded-xl p-5 stat-card">
+                <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Fee Rate</div>
+                <div id="feeRate" class="text-2xl font-bold text-indigo-400">-</div>
+                <div class="text-xs text-slate-500 mt-1">basis points</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="glass rounded-xl p-6 lg:col-span-2">
+                <h3 class="font-semibold text-lg mb-4"><i class="fas fa-exchange-alt mr-2 text-indigo-400"></i>Send Transaction via UTL</h3>
+                <p class="text-sm text-slate-400 mb-4">Send BNB to any address. UTL captures a 0.1% fee — 60% goes to stakers, 40% to treasury.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Recipient Address</label>
+                        <input id="recipientAddr" type="text" placeholder="0x..." class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white"/>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Amount (BNB)</label>
+                        <input id="sendAmount" type="number" step="0.001" min="0.001" placeholder="0.01" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white" oninput="updateFeePreview()"/>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-xs text-slate-500">Min: 0.001 BNB</span>
+                            <span id="feePreview" class="text-xs text-indigo-400">Fee: ~0.000001 BNB</span>
+                        </div>
+                    </div>
+                    <button id="sendTxBtn" onclick="sendTransaction()" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">
+                        <i class="fas fa-paper-plane mr-2"></i>Send via UTL
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass rounded-xl p-6">
+                <h3 class="font-semibold text-lg mb-4"><i class="fas fa-user-circle mr-2 text-indigo-400"></i>Your Stats</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Connected Via</div>
+                        <div id="walletTypeDisplay" class="text-sm font-semibold text-indigo-400 mt-1">-</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Your Address</div>
+                        <div id="userAddress" class="text-sm font-mono text-white truncate mt-1">-</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Your BNB Balance</div>
+                        <div id="userBalance" class="text-lg font-bold text-white mt-1">-</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Transactions via UTL</div>
+                        <div id="userTxCount" class="text-lg font-bold text-white mt-1">-</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider">Total Fees Paid</div>
+                        <div id="userFeesPaid" class="text-lg font-bold text-white mt-1">-</div>
+                    </div>
+                    <button onclick="disconnectWallet()" class="btn-outline w-full py-2 rounded-lg text-red-400 border-red-500/30 hover:bg-red-500/10 font-semibold text-sm mt-2">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Disconnect
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8">
+            <h3 class="font-semibold text-lg mb-4"><i class="fas fa-coins mr-2 text-indigo-400"></i>USDC Staking</h3>
+            <p class="text-sm text-slate-400 mb-4">Stake USDC to earn a share of all UTL transaction fees. Higher tiers earn bigger multipliers.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Stake Amount (USDC) <span class="text-yellow-400">— Min 100 USDC for first stake</span></label>
+                    <div class="relative mb-3">
+                        <input id="stakeAmount" type="number" step="any" min="100" placeholder="100" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white pr-36"/>
+                        <button id="stakeMaxBtn" onclick="setMaxUnstake()" style="display:none;" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md font-semibold transition-colors">MAX</button>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="approveAndStake()" class="btn-primary flex-1 py-3 rounded-lg text-white font-semibold text-sm">
+                            <i class="fas fa-lock mr-1"></i>Approve & Stake
+                        </button>
+                        <button onclick="unstake()" class="btn-outline flex-1 py-3 rounded-lg text-indigo-300 font-semibold text-sm">
+                            <i class="fas fa-unlock mr-1"></i>Unstake
+                        </button>
+                    </div>
+                    <button onclick="unstakeAll()" class="w-full mt-2 py-2 rounded-lg text-sm font-semibold border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Unstake All & Return to Wallet
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-400">Your Staked</span>
+                        <span id="userStaked" class="font-semibold text-white">0 USDC</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-400">Your Tier</span>
+                        <span id="userTier" class="tier-badge tier-observer">Observer</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-400">Pending Rewards</span>
+                        <span id="userRewards" class="font-semibold text-green-400">0 BNB</span>
+                    </div>
+                    <button onclick="claimRewards()" class="btn-outline w-full py-2 rounded-lg text-green-400 font-semibold text-sm mt-2">
+                        <i class="fas fa-gift mr-1"></i>Claim Rewards
+                    </button>
+                    <div class="flex items-center justify-between mt-3 p-3 rounded-lg bg-slate-800/40 border border-slate-700/50">
+                        <div>
+                            <div class="text-sm font-semibold text-white">Auto-Compound</div>
+                            <div class="text-xs text-slate-400">Auto claim &amp; restake when rewards exceed 0.001 BNB</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer ml-3">
+                            <input type="checkbox" id="autoCompoundToggle" class="sr-only peer" onchange="toggleAutoCompound(this.checked)">
+                            <div class="w-10 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-lg"><i class="fas fa-exchange-alt mr-2 text-amber-400"></i>DEX Aggregator <span class="text-xs font-normal text-slate-400 ml-2">Powered by ParaSwap</span></h3>
+                <div id="dexLiveStatus" class="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 font-semibold">LOADING</div>
+            </div>
+            <p class="text-sm text-slate-400 mb-5">Best swap rates across 50+ DEXs via ParaSwap. UTL captures a 0.1% fee — 60% goes to stakers, 40% to treasury.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Network</label>
+                            <select id="dexNetwork" onchange="loadDexTokens()" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                <option value="bsc">BNB Smart Chain</option>
+                                <option value="ethereum">Ethereum</option>
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">From</label>
+                            <div class="flex gap-2">
+                                <select id="dexFromToken" class="flex-1 bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                    <option value="">Loading...</option>
+                                </select>
+                                <input id="dexFromAmount" type="number" step="any" min="0" placeholder="0.0" class="flex-1 bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500" oninput="debouncedQuote()"/>
+                            </div>
+                        </div>
+                        <div class="flex justify-center">
+                            <button onclick="swapTokenDirection()" class="w-10 h-10 rounded-full bg-slate-800/80 border border-slate-600/50 flex items-center justify-center text-indigo-400 hover:bg-indigo-600/20 hover:border-indigo-500 transition-all">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">To</label>
+                            <div class="flex gap-2">
+                                <select id="dexToToken" class="flex-1 bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                    <option value="">Loading...</option>
+                                </select>
+                                <input id="dexToAmount" type="text" readonly placeholder="0.0" class="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-lg px-4 py-3 text-sm text-green-400 font-semibold focus:outline-none"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Slippage Tolerance</label>
+                            <div class="flex gap-2">
+                                <button onclick="setSlippage(0.1, this)" class="slippage-btn px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 text-xs text-slate-300 hover:border-indigo-500 transition-all">0.1%</button>
+                                <button onclick="setSlippage(0.5, this)" class="slippage-btn active px-3 py-2 rounded-lg bg-indigo-600/20 border border-indigo-500 text-xs text-indigo-300">0.5%</button>
+                                <button onclick="setSlippage(1.0, this)" class="slippage-btn px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 text-xs text-slate-300 hover:border-indigo-500 transition-all">1.0%</button>
+                                <button onclick="setSlippage(3.0, this)" class="slippage-btn px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-600/50 text-xs text-slate-300 hover:border-indigo-500 transition-all">3.0%</button>
+                            </div>
+                        </div>
+                        <button id="dexSwapBtn" onclick="getSwapQuote()" class="w-full py-3 rounded-lg font-semibold text-white" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-search mr-2"></i>Get Best Rate
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dexQuoteResult" class="hidden">
+                    <div class="bg-slate-800/40 rounded-xl p-5 space-y-4">
+                        <div class="text-center">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">You'll Receive</div>
+                            <div id="quoteToAmount" class="text-3xl font-bold text-green-400">-</div>
+                            <div id="quoteToSymbol" class="text-sm text-slate-400">-</div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Rate</span>
+                                <span id="quoteRate" class="text-white font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Price Impact</span>
+                                <span id="quotePriceImpact" class="text-green-400">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Est. Gas</span>
+                                <span id="quoteGas" class="text-white font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">UTL Fee (0.1%)</span>
+                                <span id="quoteUtlFee" class="text-indigo-400 font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Savings vs Direct</span>
+                                <span id="quoteSavings" class="text-green-400 font-semibold">-</span>
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-700/50 pt-3">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-2">Route</div>
+                            <div id="quoteRoute" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <button id="executeSwapBtn" onclick="executeSwap()" class="w-full py-3 rounded-lg font-semibold text-white btn-primary">
+                            <i class="fas fa-bolt mr-2"></i>Execute Swap via UTL
+                        </button>
+                    </div>
+                </div>
+                <div id="dexQuotePlaceholder" class="flex items-center justify-center">
+                    <div class="text-center text-slate-500">
+                        <i class="fas fa-chart-line text-4xl mb-3 block opacity-30"></i>
+                        <p class="text-sm">Enter an amount and click<br/>"Get Best Rate" to see quotes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8">
+            <h3 class="font-semibold text-lg mb-4"><i class="fas fa-file-contract mr-2 text-indigo-400"></i>Live Contracts on BSC</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <a href="https://bscscan.com/address/0xfE537c43d202C455Cedc141B882c808287BB662f" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">FeeCollector</div>
+                        <div class="text-xs font-mono text-slate-400">0xfE537c...BB662f</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+                <a href="https://bscscan.com/address/0x49961979c93f43f823BB3593b207724194019d1d" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">Staking</div>
+                        <div class="text-xs font-mono text-slate-400">0x49961...19d1d</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+                <a href="https://bscscan.com/address/0x3B3538b955647d811D42400084e9409e6593bE97" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">Treasury</div>
+                        <div class="text-xs font-mono text-slate-400">0x3B353...bE97</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+                <a href="https://bscscan.com/address/0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">Distribution</div>
+                        <div class="text-xs font-mono text-slate-400">0xE6918...93c7</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>
+            </div>
+        </div>
+
+        <div id="earningsHistorySection" class="glass rounded-xl p-6 mb-8 hidden">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-semibold text-lg"><i class="fas fa-history mr-2 text-purple-400"></i>My Staking History</h3>
+                <button onclick="loadEarningsHistory()" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"><i class="fas fa-sync-alt mr-1"></i>Refresh</button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Total Claimed</div>
+                    <div id="histTotalClaimed" class="font-bold text-green-400">— BNB</div>
+                </div>
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Total Staked (in)</div>
+                    <div id="histTotalStaked" class="font-bold text-indigo-400">— USDC</div>
+                </div>
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Total Unstaked (out)</div>
+                    <div id="histTotalUnstaked" class="font-bold text-amber-400">— USDC</div>
+                </div>
+                <div class="bg-slate-800/40 rounded-lg p-3 text-center">
+                    <div class="text-xs text-slate-400 mb-1">Events Found</div>
+                    <div id="histEventCount" class="font-bold text-white">0</div>
+                </div>
+            </div>
+            <div id="earningsHistoryTable" class="overflow-x-auto">
+                <div class="text-center text-slate-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Loading history from blockchain...</div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6 mb-8">
+            <h3 class="font-semibold text-lg mb-4"><i class="fas fa-wallet mr-2 text-indigo-400"></i>Supported Wallets</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fa-brands fa-ethereum text-2xl text-orange-400 mb-2 block"></i>
+                    <div class="text-sm font-semibold">MetaMask</div>
+                    <div class="text-xs text-green-400 mt-1">Connected</div>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fas fa-qrcode text-2xl text-blue-400 mb-2 block"></i>
+                    <div class="text-sm font-semibold">WalletConnect</div>
+                    <div class="text-xs text-slate-400 mt-1">300+ wallets</div>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fas fa-coins text-2xl text-blue-500 mb-2 block"></i>
+                    <div class="text-sm font-semibold">Coinbase</div>
+                    <div class="text-xs text-slate-400 mt-1">Mobile & Smart</div>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-slate-800/30">
+                    <i class="fas fa-ghost text-2xl text-purple-400 mb-2 block"></i>
+                    <div class="text-sm font-semibold">Phantom</div>
+                    <div class="text-xs text-slate-400 mt-1">Browser SDK</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass rounded-xl p-6">
+            <h3 class="font-semibold text-lg mb-3"><i class="fas fa-chart-pie mr-2 text-indigo-400"></i>Fee Distribution</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="text-center p-4 rounded-lg bg-indigo-500/10">
+                    <div class="text-2xl font-bold text-indigo-400">60%</div>
+                    <div class="text-sm text-slate-400">Stakers</div>
+                    <div class="text-xs text-slate-500 mt-1">Distributed to all UTL participants</div>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-blue-500/10">
+                    <div class="text-2xl font-bold text-blue-400">40%</div>
+                    <div class="text-sm text-slate-400">Treasury</div>
+                    <div class="text-xs text-slate-500 mt-1">Protocol growth and reserves</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-8 text-xs text-slate-600">
+        <div>&copy; 2026 Universal Transaction Layer Protocol &mdash; Standalone Fee Redistribution System</div>
+        <div class="mt-2 text-slate-500" style="font-style: italic;">A Kenostod Innovation</div>
+    </footer>
+
+    <script>
+        const CONTRACTS = {
+            FeeCollector: '0xfE537c43d202C455Cedc141B882c808287BB662f',
+            Staking: '0x49961979c93f43f823BB3593b207724194019d1d',
+            Treasury: '0x3B3538b955647d811D42400084e9409e6593bE97',
+            Distribution: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7'
+        };
+        const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
+        const BSC_CHAIN_ID = '0x38';
+        let WALLETCONNECT_PROJECT_ID = '';
+        let configLoaded = false;
+
+        const configPromise = (async () => {
+            try {
+                const resp = await fetch('/api/utl/config');
+                const config = await resp.json();
+                WALLETCONNECT_PROJECT_ID = config.walletConnectProjectId || '';
+                configLoaded = true;
+            } catch (e) {
+                console.log('UTL config not available');
+                configLoaded = true;
+            }
+        })();
+
+        const FEE_COLLECTOR_ABI = [
+            'function collectNativeFee() external payable',
+            'function processTransactionWithFee(address recipient) external payable',
+            'function collectTokenFee(address token, uint256 amount) external',
+            'function getStats() external view returns (uint256, uint256, uint256, uint256)',
+            'function getUserStats(address user) external view returns (uint256, uint256)',
+            'function calculateFee(uint256 amount) external view returns (uint256)',
+            'function totalFeesCollectedNative() external view returns (uint256)',
+            'function totalTransactionsProcessed() external view returns (uint256)',
+            'function feeRate() external view returns (uint256)'
+        ];
+
+        const STAKING_ABI = [
+            'function stake(uint256 amount) external',
+            'function unstake(uint256 amount) external',
+            'function claimRewards() external',
+            'function getStakeInfo(address user) external view returns (uint256, uint256, uint256, uint8, uint256)',
+            'function totalStaked() external view returns (uint256)',
+            'function getStakerCount() external view returns (uint256)'
+        ];
+
+        const ERC20_ABI = [
+            'function approve(address spender, uint256 amount) external returns (bool)',
+            'function allowance(address owner, address spender) external view returns (uint256)',
+            'function balanceOf(address account) external view returns (uint256)',
+            'function decimals() external view returns (uint8)'
+        ];
+
+        let provider, signer, userAddress;
+        let feeCollectorContract, stakingContract, usdcContract;
+        let walletConnector = null;
+        let stakedAmountWei = null;
+        let currentWalletType = null;
+
+        if (window.UTLWalletConnector) {
+            walletConnector = new window.UTLWalletConnector();
+            walletConnector.onDisconnect = () => {
+                showDisconnected();
+            };
+            walletConnector.onAccountChanged = (account) => {
+                userAddress = account;
+                loadDashboard();
+            };
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const colors = { info: 'border-indigo-500', success: 'border-green-500', error: 'border-red-500', warning: 'border-yellow-500' };
+            toast.className = `fixed top-4 right-4 z-50 glass rounded-lg px-4 py-3 text-sm max-w-sm border-l-4 ${colors[type]}`;
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+
+        function openWalletModal() {
+            document.getElementById('walletModal').classList.remove('hidden');
+        }
+
+        function closeWalletModal() {
+            document.getElementById('walletModal').classList.add('hidden');
+        }
+
+        async function connectWallet(walletId) {
+            closeWalletModal();
+
+            try {
+                await configPromise;
+
+                if (walletId === 'walletconnect') {
+                    if (!WALLETCONNECT_PROJECT_ID) {
+                        showToast('WalletConnect Project ID not configured yet. Get one free at cloud.walletconnect.com and add it to your settings, or use MetaMask/Coinbase Wallet.', 'warning');
+                        return;
+                    }
+                }
+
+                showToast(`Connecting via ${walletId}...`, 'info');
+
+                if (walletConnector) {
+                    const result = await walletConnector.connect(walletId, {
+                        projectId: WALLETCONNECT_PROJECT_ID
+                    });
+
+                    provider = new ethers.providers.Web3Provider(result.provider);
+                    signer = provider.getSigner();
+                    userAddress = result.account;
+
+                    setupContracts();
+                    showConnected(result.walletType);
+                    loadDashboard();
+                    return;
+                }
+
+                if (walletId === 'metamask') {
+                    await connectMetaMaskDirect();
+                } else if (walletId === 'phantom') {
+                    await connectPhantomDirect();
+                } else if (walletId === 'coinbase-sdk') {
+                    await connectCoinbaseDirect();
+                } else {
+                    showToast('Wallet connector not loaded. Please refresh the page.', 'error');
+                }
+            } catch (err) {
+                console.error('Connection error:', err);
+                showToast(err.message || 'Failed to connect wallet', 'error');
+            }
+        }
+
+        async function connectMetaMaskDirect() {
+            if (!window.ethereum) {
+                showToast('MetaMask not detected. Please install MetaMask.', 'error');
+                return;
+            }
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            await ensureBSC(window.ethereum);
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            setupContracts();
+            showConnected('MetaMask');
+            loadDashboard();
+
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) { showDisconnected(); }
+                else { userAddress = accounts[0]; loadDashboard(); }
+            });
+        }
+
+        async function connectCoinbaseDirect() {
+            if (window.ethereum && window.ethereum.isCoinbaseWallet) {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                await ensureBSC(window.ethereum);
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                setupContracts();
+                showConnected('Coinbase Wallet');
+                loadDashboard();
+            } else {
+                showToast('Coinbase Wallet extension not detected. Try using the WalletConnect option or install Coinbase Wallet.', 'error');
+            }
+        }
+
+        async function connectPhantomDirect() {
+            const phantomProvider = window.phantom?.ethereum || 
+                (window.ethereum?.providers?.find(p => p.isPhantom)) ||
+                (window.ethereum?.isPhantom ? window.ethereum : null);
+
+            if (!phantomProvider) {
+                showToast('Phantom wallet not detected. Please install Phantom from phantom.app', 'error');
+                return;
+            }
+
+            await phantomProvider.request({ method: 'eth_requestAccounts' });
+            await ensureBSC(phantomProvider);
+            provider = new ethers.providers.Web3Provider(phantomProvider);
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            setupContracts();
+            showConnected('Phantom');
+            loadDashboard();
+
+            phantomProvider.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) { showDisconnected(); }
+                else { userAddress = accounts[0]; loadDashboard(); }
+            });
+        }
+
+        async function ensureBSC(prov) {
+            const chainId = await prov.request({ method: 'eth_chainId' });
+            if (chainId !== BSC_CHAIN_ID) {
+                try {
+                    await prov.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID }] });
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        await prov.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: BSC_CHAIN_ID,
+                                chainName: 'BNB Smart Chain',
+                                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                                blockExplorerUrls: ['https://bscscan.com/']
+                            }]
+                        });
+                    } else { throw switchError; }
+                }
+            }
+        }
+
+        function setupContracts() {
+            feeCollectorContract = new ethers.Contract(CONTRACTS.FeeCollector, FEE_COLLECTOR_ABI, signer);
+            stakingContract = new ethers.Contract(CONTRACTS.Staking, STAKING_ABI, signer);
+            usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
+        }
+
+        function showConnected(walletType) {
+            currentWalletType = walletType;
+            const shortAddr = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+            document.getElementById('connectBtn').innerHTML = `<span class="connected-badge"><i class="fas fa-check-circle mr-1"></i>${shortAddr}</span>`;
+            document.getElementById('connectBtn').onclick = openWalletModal;
+            document.getElementById('networkStatus').innerHTML = `<span class="network-dot connected"></span><span>BSC Mainnet via ${walletType}</span>`;
+            document.getElementById('notConnected').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('walletTypeDisplay').textContent = walletType;
+            showToast(`Connected via ${walletType}!`, 'success');
+        }
+
+        function showDisconnected() {
+            provider = null; signer = null; userAddress = null; currentWalletType = null;
+            feeCollectorContract = null; stakingContract = null; usdcContract = null;
+            document.getElementById('connectBtn').innerHTML = '<i class="fas fa-wallet mr-2"></i>Connect Wallet';
+            document.getElementById('connectBtn').onclick = openWalletModal;
+            document.getElementById('networkStatus').innerHTML = '<span class="network-dot disconnected"></span><span>Not Connected</span>';
+            document.getElementById('notConnected').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            showToast('Wallet disconnected', 'info');
+        }
+
+        async function ensureWalletSession() {
+            if (!signer || !provider) {
+                showToast('Wallet not connected. Please connect your wallet first.', 'error');
+                openWalletModal();
+                return false;
+            }
+            try {
+                await provider.getNetwork();
+                return true;
+            } catch (err) {
+                console.error('Session check failed:', err);
+                showToast('Wallet session expired. Please reconnect your wallet to continue.', 'error');
+                showDisconnected();
+                setTimeout(() => openWalletModal(), 1500);
+                return false;
+            }
+        }
+
+        function showMobileWalletHint(walletType) {
+            const isWC = walletType === 'WalletConnect';
+            if (!isWC) return;
+            const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+            if (!isMobile) return;
+            const existing = document.getElementById('mobileWalletHint');
+            if (existing) existing.remove();
+            const hint = document.createElement('div');
+            hint.id = 'mobileWalletHint';
+            hint.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid #4f46e5;color:white;padding:14px 20px;border-radius:14px;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+            hint.innerHTML = `
+                <div style="font-weight:700;margin-bottom:6px;">📲 Check Trust Wallet</div>
+                <div style="font-size:0.82rem;color:#94a3b8;margin-bottom:10px;">Switch to Trust Wallet — you should see a pending approval request there.</div>
+                <button onclick="document.getElementById('mobileWalletHint').remove()" style="background:#4f46e5;color:white;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;">Got it</button>
+            `;
+            document.body.appendChild(hint);
+            setTimeout(() => { if (hint.parentNode) hint.remove(); }, 30000);
+        }
+
+        async function disconnectWallet() {
+            if (walletConnector) {
+                await walletConnector.disconnect();
+            }
+            showDisconnected();
+        }
+
+        async function loadDashboard() {
+            try {
+                const [balance, totalFees, totalTx, feeRateVal] = await Promise.all([
+                    provider.getBalance(userAddress),
+                    feeCollectorContract.totalFeesCollectedNative().catch(() => ethers.BigNumber.from(0)),
+                    feeCollectorContract.totalTransactionsProcessed().catch(() => ethers.BigNumber.from(0)),
+                    feeCollectorContract.feeRate().catch(() => ethers.BigNumber.from(10))
+                ]);
+
+                document.getElementById('userAddress').textContent = userAddress;
+                document.getElementById('userBalance').textContent = parseFloat(ethers.utils.formatEther(balance)).toFixed(6) + ' BNB';
+                document.getElementById('totalFees').textContent = parseFloat(ethers.utils.formatEther(totalFees)).toFixed(8);
+                document.getElementById('totalTx').textContent = totalTx.toString();
+                document.getElementById('feeRate').textContent = feeRateVal.toString();
+
+                const contractBal = await provider.getBalance(CONTRACTS.FeeCollector);
+                document.getElementById('contractBalance').textContent = parseFloat(ethers.utils.formatEther(contractBal)).toFixed(8);
+
+                try {
+                    const userStats = await feeCollectorContract.getUserStats(userAddress);
+                    document.getElementById('userTxCount').textContent = userStats[0].toString();
+                    document.getElementById('userFeesPaid').textContent = parseFloat(ethers.utils.formatEther(userStats[1])).toFixed(8) + ' BNB';
+                } catch { document.getElementById('userTxCount').textContent = '0'; document.getElementById('userFeesPaid').textContent = '0 BNB'; }
+
+                try {
+                    const stakeInfo = await stakingContract.getStakeInfo(userAddress);
+                    stakedAmountWei = stakeInfo[0];
+                    const stakedAmt = parseFloat(ethers.utils.formatUnits(stakedAmountWei, 18));
+                    document.getElementById('userStaked').textContent = stakedAmt.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 6}) + ' USDC';
+                    const tierNames = ['Observer', 'Participant', 'Advocate', 'Champion', 'Guardian'];
+                    const tierClasses = ['tier-observer', 'tier-participant', 'tier-advocate', 'tier-champion', 'tier-guardian'];
+                    const tierIdx = stakeInfo[3];
+                    document.getElementById('userTier').className = `tier-badge ${tierClasses[tierIdx]}`;
+                    document.getElementById('userTier').textContent = tierNames[tierIdx];
+                    document.getElementById('userRewards').textContent = parseFloat(ethers.utils.formatEther(stakeInfo[2])).toFixed(8) + ' BNB';
+                    const maxBtn = document.getElementById('stakeMaxBtn');
+                    if (maxBtn) {
+                        if (stakedAmt > 0) {
+                            maxBtn.style.display = 'inline-block';
+                            maxBtn.textContent = 'MAX (' + stakedAmt.toFixed(2) + ' USDC)';
+                        } else {
+                            maxBtn.style.display = 'none';
+                        }
+                    }
+                } catch {}
+
+                const toggle = document.getElementById('autoCompoundToggle');
+                if (toggle) toggle.checked = autoCompoundEnabled;
+                if (autoCompoundEnabled && !autoCompoundInterval) startAutoCompound();
+                syncSnapStake();
+
+                const histSection = document.getElementById('earningsHistorySection');
+                if (histSection && histSection.classList.contains('hidden')) {
+                    histSection.classList.remove('hidden');
+                    loadEarningsHistory();
+                }
+            } catch (err) {
+                console.error('Dashboard load error:', err);
+            }
+        }
+
+        function updateFeePreview() {
+            const amount = parseFloat(document.getElementById('sendAmount').value) || 0;
+            const fee = amount * 0.001;
+            document.getElementById('feePreview').textContent = `Fee: ~${fee.toFixed(6)} BNB`;
+        }
+
+        function withTimeout(promise, ms, label) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms/1000}s. Check your wallet app — you may need to approve or reject the transaction there.`)), ms))
+            ]);
+        }
+
+        async function sendTransaction() {
+            if (!await ensureWalletSession()) return;
+            const recipient = document.getElementById('recipientAddr').value;
+            const amount = document.getElementById('sendAmount').value;
+            if (!recipient || !amount) { showToast('Enter recipient and amount', 'error'); return; }
+
+            const sendBtn = document.getElementById('sendTxBtn');
+            try {
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Waiting for wallet approval...';
+                showMobileWalletHint(currentWalletType);
+                showToast('Check your wallet app to approve the transaction', 'info');
+
+                const tx = await withTimeout(
+                    feeCollectorContract.processTransactionWithFee(recipient, {
+                        value: ethers.utils.parseEther(amount)
+                    }),
+                    120000,
+                    'Wallet approval'
+                );
+
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Confirming on BSC...';
+                showToast(`Transaction sent! Hash: ${tx.hash.slice(0,10)}...`, 'success');
+
+                const receipt = await withTimeout(tx.wait(), 120000, 'Transaction confirmation');
+                showToast('Transaction confirmed on BSC!', 'success');
+                loadDashboard();
+            } catch (err) {
+                console.error('Send transaction error:', err);
+                const msg = err.reason || err.data?.message || err.message || 'Transaction failed';
+                if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
+                    showToast('Transaction cancelled by user', 'error');
+                } else if (msg.includes('timed out')) {
+                    showToast(msg, 'error');
+                } else if (msg.includes('insufficient funds') || msg.includes('INSUFFICIENT_FUNDS')) {
+                    showToast('Insufficient BNB balance for this transaction + gas fees', 'error');
+                } else {
+                    showToast('Transaction failed: ' + msg, 'error');
+                }
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send via UTL';
+            }
+        }
+
+        async function approveAndStake() {
+            if (!await ensureWalletSession()) return;
+            const amount = document.getElementById('stakeAmount').value;
+            if (!amount || parseFloat(amount) <= 0) { showToast('Enter stake amount', 'error'); return; }
+
+            try {
+                showMobileWalletHint(currentWalletType);
+                showToast('Step 1 of 2: Approving USDC — check your wallet...', 'info');
+                const stakeWei = ethers.utils.parseUnits(amount, 18);
+                console.log('Approving', amount, 'USDC, wei:', stakeWei.toString());
+                const approveTx = await withTimeout(usdcContract.approve(CONTRACTS.Staking, stakeWei), 120000, 'USDC approval');
+                showToast('Approval sent! Waiting for confirmation...', 'info');
+                await withTimeout(approveTx.wait(), 120000, 'Approval confirmation');
+                showToast('Step 2 of 2: Now staking — approve again in your wallet...', 'info');
+                console.log('Approval confirmed, now staking...');
+                const stakeTx = await withTimeout(stakingContract.stake(stakeWei), 120000, 'Staking');
+                showToast('Stake sent! Waiting for BSC confirmation...', 'info');
+                await withTimeout(stakeTx.wait(), 120000, 'Stake confirmation');
+                const hint = document.getElementById('mobileWalletHint');
+                if (hint) hint.remove();
+                showToast('Staked ' + amount + ' USDC successfully!', 'success');
+                loadDashboard();
+            } catch (err) {
+                const hint = document.getElementById('mobileWalletHint');
+                if (hint) hint.remove();
+                console.error('Staking error:', err);
+                const msg = err.reason || err.data?.message || err.message || 'Staking failed';
+                if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
+                    showToast('Transaction cancelled in wallet app.', 'error');
+                } else if (msg.includes('timed out')) {
+                    showToast('No response from wallet. Please disconnect, reconnect your wallet, and try again.', 'error');
+                    showDisconnected();
+                } else {
+                    showToast('Staking error: ' + msg, 'error');
+                }
+            }
+        }
+
+        function setMaxUnstake() {
+            if (stakedAmountWei && !stakedAmountWei.isZero()) {
+                const readable = ethers.utils.formatUnits(stakedAmountWei, 18);
+                document.getElementById('stakeAmount').value = readable;
+            }
+        }
+
+        async function unstakeAll() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+            if (!stakedAmountWei || stakedAmountWei.isZero()) {
+                showToast('No USDC currently staked', 'error'); return;
+            }
+            await _doUnstake(stakedAmountWei, 'all your staked USDC');
+        }
+
+        async function unstake() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+            const amount = document.getElementById('stakeAmount').value;
+            if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount to unstake', 'error'); return; }
+
+            let unstakeWei;
+            try {
+                unstakeWei = ethers.utils.parseUnits(amount.toString(), 18);
+            } catch {
+                showToast('Invalid amount entered', 'error'); return;
+            }
+
+            if (stakedAmountWei && unstakeWei.gte(stakedAmountWei)) {
+                unstakeWei = stakedAmountWei;
+            }
+
+            await _doUnstake(unstakeWei, amount + ' USDC');
+        }
+
+        async function _doUnstake(weiAmount, label) {
+            if (!await ensureWalletSession()) return;
+            try {
+                showMobileWalletHint(currentWalletType);
+                showToast('Approve the unstake in your wallet app...', 'info');
+                const tx = await withTimeout(stakingContract.unstake(weiAmount), 120000, 'Unstake approval');
+                const existing = document.getElementById('mobileWalletHint');
+                if (existing) existing.remove();
+                showToast('Unstaking ' + label + ' — waiting for BSC confirmation...', 'info');
+                await withTimeout(tx.wait(), 120000, 'Unstake confirmation');
+                showToast('Successfully unstaked ' + label + '! USDC is back in your wallet.', 'success');
+                stakedAmountWei = null;
+                document.getElementById('stakeAmount').value = '';
+                loadDashboard();
+            } catch (err) {
+                const existing = document.getElementById('mobileWalletHint');
+                if (existing) existing.remove();
+                console.error('Unstake error:', err);
+                const msg = err.reason || err.data?.message || err.message || 'Unstaking failed';
+                if (msg.includes('user rejected') || msg.includes('User rejected') || msg.includes('ACTION_REJECTED')) {
+                    showToast('Unstake cancelled in wallet app.', 'error');
+                } else if (msg.includes('timed out')) {
+                    showToast('No response from wallet. Please disconnect and reconnect your wallet, then try again.', 'error');
+                    showDisconnected();
+                } else if (msg.includes('Insufficient stake')) {
+                    showToast('Amount exceeds your staked balance. Use "Unstake All" button to withdraw everything.', 'error');
+                } else if (msg.includes('session') || msg.includes('expired') || msg.includes('disconnected')) {
+                    showToast('Wallet session expired. Please reconnect your wallet and try again.', 'error');
+                    showDisconnected();
+                } else {
+                    showToast('Unstake error: ' + msg, 'error');
+                }
+            }
+        }
+
+        async function claimRewards() {
+            if (!signer) { showToast('Connect wallet first', 'error'); return; }
+            try {
+                showToast('Check your wallet to approve claiming rewards...', 'info');
+                const tx = await withTimeout(stakingContract.claimRewards(), 120000, 'Claim rewards');
+                showToast('Claiming rewards...', 'info');
+                await withTimeout(tx.wait(), 120000, 'Claim confirmation');
+                showToast('Rewards claimed!', 'success');
+                loadDashboard();
+            } catch (err) { showToast(err.reason || err.message || 'Claim failed', 'error'); }
+        }
+
+        let dexTokens = [];
+        let currentSlippage = 0.5;
+        let quoteTimeout = null;
+        let lastQuote = null;
+
+        async function loadDexTokens() {
+            const network = document.getElementById('dexNetwork').value;
+            document.getElementById('dexLiveStatus').textContent = 'READY';
+            document.getElementById('dexLiveStatus').className = 'text-xs px-3 py-1 rounded-full bg-slate-700/50 text-slate-400 font-semibold';
+            document.getElementById('dexQuoteResult').classList.add('hidden');
+            document.getElementById('dexQuotePlaceholder').classList.remove('hidden');
+            try {
+                const resp = await fetch(`/api/utl/dex/tokens?network=${network}`);
+                const data = await resp.json();
+                dexTokens = data.tokens || [];
+                const fromSelect = document.getElementById('dexFromToken');
+                const toSelect = document.getElementById('dexToToken');
+                fromSelect.innerHTML = dexTokens.map(t => `<option value="${t.address}">${t.symbol} — ${t.name}</option>`).join('');
+                toSelect.innerHTML = dexTokens.map(t => `<option value="${t.address}">${t.symbol} — ${t.name}</option>`).join('');
+                if (dexTokens.length > 1) toSelect.selectedIndex = 1;
+            } catch (err) {
+                console.error('Failed to load tokens:', err);
+            }
+        }
+
+        function setSlippage(val, el) {
+            currentSlippage = val;
+            document.querySelectorAll('.slippage-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.className = btn.className.replace('bg-indigo-600/20 border-indigo-500 text-indigo-300', 'bg-slate-800/50 border-slate-600/50 text-slate-300');
+            });
+            el.classList.add('active');
+            el.className = el.className.replace('bg-slate-800/50 border-slate-600/50 text-slate-300', 'bg-indigo-600/20 border-indigo-500 text-indigo-300');
+        }
+
+        function swapTokenDirection() {
+            const fromSelect = document.getElementById('dexFromToken');
+            const toSelect = document.getElementById('dexToToken');
+            const tmpIdx = fromSelect.selectedIndex;
+            fromSelect.selectedIndex = toSelect.selectedIndex;
+            toSelect.selectedIndex = tmpIdx;
+            document.getElementById('dexFromAmount').value = '';
+            document.getElementById('dexToAmount').value = '';
+            document.getElementById('dexQuoteResult').classList.add('hidden');
+            document.getElementById('dexQuotePlaceholder').classList.remove('hidden');
+        }
+
+        function debouncedQuote() {
+            if (quoteTimeout) clearTimeout(quoteTimeout);
+            quoteTimeout = setTimeout(() => {
+                const amount = document.getElementById('dexFromAmount').value;
+                if (amount && parseFloat(amount) > 0) getSwapQuote();
+            }, 600);
+        }
+
+        async function getSwapQuote() {
+            const fromToken = document.getElementById('dexFromToken').value;
+            const toToken = document.getElementById('dexToToken').value;
+            const amountStr = document.getElementById('dexFromAmount').value;
+            const network = document.getElementById('dexNetwork').value;
+
+            if (!fromToken || !toToken || !amountStr || parseFloat(amountStr) <= 0) {
+                showToast('Enter a valid amount', 'error');
+                return;
+            }
+            if (fromToken === toToken) {
+                showToast('Select different tokens', 'error');
+                return;
+            }
+
+            const fromInfo = dexTokens.find(t => t.address === fromToken);
+            const decimals = fromInfo ? fromInfo.decimals : 18;
+            const amountWei = BigInt(Math.floor(parseFloat(amountStr) * Math.pow(10, decimals))).toString();
+
+            const btn = document.getElementById('dexSwapBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Finding Best Route...';
+            btn.disabled = true;
+
+            try {
+                const resp = await fetch(`/api/utl/dex/quote?fromToken=${fromToken}&toToken=${toToken}&amount=${amountWei}&network=${network}&slippage=${currentSlippage}`);
+                const quote = await resp.json();
+                lastQuote = quote;
+
+                const toInfo = dexTokens.find(t => t.address === toToken);
+                const toDecimals = toInfo ? toInfo.decimals : 18;
+                const toAmountHuman = quote.toAmountHuman || (parseFloat(quote.toAmount) / Math.pow(10, toDecimals)).toFixed(6);
+
+                document.getElementById('dexToAmount').value = toAmountHuman;
+                document.getElementById('quoteToAmount').textContent = parseFloat(toAmountHuman).toLocaleString(undefined, {maximumFractionDigits: 6});
+                document.getElementById('quoteToSymbol').textContent = toInfo ? toInfo.symbol : '';
+                document.getElementById('quoteRate').textContent = quote.rate ? `1 ${fromInfo?.symbol} = ${quote.rate} ${toInfo?.symbol}` : '-';
+                document.getElementById('quotePriceImpact').textContent = `${quote.priceImpact || '< 0.01'}%`;
+                document.getElementById('quoteGas').textContent = `~${parseInt(quote.estimatedGas || 0).toLocaleString()} gas`;
+                document.getElementById('quoteUtlFee').textContent = `$${quote.utlFee || '0.00'}`;
+                document.getElementById('quoteSavings').textContent = `~${quote.savings || '0.00'}% better`;
+
+                const routeDiv = document.getElementById('quoteRoute');
+                const protocols = quote.protocols || [];
+                routeDiv.innerHTML = protocols.map(p => `<span class="px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(99,102,241,0.15); color: #a5b4fc;">${p.name || p} <span class="text-slate-500">${p.part || 100}%</span></span>`).join('');
+
+                if (quote.live) {
+                    document.getElementById('dexLiveStatus').textContent = 'LIVE';
+                    document.getElementById('dexLiveStatus').className = 'text-xs px-3 py-1 rounded-full bg-green-500/15 text-green-400 font-semibold';
+                }
+
+                document.getElementById('dexQuoteResult').classList.remove('hidden');
+                document.getElementById('dexQuotePlaceholder').classList.add('hidden');
+            } catch (err) {
+                showToast('Quote failed: ' + err.message, 'error');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-search mr-2"></i>Get Best Rate';
+                btn.disabled = false;
+            }
+        }
+
+        async function executeSwap() {
+            if (!signer) { showToast('Connect wallet first to execute swaps', 'error'); return; }
+            if (!lastQuote) { showToast('Get a quote first', 'error'); return; }
+            if (lastQuote.simulated || !lastQuote.priceRoute) {
+                showToast('Live quote required for execution — ParaSwap is fetching real rates', 'info');
+                return;
+            }
+            try {
+                const network = document.getElementById('dexNetwork').value;
+                const addr = await signer.getAddress();
+                const resp = await fetch('/api/utl/dex/swap-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ priceRoute: lastQuote.priceRoute, fromAddress: addr, slippage: currentSlippage, network })
+                });
+                const swapData = await resp.json();
+                if (swapData.simulated) { showToast(swapData.message || 'Swap build failed', 'error'); return; }
+                const tx = await signer.sendTransaction({ to: swapData.to, data: swapData.data, value: swapData.value || '0', gasLimit: swapData.gas || 300000 });
+                showToast('Swap submitted! Waiting for confirmation...', 'info');
+                await tx.wait();
+                showToast('Swap executed successfully via ParaSwap!', 'success');
+                loadDashboard();
+            } catch (err) {
+                showToast('Swap failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        async function fetchPriceTicker() {
+            try {
+                const resp = await fetch('/api/utl/prices');
+                if (!resp.ok) return;
+                const prices = await resp.json();
+                const fmt = (n) => n >= 1000 ? '$' + n.toLocaleString(undefined, {maximumFractionDigits: 0}) : '$' + n.toFixed(4);
+                const chg = (c) => {
+                    const sign = c >= 0 ? '+' : '';
+                    const color = c >= 0 ? 'text-green-400' : 'text-red-400';
+                    return `<span class="${color}">${sign}${c.toFixed(2)}%</span>`;
+                };
+                if (prices.BNB)  { document.getElementById('tickerBNB').textContent  = fmt(prices.BNB.price);  document.getElementById('tickerBNBchg').innerHTML  = chg(prices.BNB.change24h); }
+                if (prices.ETH)  { document.getElementById('tickerETH').textContent  = fmt(prices.ETH.price);  document.getElementById('tickerETHchg').innerHTML  = chg(prices.ETH.change24h); }
+                if (prices.BTC)  { document.getElementById('tickerBTC').textContent  = fmt(prices.BTC.price);  document.getElementById('tickerBTCchg').innerHTML  = chg(prices.BTC.change24h); }
+                if (prices.USDC) { document.getElementById('tickerUSDC').textContent = fmt(prices.USDC.price); document.getElementById('tickerUSDCchg').innerHTML = chg(prices.USDC.change24h); }
+                const now = new Date();
+                document.getElementById('tickerUpdated').textContent = `Updated ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            } catch (e) { console.log('Price ticker error:', e.message); }
+        }
+
+        fetchPriceTicker();
+        setInterval(fetchPriceTicker, 60000);
+
+        let autoCompoundEnabled = localStorage.getItem('utl_autocompound') === 'true';
+        let autoCompoundInterval = null;
+
+        function toggleAutoCompound(enabled) {
+            autoCompoundEnabled = enabled;
+            localStorage.setItem('utl_autocompound', enabled ? 'true' : 'false');
+            if (enabled) {
+                showToast('Auto-compound enabled — rewards above 0.001 BNB will auto-restake', 'success');
+                startAutoCompound();
+            } else {
+                showToast('Auto-compound disabled', 'info');
+                if (autoCompoundInterval) { clearInterval(autoCompoundInterval); autoCompoundInterval = null; }
+            }
+        }
+
+        function startAutoCompound() {
+            if (autoCompoundInterval) clearInterval(autoCompoundInterval);
+            autoCompoundInterval = setInterval(async () => {
+                if (!signer || !stakingContract || !autoCompoundEnabled) return;
+                try {
+                    const addr = await signer.getAddress();
+                    const info = await withTimeout(stakingContract.getUserInfo(addr), 15000, 'getUserInfo');
+                    const pendingBNB = parseFloat(ethers.utils.formatEther(info.pendingRewards || 0));
+                    if (pendingBNB >= 0.001) {
+                        console.log('Auto-compound: claiming', pendingBNB, 'BNB');
+                        const tx = await withTimeout(stakingContract.claimRewards(), 120000, 'autocompound claim');
+                        await tx.wait();
+                        showToast(`Auto-compound: Claimed ${pendingBNB.toFixed(6)} BNB rewards`, 'success');
+                        loadDashboard();
+                    }
+                } catch (e) { console.log('Auto-compound check failed:', e.message); }
+            }, 5 * 60 * 1000);
+        }
+
+        const STAKING_ABI_HIST = [
+            'event Staked(address indexed user, uint256 amount)',
+            'event Unstaked(address indexed user, uint256 amount)',
+            'event RewardsClaimed(address indexed user, uint256 amount)'
+        ];
+
+        async function loadEarningsHistory() {
+            const section = document.getElementById('earningsHistorySection');
+            const table = document.getElementById('earningsHistoryTable');
+            if (!provider || !userAddress) {
+                section.classList.add('hidden');
+                return;
+            }
+            section.classList.remove('hidden');
+            table.innerHTML = '<div class="text-center text-slate-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Reading events from BSC...</div>';
+
+            try {
+                const STAKING_ADDR = '0x49961979c93f43f823BB3593b207724194019d1d';
+                const iface = new ethers.utils.Interface(STAKING_ABI_HIST);
+                const latestBlock = await provider.getBlockNumber();
+                const fromBlock = Math.max(latestBlock - 4900, 0);
+
+                const stakedFilter   = { address: STAKING_ADDR, topics: [ethers.utils.id('Staked(address,uint256)'),   ethers.utils.hexZeroPad(userAddress, 32)] };
+                const unstakedFilter = { address: STAKING_ADDR, topics: [ethers.utils.id('Unstaked(address,uint256)'), ethers.utils.hexZeroPad(userAddress, 32)] };
+                const claimedFilter  = { address: STAKING_ADDR, topics: [ethers.utils.id('RewardsClaimed(address,uint256)'), ethers.utils.hexZeroPad(userAddress, 32)] };
+
+                const [stakedLogs, unstakedLogs, claimedLogs] = await Promise.all([
+                    provider.getLogs({ ...stakedFilter, fromBlock, toBlock: 'latest' }),
+                    provider.getLogs({ ...unstakedFilter, fromBlock, toBlock: 'latest' }),
+                    provider.getLogs({ ...claimedFilter, fromBlock, toBlock: 'latest' })
+                ]);
+
+                const events = [];
+                let totalClaimed = 0, totalStaked = 0, totalUnstaked = 0;
+
+                for (const log of stakedLogs) {
+                    const parsed = iface.parseLog(log);
+                    const amt = parseFloat(ethers.utils.formatUnits(parsed.args.amount, 18));
+                    totalStaked += amt;
+                    events.push({ block: log.blockNumber, type: 'Stake', amount: amt, unit: 'USDC', hash: log.transactionHash });
+                }
+                for (const log of unstakedLogs) {
+                    const parsed = iface.parseLog(log);
+                    const amt = parseFloat(ethers.utils.formatUnits(parsed.args.amount, 18));
+                    totalUnstaked += amt;
+                    events.push({ block: log.blockNumber, type: 'Unstake', amount: amt, unit: 'USDC', hash: log.transactionHash });
+                }
+                for (const log of claimedLogs) {
+                    const parsed = iface.parseLog(log);
+                    const amt = parseFloat(ethers.utils.formatEther(parsed.args.amount));
+                    totalClaimed += amt;
+                    events.push({ block: log.blockNumber, type: 'Claimed', amount: amt, unit: 'BNB', hash: log.transactionHash });
+                }
+
+                events.sort((a, b) => b.block - a.block);
+
+                document.getElementById('histTotalClaimed').textContent  = totalClaimed.toFixed(8)  + ' BNB';
+                document.getElementById('histTotalStaked').textContent   = totalStaked.toFixed(4)   + ' USDC';
+                document.getElementById('histTotalUnstaked').textContent = totalUnstaked.toFixed(4) + ' USDC';
+                document.getElementById('histEventCount').textContent    = events.length;
+
+                if (events.length === 0) {
+                    table.innerHTML = '<div class="text-center text-slate-500 py-8"><i class="fas fa-inbox text-2xl mb-2 block opacity-40"></i>No staking events found for this wallet in the last ~150,000 blocks</div>';
+                    return;
+                }
+
+                const typeColor = { 'Stake': 'text-indigo-400', 'Unstake': 'text-amber-400', 'Claimed': 'text-green-400' };
+                const typeBg    = { 'Stake': 'bg-indigo-500/10', 'Unstake': 'bg-amber-500/10', 'Claimed': 'bg-green-500/10' };
+
+                table.innerHTML = `<table class="w-full text-sm">
+                    <thead><tr class="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-slate-700/50">
+                        <th class="pb-3 pr-4">Type</th><th class="pb-3 pr-4">Amount</th><th class="pb-3 pr-4">Block</th><th class="pb-3">Tx</th>
+                    </tr></thead>
+                    <tbody>
+                    ${events.map(e => `<tr class="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                        <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded text-xs font-semibold ${typeColor[e.type]} ${typeBg[e.type]}">${e.type}</span></td>
+                        <td class="py-3 pr-4 font-mono font-semibold ${typeColor[e.type]}">${e.amount.toFixed(6)} ${e.unit}</td>
+                        <td class="py-3 pr-4 text-slate-400 font-mono">#${e.block.toLocaleString()}</td>
+                        <td class="py-3"><a href="https://bscscan.com/tx/${e.hash}" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-mono text-xs">${e.hash.slice(0,8)}...${e.hash.slice(-6)} <i class="fas fa-external-link-alt ml-1 text-xs"></i></a></td>
+                    </tr>`).join('')}
+                    </tbody></table>`;
+            } catch (err) {
+                table.innerHTML = `<div class="text-center text-slate-500 py-8"><i class="fas fa-exclamation-triangle text-amber-400 text-xl mb-2 block"></i>Could not load history: ${err.message}</div>`;
+                console.error('loadEarningsHistory error:', err);
+            }
+        }
+
+        loadDexTokens();
+
+        const UTL_SNAP_ID = 'npm:@kenostod/utl-snap';
+
+        async function checkSnapStatus() {
+            const badge = document.getElementById('snapStatusBadge');
+            const notInstalled = document.getElementById('snapNotInstalled');
+            const installed = document.getElementById('snapInstalled');
+            const noMetaMask = document.getElementById('snapNoMetaMask');
+            const mobileNote = document.getElementById('snapMobileNote');
+
+            const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+            if (isMobile) {
+                badge.textContent = 'Desktop Only';
+                badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400';
+                notInstalled.classList.add('hidden');
+                if (mobileNote) mobileNote.classList.remove('hidden');
+                return;
+            }
+
+            if (!window.ethereum) {
+                badge.textContent = 'No MetaMask';
+                badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400';
+                notInstalled.classList.add('hidden');
+                noMetaMask.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const snaps = await window.ethereum.request({ method: 'wallet_getSnaps' });
+                if (snaps && snaps[UTL_SNAP_ID]) {
+                    badge.textContent = 'Installed';
+                    badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400';
+                    notInstalled.classList.add('hidden');
+                    installed.classList.remove('hidden');
+                } else {
+                    badge.textContent = 'Not Installed';
+                    badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-400';
+                }
+            } catch (e) {
+                badge.textContent = 'Check Failed';
+                badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-400';
+            }
+        }
+
+        async function installSnap() {
+            if (!window.ethereum) {
+                showToast('MetaMask not found — please install the MetaMask browser extension', 'error');
+                return;
+            }
+            const btn = document.getElementById('installSnapBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Installing...';
+            btn.disabled = true;
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_requestSnaps',
+                    params: { [UTL_SNAP_ID]: {} }
+                });
+                showToast('UTL Snap installed successfully! It now lives inside your MetaMask.', 'success');
+                await checkSnapStatus();
+            } catch (err) {
+                if (err.code === 4001) {
+                    showToast('Installation cancelled', 'info');
+                } else if (err.message && (err.message.includes('allowlist') || err.message.includes('not on the allowlist'))) {
+                    showToast('Regular MetaMask requires allowlist approval. Use MetaMask Flask to install now.', 'error');
+                    document.getElementById('snapAllowlistNote').style.display = 'block';
+                } else if (err.message && (err.message.includes('does not exist') || err.message.includes('not available') || err.message.includes('wallet_requestSnaps'))) {
+                    showToast('MetaMask needs to be updated to v11+ to support Snaps. Open MetaMask → Settings → About → Update.', 'error');
+                    document.getElementById('snapUpgradeNote').style.display = 'block';
+                } else if (err.message && err.message.includes('npm')) {
+                    showToast('Snap package error — please try again in a moment.', 'info');
+                } else {
+                    showToast('Install failed: ' + (err.message || err.code), 'error');
+                }
+                btn.innerHTML = '<i class="fa-brands fa-ethereum mr-2"></i>Install UTL Snap into MetaMask';
+                btn.disabled = false;
+            }
+        }
+
+        async function snapOptIn() {
+            if (!window.ethereum) return;
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_invokeSnap',
+                    params: { snapId: UTL_SNAP_ID, request: { method: 'utl_optIn' } }
+                });
+            } catch (err) {
+                showToast('Could not reach snap: ' + err.message, 'error');
+            }
+        }
+
+        async function snapDashboard() {
+            if (!window.ethereum) return;
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_invokeSnap',
+                    params: { snapId: UTL_SNAP_ID, request: { method: 'utl_dashboard' } }
+                });
+            } catch (err) {
+                showToast('Could not reach snap: ' + err.message, 'error');
+            }
+        }
+
+        async function syncSnapStake() {
+            if (!window.ethereum || !userAddress || !stakingContract) return;
+            try {
+                const snaps = await window.ethereum.request({ method: 'wallet_getSnaps' });
+                if (!snaps || !snaps[UTL_SNAP_ID]) return;
+                const stakeInfo = await stakingContract.getStakeInfo(userAddress).catch(() => null);
+                if (!stakeInfo) return;
+                await window.ethereum.request({
+                    method: 'wallet_invokeSnap',
+                    params: {
+                        snapId: UTL_SNAP_ID,
+                        request: { method: 'utl_updateStake', params: { amount: stakeInfo[0].toString() } }
+                    }
+                });
+            } catch (e) { }
+        }
+
+        checkSnapStatus();
+    </script>
+</body>
+</html>
