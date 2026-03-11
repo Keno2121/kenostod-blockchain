@@ -96,7 +96,7 @@ async function initializeStripe() {
 
         // 3. Set up managed webhook
         console.log('📧 Setting up Stripe managed webhook...');
-        const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}`;
+        const webhookBaseUrl = process.env.APP_URL || `https://${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}`;
         const { webhook, uuid } = await stripeSync.findOrCreateManagedWebhook(
             `${webhookBaseUrl}/api/stripe/webhook`,
             {
@@ -5001,8 +5001,8 @@ app.post('/api/organization/:id/checkout', async (req, res) => {
 
         const checkoutSession = await stripeIntegration.createCheckoutSession({
             priceId: priceId || 'price_corporate_base',
-            successUrl: successUrl || `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/success`,
-            cancelUrl: cancelUrl || `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/cancel`,
+            successUrl: successUrl || `${process.env.APP_URL || process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/success`,
+            cancelUrl: cancelUrl || `${process.env.APP_URL || process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/cancel`,
             customerEmail: organization.owner_email,
             metadata: {
                 organization_id: organizationId,
@@ -5243,9 +5243,7 @@ app.post('/api/revenue/license/checkout', async (req, res) => {
         );
         
         // Create Stripe checkout session
-        const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-            ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-            : 'http://localhost:5000';
+        const baseUrl = process.env.APP_URL || (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000');
         const session = await stripeIntegration.createCheckoutSession(
             price.id,
             `${baseUrl}?payment=success&tier=${tier}`,
