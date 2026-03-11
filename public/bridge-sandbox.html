@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Sandbox Dashboard — Kenostod</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 24px; }
+        h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+        .subtitle { color: #94a3b8; font-size: 0.9rem; margin-bottom: 24px; }
+        .badge { display: inline-block; background: #f59e0b; color: #000; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-left: 10px; vertical-align: middle; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+        .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #64748b; display: inline-block; }
+        .status-dot.green { background: #10b981; box-shadow: 0 0 6px #10b981; }
+        .status-dot.red { background: #ef4444; }
+        label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; margin-top: 12px; }
+        input, select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 13px; outline: none; }
+        input:focus, select:focus { border-color: #6366f1; }
+        button { margin-top: 14px; width: 100%; background: #6366f1; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #4f46e5; }
+        button.secondary { background: #334155; color: #e2e8f0; }
+        button.secondary:hover { background: #475569; }
+        .result { margin-top: 14px; background: #0f172a; border-radius: 8px; padding: 12px; font-size: 12px; font-family: monospace; color: #a5f3fc; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; border: 1px solid #1e3a5f; display: none; }
+        .result.show { display: block; }
+        .result.error { color: #fca5a5; border-color: #450a0a; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-val { font-weight: 600; color: #a5b4fc; }
+        .full { grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+
+<h1>Bridge.xyz Sandbox Dashboard <span class="badge">SANDBOX</span></h1>
+<p class="subtitle">Test Bridge API integration for Kenostod · USDB Stablecoin Rails</p>
+
+<div class="grid">
+
+    <!-- Connection Status -->
+    <div class="card">
+        <h2><span class="status-dot" id="statusDot"></span> API Connection</h2>
+        <div id="statusDetails">
+            <div class="stat-row"><span>Mode</span><span class="stat-val" id="modeVal">—</span></div>
+            <div class="stat-row"><span>Base URL</span><span class="stat-val" id="urlVal" style="font-size:11px;">—</span></div>
+            <div class="stat-row"><span>Status</span><span class="stat-val" id="connVal">—</span></div>
+        </div>
+        <button onclick="testConnection()">Test Connection</button>
+        <div class="result" id="statusResult"></div>
+    </div>
+
+    <!-- KYC Link Generator -->
+    <div class="card">
+        <h2>🔗 Generate KYC Link</h2>
+        <p style="font-size:12px;color:#94a3b8;">Create a KYC link for a user to verify their identity with Bridge.</p>
+        <label>Full Name</label>
+        <input type="text" id="kycName" placeholder="e.g. Jane Smith">
+        <label>Email Address</label>
+        <input type="email" id="kycEmail" placeholder="user@example.com">
+        <button onclick="createKycLink()">Generate KYC Link</button>
+        <div class="result" id="kycResult"></div>
+    </div>
+
+    <!-- List Customers -->
+    <div class="card">
+        <h2>👥 Customers</h2>
+        <p style="font-size:12px;color:#94a3b8;">View Bridge customers associated with your account.</p>
+        <label>Limit</label>
+        <input type="number" id="customerLimit" value="10" min="1" max="100">
+        <button onclick="listCustomers()">Load Customers</button>
+        <div class="result" id="customersResult"></div>
+    </div>
+
+    <!-- Get Single Customer -->
+    <div class="card">
+        <h2>🔍 Look Up Customer</h2>
+        <label>Customer ID</label>
+        <input type="text" id="customerId" placeholder="cust_...">
+        <button onclick="getCustomer()">Get Customer</button>
+        <div class="result" id="customerResult"></div>
+    </div>
+
+    <!-- List Transfers -->
+    <div class="card">
+        <h2>💸 Transfers</h2>
+        <p style="font-size:12px;color:#94a3b8;">View USDB transfer history in sandbox.</p>
+        <label>Limit</label>
+        <input type="number" id="transferLimit" value="10" min="1" max="100">
+        <button onclick="listTransfers()">Load Transfers</button>
+        <div class="result" id="transfersResult"></div>
+    </div>
+
+    <!-- Create Transfer -->
+    <div class="card">
+        <h2>🚀 Create Transfer</h2>
+        <label>Customer ID</label>
+        <input type="text" id="txCustomerId" placeholder="cust_...">
+        <label>Amount (USD)</label>
+        <input type="number" id="txAmount" placeholder="e.g. 10.00" step="0.01">
+        <label>Source Rail</label>
+        <select id="txSourceRail">
+            <option value="ach">ACH</option>
+            <option value="wire">Wire</option>
+            <option value="sepa">SEPA</option>
+        </select>
+        <label>Destination Rail</label>
+        <select id="txDestRail">
+            <option value="ethereum">Ethereum</option>
+            <option value="polygon">Polygon</option>
+            <option value="base">Base</option>
+        </select>
+        <label>Destination Address (wallet)</label>
+        <input type="text" id="txDestAddr" placeholder="0x...">
+        <button onclick="createTransfer()">Create Transfer</button>
+        <div class="result" id="transferResult"></div>
+    </div>
+
+    <!-- Liquidation Addresses -->
+    <div class="card">
+        <h2>📍 Liquidation Addresses</h2>
+        <p style="font-size:12px;color:#94a3b8;">Create a crypto address that auto-converts to fiat.</p>
+        <label>Customer ID</label>
+        <input type="text" id="liqCustomerId" placeholder="cust_...">
+        <label>Chain</label>
+        <select id="liqChain">
+            <option value="ethereum">Ethereum</option>
+            <option value="polygon">Polygon</option>
+            <option value="base">Base</option>
+        </select>
+        <label>Currency</label>
+        <select id="liqCurrency">
+            <option value="usdb">USDB</option>
+            <option value="usdc">USDC</option>
+            <option value="usdt">USDT</option>
+        </select>
+        <button onclick="createLiquidationAddress()">Create Address</button>
+        <button class="secondary" onclick="listLiquidationAddresses()" style="margin-top:8px;">List Addresses</button>
+        <div class="result" id="liqResult"></div>
+    </div>
+
+</div>
+
+<script>
+    async function api(method, path, body) {
+        const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+        const res = await fetch('/api/bridge' + path, opts);
+        return res.json();
+    }
+
+    function show(id, data, isError) {
+        const el = document.getElementById(id);
+        el.textContent = JSON.stringify(data, null, 2);
+        el.className = 'result show' + (isError ? ' error' : '');
+    }
+
+    async function testConnection() {
+        try {
+            const data = await api('GET', '/status');
+            document.getElementById('statusDot').className = 'status-dot ' + (data.connected ? 'green' : 'red');
+            document.getElementById('modeVal').textContent = data.mode || '—';
+            document.getElementById('urlVal').textContent = data.connected ? 'api.sandbox.bridge.xyz' : 'failed';
+            document.getElementById('connVal').textContent = data.connected ? '✅ Connected' : '❌ Failed';
+            show('statusResult', data, !data.connected);
+        } catch (e) {
+            show('statusResult', { error: e.message }, true);
+        }
+    }
+
+    async function createKycLink() {
+        const full_name = document.getElementById('kycName').value.trim();
+        const email = document.getElementById('kycEmail').value.trim();
+        if (!full_name || !email) return show('kycResult', { error: 'Name and email required' }, true);
+        const data = await api('POST', '/kyc_link', { full_name, email });
+        show('kycResult', data, !!data.error);
+    }
+
+    async function listCustomers() {
+        const limit = document.getElementById('customerLimit').value;
+        const data = await api('GET', `/customers?limit=${limit}`);
+        show('customersResult', data, !!data.error);
+    }
+
+    async function getCustomer() {
+        const id = document.getElementById('customerId').value.trim();
+        if (!id) return show('customerResult', { error: 'Customer ID required' }, true);
+        const data = await api('GET', `/customers/${id}`);
+        show('customerResult', data, !!data.error);
+    }
+
+    async function listTransfers() {
+        const limit = document.getElementById('transferLimit').value;
+        const data = await api('GET', `/transfers?limit=${limit}`);
+        show('transfersResult', data, !!data.error);
+    }
+
+    async function createTransfer() {
+        const body = {
+            customerId: document.getElementById('txCustomerId').value.trim(),
+            amount: document.getElementById('txAmount').value,
+            currency: 'usdb',
+            sourcePaymentRail: document.getElementById('txSourceRail').value,
+            destinationPaymentRail: document.getElementById('txDestRail').value,
+            destinationAddress: document.getElementById('txDestAddr').value.trim(),
+        };
+        if (!body.customerId || !body.amount || !body.destinationAddress) {
+            return show('transferResult', { error: 'Customer ID, amount, and destination address are required' }, true);
+        }
+        const data = await api('POST', '/transfers', body);
+        show('transferResult', data, !!data.error);
+    }
+
+    async function createLiquidationAddress() {
+        const body = {
+            customerId: document.getElementById('liqCustomerId').value.trim(),
+            chain: document.getElementById('liqChain').value,
+            currency: document.getElementById('liqCurrency').value,
+        };
+        if (!body.customerId) return show('liqResult', { error: 'Customer ID required' }, true);
+        const data = await api('POST', '/liquidation_addresses', body);
+        show('liqResult', data, !!data.error);
+    }
+
+    async function listLiquidationAddresses() {
+        const id = document.getElementById('liqCustomerId').value.trim();
+        const data = await api('GET', `/liquidation_addresses${id ? '?customer_id=' + id : ''}`);
+        show('liqResult', data, !!data.error);
+    }
+
+    // Auto-test on load
+    window.addEventListener('load', testConnection);
+</script>
+
+</body>
+</html>
