@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 15: Banking & Fiat Integration | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .premium-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+
+        .flow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            padding: 20px 25px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .flow-box.fiat { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .flow-box.bridge { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .flow-box.crypto { background: linear-gradient(135deg, var(--gold), #d97706); }
+        .flow-box.bank { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+        .flow-label { font-weight: 600; margin-bottom: 8px; }
+        .flow-icon { font-size: 2em; margin-bottom: 10px; }
+        .arrow { font-size: 2em; color: var(--text-muted); }
+
+        .step-list { counter-reset: step-counter; list-style: none; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--success); background: var(--success); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .flow-diagram { flex-direction: column; }
+            .arrow { transform: rotate(90deg); }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 15
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#127974;</span>
+                Course 15: Banking System &amp; Fiat Integration
+                <span class="premium-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>12 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('traditional')"><span class="toc-number">2</span>Traditional Banking</li>
+                    <li class="toc-item" onclick="scrollToSection('defi-banking')"><span class="toc-number">3</span>DeFi vs. Banking</li>
+                    <li class="toc-item" onclick="scrollToSection('crypto-banking')"><span class="toc-number">4</span>Crypto-Friendly Banks</li>
+                    <li class="toc-item" onclick="scrollToSection('onramps')"><span class="toc-number">5</span>On-Ramps &amp; Off-Ramps</li>
+                    <li class="toc-item" onclick="scrollToSection('stablecoins')"><span class="toc-number">6</span>Stablecoins Infrastructure</li>
+                    <li class="toc-item" onclick="scrollToSection('compliance')"><span class="toc-number">7</span>AML/KYC Compliance</li>
+                    <li class="toc-item" onclick="scrollToSection('cross-border')"><span class="toc-number">8</span>Cross-Border Payments</li>
+                    <li class="toc-item" onclick="scrollToSection('unbanked')"><span class="toc-number">9</span>Unbanked &amp; CBDCs</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">10</span>Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">11</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">12</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Explain how traditional banking works, including fractional reserve banking and central bank monetary policy</div></li>
+                    <li class="step-item"><div class="step-title">Compare traditional banking services with their DeFi equivalents and evaluate tradeoffs</div></li>
+                    <li class="step-item"><div class="step-title">Understand the rise and fall of crypto-friendly banks and the lessons learned</div></li>
+                    <li class="step-item"><div class="step-title">Navigate fiat on-ramps and off-ramps, including Kenostod's Mercury Bank integration for USD cashouts</div></li>
+                    <li class="step-item"><div class="step-title">Analyze stablecoins (USDT, USDC, DAI, USDK) as banking infrastructure and their role in the crypto ecosystem</div></li>
+                    <li class="step-item"><div class="step-title">Understand AML/KYC compliance requirements and how they apply to crypto banking</div></li>
+                    <li class="step-item"><div class="step-title">Compare SWIFT cross-border payments with crypto alternatives and evaluate speed, cost, and accessibility</div></li>
+                    <li class="step-item"><div class="step-title">Evaluate crypto's potential to serve the 1.4 billion unbanked people globally and the implications of CBDCs</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding of banking and fiat integration is essential for navigating the bridge between traditional finance and crypto.</p>
+                </div>
+            </section>
+
+            <section id="traditional" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127970;</span>Traditional Banking System Overview</h2>
+                <div class="reading-content">
+                    <p>Before understanding how cryptocurrency intersects with banking, you must first understand how the traditional banking system works. Modern banking is built on centuries-old principles that most people never think about &mdash; yet these principles directly affect every dollar you earn, save, and spend.</p>
+
+                    <h3>How Banks Actually Work</h3>
+                    <p>When you deposit $1,000 into a bank account, most people assume the bank puts those dollars into a vault and holds them until you want them back. This is <strong>not</strong> what happens. Banks operate on a system called <strong>fractional reserve banking</strong>, which means they only keep a fraction of your deposit on hand and lend out the rest.</p>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Fractional Reserve Banking</div>
+                        <p>If the reserve requirement is 10%, a bank receiving your $1,000 deposit can lend out $900 to other borrowers. Those borrowers spend the $900, and it ends up deposited in another bank, which can then lend out $810, and so on. Through this <strong>money multiplier effect</strong>, your original $1,000 deposit can create up to $10,000 in total money supply. This is how banks "create" money &mdash; and why a bank run (everyone withdrawing at once) can collapse a bank.</p>
+                    </div>
+
+                    <h3>The Central Banking System</h3>
+                    <p>At the top of the banking hierarchy sits the <strong>central bank</strong> (the Federal Reserve in the U.S., the ECB in Europe, the Bank of England in the UK). Central banks have extraordinary powers:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Setting Interest Rates:</strong> The federal funds rate determines the cost of borrowing money throughout the entire economy</li>
+                        <li><strong>Printing Money (Quantitative Easing):</strong> Creating new money to buy government bonds, injecting liquidity into the financial system</li>
+                        <li><strong>Reserve Requirements:</strong> Dictating what fraction of deposits banks must hold (reduced to 0% in March 2020)</li>
+                        <li><strong>Lender of Last Resort:</strong> Providing emergency loans to banks facing liquidity crises</li>
+                    </ul>
+
+                    <h4>The Money Supply Chain</h4>
+                    <div class="diagram-container">
+                        <div class="diagram-title">Traditional Banking Money Flow</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box bank">
+                                <div class="flow-icon">&#127974;</div>
+                                <div class="flow-label">Central Bank</div>
+                                <div style="font-size: 0.8em;">Sets policy, prints money</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box fiat">
+                                <div class="flow-icon">&#127963;&#65039;</div>
+                                <div class="flow-label">Commercial Banks</div>
+                                <div style="font-size: 0.8em;">Lend, hold deposits</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box bridge">
+                                <div class="flow-icon">&#128101;</div>
+                                <div class="flow-label">Consumers</div>
+                                <div style="font-size: 0.8em;">Deposits, loans, payments</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Deposit Insurance: FDIC Protection</h3>
+                    <p>After the Great Depression, the U.S. created the <strong>Federal Deposit Insurance Corporation (FDIC)</strong> in 1933 to protect depositors. Key facts:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Insures deposits up to <strong>$250,000 per depositor, per bank</strong></li>
+                        <li>Funded by premiums paid by member banks, not taxpayer money</li>
+                        <li>Has never failed to pay a claim in its 90+ year history</li>
+                        <li>Does NOT cover investments, stocks, mutual funds, or cryptocurrency</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Why This Matters for Crypto</div>
+                        <p>Cryptocurrency deposits are <strong>not FDIC insured</strong>. When you hold KENO, USDC, or any crypto asset, there is no government guarantee. This is both a feature (freedom from government control) and a risk (no safety net). Understanding this distinction is critical for making informed decisions about where to keep your money.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="defi-banking" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128260;</span>How DeFi is Reimagining Banking</h2>
+                <div class="reading-content">
+                    <p>Decentralized Finance (DeFi) takes every service offered by traditional banks and rebuilds it using smart contracts on the blockchain &mdash; without intermediaries, without permission, and without borders. This isn't just incremental improvement; it's a fundamental rethinking of how financial services work.</p>
+
+                    <h3>Banking Services: Traditional vs. DeFi</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Banking Service</th>
+                                <th>Traditional Bank</th>
+                                <th>DeFi Equivalent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Savings Account</strong></td>
+                                <td>0.01-5% APY, FDIC insured</td>
+                                <td>Aave, Compound: 2-15% APY, no insurance</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Loans</strong></td>
+                                <td>Credit check, days to approve, 5-20% APR</td>
+                                <td>Overcollateralized, instant, 1-10% APR</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Currency Exchange</strong></td>
+                                <td>Bank rate + 2-5% spread + fees</td>
+                                <td>DEX: 0.05-0.3% fee, instant</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wire Transfer</strong></td>
+                                <td>$25-50 fee, 1-5 business days</td>
+                                <td>$0.01-5 fee, minutes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Insurance</strong></td>
+                                <td>FDIC up to $250K</td>
+                                <td>Nexus Mutual, InsurAce (smart contract cover)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Payments</strong></td>
+                                <td>Credit card: 2-3% merchant fee</td>
+                                <td>Stablecoin: 0.01-0.1% fee</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Banking-as-a-Service (BaaS) Platforms</h3>
+                    <p>A new category of companies has emerged that provides banking infrastructure through APIs, enabling any business &mdash; including crypto platforms &mdash; to embed financial services:</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Mercury</div>
+                            <div class="vocab-def">Banking for startups and crypto companies. Kenostod uses Mercury for USD cashout functionality.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Stripe Treasury</div>
+                            <div class="vocab-def">Embedded finance APIs enabling platforms to offer bank accounts, cards, and money movement.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Synapse / Unit</div>
+                            <div class="vocab-def">BaaS platforms that provide FDIC-insured accounts, card issuing, and ACH transfers via API.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Column / Lead Bank</div>
+                            <div class="vocab-def">Partner banks that work with fintech companies to offer chartered banking services.</div>
+                        </div>
+                    </div>
+
+                    <h3>Embedded Finance and Crypto Integration</h3>
+                    <p>Embedded finance is the integration of financial services directly into non-financial applications. For crypto platforms like Kenostod, this means users can:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Cash out KENO earnings directly to a bank account without leaving the platform</li>
+                        <li>Hold USD balances alongside crypto assets in one unified interface</li>
+                        <li>Receive a virtual debit card linked to their crypto balance</li>
+                        <li>Set up recurring purchases or automated savings</li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod's Approach</div>
+                        <p>Kenostod uses a <strong>Mercury Bank integration</strong> for USD cashouts, combined with PayPal for broader accessibility. This dual approach ensures users can convert KENO to real dollars through established, regulated channels &mdash; bridging the gap between your learning rewards and real-world spending power.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="crypto-banking" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>Crypto-Friendly Banking: Lessons Learned</h2>
+                <div class="reading-content">
+                    <p>The relationship between cryptocurrency and traditional banking has been turbulent. Understanding what happened to crypto-friendly banks provides crucial context for where the industry stands today.</p>
+
+                    <h3>The Rise of Crypto-Friendly Banks</h3>
+                    <p>Between 2018 and 2022, a small number of U.S. banks positioned themselves as the go-to financial institutions for cryptocurrency companies:</p>
+
+                    <h4>Silvergate Bank</h4>
+                    <p>Silvergate was a small community bank in La Jolla, California that pivoted to become the primary banking partner for the crypto industry. Their <strong>Silvergate Exchange Network (SEN)</strong> enabled instant, 24/7 USD transfers between crypto exchanges &mdash; something the traditional banking system could not do. At its peak, Silvergate held over $12 billion in deposits from crypto companies.</p>
+
+                    <h4>Signature Bank</h4>
+                    <p>Signature Bank, headquartered in New York, developed <strong>Signet</strong> &mdash; a blockchain-based real-time payments platform similar to SEN. It became the second-largest banking partner for crypto firms, holding billions in crypto-related deposits.</p>
+
+                    <h3>The Collapse: What Went Wrong</h3>
+                    <p>In March 2023, both banks collapsed within days of each other:</p>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">FTX Contagion</div>
+                            <p>When FTX collapsed in November 2022, Silvergate held $1 billion in FTX deposits. The resulting crypto market panic caused massive withdrawals from both banks. Silvergate lost 68% of its deposits ($8.1 billion) in a single quarter.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Concentration Risk</div>
+                            <p>Both banks were over-concentrated in a single industry. When crypto crashed, they had no diversification to cushion the blow. This is the banking equivalent of "putting all your eggs in one basket."</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Duration Mismatch</div>
+                            <p>Banks had invested short-term deposits in long-term bonds. When deposits fled, they had to sell bonds at a loss (bond prices drop when interest rates rise). Silvergate reported $1 billion in bond losses.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Regulatory Pressure</div>
+                            <p>The FDIC, OCC, and Federal Reserve issued a joint statement warning banks about crypto-related risks. This "Operation Choke Point 2.0" (as critics called it) made other banks reluctant to serve crypto companies.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#128680; The Critical Lesson</div>
+                        <p>The collapse of Silvergate and Signature Bank teaches a fundamental principle: <strong>even regulated banks can fail when they are over-exposed to a single volatile sector</strong>. For crypto users, this reinforces the importance of diversification &mdash; not just in your portfolio, but in where you bank. Kenostod partners with Mercury Bank specifically because Mercury maintains a diversified client base and conservative risk management practices.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="onramps" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128309;</span>Fiat On-Ramps and Off-Ramps</h2>
+                <div class="reading-content">
+                    <p>The terms "on-ramp" and "off-ramp" describe how money moves between the traditional financial system and the crypto ecosystem. Think of them as the entry and exit points on a highway: on-ramps take you from fiat (USD, EUR, etc.) into crypto, and off-ramps bring you back out.</p>
+
+                    <h3>Types of On-Ramps (Fiat &#10132; Crypto)</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Speed</th>
+                                <th>Fees</th>
+                                <th>Limits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Centralized Exchange</strong> (Coinbase, Kraken)</td>
+                                <td>Instant - 5 days</td>
+                                <td>0.5-3.5%</td>
+                                <td>Varies by verification</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PayPal / Venmo</strong></td>
+                                <td>Instant</td>
+                                <td>1.5-2.3%</td>
+                                <td>$25K/week</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wire Transfer</strong></td>
+                                <td>1-3 business days</td>
+                                <td>$0-25 flat</td>
+                                <td>$250K+</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Debit Card</strong></td>
+                                <td>Instant</td>
+                                <td>2.5-4%</td>
+                                <td>$5K-20K/day</td>
+                            </tr>
+                            <tr>
+                                <td><strong>P2P Platforms</strong> (Bisq, LocalBitcoins)</td>
+                                <td>Minutes to hours</td>
+                                <td>0-2%</td>
+                                <td>Peer-dependent</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Crypto ATMs</strong></td>
+                                <td>Instant</td>
+                                <td>5-12%</td>
+                                <td>$500-10K/day</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Kenostod's Fiat Integration Architecture</h3>
+                    <p>Kenostod uses a multi-layered approach to fiat integration, providing users with flexible options for moving between USD and KENO:</p>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">Kenostod Fiat Bridge Architecture</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box fiat">
+                                <div class="flow-icon">&#128179;</div>
+                                <div class="flow-label">User's Bank</div>
+                                <div style="font-size: 0.8em;">USD funds</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box bridge">
+                                <div class="flow-icon">&#128268;</div>
+                                <div class="flow-label">PayPal / Mercury</div>
+                                <div style="font-size: 0.8em;">Payment processor</div>
+                            </div>
+                            <div class="arrow">&#10132;</div>
+                            <div class="flow-box crypto">
+                                <div class="flow-icon">&#129689;</div>
+                                <div class="flow-label">KENO Wallet</div>
+                                <div style="font-size: 0.8em;">Crypto assets</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4>Deposit USD to Buy KENO</h4>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Connect Payment Method</div>
+                            <p>Link your PayPal account or initiate a Mercury Bank ACH transfer. Both options are available depending on your region and verification level.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Enter Amount &amp; Review Rate</div>
+                            <p>Specify the USD amount to deposit. The current KENO/USD exchange rate is displayed in real-time along with any applicable fees.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Confirm &amp; Receive KENO</div>
+                            <p>After confirmation, KENO tokens are credited to your wallet. PayPal transactions are near-instant; Mercury ACH transfers take 1-2 business days.</p>
+                        </li>
+                    </ul>
+
+                    <h4>Withdraw KENO to USD (Off-Ramp)</h4>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Initiate Cashout</div>
+                            <p>Select the amount of KENO to sell and choose your withdrawal method (PayPal or Mercury Bank transfer).</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Complete KYC Verification</div>
+                            <p>If not already verified, you must complete identity verification before any fiat withdrawal. This is required by law for all licensed money service businesses.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Receive USD</div>
+                            <p>Funds are sent to your chosen destination. PayPal payouts arrive within 24 hours. Mercury ACH transfers settle in 1-3 business days.</p>
+                        </li>
+                    </ul>
+
+                    <div class="code-example">
+<span class="code-comment">// Example: Kenostod cashout API flow (simplified)</span>
+<span class="code-keyword">const</span> cashout = <span class="code-keyword">async</span> (amount, method) => {
+  <span class="code-comment">// Step 1: Verify user has completed KYC</span>
+  <span class="code-keyword">const</span> kycStatus = <span class="code-keyword">await</span> <span class="code-function">checkKYC</span>(user.id);
+  <span class="code-keyword">if</span> (!kycStatus.verified) <span class="code-keyword">throw</span> <span class="code-keyword">new</span> Error(<span class="code-string">'KYC required'</span>);
+
+  <span class="code-comment">// Step 2: Calculate USD amount at current rate</span>
+  <span class="code-keyword">const</span> rate = <span class="code-keyword">await</span> <span class="code-function">getKENORate</span>();
+  <span class="code-keyword">const</span> usdAmount = amount * rate;
+
+  <span class="code-comment">// Step 3: Initiate transfer via Mercury or PayPal</span>
+  <span class="code-keyword">if</span> (method === <span class="code-string">'mercury'</span>) {
+    <span class="code-keyword">return</span> <span class="code-function">mercuryACHTransfer</span>(user.bankAccount, usdAmount);
+  } <span class="code-keyword">else</span> {
+    <span class="code-keyword">return</span> <span class="code-function">paypalPayout</span>(user.paypalEmail, usdAmount);
+  }
+};
+                    </div>
+                </div>
+            </section>
+
+            <section id="stablecoins" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#129689;</span>Stablecoins as Banking Infrastructure</h2>
+                <div class="reading-content">
+                    <p>Stablecoins are cryptocurrencies designed to maintain a stable value, typically pegged 1:1 to a fiat currency like the US dollar. They are the backbone of the crypto economy &mdash; serving as the bridge between volatile crypto assets and the stable value people need for everyday transactions.</p>
+
+                    <h3>Major Stablecoins Compared</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Stablecoin</th>
+                                <th>Type</th>
+                                <th>Backing</th>
+                                <th>Market Cap</th>
+                                <th>Key Feature</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>USDT (Tether)</strong></td>
+                                <td>Centralized</td>
+                                <td>Cash, T-bills, commercial paper</td>
+                                <td>$95B+</td>
+                                <td>Most widely traded, highest liquidity</td>
+                            </tr>
+                            <tr>
+                                <td><strong>USDC (Circle)</strong></td>
+                                <td>Centralized</td>
+                                <td>Cash + short-term U.S. Treasuries</td>
+                                <td>$28B+</td>
+                                <td>Regulated, monthly audits, institutional trust</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DAI (MakerDAO)</strong></td>
+                                <td>Decentralized</td>
+                                <td>Over-collateralized crypto assets</td>
+                                <td>$5B+</td>
+                                <td>No central issuer, governed by DAO</td>
+                            </tr>
+                            <tr>
+                                <td><strong>USDK (Kenostod)</strong></td>
+                                <td>Platform-native</td>
+                                <td>Pegged to USD via KENO reserves</td>
+                                <td>Platform-scale</td>
+                                <td>Used within Kenostod for stable-value transactions</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>How Stablecoins Function as Banking Infrastructure</h3>
+                    <p>Stablecoins serve several critical functions that mirror traditional banking:</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Unit of Account</div>
+                            <div class="vocab-def">Prices are quoted in stablecoins (like quoting prices in dollars), providing a stable reference point for the volatile crypto market.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Medium of Exchange</div>
+                            <div class="vocab-def">Traders use stablecoins to move between positions without converting back to fiat, avoiding bank processing times.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Store of Value</div>
+                            <div class="vocab-def">During market downturns, traders "park" funds in stablecoins to preserve value without leaving the crypto ecosystem.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Settlement Layer</div>
+                            <div class="vocab-def">DeFi protocols use stablecoins for lending, borrowing, and liquidity provision &mdash; functioning like the USD settlement layer for the crypto economy.</div>
+                        </div>
+                    </div>
+
+                    <h4>USDK: Kenostod's Stablecoin</h4>
+                    <p>USDK is Kenostod's platform-native stablecoin, pegged 1:1 to the US dollar. It serves as the stable-value medium within the Kenostod ecosystem, allowing users to:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Convert volatile KENO earnings to a stable USD-pegged asset without leaving the platform</li>
+                        <li>Send payments to other Kenostod users with zero volatility risk</li>
+                        <li>Use as collateral in Kenostod's DeFi features</li>
+                        <li>Cash out to real USD via the Mercury Bank or PayPal off-ramp</li>
+                    </ul>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Stablecoin Risks</div>
+                        <p>Stablecoins are NOT risk-free. USDT has faced scrutiny over its reserves. USDC briefly depegged to $0.87 in March 2023 when $3.3 billion of its reserves were stuck in the collapsing Silicon Valley Bank. DAI's decentralized nature means it can be affected by the volatility of its underlying collateral. Always understand what backs any stablecoin you hold.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="compliance" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>AML/KYC Compliance for Crypto Banking</h2>
+                <div class="reading-content">
+                    <p>Any platform that interfaces with traditional banking must comply with a complex web of regulations designed to prevent financial crime. These requirements exist at the intersection of banking law, securities regulation, and cryptocurrency policy.</p>
+
+                    <h3>KYC: Know Your Customer</h3>
+                    <p>KYC is the process of verifying a customer's identity before they can access financial services. For crypto platforms handling fiat, KYC typically involves:</p>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Identity Verification (Tier 1)</div>
+                            <p>Government-issued photo ID (passport, driver's license, national ID card). Name, date of birth, and address must match. Most platforms use automated document verification services like Jumio, Onfido, or Persona.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Address Verification (Tier 2)</div>
+                            <p>Proof of residential address via utility bill, bank statement, or government correspondence dated within 3 months. Some jurisdictions require a selfie holding your ID document.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Enhanced Due Diligence (Tier 3)</div>
+                            <p>For high-value accounts or politically exposed persons (PEPs), additional documentation includes source of funds declaration, tax returns, employment verification, and ongoing monitoring.</p>
+                        </li>
+                    </ul>
+
+                    <h3>AML: Anti-Money Laundering</h3>
+                    <p>AML regulations require platforms to detect and report suspicious financial activity. Key components include:</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Transaction Monitoring</div>
+                            <div class="vocab-def">Automated systems flag unusual patterns: large transactions, rapid movement of funds, transactions with sanctioned addresses.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">SAR Filing</div>
+                            <div class="vocab-def">Suspicious Activity Reports must be filed with FinCEN (in the U.S.) within 30 days of detecting suspicious behavior.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Travel Rule</div>
+                            <div class="vocab-def">For transfers over $3,000, sender and receiver information must be transmitted between financial institutions (FATF requirement).</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Sanctions Screening</div>
+                            <div class="vocab-def">All transactions are screened against OFAC, EU, and UN sanctions lists. Transactions involving sanctioned entities or jurisdictions are blocked.</div>
+                        </div>
+                    </div>
+
+                    <h3>Kenostod's KYC Verification Tiers</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Verification Level</th>
+                                <th>Requirements</th>
+                                <th>Daily Limit</th>
+                                <th>Monthly Limit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Unverified</strong></td>
+                                <td>Email only</td>
+                                <td>Crypto-to-crypto only</td>
+                                <td>No fiat access</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Basic (Tier 1)</strong></td>
+                                <td>Photo ID + selfie</td>
+                                <td>$1,000/day</td>
+                                <td>$10,000/month</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Enhanced (Tier 2)</strong></td>
+                                <td>ID + address proof</td>
+                                <td>$10,000/day</td>
+                                <td>$50,000/month</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Institutional (Tier 3)</strong></td>
+                                <td>Full EDD + source of funds</td>
+                                <td>$100,000/day</td>
+                                <td>$500,000/month</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Privacy Balance</div>
+                        <p>Crypto-to-crypto transactions within Kenostod remain private and do not require KYC. Verification is only triggered when you interact with the fiat banking system (deposits, withdrawals, USD cashouts). This preserves the privacy benefits of cryptocurrency while meeting regulatory requirements for fiat transactions.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cross-border" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127758;</span>SWIFT vs. Crypto Cross-Border Payments</h2>
+                <div class="reading-content">
+                    <p>International money transfers reveal perhaps the starkest contrast between traditional banking and cryptocurrency. The current system is slow, expensive, and opaque &mdash; and crypto offers a dramatically better alternative.</p>
+
+                    <h3>How SWIFT Works</h3>
+                    <p><strong>SWIFT</strong> (Society for Worldwide Interbank Financial Telecommunication) is the messaging network used by 11,000+ banks in 200+ countries to send payment instructions. Despite its name suggesting speed, SWIFT transfers are notoriously slow:</p>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">SWIFT Transfer: New York to Lagos, Nigeria</div>
+                        <div style="text-align: left; max-width: 600px; margin: 0 auto;">
+                            <div style="padding: 12px; background: rgba(59, 130, 246, 0.15); border-radius: 8px; margin-bottom: 8px;">
+                                <strong>Day 1:</strong> Your bank (JPMorgan) receives your wire request and initiates SWIFT message
+                            </div>
+                            <div style="padding: 12px; background: rgba(59, 130, 246, 0.12); border-radius: 8px; margin-bottom: 8px;">
+                                <strong>Day 1-2:</strong> Message routed through correspondent bank (e.g., Citibank London)
+                            </div>
+                            <div style="padding: 12px; background: rgba(59, 130, 246, 0.09); border-radius: 8px; margin-bottom: 8px;">
+                                <strong>Day 2-3:</strong> Second correspondent bank processes (e.g., Standard Chartered)
+                            </div>
+                            <div style="padding: 12px; background: rgba(59, 130, 246, 0.06); border-radius: 8px; margin-bottom: 8px;">
+                                <strong>Day 3-5:</strong> Receiving bank (Guaranty Trust Bank) credits the recipient
+                            </div>
+                            <div style="padding: 12px; background: rgba(239, 68, 68, 0.15); border-radius: 8px;">
+                                <strong>Total cost:</strong> $25-50 sender fee + $15-30 intermediary fees + 3-5% FX markup = <strong>$40-80+ per transfer</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>SWIFT vs. Crypto: Head-to-Head Comparison</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>SWIFT</th>
+                                <th>Crypto (Stablecoins)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Speed</strong></td>
+                                <td>1-5 business days</td>
+                                <td>Seconds to minutes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cost</strong></td>
+                                <td>$25-80+ per transfer</td>
+                                <td>$0.01-5 per transfer</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Operating Hours</strong></td>
+                                <td>Business days only (no weekends/holidays)</td>
+                                <td>24/7/365</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Transparency</strong></td>
+                                <td>Opaque &mdash; fees hidden in FX markup</td>
+                                <td>Fully transparent on blockchain</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Minimum Amount</strong></td>
+                                <td>Often $100+ (fees make small amounts impractical)</td>
+                                <td>No minimum</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Access Requirements</strong></td>
+                                <td>Bank account required</td>
+                                <td>Only a smartphone and internet</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Reversibility</strong></td>
+                                <td>Can be reversed (with difficulty)</td>
+                                <td>Irreversible (Kenostod offers 5-min reversal window)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>The Remittance Revolution</h3>
+                    <p>Remittances &mdash; money sent by workers to their home countries &mdash; represent a <strong>$700+ billion annual market</strong>. Traditional remittance services like Western Union charge an average of 6.2% in fees. For a worker sending $200 home, that's $12.40 lost to fees. On a crypto rail using stablecoins, the same transfer might cost $0.10.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Real Impact</div>
+                        <p>The World Bank estimates that reducing remittance fees to 3% (UN Sustainable Development Goal target) would save migrants <strong>$20 billion per year</strong>. Crypto can already achieve fees well below 1%, putting more money in the pockets of the world's most vulnerable populations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="unbanked" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127757;</span>The Unbanked Population &amp; CBDCs</h2>
+                <div class="reading-content">
+                    <p>One of the most compelling use cases for cryptocurrency is its potential to provide financial services to the <strong>1.4 billion adults globally</strong> who lack access to a bank account. Understanding this population and the competing solutions (crypto vs. CBDCs) is essential for grasping the future of money.</p>
+
+                    <h3>Why Are People Unbanked?</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Geographic isolation:</strong> Rural areas without bank branches (common in Sub-Saharan Africa, Southeast Asia)</li>
+                        <li><strong>Documentation barriers:</strong> Lacking government-issued ID required for bank accounts</li>
+                        <li><strong>Minimum balance requirements:</strong> Many banks require minimum deposits that exclude the poor</li>
+                        <li><strong>Distrust of institutions:</strong> History of bank failures, government seizure of funds, or corruption</li>
+                        <li><strong>Cost:</strong> Account maintenance fees, transaction fees, and travel costs to branches</li>
+                    </ul>
+
+                    <h3>How Crypto Addresses Financial Exclusion</h3>
+                    <p>Cryptocurrency requires only a smartphone and internet connection &mdash; no bank branch, no minimum balance, no credit check, no government ID. In countries like Nigeria, the Philippines, and Vietnam, crypto adoption is highest precisely because traditional banking infrastructure is weakest.</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">M-Pesa Model</div>
+                            <div class="vocab-def">Kenya's mobile money system proved that financial services can thrive without banks. Crypto extends this model globally with no central operator.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Stablecoin Savings</div>
+                            <div class="vocab-def">In countries with 50-100%+ inflation (Argentina, Turkey, Nigeria), holding USDC or USDT preserves purchasing power better than the local currency.</div>
+                        </div>
+                    </div>
+
+                    <h3>Central Bank Digital Currencies (CBDCs)</h3>
+                    <p>CBDCs are digital currencies issued by central banks &mdash; essentially a digital version of a nation's fiat currency. As of 2025, over 130 countries (representing 98% of global GDP) are exploring CBDCs.</p>
+
+                    <h4>CBDC vs. Cryptocurrency: Key Differences</h4>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>Cryptocurrency (Bitcoin, KENO)</th>
+                                <th>CBDCs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Issuer</strong></td>
+                                <td>Decentralized / protocol-based</td>
+                                <td>Central bank (government)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Privacy</strong></td>
+                                <td>Pseudonymous to private</td>
+                                <td>Potentially full government surveillance</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Supply Control</strong></td>
+                                <td>Fixed or algorithmic supply</td>
+                                <td>Government can print unlimited amounts</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Censorship</strong></td>
+                                <td>Censorship-resistant</td>
+                                <td>Government can freeze or restrict accounts</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Programmability</strong></td>
+                                <td>Smart contracts, DeFi, composability</td>
+                                <td>Limited programmability (expiration dates, spending restrictions)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>International Use</strong></td>
+                                <td>Borderless by design</td>
+                                <td>Jurisdictionally limited</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; CBDC Privacy Concerns</div>
+                        <p>Unlike cash (which is anonymous) or crypto (which is pseudonymous), CBDCs could give governments unprecedented surveillance over every transaction. China's digital yuan (e-CNY) already includes an "expiration date" feature that forces spending within a timeframe. Some CBDC proposals include the ability to restrict purchases (e.g., blocking certain merchants or products). These capabilities represent a fundamental shift in the relationship between citizens and money.</p>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod's Position</div>
+                        <p>Kenostod believes in financial sovereignty &mdash; the idea that individuals should control their own money. While CBDCs may improve payment efficiency, Kenostod's mission is to educate users so they can make informed choices about their financial tools. Our curriculum ensures you understand both the benefits and risks of every monetary system, from central banking to DeFi.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These case studies illustrate the real-world dynamics at the intersection of banking and cryptocurrency:</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: The Silvergate &amp; Signature Bank Collapse (2023)</h4>
+                        <p><strong>What happened:</strong> Silvergate Bank and Signature Bank, the two largest crypto-friendly banks in the U.S., collapsed within days of each other in March 2023. Silvergate voluntarily liquidated after losing $8.1 billion in deposits following the FTX collapse. Signature Bank was seized by regulators after experiencing a bank run.</p>
+                        <p style="margin-top: 10px;"><strong>The impact:</strong> Hundreds of crypto companies were suddenly left without banking partners. The crypto industry scrambled to find alternative banking relationships, and many turned to offshore banks or BaaS platforms.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Concentration risk in banking is dangerous. Crypto companies should maintain relationships with multiple banking partners, and users should diversify where they hold funds. Kenostod's partnership with Mercury Bank reflects this lesson &mdash; Mercury serves a diversified client base and is not concentrated in crypto.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: USDC Depeg During Silicon Valley Bank Crisis (2023)</h4>
+                        <p><strong>What happened:</strong> Circle, the issuer of USDC, disclosed that $3.3 billion of its $40 billion in reserves were held at Silicon Valley Bank (SVB), which had just been seized by the FDIC. Over a weekend, USDC depegged from $1.00 to $0.87 as holders panicked and sold.</p>
+                        <p style="margin-top: 10px;"><strong>Resolution:</strong> The U.S. government announced it would guarantee all SVB deposits (including Circle's). USDC returned to $1.00 by Monday morning.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Even "safe" stablecoins backed by reserves carry counterparty risk. The location and composition of reserves matters enormously. This event led Circle to move its reserves primarily to short-term U.S. Treasury bills held at BNY Mellon &mdash; considered the safest possible custody arrangement.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: El Salvador's Bitcoin Experiment (2021-Present)</h4>
+                        <p><strong>What happened:</strong> In September 2021, El Salvador became the first country to adopt Bitcoin as legal tender alongside the U.S. dollar. The government launched the Chivo wallet, gave every citizen $30 in Bitcoin, and installed 200 Bitcoin ATMs nationwide.</p>
+                        <p style="margin-top: 10px;"><strong>Results:</strong> Adoption has been mixed. While remittances via Bitcoin have saved Salvadorans millions in fees (remittances represent 24% of GDP), daily usage for commerce remains low. The government's Bitcoin purchases (2,381 BTC) have been volatile but ultimately profitable during the 2024-2025 bull market.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Technology alone doesn't drive adoption &mdash; education, infrastructure, and user experience are equally important. This is precisely why Kenostod Academy exists: to provide the educational foundation that makes crypto adoption meaningful and sustainable.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: Nigeria's eNaira and Crypto Ban (2021-2023)</h4>
+                        <p><strong>What happened:</strong> In February 2021, Nigeria's Central Bank banned commercial banks from serving crypto exchanges. Simultaneously, they launched the eNaira CBDC. Despite the ban, Nigeria became one of the top 5 countries for crypto adoption, with citizens using P2P platforms to trade.</p>
+                        <p style="margin-top: 10px;"><strong>Why crypto persisted:</strong> With naira inflation exceeding 25% and strict capital controls limiting USD access, Nigerians turned to crypto (especially USDT) as a lifeline for savings and international payments. The eNaira, by contrast, saw minimal adoption (&lt;0.5% of the population).</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> When traditional banking fails its citizens, crypto provides a critical alternative. CBDCs imposed from above cannot replicate the organic adoption of tools that genuinely solve people's problems. In December 2023, Nigeria partially reversed its crypto ban, acknowledging the reality of adoption.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Fractional Reserve Analysis</h4>
+                        <div class="exercise-question">
+                            <p>A bank receives a $10,000 deposit with a 10% reserve requirement. Walk through how the money multiplier effect works over three rounds of lending. How much total money is "created" in the economy? Now explain why this system is fundamentally different from cryptocurrency, where tokens cannot be "multiplied" by intermediaries.</p>
+                            <textarea id="ex1" placeholder="Write your analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Stablecoin Risk Assessment</h4>
+                        <div class="exercise-question">
+                            <p>You have $50,000 in crypto earnings and want to park it in stablecoins while you decide what to do next. Compare the risks of holding it in USDT vs. USDC vs. DAI. Which would you choose and why? Consider: reserve transparency, regulatory status, depegging history, and counterparty risk.</p>
+                            <textarea id="ex2" placeholder="Write your risk assessment here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Cross-Border Payment Scenario</h4>
+                        <div class="exercise-question">
+                            <p>A freelance developer in the Philippines completes a $2,000 project for a client in Germany. Compare the experience of being paid via: (1) SWIFT wire transfer, (2) PayPal, and (3) USDC on the Polygon network. For each option, estimate the fees, time to receive funds, and any barriers to access.</p>
+                            <textarea id="ex3" placeholder="Compare the three payment methods..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: CBDC Debate</h4>
+                        <div class="exercise-question">
+                            <p>Your country announces it will launch a CBDC that replaces physical cash within 5 years. Write a balanced analysis covering: (1) What benefits this provides for financial inclusion and payment efficiency, (2) What privacy and civil liberty concerns arise, and (3) How decentralized cryptocurrency could coexist with or complement a CBDC.</p>
+                            <textarea id="ex4" placeholder="Write your balanced analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Kenostod Cashout Strategy</h4>
+                        <div class="exercise-question">
+                            <p>You have earned 5,250 KENO tokens (worth $5,250) by completing all 21 Kenostod Academy courses. Design your cashout strategy: How much would you keep in KENO? How much would you convert to USDK? How much would you cash out via Mercury Bank or PayPal? Explain your reasoning, considering tax implications, exchange rate timing, and diversification principles.</p>
+                            <textarea id="ex5" placeholder="Describe your cashout strategy..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What is fractional reserve banking?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Banks keep all deposits in a vault</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Banks keep only a fraction of deposits and lend out the rest</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Banks split deposits equally among all customers</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Banks only accept fractional amounts of currency</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. What does KYC stand for?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Keep Your Cryptocurrency</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Kenostod Yield Calculator</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Know Your Customer</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Key Yield Certification</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. Which banking partner does Kenostod use for USD cashouts?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mercury Bank</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Silvergate Bank</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Signature Bank</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Silicon Valley Bank</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. What is the primary purpose of AML regulations?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To speed up crypto transactions</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To increase bank profits</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To restrict cryptocurrency use</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To prevent money laundering and financial crime</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. Which stablecoin is decentralized and governed by a DAO?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>USDT (Tether)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>DAI (MakerDAO)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>USDC (Circle)</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>BUSD (Binance)</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. Why did Silvergate Bank collapse in 2023?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Government regulation banned it</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It was hacked by cybercriminals</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Over-concentration in crypto clients, FTX contagion, and massive deposit withdrawals</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It ran out of physical vault space</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. What is a major advantage of crypto cross-border payments over SWIFT?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Much lower fees and near-instant settlement (24/7)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Government guarantee on all transactions</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Automatic currency conversion by central banks</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>All transactions are reversible</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <div class="question-text">8. What caused USDC to temporarily depeg to $0.87 in March 2023?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Tether dumped USDC on the market</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Circle ran out of reserves entirely</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The Ethereum network went down</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>$3.3B of Circle's reserves were stuck in the collapsing Silicon Valley Bank</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="b">
+                    <div class="question-text">9. How many adults globally are estimated to be unbanked (without a bank account)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>100 million</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1.4 billion</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>500 million</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5 billion</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="c">
+                    <div class="question-text">10. What is a key privacy concern about Central Bank Digital Currencies (CBDCs)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They are too anonymous for governments to track</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They cannot be used internationally</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They could enable government surveillance of every transaction and allow account freezing</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They use too much electricity</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. When is KYC verification required on Kenostod?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>When converting to/from fiat currency (deposits, withdrawals)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>For every single transaction</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only when creating a wallet</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KYC is never required on Kenostod</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="b">
+                    <div class="question-text">12. What is FDIC insurance and does it cover cryptocurrency?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Government insurance that covers all financial assets including crypto up to $500K</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Deposit insurance up to $250K per depositor per bank; does NOT cover cryptocurrency</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Insurance provided by cryptocurrency exchanges for lost tokens</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A blockchain protocol that automatically insures all DeFi deposits</span></div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <div id="resultIcon" class="result-icon"></div>
+                    <div id="resultTitle" class="result-title"></div>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-14-merchant.html" style="color: var(--primary);">&larr; Course 14</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-16-exchange.html" style="color: var(--primary);">Course 16 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const text = textarea.value.trim();
+
+            if (text.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                feedback.innerHTML = '<strong>Too short!</strong> Please write a more detailed response (at least a few sentences) to demonstrate your understanding.';
+                return;
+            }
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+            feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+
+            const feedbackMessages = {
+                1: 'Great analysis! Key points: the $10,000 deposit creates ~$100,000 through re-lending (money multiplier = 1/reserve ratio). In crypto, tokens have a fixed or algorithmic supply &mdash; no intermediary can "create" more tokens through lending. This is a fundamental difference in monetary architecture.',
+                2: 'Good risk assessment! USDT has the highest liquidity but least transparent reserves. USDC is regulated with monthly audits but faced the SVB depeg risk. DAI is decentralized but can be affected by collateral volatility. Diversifying across multiple stablecoins is often the wisest approach.',
+                3: 'Excellent comparison! SWIFT: $40-80 fees, 3-5 days, bank account required. PayPal: ~$30-50 in fees (conversion + withdrawal), 1-3 days, PayPal account required. USDC on Polygon: ~$0.01-0.10 fee, minutes, only needs a smartphone. The cost difference is dramatic for developing-country recipients.',
+                4: 'Well-reasoned analysis! CBDCs can improve payment efficiency and financial inclusion, but the surveillance and censorship capabilities are concerning. The ideal system likely involves CBDCs for government payments and regulated commerce, while preserving access to decentralized cryptocurrency for financial sovereignty.',
+                5: 'Thoughtful strategy! Consider: keeping some KENO for potential appreciation, converting a portion to USDK for stability, and cashing out enough for immediate needs while being mindful of tax events triggered by each conversion. Dollar-cost averaging your cashout over time can reduce timing risk.'
+            };
+
+            feedback.innerHTML = '<strong>&#10003; Good work!</strong> ' + feedbackMessages[num];
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) {
+                        correct++;
+                    } else {
+                        selectedOption.classList.add('incorrect');
+                    }
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            const passing = Math.ceil(total * 0.8);
+
+            if (correct >= passing) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\uD83C\uDF89';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = 'You got ' + correct + '/' + total + ' correct!';
+                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--success);">\uD83C\uDF93 +250 KENO!</p><a href="/courses/course-16-exchange.html" class="next-course-btn">Course 16 \u2192</a>';
+                localStorage.setItem('course15_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(15, 'Course 15: Banking System');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\uD83D\uDCDA';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = correct + '/' + total + ' correct. You need at least ' + passing + ' correct (80%) to pass. Review the material and try again!';
+                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            document.getElementById('quizResult').classList.remove('show', 'passed', 'failed');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+<script src="/courses/course-common.js"></script>
+</body>
+</html>
