@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fix BscScan Verification - KENO</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0B6F44 0%, #1a1a1a 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(0,0,0,0.4);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #FFD700;
+        }
+        h1 {
+            color: #FFD700;
+            text-align: center;
+        }
+        .error {
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .solution {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .code {
+            background: #1a1a1a;
+            border: 1px solid #50C878;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .step {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-left: 4px solid #FFD700;
+            border-radius: 5px;
+        }
+        .step h3 {
+            color: #FFD700;
+            margin-top: 0;
+        }
+        a {
+            color: #50C878;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #FFD700;
+        }
+        ol, ul {
+            line-height: 2;
+        }
+        .highlight {
+            background: #FFD700;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix BscScan Verification Error</h1>
+        
+        <div class="error">
+            <h3 style="color: #f59e0b; margin-top: 0;">❌ Current Error:</h3>
+            <p><strong>"Unable to find matching Contract Bytecode and ABI"</strong></p>
+            <p>This means BscScan can't match your source code with the deployed contract.</p>
+        </div>
+
+        <div class="solution">
+            <h3 style="color: #10b981; margin-top: 0;">✅ Most Likely Cause:</h3>
+            <p><strong>Missing Constructor Arguments!</strong></p>
+            <p>Your KENO contract requires 4 wallet addresses that were used during deployment. You MUST provide these to BscScan.</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Get Your Constructor Arguments from BscScan</h3>
+            <p>Visit your contract's deployment transaction:</p>
+            <ol>
+                <li>Go to: <a href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</a></li>
+                <li>Click on the <span class="highlight">first transaction</span> (Contract Creation)</li>
+                <li>Scroll down to <span class="highlight">"Input Data"</span></li>
+                <li>Click <span class="highlight">"Decode Input Data"</span> button</li>
+                <li>You'll see 4 wallet addresses:
+                    <ul>
+                        <li>_teamWallet</li>
+                        <li>_treasuryWallet</li>
+                        <li>_liquidityWallet</li>
+                        <li>_icoWallet</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Encode the Constructor Arguments</h3>
+            <p>Once you have the 4 wallet addresses, you need to encode them.</p>
+            
+            <p><strong>Option A: BscScan Auto-Encoding (Easiest)</strong></p>
+            <ol>
+                <li>On the BscScan verification page, scroll down to <span class="highlight">"Constructor Arguments ABI-encoded"</span></li>
+                <li>Click <span class="highlight">"here"</span> to auto-fill from transaction</li>
+                <li>BscScan will automatically extract and encode the arguments</li>
+            </ol>
+
+            <p><strong>Option B: Manual Encoding</strong></p>
+            <p>If auto-fill doesn't work, use this tool:</p>
+            <div class="code">
+Go to: https://abi.hashex.org/
+<br>Select: "Constructor"
+<br>Add 4 parameters of type "address"
+<br>Paste your 4 wallet addresses
+<br>Click "Encode"
+<br>Copy the result (without "0x" prefix)
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Complete Verification Form</h3>
+            <p>Fill in ALL these fields on BscScan:</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background: rgba(255,215,0,0.1);">
+                    <td style="padding: 12px; border: 1px solid #333;"><strong>Field</strong></td>
+                    <td style="padding: 12px; border: 1px solid #333;"><strong>Value</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #333;">Contract Address</td>
+                    <td style="padding: 12px; border: 1px solid #333;"><code>0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</code></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #333;">Compiler Type</td>
+                    <td style="padding: 12px; border: 1px solid #333;"><code>Solidity (Single file)</code></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #333;">Compiler Version</td>
+                    <td style="padding: 12px; border: 1px solid #333;"><code>v0.8.20+commit.a1b79de6</code></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #333;">License Type</td>
+                    <td style="padding: 12px; border: 1px solid #333;"><code>MIT License (MIT)</code></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #333;">Optimization</td>
+                    <td style="padding: 12px; border: 1px solid #333;"><code>Yes</code></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #333;">Runs (Optimizer)</td>
+                    <td style="padding: 12px; border: 1px solid #333;"><code>200</code></td>
+                </tr>
+                <tr style="background: rgba(16,185,129,0.1);">
+                    <td style="padding: 12px; border: 1px solid #333;"><strong>Constructor Arguments</strong></td>
+                    <td style="padding: 12px; border: 1px solid #333;"><strong>GET FROM STEP 1 & 2!</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Paste Contract Code</h3>
+            <p>Use the flattened contract code from: <code>KENO-CONTRACT-FOR-BSCSCAN.txt</code></p>
+            <p>Copy all the code and paste it into "Enter the Solidity Contract Code below" field.</p>
+        </div>
+
+        <div class="solution">
+            <h3 style="color: #10b981; margin-top: 0;">🎯 Quick Reference:</h3>
+            <ul>
+                <li><strong>Contract:</strong> <a href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">View on BscScan</a></li>
+                <li><strong>Verify Page:</strong> <a href="https://bscscan.com/verifyContract" target="_blank">BscScan Verification</a></li>
+                <li><strong>ABI Encoder Tool:</strong> <a href="https://abi.hashex.org/" target="_blank">HashEx ABI Encoder</a></li>
+            </ul>
+        </div>
+
+        <div class="error">
+            <h3 style="color: #f59e0b; margin-top: 0;">⚠️ Common Mistakes:</h3>
+            <ul>
+                <li>❌ Leaving Constructor Arguments field empty</li>
+                <li>❌ Wrong compiler version (must be exact: v0.8.20+commit.a1b79de6)</li>
+                <li>❌ Optimization set to "No" when it should be "Yes"</li>
+                <li>❌ Runs set to wrong number (must be 200)</li>
+                <li>❌ Including "0x" prefix in constructor arguments (remove it!)</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
