@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 4: Scheduled Transactions | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.92em; }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; flex-shrink: 0; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .course-meta span { display: flex; align-items: center; gap: 8px; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .section-title { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .section-icon { font-size: 1em; }
+        .reading-content h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; }
+        .reading-content h4 { color: var(--secondary); margin: 20px 0 10px 0; }
+        .reading-content p { margin-bottom: 15px; color: var(--text-light); }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; display: flex; align-items: center; gap: 12px; }
+        .objective-list li::before { content: "\2713"; color: var(--success); font-weight: bold; }
+        .term-definition { display: flex; gap: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 10px; }
+        .term-definition .term { color: var(--primary); font-weight: 700; min-width: 140px; }
+        .term-definition .definition { color: var(--text-muted); }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .highlight-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .highlight-box .highlight-title { color: var(--secondary); font-weight: 700; margin-bottom: 10px; }
+        .highlight-box.warning { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-box.warning .highlight-title { color: var(--danger); }
+        .highlight-box.success { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
+        .highlight-box.success .highlight-title { color: var(--success); }
+        .highlight-box.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-box.danger .highlight-title { color: var(--danger); }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .case-study { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95em; }
+        .comparison-table th { background: rgba(59, 130, 246, 0.15); padding: 12px 16px; text-align: left; color: var(--secondary); border-bottom: 2px solid rgba(59, 130, 246, 0.2); }
+        .comparison-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); }
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .code-example { background: #0d1117; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em; line-height: 1.6; overflow-x: auto; color: #e6edf3; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-comment { color: #8b949e; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+        .exercise-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        .exercise-question { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; margin: 10px 0; }
+        .exercise-question textarea { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text-light); font-family: inherit; font-size: 0.95em; margin-top: 8px; min-height: 80px; resize: vertical; }
+        .check-answer-btn { background: var(--gold); color: #000; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 8px; font-size: 0.85em; }
+        .answer-feedback { margin-top: 8px; padding: 10px; border-radius: 6px; font-size: 0.9em; display: none; }
+        .practice-section { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border: 2px solid var(--primary); }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 15px 35px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1.1em; transition: all 0.3s; border: none; cursor: pointer; }
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+        .quiz-section { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05)); border: 2px solid #8b5cf6; }
+        .quiz-question { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { display: flex; align-items: center; gap: 12px; padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .quiz-radio { width: 20px; height: 20px; border: 2px solid var(--text-muted); border-radius: 50%; flex-shrink: 0; }
+        .quiz-option.selected .quiz-radio { border-color: var(--primary); background: var(--primary); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .result-icon { font-size: 3em; margin-bottom: 10px; }
+        .result-title { margin-bottom: 10px; }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .new-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .use-case-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .use-case-card { background: var(--bg-dark); padding: 20px; border-radius: 12px; text-align: center; }
+        .use-case-card .icon { font-size: 2em; margin-bottom: 10px; }
+        .use-case-card h4 { color: var(--primary); margin-bottom: 8px; }
+        .vocab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .vocab-card { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 16px; border-left: 3px solid var(--secondary); }
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+        .timeline-item { position: relative; padding-left: 30px; padding-bottom: 20px; border-left: 2px solid rgba(59, 130, 246, 0.3); }
+        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 5px; width: 10px; height: 10px; background: var(--secondary); border-radius: 50%; }
+        .timeline-item:last-child { border-left: none; }
+        .timeline-item h5 { color: var(--secondary); margin-bottom: 5px; }
+        .timeline-item p { color: var(--text-muted); font-size: 0.9em; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } .vocab-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">&#128218; Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('what-are')"><span class="toc-number">2</span>What Are Scheduled Txs?</li>
+                <li class="toc-item" onclick="scrollToSection('history')"><span class="toc-number">3</span>History of Automation</li>
+                <li class="toc-item" onclick="scrollToSection('traditional')"><span class="toc-number">4</span>Traditional vs Blockchain</li>
+                <li class="toc-item" onclick="scrollToSection('types')"><span class="toc-number">5</span>Payment Types</li>
+                <li class="toc-item" onclick="scrollToSection('deep-dive')"><span class="toc-number">6</span>Technical Deep Dive</li>
+                <li class="toc-item" onclick="scrollToSection('smart-contracts')"><span class="toc-number">7</span>Smart Contract Automation</li>
+                <li class="toc-item" onclick="scrollToSection('htlc')"><span class="toc-number">8</span>HTLCs &amp; Time-Locks</li>
+                <li class="toc-item" onclick="scrollToSection('kenostod-impl')"><span class="toc-number">9</span>Kenostod Implementation</li>
+                <li class="toc-item" onclick="scrollToSection('usecases')"><span class="toc-number">10</span>Use Cases Deep Dive</li>
+                <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">11</span>Real-World Case Studies</li>
+                <li class="toc-item" onclick="scrollToSection('risks')"><span class="toc-number">12</span>Security &amp; Risks</li>
+                <li class="toc-item" onclick="scrollToSection('comparison')"><span class="toc-number">13</span>Method Comparison</li>
+                <li class="toc-item" onclick="scrollToSection('future')"><span class="toc-number">14</span>Future of Automated DeFi</li>
+                <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">15</span>Written Exercises</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">16</span>Hands-On Practice</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">17</span>Final Exam</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 4</div>
+            
+            <div class="course-header">
+                <h1>&#9200; Course 4: Scheduled Transactions <span class="new-badge">NEW</span> <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>&#128214; 17 Lessons</span>
+                    <span>&#9201;&#65039; ~2 hours</span>
+                    <span>&#127919; Intermediate Level</span>
+                    <span>&#127942; 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <!-- SECTION 1: Learning Objectives -->
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p>By the end of this comprehensive course, you will be able to:</p>
+                <ul class="objective-list">
+                    <li>Define what scheduled transactions are and why they matter in blockchain</li>
+                    <li>Trace the history of automated payments from standing orders to blockchain</li>
+                    <li>Compare traditional banking auto-pay with blockchain scheduled transactions</li>
+                    <li>Understand how blockchain-native scheduled payments work without smart contracts</li>
+                    <li>Create one-time future-dated and recurring payments on Kenostod</li>
+                    <li>Explain how smart contract automation differs from protocol-level scheduling</li>
+                    <li>Understand Hash Time-Locked Contracts (HTLCs) and time-locked transactions</li>
+                    <li>Describe Kenostod's specific implementation architecture in detail</li>
+                    <li>Analyze real-world use cases including payroll, DCA investing, and subscriptions</li>
+                    <li>Evaluate risks and security considerations for scheduled payments</li>
+                    <li>Compare scheduled transactions vs smart contracts vs manual payments</li>
+                    <li>Envision the future of automated DeFi and programmable money</li>
+                    <li>Manage and cancel scheduled transactions effectively</li>
+                </ul>
+            </section>
+
+            <!-- SECTION 2: What Are Scheduled Transactions? -->
+            <section id="what-are" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128197;</span>What Are Scheduled Transactions?</h2>
+                <div class="reading-content">
+                    <p>A <strong>scheduled transaction</strong> is a payment that is programmed to execute automatically at a specified future time, either once or on a recurring basis. Instead of manually initiating every single transfer, you define the parameters once &mdash; recipient, amount, timing, and frequency &mdash; and the system handles the rest.</p>
+
+                    <p>In the world of traditional finance, this concept is ubiquitous. Your rent, utility bills, mortgage payments, and streaming subscriptions all rely on some form of automated payment. Yet in cryptocurrency, this fundamental capability has been conspicuously absent for over a decade. Every Bitcoin or Ethereum payment requires you to be present, awake, and actively sending the transaction. Kenostod changes this entirely.</p>
+
+                    <h3>Why This Matters</h3>
+                    <p>Consider the daily life of someone who wants to use cryptocurrency as their primary financial tool. Without scheduled transactions, they face a relentless burden:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Manual Burden</span>
+                        <span class="definition">Every rent payment, subscription renewal, and savings contribution requires opening your wallet, entering the recipient address, confirming the amount, and authorizing the transaction. Miss one and you face late fees, service cancellations, or broken savings goals.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Time Zone Problems</span>
+                        <span class="definition">If your landlord is in Tokyo and you're in New York, paying "on the 1st" means different things. Scheduled transactions execute based on blockchain time (UTC), eliminating time zone confusion entirely.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Emotional Investing</span>
+                        <span class="definition">Without automation, investors consistently buy high (driven by FOMO) and sell low (driven by fear). Dollar-cost averaging through scheduled transactions removes emotion from the equation.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Business Operations</span>
+                        <span class="definition">Running payroll for 50 employees manually every two weeks is not just inconvenient &mdash; it's a liability. One typo in an address or amount could cost thousands. Automation eliminates human error.</span>
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; The Core Principle</h4>
+                        <p>Scheduled transactions transform cryptocurrency from a "manual transaction tool" into a <strong>complete financial operating system</strong>. They bridge the gap between blockchain's security advantages and traditional finance's convenience &mdash; giving you the best of both worlds. Without this capability, mainstream adoption of cryptocurrency for everyday use is fundamentally limited.</p>
+                    </div>
+
+                    <h3>Key Vocabulary</h3>
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Scheduled Transaction</div>
+                            <div class="vocab-def">A payment pre-authorized to execute at a specific future time automatically</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Recurring Payment</div>
+                            <div class="vocab-def">A scheduled transaction that repeats at regular intervals (daily, weekly, monthly)</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Pre-Authorization</div>
+                            <div class="vocab-def">A cryptographic signature that approves future payments within defined parameters</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Balance Reservation</div>
+                            <div class="vocab-def">Funds locked in your wallet to guarantee the next scheduled payment succeeds</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Protocol-Level</div>
+                            <div class="vocab-def">Built directly into the blockchain's core code, not as an add-on or smart contract</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Push Payment</div>
+                            <div class="vocab-def">A payment initiated by the sender (versus pull payments initiated by the recipient)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: History of Automated Payments -->
+            <section id="history" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>History of Automated Payments</h2>
+                <div class="reading-content">
+                    <p>The idea of "set it and forget it" payments is older than you might think. Understanding this history reveals why blockchain-native scheduling is such a significant innovation &mdash; and why it took so long to arrive.</p>
+
+                    <h3>The Timeline of Payment Automation</h3>
+
+                    <div class="timeline-item">
+                        <h5>1800s &mdash; Standing Orders</h5>
+                        <p>The earliest form of automated payment was the <strong>standing order</strong>, introduced by British banks in the 19th century. A customer would instruct their bank to pay a fixed amount to a specific recipient at regular intervals. The bank would manually process these instructions on each payment date. This required enormous paperwork, was prone to errors, and could only handle simple, fixed-amount payments. Despite its limitations, it established the fundamental concept: "I authorize you to pay X to Y on date Z."</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>1964 &mdash; Direct Debit</h5>
+                        <p>The UK introduced <strong>Direct Debit</strong> in 1964, flipping the model: instead of the payer instructing their bank, the <em>recipient</em> pulls funds from the payer's account (with pre-authorization). This allowed variable amounts &mdash; your electricity bill changes monthly, but Direct Debit handles it automatically. By 2023, Direct Debit processes over 4.5 billion transactions per year in the UK alone. The downside? You give a company permission to take money from your account, creating trust issues and occasional unauthorized charges.</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>1972 &mdash; ACH (Automated Clearing House)</h5>
+                        <p>The US created the <strong>ACH network</strong> in 1972 to automate payments between banks. ACH enables direct deposits (employer payroll), recurring bill payments, and government benefit disbursements. In 2023, ACH processed <strong>31.5 billion payments</strong> worth $80.1 trillion. However, ACH is slow (1-3 business days), limited to US banks, and operates on a batch processing system designed in the 1970s. International payments? Not supported. Real-time settlement? Not until "Same Day ACH" in 2016, and even that isn't truly instant.</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>1990s &mdash; Credit Card Recurring Billing</h5>
+                        <p>The rise of the internet brought <strong>subscription billing</strong>. Services like AOL, Netflix (DVDs by mail), and gym memberships started charging credit cards automatically each month. This required storing card numbers &mdash; creating massive security risks. The PCI DSS standard was eventually created to protect stored payment data, adding layers of compliance cost. Data breaches at Target (2013, 40M cards), Home Depot (2014, 56M cards), and Equifax (2017, 148M records) showed the vulnerability of this model.</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>2000s-2010s &mdash; Digital Payment Platforms</h5>
+                        <p>PayPal subscriptions, Stripe recurring billing, and Apple Pay all built on top of the existing banking infrastructure. While more convenient, they all share fundamental limitations: they require intermediaries, charge processing fees (2.9% + $0.30 per transaction for Stripe), can be disrupted by expired cards, and are subject to chargebacks. Each adds a middleman who can freeze your account, reverse transactions, or deny service.</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>2009 &mdash; Bitcoin's Missing Feature</h5>
+                        <p>When Bitcoin launched, it offered a revolutionary payment system &mdash; but with a critical gap: <strong>no native support for scheduled or recurring payments</strong>. Every payment required manual initiation. If you wanted to pay rent in Bitcoin every month, you had to remember to do it yourself each time. This was a massive step backward from the automation that traditional finance had spent decades building.</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>2024 &mdash; Kenostod Protocol-Level Scheduling</h5>
+                        <p>Kenostod represents the next evolution: automated payments that are decentralized, transparent, low-cost, and controlled entirely by the user. No intermediaries, no credit card numbers to steal, no chargebacks, and no geographic restrictions. The sender maintains full control at all times.</p>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; The Evolution Pattern</div>
+                        <p>Each generation solved problems of the previous one while introducing new issues. Standing orders solved forgetfulness but were inflexible. Direct Debit allowed variable amounts but gave recipients too much power. ACH scaled nationally but remained slow and domestic. Digital platforms added convenience but introduced middlemen and fees. Kenostod solves all of these: it's flexible, sender-controlled, instant, global, and trustless.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: Traditional Banking vs Blockchain -->
+            <section id="traditional" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127974;</span>Traditional Banking Auto-Pay vs Blockchain Scheduling</h2>
+                <div class="reading-content">
+                    <p>To truly appreciate blockchain-based scheduled transactions, you need to understand how traditional banking auto-pay works &mdash; and its fundamental limitations. This comparison reveals why a protocol-level blockchain approach is superior in almost every dimension.</p>
+
+                    <h3>How Traditional Auto-Pay Works</h3>
+                    <p>When you set up auto-pay with your bank or credit card, here's what actually happens behind the scenes:</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">You Grant Permission</div>
+                            <p>You authorize the <em>recipient</em> (your utility company, landlord, or subscription service) to pull money from your account. This is a <strong>pull payment</strong> model &mdash; the recipient initiates the transaction, not you. You trust them to charge the right amount at the right time.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Intermediaries Process the Payment</div>
+                            <p>Your bank, the recipient's bank, the ACH network (or card network like Visa/Mastercard), and potentially a payment processor like Stripe all handle different parts of the transaction. Each intermediary adds latency, fees, and a potential point of failure.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Settlement Happens Days Later</div>
+                            <p>While the charge appears instantly, actual settlement (when funds physically move between banks) takes 1-3 business days for ACH, or up to 30 days for credit card transactions. During this "float" period, the money exists in limbo.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Disputes Can Reverse Payments</div>
+                            <p>Chargebacks allow the payer to reverse transactions up to 120 days after the charge. While consumer-protective, this creates massive uncertainty for merchants and enables fraud in both directions.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Side-by-Side Comparison</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Traditional Auto-Pay</th>
+                            <th>Kenostod Scheduled Tx</th>
+                        </tr>
+                        <tr>
+                            <td>Payment Direction</td>
+                            <td>Pull (recipient initiates)</td>
+                            <td>Push (sender initiates)</td>
+                        </tr>
+                        <tr>
+                            <td>Control</td>
+                            <td>Recipient controls timing &amp; amount</td>
+                            <td>Sender controls everything</td>
+                        </tr>
+                        <tr>
+                            <td>Settlement Time</td>
+                            <td>1-3 business days (ACH)</td>
+                            <td>~3 seconds (next block)</td>
+                        </tr>
+                        <tr>
+                            <td>Processing Fees</td>
+                            <td>2-3% (credit cards) or $0.25-$1.50 (ACH)</td>
+                            <td>Flat, low fee (~0.1 KENO)</td>
+                        </tr>
+                        <tr>
+                            <td>Geographic Reach</td>
+                            <td>Domestic only (ACH is US-only)</td>
+                            <td>Global, borderless</td>
+                        </tr>
+                        <tr>
+                            <td>Business Hours</td>
+                            <td>Banks close weekends/holidays</td>
+                            <td>24/7/365</td>
+                        </tr>
+                        <tr>
+                            <td>Chargeback Risk</td>
+                            <td>Up to 120 days of reversal risk</td>
+                            <td>None &mdash; transactions are final</td>
+                        </tr>
+                        <tr>
+                            <td>Data Required</td>
+                            <td>Bank account numbers, SSN, routing numbers</td>
+                            <td>Wallet address only</td>
+                        </tr>
+                        <tr>
+                            <td>Cancellation</td>
+                            <td>Call bank, fill forms, wait days</td>
+                            <td>One-click, instant</td>
+                        </tr>
+                        <tr>
+                            <td>Transparency</td>
+                            <td>Opaque &mdash; you trust the bank</td>
+                            <td>Fully on-chain, auditable</td>
+                        </tr>
+                        <tr>
+                            <td>Overdraft Risk</td>
+                            <td>$35 overdraft fee per occurrence</td>
+                            <td>Payment pauses, no fee</td>
+                        </tr>
+                    </table>
+
+                    <div class="concept-box">
+                        <h4>&#128161; The Pull vs Push Distinction</h4>
+                        <p>This is the most important difference. In traditional banking, when you set up auto-pay for your electricity bill, you give the power company permission to <em>reach into your bank account</em> and take money. If they overcharge you, you have to fight to get it back. With Kenostod, <strong>you</strong> push money to them. The amount is fixed when you set it up. No one can take more than you authorized. This fundamental shift from pull to push payments represents a revolution in consumer financial sovereignty.</p>
+                    </div>
+
+                    <h3>Real Cost Comparison</h3>
+                    <p>Consider a small business processing 100 monthly subscription payments of $50 each ($5,000/month total):</p>
+
+                    <div class="term-definition">
+                        <span class="term">Stripe</span>
+                        <span class="definition">2.9% + $0.30 per transaction = $175 + $30 = <strong>$205/month</strong> in fees. Plus monthly platform fee. Plus chargeback costs (~1-2% of transactions).</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">ACH via Bank</span>
+                        <span class="definition">$0.50-$1.50 per transaction = <strong>$50-$150/month</strong>. Plus monthly service fee ($25-$100). Settlement in 1-3 days.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Kenostod</span>
+                        <span class="definition">~0.1 KENO per transaction = <strong>10 KENO/month</strong> total (fractions of a dollar). No monthly fee. Instant settlement. No chargebacks.</span>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Why This Matters for Businesses</div>
+                        <p>For a small business doing $5,000/month in recurring payments, switching from Stripe to Kenostod could save over $2,400 per year in processing fees alone. For larger businesses processing millions, the savings become transformational. This is why blockchain payment scheduling isn't just a technical curiosity &mdash; it's a genuine competitive advantage.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SECTION 5: Types of Scheduled Payments -->
+            <section id="types" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128203;</span>Types of Scheduled Payments</h2>
+                <div class="reading-content">
+                    <h3>One-Time Future Payments</h3>
+                    <p>Schedule a single payment to execute at a specific future date and time. This is ideal for planned expenses where you want to guarantee the payment happens even if you're unavailable. Think of it as a "time-delayed transfer" &mdash; you initiate now, it executes later.</p>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Set the Parameters</div>
+                            <p>Define the recipient address, the exact amount in KENO, and the precise date and time you want the payment to execute. You can schedule payments up to 365 days in advance. The minimum scheduling window is 5 minutes from the current time.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Funds Are Reserved</div>
+                            <p>When you create a scheduled payment, the funds are locked in your wallet. They remain visible in your balance as "reserved" but cannot be spent on other transactions. This guarantees the payment will execute successfully without a "double spend" scenario.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Cancel Anytime</div>
+                            <p>You can cancel any scheduled payment before its execution time. Cancellation is instant and free &mdash; the reserved funds are immediately returned to your available balance. There is no penalty for cancelling.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Recurring Payments</h3>
+                    <p>Automate regular payments with flexible frequency options. Each execution creates a new on-chain transaction with its own hash, confirmation, and permanent record. The system supports four frequencies:</p>
+
+                    <h4>Daily Payments</h4>
+                    <p>Execute once every 24 hours at a specified time. Ideal for daily savings contributions, micro-payments to content creators, or daily operational costs for businesses. <strong>Example:</strong> Automatically move 10 KENO to a savings wallet every day at midnight. Over a year, this accumulates 3,650 KENO without any manual effort.</p>
+
+                    <h4>Weekly Payments</h4>
+                    <p>Execute once per week on a specified day and time. Perfect for payroll (paying employees every Friday), weekly subscriptions, or dollar-cost averaging strategies. <strong>Example:</strong> Buy 100 KENO worth of a savings pool every Monday at 9 AM. This creates a disciplined investment routine that eliminates emotional decision-making.</p>
+
+                    <h4>Monthly Payments</h4>
+                    <p>Execute once per month on a specified date. The standard for rent, loan repayments, membership fees, and utility payments. <strong>Example:</strong> Pay 500 KENO rent on the 1st of every month at 8 AM. If the 1st falls on a weekend or holiday, the blockchain doesn't care &mdash; it processes 24/7/365, unlike banks that skip weekends.</p>
+
+                    <h4>Custom Interval Payments</h4>
+                    <p>For advanced users, Kenostod supports custom intervals specified in blocks or hours. <strong>Example:</strong> Execute every 336 hours (exactly 14 days) for bi-weekly payroll. This offers precision that traditional banking's "every other Friday" can't match.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#127891; Key Advantage: Sender Control</div>
+                        <p>Unlike traditional Direct Debit where the <em>recipient</em> pulls money from your account, Kenostod scheduled payments are always <em>push</em> payments initiated and controlled by the sender. You can cancel anytime, modify amounts between executions, and no one can debit your wallet without your explicit, pre-signed authorization. This is a fundamental improvement in consumer financial sovereignty.</p>
+                    </div>
+
+                    <h3>Payment Configuration Options</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                        <tr>
+                            <td>Recipient Address</td>
+                            <td>The wallet address receiving funds</td>
+                            <td>0xABC123...</td>
+                        </tr>
+                        <tr>
+                            <td>Amount</td>
+                            <td>KENO per execution</td>
+                            <td>500 KENO</td>
+                        </tr>
+                        <tr>
+                            <td>Frequency</td>
+                            <td>How often to execute</td>
+                            <td>MONTHLY</td>
+                        </tr>
+                        <tr>
+                            <td>Start Date</td>
+                            <td>When to begin</td>
+                            <td>Feb 1, 2025 08:00 UTC</td>
+                        </tr>
+                        <tr>
+                            <td>Max Executions</td>
+                            <td>Automatic stop after N payments</td>
+                            <td>12 (one year of monthly)</td>
+                        </tr>
+                        <tr>
+                            <td>Min Balance Guard</td>
+                            <td>Only execute if wallet balance exceeds threshold</td>
+                            <td>1000 KENO</td>
+                        </tr>
+                        <tr>
+                            <td>Memo/Label</td>
+                            <td>Human-readable note for the payment</td>
+                            <td>"Rent - Apt 4B"</td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 6: Technical Deep Dive -->
+            <section id="deep-dive" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9881;&#65039;</span>Technical Deep Dive: How Scheduling Works</h2>
+                <div class="reading-content">
+                    <h3>The Protocol-Level Scheduler</h3>
+                    <p>Kenostod's scheduling system is built directly into the blockchain protocol, not as a layer-2 solution or smart contract. Here's how it works under the hood:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Creating a Scheduled Payment - The Data Structure</span><br><br>
+                        <span class="code-keyword">const</span> scheduledTx = {<br>
+                        &nbsp;&nbsp;type: <span class="code-string">"SCHEDULED"</span>,<br>
+                        &nbsp;&nbsp;id: <span class="code-string">"sched_9f4b..."</span>,<br>
+                        &nbsp;&nbsp;from: <span class="code-string">"0xSender..."</span>,<br>
+                        &nbsp;&nbsp;to: <span class="code-string">"0xRecipient..."</span>,<br>
+                        &nbsp;&nbsp;amount: <span class="code-number">500</span>, <span class="code-comment">// KENO per execution</span><br>
+                        &nbsp;&nbsp;frequency: <span class="code-string">"MONTHLY"</span>, <span class="code-comment">// ONCE, DAILY, WEEKLY, MONTHLY</span><br>
+                        &nbsp;&nbsp;startDate: <span class="code-number">1707004800</span>, <span class="code-comment">// Feb 4, 2024 00:00 UTC</span><br>
+                        &nbsp;&nbsp;maxExecutions: <span class="code-number">12</span>, <span class="code-comment">// Stop after 12 months</span><br>
+                        &nbsp;&nbsp;minBalance: <span class="code-number">600</span>, <span class="code-comment">// Only execute if balance > 600</span><br>
+                        &nbsp;&nbsp;senderSignature: <span class="code-string">"0xSig..."</span>, <span class="code-comment">// Pre-authorization</span><br>
+                        &nbsp;&nbsp;status: <span class="code-string">"ACTIVE"</span>,<br>
+                        &nbsp;&nbsp;executionCount: <span class="code-number">0</span>,<br>
+                        &nbsp;&nbsp;reservedAmount: <span class="code-number">500</span> <span class="code-comment">// Next payment reserved</span><br>
+                        };<br><br>
+                        <span class="code-comment">// The scheduler runs every block (~3 seconds)</span><br>
+                        <span class="code-keyword">function</span> <span class="code-function">processScheduledPayments</span>(currentBlock) {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> due = scheduledTxPool.<span class="code-function">filter</span>(tx =><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;tx.nextExecution <= currentBlock.timestamp &&<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;tx.status === <span class="code-string">"ACTIVE"</span><br>
+                        &nbsp;&nbsp;);<br>
+                        &nbsp;&nbsp;due.<span class="code-function">forEach</span>(tx => <span class="code-function">executeScheduledTx</span>(tx));<br>
+                        }
+                    </div>
+
+                    <h3>The Pre-Authorization Model</h3>
+                    <p>When you create a scheduled payment, you sign a special <strong>pre-authorization transaction</strong>. This single signature authorizes all future executions within the defined parameters. The key security properties:</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Bounded scope:</strong> The authorization specifies exact amount, recipient, and frequency. The system cannot execute any payment outside these parameters.</li>
+                        <li><strong>Maximum cap:</strong> Total lifetime spending is capped (amount &times; maxExecutions). Even if the system malfunctions, it cannot exceed this cap.</li>
+                        <li><strong>Revocable:</strong> The sender can revoke the pre-authorization at any time, immediately stopping all future executions.</li>
+                        <li><strong>Non-transferable:</strong> The authorization cannot be transferred to another recipient or modified without a new signature from the sender.</li>
+                        <li><strong>Auditable:</strong> Every pre-authorization is recorded on-chain, creating a permanent, transparent record that anyone can verify.</li>
+                    </ul>
+
+                    <h3>Balance Reservation System</h3>
+                    <p>To ensure scheduled payments always have sufficient funds, Kenostod uses a <strong>rolling reservation</strong> system. This is conceptually similar to how a hotel "holds" your credit card when you check in &mdash; the funds are set aside but not yet spent.</p>
+
+                    <div class="term-definition">
+                        <span class="term">Next Payment Reserved</span>
+                        <span class="definition">The amount for the next scheduled execution is reserved (locked) in your wallet. You can see it but can't spend it. This guarantees the next payment will succeed without the risk of double-spending.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Post-Execution Release</span>
+                        <span class="definition">After each execution, the system reserves funds for the NEXT execution. If insufficient funds are available, the scheduled payment enters "paused" state and resumes when funds are deposited.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Available Balance</span>
+                        <span class="definition">Your wallet shows both "Total Balance" and "Available Balance" (total minus all reservations). You can only spend the available balance on new transactions.</span>
+                    </div>
+
+                    <h3>How "Cron Jobs on Blockchain" Work</h3>
+                    <p>In traditional computing, a "cron job" is a time-based scheduler that runs tasks at specified intervals. Kenostod implements an analogous system at the blockchain level, but with crucial differences:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Traditional server cron job (centralized)</span><br>
+                        <span class="code-comment">// 0 9 * * 1 /usr/bin/send-payment.sh</span><br>
+                        <span class="code-comment">// ^ Runs every Monday at 9 AM on ONE server</span><br>
+                        <span class="code-comment">// Single point of failure!</span><br><br>
+                        <span class="code-comment">// Kenostod blockchain scheduler (decentralized)</span><br>
+                        <span class="code-keyword">class</span> <span class="code-function">BlockchainScheduler</span> {<br>
+                        &nbsp;&nbsp;<span class="code-function">onNewBlock</span>(block) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// Every validator runs this on every block</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// Consensus ensures agreement on which txs execute</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">const</span> dueTxs = <span class="code-keyword">this</span>.pendingSchedules<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="code-function">filter</span>(tx => tx.nextRun <= block.timestamp)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="code-function">filter</span>(tx => tx.status === <span class="code-string">'ACTIVE'</span>)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="code-function">filter</span>(tx => tx.senderBalance >= tx.amount);<br><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;dueTxs.<span class="code-function">forEach</span>(tx => {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">this</span>.<span class="code-function">executeTx</span>(tx);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tx.executionCount++;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tx.nextRun = <span class="code-keyword">this</span>.<span class="code-function">calculateNextRun</span>(tx);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (tx.executionCount >= tx.maxExecutions)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tx.status = <span class="code-string">'COMPLETED'</span>;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;});<br>
+                        &nbsp;&nbsp;}<br>
+                        }
+                    </div>
+
+                    <p>The critical difference from a traditional cron job: every validator node independently runs the scheduler and they must all agree on which transactions to execute. This means there's no single point of failure &mdash; even if half the network goes offline, scheduled payments continue executing. This is <strong>decentralized automation</strong>.</p>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Important: Insufficient Funds Behavior</div>
+                        <p>If your wallet doesn't have enough available balance to reserve for the next scheduled payment, the payment enters a "PAUSED" state. It will not execute and will not create a failed transaction. Once you deposit enough funds, the payment automatically resumes from where it paused. You receive a notification each time a scheduled payment is paused due to insufficient funds. Unlike banks, there is <strong>never</strong> an overdraft fee.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: Smart Contract Automation -->
+            <section id="smart-contracts" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>Smart Contract Automation: The Alternative Approach</h2>
+                <div class="reading-content">
+                    <p>Before Kenostod's protocol-level scheduling, the only way to automate payments on blockchain was through <strong>smart contracts</strong>. Understanding how this works (and its limitations) helps you appreciate why Kenostod's approach is superior for most use cases.</p>
+
+                    <h3>How Ethereum Handles Scheduling</h3>
+                    <p>Ethereum has no built-in scheduling capability. Smart contracts cannot execute themselves &mdash; they need an external trigger. This fundamental limitation has led to a cottage industry of "keeper" networks that watch for conditions and call smart contract functions:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Chainlink Keepers</span>
+                        <span class="definition">Decentralized nodes that monitor conditions and trigger smart contract functions when conditions are met. Requires LINK token payments ($0.10-$2.00 per execution) and adds third-party dependency. Renamed to "Chainlink Automation" in 2023. Used by major DeFi protocols like Aave and Synthetix.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Gelato Network</span>
+                        <span class="definition">Automates smart contract execution with off-chain bots. Supports conditional execution ("execute if ETH price > $3,000"), time-based scheduling, and multi-step workflows. More flexible than Keepers but adds complexity, cost, and centralization risk.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">OpenZeppelin Defender</span>
+                        <span class="definition">Provides "Relayers" and "Autotasks" &mdash; serverless functions that can trigger contract calls on a schedule. Centralized infrastructure hosted on AWS, introducing trust assumptions and a potential single point of failure.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Keep3r Network</span>
+                        <span class="definition">Created by Andre Cronje (Yearn Finance), this protocol incentivizes external actors to perform "jobs" on smart contracts. Uses the KP3R token for payment. Less adopted than Chainlink but more decentralized than centralized alternatives.</span>
+                    </div>
+
+                    <h3>Example: Setting Up Recurring Payments on Ethereum</h3>
+                    <div class="code-example">
+                        <span class="code-comment">// Step 1: Deploy a smart contract (costs $50-$500 in gas)</span><br>
+                        <span class="code-keyword">contract</span> <span class="code-function">RecurringPayment</span> {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">address</span> <span class="code-keyword">public</span> recipient;<br>
+                        &nbsp;&nbsp;<span class="code-keyword">uint256</span> <span class="code-keyword">public</span> amount;<br>
+                        &nbsp;&nbsp;<span class="code-keyword">uint256</span> <span class="code-keyword">public</span> interval;<br>
+                        &nbsp;&nbsp;<span class="code-keyword">uint256</span> <span class="code-keyword">public</span> lastExecution;<br><br>
+                        &nbsp;&nbsp;<span class="code-keyword">function</span> <span class="code-function">execute</span>() <span class="code-keyword">external</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">require</span>(block.timestamp >= lastExecution + interval);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// Transfer tokens...</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;lastExecution = block.timestamp;<br>
+                        &nbsp;&nbsp;}<br>
+                        }<br><br>
+                        <span class="code-comment">// Step 2: Approve the contract to spend your tokens</span><br>
+                        <span class="code-comment">// Step 3: Fund a Chainlink Keeper to call execute() regularly</span><br>
+                        <span class="code-comment">// Step 4: Monitor for failures, gas spikes, and bugs</span><br>
+                        <span class="code-comment">// Total setup time: Hours. Cost: $100-$1,000+</span>
+                    </div>
+
+                    <h3>The Problems with Smart Contract Scheduling</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Gas Fee Unpredictability</div>
+                            <p>Each execution costs gas, which varies dramatically. A $10 payment might cost $3 in gas one day and $50 the next during network congestion. In May 2023, gas spikes during memecoin mania made simple transfers cost $20-$100. Users cannot predict or control these costs, making budgeting impossible.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Third-Party Dependencies</div>
+                            <p>If the keeper network goes offline, scheduled payments stop executing. This is a single point of failure that contradicts blockchain's decentralization promise. In March 2023, Chainlink Keepers experienced delays during an Arbitrum network surge, causing some automated payments to execute hours late.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Smart Contract Risk</div>
+                            <p>Bugs in smart contracts can lead to funds being drained, locked, or misdirected. The "approve and auto-debit" pattern requires giving a contract permission to spend your tokens &mdash; a significant security risk. The Wormhole bridge hack ($320M), Ronin bridge hack ($625M), and countless DeFi exploits demonstrate this vulnerability.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Complexity Barrier</div>
+                            <p>Setting up a recurring payment on Ethereum requires interacting with multiple contracts, approving token spending, understanding gas estimation, and monitoring execution. This is far beyond the capability of average users and even many developers.</p>
+                        </li>
+                    </ul>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Kenostod's Advantage</h4>
+                        <p>By building scheduling into the protocol itself, Kenostod eliminates all four problems above. Fees are predictable and low. No third parties are needed. No smart contract risk exists. And the user experience is as simple as filling out a form. This is the difference between "scheduling as an afterthought" (Ethereum) and "scheduling as a first-class feature" (Kenostod).</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 8: HTLCs & Time-Locks -->
+            <section id="htlc" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128274;</span>Time-Locked Transactions &amp; HTLCs</h2>
+                <div class="reading-content">
+                    <p>Beyond simple scheduling, Kenostod supports advanced time-based transaction mechanisms borrowed from cutting-edge blockchain research. These are powerful tools for specific use cases that go far beyond simple "pay later" functionality.</p>
+
+                    <h3>What is a Time-Locked Transaction?</h3>
+                    <p>A <strong>time-locked transaction</strong> is one that cannot be spent by the recipient until a specific time in the future. The funds are transferred immediately but are "locked" at the destination until the unlock time arrives. Think of it as a check with a "do not cash before" date, except enforced by mathematics rather than banking policy.</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Time-Locked Transaction Example</span><br><br>
+                        <span class="code-keyword">const</span> timeLockedTx = {<br>
+                        &nbsp;&nbsp;from: <span class="code-string">"0xEmployer..."</span>,<br>
+                        &nbsp;&nbsp;to: <span class="code-string">"0xEmployee..."</span>,<br>
+                        &nbsp;&nbsp;amount: <span class="code-number">10000</span>, <span class="code-comment">// KENO</span><br>
+                        &nbsp;&nbsp;lockType: <span class="code-string">"TIME_LOCK"</span>,<br>
+                        &nbsp;&nbsp;unlockTime: <span class="code-number">1735689600</span>, <span class="code-comment">// Jan 1, 2025 00:00 UTC</span><br>
+                        &nbsp;&nbsp;<span class="code-comment">// Funds arrive at employee's wallet immediately</span><br>
+                        &nbsp;&nbsp;<span class="code-comment">// But cannot be spent until Jan 1, 2025</span><br>
+                        };<br><br>
+                        <span class="code-comment">// Use case: Year-end bonus paid now, spendable in January</span><br>
+                        <span class="code-comment">// Use case: Vesting schedule for team tokens</span><br>
+                        <span class="code-comment">// Use case: Trust fund released on 18th birthday</span>
+                    </div>
+
+                    <h3>Hash Time-Locked Contracts (HTLCs)</h3>
+                    <p>An <strong>HTLC</strong> is a more sophisticated mechanism that combines time locks with cryptographic hash locks. It requires the recipient to provide a secret value (the preimage of a hash) to claim the funds, AND they must do so before a deadline. HTLCs are the backbone of the Lightning Network and cross-chain atomic swaps.</p>
+
+                    <div class="term-definition">
+                        <span class="term">Hash Lock</span>
+                        <span class="definition">The recipient must provide a value X such that hash(X) = H, where H is specified in the contract. Without knowing X, the funds cannot be claimed. This is a cryptographic puzzle with exactly one solution.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Time Lock</span>
+                        <span class="definition">If the recipient doesn't claim the funds within the deadline, the sender can reclaim them. This prevents funds from being locked forever &mdash; a critical safety mechanism.</span>
+                    </div>
+
+                    <h3>HTLC Step-by-Step: Atomic Cross-Chain Swap</h3>
+                    <p>Here's how Alice can trade 500 KENO for 0.1 ETH with Bob, without trusting each other or using an exchange:</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Alice Creates a Secret</div>
+                            <p>Alice generates a random secret value S and computes its hash H = SHA256(S). She shares H (but NOT S) with Bob.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Alice Locks KENO</div>
+                            <p>Alice creates an HTLC on Kenostod: "500 KENO locked. Bob can claim by providing the value that hashes to H. If unclaimed after 24 hours, Alice can reclaim."</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Bob Locks ETH</div>
+                            <p>Bob sees Alice's HTLC on-chain and creates his own HTLC on Ethereum: "0.1 ETH locked. Alice can claim by providing the value that hashes to H. If unclaimed after 12 hours, Bob can reclaim." (Bob's timelock is shorter to give him time to claim after Alice reveals S.)</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Alice Claims ETH (Reveals Secret)</div>
+                            <p>Alice claims Bob's 0.1 ETH by submitting secret S to the Ethereum HTLC. This reveals S publicly on the Ethereum blockchain.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Bob Claims KENO</div>
+                            <p>Bob sees S on the Ethereum blockchain and uses it to claim Alice's 500 KENO from the Kenostod HTLC. Both parties receive their funds. If either party stops cooperating, time locks ensure all funds are returned.</p>
+                        </li>
+                    </ul>
+
+                    <h3>HTLC Use Cases on Kenostod</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Cross-chain swaps:</strong> Trade KENO for ETH, BTC, or any other crypto atomically without a centralized exchange</li>
+                        <li><strong>Payment channels:</strong> Open high-frequency payment channels with instant settlement for micro-payments</li>
+                        <li><strong>Escrow services:</strong> Hold funds until a service is verified complete, with automatic refund on timeout</li>
+                        <li><strong>Conditional rewards:</strong> "Solve this puzzle within 24 hours to claim 100 KENO" &mdash; gamified learning</li>
+                        <li><strong>Trustless freelancing:</strong> Client locks payment, freelancer submits deliverable hash to claim</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Why HTLCs Matter</div>
+                        <p>HTLCs solve the "trustless exchange" problem. Without an HTLC, trading KENO for ETH requires trusting someone to send their half after receiving yours. With an HTLC, either both sides complete or neither does &mdash; it's mathematically impossible to cheat. This is one of the most important primitives in blockchain technology, enabling a truly decentralized financial system without intermediaries.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 9: Kenostod's Implementation -->
+            <section id="kenostod-impl" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9889;</span>Kenostod's Scheduling Implementation</h2>
+                <div class="reading-content">
+                    <p>Now that you understand the theory behind scheduled transactions, let's examine exactly how Kenostod implements this feature at the protocol level. This section covers the architecture, the user workflow, and the safety guarantees that make Kenostod's approach unique.</p>
+
+                    <h3>Architecture Overview</h3>
+                    <p>Kenostod's scheduled transaction system consists of three core components working together:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Schedule Registry</span>
+                        <span class="definition">An on-chain data structure that stores all active, paused, completed, and cancelled scheduled transactions. Every validator node maintains a synchronized copy. Think of it as a global calendar that everyone can see but only authorized users can modify.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Block-Level Executor</span>
+                        <span class="definition">A function embedded in block production that checks the Schedule Registry on every new block (~3 seconds). When a scheduled transaction's execution time arrives, it processes the payment as part of the block's transaction set. No external trigger needed.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Reservation Ledger</span>
+                        <span class="definition">A parallel accounting system that tracks reserved funds separately from available balances. This prevents double-spending and ensures scheduled payments always have funds available. It's like having two sub-accounts within your wallet: "available" and "reserved."</span>
+                    </div>
+
+                    <h3>The User Workflow</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Create Schedule via Wallet Interface</div>
+                            <p>Open the "Scheduled Payments" tab in your Kenostod wallet. Fill in recipient address, amount, frequency, and start date. The interface shows your available balance and how much will be reserved. No coding, no smart contracts, no technical knowledge required.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Sign the Pre-Authorization</div>
+                            <p>Your wallet prompts you to sign a single cryptographic message that authorizes all future executions within your defined parameters. This signature is stored on-chain alongside the schedule entry.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">First Reservation is Made</div>
+                            <p>The system immediately reserves the amount for the first execution from your available balance. You see this in your wallet as "Reserved: 500 KENO for Rent Payment (executes Feb 1)".</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Automatic Execution</div>
+                            <p>When the execution time arrives, the block producer includes the scheduled payment in the next block. The reserved funds are transferred to the recipient. A new reservation is made for the next execution. You receive a push notification.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Dashboard Management</div>
+                            <p>Your "Active Schedules" dashboard shows all scheduled payments with their status, next execution date, execution history, and total spent. You can pause, resume, modify, or cancel any schedule from this dashboard.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Transaction Lifecycle</h3>
+                    <div class="code-example">
+                        <span class="code-comment">// Scheduled Transaction Status Flow</span><br><br>
+                        CREATED &rarr; ACTIVE &rarr; EXECUTING &rarr; ACTIVE &rarr; ... &rarr; COMPLETED<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&darr;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CANCELLED&nbsp;&nbsp;&nbsp;&nbsp;PAUSED &rarr; ACTIVE (when funded)<br><br>
+                        <span class="code-comment">// Status Definitions:</span><br>
+                        <span class="code-comment">// CREATED - Schedule registered, pending first reservation</span><br>
+                        <span class="code-comment">// ACTIVE - Funds reserved, awaiting next execution time</span><br>
+                        <span class="code-comment">// EXECUTING - Payment being processed in current block</span><br>
+                        <span class="code-comment">// PAUSED - Insufficient funds for next reservation</span><br>
+                        <span class="code-comment">// COMPLETED - Max executions reached or end date passed</span><br>
+                        <span class="code-comment">// CANCELLED - User manually cancelled the schedule</span>
+                    </div>
+
+                    <h3>Notification System</h3>
+                    <p>Kenostod sends real-time notifications for every scheduled payment event:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Execution confirmed:</strong> "Your rent payment of 500 KENO to 0xABC was executed successfully. Tx: 0x123..."</li>
+                        <li><strong>Reservation made:</strong> "500 KENO reserved for next rent payment on March 1, 2025."</li>
+                        <li><strong>Payment paused:</strong> "Your rent payment has been paused due to insufficient funds. Deposit at least 500 KENO to resume."</li>
+                        <li><strong>Payment resumed:</strong> "Your rent payment has resumed. Next execution: March 1, 2025."</li>
+                        <li><strong>Schedule completed:</strong> "Your 12-month rent payment schedule has completed. Total paid: 6,000 KENO."</li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Built-In Safety Guarantees</div>
+                        <p>Kenostod's implementation includes automatic pausing on insufficient funds (no overdrafts, ever), a clear "Active Schedules" dashboard, push notifications for every execution, a "cancel all schedules" emergency button, minimum balance guards (optional threshold below which payments won't execute), and cryptographic pre-authorization that mathematically limits what the system can do with your funds.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SECTION 10: Use Cases Deep Dive -->
+            <section id="usecases" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127758;</span>Use Cases Deep Dive</h2>
+                <div class="reading-content">
+                    <div class="use-case-grid">
+                        <div class="use-case-card">
+                            <div class="icon">&#128176;</div>
+                            <h4>Salary Disbursement</h4>
+                            <p>Automated payroll for remote teams worldwide</p>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="icon">&#127968;</div>
+                            <h4>Rent Payments</h4>
+                            <p>Monthly automatic rent to landlord</p>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="icon">&#128241;</div>
+                            <h4>Subscriptions</h4>
+                            <p>Streaming, SaaS, memberships</p>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="icon">&#128200;</div>
+                            <h4>DCA Investing</h4>
+                            <p>Automated dollar-cost averaging</p>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="icon">&#128176;</div>
+                            <h4>Loan Repayments</h4>
+                            <p>Regular installment payments</p>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="icon">&#127891;</div>
+                            <h4>Allowances</h4>
+                            <p>Weekly allowance to children</p>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="icon">&#127873;</div>
+                            <h4>Scheduled Gifts</h4>
+                            <p>Birthday/anniversary payments</p>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="icon">&#128184;</div>
+                            <h4>Savings Goals</h4>
+                            <p>Automated savings contributions</p>
+                        </div>
+                    </div>
+
+                    <h3>Deep Dive: Dollar-Cost Averaging (DCA)</h3>
+                    <p><strong>Dollar-cost averaging</strong> is an investment strategy where you invest a fixed amount at regular intervals, regardless of price. This strategy has been proven by decades of financial research to outperform market timing for the vast majority of investors. Scheduled payments make this strategy automatic and emotion-free.</p>
+
+                    <p>The mathematics behind DCA are compelling. When prices are low, your fixed investment buys more units. When prices are high, it buys fewer. Over time, your average cost per unit tends to be lower than the average market price. This works because you're systematically buying more when things are cheap.</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// DCA Example: Investing 100 KENO weekly into a savings pool</span><br><br>
+                        Week 1: Price $1.00 &rarr; Buy <span class="code-number">100</span> units<br>
+                        Week 2: Price $0.50 &rarr; Buy <span class="code-number">200</span> units <span class="code-comment">// Cheap! More units</span><br>
+                        Week 3: Price $2.00 &rarr; Buy <span class="code-number">50</span> units <span class="code-comment">// Expensive! Fewer units</span><br>
+                        Week 4: Price $1.00 &rarr; Buy <span class="code-number">100</span> units<br><br>
+                        Total invested: <span class="code-number">400</span> KENO<br>
+                        Total units acquired: <span class="code-number">450</span> units<br>
+                        Average cost per unit: <span class="code-number">$0.89</span><br>
+                        Average market price: <span class="code-number">$1.125</span><br><br>
+                        <span class="code-comment">// DCA beat the average market price by 21%!</span>
+                    </div>
+
+                    <h3>Deep Dive: Subscription Management</h3>
+                    <p>The subscription economy is massive &mdash; the global subscription market is valued at over $275 billion (2024). Yet the current model is broken for both consumers and businesses:</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>For consumers:</strong> Dark patterns make cancellation difficult. Credit card numbers are stored insecurely. Zombie subscriptions drain accounts unnoticed. An average American has 12 paid subscriptions and wastes $133/month on forgotten ones.</li>
+                        <li><strong>For businesses:</strong> Payment processing costs 2.9% + $0.30 per charge. Expired cards cause "involuntary churn" (losing 5-10% of subscribers annually). Chargebacks cost $15-$100 each to dispute.</li>
+                    </ul>
+
+                    <p>Kenostod's scheduled payments solve both sides: consumers maintain full control (one-click cancel, no stored credentials), and businesses receive reliable payments with near-zero fees and no chargebacks.</p>
+
+                    <h3>Deep Dive: Salary Disbursement</h3>
+                    <p>Crypto payroll is one of the most transformative use cases for scheduled transactions, particularly for remote and international teams. Consider a company with employees in 10 countries:</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Traditional approach:</strong> International wire transfers ($25-$50 fee each), 3-5 business days settlement, different banking systems, currency conversion fees (2-4%), compliance with 10 different national banking regulations.</li>
+                        <li><strong>Kenostod approach:</strong> Set up 10 scheduled payments once. Every payday, all employees receive KENO simultaneously, regardless of time zone or country. Fees: ~0.1 KENO per payment. Settlement: ~3 seconds. No intermediary banks, no currency conversion, no geographic restrictions.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 11: Real-World Case Studies -->
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128218;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>The following case studies illustrate how scheduled transactions solve real problems across different scenarios. Each demonstrates the practical advantages of Kenostod's protocol-level scheduling.</p>
+
+                    <div class="case-study">
+                        <h4>&#128200; Case Study 1: DCA Investment Strategy</h4>
+                        <p><strong>Scenario:</strong> Alice is a teacher who wants to invest in crypto but doesn't have time to monitor markets. She has a modest budget of 100 KENO per week.</p>
+                        <p style="margin-top: 10px;"><strong>Setup:</strong> Alice creates a weekly scheduled payment of 100 KENO from her spending wallet to her savings wallet every Monday at 9 AM UTC.</p>
+                        <p style="margin-top: 10px;"><strong>Over 6 months:</strong> Some weeks she "overpays" (KENO value is high relative to other assets), some weeks she gets a "bargain" (KENO value is low). But her average cost is smoothed out. She doesn't need to check prices, time the market, or make emotional decisions. She sets maxExecutions to 26 (six months).</p>
+                        <p style="margin-top: 10px;"><strong>Result:</strong> After 26 weekly payments, Alice has moved 2,600 KENO to savings. Her average entry cost is lower than if she'd tried to time the market, because DCA naturally buys more units when prices are low. She never once had to open her wallet and manually transfer funds.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#128188; Case Study 2: Crypto Payroll for a Global Startup</h4>
+                        <p><strong>Scenario:</strong> A Web3 startup with 15 employees across 8 countries wants to pay salaries in KENO. Manually processing 15 payments every two weeks is time-consuming, error-prone, and requires the CFO to be available on payday &mdash; even during vacations.</p>
+                        <p style="margin-top: 10px;"><strong>Setup:</strong> The CFO sets up 15 bi-weekly scheduled payments, each paying the correct salary amount to each employee's wallet on the 1st and 15th of every month. Total payroll per cycle: 45,000 KENO. Company maintains a 3-month buffer (135,000 KENO) in the payroll wallet.</p>
+                        <p style="margin-top: 10px;"><strong>Safety measures:</strong> The payroll wallet uses a minimum balance guard of 50,000 KENO (emergency reserve). Each employee schedule has maxExecutions set to 24 (one year), requiring annual renewal and salary review. The CFO receives notifications for every execution.</p>
+                        <p style="margin-top: 10px;"><strong>Result:</strong> Payroll runs automatically with zero manual effort. The CFO only intervenes when employees change addresses or salary amounts. Payment records are transparently on-chain for accounting. New hires are onboarded by adding a single scheduled payment. The company saves $300-$500 per payroll cycle compared to international wire transfers.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#128241; Case Study 3: Subscription-Based Music Streaming</h4>
+                        <p><strong>Scenario:</strong> A music streaming service wants to accept KENO payments but doesn't want to deal with monthly billing complexity, PCI compliance, or chargeback disputes that currently cost them $15,000/month.</p>
+                        <p style="margin-top: 10px;"><strong>Setup:</strong> Subscribers set up a monthly scheduled payment of 9.99 KENO to the service's wallet. The service verifies active subscription status by checking if the latest monthly payment arrived. An API monitors incoming payments and activates/deactivates accounts automatically.</p>
+                        <p style="margin-top: 10px;"><strong>Result:</strong> No credit card data stored (eliminates PCI compliance burden &mdash; saving $20,000+/year in audit costs). No chargeback risk (saving $15,000/month). Subscribers maintain full control and can cancel instantly without calling a help desk. The service gets predictable monthly revenue with near-zero payment processing overhead. International subscribers can join without needing a credit card from a supported country.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#127968; Case Study 4: Smart Rental Payments</h4>
+                        <p><strong>Scenario:</strong> A property management company manages 50 rental units and wants to eliminate late payments, which currently average 12% per month and require costly collection efforts.</p>
+                        <p style="margin-top: 10px;"><strong>Setup:</strong> Each tenant sets up a monthly scheduled payment for their rent amount, executing on the 1st of every month. The property manager receives 50 payments automatically. A minimum balance guard of 1.5x rent ensures tenants maintain adequate funds. The property manager's dashboard shows all incoming scheduled payments and their statuses.</p>
+                        <p style="margin-top: 10px;"><strong>Result:</strong> Late payment rate drops from 12% to under 2% (only cases where tenants run out of funds). Collection costs decrease by 80%. Both parties have transparent, auditable payment records. Disputes are eliminated because every transaction is permanently recorded on the blockchain with exact timestamps and amounts.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#128184; Case Study 5: Automated Savings &amp; Financial Goals</h4>
+                        <p><strong>Scenario:</strong> Carlos wants to save for three goals simultaneously: an emergency fund (daily micro-savings), a vacation fund (weekly), and a down payment (monthly). Managing three separate saving disciplines manually has failed repeatedly.</p>
+                        <p style="margin-top: 10px;"><strong>Setup:</strong> Carlos creates three scheduled payments: (1) 5 KENO daily to his emergency wallet, (2) 50 KENO weekly to his vacation wallet, and (3) 500 KENO monthly to his down payment wallet. Each target wallet is a separate address he controls.</p>
+                        <p style="margin-top: 10px;"><strong>Result:</strong> After one year, Carlos has saved: Emergency fund: 1,825 KENO (365 x 5). Vacation fund: 2,600 KENO (52 x 50). Down payment: 6,000 KENO (12 x 500). Total: 10,425 KENO saved automatically. Carlos never had to exercise willpower or remember to transfer &mdash; the system handled everything.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 12: Security & Risks -->
+            <section id="risks" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9888;&#65039;</span>Security Considerations &amp; Risks</h2>
+                <div class="reading-content">
+                    <p>While scheduled payments are powerful, they come with risks that users must understand and mitigate. A responsible user treats scheduled transactions with the same care they'd give to signing a long-term contract &mdash; because that's essentially what they are.</p>
+
+                    <h3>Financial Risks</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Insufficient Funds Cascade</div>
+                            <p>If your balance drops below the reserved amount, scheduled payments pause. While this prevents overdrafts, it can cause missed payments to landlords, lenders, or service providers. <strong>Mitigation:</strong> Always maintain a buffer of at least 2x your monthly scheduled obligations. Set up balance alerts at 150% of your monthly commitment.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Token Value Fluctuation</div>
+                            <p>If KENO's value changes significantly, your 500 KENO monthly rent might represent a very different real-world value from month to month. A payment worth $500 in January could be worth $300 or $800 in March. <strong>Mitigation:</strong> For fixed-value obligations, consider adjusting scheduled amounts periodically or using stablecoin equivalents when available.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Forgotten Scheduled Payments</div>
+                            <p>"Set it and forget it" can work against you. Users sometimes forget about active scheduled payments, slowly draining their wallets over months. An average user with 5+ scheduled payments loses track of at least one within 6 months. <strong>Mitigation:</strong> Regularly review your active schedules. Set calendar reminders for quarterly reviews. Always set maxExecutions.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Over-Commitment</div>
+                            <p>It's easy to set up many small scheduled payments that collectively exceed your income. 10 KENO daily (sounds small) = 3,650 KENO/year (significant). <strong>Mitigation:</strong> Before creating a new schedule, calculate your total monthly outflow from all scheduled payments combined. Ensure it's less than 70% of your expected income.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Security Risks</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Compromised Wallet</div>
+                            <p>If an attacker gains access to your wallet, they could create scheduled payments that slowly drain your funds to their address. The payments would look legitimate because they carry your valid signature. <strong>Mitigation:</strong> Use strong wallet security (hardware wallets for large balances). Enable notifications for all new scheduled payments. Review your active schedules immediately if you suspect compromise.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Recipient Address Changes</div>
+                            <p>If a business changes their payment address, your scheduled payment continues going to the old address. Unlike Direct Debit where the business handles this, you must manually update the recipient address. <strong>Mitigation:</strong> Verify recipient addresses quarterly. Use Kenostod's address book to label and track recipient addresses.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Pre-Authorization Scope Understanding</div>
+                            <p>When you sign a pre-authorization for scheduled payments, make sure you understand the total commitment (amount &times; frequency &times; duration). A 100 KENO weekly payment for a year totals 5,200 KENO &mdash; that's a significant commitment. <strong>Mitigation:</strong> Always calculate the total lifetime cost before signing. Use maxExecutions to cap total exposure.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Social Engineering</div>
+                            <p>Scammers may try to convince you to set up scheduled payments to their addresses, perhaps posing as legitimate businesses or investment opportunities. "Set up a daily payment of 10 KENO to this address and you'll earn 20 KENO back daily!" &mdash; this is always a scam. <strong>Mitigation:</strong> Never set up scheduled payments based on unsolicited requests. Verify business identities independently.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#128680; Best Practices for Scheduled Payment Safety</div>
+                        <p><strong>1.</strong> Review your scheduled payments monthly. <strong>2.</strong> Set up balance alerts at 2x your monthly scheduled obligations. <strong>3.</strong> Use a dedicated "bills" wallet with only enough funds for scheduled payments plus a buffer. <strong>4.</strong> Always set maxExecutions to prevent infinite payment loops. <strong>5.</strong> Verify recipient addresses haven't changed quarterly. <strong>6.</strong> Never set up schedules based on unsolicited requests. <strong>7.</strong> Calculate total annual commitment before creating any schedule.</p>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Kenostod Safety Features</div>
+                        <p>Kenostod includes built-in safety mechanisms: automatic pausing on insufficient funds (no overdrafts, no fees), clear "Active Schedules" dashboard with total commitment calculator, email and push notifications for every execution and status change, a "cancel all schedules" emergency button, minimum balance guards, and maxExecution caps. These features make scheduled payments significantly safer than their traditional banking equivalents, where overdraft fees average $35 per occurrence.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 13: Method Comparison -->
+            <section id="comparison" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128202;</span>Method Comparison: How to Choose</h2>
+                <div class="reading-content">
+                    <p>When automating payments on blockchain, you have three main approaches. Use this comprehensive comparison to choose the right one for your situation:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Manual Payment</th>
+                            <th>Smart Contract</th>
+                            <th>Kenostod Scheduled</th>
+                        </tr>
+                        <tr>
+                            <td>Setup Complexity</td>
+                            <td>None</td>
+                            <td>High (coding required)</td>
+                            <td>Low (form-based)</td>
+                        </tr>
+                        <tr>
+                            <td>Recurring Support</td>
+                            <td>Manual each time</td>
+                            <td>Yes (with keepers)</td>
+                            <td>Yes (built-in)</td>
+                        </tr>
+                        <tr>
+                            <td>Gas/Fee Cost</td>
+                            <td>Per transaction</td>
+                            <td>Per execution + keeper fee</td>
+                            <td>Per execution (low, fixed)</td>
+                        </tr>
+                        <tr>
+                            <td>Third-Party Dependency</td>
+                            <td>None</td>
+                            <td>Keeper network required</td>
+                            <td>None</td>
+                        </tr>
+                        <tr>
+                            <td>Smart Contract Risk</td>
+                            <td>None</td>
+                            <td>High (bugs, exploits)</td>
+                            <td>None</td>
+                        </tr>
+                        <tr>
+                            <td>Cancellation</td>
+                            <td>Don't send</td>
+                            <td>Complex (contract call)</td>
+                            <td>One-click</td>
+                        </tr>
+                        <tr>
+                            <td>Flexibility</td>
+                            <td>Maximum</td>
+                            <td>Custom logic possible</td>
+                            <td>Predefined options</td>
+                        </tr>
+                        <tr>
+                            <td>User Skill Required</td>
+                            <td>Basic</td>
+                            <td>Advanced (Solidity/dev)</td>
+                            <td>Basic</td>
+                        </tr>
+                        <tr>
+                            <td>Fee Predictability</td>
+                            <td>Moderate</td>
+                            <td>Unpredictable (gas varies)</td>
+                            <td>Fully predictable</td>
+                        </tr>
+                        <tr>
+                            <td>Overdraft Protection</td>
+                            <td>None</td>
+                            <td>Depends on implementation</td>
+                            <td>Built-in (auto-pause)</td>
+                        </tr>
+                        <tr>
+                            <td>Best For</td>
+                            <td>One-off payments</td>
+                            <td>Complex DeFi logic</td>
+                            <td>Regular bills &amp; payroll</td>
+                        </tr>
+                    </table>
+
+                    <div class="concept-box">
+                        <h4>&#128161; When to Use What</h4>
+                        <p><strong>Manual Payment:</strong> Use for one-time, irregular payments where automation adds no value. Buying a product, sending a gift, paying for a one-time service.<br><br>
+                        <strong>Smart Contract Automation:</strong> Use when you need complex conditional logic. Examples: "Pay X if token price is above Y," "Execute an arbitrage trade when the spread exceeds 2%," or "Distribute governance rewards based on staking duration." If your payment logic involves IF/THEN conditions beyond simple timing, smart contracts might be better.<br><br>
+                        <strong>Kenostod Scheduled:</strong> Use for any regular, predictable payment &mdash; it's simpler, cheaper, and safer than smart contracts for standard use cases. Rent, payroll, subscriptions, savings contributions, allowances, loan repayments &mdash; basically anything you'd set up as auto-pay with a traditional bank.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 14: Future of Automated DeFi -->
+            <section id="future" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128302;</span>The Future of Automated DeFi</h2>
+                <div class="reading-content">
+                    <p>Scheduled transactions are just the beginning. The broader vision is a financial system that operates with the precision and reliability of software, while maintaining the security and transparency of blockchain. Here's where this technology is headed.</p>
+
+                    <h3>Programmable Money</h3>
+                    <p>The concept of <strong>programmable money</strong> extends scheduled transactions to include conditional logic, multi-party coordination, and dynamic parameters. Imagine money that "knows" when to pay, how much to pay, and who to pay &mdash; all based on real-world conditions.</p>
+
+                    <div class="term-definition">
+                        <span class="term">Conditional Payments</span>
+                        <span class="definition">Payments that execute only when specific conditions are met. "Pay 500 KENO to my landlord on the 1st, but only if my balance exceeds 2,000 KENO." This combines scheduling with smart logic.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Oracle-Triggered Payments</span>
+                        <span class="definition">Payments triggered by real-world data feeds. "Buy 100 KENO worth of ETH whenever ETH drops below $2,000." Blockchain oracles (like Chainlink) provide the external data.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Streaming Payments</span>
+                        <span class="definition">Instead of discrete payments, money flows continuously in real-time. Imagine your salary streaming to your wallet at a rate of 0.001 KENO per second &mdash; you earn money every second of every day, not just on payday. Projects like Sablier and Superfluid are pioneering this on Ethereum.</span>
+                    </div>
+
+                    <h3>Autonomous DeFi Strategies</h3>
+                    <p>Combining scheduled transactions with DeFi protocols opens up powerful automated strategies that currently require manual intervention or expensive smart contract infrastructure:</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Auto-compounding:</strong> Scheduled transactions that harvest yield farming rewards and reinvest them automatically. Instead of manually claiming and restaking every week, a schedule does it for you.</li>
+                        <li><strong>Rebalancing portfolios:</strong> Monthly scheduled transactions that sell overweight assets and buy underweight ones, maintaining your target allocation without emotional bias.</li>
+                        <li><strong>Automated tax-loss harvesting:</strong> Scheduled checks that sell losing positions at year-end to offset capital gains, then repurchase after the wash-sale window.</li>
+                        <li><strong>Graduated savings:</strong> Scheduled payments that automatically increase over time. Start saving 50 KENO/month, increasing by 10% each month as you build the habit.</li>
+                    </ul>
+
+                    <h3>Cross-Chain Scheduling</h3>
+                    <p>Future developments will enable scheduled transactions that span multiple blockchains. Imagine setting up a monthly payment where KENO is converted to ETH and deposited into an Ethereum DeFi protocol &mdash; all automatically, all trustlessly, using HTLCs for cross-chain settlement.</p>
+
+                    <h3>AI-Powered Financial Automation</h3>
+                    <p>The convergence of AI and blockchain scheduling is perhaps the most exciting frontier. AI agents could:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Analyze your spending patterns and suggest optimal scheduled payment configurations</li>
+                        <li>Dynamically adjust DCA amounts based on market volatility indicators</li>
+                        <li>Predict when you're likely to have insufficient funds and pre-emptively alert you</li>
+                        <li>Negotiate subscription prices with service providers automatically</li>
+                        <li>Optimize gas timing for cross-chain scheduled transactions</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; The Vision: Financial Autopilot</div>
+                        <p>The ultimate vision is a personal financial system that runs on autopilot &mdash; your income flows in, bills are paid automatically, savings grow steadily, investments rebalance themselves, and you receive clear reports on everything that happened. You maintain full control and can intervene at any time, but you don't <em>need</em> to. Kenostod's scheduled transactions are the foundation of this vision. Every feature described above builds on the same core primitive you're learning in this course.</p>
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Why Kenostod Is Building This First</h4>
+                        <p>Most blockchains treat scheduling as an afterthought &mdash; something that can be "added later" through smart contracts and third-party services. Kenostod made a deliberate architectural decision to build scheduling at the protocol level from day one. This foundation makes all the advanced features described above possible without the gas costs, complexity, and security risks of smart contract-based approaches. It's the difference between building a highway system and paving individual driveways.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 15: Written Exercises -->
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Payment Automation Design</h4>
+                        <div class="exercise-question">
+                            <p>You're a freelance designer who gets paid 2,000 KENO monthly by three different clients. You need to pay rent (800 KENO), a software subscription (50 KENO weekly), and save 200 KENO weekly. Design your complete scheduled payment setup, including buffer amounts and safety considerations.</p>
+                            <textarea id="ex1" placeholder="Write your payment design here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Smart Contract vs Protocol Scheduling</h4>
+                        <div class="exercise-question">
+                            <p>A friend tells you they're building a recurring payment system using Ethereum smart contracts and Chainlink Keepers. Explain at least 3 advantages Kenostod's protocol-level scheduling has over their approach, and 1 scenario where their smart contract approach might be better.</p>
+                            <textarea id="ex2" placeholder="Write your comparison here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Risk Assessment</h4>
+                        <div class="exercise-question">
+                            <p>A small business owner has set up 20 scheduled payments (employee salaries, rent, utilities, suppliers) totaling 15,000 KENO per month. Their wallet balance is 16,000 KENO. Identify at least 3 risks in this setup and propose solutions for each.</p>
+                            <textarea id="ex3" placeholder="Write your risk assessment here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 4: HTLC Application</h4>
+                        <div class="exercise-question">
+                            <p>Explain how a Hash Time-Locked Contract (HTLC) could be used to safely trade 500 KENO for 0.1 ETH between two parties who don't trust each other. Walk through the step-by-step process and explain what happens if one party tries to cheat.</p>
+                            <textarea id="ex4" placeholder="Write your HTLC explanation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Future of Automated Finance</h4>
+                        <div class="exercise-question">
+                            <p>Imagine a world where all your finances run on blockchain scheduled transactions. Describe your ideal "financial autopilot" setup: what payments would you automate, how would you handle variable expenses, and what safety mechanisms would you put in place? Consider at least 5 different payment types.</p>
+                            <textarea id="ex5" placeholder="Write your vision here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 16: Hands-On Practice -->
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128736;&#65039;</span>Hands-On Practice</h2>
+                <div class="reading-content">
+                    <p>Put your knowledge into practice with the Kenostod simulator:</p>
+                    <ul class="step-list">
+                        <li>Create a one-time future payment scheduled for 5 minutes from now</li>
+                        <li>Set up a daily recurring payment and watch it execute</li>
+                        <li>View your scheduled payment queue and understand each status</li>
+                        <li>Cancel a scheduled payment and verify funds are unreserved</li>
+                        <li>Create a weekly payment with a maximum execution count of 4</li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="/#scheduled" class="practice-btn" onclick="goToPractice()">&#128640; Open Scheduled Payments Tab</a>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SECTION 17: Final Exam -->
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam: Scheduled Transactions</h2>
+                <p style="margin-bottom: 25px;">Test your comprehensive understanding. You need at least <strong>10 out of 12 correct (80%)</strong> to pass and earn your 250 KENO reward.</p>
+                
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What makes Kenostod's scheduled transactions different from Ethereum's approach?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They use more gas</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Built into the protocol, no smart contracts or keepers needed</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They require third-party services like Chainlink</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They only work with Bitcoin</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. Which is NOT a supported recurring payment frequency on Kenostod?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Daily</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Weekly</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hourly</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Monthly</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. What happens when a scheduled payment's wallet has insufficient funds?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The payment enters a "PAUSED" state and resumes when funds are available</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The payment fails and is permanently cancelled</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The system borrows funds from other users</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>An overdraft fee is charged</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. What is the key difference between traditional auto-pay (Direct Debit) and Kenostod scheduled transactions?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Direct Debit is faster and cheaper</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Kenostod requires more personal information</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Traditional auto-pay is more transparent</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Direct Debit lets recipients pull funds; Kenostod uses sender-initiated push payments</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. When was the ACH (Automated Clearing House) network created in the United States?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1954</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1972</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1995</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>2008</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. What is dollar-cost averaging (DCA)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Buying as much as possible when prices are lowest</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Converting all assets to USD</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Investing a fixed amount at regular intervals regardless of price</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Calculating the average cost of transaction fees</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="d">
+                    <div class="question-text">7. What is a Hash Time-Locked Contract (HTLC)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A contract that locks funds forever</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A contract that only works during business hours</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A contract that hashes all transaction data</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A contract requiring a secret value to claim funds before a deadline</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="a">
+                    <div class="question-text">8. What is the main problem with smart contract-based payment scheduling on Ethereum?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Unpredictable gas fees, third-party dependencies, and smart contract bug risk</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Ethereum doesn't support smart contracts</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Smart contracts are too simple for scheduling</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Smart contracts can only run once</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="c">
+                    <div class="question-text">9. How far in advance can you schedule a payment on Kenostod?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>24 hours</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>30 days</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>365 days</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Unlimited</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="d">
+                    <div class="question-text">10. What is a "pre-authorization" in Kenostod's scheduled transaction system?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Permission from the recipient to receive funds</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Government approval for large transfers</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A credit check before scheduling</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A single signature authorizing all future executions within defined parameters</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="b">
+                    <div class="question-text">11. Which safety feature prevents scheduled payments from overdrawing your wallet?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Credit line extension</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Rolling balance reservation system</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Automatic fund borrowing from other users</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Overdraft insurance</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="a">
+                    <div class="question-text">12. What concept describes money flowing continuously in real-time rather than in discrete payments?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Streaming payments</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Batch processing</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Standing orders</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Direct debit</span></div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+                
+                <div id="quizResult" class="quiz-result">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h3 class="result-title" id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-3-reversal.html" style="color: var(--primary);">&larr; Previous: Course 3</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Back to Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-5-recovery.html" style="color: var(--primary);">Next: Course 5 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+        
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+        
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+            
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+            
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            
+            const passingScore = 10;
+            
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '\uD83C\uDF89';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}! You've mastered Scheduled Transactions.`;
+                nextCourseContainer.innerHTML = `
+                    <p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You've earned 250 KENO!</p>
+                    <a href="/courses/course-5-recovery.html" class="next-course-btn">Continue to Course 5: Social Recovery \u2192</a>
+                `;
+                localStorage.setItem('course4_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(4, 'Course 4: Scheduled Transactions');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '\uD83D\uDCDA';
+                resultTitle.textContent = 'Keep Studying!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}. You need at least ${passingScore} correct (80%) to pass. Review the material and try again.`;
+                nextCourseContainer.innerHTML = `
+                    <button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>
+                `;
+            }
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+            
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+            
+            const hints = {
+                1: 'Strong answer elements: Income = 6,000 KENO/month (3 clients x 2,000). Expenses: Rent 800/month + Software 200/month (50x4 weeks) + Savings 800/month (200x4 weeks) = 1,800/month. Buffer should be at least 2x monthly obligations (~3,600 KENO). Use a separate "bills wallet" for scheduled payments. Set maxExecutions on all recurring payments. Set minBalance guard to ensure emergency funds remain.',
+                2: 'Advantages of Kenostod: (1) No unpredictable gas fees \u2014 costs are fixed and low, (2) No dependency on Chainlink Keepers staying online, (3) No smart contract bug risk \u2014 protocol-level is battle-tested, (4) Much simpler user experience \u2014 no coding needed. Smart contracts are better when: complex conditional logic is needed (e.g., DeFi strategies, price-triggered payments, or multi-step atomic operations that require IF/THEN conditions).',
+                3: 'Key risks: (1) Only 1,000 KENO buffer \u2014 one delayed client payment could cause ALL scheduled payments to pause. Solution: Maintain 2-3 months buffer (30,000-45,000 KENO). (2) If KENO price drops, salaries may be worth less to employees. Solution: Adjust amounts regularly or negotiate stablecoin equivalents. (3) 20 separate scheduled payments create management complexity and risk of forgotten schedules. Solution: Review weekly, use the dashboard, set up alerts, assign labels to each payment.',
+                4: 'HTLC cross-chain swap: (1) Alice creates secret S and computes hash H = SHA256(S). Shares H with Bob. (2) Alice creates HTLC on Kenostod: "500 KENO locked, Bob can claim with value that hashes to H, or Alice reclaims after 24h." (3) Bob creates HTLC on Ethereum: "0.1 ETH locked, Alice can claim with same secret, or Bob reclaims after 12h." (4) Alice reveals S to claim 0.1 ETH. (5) Bob sees S on-chain and uses it to claim 500 KENO. If either party stops, time locks ensure funds return to original owners. Cheating is impossible because both HTLCs use the same hash.',
+                5: 'Strong answers include: Multiple payment types (rent, utilities, subscriptions, savings, investments, charitable giving). Handling variable expenses through buffer wallets or manual top-ups. Safety mechanisms like: dedicated bills wallet, minimum balance guards, maxExecution caps, quarterly reviews, emergency cancel-all button. Bonus points for mentioning: DCA investing schedules, graduated savings (increasing over time), separate wallets for different purposes, and notification management.'
+            };
+            
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+        
+        function goToPractice() {
+            localStorage.setItem('course4_practice_started', 'true');
+        }
+        
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'what-are', 'history', 'traditional', 'types', 'deep-dive', 'smart-contracts', 'htlc', 'kenostod-impl', 'usecases', 'case-studies', 'risks', 'comparison', 'future', 'exercises', 'practice', 'quiz'];
+            let current = '';
+            
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+            
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('onclick')?.includes(current)) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>
