@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install UTL Snap — MetaMask Flask | Kenostod</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #050510;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: rgba(10,10,30,0.95);
+            border-bottom: 2px solid #f7931a;
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-logo { display: flex; align-items: center; gap: 12px; }
+        .header-logo .fox { font-size: 2rem; }
+        .header-logo h1 { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: #f7931a; }
+        .header-logo span { font-size: 0.75rem; color: #64748b; }
+        .back-btn {
+            color: #64748b; text-decoration: none; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 6px;
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: #f7931a; }
+
+        /* ── Hero ── */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: radial-gradient(ellipse at top, rgba(247,147,26,0.08) 0%, transparent 70%);
+        }
+        .snap-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(247,147,26,0.12); border: 1px solid rgba(247,147,26,0.3);
+            color: #f7931a; font-size: 0.8rem; font-weight: 700;
+            padding: 6px 16px; border-radius: 20px; margin-bottom: 24px;
+            letter-spacing: 0.05em;
+        }
+        .hero h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #f7931a, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+        .hero p {
+            color: #94a3b8; font-size: 1.1rem;
+            max-width: 560px; margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        /* ── Status Card ── */
+        .status-section {
+            max-width: 680px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
+            width: 100%;
+        }
+        .status-card {
+            background: rgba(20,20,45,0.9);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: border-color 0.3s;
+        }
+        .status-card.ok   { border-color: #10b981; background: rgba(16,185,129,0.06); }
+        .status-card.warn { border-color: #f59e0b; background: rgba(245,158,11,0.06); }
+        .status-card.err  { border-color: #ef4444; background: rgba(239,68,68,0.06); }
+        .status-icon { font-size: 2rem; flex-shrink: 0; }
+        .status-text h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+        .status-text p  { font-size: 0.85rem; color: #64748b; }
+        .status-text a  { color: #f7931a; text-decoration: none; }
+        .status-text a:hover { text-decoration: underline; }
+
+        /* ── Install Panel ── */
+        .install-panel {
+            max-width: 680px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+            width: 100%;
+        }
+        .panel {
+            background: rgba(20,20,45,0.9);
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 36px;
+        }
+
+        /* snap info */
+        .snap-info {
+            display: flex; align-items: center; gap: 20px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 28px;
+        }
+        .snap-icon {
+            width: 72px; height: 72px; border-radius: 16px;
+            background: linear-gradient(135deg, #f7931a, #ffd700);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; flex-shrink: 0;
+        }
+        .snap-meta h3 { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: #f7931a; margin-bottom: 4px; }
+        .snap-meta p  { font-size: 0.85rem; color: #64748b; margin-bottom: 8px; }
+        .snap-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag {
+            background: rgba(247,147,26,0.1); border: 1px solid rgba(247,147,26,0.25);
+            color: #f7931a; font-size: 0.72rem; font-weight: 600;
+            padding: 3px 10px; border-radius: 10px; letter-spacing: 0.03em;
+        }
+
+        /* permissions */
+        .permissions { margin-bottom: 28px; }
+        .permissions h4 { font-size: 0.9rem; color: #94a3b8; margin-bottom: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+        .perm-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .perm-item {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.03); border: 1px solid #1e293b;
+            border-radius: 10px; padding: 10px 14px;
+            font-size: 0.82rem; color: #cbd5e1;
+        }
+        .perm-item .perm-icon { font-size: 1rem; flex-shrink: 0; }
+
+        /* install button */
+        .install-btn {
+            width: 100%; padding: 18px;
+            background: linear-gradient(135deg, #f7931a, #e67e22);
+            color: #fff; font-size: 1.1rem; font-weight: 700;
+            border: none; border-radius: 12px; cursor: pointer;
+            transition: all 0.3s; display: flex; align-items: center;
+            justify-content: center; gap: 10px;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 0.05em;
+        }
+        .install-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(247,147,26,0.4); }
+        .install-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .install-btn.installed {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        .install-btn.installed:hover { box-shadow: 0 8px 30px rgba(16,185,129,0.4); }
+
+        .snap-id-row {
+            margin-top: 16px; text-align: center;
+            font-size: 0.75rem; color: #475569;
+            font-family: monospace;
+        }
+        .snap-id-row span { color: #64748b; cursor: pointer; }
+        .snap-id-row span:hover { color: #f7931a; }
+
+        /* ── Result Toast ── */
+        .toast {
+            display: none; margin-top: 20px;
+            padding: 16px 20px; border-radius: 12px;
+            font-size: 0.9rem; font-weight: 600;
+            border: 1px solid transparent;
+        }
+        .toast.success { display: block; background: rgba(16,185,129,0.1); border-color: #10b981; color: #10b981; }
+        .toast.error   { display: block; background: rgba(239,68,68,0.1); border-color: #ef4444; color: #ef4444; }
+
+        /* ── What You Get ── */
+        .features-section {
+            max-width: 680px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+            width: 100%;
+        }
+        .features-section h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem; color: #f7931a; margin-bottom: 20px;
+            text-align: center; letter-spacing: 0.08em;
+        }
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .feature-card {
+            background: rgba(20,20,45,0.8);
+            border: 1px solid #1e293b; border-radius: 14px;
+            padding: 20px;
+        }
+        .feature-card .f-icon { font-size: 1.6rem; margin-bottom: 10px; }
+        .feature-card h4 { font-size: 0.9rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+        .feature-card p  { font-size: 0.8rem; color: #64748b; line-height: 1.6; }
+
+        /* ── Flask note ── */
+        .flask-note {
+            max-width: 680px; margin: 0 auto 60px;
+            padding: 20px 28px;
+            background: rgba(139,92,246,0.08);
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 14px;
+            font-size: 0.85rem; color: #a78bfa;
+            line-height: 1.7;
+            margin-left: auto; margin-right: auto;
+        }
+        .flask-note strong { color: #c4b5fd; }
+        .flask-note a { color: #c4b5fd; }
+
+        /* ── Footer ── */
+        .footer {
+            background: rgba(5,5,16,0.9); border-top: 1px solid #0f172a;
+            padding: 24px; text-align: center;
+            font-size: 0.8rem; color: #334155; margin-top: auto;
+        }
+        .footer a { color: #f7931a; text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .perm-list { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            .snap-info { flex-direction: column; text-align: center; }
+            .snap-tags { justify-content: center; }
+            .header { padding: 14px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-logo">
+        <span class="fox">🦊</span>
+        <div>
+            <h1>UTL Protocol Snap</h1>
+            <span>MetaMask Flask · Kenostod Blockchain Academy</span>
+        </div>
+    </div>
+    <a class="back-btn" href="/utl-dashboard.html">← UTL Dashboard</a>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="snap-badge">⚡ MetaMask Flask Snap · npm:@kenostod/utl-snap</div>
+    <h2>Install UTL<br>Directly in MetaMask</h2>
+    <p>Add the Universal Transaction Layer natively to your wallet. Earn passive USDC rewards from cross-chain transaction fees — no separate app needed.</p>
+</div>
+
+<!-- Wallet / Flask Status -->
+<div class="status-section">
+    <div class="status-card" id="statusCard">
+        <div class="status-icon" id="statusIcon">🔍</div>
+        <div class="status-text">
+            <h3 id="statusTitle">Checking your wallet…</h3>
+            <p id="statusDesc">Detecting MetaMask Flask installation</p>
+        </div>
+    </div>
+</div>
+
+<!-- Install Panel -->
+<div class="install-panel">
+    <div class="panel">
+
+        <!-- Snap Info -->
+        <div class="snap-info">
+            <div class="snap-icon">⚡</div>
+            <div class="snap-meta">
+                <h3>UTL Fee Rewards</h3>
+                <p>@kenostod/utl-snap · v1.0.2 · MIT License</p>
+                <div class="snap-tags">
+                    <span class="tag">DeFi</span>
+                    <span class="tag">Passive Income</span>
+                    <span class="tag">BSC</span>
+                    <span class="tag">Cross-Chain</span>
+                    <span class="tag">USDC Rewards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permissions -->
+        <div class="permissions">
+            <h4>Permissions Required</h4>
+            <div class="perm-list">
+                <div class="perm-item"><span class="perm-icon">💬</span> Show dialogs in MetaMask</div>
+                <div class="perm-item"><span class="perm-icon">🔔</span> Send wallet notifications</div>
+                <div class="perm-item"><span class="perm-icon">💾</span> Store encrypted state</div>
+                <div class="perm-item"><span class="perm-icon">🌐</span> Network access (BSC RPC)</div>
+                <div class="perm-item"><span class="perm-icon">🔍</span> Transaction insights</div>
+                <div class="perm-item"><span class="perm-icon">⛓️</span> Ethereum provider access</div>
+            </div>
+        </div>
+
+        <!-- Install Button -->
+        <button class="install-btn" id="installBtn" onclick="installSnap()" disabled>
+            <span id="btnIcon">🦊</span>
+            <span id="btnText">Checking Wallet…</span>
+        </button>
+        <div class="snap-id-row">
+            Snap ID: <span onclick="copySnapId()" title="Click to copy">npm:@kenostod/utl-snap</span> · Click to copy
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+    </div>
+</div>
+
+<!-- What You Get -->
+<div class="features-section">
+    <h3>WHAT THE UTL SNAP DOES</h3>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="f-icon">💰</div>
+            <h4>Passive USDC Rewards</h4>
+            <p>Earn 60% of UTL's 0.1% cross-chain transaction fee, distributed weekly to your wallet.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">📊</div>
+            <h4>Real-Time Earnings Tracker</h4>
+            <p>See your accumulated rewards, staking position, and APY directly in the MetaMask snap panel.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">🔁</div>
+            <h4>Auto-Compound</h4>
+            <p>Enable automatic reinvestment of weekly rewards to maximize compounding returns over time.</p>
+        </div>
+        <div class="feature-card">
+            <div class="f-icon">📝</div>
+            <h4>Transaction Insights</h4>
+            <p>Instantly see UTL fee impact and reward credit for every on-chain transaction you make.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Flask Note -->
+<div class="flask-note" style="padding: 20px 28px; max-width: 640px; margin: 0 auto 60px;">
+    <strong>🧪 Requires MetaMask Flask</strong> — Snaps run in MetaMask's experimental build designed for developers and early adopters.
+    Don't have it yet?
+    <a href="https://metamask.io/flask/" target="_blank" rel="noopener">Download MetaMask Flask →</a>
+    &nbsp;·&nbsp;
+    <a href="https://docs.metamask.io/snaps/" target="_blank" rel="noopener">Snaps Docs →</a>
+    <br><br>
+    The UTL Snap is pending approval in the official MetaMask Snaps Directory.
+    Once approved it will be installable from any standard MetaMask wallet.
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    <p>© 2026 Kenostod Blockchain Academy LLC · T.D.I.R. Foundation ·
+    <a href="/tdir-foundation.html">Investor Portal</a> ·
+    <a href="/utl-dashboard.html">UTL Dashboard</a> ·
+    <a href="https://www.npmjs.com/package/@kenostod/utl-snap" target="_blank">npm Package</a>
+    </p>
+</div>
+
+<script>
+const SNAP_ID = 'npm:@kenostod/utl-snap';
+const SNAP_VERSION = '1.0.2';
+
+async function detectFlask() {
+    const card   = document.getElementById('statusCard');
+    const icon   = document.getElementById('statusIcon');
+    const title  = document.getElementById('statusTitle');
+    const desc   = document.getElementById('statusDesc');
+    const btn    = document.getElementById('installBtn');
+    const btnTxt = document.getElementById('btnText');
+    const btnIco = document.getElementById('btnIcon');
+
+    if (typeof window.ethereum === 'undefined') {
+        card.className  = 'status-card err';
+        icon.textContent = '🚫';
+        title.textContent = 'MetaMask Not Detected';
+        desc.innerHTML  = 'Please install <a href="https://metamask.io/flask/" target="_blank">MetaMask Flask</a> to continue.';
+        btn.disabled    = false;
+        btnTxt.textContent = 'Download MetaMask Flask';
+        btnIco.textContent = '⬇️';
+        btn.onclick = () => window.open('https://metamask.io/flask/', '_blank');
+        return;
+    }
+
+    try {
+        const clientVersion = await window.ethereum.request({ method: 'web3_clientVersion' });
+        const isFlask = clientVersion.includes('flask');
+
+        if (!isFlask) {
+            card.className  = 'status-card warn';
+            icon.textContent = '⚠️';
+            title.textContent = 'MetaMask Detected — Flask Required';
+            desc.innerHTML  = 'You have standard MetaMask. Snaps require <a href="https://metamask.io/flask/" target="_blank">MetaMask Flask</a>. Install it alongside or replace your current MetaMask.';
+            btn.disabled    = false;
+            btnTxt.textContent = 'Switch to MetaMask Flask';
+            btnIco.textContent = '🔀';
+            btn.onclick = () => window.open('https://metamask.io/flask/', '_blank');
+            return;
+        }
+
+        // Flask detected — check if snap is already installed
+        const snaps = await window.ethereum.request({ method: 'wallet_getAllSnaps' });
+        const installed = snaps && snaps[SNAP_ID];
+
+        if (installed) {
+            card.className  = 'status-card ok';
+            icon.textContent = '✅';
+            title.textContent = `UTL Snap Installed (v${installed.version})`;
+            desc.textContent = 'The UTL Fee Rewards snap is active in your MetaMask wallet.';
+            btn.className   = 'install-btn installed';
+            btn.disabled    = false;
+            btnTxt.textContent = 'Open UTL Snap Settings';
+            btnIco.textContent = '⚙️';
+            btn.onclick     = openSnapSettings;
+        } else {
+            card.className  = 'status-card ok';
+            icon.textContent = '🦊';
+            title.textContent = 'MetaMask Flask Detected — Ready to Install';
+            desc.textContent = 'Your wallet supports Snaps. Click below to install the UTL Fee Rewards snap.';
+            btn.disabled    = false;
+            btnTxt.textContent = 'Install UTL Snap';
+            btnIco.textContent = '⚡';
+            btn.onclick     = installSnap;
+        }
+
+    } catch (e) {
+        card.className  = 'status-card warn';
+        icon.textContent = '⚠️';
+        title.textContent = 'MetaMask Flask Required';
+        desc.innerHTML  = 'Could not detect Flask version. Make sure you have <a href="https://metamask.io/flask/" target="_blank">MetaMask Flask</a> installed and unlocked.';
+        btn.disabled    = false;
+        btnTxt.textContent = 'Download MetaMask Flask';
+        btnIco.textContent = '⬇️';
+        btn.onclick = () => window.open('https://metamask.io/flask/', '_blank');
+    }
+}
+
+async function installSnap() {
+    const btn    = document.getElementById('installBtn');
+    const btnTxt = document.getElementById('btnText');
+    const btnIco = document.getElementById('btnIcon');
+    const toast  = document.getElementById('toast');
+
+    btn.disabled    = true;
+    btnTxt.textContent = 'Requesting Install…';
+    btnIco.textContent = '⏳';
+    toast.className = 'toast';
+
+    try {
+        const result = await window.ethereum.request({
+            method: 'wallet_requestSnaps',
+            params: {
+                [SNAP_ID]: { version: `^${SNAP_VERSION}` }
+            }
+        });
+
+        const snapResult = result[SNAP_ID];
+        if (snapResult && snapResult.error) {
+            throw new Error(snapResult.error.message || 'Snap installation failed');
+        }
+
+        toast.className = 'toast success';
+        toast.textContent = '✅ UTL Snap installed successfully! Check your MetaMask for the snap panel.';
+        btn.className   = 'install-btn installed';
+        btn.disabled    = false;
+        btnTxt.textContent = 'UTL Snap Installed!';
+        btnIco.textContent = '✅';
+
+        const card = document.getElementById('statusCard');
+        const icon = document.getElementById('statusIcon');
+        const title = document.getElementById('statusTitle');
+        const desc = document.getElementById('statusDesc');
+        card.className  = 'status-card ok';
+        icon.textContent = '✅';
+        title.textContent = `UTL Snap Installed (v${SNAP_VERSION})`;
+        desc.textContent = 'Earning passive USDC rewards is now active. Check your MetaMask snap panel.';
+
+    } catch (err) {
+        toast.className = 'toast error';
+        if (err.code === 4001) {
+            toast.textContent = '❌ Installation cancelled. You can try again anytime.';
+        } else {
+            toast.textContent = `❌ Error: ${err.message}`;
+        }
+        btn.disabled    = false;
+        btnTxt.textContent = 'Install UTL Snap';
+        btnIco.textContent = '⚡';
+    }
+}
+
+async function openSnapSettings() {
+    try {
+        await window.ethereum.request({ method: 'wallet_requestSnaps', params: { [SNAP_ID]: {} } });
+    } catch(e) {}
+}
+
+function copySnapId() {
+    navigator.clipboard.writeText(SNAP_ID).then(() => {
+        const toast = document.getElementById('toast');
+        toast.className = 'toast success';
+        toast.textContent = '📋 Snap ID copied to clipboard!';
+        setTimeout(() => { toast.className = 'toast'; }, 3000);
+    });
+}
+
+// Run on load
+window.addEventListener('load', detectFlask);
+</script>
+</body>
+</html>
