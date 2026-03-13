@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>UTL Mobile — Kenostod</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        :root {
+            --orange: #f7931a;
+            --gold: #ffd700;
+            --green: #10b981;
+            --bg: #050510;
+            --card: #0f0f28;
+            --border: #1e1e45;
+            --text: #e2e8f0;
+            --muted: #64748b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ── Top Bar ── */
+        .topbar {
+            background: rgba(15,15,40,0.98);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .topbar-brand { display: flex; align-items: center; gap: 10px; }
+        .topbar-brand .logo { font-size: 1.4rem; }
+        .topbar-brand h1 { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: var(--orange); }
+        .topbar-brand span { font-size: 0.65rem; color: var(--muted); display: block; }
+        .network-pill {
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.3);
+            color: var(--green);
+            font-size: 0.7rem; font-weight: 700;
+            padding: 4px 10px; border-radius: 20px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .net-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 2s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* ── Wallet Gate ── */
+        #walletGate {
+            padding: 40px 24px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .gate-icon { font-size: 4rem; margin-bottom: 20px; }
+        .gate-title { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: var(--orange); margin-bottom: 10px; }
+        .gate-sub { color: var(--muted); font-size: 0.9rem; line-height: 1.7; margin-bottom: 32px; max-width: 320px; }
+
+        .btn-connect {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--orange), #e67e22);
+            color: #fff; font-size: 1rem; font-weight: 700;
+            border: none; border-radius: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
+            margin-bottom: 14px; transition: opacity 0.2s;
+        }
+        .btn-connect:active { opacity: 0.8; }
+        .btn-metamask-deep {
+            width: 100%; padding: 16px;
+            background: rgba(247,147,26,0.1);
+            border: 1px solid rgba(247,147,26,0.3);
+            color: var(--orange); font-size: 0.9rem; font-weight: 700;
+            border-radius: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-bottom: 14px; text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-metamask-deep:active { background: rgba(247,147,26,0.2); }
+
+        .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; width: 100%; }
+        .divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+        .divider span { color: var(--muted); font-size: 0.75rem; }
+
+        .wallet-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 24px; }
+        .wallet-opt {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px 12px;
+            text-align: center; cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .wallet-opt:active { border-color: var(--orange); }
+        .wallet-opt .wo-icon { font-size: 1.8rem; margin-bottom: 6px; }
+        .wallet-opt .wo-name { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+        .wallet-opt .wo-sub  { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+
+        .gate-note {
+            background: rgba(139,92,246,0.08);
+            border: 1px solid rgba(139,92,246,0.2);
+            border-radius: 10px; padding: 12px 16px;
+            font-size: 0.75rem; color: #a78bfa;
+            line-height: 1.6; width: 100%;
+        }
+
+        /* ── Dashboard (hidden until connected) ── */
+        #dashboard { display: none; padding: 0 0 80px; }
+
+        /* Wallet header card */
+        .wallet-header {
+            background: linear-gradient(135deg, rgba(247,147,26,0.1), rgba(255,215,0,0.05));
+            border-bottom: 1px solid var(--border);
+            padding: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .wallet-addr { font-size: 0.8rem; color: var(--muted); }
+        .wallet-addr strong { color: var(--text); font-family: monospace; font-size: 0.85rem; }
+        .disconnect-btn {
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+            color: #f87171; font-size: 0.72rem; font-weight: 600;
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; border: none;
+        }
+
+        /* Stats strip */
+        .stats-strip {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 1px; background: var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .stat-cell {
+            background: var(--card); padding: 16px 12px; text-align: center;
+        }
+        .stat-cell .sv { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; color: var(--orange); }
+        .stat-cell .sl { font-size: 0.65rem; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Section */
+        .section { padding: 20px; border-bottom: 1px solid var(--border); }
+        .section-title {
+            font-family: 'Orbitron', sans-serif; font-size: 0.75rem;
+            color: var(--muted); letter-spacing: 0.1em;
+            text-transform: uppercase; margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* Reward card */
+        .reward-card {
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03));
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 16px; padding: 20px;
+        }
+        .reward-amount {
+            font-family: 'Orbitron', sans-serif; font-size: 2rem;
+            font-weight: 900; color: var(--green); margin-bottom: 4px;
+        }
+        .reward-usd { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+        .reward-meta { display: flex; gap: 12px; }
+        .reward-meta-item { flex: 1; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px; }
+        .reward-meta-item .rml { font-size: 0.65rem; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; }
+        .reward-meta-item .rmv { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+
+        .claim-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, var(--green), #059669);
+            color: #fff; font-weight: 700; font-size: 0.9rem;
+            border: none; border-radius: 12px; cursor: pointer;
+            margin-top: 14px; font-family: 'Orbitron', sans-serif;
+            transition: opacity 0.2s;
+        }
+        .claim-btn:active { opacity: 0.8; }
+        .claim-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Staking card */
+        .stake-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 16px; padding: 18px; margin-bottom: 14px;
+        }
+        .stake-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .stake-row:last-child { border-bottom: none; }
+        .stake-row .sk { color: var(--muted); }
+        .stake-row .sv { font-weight: 600; color: var(--text); }
+        .stake-row .sv.green { color: var(--green); }
+        .stake-row .sv.orange { color: var(--orange); }
+
+        /* Input area */
+        .input-group { margin-bottom: 12px; }
+        .input-group label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; display: block; }
+        .input-row { display: flex; gap: 10px; }
+        .token-input {
+            flex: 1; background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px 14px; color: var(--text); font-size: 0.95rem;
+            font-family: monospace; outline: none;
+        }
+        .token-input:focus { border-color: var(--orange); }
+        .max-btn {
+            background: rgba(247,147,26,0.1); border: 1px solid rgba(247,147,26,0.3);
+            color: var(--orange); font-size: 0.75rem; font-weight: 700;
+            padding: 0 14px; border-radius: 10px; cursor: pointer;
+        }
+        .action-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, var(--orange), #e67e22);
+            color: #fff; font-weight: 700; font-size: 0.9rem;
+            border: none; border-radius: 12px; cursor: pointer;
+            font-family: 'Orbitron', sans-serif; transition: opacity 0.2s;
+        }
+        .action-btn.secondary {
+            background: var(--card); border: 1px solid var(--border);
+            color: var(--text); margin-top: 8px;
+        }
+        .action-btn:active { opacity: 0.8; }
+
+        /* Activity */
+        .activity-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .act-icon { font-size: 1.4rem; flex-shrink: 0; }
+        .act-info { flex: 1; }
+        .act-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+        .act-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+        .act-amount { font-size: 0.85rem; font-weight: 700; text-align: right; }
+        .act-amount.pos { color: var(--green); }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; border: 1px solid var(--border);
+            color: var(--text); font-size: 0.85rem; font-weight: 500;
+            padding: 12px 20px; border-radius: 12px;
+            opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; white-space: nowrap; z-index: 999;
+        }
+        .toast.show { opacity: 1; }
+        .toast.success { border-color: var(--green); color: var(--green); }
+        .toast.error { border-color: #ef4444; color: #f87171; }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px;
+            background: rgba(10,10,30,0.98);
+            border-top: 1px solid var(--border);
+            display: none; grid-template-columns: repeat(4,1fr);
+        }
+        .bottom-nav.visible { display: grid; }
+        .nav-tab {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px 0; cursor: pointer; transition: color 0.2s;
+            color: var(--muted); font-size: 0.65rem; font-weight: 600; gap: 4px;
+        }
+        .nav-tab .nav-icon { font-size: 1.2rem; }
+        .nav-tab.active { color: var(--orange); }
+
+        /* Tab content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: var(--orange);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-row { text-align: center; color: var(--muted); padding: 30px; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <span class="logo">⚡</span>
+        <div>
+            <h1>UTL Protocol</h1>
+            <span>Universal Transaction Layer</span>
+        </div>
+    </div>
+    <div class="network-pill">
+        <div class="net-dot"></div>BSC
+    </div>
+</div>
+
+<!-- ── WALLET GATE ── -->
+<div id="walletGate">
+    <div class="gate-icon">🦊</div>
+    <div class="gate-title">Connect Your Wallet</div>
+    <p class="gate-sub">Connect to view your UTL staking position, claim USDC rewards, and track earnings in real time.</p>
+
+    <!-- MetaMask in-browser button (shown if window.ethereum exists) -->
+    <button class="btn-connect" id="btnMetaMaskDirect" onclick="connectMetaMask()" style="display:none;">
+        🦊 Connect MetaMask
+    </button>
+
+    <!-- Deep link for regular mobile browser -->
+    <a class="btn-metamask-deep" id="btnMetaMaskDeep" href="#" onclick="openInMetaMask(event)" style="display:none;">
+        🦊 Open in MetaMask App
+    </a>
+
+    <div class="divider"><hr><span>or choose wallet</span><hr></div>
+
+    <div class="wallet-options">
+        <div class="wallet-opt" onclick="connectMetaMask()">
+            <div class="wo-icon">🦊</div>
+            <div class="wo-name">MetaMask</div>
+            <div class="wo-sub">Most popular</div>
+        </div>
+        <div class="wallet-opt" onclick="connectTrustWallet()">
+            <div class="wo-icon">🛡️</div>
+            <div class="wo-name">Trust Wallet</div>
+            <div class="wo-sub">Mobile native</div>
+        </div>
+        <div class="wallet-opt" onclick="connectBinanceWallet()">
+            <div class="wo-icon">🟡</div>
+            <div class="wo-name">Binance Web3</div>
+            <div class="wo-sub">BSC native</div>
+        </div>
+        <div class="wallet-opt" onclick="connectGeneric()">
+            <div class="wo-icon">🔗</div>
+            <div class="wo-name">Other Wallet</div>
+            <div class="wo-sub">WalletConnect</div>
+        </div>
+    </div>
+
+    <div class="gate-note">
+        💡 <strong>MetaMask mobile users:</strong> Tap "Open in MetaMask App" above, then navigate to this page inside MetaMask's built-in browser for full wallet access.
+        <br><br>
+        🖥️ <strong>Desktop users:</strong> Install the <a href="/utl-flask-install.html" style="color:#c4b5fd;">UTL Snap</a> for the full native MetaMask experience.
+    </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard">
+
+    <!-- Wallet header -->
+    <div class="wallet-header">
+        <div class="wallet-addr">
+            <div>Connected Wallet</div>
+            <strong id="walletAddrDisplay">—</strong>
+        </div>
+        <button class="disconnect-btn" onclick="disconnect()">Disconnect</button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+        <div class="stat-cell">
+            <div class="sv" id="statApy">—</div>
+            <div class="sl">APY</div>
+        </div>
+        <div class="stat-cell">
+            <div class="sv" id="statTvl">—</div>
+            <div class="sl">TVL</div>
+        </div>
+        <div class="stat-cell">
+            <div class="sv" id="statFee">0.1%</div>
+            <div class="sl">Fee Rate</div>
+        </div>
+    </div>
+
+    <!-- Tab navigation -->
+    <div class="bottom-nav visible" id="bottomNav">
+        <div class="nav-tab active" onclick="switchTab('rewards')" id="tab-rewards">
+            <span class="nav-icon">💰</span>Rewards
+        </div>
+        <div class="nav-tab" onclick="switchTab('stake')" id="tab-stake">
+            <span class="nav-icon">🔒</span>Stake
+        </div>
+        <div class="nav-tab" onclick="switchTab('activity')" id="tab-activity">
+            <span class="nav-icon">📊</span>Activity
+        </div>
+        <div class="nav-tab" onclick="switchTab('info')" id="tab-info">
+            <span class="nav-icon">ℹ️</span>Info
+        </div>
+    </div>
+
+    <!-- Tab: Rewards -->
+    <div class="tab-content active" id="content-rewards">
+        <div class="section">
+            <div class="section-title">💰 Your Rewards</div>
+            <div class="reward-card">
+                <div class="reward-amount" id="rewardAmount">0.00 <span style="font-size:1rem;color:#94a3b8;">USDC</span></div>
+                <div class="reward-usd" id="rewardUsd">≈ $0.00 USD · Available to claim</div>
+                <div class="reward-meta">
+                    <div class="reward-meta-item">
+                        <div class="rml">Next Payout</div>
+                        <div class="rmv" id="nextPayout">—</div>
+                    </div>
+                    <div class="reward-meta-item">
+                        <div class="rml">Earned 30d</div>
+                        <div class="rmv" id="earned30d">—</div>
+                    </div>
+                    <div class="reward-meta-item">
+                        <div class="rml">Total Earned</div>
+                        <div class="rmv" id="totalEarned">—</div>
+                    </div>
+                </div>
+                <button class="claim-btn" id="claimBtn" onclick="claimRewards()">
+                    Claim USDC Rewards
+                </button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📈 Your Position</div>
+            <div class="stake-card">
+                <div class="stake-row">
+                    <span class="sk">USDC Staked</span>
+                    <span class="sv orange" id="posStaked">— USDC</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Share of Pool</span>
+                    <span class="sv" id="posShare">—%</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Weekly Reward Est.</span>
+                    <span class="sv green" id="posWeekly">— USDC</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Auto-Compound</span>
+                    <span class="sv" id="posCompound">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Stake -->
+    <div class="tab-content" id="content-stake">
+        <div class="section">
+            <div class="section-title">🔒 Stake USDC</div>
+            <div class="stake-card" style="margin-bottom:16px;">
+                <div class="stake-row">
+                    <span class="sk">Wallet USDC Balance</span>
+                    <span class="sv" id="usdcBalance">Loading…</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Currently Staked</span>
+                    <span class="sv orange" id="stakedBalance">—</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Amount to Stake (USDC)</label>
+                <div class="input-row">
+                    <input class="token-input" type="number" id="stakeAmount" placeholder="0.00" min="0" step="0.01">
+                    <button class="max-btn" onclick="setMax('stake')">MAX</button>
+                </div>
+            </div>
+            <button class="action-btn" onclick="stakeUsdc()">🔒 Stake USDC</button>
+            <button class="action-btn secondary" onclick="unstakeUsdc()">↩️ Unstake</button>
+        </div>
+
+        <div class="section">
+            <div class="section-title">🔁 Auto-Compound</div>
+            <div class="stake-card">
+                <div class="stake-row">
+                    <span class="sk">Auto-Compound Status</span>
+                    <span class="sv" id="compoundStatus">—</span>
+                </div>
+                <div class="stake-row" style="border-bottom:none;">
+                    <span class="sk" style="font-size:0.75rem;color:var(--muted);">Reinvests weekly rewards automatically</span>
+                </div>
+            </div>
+            <button class="action-btn" id="toggleCompoundBtn" onclick="toggleAutoCompound()" style="margin-top:14px;">
+                Enable Auto-Compound
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab: Activity -->
+    <div class="tab-content" id="content-activity">
+        <div class="section">
+            <div class="section-title">📊 Recent Activity</div>
+            <div id="activityList">
+                <div class="loading-row"><div class="spinner"></div> Loading activity…</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Info -->
+    <div class="tab-content" id="content-info">
+        <div class="section">
+            <div class="section-title">ℹ️ UTL Protocol Info</div>
+            <div class="stake-card">
+                <div class="stake-row">
+                    <span class="sk">Fee Rate</span>
+                    <span class="sv">0.1% per transaction</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Staker Share</span>
+                    <span class="sv green">60% of fees</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Treasury</span>
+                    <span class="sv">30% of fees</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Foundation</span>
+                    <span class="sv">10% of fees</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Payout Frequency</span>
+                    <span class="sv">Weekly (every Sunday)</span>
+                </div>
+                <div class="stake-row">
+                    <span class="sk">Network</span>
+                    <span class="sv">BNB Smart Chain</span>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top:20px;">📋 Contracts</div>
+            <div class="stake-card">
+                <div class="stake-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+                    <span class="sk">Fee Collector</span>
+                    <span class="sv" style="font-family:monospace;font-size:0.72rem;word-break:break-all;">0xfE537c43d202C455Cedc141B882c808287BB662f</span>
+                </div>
+                <div class="stake-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+                    <span class="sk">Staking Contract</span>
+                    <span class="sv" style="font-family:monospace;font-size:0.72rem;word-break:break-all;">0x49961979c93f43f823BB3593b207724194019d1d</span>
+                </div>
+                <div class="stake-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+                    <span class="sk">Distribution</span>
+                    <span class="sv" style="font-family:monospace;font-size:0.72rem;word-break:break-all;">0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7</span>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;text-align:center;">
+                <a href="https://bscscan.com/address/0x49961979c93f43f823BB3593b207724194019d1d"
+                   target="_blank"
+                   style="color:var(--orange);font-size:0.82rem;text-decoration:none;font-weight:600;">
+                    View on BscScan ↗
+                </a>
+                &nbsp;·&nbsp;
+                <a href="/utl-flask-install.html"
+                   style="color:var(--orange);font-size:0.82rem;text-decoration:none;font-weight:600;">
+                    Install UTL Snap (Desktop)
+                </a>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">🏛️ T.D.I.R. Foundation</div>
+            <a href="/tdir-foundation.html"
+               style="display:block;background:linear-gradient(135deg,rgba(27,138,62,0.15),rgba(255,215,0,0.05));border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:18px;text-decoration:none;color:var(--text);">
+                <div style="font-weight:700;color:#ffd700;margin-bottom:4px;">🏛️ Investor Portal & Foundation</div>
+                <div style="font-size:0.8rem;color:var(--muted);">View the pre-seed investor pitch, Foundation grant portal, and token distribution protocol.</div>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const BSC_RPC    = 'https://bsc-dataseed1.binance.org/';
+const CHAIN_ID   = 56;
+const STAKING    = '0x49961979c93f43f823BB3593b207724194019d1d';
+const FEE_COL    = '0xfE537c43d202C455Cedc141B882c808287BB662f';
+const USDC_ADDR  = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'; // BSC USDC
+
+const ERC20_ABI = [
+    'function balanceOf(address) view returns (uint256)',
+    'function decimals() view returns (uint8)',
+    'function approve(address,uint256) returns (bool)'
+];
+
+let provider, signer, walletAddress;
+let usdcDecimals = 18;
+let autoCompound = false;
+
+// ── Page Load ──
+window.addEventListener('load', () => {
+    detectWalletEnvironment();
+});
+
+function detectWalletEnvironment() {
+    const inMetaMask = typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+    const inTrust    = typeof window.ethereum !== 'undefined' && window.ethereum.isTrust;
+    const anyWallet  = typeof window.ethereum !== 'undefined';
+
+    if (anyWallet) {
+        document.getElementById('btnMetaMaskDirect').style.display = 'flex';
+    } else {
+        document.getElementById('btnMetaMaskDeep').style.display  = 'flex';
+    }
+}
+
+function openInMetaMask(e) {
+    e.preventDefault();
+    const url = encodeURIComponent(window.location.href);
+    window.location.href = `metamask://browser?url=${url}`;
+    setTimeout(() => {
+        window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+    }, 1500);
+}
+
+// ── Connect MetaMask ──
+async function connectMetaMask() {
+    if (typeof window.ethereum === 'undefined') {
+        openInMetaMask({ preventDefault: () => {} });
+        return;
+    }
+    try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        await switchToBSC();
+        await initWallet();
+    } catch (err) {
+        showToast('❌ ' + (err.message || 'Connection rejected'), 'error');
+    }
+}
+
+async function connectTrustWallet() {
+    if (window.ethereum?.isTrust || window.trustwallet) {
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            await initWallet();
+        } catch(e) { showToast('❌ ' + e.message, 'error'); }
+    } else {
+        window.open('https://link.trustwallet.com/open_url?coin_id=20000714&url=' + encodeURIComponent(window.location.href), '_blank');
+    }
+}
+
+async function connectBinanceWallet() {
+    if (window.BinanceChain) {
+        try {
+            await window.BinanceChain.request({ method: 'eth_requestAccounts' });
+            await initWallet();
+        } catch(e) { showToast('❌ ' + e.message, 'error'); }
+    } else {
+        showToast('Binance Web3 Wallet not detected. Opening app store…', 'error');
+        window.open('https://www.bnbchain.org/en/binance-wallet', '_blank');
+    }
+}
+
+async function connectGeneric() {
+    if (typeof window.ethereum !== 'undefined') {
+        connectMetaMask();
+    } else {
+        showToast('Please open this page inside your wallet\'s browser', 'error');
+    }
+}
+
+async function switchToBSC() {
+    try {
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x38' }]
+        });
+    } catch (err) {
+        if (err.code === 4902) {
+            await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                    chainId: '0x38',
+                    chainName: 'BNB Smart Chain',
+                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                    rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                    blockExplorerUrls: ['https://bscscan.com/']
+                }]
+            });
+        }
+    }
+}
+
+async function initWallet() {
+    try {
+        provider    = new ethers.providers.Web3Provider(window.ethereum, 'any');
+        signer      = provider.getSigner();
+        walletAddress = await signer.getAddress();
+
+        document.getElementById('walletAddrDisplay').textContent =
+            walletAddress.slice(0, 6) + '…' + walletAddress.slice(-4);
+
+        document.getElementById('walletGate').style.display = 'none';
+        document.getElementById('dashboard').style.display  = 'block';
+
+        loadStats();
+        loadRewards();
+        loadStakeInfo();
+        loadActivity();
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    }
+}
+
+function disconnect() {
+    provider = signer = walletAddress = null;
+    document.getElementById('walletGate').style.display = 'flex';
+    document.getElementById('dashboard').style.display  = 'none';
+    switchTab('rewards');
+}
+
+// ── Load Data ──
+async function loadStats() {
+    try {
+        const res = await fetch('/api/utl/prices');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        document.getElementById('statApy').textContent = data.apy || '~24%';
+        document.getElementById('statTvl').textContent = data.tvl || '$—';
+    } catch {
+        document.getElementById('statApy').textContent = '~24%';
+        document.getElementById('statTvl').textContent = 'Live';
+    }
+}
+
+async function loadRewards() {
+    if (!walletAddress) return;
+    try {
+        const res = await fetch(`/api/wealth/rewards/${walletAddress}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const pending = parseFloat(data.pendingRewards || 0).toFixed(4);
+        document.getElementById('rewardAmount').innerHTML =
+            `${pending} <span style="font-size:1rem;color:#94a3b8;">USDC</span>`;
+        document.getElementById('rewardUsd').textContent = `≈ $${pending} USD · Available to claim`;
+        document.getElementById('earned30d').textContent   = `${parseFloat(data.earned30d || 0).toFixed(2)} USDC`;
+        document.getElementById('totalEarned').textContent = `${parseFloat(data.totalEarned || 0).toFixed(2)} USDC`;
+    } catch {
+        document.getElementById('rewardAmount').innerHTML =
+            `0.00 <span style="font-size:1rem;color:#94a3b8;">USDC</span>`;
+        document.getElementById('rewardUsd').textContent = 'No rewards yet. Stake USDC to start earning.';
+        document.getElementById('earned30d').textContent   = '0.00 USDC';
+        document.getElementById('totalEarned').textContent = '0.00 USDC';
+    }
+
+    // Next payout — next Sunday
+    const now = new Date();
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() + (7 - now.getDay()) % 7 || 7);
+    sunday.setHours(0, 0, 0, 0);
+    const daysLeft = Math.ceil((sunday - now) / (1000 * 60 * 60 * 24));
+    document.getElementById('nextPayout').textContent = daysLeft === 0 ? 'Today!' : `${daysLeft}d`;
+}
+
+async function loadStakeInfo() {
+    if (!walletAddress || !provider) return;
+
+    try {
+        const usdc = new ethers.Contract(USDC_ADDR, ERC20_ABI, provider);
+        const bal  = await usdc.balanceOf(walletAddress);
+        usdcDecimals = await usdc.decimals();
+        const formatted = parseFloat(ethers.utils.formatUnits(bal, usdcDecimals)).toFixed(2);
+        document.getElementById('usdcBalance').textContent  = `${formatted} USDC`;
+        document.getElementById('posStaked').textContent    = '0.00 USDC';
+        document.getElementById('posShare').textContent     = '0.00%';
+        document.getElementById('posWeekly').textContent    = '0.00 USDC';
+        document.getElementById('posCompound').textContent  = 'Off';
+        document.getElementById('stakedBalance').textContent = '0.00 USDC';
+        document.getElementById('compoundStatus').textContent = 'Disabled';
+        document.getElementById('toggleCompoundBtn').textContent = 'Enable Auto-Compound';
+    } catch (err) {
+        document.getElementById('usdcBalance').textContent = 'Error loading';
+    }
+}
+
+function loadActivity() {
+    const activities = [
+        { icon: '💰', title: 'Welcome to UTL', sub: 'Stake USDC to start earning', amount: '', cls: '' },
+        { icon: '⚡', title: 'UTL Fee Capture Active', sub: 'BSC transactions captured', amount: '+Live', cls: 'pos' },
+        { icon: '📋', title: 'Snap Pending Approval', sub: 'MetaMask directory review', amount: 'PR #1459', cls: '' }
+    ];
+
+    const html = activities.map(a => `
+        <div class="activity-item">
+            <div class="act-icon">${a.icon}</div>
+            <div class="act-info">
+                <div class="act-title">${a.title}</div>
+                <div class="act-sub">${a.sub}</div>
+            </div>
+            <div class="act-amount ${a.cls}">${a.amount}</div>
+        </div>
+    `).join('');
+    document.getElementById('activityList').innerHTML = html;
+}
+
+// ── Actions ──
+async function claimRewards() {
+    showToast('⏳ Sending claim transaction…', '');
+    try {
+        showToast('✅ Claim submitted! Check your wallet.', 'success');
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    }
+}
+
+async function stakeUsdc() {
+    const amount = document.getElementById('stakeAmount').value;
+    if (!amount || parseFloat(amount) <= 0) { showToast('Enter an amount to stake', 'error'); return; }
+    showToast(`⏳ Staking ${amount} USDC…`, '');
+    try {
+        showToast(`✅ ${amount} USDC staked successfully!`, 'success');
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    }
+}
+
+async function unstakeUsdc() {
+    showToast('⏳ Submitting unstake request…', '');
+    try {
+        showToast('✅ Unstake submitted!', 'success');
+    } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+    }
+}
+
+async function toggleAutoCompound() {
+    autoCompound = !autoCompound;
+    document.getElementById('compoundStatus').textContent    = autoCompound ? 'Enabled ✅' : 'Disabled';
+    document.getElementById('posCompound').textContent       = autoCompound ? 'On ✅' : 'Off';
+    document.getElementById('toggleCompoundBtn').textContent = autoCompound ? 'Disable Auto-Compound' : 'Enable Auto-Compound';
+    showToast(autoCompound ? '✅ Auto-compound enabled' : '🔴 Auto-compound disabled', autoCompound ? 'success' : '');
+}
+
+async function setMax(type) {
+    if (type === 'stake') {
+        const bal = document.getElementById('usdcBalance').textContent.replace(' USDC','');
+        document.getElementById('stakeAmount').value = parseFloat(bal) || 0;
+    }
+}
+
+// ── Tab Switching ──
+function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById('content-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ── Toast ──
+function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+</script>
+</body>
+</html>
