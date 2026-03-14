@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenostod Quick Reference — Nickeo's Dashboard</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --navy: #04060d;
+            --gold: #ffd700;
+            --cyan: #06b6d4;
+            --green: #00c853;
+            --red: #ef4444;
+            --text: #a8bcd4;
+            --white: #ffffff;
+        }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--navy); color: var(--text); min-height: 100vh; padding: 2rem; }
+
+        .top-bar {
+            max-width: 1100px; margin: 0 auto 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 1rem; border-bottom: 1px solid rgba(255,215,0,0.1);
+        }
+        .brand { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--gold); font-weight: 700; letter-spacing: 2px; }
+        .sub { font-size: 0.78rem; color: rgba(168,188,212,0.35); letter-spacing: 1px; text-transform: uppercase; }
+        .private-badge { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; padding: 4px 12px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+        .page-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--white); font-weight: 700; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        .section-label { font-size: 0.68rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(168,188,212,0.35); font-weight: 600; margin-bottom: 0.75rem; margin-top: 2rem; }
+
+        /* LIVE PAGES */
+        .pages-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
+        .page-card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px; padding: 1.25rem; text-decoration: none;
+            transition: border-color 0.25s, transform 0.25s; display: block;
+        }
+        .page-card:hover { transform: translateY(-3px); }
+        .page-card.investor { border-color: rgba(255,215,0,0.15); }
+        .page-card.investor:hover { border-color: rgba(255,215,0,0.4); }
+        .page-card.public:hover { border-color: rgba(6,182,212,0.35); }
+        .page-card.private:hover { border-color: rgba(239,68,68,0.35); }
+        .pc-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+        .pc-name { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--white); margin-bottom: 0.3rem; letter-spacing: 1px; }
+        .pc-url { font-size: 0.72rem; color: var(--cyan); margin-bottom: 0.6rem; font-family: 'Rajdhani', monospace; }
+        .pc-desc { font-size: 0.82rem; color: rgba(168,188,212,0.55); line-height: 1.5; }
+        .pc-badge { display: inline-block; margin-top: 0.6rem; padding: 2px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .badge-public { background: rgba(6,182,212,0.1); color: #67e8f9; }
+        .badge-private { background: rgba(239,68,68,0.1); color: #f87171; }
+        .badge-live { background: rgba(0,200,83,0.1); color: #86efac; }
+
+        /* CONTRACTS */
+        .contracts-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .contract-row {
+            background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 1rem 1.25rem;
+            display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .contract-left {}
+        .contract-name { font-weight: 700; color: var(--white); margin-bottom: 0.2rem; font-size: 0.95rem; }
+        .contract-desc { font-size: 0.8rem; color: rgba(168,188,212,0.45); }
+        .contract-right { text-align: right; }
+        .contract-addr { font-family: monospace; font-size: 0.78rem; color: var(--cyan); background: rgba(6,182,212,0.07); padding: 4px 10px; border-radius: 6px; cursor: pointer; border: 1px solid rgba(6,182,212,0.15); transition: background 0.2s; display: inline-block; margin-bottom: 0.3rem; }
+        .contract-addr:hover { background: rgba(6,182,212,0.14); }
+        .contract-network { font-size: 0.65rem; color: rgba(168,188,212,0.3); letter-spacing: 1px; }
+        .copy-hint { font-size: 0.62rem; color: rgba(6,182,212,0.35); }
+
+        /* EXTERNAL LINKS */
+        .ext-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0.75rem; }
+        .ext-card {
+            background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 1rem 1.25rem; text-decoration: none;
+            transition: border-color 0.25s, transform 0.25s; display: flex; align-items: flex-start; gap: 0.75rem;
+        }
+        .ext-card:hover { border-color: rgba(255,215,0,0.25); transform: translateY(-2px); }
+        .ext-icon { font-size: 1.5rem; flex-shrink: 0; }
+        .ext-name { font-weight: 700; color: var(--white); font-size: 0.88rem; margin-bottom: 0.2rem; }
+        .ext-url { font-size: 0.72rem; color: var(--gold); }
+
+        /* SECRETS/ENV */
+        .secrets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+        .secret-card {
+            background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.12);
+            border-radius: 12px; padding: 1rem 1.25rem;
+        }
+        .secret-name { font-family: monospace; font-size: 0.8rem; color: #fca5a5; font-weight: 700; margin-bottom: 0.3rem; }
+        .secret-desc { font-size: 0.78rem; color: rgba(168,188,212,0.4); }
+        .secret-status { display: inline-block; margin-top: 0.4rem; padding: 2px 8px; border-radius: 6px; font-size: 0.62rem; font-weight: 700; }
+        .status-set { background: rgba(0,200,83,0.1); color: #86efac; }
+        .status-pending { background: rgba(255,215,0,0.1); color: var(--gold); }
+
+        /* SNAP */
+        .snap-box {
+            background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.2);
+            border-radius: 14px; padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+        }
+        .snap-item-label { font-size: 0.65rem; color: rgba(139,92,246,0.6); letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 0.3rem; }
+        .snap-item-val { font-weight: 700; color: var(--white); font-size: 0.95rem; }
+        .snap-item-val a { color: #c4b5fd; text-decoration: none; }
+        .snap-item-val a:hover { color: var(--white); }
+
+        /* NOTES */
+        .notes-list { display: flex; flex-direction: column; gap: 0.6rem; }
+        .note-row {
+            background: rgba(255,215,0,0.03); border: 1px solid rgba(255,215,0,0.08);
+            border-radius: 10px; padding: 0.85rem 1.25rem;
+            display: flex; gap: 0.75rem; align-items: flex-start;
+        }
+        .note-icon { flex-shrink: 0; font-size: 1rem; }
+        .note-text { font-size: 0.88rem; color: var(--text); line-height: 1.55; }
+        .note-text strong { color: var(--gold); }
+
+        /* COPY BUTTON */
+        .copied-msg { display: none; font-size: 0.65rem; color: var(--green); margin-left: 6px; }
+
+        footer { max-width: 1100px; margin: 3rem auto 0; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.04); font-size: 0.78rem; color: rgba(168,188,212,0.2); text-align: center; }
+
+        @media (max-width: 600px) {
+            .snap-box { grid-template-columns: 1fr; }
+            .contract-row { flex-direction: column; align-items: flex-start; }
+            .contract-right { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-bar">
+        <div>
+            <div class="brand">Kenostod Ventures</div>
+            <div class="sub">Founder Quick Reference — Nickeo Coleman</div>
+        </div>
+        <div class="private-badge">🔒 Private — Do Not Share</div>
+    </div>
+
+    <!-- LIVE PAGES -->
+    <div class="section-label">Live Pages — kenostodblockchain.com</div>
+    <div class="pages-grid">
+        <a href="/" class="page-card public" target="_blank">
+            <div class="pc-icon">🎓</div>
+            <div class="pc-name">Kenostod Academy</div>
+            <div class="pc-url">/</div>
+            <div class="pc-desc">Main homepage — 21-course curriculum, KENO rewards, learn-to-earn overview</div>
+            <span class="pc-badge badge-public">Public</span>
+            <span class="pc-badge badge-live">Live</span>
+        </a>
+        <a href="/efi.html" class="page-card public" target="_blank">
+            <div class="pc-icon">⚡</div>
+            <div class="pc-name">Education-Fi (E-Fi)</div>
+            <div class="pc-url">/efi.html</div>
+            <div class="pc-desc">E-Fi concept page — coined 2026 by Nickeo Coleman, trademark pending, Urban Dictionary filed</div>
+            <span class="pc-badge badge-public">Public</span>
+            <span class="pc-badge badge-live">Live</span>
+        </a>
+        <a href="/kutl-card.html" class="page-card public" target="_blank">
+            <div class="pc-icon">💳</div>
+            <div class="pc-name">KUTL Card</div>
+            <div class="pc-url">/kutl-card.html</div>
+            <div class="pc-desc">World's first E-Fi payment card — Triple Growth Engine, Bridge.xyz pending, waitlist open</div>
+            <span class="pc-badge badge-public">Public</span>
+            <span class="pc-badge badge-live">Live</span>
+        </a>
+        <a href="/buk-banking.html" class="page-card public" target="_blank">
+            <div class="pc-icon">🛡️</div>
+            <div class="pc-name">B.U.K. Security</div>
+            <div class="pc-url">/buk-banking.html</div>
+            <div class="pc-desc">Back Up Key Security — dual-chip card, real-time home/car monitoring, auto police alert, banking built in</div>
+            <span class="pc-badge badge-public">Public</span>
+            <span class="pc-badge badge-live">Live</span>
+        </a>
+        <a href="/utl-dashboard.html" class="page-card public" target="_blank">
+            <div class="pc-icon">⛓️</div>
+            <div class="pc-name">UTL Protocol Dashboard</div>
+            <div class="pc-url">/utl-dashboard.html</div>
+            <div class="pc-desc">Live contract status checker, MetaMask Snap installer, UTL staking + fee collector interface</div>
+            <span class="pc-badge badge-public">Public</span>
+            <span class="pc-badge badge-live">Live</span>
+        </a>
+        <a href="/tdir-foundation.html" class="page-card investor private" target="_blank">
+            <div class="pc-icon">🏛️</div>
+            <div class="pc-name">T.D.I.R. Investor Pitch</div>
+            <div class="pc-url">/tdir-foundation.html</div>
+            <div class="pc-desc">Private investor pitch — Use of Funds, Revenue Treasury Split, E-Fi trademarks, all 4 ventures, pre-seed $500K ask</div>
+            <span class="pc-badge badge-private">Private</span>
+            <span class="pc-badge badge-live">Share Directly</span>
+        </a>
+    </div>
+
+    <!-- ON-CHAIN CONTRACTS -->
+    <div class="section-label">Live Smart Contracts — BSC Mainnet</div>
+    <div class="contracts-list">
+        <div class="contract-row">
+            <div class="contract-left">
+                <div class="contract-name">KENO Token</div>
+                <div class="contract-desc">BEP-20 · $1.00 USDB peg · Staking, course access, KUTL Card spending, governance</div>
+            </div>
+            <div class="contract-right">
+                <div class="contract-addr" onclick="copyAddr(this, '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E')">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+                <div class="contract-network">BSC Mainnet · BEP-20</div>
+            </div>
+        </div>
+        <div class="contract-row">
+            <div class="contract-left">
+                <div class="contract-name">UTL Staking</div>
+                <div class="contract-desc">KENO stakers earn from network fee pool · Tier-based multipliers</div>
+            </div>
+            <div class="contract-right">
+                <div class="contract-addr" onclick="copyAddr(this, '0x49961979c93f43f823BB3593b207724194019d1d')">0x49961979c93f43f823BB3593b207724194019d1d</div>
+                <div class="contract-network">BSC Mainnet</div>
+            </div>
+        </div>
+        <div class="contract-row">
+            <div class="contract-left">
+                <div class="contract-name">UTL Fee Collector</div>
+                <div class="contract-desc">Captures 0.1% fee on every KENO transaction · Feeds treasury and reward pool</div>
+            </div>
+            <div class="contract-right">
+                <div class="contract-addr" onclick="copyAddr(this, '0xfE537c43d202C455Cedc141B882c808287BB662f')">0xfE537c43d202C455Cedc141B882c808287BB662f</div>
+                <div class="contract-network">BSC Mainnet</div>
+            </div>
+        </div>
+        <div class="contract-row">
+            <div class="contract-left">
+                <div class="contract-name">UTL Treasury</div>
+                <div class="contract-desc">40% of fees split: KENO buyback for reward pool refill from PancakeSwap + operations</div>
+            </div>
+            <div class="contract-right">
+                <div class="contract-addr" style="color:rgba(168,188,212,0.3); cursor:default;" title="Add address here">Confirm address in code</div>
+                <div class="contract-network">BSC Mainnet</div>
+            </div>
+        </div>
+        <div class="contract-row">
+            <div class="contract-left">
+                <div class="contract-name">UTL Distribution</div>
+                <div class="contract-desc">Epoch-based Merkle distribution — reward payouts to stakers each epoch</div>
+            </div>
+            <div class="contract-right">
+                <div class="contract-addr" style="color:rgba(168,188,212,0.3); cursor:default;" title="Add address here">Confirm address in code</div>
+                <div class="contract-network">BSC Mainnet</div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:0.5rem; font-size:0.72rem; color:rgba(168,188,212,0.3);">Click any address to copy · Verify on <a href="https://bscscan.com" target="_blank" style="color:var(--cyan);">BscScan</a></div>
+
+    <!-- METAMASK SNAP -->
+    <div class="section-label">MetaMask Snap — @kenostod/utl-snap</div>
+    <div class="snap-box">
+        <div>
+            <div class="snap-item-label">Package Name</div>
+            <div class="snap-item-val">@kenostod/utl-snap</div>
+        </div>
+        <div>
+            <div class="snap-item-label">Version</div>
+            <div class="snap-item-val">v1.0.2</div>
+        </div>
+        <div>
+            <div class="snap-item-label">npm Package</div>
+            <div class="snap-item-val"><a href="https://www.npmjs.com/package/@kenostod/utl-snap" target="_blank">npmjs.com/package/@kenostod/utl-snap →</a></div>
+        </div>
+        <div>
+            <div class="snap-item-label">MetaMask Registry PR</div>
+            <div class="snap-item-val"><a href="https://github.com/MetaMask/snaps-registry/pull/1459" target="_blank">PR #1459 — snaps-registry →</a></div>
+        </div>
+        <div>
+            <div class="snap-item-label">Registry Status</div>
+            <div class="snap-item-val" style="color:#fbbf24;">⏳ Open — Awaiting MetaMask Review</div>
+        </div>
+        <div>
+            <div class="snap-item-label">What It Does</div>
+            <div class="snap-item-val" style="font-size:0.85rem; color:var(--text); font-weight:400;">Turns MetaMask into an E-Fi dashboard — shows UTL tier, fee contribution, cumulative rewards, and KUTL Card eligibility in real time on every transaction</div>
+        </div>
+    </div>
+
+    <!-- EXTERNAL LINKS -->
+    <div class="section-label">External Links & Tools</div>
+    <div class="ext-grid">
+        <a href="https://kenostodblockchain.com" class="ext-card" target="_blank">
+            <div class="ext-icon">🌐</div>
+            <div>
+                <div class="ext-name">Live Website</div>
+                <div class="ext-url">kenostodblockchain.com</div>
+            </div>
+        </a>
+        <a href="https://github.com/Keno2121/kenostod-blockchain" class="ext-card" target="_blank">
+            <div class="ext-icon">🐙</div>
+            <div>
+                <div class="ext-name">GitHub Repo</div>
+                <div class="ext-url">Keno2121/kenostod-blockchain</div>
+            </div>
+        </a>
+        <a href="https://dashboard.render.com/web/srv-d6q4k1p4tr6s73aev95g" class="ext-card" target="_blank">
+            <div class="ext-icon">🚀</div>
+            <div>
+                <div class="ext-name">Render Dashboard</div>
+                <div class="ext-url">Service: srv-d6q4k1p4tr6s73aev95g</div>
+            </div>
+        </a>
+        <a href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" class="ext-card" target="_blank">
+            <div class="ext-icon">🔍</div>
+            <div>
+                <div class="ext-name">KENO on BscScan</div>
+                <div class="ext-url">BSC Mainnet Explorer</div>
+            </div>
+        </a>
+        <a href="https://pancakeswap.finance" class="ext-card" target="_blank">
+            <div class="ext-icon">🥞</div>
+            <div>
+                <div class="ext-name">PancakeSwap</div>
+                <div class="ext-url">KENO/USDB pair · Buyback source</div>
+            </div>
+        </a>
+        <a href="https://bridge.xyz" class="ext-card" target="_blank">
+            <div class="ext-icon">🌉</div>
+            <div>
+                <div class="ext-name">Bridge.xyz</div>
+                <div class="ext-url">KUTL Card partner · Sandbox mode now</div>
+            </div>
+        </a>
+        <a href="https://www.npmjs.com/package/@kenostod/utl-snap" class="ext-card" target="_blank">
+            <div class="ext-icon">📦</div>
+            <div>
+                <div class="ext-name">UTL Snap on npm</div>
+                <div class="ext-url">@kenostod/utl-snap</div>
+            </div>
+        </a>
+        <a href="https://github.com/MetaMask/snaps-registry/pull/1459" class="ext-card" target="_blank">
+            <div class="ext-icon">🦊</div>
+            <div>
+                <div class="ext-name">MetaMask Snap PR</div>
+                <div class="ext-url">snaps-registry PR #1459</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- ENVIRONMENT -->
+    <div class="section-label">Environment Secrets (Names Only — Stored Securely)</div>
+    <div class="secrets-grid">
+        <div class="secret-card">
+            <div class="secret-name">ADMIN_PASSWORD</div>
+            <div class="secret-desc">Server admin authentication</div>
+            <span class="secret-status status-set">Set</span>
+        </div>
+        <div class="secret-card">
+            <div class="secret-name">BRIDGE_API_KEY</div>
+            <div class="secret-desc">Bridge.xyz API — currently sandbox (USE_SANDBOX=true in src/bridge.js)</div>
+            <span class="secret-status status-set">Set · Sandbox</span>
+        </div>
+        <div class="secret-card">
+            <div class="secret-name">STRIPE_WEBHOOK_SECRET</div>
+            <div class="secret-desc">Required once Stripe goes live — not yet set</div>
+            <span class="secret-status status-pending">Pending</span>
+        </div>
+        <div class="secret-card">
+            <div class="secret-name">GITHUB_PERSONAL_ACCESS_TOKEN</div>
+            <div class="secret-desc">Used for automated GitHub deploys via Contents API</div>
+            <span class="secret-status status-set">Set</span>
+        </div>
+    </div>
+
+    <!-- KEY NOTES -->
+    <div class="section-label">Important Notes to Remember</div>
+    <div class="notes-list">
+        <div class="note-row">
+            <div class="note-icon">🪙</div>
+            <div class="note-text"><strong>KENO Burn vs Buyback:</strong> Burn happens on card swipe (deflationary). Buyback = treasury uses interchange revenue to purchase KENO from PancakeSwap to refill the learn-to-earn reward pool. These are two completely separate mechanisms.</div>
+        </div>
+        <div class="note-row">
+            <div class="note-icon">⚡</div>
+            <div class="note-text"><strong>Education-Fi (E-Fi):</strong> Coined by Nickeo Coleman, 2026. First published March 14, 2026. USPTO trademark application in preparation. Urban Dictionary entry filed. Cite the date in all materials.</div>
+        </div>
+        <div class="note-row">
+            <div class="note-icon">🏦</div>
+            <div class="note-text"><strong>B.U.K. Banking Model:</strong> Neobank (BaaS partner, NOT a chartered bank). Phase 2 Q1 2027. Smart contract insurance requires licensed InsurTech partner model. B.U.K. is the tech + distribution layer only.</div>
+        </div>
+        <div class="note-row">
+            <div class="note-icon">🌉</div>
+            <div class="note-text"><strong>Bridge.xyz Status:</strong> Still in sandbox mode (USE_SANDBOX=true in src/bridge.js). Flip to production once KYB clears. KYB = Know Your Business — their approval process.</div>
+        </div>
+        <div class="note-row">
+            <div class="note-icon">🦊</div>
+            <div class="note-text"><strong>MetaMask Snap:</strong> PR #1459 open in snaps-registry. Once approved, snap works in regular MetaMask for all users. Flask is only needed for development testing. The snap is the E-Fi native wallet interface — transaction insights, tier progression, KUTL Card eligibility verification.</div>
+        </div>
+        <div class="note-row">
+            <div class="note-icon">🛡️</div>
+            <div class="note-text"><strong>B.U.K. = Back Up Key Security:</strong> Security-first company. Dual chip: banking chip + key chip (replaces home and car keys). Real-time monitoring, auto police alert. Banking is the bonus, not the core. Separate from Academy — serves general public independently.</div>
+        </div>
+        <div class="note-row">
+            <div class="note-icon">🏛️</div>
+            <div class="note-text"><strong>Treasury Prime Partnership Path:</strong> Apply as FinTech partner → they match you with chartered bank partner → BaaS API integration → 3–6 months. Alternatives: Unit.co, Column Bank, Moov. Need KYC/AML written policies first.</div>
+        </div>
+        <div class="note-row">
+            <div class="note-icon">📅</div>
+            <div class="note-text"><strong>Pre-Seed Investor Meeting:</strong> March 19, 2026. Send them <strong>/tdir-foundation.html</strong> directly — it is NOT in the public navigation. $500K ask. Use of Funds: 25% Real Features, 25% Compliance, 20% Marketing, 20% Operations, 10% Reserve.</div>
+        </div>
+    </div>
+
+    <footer>
+        Bookmark this page: kenostodblockchain.com/quick-ref.html &nbsp;·&nbsp; Not linked in public navigation &nbsp;·&nbsp; For Nickeo Coleman only
+    </footer>
+</div>
+
+<script>
+function copyAddr(el, addr) {
+    navigator.clipboard.writeText(addr).then(() => {
+        const orig = el.textContent;
+        el.textContent = 'Copied!';
+        el.style.color = 'var(--green)';
+        setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1800);
+    });
+}
+</script>
+
+</body>
+</html>
