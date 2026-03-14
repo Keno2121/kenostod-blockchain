@@ -508,37 +508,58 @@ app.post('/api/utl/dex/swap-data', async (req, res) => {
     }
 
     try {
-        const UTL_FEE_COLLECTOR = '0xfE537c43d202C455Cedc141B882c808287BB662f';
-        const resp = await fetch(`https://apiv5.paraswap.io/transactions/${chainId}?ignoreChecks=true`, {
+        const slippageBps = Math.round((parseFloat(slippage) || 0.5) * 100);
+
+        // Calculate min dest amount with slippage applied
+        const destAmountBig = BigInt(priceRoute.destAmount || '0');
+        const slippageFactor = BigInt(10000 - slippageBps);
+        const minDestAmount = ((destAmountBig * slippageFactor) / BigInt(10000)).toString();
+
+        const buildBody = {
+            priceRoute,
+            srcToken: priceRoute.srcToken,
+            destToken: priceRoute.destToken,
+            srcAmount: priceRoute.srcAmount,
+            destAmount: minDestAmount,
+            slippage: slippageBps,
+            userAddress: fromAddress,
+            srcDecimals: priceRoute.srcDecimals,
+            destDecimals: priceRoute.destDecimals
+        };
+
+        const resp = await fetch(`https://apiv5.paraswap.io/transactions/${chainId}?ignoreChecks=true&onlyParams=false`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({
-                priceRoute,
-                srcToken: priceRoute.srcToken,
-                destToken: priceRoute.destToken,
-                srcAmount: priceRoute.srcAmount,
-                destAmount: priceRoute.destAmount,
-                slippage: Math.round((parseFloat(slippage) || 0.5) * 100),
-                userAddress: fromAddress,
-                deadline: Math.floor(Date.now() / 1000) + 600,
-                partner: 'utl',
-                partnerAddress: UTL_FEE_COLLECTOR,
-                partnerFeeBps: 10
-            }),
-            signal: AbortSignal.timeout(8000)
+            body: JSON.stringify(buildBody),
+            signal: AbortSignal.timeout(10000)
         });
 
         if (resp.ok) {
             const data = await resp.json();
-            return res.json({ live: true, tx: data, toAmount: priceRoute.destAmount });
+            return res.json({ live: true, to: data.to, data: data.data, value: data.value, gas: data.gas, toAmount: priceRoute.destAmount });
         }
+
         const errText = await resp.text();
-        console.log('ParaSwap tx build error:', errText);
+        console.log('ParaSwap tx build error:', resp.status, errText);
+
+        // Fallback: try 1inch aggregator for BSC
+        if (chainId === 56) {
+            const inch = await fetch(
+                `https://api.1inch.dev/swap/v6.0/56/swap?src=${priceRoute.srcToken}&dst=${priceRoute.destToken}&amount=${priceRoute.srcAmount}&from=${fromAddress}&slippage=${parseFloat(slippage) || 0.5}&disableEstimate=true`,
+                { headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + (process.env.ONEINCH_API_KEY || '') }, signal: AbortSignal.timeout(8000) }
+            );
+            if (inch.ok) {
+                const iData = await inch.json();
+                if (iData.tx) {
+                    return res.json({ live: true, to: iData.tx.to, data: iData.tx.data, value: iData.tx.value, gas: iData.tx.gas, toAmount: priceRoute.destAmount });
+                }
+            }
+        }
     } catch (err) {
-        console.log('ParaSwap swap-data error:', err.message);
+        console.log('DEX swap-data error:', err.message);
     }
 
-    res.json({ live: false, simulated: true, message: 'ParaSwap transaction build failed — quote still valid for reference' });
+    res.json({ live: false, simulated: true, message: 'Swap routing unavailable — quote data preserved. Try adjusting slippage or switching tokens.' });
 });
 
 let cgPriceCache = { data: null, ts: 0 };
