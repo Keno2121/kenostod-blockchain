@@ -1501,33 +1501,18 @@
             }
 
             try {
-                // First check what this site can already see
-                let snaps = await window.ethereum.request({ method: 'wallet_getSnaps' });
-
-                // If snap not visible to this site, silently re-request access
-                // (if already installed MetaMask just reconnects, no install prompt)
-                if (!snaps || !snaps[UTL_SNAP_ID]) {
-                    try {
-                        const result = await window.ethereum.request({
-                            method: 'wallet_requestSnaps',
-                            params: { [UTL_SNAP_ID]: {} }
-                        });
-                        snaps = result || {};
-                    } catch (reqErr) {
-                        // Cancelled or not installed — fall through to show Not Installed
-                    }
-                }
+                // Only check — never auto-request (snap not on npm yet, pending review)
+                const snaps = await window.ethereum.request({ method: 'wallet_getSnaps' });
 
                 if (snaps && snaps[UTL_SNAP_ID]) {
                     badge.textContent = '✅ Installed';
                     badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400';
                     notInstalled.classList.add('hidden');
                     installed.classList.remove('hidden');
-                    // Show where to find it
                     showToast('✅ UTL Snap is installed! Find it in MetaMask → ⋮ Menu → Snaps → UTL Fee Rewards', 'success', 9000);
                 } else {
-                    badge.textContent = 'Not Installed';
-                    badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-400';
+                    badge.textContent = 'Pending Review';
+                    badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400';
                 }
             } catch (e) {
                 badge.textContent = 'Check Failed';
@@ -1536,68 +1521,41 @@
         }
 
         async function installSnap() {
-            if (!window.ethereum) {
-                showToast('MetaMask not found — please install the MetaMask browser extension', 'error');
-                return;
-            }
-            const btn = document.getElementById('installSnapBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Installing...';
-            btn.disabled = true;
-            try {
-                const snapTimeout = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('timeout')), 30000)
-                );
-                await Promise.race([
-                    window.ethereum.request({
-                        method: 'wallet_requestSnaps',
-                        params: { [UTL_SNAP_ID]: {} }
-                    }),
-                    snapTimeout
-                ]);
-                showToast('UTL Snap installed successfully! It now lives inside your MetaMask.', 'success');
-                await checkSnapStatus();
-            } catch (err) {
-                if (err.message === 'timeout') {
-                    showToast('Timed out — MetaMask popup may have appeared behind this window. Check your taskbar and approve it, then try again.', 'warning', 9000);
-                } else if (err.code === 4001) {
-                    showToast('Installation cancelled', 'info');
-                } else if (err.message && (err.message.includes('allowlist') || err.message.includes('not on the allowlist'))) {
-                    showToast('Regular MetaMask requires allowlist approval. Use MetaMask Flask to install now.', 'error');
-                    document.getElementById('snapAllowlistNote').style.display = 'block';
-                } else if (err.message && (err.message.includes('does not exist') || err.message.includes('not available') || err.message.includes('wallet_requestSnaps'))) {
-                    showToast('MetaMask needs to be updated to v11+ to support Snaps. Open MetaMask → Settings → About → Update.', 'error');
-                    document.getElementById('snapUpgradeNote').style.display = 'block';
-                } else if (err.message && err.message.includes('npm')) {
-                    showToast('Snap package error — please try again in a moment.', 'info');
-                } else {
-                    showToast('Install failed: ' + (err.message || err.code), 'error');
-                }
-                btn.innerHTML = '<i class="fa-brands fa-ethereum mr-2"></i>Install UTL Snap into MetaMask';
-                btn.disabled = false;
-            }
+            // Snap is pending MetaMask review — not on npm yet
+            showToast('UTL Snap is pending MetaMask approval. Once approved, it will install from the MetaMask Snap Directory automatically. Check back after March 19.', 'info', 8000);
         }
 
         async function snapOptIn() {
             if (!window.ethereum) return;
+            const snaps = await window.ethereum.request({ method: 'wallet_getSnaps' }).catch(() => ({}));
+            if (!snaps || !snaps[UTL_SNAP_ID]) {
+                showToast('UTL Snap not installed yet — pending MetaMask approval. Available after March 19.', 'info', 6000);
+                return;
+            }
             try {
                 await window.ethereum.request({
                     method: 'wallet_invokeSnap',
                     params: { snapId: UTL_SNAP_ID, request: { method: 'utl_optIn' } }
                 });
             } catch (err) {
-                showToast('Could not reach snap: ' + err.message, 'error');
+                showToast('Snap error: ' + err.message, 'error');
             }
         }
 
         async function snapDashboard() {
             if (!window.ethereum) return;
+            const snaps = await window.ethereum.request({ method: 'wallet_getSnaps' }).catch(() => ({}));
+            if (!snaps || !snaps[UTL_SNAP_ID]) {
+                showToast('UTL Snap not installed yet — pending MetaMask approval. Available after March 19.', 'info', 6000);
+                return;
+            }
             try {
                 await window.ethereum.request({
                     method: 'wallet_invokeSnap',
                     params: { snapId: UTL_SNAP_ID, request: { method: 'utl_dashboard' } }
                 });
             } catch (err) {
-                showToast('Could not reach snap: ' + err.message, 'error');
+                showToast('Snap error: ' + err.message, 'error');
             }
         }
 
