@@ -515,12 +515,13 @@ app.post('/api/utl/dex/swap-data', async (req, res) => {
         const slippageFactor = BigInt(10000 - slippageBps);
         const minDestAmount = ((destAmountBig * slippageFactor) / BigInt(10000)).toString();
 
+        // ParaSwap requires EITHER slippage OR destAmount — not both
+        // We send slippage in basis points and let ParaSwap calculate the minimum
         const buildBody = {
             priceRoute,
             srcToken: priceRoute.srcToken,
             destToken: priceRoute.destToken,
             srcAmount: priceRoute.srcAmount,
-            destAmount: minDestAmount,
             slippage: slippageBps,
             userAddress: fromAddress,
             srcDecimals: priceRoute.srcDecimals,
