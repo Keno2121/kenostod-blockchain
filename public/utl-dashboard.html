@@ -1501,12 +1501,30 @@
             }
 
             try {
-                const snaps = await window.ethereum.request({ method: 'wallet_getSnaps' });
+                // First check what this site can already see
+                let snaps = await window.ethereum.request({ method: 'wallet_getSnaps' });
+
+                // If snap not visible to this site, silently re-request access
+                // (if already installed MetaMask just reconnects, no install prompt)
+                if (!snaps || !snaps[UTL_SNAP_ID]) {
+                    try {
+                        const result = await window.ethereum.request({
+                            method: 'wallet_requestSnaps',
+                            params: { [UTL_SNAP_ID]: {} }
+                        });
+                        snaps = result || {};
+                    } catch (reqErr) {
+                        // Cancelled or not installed — fall through to show Not Installed
+                    }
+                }
+
                 if (snaps && snaps[UTL_SNAP_ID]) {
-                    badge.textContent = 'Installed';
+                    badge.textContent = '✅ Installed';
                     badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400';
                     notInstalled.classList.add('hidden');
                     installed.classList.remove('hidden');
+                    // Show where to find it
+                    showToast('✅ UTL Snap is installed! Find it in MetaMask → ⋮ Menu → Snaps → UTL Fee Rewards', 'success', 9000);
                 } else {
                     badge.textContent = 'Not Installed';
                     badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-400';
