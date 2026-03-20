@@ -6385,6 +6385,60 @@ app.get('/api/graduates/leaderboard', async (req, res) => {
     }
 });
 
+// Award scholarship course completion (KENO locked until graduation)
+app.post('/api/graduates/scholarship/course-complete', async (req, res) => {
+    if (!wealthBuilderManager || !dbConnection) {
+        return res.status(503).json({ error: 'Graduate features currently unavailable' });
+    }
+    try {
+        const { walletAddress, email, courseName, courseId } = req.body;
+        if (!walletAddress || !courseName || !courseId) {
+            return res.status(400).json({ error: 'walletAddress, courseName, and courseId are required' });
+        }
+        const result = await wealthBuilderManager.awardScholarshipCourseCompletion(walletAddress, email, courseName, courseId);
+        res.json(result);
+    } catch (error) {
+        console.error('Error awarding scholarship course completion:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get scholarship student progress
+app.get('/api/graduates/scholarship/progress/:wallet', async (req, res) => {
+    if (!wealthBuilderManager || !dbConnection) {
+        return res.status(503).json({ error: 'Graduate features currently unavailable' });
+    }
+    try {
+        const { wallet } = req.params;
+        const result = await wealthBuilderManager.getScholarshipProgress(wallet);
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching scholarship progress:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Trigger scholarship graduation (ADMIN ONLY — unlocks KENO + creates graduate record + flags card activation)
+app.post('/api/graduates/scholarship/graduate', async (req, res) => {
+    if (!wealthBuilderManager || !dbConnection) {
+        return res.status(503).json({ error: 'Graduate features currently unavailable' });
+    }
+    try {
+        const { walletAddress, email, adminKey } = req.body;
+        if (!walletAddress || !adminKey) {
+            return res.status(400).json({ error: 'walletAddress and adminKey are required' });
+        }
+        const result = await wealthBuilderManager.triggerScholarshipGraduation(walletAddress, email, adminKey);
+        if (!result.success && result.error === 'Unauthorized. Admin key required.') {
+            return res.status(401).json(result);
+        }
+        res.json(result);
+    } catch (error) {
+        console.error('Error triggering scholarship graduation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== END GRADUATE CLUB API ENDPOINTS ====================
 
 // ==================== GRADUATE MERCHANDISE API ENDPOINTS ====================
