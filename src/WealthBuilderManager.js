@@ -683,6 +683,212 @@ class WealthBuilderManager {
             return { success: false, error: error.message };
         }
     }
+
+    async awardScholarshipCourseCompletion(walletAddress, email, courseName, courseId) {
+        const rewardAmount = 250.0;
+
+        try {
+            if (!walletAddress || !walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+                return { success: false, error: 'Invalid wallet address.' };
+            }
+
+            const normalizedWallet = walletAddress.toLowerCase();
+            const parsedCourseId = parseInt(courseId);
+
+            if (parsedCourseId < 1 || parsedCourseId > 21) {
+                return { success: false, error: `Invalid course ID: ${courseId}. Must be between 1-21.` };
+            }
+
+            const existingCompletion = await this.db.query(`
+                SELECT id FROM student_rewards
+                WHERE LOWER(user_wallet_address) = $1
+                AND reward_type = 'course_completion'
+                AND course_id = $2
+            `, [normalizedWallet, parsedCourseId]);
+
+            if (existingCompletion.rows.length > 0) {
+                return {
+                    success: false,
+                    error: `Course ${courseId} already completed.`,
+                    courseId: parsedCourseId
+                };
+            }
+
+            const result = await this.db.query(`
+                INSERT INTO student_rewards (
+                    user_wallet_address,
+                    user_email,
+                    reward_type,
+                    reward_amount,
+                    course_name,
+                    course_id,
+                    description,
+                    status
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                RETURNING *
+            `, [
+                normalizedWallet,
+                email || '',
+                'course_completion',
+                rewardAmount,
+                courseName,
+                parsedCourseId,
+                `Scholarship: Completed course: ${courseName} (locked until graduation)`,
+                'locked_scholarship'
+            ]);
+
+            const coursesResult = await this.db.query(`
+                SELECT COUNT(*) as count FROM student_rewards
+                WHERE LOWER(user_wallet_address) = $1
+                AND reward_type = 'course_completion'
+                AND status = 'locked_scholarship'
+            `, [normalizedWallet]);
+
+            const totalLocked = parseInt(coursesResult.rows[0].count) * rewardAmount;
+
+            return {
+                success: true,
+                reward: result.rows[0],
+                locked: true,
+                totalLockedKeno: totalLocked,
+                message: `✅ ${courseName} complete! ${rewardAmount} KENO earned and locked. Unlocks at graduation.`
+            };
+        } catch (error) {
+            console.error('❌ Error awarding scholarship course completion:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async triggerScholarshipGraduation(walletAddress, email, adminKey) {
+        try {
+            if (adminKey !== process.env.ADMIN_PASSWORD) {
+                return { success: false, error: 'Unauthorized. Admin key required.' };
+            }
+
+            const normalizedWallet = walletAddress.toLowerCase();
+
+            const lockedResult = await this.db.query(`
+                SELECT COUNT(*) as courses_completed, COALESCE(SUM(reward_amount), 0) as total_keno
+                FROM student_rewards
+                WHERE LOWER(user_wallet_address) = $1
+                AND reward_type = 'course_completion'
+                AND status = 'locked_scholarship'
+            `, [normalizedWallet]);
+
+            const coursesCompleted = parseInt(lockedResult.rows[0].courses_completed);
+            const totalKeno = parseFloat(lockedResult.rows[0].total_keno);
+
+            if (coursesCompleted < 21) {
+                return {
+                    success: false,
+                    error: `Student has only completed ${coursesCompleted}/21 courses. Cannot graduate yet.`,
+                    coursesCompleted,
+                    coursesRemaining: 21 - coursesCompleted
+                };
+            }
+
+            await this.db.query(`
+                UPDATE student_rewards
+                SET status = 'available',
+                    description = REPLACE(description, '(locked until graduation)', '(unlocked - GRADUATED)')
+                WHERE LOWER(user_wallet_address) = $1
+                AND reward_type = 'course_completion'
+                AND status = 'locked_scholarship'
+            `, [normalizedWallet]);
+
+            const crypto = require('crypto');
+            const completionDate = new Date();
+            const dateStr = completionDate.toISOString().slice(0, 10).replace(/-/g, '');
+            const addressHash = walletAddress.slice(-4).toUpperCase();
+            const graduateId = `KG-${dateStr}-${addressHash}`;
+            const certHash = crypto
+                .createHash('sha256')
+                .update(`${normalizedWallet}${dateStr}${coursesCompleted}`)
+                .digest('hex');
+
+            const existingGrad = await this.db.query(`
+                SELECT graduate_id FROM kenostod_graduates WHERE LOWER(wallet_address) = $1
+            `, [normalizedWallet]);
+
+            let finalGraduateId = graduateId;
+
+            if (existingGrad.rows.length === 0) {
+                await this.db.query(`
+                    INSERT INTO kenostod_graduates
+                    (graduate_id, wallet_address, user_email, completion_date, total_courses, keno_earned, rvt_nft_tier, certificate_hash)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                `, [
+                    graduateId,
+                    normalizedWallet,
+                    email || '',
+                    completionDate,
+                    21,
+                    Math.round(totalKeno),
+                    'Platinum',
+                    certHash
+                ]);
+            } else {
+                finalGraduateId = existingGrad.rows[0].graduate_id;
+            }
+
+            await this.distributeRVTNFT(normalizedWallet, email, 'Platinum RVT', 2.00, 'Scholarship Graduate — completed all 21 courses');
+
+            console.log(`🎓 Scholarship Graduate! ${finalGraduateId} — ${totalKeno} KENO unlocked for ${walletAddress.slice(0, 8)}...`);
+
+            return {
+                success: true,
+                graduateId: finalGraduateId,
+                walletAddress,
+                kenoUnlocked: totalKeno,
+                coursesCompleted,
+                cardActivationPending: true,
+                message: `🎓 Graduation complete! ${totalKeno} KENO unlocked. KUTL Card activation pending via card partner.`
+            };
+        } catch (error) {
+            console.error('❌ Error triggering scholarship graduation:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async getScholarshipProgress(walletAddress) {
+        try {
+            const normalizedWallet = walletAddress.toLowerCase();
+
+            const result = await this.db.query(`
+                SELECT
+                    COUNT(*) as courses_completed,
+                    COALESCE(SUM(reward_amount), 0) as keno_locked,
+                    MAX(created_at) as last_activity
+                FROM student_rewards
+                WHERE LOWER(user_wallet_address) = $1
+                AND reward_type = 'course_completion'
+                AND status = 'locked_scholarship'
+            `, [normalizedWallet]);
+
+            const coursesCompleted = parseInt(result.rows[0].courses_completed);
+            const kenoLocked = parseFloat(result.rows[0].keno_locked);
+
+            const graduated = await this.db.query(`
+                SELECT graduate_id FROM kenostod_graduates WHERE LOWER(wallet_address) = $1
+            `, [normalizedWallet]);
+
+            return {
+                success: true,
+                walletAddress,
+                coursesCompleted,
+                coursesRemaining: Math.max(0, 21 - coursesCompleted),
+                kenoLocked,
+                kenoAtGraduation: 21 * 250,
+                isGraduated: graduated.rows.length > 0,
+                graduateId: graduated.rows[0]?.graduate_id || null,
+                readyToGraduate: coursesCompleted >= 21 && graduated.rows.length === 0,
+                lastActivity: result.rows[0].last_activity
+            };
+        } catch (error) {
+            console.error('❌ Error fetching scholarship progress:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
 }
 
 module.exports = WealthBuilderManager;
