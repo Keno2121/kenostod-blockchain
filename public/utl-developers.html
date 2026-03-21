@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Protocol — Developer Integration | Build on Open E-Fi Infrastructure</title>
+    <meta name="description" content="UTL Protocol is open blockchain infrastructure for any platform that wants to distribute BEP-20 tokens based on merit, achievement, or education. 5 live contracts on BSC mainnet.">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #1c2128;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-secondary: #8b949e;
+            --emerald: #10b981;
+            --emerald-dim: #059669;
+            --emerald-glow: rgba(16,185,129,0.15);
+            --gold: #f59e0b;
+            --gold-dim: #d97706;
+            --blue: #58a6ff;
+            --purple: #bc8cff;
+            --red: #ff7b72;
+            --mono: 'JetBrains Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* TOP NAV */
+        .topnav {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topnav-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .topnav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .protocol-badge {
+            background: var(--emerald-glow);
+            border: 1px solid var(--emerald);
+            color: var(--emerald);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .topnav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .topnav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .topnav-links a:hover { color: var(--text); }
+
+        .btn-primary {
+            background: var(--emerald);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover { background: var(--emerald-dim); color: #000; }
+
+        /* LAYOUT */
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            max-width: 1280px;
+            margin: 0 auto;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            border-right: 1px solid var(--border);
+            padding: 32px 0;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+            padding: 0 20px;
+        }
+
+        .sidebar-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text);
+        }
+
+        .sidebar-link.active {
+            background: var(--emerald-glow);
+            color: var(--emerald);
+            border-left: 2px solid var(--emerald);
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            padding: 48px 64px;
+            max-width: 900px;
+        }
+
+        section {
+            margin-bottom: 80px;
+            scroll-margin-top: 80px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        h1 span { color: var(--emerald); }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--emerald);
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+
+        .hero-sub {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+
+        /* CALLOUT BOXES */
+        .callout {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--emerald);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+
+        .callout.gold { border-left-color: var(--gold); }
+        .callout.blue { border-left-color: var(--blue); }
+        .callout.purple { border-left-color: var(--purple); }
+
+        .callout-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--emerald);
+            margin-bottom: 6px;
+        }
+
+        .callout.gold .callout-title { color: var(--gold); }
+        .callout.blue .callout-title { color: var(--blue); }
+        .callout.purple .callout-title { color: var(--purple); }
+
+        .callout p { margin-bottom: 0; font-size: 0.9rem; }
+
+        /* CODE BLOCKS */
+        .code-block {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .code-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .code-lang {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: var(--mono);
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-family: var(--mono);
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--emerald-glow);
+            color: var(--emerald);
+            border-color: var(--emerald);
+        }
+
+        .copy-btn.copied {
+            color: var(--emerald);
+            border-color: var(--emerald);
+        }
+
+        pre {
+            padding: 20px;
+            overflow-x: auto;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+
+        .kw { color: var(--purple); }
+        .fn { color: var(--blue); }
+        .str { color: var(--emerald); }
+        .cm { color: var(--text-secondary); font-style: italic; }
+        .num { color: var(--gold); }
+        .addr { color: #ff7b72; }
+
+        /* CONTRACT TABLE */
+        .contract-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+            font-size: 0.875rem;
+        }
+
+        .contract-table th {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .contract-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .contract-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        .contract-table td:first-child {
+            font-weight: 600;
+            color: var(--emerald);
+        }
+
+        .addr-cell {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .copy-addr {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-family: var(--mono);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .copy-addr:hover {
+            color: var(--emerald);
+            border-color: var(--emerald);
+        }
+
+        /* USE CASE CARDS */
+        .usecase-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .usecase-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .usecase-card:hover { border-color: var(--emerald); }
+
+        .usecase-icon {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .usecase-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .usecase-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+
+        /* FEE TABLE */
+        .fee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .fee-table th {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .fee-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .fee-table td:first-child { color: var(--text); font-weight: 500; }
+        .fee-highlight { color: var(--emerald) !important; font-weight: 600 !important; }
+
+        /* STEPS */
+        .steps {
+            counter-reset: step;
+            margin-bottom: 24px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 44px;
+            width: 2px;
+            height: calc(100% - 16px);
+            background: var(--border);
+        }
+
+        .step-num {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--emerald-glow);
+            border: 2px solid var(--emerald);
+            color: var(--emerald);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-family: var(--mono);
+        }
+
+        .step-content h3 {
+            margin-bottom: 6px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .step-content p { margin-bottom: 8px; font-size: 0.875rem; }
+
+        /* SNAP SECTION */
+        .snap-card {
+            background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
+            border: 1px solid var(--emerald);
+            border-radius: 12px;
+            padding: 28px;
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .snap-icon {
+            font-size: 2.5rem;
+            flex-shrink: 0;
+        }
+
+        .snap-content h3 {
+            color: var(--text);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        /* REVENUE SHARE */
+        .revenue-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .revenue-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .revenue-pct {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--emerald);
+            font-family: var(--mono);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .revenue-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* CTA */
+        .cta-box {
+            background: linear-gradient(135deg, var(--emerald-glow), rgba(245,158,11,0.08));
+            border: 1px solid var(--emerald);
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+        }
+
+        .cta-box h2 {
+            border: none;
+            padding: 0;
+            font-size: 1.75rem;
+            margin-bottom: 12px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--emerald);
+            border: 1px solid var(--emerald);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--emerald-glow);
+        }
+
+        .btn-large {
+            background: var(--emerald);
+            color: #000;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-large:hover { background: var(--emerald-dim); }
+
+        /* TAG BADGES */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        .tag-green { background: var(--emerald-glow); color: var(--emerald); border: 1px solid var(--emerald); }
+        .tag-gold { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid var(--gold); }
+        .tag-blue { background: rgba(88,166,255,0.1); color: var(--blue); border: 1px solid var(--blue); }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .main { padding: 32px 20px; }
+            .usecase-grid { grid-template-columns: 1fr; }
+            .revenue-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.75rem; }
+        }
+
+        /* SCROLL */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+    <div class="topnav-left">
+        <a href="/" class="topnav-logo">
+            <img src="/logo.png" alt="Kenostod" style="height:28px; width:28px; border-radius:4px;">
+            UTL Protocol
+        </a>
+        <span class="protocol-badge">Open Infrastructure</span>
+    </div>
+    <div class="topnav-links">
+        <a href="/utl.html">Whitepaper</a>
+        <a href="/docs/whitepaper.html">Docs</a>
+        <a href="/utl-audit.html">Audit</a>
+        <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">BscScan</a>
+        <a href="/" class="btn-primary">Back to Academy</a>
+    </div>
+</nav>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Overview</div>
+            <a href="#intro" class="sidebar-link active">What is UTL Protocol?</a>
+            <a href="#usecases" class="sidebar-link">Who Can Build On It</a>
+            <a href="#architecture" class="sidebar-link">Architecture</a>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Contracts</div>
+            <a href="#contracts" class="sidebar-link">Live Contract Addresses</a>
+            <a href="#abi" class="sidebar-link">Key Functions (ABI)</a>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Integration</div>
+            <a href="#quickstart" class="sidebar-link">Quickstart Guide</a>
+            <a href="#distribution" class="sidebar-link">Token Distribution</a>
+            <a href="#staking" class="sidebar-link">Staking Integration</a>
+            <a href="#snap" class="sidebar-link">MetaMask Snap</a>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Economics</div>
+            <a href="#fees" class="sidebar-link">Fee Structure</a>
+            <a href="#revenue" class="sidebar-link">Revenue Sharing</a>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Resources</div>
+            <a href="#github" class="sidebar-link">GitHub & Source Code</a>
+            <a href="#contact" class="sidebar-link">Build With Us</a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- INTRO -->
+        <section id="intro">
+            <div style="margin-bottom: 8px;">
+                <span class="tag tag-green">BSC Mainnet</span>
+                <span class="tag tag-green">5 Live Contracts</span>
+                <span class="tag tag-gold">Open Protocol</span>
+                <span class="tag tag-blue">BEP-20</span>
+            </div>
+            <h1>Build on <span>UTL Protocol</span></h1>
+            <p class="hero-sub">
+                UTL Protocol is open blockchain infrastructure that any platform can use to distribute BEP-20 tokens based on merit, achievement, or educational completion — with built-in staking, fee collection, and treasury management. All 5 contracts are live on BSC mainnet. Kenostod Blockchain Academy is the first platform built on it. You can be next.
+            </p>
+
+            <div class="callout">
+                <div class="callout-title">Protocol, Not Product</div>
+                <p>Just as Uniswap is built on Ethereum, Kenostod is built on UTL Protocol. The protocol itself is open — any platform, any use case, any token reward model. Kenostod is the first implementation. You can build the second, third, or tenth.</p>
+            </div>
+
+            <div class="callout gold">
+                <div class="callout-title">Revenue Sharing</div>
+                <p>Every platform that integrates UTL Protocol generates fee revenue through the FeeCollector contract. A portion flows back to KENO stakers and the T.D.I.R. Foundation. You build. The protocol rewards everyone in the ecosystem.</p>
+            </div>
+        </section>
+
+        <!-- USE CASES -->
+        <section id="usecases">
+            <h2>Who Can Build On UTL Protocol</h2>
+            <p>UTL Protocol was designed for any platform that rewards users for completion, achievement, or contribution. Kenostod uses it for blockchain education. The use cases go far beyond that.</p>
+
+            <div class="usecase-grid">
+                <div class="usecase-card">
+                    <div class="usecase-icon">🎓</div>
+                    <div class="usecase-title">Online Education Platforms</div>
+                    <p class="usecase-desc">Course completion triggers KENO distribution. Students earn real tokens finishing your curriculum — not certificates that collect dust.</p>
+                </div>
+                <div class="usecase-card">
+                    <div class="usecase-icon">🏢</div>
+                    <div class="usecase-title">Corporate Training Programs</div>
+                    <p class="usecase-desc">Reward employees for completing compliance training, skills development, or onboarding programs with on-chain tokens.</p>
+                </div>
+                <div class="usecase-card">
+                    <div class="usecase-icon">🏛️</div>
+                    <div class="usecase-title">Government & NGO Programs</div>
+                    <p class="usecase-desc">Financial literacy, civic education, or community programs that need a transparent, auditable token distribution system.</p>
+                </div>
+                <div class="usecase-card">
+                    <div class="usecase-icon">💻</div>
+                    <div class="usecase-title">Bootcamps & Coding Schools</div>
+                    <p class="usecase-desc">Distribute token rewards for project completion, hackathon wins, or skill certifications — verifiable on-chain forever.</p>
+                </div>
+                <div class="usecase-card">
+                    <div class="usecase-icon">🏋️</div>
+                    <div class="usecase-title">Health & Wellness Apps</div>
+                    <p class="usecase-desc">Reward users for achieving fitness goals, completing challenges, or maintaining streaks with real token incentives.</p>
+                </div>
+                <div class="usecase-card">
+                    <div class="usecase-icon">🌐</div>
+                    <div class="usecase-title">Any Web3 dApp</div>
+                    <p class="usecase-desc">Any dApp that needs a robust, auditable token distribution and staking system without building it from scratch.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ARCHITECTURE -->
+        <section id="architecture">
+            <h2>Protocol Architecture</h2>
+            <p>UTL Protocol is a 5-contract system deployed on BSC mainnet. Each contract handles a specific function. They work together to form a complete token economy infrastructure.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Architecture Overview</span>
+                </div>
+                <pre>
+<span class="cm">┌─────────────────────────────────────────────────────┐</span>
+<span class="cm">│                   YOUR PLATFORM                      │</span>
+<span class="cm">│         (Kenostod, your app, or any dApp)            │</span>
+<span class="cm">└───────────────────────┬─────────────────────────────┘</span>
+                        <span class="cm">│ calls</span>
+<span class="cm">┌───────────────────────▼─────────────────────────────┐</span>
+<span class="cm">│              UTL Distribution Contract               │</span>
+<span class="cm">│    Sends KENO to users on completion events          │</span>
+<span class="cm">└────────┬──────────────┬──────────────┬──────────────┘</span>
+         <span class="cm">│</span>              <span class="cm">│</span>              <span class="cm">│</span>
+<span class="cm">┌────────▼───┐  ┌────────▼───┐  ┌──────▼──────────────┐</span>
+<span class="cm">│KENO Token  │  │FeeCollector│  │ UTL Treasury         │</span>
+<span class="cm">│(BEP-20)    │  │Collects %  │  │ Holds protocol funds │</span>
+<span class="cm">│Transfer    │  │on each tx  │  │ Governance controlled│</span>
+<span class="cm">└────────────┘  └────────┬───┘  └──────────────────────┘</span>
+                         <span class="cm">│</span>
+                <span class="cm">┌────────▼────────────────────┐</span>
+                <span class="cm">│     UTL Staking Contract     │</span>
+                <span class="cm">│  Distributes fee revenue to  │</span>
+                <span class="cm">│  KENO stakers + KENO holders │</span>
+                <span class="cm">└─────────────────────────────┘</span></pre>
+            </div>
+        </section>
+
+        <!-- CONTRACTS -->
+        <section id="contracts">
+            <h2>Live Contract Addresses</h2>
+            <p>All 5 UTL Protocol contracts are deployed and verified on BSC Mainnet. These are the canonical addresses. Do not use any others.</p>
+
+            <table class="contract-table">
+                <thead>
+                    <tr>
+                        <th>Contract</th>
+                        <th>Address</th>
+                        <th>BscScan</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>KENO Token (BEP-20)</td>
+                        <td class="addr-cell" id="addr-keno">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</td>
+                        <td><a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" style="color:var(--blue);font-size:0.8rem;">View ↗</a></td>
+                        <td><button class="copy-addr" onclick="copyAddr('0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E', this)">Copy</button></td>
+                    </tr>
+                    <tr>
+                        <td>UTL Staking</td>
+                        <td class="addr-cell">0x49961979c93f43f823BB3593b207724194019d1d</td>
+                        <td><a href="https://bscscan.com/address/0x49961979c93f43f823BB3593b207724194019d1d" target="_blank" style="color:var(--blue);font-size:0.8rem;">View ↗</a></td>
+                        <td><button class="copy-addr" onclick="copyAddr('0x49961979c93f43f823BB3593b207724194019d1d', this)">Copy</button></td>
+                    </tr>
+                    <tr>
+                        <td>UTL FeeCollector</td>
+                        <td class="addr-cell">0xfE537c43d202C455Cedc141B882c808287BB662f</td>
+                        <td><a href="https://bscscan.com/address/0xfE537c43d202C455Cedc141B882c808287BB662f" target="_blank" style="color:var(--blue);font-size:0.8rem;">View ↗</a></td>
+                        <td><button class="copy-addr" onclick="copyAddr('0xfE537c43d202C455Cedc141B882c808287BB662f', this)">Copy</button></td>
+                    </tr>
+                    <tr>
+                        <td>UTL Treasury</td>
+                        <td class="addr-cell">0x3B3538b955647d811D42400084e9409e6593bE97</td>
+                        <td><a href="https://bscscan.com/address/0x3B3538b955647d811D42400084e9409e6593bE97" target="_blank" style="color:var(--blue);font-size:0.8rem;">View ↗</a></td>
+                        <td><button class="copy-addr" onclick="copyAddr('0x3B3538b955647d811D42400084e9409e6593bE97', this)">Copy</button></td>
+                    </tr>
+                    <tr>
+                        <td>UTL Distribution</td>
+                        <td class="addr-cell">0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7</td>
+                        <td><a href="https://bscscan.com/address/0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7" target="_blank" style="color:var(--blue);font-size:0.8rem;">View ↗</a></td>
+                        <td><button class="copy-addr" onclick="copyAddr('0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7', this)">Copy</button></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout blue">
+                <div class="callout-title">Network</div>
+                <p>BSC Mainnet — Chain ID: <code style="font-family:var(--mono);color:var(--blue);">56</code> | RPC: <code style="font-family:var(--mono);color:var(--blue);">https://bsc-dataseed.binance.org/</code></p>
+            </div>
+        </section>
+
+        <!-- ABI / KEY FUNCTIONS -->
+        <section id="abi">
+            <h2>Key Functions</h2>
+            <p>The most commonly used functions when integrating UTL Protocol into your platform.</p>
+
+            <h3>Distribution Contract — Send KENO to a user</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Solidity</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><span class="cm">// Called when a user completes a course, module, or achievement</span>
+<span class="cm">// Only callable by authorized platform addresses</span>
+<span class="kw">function</span> <span class="fn">distributeTokens</span>(
+    <span class="kw">address</span> recipient,     <span class="cm">// User's wallet address</span>
+    <span class="kw">uint256</span> amount,        <span class="cm">// Amount of KENO in wei (250 KENO = 250e18)</span>
+    <span class="kw">string</span> calldata reason <span class="cm">// e.g. "Course 1 Completion"</span>
+) <span class="kw">external</span> <span class="kw">returns</span> (<span class="kw">bool</span>)</pre>
+            </div>
+
+            <h3>Staking Contract — Check staking balance</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Solidity</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><span class="cm">// Returns the amount of KENO a user has staked</span>
+<span class="kw">function</span> <span class="fn">stakedBalance</span>(<span class="kw">address</span> user) <span class="kw">external view returns</span> (<span class="kw">uint256</span>)
+
+<span class="cm">// Returns pending staking rewards for a user</span>
+<span class="kw">function</span> <span class="fn">pendingRewards</span>(<span class="kw">address</span> user) <span class="kw">external view returns</span> (<span class="kw">uint256</span>)</pre>
+            </div>
+
+            <h3>KENO Token — Standard BEP-20</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Solidity</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><span class="cm">// Standard BEP-20 — full ERC-20 compatibility</span>
+<span class="kw">function</span> <span class="fn">balanceOf</span>(<span class="kw">address</span> account) <span class="kw">external view returns</span> (<span class="kw">uint256</span>)
+<span class="kw">function</span> <span class="fn">transfer</span>(<span class="kw">address</span> to, <span class="kw">uint256</span> amount) <span class="kw">external returns</span> (<span class="kw">bool</span>)
+<span class="kw">function</span> <span class="fn">approve</span>(<span class="kw">address</span> spender, <span class="kw">uint256</span> amount) <span class="kw">external returns</span> (<span class="kw">bool</span>)</pre>
+            </div>
+        </section>
+
+        <!-- QUICKSTART -->
+        <section id="quickstart">
+            <h2>Quickstart Integration Guide</h2>
+            <p>Get your platform distributing KENO tokens in 4 steps. This covers the most common integration pattern — trigger token distribution when a user completes a defined action.</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h3>Contact UTL Protocol to get authorized</h3>
+                        <p>The Distribution contract only accepts calls from authorized platform addresses. Send your platform's deployer wallet address to <a href="mailto:kenostod21@gmail.com" style="color:var(--emerald);">kenostod21@gmail.com</a> with subject line "UTL Protocol Integration Request." We'll whitelist your address within 48 hours.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h3>Install ethers.js or web3.js</h3>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <pre>npm install ethers</pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h3>Initialize the Distribution contract</h3>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">JavaScript</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <pre><span class="kw">import</span> { ethers } <span class="kw">from</span> <span class="str">'ethers'</span>;
+
+<span class="cm">// UTL Protocol — Distribution Contract</span>
+<span class="kw">const</span> UTL_DISTRIBUTION = <span class="str">'0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7'</span>;
+<span class="kw">const</span> KENO_TOKEN      = <span class="str">'0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E'</span>;
+
+<span class="kw">const</span> ABI = [
+  <span class="str">'function distributeTokens(address recipient, uint256 amount, string reason) returns (bool)'</span>,
+  <span class="str">'function stakedBalance(address user) view returns (uint256)'</span>,
+];
+
+<span class="kw">const</span> provider = <span class="kw">new</span> ethers.<span class="fn">JsonRpcProvider</span>(<span class="str">'https://bsc-dataseed.binance.org/'</span>);
+<span class="kw">const</span> signer   = <span class="kw">new</span> ethers.<span class="fn">Wallet</span>(process.env.<span class="fn">PLATFORM_PRIVATE_KEY</span>, provider);
+<span class="kw">const</span> utl      = <span class="kw">new</span> ethers.<span class="fn">Contract</span>(UTL_DISTRIBUTION, ABI, signer);</pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h3>Trigger distribution on completion events</h3>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">JavaScript</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            </div>
+                            <pre><span class="cm">// Call this when your user completes a course, module, or task</span>
+<span class="kw">async function</span> <span class="fn">rewardUser</span>(walletAddress, courseName) {
+  <span class="kw">const</span> amount = ethers.<span class="fn">parseUnits</span>(<span class="str">'250'</span>, <span class="num">18</span>); <span class="cm">// 250 KENO</span>
+  
+  <span class="kw">const</span> tx = <span class="kw">await</span> utl.<span class="fn">distributeTokens</span>(
+    walletAddress,
+    amount,
+    <span class="str">`Completed: ${courseName}`</span>
+  );
+  
+  <span class="kw">await</span> tx.<span class="fn">wait</span>();
+  console.<span class="fn">log</span>(<span class="str">`✅ Distributed 250 KENO to ${walletAddress}`</span>);
+  <span class="kw">return</span> tx.hash;
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DISTRIBUTION -->
+        <section id="distribution">
+            <h2>Token Distribution Patterns</h2>
+            <p>UTL Protocol is flexible — you define what triggers a distribution. Here are common patterns used by Kenostod and applicable to other platforms.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript — Common Distribution Triggers</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><span class="cm">// Pattern 1: Course / Module Completion (Kenostod model)</span>
+<span class="kw">await</span> <span class="fn">rewardUser</span>(wallet, <span class="str">'Blockchain Fundamentals'</span>, <span class="num">250</span>);
+
+<span class="cm">// Pattern 2: Milestone Achievement</span>
+<span class="kw">await</span> <span class="fn">rewardUser</span>(wallet, <span class="str">'5-Course Milestone Bonus'</span>, <span class="num">500</span>);
+
+<span class="cm">// Pattern 3: Quiz / Assessment Score</span>
+<span class="kw">if</span> (score >= <span class="num">90</span>) <span class="kw">await</span> <span class="fn">rewardUser</span>(wallet, <span class="str">'Perfect Score Bonus'</span>, <span class="num">50</span>);
+
+<span class="cm">// Pattern 4: Referral Reward</span>
+<span class="kw">await</span> <span class="fn">rewardUser</span>(referrerWallet, <span class="str">'Referral: New Student Enrolled'</span>, <span class="num">100</span>);
+
+<span class="cm">// Pattern 5: Graduation / Full Completion</span>
+<span class="kw">await</span> <span class="fn">rewardUser</span>(wallet, <span class="str">'Full Curriculum Graduation'</span>, <span class="num">1000</span>);</pre>
+            </div>
+        </section>
+
+        <!-- STAKING -->
+        <section id="staking">
+            <h2>Staking Integration</h2>
+            <p>Platforms can display users' staking balances and pending rewards from within their own UI — giving students a reason to stake and hold KENO instead of immediately spending it.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript — Read Staking Data</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><span class="kw">const</span> STAKING_ABI = [
+  <span class="str">'function stakedBalance(address) view returns (uint256)'</span>,
+  <span class="str">'function pendingRewards(address) view returns (uint256)'</span>,
+  <span class="str">'function totalStaked() view returns (uint256)'</span>,
+];
+
+<span class="kw">const</span> staking = <span class="kw">new</span> ethers.<span class="fn">Contract</span>(
+  <span class="str">'0x49961979c93f43f823BB3593b207724194019d1d'</span>,
+  STAKING_ABI,
+  provider
+);
+
+<span class="cm">// Display in your user dashboard</span>
+<span class="kw">async function</span> <span class="fn">getUserStakingInfo</span>(walletAddress) {
+  <span class="kw">const</span> [staked, rewards] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+    staking.<span class="fn">stakedBalance</span>(walletAddress),
+    staking.<span class="fn">pendingRewards</span>(walletAddress),
+  ]);
+  <span class="kw">return</span> {
+    staked:  ethers.<span class="fn">formatUnits</span>(staked, <span class="num">18</span>),   <span class="cm">// e.g. "500.0"</span>
+    rewards: ethers.<span class="fn">formatUnits</span>(rewards, <span class="num">18</span>),  <span class="cm">// e.g. "12.5"</span>
+  };
+}</pre>
+            </div>
+        </section>
+
+        <!-- METAMASK SNAP -->
+        <section id="snap">
+            <h2>MetaMask Snap</h2>
+            <p>UTL Protocol has a MetaMask Snap in review for the official Snap Directory (PR #1459). Once approved, any platform integrating UTL Protocol can point users to install the Snap — giving them a native wallet interface for all UTL functionality.</p>
+
+            <div class="snap-card">
+                <div class="snap-icon">🦊</div>
+                <div class="snap-content">
+                    <h3>UTL Protocol MetaMask Snap</h3>
+                    <p>The Snap gives MetaMask users a dedicated UTL panel inside their wallet — KENO balance, staking rewards, course completion history, and distribution notifications. No additional apps required.</p>
+                    <p style="margin-bottom:12px;">Once approved, any platform that integrates UTL Protocol can reference the same Snap. One installation works across every UTL-powered platform — the same MetaMask wallet, the same Snap, multiple platforms.</p>
+                    <span class="tag tag-gold">PR #1459 — Pending Approval</span>
+                    <span class="tag tag-green">BSC Mainnet Ready</span>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JavaScript — Connect to UTL Snap (post-approval)</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><span class="cm">// Request Snap installation from your platform's UI</span>
+<span class="kw">await</span> window.ethereum.<span class="fn">request</span>({
+  method: <span class="str">'wallet_requestSnaps'</span>,
+  params: {
+    <span class="str">'npm:@kenostod/utl-protocol-snap'</span>: {}
+  }
+});
+
+<span class="cm">// Invoke UTL Snap to get user's KENO balance</span>
+<span class="kw">const</span> balance = <span class="kw">await</span> window.ethereum.<span class="fn">request</span>({
+  method: <span class="str">'wallet_invokeSnap'</span>,
+  params: {
+    snapId: <span class="str">'npm:@kenostod/utl-protocol-snap'</span>,
+    request: { method: <span class="str">'keno_getBalance'</span> }
+  }
+});</pre>
+            </div>
+        </section>
+
+        <!-- FEES -->
+        <section id="fees">
+            <h2>Fee Structure</h2>
+            <p>Every transaction routed through UTL Protocol generates a small fee collected by the FeeCollector contract. This creates a self-sustaining revenue stream that flows back to KENO stakers and the protocol treasury.</p>
+
+            <table class="fee-table">
+                <thead>
+                    <tr>
+                        <th>Transaction Type</th>
+                        <th>Fee</th>
+                        <th>Destination</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Token Distribution</td>
+                        <td class="fee-highlight">1%</td>
+                        <td>FeeCollector → Staking Rewards Pool</td>
+                    </tr>
+                    <tr>
+                        <td>KUTL Card Settlement</td>
+                        <td class="fee-highlight">0.5%</td>
+                        <td>FeeCollector → Treasury</td>
+                    </tr>
+                    <tr>
+                        <td>Staking Deposit/Withdrawal</td>
+                        <td class="fee-highlight">0.25%</td>
+                        <td>FeeCollector → Staking Rewards Pool</td>
+                    </tr>
+                    <tr>
+                        <td>Flash Arbitrage Loans (FAL™)</td>
+                        <td class="fee-highlight">0.09%</td>
+                        <td>FeeCollector → KENO Holders</td>
+                    </tr>
+                    <tr>
+                        <td>Third-party Platform Distributions</td>
+                        <td class="fee-highlight">1%</td>
+                        <td>FeeCollector → Staking Pool + T.D.I.R. Foundation</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout">
+                <div class="callout-title">The Toll Road Model</div>
+                <p>You built the road. Every platform that drives on it pays a toll. Every toll flows back to KENO holders. The more platforms that integrate UTL Protocol, the more fee revenue the ecosystem generates — for everyone.</p>
+            </div>
+        </section>
+
+        <!-- REVENUE SHARING -->
+        <section id="revenue">
+            <h2>Revenue Sharing</h2>
+            <p>Fee revenue collected by the FeeCollector is distributed across the ecosystem automatically. No manual claims required for staking rewards.</p>
+
+            <div class="revenue-grid">
+                <div class="revenue-card">
+                    <span class="revenue-pct">60%</span>
+                    <div class="revenue-label">KENO Stakers<br>Proportional to stake size</div>
+                </div>
+                <div class="revenue-card">
+                    <span class="revenue-pct">25%</span>
+                    <div class="revenue-label">T.D.I.R. Foundation<br>Scholarship + operations</div>
+                </div>
+                <div class="revenue-card">
+                    <span class="revenue-pct">15%</span>
+                    <div class="revenue-label">Protocol Treasury<br>Development + liquidity</div>
+                </div>
+            </div>
+
+            <div class="callout purple">
+                <div class="callout-title">Third-Party Platform Benefit</div>
+                <p>Platforms that integrate UTL Protocol and generate significant transaction volume can apply for a revenue share arrangement. Contact us to discuss partnership tiers once your integration is live.</p>
+            </div>
+        </section>
+
+        <!-- GITHUB -->
+        <section id="github">
+            <h2>GitHub & Source Code</h2>
+            <p>UTL Protocol contracts are open source. Review, fork, and audit before integrating.</p>
+
+            <div class="callout blue">
+                <div class="callout-title">Repository</div>
+                <p>
+                    <a href="https://github.com/Keno2121/kenostod-blockchain" target="_blank" style="color:var(--blue); font-family:var(--mono);">github.com/Keno2121/kenostod-blockchain</a>
+                    <br>
+                    <span style="font-size:0.85rem;">Contracts located in <code style="font-family:var(--mono);color:var(--blue);">/utl/contracts/</code></span>
+                </p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">bash — Clone and review contracts</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre>git clone https://github.com/Keno2121/kenostod-blockchain.git
+cd kenostod-blockchain/utl/contracts
+
+<span class="cm"># Key contract files:</span>
+<span class="cm"># UTLTreasury.sol        — Treasury management</span>
+<span class="cm"># UTLFeeCollector.sol    — Fee collection and routing</span>
+<span class="cm"># v1.1/                 — Latest verified versions</span></pre>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section id="contact">
+            <div class="cta-box">
+                <h2>Ready to Build on UTL Protocol?</h2>
+                <p>Kenostod is the first platform built on UTL Protocol. You can be the next. Whether you're an online course platform, a corporate training company, a bootcamp, or a dApp — if you distribute value based on achievement, UTL Protocol was built for you.</p>
+                <p style="font-size:0.9rem; color:var(--text-secondary);">Send your integration request to get your platform address whitelisted and start distributing KENO to your users within 48 hours.</p>
+                <div class="cta-buttons">
+                    <a href="mailto:kenostod21@gmail.com?subject=UTL Protocol Integration Request" class="btn-large">Start Building</a>
+                    <a href="/utl.html" class="btn-secondary">Read Whitepaper</a>
+                    <a href="https://github.com/Keno2121/kenostod-blockchain" target="_blank" class="btn-secondary">GitHub</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    function copyAddr(addr, btn) {
+        navigator.clipboard.writeText(addr).then(() => {
+            btn.textContent = 'Copied!';
+            btn.style.color = 'var(--emerald)';
+            btn.style.borderColor = 'var(--emerald)';
+            setTimeout(() => {
+                btn.textContent = 'Copy';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }, 2000);
+        });
+    }
+
+    function copyCode(btn) {
+        const pre = btn.closest('.code-block').querySelector('pre');
+        navigator.clipboard.writeText(pre.innerText).then(() => {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = 'Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
+
+    // Active sidebar link on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const links = document.querySelectorAll('.sidebar-link');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(s => {
+            if (window.scrollY >= s.offsetTop - 100) current = s.id;
+        });
+        links.forEach(l => {
+            l.classList.remove('active');
+            if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+        });
+    });
+</script>
+
+</body>
+</html>
