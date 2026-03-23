@@ -28,6 +28,7 @@ const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
+const UTLFeeCollector = require('./src/UTLFeeCollector');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('./src/secp256k1-compat').ec;
 const ec = new EC('secp256k1');
@@ -594,6 +595,270 @@ app.get('/api/utl/prices', async (req, res) => {
     });
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// UTL FEECOLLECTOR — CODE IS LAW — ALL FEE ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════
+
+// GET: Full fee schedule, tier structure, distribution split
+app.get('/api/utl/fee/schedule', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    res.json({
+        success: true,
+        feeSchedule: utlFeeCollector.feeSchedule,
+        loyaltyTiers: utlFeeCollector.loyaltyTiers,
+        distributionSplit: utlFeeCollector.split,
+        contracts: utlFeeCollector.contracts
+    });
+});
+
+// GET: Aggregate stats — total collected, by category, by type, projections
+app.get('/api/utl/fee/stats', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    res.json({ success: true, ...utlFeeCollector.getStats() });
+});
+
+// GET: Recent fee collection events (live ledger)
+app.get('/api/utl/fee/events', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    res.json({ success: true, events: utlFeeCollector.getRecentEvents(limit) });
+});
+
+// GET: Top toll payers — leaderboard
+app.get('/api/utl/fee/leaderboard', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    res.json({ success: true, leaderboard: utlFeeCollector.getLeaderboard(limit) });
+});
+
+// GET: Individual wallet profile — tier, toll history, governance weight
+app.get('/api/utl/fee/wallet/:address', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    const profile = utlFeeCollector.getWalletProfile(req.params.address);
+    const govWeight = utlFeeCollector.getGovernanceWeight(req.params.address);
+    res.json({ success: true, profile, governance: govWeight });
+});
+
+// GET: Governance weight for a wallet
+app.get('/api/utl/fee/governance/:address', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    res.json({ success: true, ...utlFeeCollector.getGovernanceWeight(req.params.address) });
+});
+
+// POST: Record a fee collection event
+// Body: { feeType, walletAddress, principalAmount, flatFeeKey, metadata }
+app.post('/api/utl/fee/collect', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { feeType, walletAddress, principalAmount = 0, flatFeeKey, metadata = {} } = req.body;
+        if (!feeType) return res.status(400).json({ error: 'feeType is required' });
+        const event = utlFeeCollector.collect({ feeType, walletAddress, principalAmount: parseFloat(principalAmount), flatFeeKey, metadata });
+        if (!event) return res.status(400).json({ error: 'Fee amount resolved to zero — check feeType and amount' });
+        const profile = utlFeeCollector.getWalletProfile(walletAddress);
+        res.json({
+            success: true,
+            message: 'Fee collected and distributed — Code is Law',
+            event,
+            walletTier: profile.tier,
+            tierConfig: profile.tierConfig,
+            progressToNextTier: profile.progressToNextTier
+        });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// POST: Record a KENO distribution toll (Category A)
+app.post('/api/utl/fee/distribution-toll', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, kenoAmount } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'DISTRIBUTION_TOLL',
+            walletAddress,
+            principalAmount: parseFloat(kenoAmount) || 0,
+            metadata: { source: 'keno_distribution' }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record a staking toll (Category A)
+app.post('/api/utl/fee/staking-toll', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, stakeAmount, action } = req.body; // action: 'stake' | 'unstake'
+        const event = utlFeeCollector.collect({
+            feeType: 'STAKING_TOLL',
+            walletAddress,
+            principalAmount: parseFloat(stakeAmount) || 0,
+            metadata: { action: action || 'stake' }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record FAL™ completion fee (Category B)
+app.post('/api/utl/fee/fal-completion', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, loanAmount, profit } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'FAL_COMPLETION_FEE',
+            walletAddress,
+            principalAmount: parseFloat(loanAmount) || 0,
+            metadata: { loanAmount, profit }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record credential verification fee (Category D)
+app.post('/api/utl/fee/credential-verify', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { requestorAddress, graduateWallet, verifyTier = 'single' } = req.body;
+        // Look up the graduate wallet in DB for verification
+        const gradResult = dbConnection ? await dbConnection.query(
+            'SELECT * FROM graduates WHERE wallet_address = $1 LIMIT 1',
+            [graduateWallet]
+        ).catch(() => null) : null;
+        const isVerified = gradResult && gradResult.rows.length > 0;
+        const event = utlFeeCollector.collect({
+            feeType: 'CREDENTIAL_VERIFICATION_FEE',
+            walletAddress: requestorAddress,
+            flatFeeKey: verifyTier,
+            metadata: { graduateWallet, isVerified, verifyTier }
+        });
+        res.json({
+            success: true,
+            verified: isVerified,
+            graduate: isVerified ? { wallet: graduateWallet, courses: gradResult.rows[0]?.total_courses, kenoEarned: gradResult.rows[0]?.keno_earned } : null,
+            event,
+            distribution: event?.distribution
+        });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record partner integration license fee (Category C)
+app.post('/api/utl/fee/partner-license', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { partnerAddress, partnerName, licenseTier = 'basic' } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'PARTNER_INTEGRATION_LICENSE',
+            walletAddress: partnerAddress,
+            flatFeeKey: licenseTier,
+            metadata: { partnerName, licenseTier }
+        });
+        res.json({ success: true, event, distribution: event?.distribution, message: `${partnerName} licensed at ${licenseTier} tier` });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record Graduate NFT royalty (Category E)
+app.post('/api/utl/fee/nft-royalty', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { sellerAddress, salePrice, nftId } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'GRADUATE_NFT_ROYALTY',
+            walletAddress: sellerAddress,
+            principalAmount: parseFloat(salePrice) || 0,
+            metadata: { nftId, salePrice }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record cross-chain bridge fee (Category G)
+app.post('/api/utl/fee/bridge', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, bridgeAmount, fromChain, toChain } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'CROSS_CHAIN_BRIDGE_FEE',
+            walletAddress,
+            principalAmount: parseFloat(bridgeAmount) || 0,
+            metadata: { fromChain, toChain }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record yield optimization fee (Category F)
+app.post('/api/utl/fee/yield', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, yieldAmount } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'YIELD_OPTIMIZATION_FEE',
+            walletAddress,
+            principalAmount: parseFloat(yieldAmount) || 0,
+            metadata: { source: 'auto_compound' }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// GET: DB-level fee event history for a wallet (paginated)
+app.get('/api/utl/fee/history/:address', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'DB not ready' });
+    try {
+        const limit  = Math.min(parseInt(req.query.limit)  || 50, 200);
+        const offset = parseInt(req.query.offset) || 0;
+        const { rows } = await dbConnection.query(
+            `SELECT * FROM utl_fee_events WHERE wallet_address = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+            [req.params.address.toLowerCase(), limit, offset]
+        );
+        const total = await dbConnection.query(
+            `SELECT COUNT(*) FROM utl_fee_events WHERE wallet_address = $1`,
+            [req.params.address.toLowerCase()]
+        );
+        res.json({ success: true, events: rows, total: parseInt(total.rows[0]?.count || 0), limit, offset });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET: Total UTL revenue from DB (for external audits, investor reporting)
+app.get('/api/utl/fee/audit', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'DB not ready' });
+    try {
+        const totals = await dbConnection.query(`
+            SELECT
+                fee_type,
+                fee_label,
+                category,
+                COUNT(*)          AS event_count,
+                SUM(fee_amount)   AS total_collected,
+                SUM(stakers_share)    AS total_stakers,
+                SUM(foundation_share) AS total_foundation,
+                SUM(treasury_share)   AS total_treasury
+            FROM utl_fee_events
+            GROUP BY fee_type, fee_label, category
+            ORDER BY total_collected DESC
+        `);
+        const grand = await dbConnection.query(`
+            SELECT
+                COUNT(*)              AS total_events,
+                SUM(fee_amount)       AS grand_total,
+                SUM(stakers_share)    AS grand_stakers,
+                SUM(foundation_share) AS grand_foundation,
+                SUM(treasury_share)   AS grand_treasury,
+                MIN(created_at)       AS first_event,
+                MAX(created_at)       AS last_event
+            FROM utl_fee_events
+        `);
+        res.json({
+            success: true,
+            auditReport: {
+                byFeeType: totals.rows,
+                grandTotals: grand.rows[0],
+                generatedAt: new Date().toISOString(),
+                contracts: utlFeeCollector?.contracts
+            }
+        });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/snap-package/snap.manifest.json', (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="snap.manifest.json"');
     res.sendFile(__dirname + '/utl/metamask-snap/snap.manifest.json');
@@ -640,7 +905,7 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 
 // STUB VARIABLES - will be initialized after port opens
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
-let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager;
+let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
@@ -704,6 +969,9 @@ async function initializeBlockchainSystems() {
         revenueTracker = new RevenueTracker();
         arbitrageSystem = new ArbitrageSystem(kenostodChain, dataPersistence);
         falPoolManager = new FALPoolManager(kenostodChain, dataPersistence, arbitrageSystem);
+        utlFeeCollector = new UTLFeeCollector(dataPersistence, dbConnection);
+        await utlFeeCollector.initDB();
+        await utlFeeCollector.loadFromDB();
         
         // Connect systems
         kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
