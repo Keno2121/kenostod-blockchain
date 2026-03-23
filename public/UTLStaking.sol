@@ -6,6 +6,9 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @title UTLStaking v1.1
+/// @notice Fixed: Eliminated unbounded loop gas DoS in _getEffectiveTotalStake
+///         by maintaining totalEffectiveStake as an incrementally-updated state variable.
 contract UTLStaking is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -16,8 +19,11 @@ contract UTLStaking is Ownable, ReentrancyGuard {
     uint256 public rewardPerTokenStored;
     uint256 public lastRewardTimestamp;
 
+    /// @dev FIX (Critical): replaces the O(n) staker loop with an incrementally maintained value
+    uint256 public totalEffectiveStake;
+
     uint256 public constant PRECISION = 1e18;
-    uint256 public constant MIN_STAKE = 100 * 1e18; // 100 KENO minimum
+    uint256 public constant MIN_STAKE = 100 * 1e18;
 
     enum Tier { Observer, Participant, Advocate, Champion, Guardian }
 
@@ -34,19 +40,19 @@ contract UTLStaking is Ownable, ReentrancyGuard {
     mapping(address => bool) public isStaker;
 
     uint256[5] public tierThresholds = [
-        0,                // Observer: 0 KENO
-        1000 * 1e18,      // Participant: 1,000 KENO
-        10000 * 1e18,     // Advocate: 10,000 KENO
-        100000 * 1e18,    // Champion: 100,000 KENO
-        1000000 * 1e18    // Guardian: 1,000,000 KENO
+        0,
+        1000 * 1e18,
+        10000 * 1e18,
+        100000 * 1e18,
+        1000000 * 1e18
     ];
 
     uint256[5] public tierMultipliers = [
-        1e17,   // Observer: 0.1x
-        1e18,   // Participant: 1.0x
-        12e17,  // Advocate: 1.2x
-        15e17,  // Champion: 1.5x
-        2e18    // Guardian: 2.0x
+        1e17,
+        1e18,
+        12e17,
+        15e17,
+        2e18
     ];
 
     event Staked(address indexed user, uint256 amount, Tier tier);
@@ -66,6 +72,11 @@ contract UTLStaking is Ownable, ReentrancyGuard {
 
         _updateRewards(msg.sender);
 
+        // FIX: subtract old effective stake before changing state
+        if (stakes[msg.sender].amount > 0) {
+            totalEffectiveStake -= _baseEffectiveStake(msg.sender);
+        }
+
         kenoToken.safeTransferFrom(msg.sender, address(this), amount);
 
         if (!isStaker[msg.sender]) {
@@ -84,6 +95,9 @@ contract UTLStaking is Ownable, ReentrancyGuard {
             emit TierUpgraded(msg.sender, oldTier, newTier);
         }
 
+        // FIX: add new effective stake after state is updated
+        totalEffectiveStake += _baseEffectiveStake(msg.sender);
+
         emit Staked(msg.sender, amount, newTier);
     }
 
@@ -92,11 +106,19 @@ contract UTLStaking is Ownable, ReentrancyGuard {
 
         _updateRewards(msg.sender);
 
+        // FIX: subtract old effective stake before changing state
+        totalEffectiveStake -= _baseEffectiveStake(msg.sender);
+
         stakes[msg.sender].amount -= amount;
         totalStaked -= amount;
 
         Tier newTier = _calculateTier(stakes[msg.sender].amount);
         stakes[msg.sender].tier = newTier;
+
+        // FIX: add back effective stake for remaining balance
+        if (stakes[msg.sender].amount > 0) {
+            totalEffectiveStake += _baseEffectiveStake(msg.sender);
+        }
 
         kenoToken.safeTransfer(msg.sender, amount);
 
@@ -109,6 +131,7 @@ contract UTLStaking is Ownable, ReentrancyGuard {
         uint256 reward = stakes[msg.sender].pendingRewards;
         require(reward > 0, "No rewards");
 
+        // Effects before interaction
         stakes[msg.sender].pendingRewards = 0;
         totalRewardsDistributed += reward;
 
@@ -122,7 +145,9 @@ contract UTLStaking is Ownable, ReentrancyGuard {
         require(msg.value > 0, "No rewards");
         require(totalStaked > 0, "No stakers");
 
-        rewardPerTokenStored += (msg.value * PRECISION) / _getEffectiveTotalStake();
+        // FIX: use totalEffectiveStake state variable — no loop
+        uint256 effectiveTotal = totalEffectiveStake > 0 ? totalEffectiveStake : 1;
+        rewardPerTokenStored += (msg.value * PRECISION) / effectiveTotal;
         lastRewardTimestamp = block.timestamp;
 
         emit RewardsDeposited(msg.value, block.timestamp);
@@ -165,10 +190,10 @@ contract UTLStaking is Ownable, ReentrancyGuard {
         if (stakes[user].stakedAt == 0) return 0;
         uint256 duration = block.timestamp - stakes[user].stakedAt;
 
-        if (duration >= 365 days) return 50;  // +50% for 1+ year
-        if (duration >= 180 days) return 30;  // +30% for 6+ months
-        if (duration >= 90 days) return 15;   // +15% for 3+ months
-        if (duration >= 30 days) return 5;    // +5% for 1+ month
+        if (duration >= 365 days) return 50;
+        if (duration >= 180 days) return 30;
+        if (duration >= 90 days)  return 15;
+        if (duration >= 30 days)  return 5;
         return 0;
     }
 
@@ -181,6 +206,7 @@ contract UTLStaking is Ownable, ReentrancyGuard {
         stakes[user].rewardPerTokenPaid = rewardPerTokenStored;
     }
 
+    /// @dev Per-user effective stake including duration bonus (used for reward calculation)
     function _getEffectiveStake(address user) internal view returns (uint256) {
         uint256 base = stakes[user].amount;
         if (base == 0) return 0;
@@ -193,27 +219,26 @@ contract UTLStaking is Ownable, ReentrancyGuard {
         return effective;
     }
 
-    function _getEffectiveTotalStake() internal view returns (uint256) {
-        uint256 total = 0;
-        for (uint256 i = 0; i < stakers.length; i++) {
-            if (stakes[stakers[i]].amount > 0) {
-                total += _getEffectiveStake(stakers[i]);
-            }
-        }
-        return total > 0 ? total : 1;
+    /// @dev FIX: base effective stake without duration bonus — used to maintain totalEffectiveStake
+    ///      Duration bonus is time-dependent and cannot be tracked globally without an O(n) loop.
+    ///      It is still applied per-user via _getEffectiveStake() during reward updates.
+    function _baseEffectiveStake(address user) internal view returns (uint256) {
+        uint256 base = stakes[user].amount;
+        if (base == 0) return 0;
+        uint256 multiplier = tierMultipliers[uint256(stakes[user].tier)];
+        return (base * multiplier) / PRECISION;
     }
 
-    function _calculateTier(uint256 amount) internal view returns (Tier) {
-        if (amount >= tierThresholds[4]) return Tier.Guardian;
-        if (amount >= tierThresholds[3]) return Tier.Champion;
-        if (amount >= tierThresholds[2]) return Tier.Advocate;
-        if (amount >= tierThresholds[1]) return Tier.Participant;
-        return Tier.Observer;
+    /// @dev FIX: No longer loops through stakers — uses totalEffectiveStake state variable
+    function _getEffectiveTotalStake() internal view returns (uint256) {
+        return totalEffectiveStake > 0 ? totalEffectiveStake : 1;
     }
 
     receive() external payable {
         if (totalStaked > 0) {
-            rewardPerTokenStored += (msg.value * PRECISION) / _getEffectiveTotalStake();
+            // FIX: use totalEffectiveStake state variable — no loop
+            uint256 effectiveTotal = totalEffectiveStake > 0 ? totalEffectiveStake : 1;
+            rewardPerTokenStored += (msg.value * PRECISION) / effectiveTotal;
             lastRewardTimestamp = block.timestamp;
             emit RewardsDeposited(msg.value, block.timestamp);
         }
