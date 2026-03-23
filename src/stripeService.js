@@ -79,7 +79,7 @@ class StripeService {
     try {
       // List prices for this product
       const prices = await stripe.prices.list({ product: productId, limit: 100 });
-      const existing = prices.data.find(p => p.unit_amount === Math.round(amount * 100) && p.status === 'active');
+      const existing = prices.data.find(p => p.unit_amount === Math.round(amount * 100) && p.active === true);
       
       if (existing) {
         return existing;

@@ -101,7 +101,14 @@ async function initializeStripe() {
         const { webhook, uuid } = await stripeSync.findOrCreateManagedWebhook(
             `${webhookBaseUrl}/api/stripe/webhook`,
             {
-                enabled_events: ['*'],
+                enabled_events: [
+                    'checkout.session.completed',
+                    'customer.subscription.created',
+                    'customer.subscription.updated',
+                    'customer.subscription.deleted',
+                    'invoice.payment_succeeded',
+                    'invoice.payment_failed'
+                ],
                 description: 'Kenostod Blockchain Academy - Managed webhook',
             }
         );
@@ -3942,22 +3949,12 @@ app.post('/api/stripe/init-subscriptions', async (req, res) => {
     }
 });
 
-// Get current subscription price IDs
-app.get('/api/stripe/get-price-ids', async (req, res) => {
-    try {
-        const products = await stripeService.ensureSubscriptionProducts();
-        res.json({
-            student: products.student.price.id,
-            professional: products.professional.price.id
-        });
-    } catch (error) {
-        console.error('Get price IDs error:', error);
-        // Fallback to hardcoded prices for sandbox
-        res.json({
-            student: 'price_1SX1x1BMJMAmd04Cp1Aeq6TM',
-            professional: 'price_1SX1x1BMJMAmd04CG9J97tmG'
-        });
-    }
+// Get current subscription price IDs - use hardcoded prices to avoid creating duplicate Stripe plans
+app.get('/api/stripe/get-price-ids', (req, res) => {
+    res.json({
+        student: process.env.STRIPE_STUDENT_PRICE_ID || 'price_1SX1x1BMJMAmd04Cp1Aeq6TM',
+        professional: process.env.STRIPE_PROFESSIONAL_PRICE_ID || 'price_1SX1x1BMJMAmd04CG9J97tmG'
+    });
 });
 
 app.get('/api/stripe/subscription-prices', async (req, res) => {
@@ -5561,185 +5558,6 @@ app.post('/api/revenue/license/checkout', async (req, res) => {
     }
 });
 
-// Stripe webhook handler for subscription automation
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    try {
-        const sig = req.headers['stripe-signature'];
-        const event = stripeIntegration.constructWebhookEvent(req.body, sig);
-        
-        console.log(`📥 Stripe webhook received: ${event.type}`);
-        
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object;
-                const metadata = session.metadata;
-                
-                // Create license after successful checkout
-                if (metadata.licenseType === 'white_label') {
-                    const result = revenueTracker.createLicense({
-                        organizationName: metadata.organizationName,
-                        tier: metadata.tier,
-                        contactEmail: session.customer_email,
-                        customDomain: metadata.customDomain,
-                        stripeSubscriptionId: session.subscription
-                    });
-                    
-                    // Save to database
-                    if (dbConnection) {
-                        const license = result.license;
-                        await dbConnection.query(`
-                            INSERT INTO white_label_licenses (
-                                license_id, license_key, organization_name, tier, contact_email, 
-                                custom_domain, monthly_price, status, stripe_subscription_id, 
-                                stripe_customer_id, total_revenue, expires_at
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                        `, [
-                            license.licenseId, license.licenseKey, license.organizationName, 
-                            license.tier, license.contactEmail, license.customDomain, 
-                            license.monthlyPrice, license.status, license.stripeSubscriptionId,
-                            session.customer, license.totalRevenue, new Date(license.expiresAt)
-                        ]);
-                    }
-                    
-                    console.log(`✅ License created: ${result.license.licenseId} for ${metadata.organizationName}`);
-                }
-                break;
-            }
-            
-            case 'customer.subscription.created':
-            case 'customer.subscription.updated': {
-                const subscription = event.data.object;
-                const metadata = subscription.metadata;
-                
-                // Update license status in database (try by subscription ID first, then by metadata)
-                if (dbConnection) {
-                    let updated = false;
-                    
-                    // Try to find and update by subscription ID
-                    const result = await dbConnection.query(`
-                        UPDATE white_label_licenses 
-                        SET status = $1, stripe_subscription_id = $2, updated_at = CURRENT_TIMESTAMP
-                        WHERE stripe_subscription_id = $2
-                        RETURNING id
-                    `, [subscription.status === 'active' ? 'active' : 'inactive', subscription.id]);
-                    
-                    updated = result.rowCount > 0;
-                    
-                    // FALLBACK: If not found by subscription ID and we have metadata, create license
-                    if (!updated && metadata && metadata.organizationName) {
-                        console.log(`⚠️  License not found for subscription ${subscription.id}, creating from metadata`);
-                        
-                        const result = revenueTracker.createLicense({
-                            organizationName: metadata.organizationName,
-                            tier: metadata.tier,
-                            contactEmail: subscription.customer_email || 'unknown@email.com',
-                            customDomain: metadata.customDomain || '',
-                            stripeSubscriptionId: subscription.id
-                        });
-                        
-                        const license = result.license;
-                        await dbConnection.query(`
-                            INSERT INTO white_label_licenses (
-                                license_id, license_key, organization_name, tier, contact_email, 
-                                custom_domain, monthly_price, status, stripe_subscription_id, 
-                                stripe_customer_id, total_revenue, expires_at
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                            ON CONFLICT (stripe_subscription_id) DO UPDATE SET
-                                status = EXCLUDED.status,
-                                updated_at = CURRENT_TIMESTAMP
-                        `, [
-                            license.licenseId, license.licenseKey, license.organizationName, 
-                            license.tier, license.contactEmail, license.customDomain, 
-                            license.monthlyPrice, subscription.status === 'active' ? 'active' : 'inactive', 
-                            subscription.id, subscription.customer, license.totalRevenue, 
-                            new Date(license.expiresAt)
-                        ]);
-                        
-                        console.log(`✅ License created from metadata for ${metadata.organizationName}`);
-                        updated = true;
-                    }
-                    
-                    if (updated) {
-                        console.log(`✅ Subscription ${subscription.id} status: ${subscription.status}`);
-                    } else {
-                        console.error(`❌ Failed to update license for subscription ${subscription.id} - no subscription ID match and no metadata`);
-                    }
-                }
-                break;
-            }
-            
-            case 'customer.subscription.deleted': {
-                const subscription = event.data.object;
-                
-                // Mark license as cancelled
-                if (dbConnection) {
-                    await dbConnection.query(`
-                        UPDATE white_label_licenses 
-                        SET status = 'cancelled', is_active = false, updated_at = CURRENT_TIMESTAMP
-                        WHERE stripe_subscription_id = $1
-                    `, [subscription.id]);
-                }
-                
-                console.log(`❌ License cancelled for subscription: ${subscription.id}`);
-                break;
-            }
-            
-            case 'invoice.payment_succeeded': {
-                const invoice = event.data.object;
-                
-                // Record payment
-                if (dbConnection && invoice.subscription) {
-                    const licenseResult = await dbConnection.query(`
-                        SELECT license_id, monthly_price FROM white_label_licenses 
-                        WHERE stripe_subscription_id = $1
-                    `, [invoice.subscription]);
-                    
-                    if (licenseResult.rows.length > 0) {
-                        const license = licenseResult.rows[0];
-                        const period = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                        
-                        await dbConnection.query(`
-                            INSERT INTO license_payments (license_id, payment_id, amount, period, status)
-                            VALUES ($1, $2, $3, $4, 'completed')
-                        `, [license.license_id, invoice.id, invoice.amount_paid / 100, period]);
-                        
-                        await dbConnection.query(`
-                            UPDATE white_label_licenses 
-                            SET total_revenue = total_revenue + $1, 
-                                status = 'active',
-                                updated_at = CURRENT_TIMESTAMP
-                            WHERE license_id = $2
-                        `, [invoice.amount_paid / 100, license.license_id]);
-                        
-                        console.log(`💰 Payment recorded: $${(invoice.amount_paid / 100).toFixed(2)} for license ${license.license_id}`);
-                    }
-                }
-                break;
-            }
-            
-            case 'invoice.payment_failed': {
-                const invoice = event.data.object;
-                
-                // Mark license as past_due
-                if (dbConnection && invoice.subscription) {
-                    await dbConnection.query(`
-                        UPDATE white_label_licenses 
-                        SET status = 'past_due', updated_at = CURRENT_TIMESTAMP
-                        WHERE stripe_subscription_id = $1
-                    `, [invoice.subscription]);
-                }
-                
-                console.log(`⚠️  Payment failed for subscription: ${invoice.subscription}`);
-                break;
-            }
-        }
-        
-        res.json({ received: true });
-    } catch (error) {
-        console.error('Stripe webhook error:', error);
-        res.status(400).json({ error: error.message });
-    }
-});
 
 // ===== REVENUE ANALYTICS & REPORTING =====
 
