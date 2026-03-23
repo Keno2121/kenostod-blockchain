@@ -9568,6 +9568,83 @@ app.post('/api/admin/usd-withdrawal/process', async (req, res) => {
 
 // ==================== END MERCURY BANK ENDPOINTS ====================
 
+// ==================== KENO MARKET (PancakeSwap Live Data) ====================
+
+app.get('/api/keno/market', async (req, res) => {
+    try {
+        const https = require('https');
+        const PAIR  = '0x72368adf1487eeebcb095f16cf8cbf91f2b44880';
+        const KENO  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+
+        function bscCall(to, data) {
+            return new Promise((resolve, reject) => {
+                const body = JSON.stringify({ jsonrpc:'2.0', id:1, method:'eth_call', params:[{to, data}, 'latest'] });
+                const req2 = https.request({
+                    hostname: 'bsc-dataseed1.binance.org', path:'/', method:'POST',
+                    headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)},
+                    timeout: 8000
+                }, r => { let d=''; r.on('data', c=>d+=c); r.on('end', ()=>{ try{resolve(JSON.parse(d))}catch(e){reject(e)} }); });
+                req2.on('error', reject);
+                req2.on('timeout', ()=>{ req2.destroy(); reject(new Error('BSC timeout')); });
+                req2.write(body); req2.end();
+            });
+        }
+
+        function getBNBPrice() {
+            return new Promise((resolve) => {
+                const url = 'https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd';
+                https.get(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'KenostodUTL/2.0' } }, r => {
+                    let d=''; r.on('data', c=>d+=c);
+                    r.on('end', ()=>{
+                        try {
+                            const price = parseFloat(JSON.parse(d).binancecoin?.usd);
+                            resolve(isNaN(price) ? 620 : price);
+                        } catch(e){ resolve(620); }
+                    });
+                }).on('error', ()=>resolve(620)).setTimeout(8000, function(){ this.destroy(); resolve(620); });
+            });
+        }
+
+        const [reservesRes, bnbPrice] = await Promise.all([
+            bscCall(PAIR, '0x0902f1ac'),
+            getBNBPrice()
+        ]);
+
+        const r = reservesRes.result;
+        const reserve0 = BigInt('0x' + r.slice(2, 66));
+        const reserve1 = BigInt('0x' + r.slice(66, 130));
+        const kenoReserve = Number(reserve0) / 1e18;
+        const bnbReserve  = Number(reserve1) / 1e18;
+        const kenoPerBNB  = kenoReserve / bnbReserve;
+        const kenoPriceUSD = bnbPrice / kenoPerBNB;
+        const tvl = kenoReserve * kenoPriceUSD * 2;
+
+        res.json({
+            ok: true,
+            pair: PAIR,
+            token: KENO,
+            symbol: 'KENO',
+            pairName: 'KENO/BNB',
+            dex: 'PancakeSwap V2',
+            chain: 'BSC',
+            price: { usd: kenoPriceUSD, bnb: 1 / kenoPerBNB },
+            peg: { usd: 1.00, status: kenoPriceUSD >= 0.95 ? 'ON_PEG' : 'BELOW_PEG' },
+            reserves: { keno: kenoReserve, bnb: bnbReserve },
+            tvl,
+            bnbPrice,
+            links: {
+                swap: `https://pancakeswap.finance/swap?outputCurrency=${KENO}&chain=bsc`,
+                addLiquidity: `https://pancakeswap.finance/add/BNB/${KENO}?chain=bsc`,
+                pair: `https://bscscan.com/address/${PAIR}`,
+                chart: `https://dexscreener.com/bsc/${PAIR}`,
+                token: `https://bscscan.com/token/${KENO}`
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
 // ==================== WITHDRAWAL RESERVE SYSTEM (Revenue-First Model) ====================
 
 // Get reserve status (public endpoint for transparency)
