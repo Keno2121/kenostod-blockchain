@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Protocol — Code Is Law: The FeeCollector Enforcement Authority</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #04070a;
+            --bg2: #070c10;
+            --bg3: #0b1117;
+            --border: rgba(255,255,255,0.06);
+            --amber: #f59e0b;
+            --amber-dim: rgba(245,158,11,0.07);
+            --amber-border: rgba(245,158,11,0.2);
+            --red: #ef4444;
+            --red-dim: rgba(239,68,68,0.06);
+            --red-border: rgba(239,68,68,0.18);
+            --green: #10b981;
+            --green-dim: rgba(16,185,129,0.06);
+            --green-border: rgba(16,185,129,0.18);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59,130,246,0.07);
+            --blue-border: rgba(59,130,246,0.2);
+            --text: #7a8799;
+            --white: #dde6f0;
+            --mono: 'JetBrains Mono', monospace;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; color: #111; }
+        }
+
+        /* NAV */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 99;
+            background: rgba(4,7,10,0.98); backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(245,158,11,0.1);
+            padding: 0.7rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav-left { font-family: var(--mono); font-size: 0.68rem; color: rgba(245,158,11,0.3); letter-spacing: 3px; }
+        .nav-right { display: flex; gap: 0.6rem; }
+        .nbtn { padding: 6px 16px; border-radius: 5px; font-size: 0.77rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
+        .nbtn-ghost { background: transparent; color: rgba(122,135,153,0.4); border: 1px solid var(--border); }
+        .nbtn-amber { background: rgba(245,158,11,0.08); color: var(--amber); border: 1px solid var(--amber-border); }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 6rem 2rem 5rem;
+            position: relative; overflow: hidden;
+            background: radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.05) 0%, transparent 60%);
+        }
+        .hero::before {
+            content: 'CODE\A IS\A LAW';
+            white-space: pre;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(8rem, 20vw, 20rem);
+            font-weight: 900;
+            color: rgba(245,158,11,0.025);
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 0.85;
+            text-align: center;
+            pointer-events: none;
+            letter-spacing: -4px;
+        }
+        .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 2; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--amber-dim); border: 1px solid var(--amber-border); border-radius: 4px; padding: 5px 14px; margin-bottom: 2rem; }
+        .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .hero-badge-text { font-family: var(--mono); font-size: 0.65rem; color: rgba(245,158,11,0.5); letter-spacing: 3px; }
+        .hero-title { font-family: 'Orbitron', sans-serif; font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; color: var(--white); line-height: 1.05; margin-bottom: 2rem; }
+        .hero-title .amber { color: var(--amber); }
+        .hero-title .dim { opacity: 0.3; }
+        .hero-body { font-size: clamp(1rem, 1.6vw, 1.15rem); color: var(--text); max-width: 780px; line-height: 2; margin-bottom: 3rem; }
+        .hero-body strong { color: var(--white); }
+        .hero-body .amber { color: var(--amber); font-weight: 600; }
+        .hero-ruling {
+            background: var(--bg2); border: 1px solid rgba(245,158,11,0.15); border-left: 3px solid var(--amber);
+            border-radius: 6px; padding: 1.5rem 2rem; max-width: 780px;
+            font-family: var(--mono); font-size: 0.82rem; line-height: 1.9;
+        }
+        .hr-label { font-size: 0.58rem; letter-spacing: 4px; color: rgba(245,158,11,0.3); margin-bottom: 0.75rem; }
+        .hr-text { color: rgba(221,230,240,0.6); }
+        .hr-text .amber { color: var(--amber); }
+        .hr-text .dim { color: rgba(122,135,153,0.35); }
+
+        /* SECTIONS */
+        .section { padding: 5.5rem 2rem; }
+        .section-alt { background: var(--bg2); }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .sec-id { font-family: var(--mono); font-size: 0.6rem; color: rgba(245,158,11,0.25); letter-spacing: 4px; margin-bottom: 0.5rem; }
+        .sec-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.5rem, 2.5vw, 2.2rem); color: var(--white); font-weight: 700; margin-bottom: 0.75rem; line-height: 1.2; }
+        .sec-title .amber { color: var(--amber); }
+        .sec-title .red { color: var(--red); }
+        .sec-title .green { color: var(--green); }
+        .sec-desc { font-size: 1rem; color: var(--text); max-width: 720px; line-height: 1.95; margin-bottom: 3rem; }
+        .sec-desc strong { color: var(--white); }
+
+        /* AUTHORITY PILLARS */
+        .pillar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .pillar { border-radius: 12px; padding: 2rem; position: relative; overflow: hidden; }
+        .pillar.amber-p { background: var(--amber-dim); border: 1px solid var(--amber-border); }
+        .pillar.red-p { background: var(--red-dim); border: 1px solid var(--red-border); }
+        .pillar.green-p { background: var(--green-dim); border: 1px solid var(--green-border); }
+        .pillar.blue-p { background: var(--blue-dim); border: 1px solid var(--blue-border); }
+        .pillar-num { font-family: var(--mono); font-size: 0.58rem; color: rgba(122,135,153,0.25); letter-spacing: 3px; margin-bottom: 0.5rem; }
+        .pillar-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+        .pillar-title { font-size: 1.05rem; font-weight: 800; color: var(--white); margin-bottom: 0.6rem; }
+        .pillar-body { font-size: 0.9rem; color: var(--text); line-height: 1.8; }
+        .pillar-body strong { color: var(--white); }
+        .pillar-verdict { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); font-family: var(--mono); font-size: 0.72rem; }
+        .pillar.amber-p .pillar-verdict { color: rgba(245,158,11,0.5); }
+        .pillar.red-p .pillar-verdict { color: rgba(239,68,68,0.5); }
+        .pillar.green-p .pillar-verdict { color: rgba(16,185,129,0.5); }
+        .pillar.blue-p .pillar-verdict { color: rgba(59,130,246,0.5); }
+
+        /* ENFORCEMENT VIOLATIONS — the core concept */
+        .violations-wrap { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; }
+        .violation-header { display: grid; grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr; padding: 0.75rem 1.5rem; background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.12); border-radius: 10px 10px 0 0; }
+        .vh-cell { font-family: var(--mono); font-size: 0.58rem; color: rgba(245,158,11,0.3); letter-spacing: 3px; }
+        .violation { display: grid; grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr; border: 1px solid var(--border); border-top: none; background: var(--bg3); transition: background 0.2s; }
+        .violation:last-child { border-radius: 0 0 10px 10px; }
+        .violation:hover { background: rgba(245,158,11,0.025); }
+        .violation.critical { background: rgba(239,68,68,0.03); border-left: 2px solid rgba(239,68,68,0.3); }
+        .violation.critical:hover { background: rgba(239,68,68,0.05); }
+        .vc { padding: 1.2rem 1.5rem; border-right: 1px solid var(--border); }
+        .vc:last-child { border-right: none; }
+        .vc-offense { font-weight: 700; color: var(--white); font-size: 0.92rem; margin-bottom: 0.2rem; }
+        .vc-sub { font-size: 0.78rem; color: var(--text); line-height: 1.5; }
+        .vc-penalty { font-family: var(--mono); font-weight: 700; font-size: 0.92rem; }
+        .vc-penalty.amber { color: var(--amber); }
+        .vc-penalty.red { color: var(--red); }
+        .vc-penalty.green { color: var(--green); }
+        .vc-enforce { font-size: 0.78rem; color: var(--text); }
+        .vc-enforce strong { color: var(--white); display: block; }
+        .vc-dest { font-size: 0.78rem; }
+        .vc-dest.amber { color: rgba(245,158,11,0.6); }
+        .vc-dest.green { color: rgba(16,185,129,0.6); }
+        .vc-dest.red { color: rgba(239,68,68,0.6); }
+        .violation-divider { padding: 0.6rem 1.5rem; background: rgba(245,158,11,0.03); border: 1px solid rgba(245,158,11,0.1); border-top: none; border-bottom: none; font-family: var(--mono); font-size: 0.58rem; color: rgba(245,158,11,0.3); letter-spacing: 3px; }
+
+        /* CODE IS LAW EXPLAINER */
+        .law-split { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2.5rem; }
+        .law-card { border-radius: 12px; padding: 2rem; }
+        .law-card.traditional { background: var(--red-dim); border: 1px solid var(--red-border); }
+        .law-card.code { background: var(--green-dim); border: 1px solid var(--green-border); }
+        .law-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 3px; margin-bottom: 1rem; }
+        .law-card.traditional .law-label { color: rgba(239,68,68,0.4); }
+        .law-card.code .law-label { color: rgba(16,185,129,0.4); }
+        .law-title { font-size: 1.05rem; font-weight: 800; color: var(--white); margin-bottom: 1.25rem; }
+        .law-item { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.87rem; }
+        .law-item:last-child { border-bottom: none; }
+        .law-item-icon { flex-shrink: 0; font-size: 0.9rem; margin-top: 0.2rem; }
+        .law-item-text { color: var(--text); line-height: 1.65; }
+        .law-item-text strong { color: var(--white); display: block; margin-bottom: 0.1rem; }
+
+        /* TRANSACTION ANATOMY */
+        .tx-anatomy { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; }
+        .tx-step { display: flex; gap: 0; position: relative; }
+        .tx-connector { width: 2px; background: rgba(245,158,11,0.15); position: absolute; left: 2.5rem; top: 4rem; bottom: 0; z-index: 0; }
+        .tx-step:last-child .tx-connector { display: none; }
+        .tx-node { width: 5rem; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 1.5rem; position: relative; z-index: 1; }
+        .tx-node-circle { width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 0.7rem; font-weight: 700; }
+        .tx-node-circle.normal { background: var(--bg3); border: 1px solid var(--border); color: rgba(122,135,153,0.4); }
+        .tx-node-circle.enforce { background: var(--amber-dim); border: 1px solid var(--amber-border); color: var(--amber); }
+        .tx-node-circle.collect { background: var(--green-dim); border: 1px solid var(--green-border); color: var(--green); }
+        .tx-node-circle.reject { background: var(--red-dim); border: 1px solid var(--red-border); color: var(--red); }
+        .tx-body { flex: 1; padding: 1.5rem 1.5rem 2rem; }
+        .tx-phase { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 3px; color: rgba(122,135,153,0.3); margin-bottom: 0.3rem; }
+        .tx-title { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 0.5rem; }
+        .tx-desc { font-size: 0.87rem; color: var(--text); line-height: 1.75; max-width: 680px; }
+        .tx-desc strong { color: var(--white); }
+        .tx-code { font-family: var(--mono); font-size: 0.75rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 1rem; margin-top: 0.75rem; max-width: 620px; line-height: 1.8; }
+        .tc-green { color: rgba(16,185,129,0.7); }
+        .tc-amber { color: rgba(245,158,11,0.7); }
+        .tc-red { color: rgba(239,68,68,0.7); }
+        .tc-dim { color: rgba(122,135,153,0.3); }
+        .tc-white { color: rgba(221,230,240,0.7); }
+
+        /* PENALTY LEDGER */
+        .ledger { background: var(--bg3); border: 1px solid rgba(245,158,11,0.15); border-radius: 12px; overflow: hidden; margin-top: 2.5rem; }
+        .ledger-header { background: rgba(245,158,11,0.05); border-bottom: 1px solid rgba(245,158,11,0.12); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .ledger-title { font-family: var(--mono); font-size: 0.7rem; color: rgba(245,158,11,0.4); letter-spacing: 2px; }
+        .ledger-status { font-family: var(--mono); font-size: 0.65rem; color: rgba(16,185,129,0.4); display: flex; align-items: center; gap: 6px; }
+        .ledger-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+        .ledger-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 0; border-bottom: 1px solid var(--border); }
+        .ledger-row:last-child { border-bottom: none; }
+        .ledger-row:hover { background: rgba(245,158,11,0.02); }
+        .lr-cell { padding: 1rem 1.5rem; border-right: 1px solid var(--border); font-size: 0.83rem; }
+        .lr-cell:last-child { border-right: none; }
+        .lr-block { font-family: var(--mono); font-size: 0.7rem; color: rgba(122,135,153,0.3); }
+        .lr-offense { color: var(--white); font-weight: 600; margin-bottom: 0.15rem; }
+        .lr-detail { font-size: 0.75rem; color: var(--text); }
+        .lr-penalty { font-family: var(--mono); font-weight: 700; }
+        .lr-penalty.amber { color: var(--amber); }
+        .lr-penalty.red { color: var(--red); }
+        .lr-dest { font-family: var(--mono); font-size: 0.72rem; color: rgba(16,185,129,0.5); }
+
+        /* THE PRINCIPLE STATEMENT */
+        .principle { background: linear-gradient(160deg, rgba(245,158,11,0.04), transparent 60%); border: 1px solid rgba(245,158,11,0.12); border-radius: 14px; padding: 3rem; margin-top: 2.5rem; }
+        .principle-quote { font-size: clamp(1.3rem, 2.5vw, 1.9rem); color: var(--white); font-weight: 800; line-height: 1.5; margin-bottom: 1.75rem; }
+        .principle-quote .amber { color: var(--amber); }
+        .principle-body { font-size: 0.97rem; color: var(--text); line-height: 2; max-width: 800px; }
+        .principle-body strong { color: var(--white); }
+
+        /* WHY THIS MATTERS FOR PARTNERS */
+        .partner-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 2.5rem; }
+        .partner-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.2s; }
+        .partner-card:hover { border-color: rgba(245,158,11,0.2); }
+        .partner-card-bar { height: 2px; margin: -1.75rem -1.75rem 1.5rem; border-radius: 12px 12px 0 0; }
+        .partner-card-bar.amber { background: linear-gradient(90deg, var(--amber), transparent); }
+        .partner-card-bar.green { background: linear-gradient(90deg, var(--green), transparent); }
+        .partner-card-bar.red { background: linear-gradient(90deg, var(--red), transparent); }
+        .partner-icon { font-size: 1.75rem; margin-bottom: 0.6rem; }
+        .partner-title { font-weight: 700; color: var(--white); margin-bottom: 0.5rem; font-size: 0.97rem; }
+        .partner-body { font-size: 0.86rem; color: var(--text); line-height: 1.75; }
+        .partner-body strong { color: var(--white); }
+
+        /* FINAL */
+        .final { padding: 8rem 2rem; text-align: center; background: radial-gradient(ellipse at center bottom, rgba(245,158,11,0.04) 0%, transparent 65%); border-top: 1px solid rgba(245,158,11,0.08); }
+        .final-ruling { display: inline-block; background: var(--amber-dim); border: 1px solid var(--amber-border); border-radius: 6px; padding: 0.4rem 1.25rem; font-family: var(--mono); font-size: 0.62rem; color: rgba(245,158,11,0.4); letter-spacing: 4px; margin-bottom: 2rem; }
+        .final-title { font-family: 'Orbitron', sans-serif; font-size: clamp(2rem, 5vw, 4rem); color: var(--white); font-weight: 900; line-height: 1.15; margin-bottom: 1.75rem; }
+        .final-title .amber { color: var(--amber); }
+        .final-body { font-size: 1.05rem; color: var(--text); max-width: 700px; margin: 0 auto 3rem; line-height: 2; }
+        .final-body strong { color: var(--white); }
+        .final-contracts { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin-top: 2rem; }
+        .fc-tag { font-family: var(--mono); font-size: 0.67rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 1rem; color: rgba(122,135,153,0.3); }
+        .fc-tag span { color: rgba(245,158,11,0.35); display: block; font-size: 0.55rem; letter-spacing: 2px; margin-bottom: 0.15rem; }
+
+        footer { padding: 2rem; text-align: center; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.67rem; color: rgba(122,135,153,0.2); }
+        footer a { color: rgba(245,158,11,0.3); text-decoration: none; }
+
+        @media (max-width: 900px) {
+            .pillar-grid, .law-split, .partner-grid { grid-template-columns: 1fr; }
+            .violation, .violation-header { grid-template-columns: 1fr 1fr; }
+            .vh-cell:nth-child(3), .vc:nth-child(3) { display: none; }
+            .ledger-row { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 600px) {
+            .nav { flex-direction: column; gap: 0.5rem; }
+            .violation, .violation-header { grid-template-columns: 1fr; }
+            .hero::before { font-size: 6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="nav no-print">
+    <div class="nav-left">UTL://CODE_IS_LAW — ENFORCEMENT_AUTHORITY</div>
+    <div class="nav-right">
+        <a href="/utl-developers.html" class="nbtn nbtn-ghost">← Docs</a>
+        <button class="nbtn nbtn-amber" onclick="window.print()">Export PDF</button>
+    </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-badge">
+            <div class="hero-badge-dot"></div>
+            <div class="hero-badge-text">ACTIVE ENFORCEMENT — BSC MAINNET — ALL 5 CONTRACTS LIVE</div>
+        </div>
+        <h1 class="hero-title">
+            Code Is Law.<br>
+            <span class="amber">The FeeCollector</span><br>
+            <span class="dim">Is the Law Enforcement.</span>
+        </h1>
+        <p class="hero-body">
+            In traditional finance, a fee collection authority needs courts, lawyers, collection agencies, and years to enforce a penalty. Even then, <strong>payment can be disputed, delayed, or evaded.</strong> In blockchain, the law is written in code. When a transaction touches the UTL FeeCollector contract, the fee is not requested — <span class="amber">it is executed automatically, at the machine level, before any other logic runs.</span> There is no appeal. There is no exception. There is no escape. The contract IS the court, the judge, and the enforcement officer — all in one atomic transaction.
+        </p>
+        <div class="hero-ruling">
+            <div class="hr-label">UTL PROTOCOL — ENFORCEMENT RULING — EFFECTIVE: BLOCK #0</div>
+            <div class="hr-text">
+                Any transaction interacting with a UTL Protocol contract<br>
+                <span class="amber">SHALL</span> have the applicable fee deducted at execution time.<br>
+                <span class="amber">SHALL NOT</span> proceed without fee settlement in the same block.<br>
+                <span class="amber">CANNOT</span> appeal, dispute, or request refund post-execution.<br>
+                <span class="dim">// This is not policy. This is code. Code is law.</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 1: THE FOUR PILLARS OF ENFORCEMENT AUTHORITY -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="sec-id">// ENFORCEMENT_AUTHORITY — ARTICLE I</div>
+        <h2 class="sec-title">What Makes the FeeCollector<br><span class="amber">Impossible to Ignore</span></h2>
+        <p class="sec-desc">Traditional fee collectors have authority on paper. The UTL FeeCollector has authority in logic. Four properties make it unlike anything in traditional finance — and unlike most blockchain protocols.</p>
+
+        <div class="pillar-grid">
+            <div class="pillar amber-p">
+                <div class="pillar-num">ARTICLE 01</div>
+                <div class="pillar-icon">⚡</div>
+                <div class="pillar-title">Atomic Enforcement — No Split Execution</div>
+                <div class="pillar-body">
+                    Every UTL transaction is atomic — it either <strong>fully succeeds with the fee deducted</strong>, or it fully reverts. There is no scenario where a user receives the benefit of the protocol without paying the fee. The Solidity <code style="font-family: var(--mono); font-size: 0.8em; color: var(--amber);">require()</code> statement is the warrant. If fee settlement fails, the entire transaction is cancelled — gas burned, transaction invalid, no value transferred.
+                </div>
+                <div class="pillar-verdict">VERDICT: Fee payment and value transfer are one indivisible action.</div>
+            </div>
+            <div class="pillar red-p">
+                <div class="pillar-num">ARTICLE 02</div>
+                <div class="pillar-icon">🚫</div>
+                <div class="pillar-title">No Human Override — Code Executes Regardless</div>
+                <div class="pillar-body">
+                    There is no admin function to waive a fee. No owner can call <code style="font-family: var(--mono); font-size: 0.8em; color: var(--red);">setFeeExempt()</code> for a preferred partner. <strong>No wallet address is whitelisted from enforcement.</strong> Not even the contract deployer. The FeeCollector applies equally to every address — a $5 transaction and a $5,000,000 transaction go through the same enforcement path. That is what makes it law — not policy with exceptions, but code without favorites.
+                </div>
+                <div class="pillar-verdict">VERDICT: No privileged class. No exemptions. No bypass.</div>
+            </div>
+            <div class="pillar green-p">
+                <div class="pillar-num">ARTICLE 03</div>
+                <div class="pillar-icon">🔍</div>
+                <div class="pillar-title">Every Collection Is Public Record</div>
+                <div class="pillar-body">
+                    The blockchain is the ledger. Every fee collected, every distribution routed, every penalty applied — <strong>permanently recorded and publicly auditable on BSCScan</strong>. No off-ledger accounting. No "trust us." Any company, developer, investor, or regulator can pull the FeeCollector contract address and see every enforcement action ever taken, down to the block number and transaction hash. Traditional fee collectors dream of this level of transparency. UTL is built on it.
+                </div>
+                <div class="pillar-verdict">VERDICT: Full enforcement history. Always auditable. Cannot be altered.</div>
+            </div>
+            <div class="pillar blue-p">
+                <div class="pillar-num">ARTICLE 04</div>
+                <div class="pillar-icon">🔄</div>
+                <div class="pillar-title">Instant Distribution — No Collection Lag</div>
+                <div class="pillar-body">
+                    In traditional finance, fees are collected, batched, processed, and eventually distributed — sometimes weeks later. <strong>UTL distributes in the same transaction that collects.</strong> The moment the FeeCollector receives a fee, the distribution logic fires: 60% to stakers, 25% to T.D.I.R., 15% to Treasury. No settlement period. No intermediary. No bank processing time. The enforcement and the reward happen in a single block.
+                </div>
+                <div class="pillar-verdict">VERDICT: Collection and distribution in one atomic block. Always.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 2: THE VIOLATION TABLE -->
+<section class="section">
+    <div class="container">
+        <div class="sec-id">// ENFORCEMENT_AUTHORITY — ARTICLE II</div>
+        <h2 class="sec-title">The <span class="amber">Penalty Schedule</span><br>What the FeeCollector Enforces</h2>
+        <p class="sec-desc">Because Code is Law, every type of protocol interaction carries an enforceable penalty — not negotiated, not invoiced, not subject to dispute. The code decides the penalty. The block executes it. Below is the full UTL enforcement schedule.</p>
+
+        <div class="violations-wrap">
+            <div class="violation-header">
+                <div class="vh-cell">OFFENSE / VIOLATION TYPE</div>
+                <div class="vh-cell">PENALTY RATE</div>
+                <div class="vh-cell">ENFORCEMENT MECHANISM</div>
+                <div class="vh-cell">PENALTY DESTINATION</div>
+            </div>
+
+            <div class="violation-divider">CATEGORY A — LIQUIDITY VIOLATIONS</div>
+
+            <div class="violation critical">
+                <div class="vc">
+                    <div class="vc-offense">Unauthorized Liquidity Drain</div>
+                    <div class="vc-sub">Attempting to remove liquidity below the minimum threshold defined in the contract — a structural violation. The contract interprets mass liquidity removal as an attack on KENO peg stability.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty red">REVERT + GAS BURNED</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Automatic revert via require()</strong>Transaction fails entirely. Gas is consumed. The attempted drain is recorded on-chain as a failed transaction — permanent evidence of the attempt.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest red">→ Transaction Voided. Violator pays gas, receives nothing.</div>
+                </div>
+            </div>
+
+            <div class="violation critical">
+                <div class="vc">
+                    <div class="vc-offense">Peg Destabilization Attempt</div>
+                    <div class="vc-sub">Any swap or transfer that would push KENO's price more than the permitted deviation from the $1.00 USDB peg. The contract enforces price band compliance at execution time.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty red">FULL REVERT</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Price band check at transaction entry</strong>If the resulting price post-swap would violate the peg threshold, the entire transaction is rejected. No partial execution. No manual review required.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest red">→ Transaction Voided. Peg protected automatically.</div>
+                </div>
+            </div>
+
+            <div class="violation-divider">CATEGORY B — STAKING VIOLATIONS</div>
+
+            <div class="violation">
+                <div class="vc">
+                    <div class="vc-offense">Early Exit — Staking Period Breach</div>
+                    <div class="vc-sub">Unstaking KENO before the committed lock period ends. The staking contract enforces a time-based agreement — leaving early triggers a penalty fee on the withdrawal, not a request for a fee.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty amber">2–5% of stake</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Block timestamp check vs. lock expiry</strong>The contract compares the current block timestamp against the staker's committed lock-end time. If early, the penalty deducts automatically before the remaining balance transfers.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest amber">→ FeeCollector → 60% Remaining Stakers / 40% Treasury</div>
+                </div>
+            </div>
+
+            <div class="violation">
+                <div class="vc">
+                    <div class="vc-offense">Reward Claim Without Active Stake</div>
+                    <div class="vc-sub">Attempting to claim staking rewards after removing stake position — a structural violation where a wallet tries to receive benefit without fulfilling the stake requirement.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty red">REVERT</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Balance check before reward distribution</strong>Reward function verifies active stake balance. Zero stake balance = zero claim right. The contract enforces this mathematically, not administratively.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest red">→ Claim voided. Rewards remain in pool for active stakers.</div>
+                </div>
+            </div>
+
+            <div class="violation-divider">CATEGORY C — PROTOCOL USAGE FEES (MANDATORY TOLL + USER RETURN)</div>
+
+            <div class="violation">
+                <div class="vc">
+                    <div class="vc-offense">KENO Distribution — Platform Usage Toll</div>
+                    <div class="vc-sub">Any platform using UTL Protocol to distribute KENO tokens pays a mandatory 1% toll on every distribution event. This is not optional. The FeeCollector deducts before any tokens leave the contract.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty amber">1.00%</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Pre-distribution deduction at contract entry</strong>The fee is subtracted before the distribution function executes. The platform integrating UTL cannot route around this — the deduction is baked into the distribution call itself.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest green">→ FeeCollector → 60% Stakers / 25% T.D.I.R. / 15% Treasury</div>
+                </div>
+            </div>
+
+            <div class="violation">
+                <div class="vc">
+                    <div class="vc-offense">Staking Contract Interaction — Entry/Exit Toll</div>
+                    <div class="vc-sub">Every stake and every unstake interaction carries a 0.5% protocol toll. This applies to all staking contract interactions regardless of size or frequency. A required cost of participation.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty amber">0.50%</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Modifier executes before state change</strong>A Solidity function modifier deducts the fee before the staking state is updated. If fee transfer fails, the stake state never changes. Toll first, access second.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest green">→ FeeCollector → Protocol Treasury</div>
+                </div>
+            </div>
+
+            <!-- CATEGORY C USER INCENTIVE LAYER -->
+            <div style="border: 1px solid rgba(245,158,11,0.15); border-top: none; background: linear-gradient(135deg, rgba(245,158,11,0.04), rgba(16,185,129,0.04)); padding: 2rem 1.5rem;">
+                <div style="font-family: var(--mono); font-size: 0.6rem; color: rgba(245,158,11,0.35); letter-spacing: 4px; margin-bottom: 1.25rem;">// CATEGORY C — USER RETURN LAYER: THE TOLL PAYS YOU BACK</div>
+                <div style="font-size: 0.9rem; color: var(--text); max-width: 820px; line-height: 1.9; margin-bottom: 1.75rem;">
+                    A toll that only benefits the protocol is a tax. A toll that cycles back to the payer is an <strong style="color: var(--white);">investment in the system they're building.</strong> Every Category C toll paid by a user earns them a measurable return — automatically, on-chain, with no claim required.
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;">
+                    <div style="background: var(--bg3); border: 1px solid var(--green-border); border-radius: 10px; padding: 1.5rem;">
+                        <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">🔄</div>
+                        <div style="font-weight: 700; color: var(--white); margin-bottom: 0.4rem; font-size: 0.95rem;">Stakers Collect What They Pay Into</div>
+                        <div style="font-size: 0.83rem; color: var(--text); line-height: 1.75;">Any user who stakes KENO and then interacts with the protocol pays a 0.5–1% toll — but as a staker, they receive <strong style="color: var(--white);">60% of every toll collected across the entire network.</strong> The more activity on the protocol, the more their stake earns back. Paying the toll buys them a seat at the collection table.</div>
+                    </div>
+                    <div style="background: var(--bg3); border: 1px solid var(--amber-border); border-radius: 10px; padding: 1.5rem;">
+                        <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">🏅</div>
+                        <div style="font-weight: 700; color: var(--white); margin-bottom: 0.4rem; font-size: 0.95rem;">Toll Volume Builds Loyalty Tier</div>
+                        <div style="font-size: 0.83rem; color: var(--text); line-height: 1.75;">Every toll paid is logged against the user's wallet as cumulative protocol contribution. This contribution score determines <strong style="color: var(--white);">Graduate Club tier, early access to new products, and reduced toll rates at higher tiers.</strong> Users who pay more don't get penalized — they get elevated. Consistent payers become protocol insiders.</div>
+                    </div>
+                    <div style="background: var(--bg3); border: 1px solid rgba(59,130,246,0.2); border-radius: 10px; padding: 1.5rem;">
+                        <div style="font-size: 1.6rem; margin-bottom: 0.5rem;">🗳️</div>
+                        <div style="font-weight: 700; color: var(--white); margin-bottom: 0.4rem; font-size: 0.95rem;">Toll History = Governance Weight</div>
+                        <div style="font-size: 0.83rem; color: var(--text); line-height: 1.75;">On-chain toll records are permanent proof of protocol participation. <strong style="color: var(--white);">Cumulative fee contributions grant proportional governance rights</strong> — the ability to vote on fee rate adjustments, new product additions, and T.D.I.R. Foundation funding decisions. Users who pay into the system earn the right to shape it.</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1.25rem; background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.12); border-radius: 8px; padding: 1rem 1.5rem; font-family: var(--mono); font-size: 0.78rem; color: rgba(245,158,11,0.45); line-height: 1.9;">
+                    <span style="color: rgba(245,158,11,0.25);">// </span>The enforcement is mandatory. The return is automatic. The same code that collects the toll also logs the contribution, updates the tier, and routes staking rewards — in one block, to every eligible wallet, without a claim form.
+                </div>
+            </div>
+
+            <div class="violation-divider">CATEGORY D — FLASH ARBITRAGE LOAN VIOLATIONS</div>
+
+            <div class="violation critical">
+                <div class="vc">
+                    <div class="vc-offense">FAL™ Repayment Default — Same Block Failure</div>
+                    <div class="vc-sub">Flash Arbitrage Loans must be borrowed and repaid within the same block. If repayment + fee is not returned before block close, the contract never releases the funds. The "default" is structurally impossible — the loan simply never executes.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty red">LOAN NEVER ISSUED</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Atomic check: borrow + repay in same tx</strong>The flash loan logic verifies repayment before releasing funds. If the callback doesn't return the principal + 0.09% fee in the same transaction, the entire operation reverts. Default is technically impossible, not just penalized.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest red">→ Nothing issued. No loss to protocol. Violator pays gas.</div>
+                </div>
+            </div>
+
+            <div class="violation">
+                <div class="vc">
+                    <div class="vc-offense">FAL™ Successful Completion — Protocol Toll</div>
+                    <div class="vc-sub">Every successfully completed Flash Arbitrage Loan pays a 0.09% fee — matching Aave's rate but staying inside the UTL ecosystem instead of flowing to an external protocol.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-penalty green">0.09%</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-enforce"><strong>Post-repayment fee split before confirmation</strong>After repayment is verified, the 0.09% fee is routed to the FeeCollector before the transaction confirms. The borrower retains their arbitrage profit minus the toll.</div>
+                </div>
+                <div class="vc">
+                    <div class="vc-dest green">→ FeeCollector → KENO Holders. Not Aave. Not external protocol.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 3: TRANSACTION ANATOMY -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="sec-id">// ENFORCEMENT_AUTHORITY — ARTICLE III</div>
+        <h2 class="sec-title">What Actually Happens<br><span class="amber">Inside Every Transaction</span></h2>
+        <p class="sec-desc">Most people see the before and after — KENO moved, fee deducted, done. What happens between those two moments is where the enforcement authority lives. This is the sequence at the code level.</p>
+
+        <div class="tx-anatomy">
+            <div class="tx-step">
+                <div class="tx-connector"></div>
+                <div class="tx-node">
+                    <div class="tx-node-circle normal">01</div>
+                </div>
+                <div class="tx-body">
+                    <div class="tx-phase">TRANSACTION SUBMITTED</div>
+                    <div class="tx-title">User signs and broadcasts the transaction</div>
+                    <div class="tx-desc">A user or platform submits a transaction to the BSC network. At this moment, <strong>nothing has happened yet</strong> — the transaction is pending in the mempool. The fee hasn't been deducted. The value hasn't moved. But the enforcement clock has started.</div>
+                </div>
+            </div>
+
+            <div class="tx-step">
+                <div class="tx-connector"></div>
+                <div class="tx-node">
+                    <div class="tx-node-circle enforce">02</div>
+                </div>
+                <div class="tx-body">
+                    <div class="tx-phase">CONTRACT ENTRY — ENFORCEMENT GATE</div>
+                    <div class="tx-title">The FeeCollector modifier runs first — before anything else</div>
+                    <div class="tx-desc">The moment the transaction reaches the UTL contract, a function modifier runs. This is the enforcement gate. <strong>No business logic executes until this gate passes.</strong> The modifier checks: Is the fee payment included? Is the sender authorized for this action? Is the amount within protocol bounds?</div>
+                    <div class="tx-code">
+                        <span class="tc-dim">// Enforcement modifier — runs BEFORE function body</span><br>
+                        <span class="tc-amber">modifier</span> <span class="tc-white">collectFee</span>(<span class="tc-white">uint256 amount</span>) {<br>
+                        &nbsp;&nbsp;<span class="tc-green">uint256</span> fee = (amount * feeRate) / <span class="tc-amber">10000</span>;<br>
+                        &nbsp;&nbsp;<span class="tc-amber">require</span>(fee &gt; <span class="tc-amber">0</span>, <span class="tc-dim">"Fee cannot be zero"</span>);<br>
+                        &nbsp;&nbsp;KENO.transferFrom(msg.sender, address(feeCollector), fee);<br>
+                        &nbsp;&nbsp;<span class="tc-dim">_; // function body only runs after fee is collected</span><br>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="tx-step">
+                <div class="tx-connector"></div>
+                <div class="tx-node">
+                    <div class="tx-node-circle reject">⊗</div>
+                </div>
+                <div class="tx-body">
+                    <div class="tx-phase">REJECTION PATH — IF GATE FAILS</div>
+                    <div class="tx-title">Fee payment fails → Entire transaction reverts</div>
+                    <div class="tx-desc">If the fee transfer fails for any reason — insufficient balance, approval not set, amount below minimum — <strong>the entire transaction reverts to its original state</strong>. No partial execution. No value moved. The violator loses only the gas they paid to attempt it. The protocol is unchanged.</div>
+                    <div class="tx-code">
+                        <span class="tc-red">// REVERT — entire tx rolled back</span><br>
+                        <span class="tc-dim">// Block explorer shows: "Fail with error 'Fee transfer failed'"</span><br>
+                        <span class="tc-dim">// Violator's balance: unchanged</span><br>
+                        <span class="tc-dim">// Protocol state: unchanged</span><br>
+                        <span class="tc-red">// Gas cost: burned. No refund.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tx-step">
+                <div class="tx-connector"></div>
+                <div class="tx-node">
+                    <div class="tx-node-circle collect">✓</div>
+                </div>
+                <div class="tx-body">
+                    <div class="tx-phase">COLLECTION + DISTRIBUTION — SAME BLOCK</div>
+                    <div class="tx-title">Fee collected → Immediately distributed to ecosystem</div>
+                    <div class="tx-desc">Fee payment confirmed. Now the business logic executes — and simultaneously, the FeeCollector routes the collected fee. <strong>All of this happens within a single block, in one transaction.</strong> The staker reward updates. The T.D.I.R. allocation increases. The Treasury grows. The user's intended action completes. Five contracts, one block, zero delay.</div>
+                    <div class="tx-code">
+                        <span class="tc-green">// FeeCollector.distribute()</span><br>
+                        stakerPool += fee * <span class="tc-amber">60</span> / <span class="tc-amber">100</span>; <span class="tc-dim">// 60% to KENO stakers</span><br>
+                        tdirFund += fee * <span class="tc-amber">25</span> / <span class="tc-amber">100</span>; <span class="tc-dim">// 25% to T.D.I.R. Foundation</span><br>
+                        treasury += fee * <span class="tc-amber">15</span> / <span class="tc-amber">100</span>; <span class="tc-dim">// 15% to Treasury</span><br>
+                        <span class="tc-green">emit FeeCollected(msg.sender, fee, block.number);</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 4: CODE IS LAW vs TRADITIONAL LAW -->
+<section class="section">
+    <div class="container">
+        <div class="sec-id">// ENFORCEMENT_AUTHORITY — ARTICLE IV</div>
+        <h2 class="sec-title">Why Traditional Fee Collectors<br><span class="red">Can't Compete</span></h2>
+        <p class="sec-desc">The UTL FeeCollector doesn't operate like a finance company collecting fees. It operates like a physical law of nature — if you interact with the protocol, the fee executes. Here is the honest comparison.</p>
+
+        <div class="law-split">
+            <div class="law-card traditional">
+                <div class="law-label">TRADITIONAL FINANCE — FEE ENFORCEMENT</div>
+                <div class="law-title">Human Law: Subject to Interpretation</div>
+                <div class="law-item"><span class="law-item-icon">⏳</span><div class="law-item-text"><strong>Collection takes time</strong>Invoices issued. Payment terms set. Reminders sent. Late fees applied. Collection agencies engaged. Months or years of lag between offense and collection.</div></div>
+                <div class="law-item"><span class="law-item-icon">⚖️</span><div class="law-item-text"><strong>Disputes are possible</strong>Any fee can be disputed, delayed, or litigated. Courts can overturn enforcement decisions. Arbitration can reduce or eliminate fees. Enforcement is never guaranteed.</div></div>
+                <div class="law-item"><span class="law-item-icon">🤝</span><div class="law-item-text"><strong>Relationships create exemptions</strong>Large clients negotiate lower fees. Preferred partners get waivers. Internal policy overrides the rule. The law is applied unequally based on relationships and leverage.</div></div>
+                <div class="law-item"><span class="law-item-icon">🕶️</span><div class="law-item-text"><strong>Collections are private</strong>No public record of what was collected, from whom, or when. Audits are periodic, not continuous. Bad actors can hide in the gaps between audit cycles.</div></div>
+                <div class="law-item"><span class="law-item-icon">💸</span><div class="law-item-text"><strong>Collection costs money</strong>Legal fees, staff time, collections infrastructure — enforcement itself is expensive and unprofitable below a certain threshold. Micro-violations go uncollected.</div></div>
+            </div>
+            <div class="law-card code">
+                <div class="law-label">UTL PROTOCOL — CODE IS LAW ENFORCEMENT</div>
+                <div class="law-title">Code Law: Executes Without Exception</div>
+                <div class="law-item"><span class="law-item-icon">⚡</span><div class="law-item-text"><strong>Collection happens in milliseconds</strong>No invoice. No payment terms. No reminders. The fee deducts in the same block as the transaction — typically under 3 seconds on BSC. There is no payment lag.</div></div>
+                <div class="law-item"><span class="law-item-icon">🔒</span><div class="law-item-text"><strong>Disputes are technically impossible</strong>Once the block confirms, the transaction is immutable. There is no mechanism to reverse a confirmed fee collection. The blockchain has no appeals court. The code ruled.</div></div>
+                <div class="law-item"><span class="law-item-icon">⚖️</span><div class="law-item-text"><strong>No address receives preferential treatment</strong>The contract applies the same fee logic to every wallet, every platform, every transaction size. A $1 transaction and a $1,000,000 transaction face identical enforcement code.</div></div>
+                <div class="law-item"><span class="law-item-icon">📖</span><div class="law-item-text"><strong>Every collection is public law</strong>BSCScan is the permanent public record. Every fee collected, every distribution routed — timestamped, block-stamped, and publicly auditable forever. No hiding. No gaps.</div></div>
+                <div class="law-item"><span class="law-item-icon">🤖</span><div class="law-item-text"><strong>Enforcement costs nothing</strong>No staff. No legal team. No collection agency. The contract enforces itself. Micro-penalties on tiny transactions are just as enforceable as large ones — at zero marginal cost.</div></div>
+            </div>
+        </div>
+
+        <div class="principle">
+            <div class="principle-quote">
+                "The FeeCollector doesn't chase payments.<br>
+                It <span class="amber">takes the toll before the gate opens.</span><br>
+                No toll. No access. That is the only rule."
+            </div>
+            <div class="principle-body">
+                This is the economic cure Nickeo Coleman describes. Not a system that catches leakage after the fact — but a system where <strong>leakage is structurally impossible</strong>. The toll booth is not at the end of the road. It is the road. You cannot drive on UTL Protocol without paying. You cannot interact with any of the five contracts without the FeeCollector taking its cut first. The ecosystem does not ask for revenue — <strong>the code collects it, automatically, forever, from every transaction that touches it.</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 5: WHY THIS MATTERS FOR PARTNERS AND COMPANIES -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="sec-id">// ENFORCEMENT_AUTHORITY — ARTICLE V</div>
+        <h2 class="sec-title">What This Means<br><span class="green">For Any Company Paying Attention</span></h2>
+        <p class="sec-desc">Most companies don't think about Code is Law until they're already operating inside a protocol that enforces it. Here is what the FeeCollector's enforcement authority means in practice for three different types of companies.</p>
+
+        <div class="partner-grid">
+            <div class="partner-card">
+                <div class="partner-card-bar amber"></div>
+                <div class="partner-icon">🏗️</div>
+                <div class="partner-title">For Platforms Building on UTL</div>
+                <div class="partner-body">
+                    You cannot integrate UTL Protocol partially. The moment your platform routes a transaction through any of the five contracts, <strong>the FeeCollector enforces its rules on your users.</strong> This is not a burden — it is a guarantee. Your users get automatic, transparent, auditable fees. Your platform gets the credibility of a self-enforcing revenue system. You build. The code collects.
+                </div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-card-bar green"></div>
+                <div class="partner-icon">💰</div>
+                <div class="partner-title">For Liquidity Providers</div>
+                <div class="partner-body">
+                    Providing liquidity to the KENO ecosystem means the FeeCollector is working on your behalf. <strong>Every violation, every penalty, every mandatory toll — a portion routes back to you automatically.</strong> You don't file a claim. You don't wait for a distribution date. The block confirms and your staking reward increases. The enforcement pays you in real time.
+                </div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-card-bar red"></div>
+                <div class="partner-icon">🔎</div>
+                <div class="partner-title">For Companies Evaluating Blockchain Exposure</div>
+                <div class="partner-body">
+                    Before your company integrates any blockchain protocol, the question is: <strong>who enforces the fee structure, and what happens when someone doesn't comply?</strong> With UTL, the answer is the same every time: the code enforces it, immediately, without human intervention, and the result is on-chain forever. That is a risk profile that no traditional financial instrument can match.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FINAL -->
+<section class="final">
+    <div class="final-ruling">UTL://ENFORCEMENT_RECORD — PERMANENT</div>
+    <h2 class="final-title">The Code<br>Already <span class="amber">Went to Work.</span></h2>
+    <p class="final-body">
+        While this document was being read, the UTL FeeCollector was active on BSC mainnet. Every transaction that touched any of the five live contracts had its fee deducted automatically, distributed instantly, and recorded permanently. <strong>No staff required. No invoice issued. No collection pending.</strong> The law is already running. The question for any company, developer, or partner is not whether to respect Code is Law — it is whether to be the one <strong>the code is collecting for</strong>, or the one the code is collecting <strong>from</strong>.
+    </p>
+    <div class="final-contracts">
+        <div class="fc-tag"><span>KENO TOKEN</span>0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+        <div class="fc-tag"><span>FEECOLLECTOR — ENFORCEMENT CONTRACT</span>0xfE537c43d202C455Cedc141B882c808287BB662f</div>
+        <div class="fc-tag"><span>STAKING</span>0x49961979c93f43f823BB3593b207724194019d1d</div>
+        <div class="fc-tag"><span>TREASURY</span>0x3B3538b955647d811D42400084e9409e6593bE97</div>
+        <div class="fc-tag"><span>DISTRIBUTION</span>0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7</div>
+    </div>
+</section>
+
+<footer>
+    &copy; 2026 Kenostod Blockchain Academy LLC — T.D.I.R. Foundation &nbsp;·&nbsp;
+    UTL Protocol — Code Is Law &nbsp;·&nbsp;
+    <a href="/utl-developers.html">Developer Docs</a> &nbsp;·&nbsp;
+    <a href="/utl-fee-intelligence.html">Fee Intelligence</a> &nbsp;·&nbsp;
+    <a href="/quick-ref.html">Quick Reference</a>
+</footer>
+
+</body>
+</html>

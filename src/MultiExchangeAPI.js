@@ -1,5 +1,7 @@
 const https = require('https');
 
+const FETCH_TIMEOUT_MS = 8000;
+
 class MultiExchangeAPI {
     constructor() {
         this.cache = {
@@ -10,7 +12,7 @@ class MultiExchangeAPI {
             lastUpdate: {}
         };
         
-        this.cacheExpiry = 60000;
+        this.cacheExpiry = 55000;
         
         this.symbols = {
             BTC: { binance: 'BTCUSDT', coinbase: 'BTC-USD', kraken: 'XBTUSD', kucoin: 'BTC-USDT' },
@@ -28,7 +30,7 @@ class MultiExchangeAPI {
     
     httpsGet(url) {
         return new Promise((resolve, reject) => {
-            https.get(url, (res) => {
+            const req = https.get(url, { timeout: FETCH_TIMEOUT_MS }, (res) => {
                 let data = '';
                 res.on('data', chunk => data += chunk);
                 res.on('end', () => {
@@ -38,7 +40,12 @@ class MultiExchangeAPI {
                         reject(new Error(`Parse error: ${err.message}`));
                     }
                 });
-            }).on('error', reject);
+            });
+            req.on('error', reject);
+            req.on('timeout', () => {
+                req.destroy(new Error(`Request timeout after ${FETCH_TIMEOUT_MS}ms: ${url}`));
+            });
+            req.setTimeout(FETCH_TIMEOUT_MS);
         });
     }
     

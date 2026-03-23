@@ -28,6 +28,7 @@ const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
+const UTLFeeCollector = require('./src/UTLFeeCollector');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('./src/secp256k1-compat').ec;
 const ec = new EC('secp256k1');
@@ -100,7 +101,14 @@ async function initializeStripe() {
         const { webhook, uuid } = await stripeSync.findOrCreateManagedWebhook(
             `${webhookBaseUrl}/api/stripe/webhook`,
             {
-                enabled_events: ['*'],
+                enabled_events: [
+                    'checkout.session.completed',
+                    'customer.subscription.created',
+                    'customer.subscription.updated',
+                    'customer.subscription.deleted',
+                    'invoice.payment_succeeded',
+                    'invoice.payment_failed'
+                ],
                 description: 'Kenostod Blockchain Academy - Managed webhook',
             }
         );
@@ -594,6 +602,270 @@ app.get('/api/utl/prices', async (req, res) => {
     });
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// UTL FEECOLLECTOR — CODE IS LAW — ALL FEE ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════
+
+// GET: Full fee schedule, tier structure, distribution split
+app.get('/api/utl/fee/schedule', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    res.json({
+        success: true,
+        feeSchedule: utlFeeCollector.feeSchedule,
+        loyaltyTiers: utlFeeCollector.loyaltyTiers,
+        distributionSplit: utlFeeCollector.split,
+        contracts: utlFeeCollector.contracts
+    });
+});
+
+// GET: Aggregate stats — total collected, by category, by type, projections
+app.get('/api/utl/fee/stats', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    res.json({ success: true, ...utlFeeCollector.getStats() });
+});
+
+// GET: Recent fee collection events (live ledger)
+app.get('/api/utl/fee/events', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    res.json({ success: true, events: utlFeeCollector.getRecentEvents(limit) });
+});
+
+// GET: Top toll payers — leaderboard
+app.get('/api/utl/fee/leaderboard', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    res.json({ success: true, leaderboard: utlFeeCollector.getLeaderboard(limit) });
+});
+
+// GET: Individual wallet profile — tier, toll history, governance weight
+app.get('/api/utl/fee/wallet/:address', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    const profile = utlFeeCollector.getWalletProfile(req.params.address);
+    const govWeight = utlFeeCollector.getGovernanceWeight(req.params.address);
+    res.json({ success: true, profile, governance: govWeight });
+});
+
+// GET: Governance weight for a wallet
+app.get('/api/utl/fee/governance/:address', (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    res.json({ success: true, ...utlFeeCollector.getGovernanceWeight(req.params.address) });
+});
+
+// POST: Record a fee collection event
+// Body: { feeType, walletAddress, principalAmount, flatFeeKey, metadata }
+app.post('/api/utl/fee/collect', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { feeType, walletAddress, principalAmount = 0, flatFeeKey, metadata = {} } = req.body;
+        if (!feeType) return res.status(400).json({ error: 'feeType is required' });
+        const event = utlFeeCollector.collect({ feeType, walletAddress, principalAmount: parseFloat(principalAmount), flatFeeKey, metadata });
+        if (!event) return res.status(400).json({ error: 'Fee amount resolved to zero — check feeType and amount' });
+        const profile = utlFeeCollector.getWalletProfile(walletAddress);
+        res.json({
+            success: true,
+            message: 'Fee collected and distributed — Code is Law',
+            event,
+            walletTier: profile.tier,
+            tierConfig: profile.tierConfig,
+            progressToNextTier: profile.progressToNextTier
+        });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// POST: Record a KENO distribution toll (Category A)
+app.post('/api/utl/fee/distribution-toll', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, kenoAmount } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'DISTRIBUTION_TOLL',
+            walletAddress,
+            principalAmount: parseFloat(kenoAmount) || 0,
+            metadata: { source: 'keno_distribution' }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record a staking toll (Category A)
+app.post('/api/utl/fee/staking-toll', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, stakeAmount, action } = req.body; // action: 'stake' | 'unstake'
+        const event = utlFeeCollector.collect({
+            feeType: 'STAKING_TOLL',
+            walletAddress,
+            principalAmount: parseFloat(stakeAmount) || 0,
+            metadata: { action: action || 'stake' }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record FAL™ completion fee (Category B)
+app.post('/api/utl/fee/fal-completion', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, loanAmount, profit } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'FAL_COMPLETION_FEE',
+            walletAddress,
+            principalAmount: parseFloat(loanAmount) || 0,
+            metadata: { loanAmount, profit }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record credential verification fee (Category D)
+app.post('/api/utl/fee/credential-verify', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { requestorAddress, graduateWallet, verifyTier = 'single' } = req.body;
+        // Look up the graduate wallet in DB for verification
+        const gradResult = dbConnection ? await dbConnection.query(
+            'SELECT * FROM graduates WHERE wallet_address = $1 LIMIT 1',
+            [graduateWallet]
+        ).catch(() => null) : null;
+        const isVerified = gradResult && gradResult.rows.length > 0;
+        const event = utlFeeCollector.collect({
+            feeType: 'CREDENTIAL_VERIFICATION_FEE',
+            walletAddress: requestorAddress,
+            flatFeeKey: verifyTier,
+            metadata: { graduateWallet, isVerified, verifyTier }
+        });
+        res.json({
+            success: true,
+            verified: isVerified,
+            graduate: isVerified ? { wallet: graduateWallet, courses: gradResult.rows[0]?.total_courses, kenoEarned: gradResult.rows[0]?.keno_earned } : null,
+            event,
+            distribution: event?.distribution
+        });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record partner integration license fee (Category C)
+app.post('/api/utl/fee/partner-license', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { partnerAddress, partnerName, licenseTier = 'basic' } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'PARTNER_INTEGRATION_LICENSE',
+            walletAddress: partnerAddress,
+            flatFeeKey: licenseTier,
+            metadata: { partnerName, licenseTier }
+        });
+        res.json({ success: true, event, distribution: event?.distribution, message: `${partnerName} licensed at ${licenseTier} tier` });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record Graduate NFT royalty (Category E)
+app.post('/api/utl/fee/nft-royalty', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { sellerAddress, salePrice, nftId } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'GRADUATE_NFT_ROYALTY',
+            walletAddress: sellerAddress,
+            principalAmount: parseFloat(salePrice) || 0,
+            metadata: { nftId, salePrice }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record cross-chain bridge fee (Category G)
+app.post('/api/utl/fee/bridge', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, bridgeAmount, fromChain, toChain } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'CROSS_CHAIN_BRIDGE_FEE',
+            walletAddress,
+            principalAmount: parseFloat(bridgeAmount) || 0,
+            metadata: { fromChain, toChain }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// POST: Record yield optimization fee (Category F)
+app.post('/api/utl/fee/yield', async (req, res) => {
+    if (!utlFeeCollector) return res.status(503).json({ error: 'FeeCollector not ready' });
+    try {
+        const { walletAddress, yieldAmount } = req.body;
+        const event = utlFeeCollector.collect({
+            feeType: 'YIELD_OPTIMIZATION_FEE',
+            walletAddress,
+            principalAmount: parseFloat(yieldAmount) || 0,
+            metadata: { source: 'auto_compound' }
+        });
+        res.json({ success: true, event, distribution: event?.distribution });
+    } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+// GET: DB-level fee event history for a wallet (paginated)
+app.get('/api/utl/fee/history/:address', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'DB not ready' });
+    try {
+        const limit  = Math.min(parseInt(req.query.limit)  || 50, 200);
+        const offset = parseInt(req.query.offset) || 0;
+        const { rows } = await dbConnection.query(
+            `SELECT * FROM utl_fee_events WHERE wallet_address = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+            [req.params.address.toLowerCase(), limit, offset]
+        );
+        const total = await dbConnection.query(
+            `SELECT COUNT(*) FROM utl_fee_events WHERE wallet_address = $1`,
+            [req.params.address.toLowerCase()]
+        );
+        res.json({ success: true, events: rows, total: parseInt(total.rows[0]?.count || 0), limit, offset });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET: Total UTL revenue from DB (for external audits, investor reporting)
+app.get('/api/utl/fee/audit', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'DB not ready' });
+    try {
+        const totals = await dbConnection.query(`
+            SELECT
+                fee_type,
+                fee_label,
+                category,
+                COUNT(*)          AS event_count,
+                SUM(fee_amount)   AS total_collected,
+                SUM(stakers_share)    AS total_stakers,
+                SUM(foundation_share) AS total_foundation,
+                SUM(treasury_share)   AS total_treasury
+            FROM utl_fee_events
+            GROUP BY fee_type, fee_label, category
+            ORDER BY total_collected DESC
+        `);
+        const grand = await dbConnection.query(`
+            SELECT
+                COUNT(*)              AS total_events,
+                SUM(fee_amount)       AS grand_total,
+                SUM(stakers_share)    AS grand_stakers,
+                SUM(foundation_share) AS grand_foundation,
+                SUM(treasury_share)   AS grand_treasury,
+                MIN(created_at)       AS first_event,
+                MAX(created_at)       AS last_event
+            FROM utl_fee_events
+        `);
+        res.json({
+            success: true,
+            auditReport: {
+                byFeeType: totals.rows,
+                grandTotals: grand.rows[0],
+                generatedAt: new Date().toISOString(),
+                contracts: utlFeeCollector?.contracts
+            }
+        });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/snap-package/snap.manifest.json', (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="snap.manifest.json"');
     res.sendFile(__dirname + '/utl/metamask-snap/snap.manifest.json');
@@ -640,7 +912,7 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 
 // STUB VARIABLES - will be initialized after port opens
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
-let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager;
+let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
@@ -704,6 +976,9 @@ async function initializeBlockchainSystems() {
         revenueTracker = new RevenueTracker();
         arbitrageSystem = new ArbitrageSystem(kenostodChain, dataPersistence);
         falPoolManager = new FALPoolManager(kenostodChain, dataPersistence, arbitrageSystem);
+        utlFeeCollector = new UTLFeeCollector(dataPersistence, dbConnection);
+        await utlFeeCollector.initDB();
+        await utlFeeCollector.loadFromDB();
         
         // Connect systems
         kenostodChain.exchangeAPI.setBankingAPI(bankingAPI);
@@ -3674,22 +3949,12 @@ app.post('/api/stripe/init-subscriptions', async (req, res) => {
     }
 });
 
-// Get current subscription price IDs
-app.get('/api/stripe/get-price-ids', async (req, res) => {
-    try {
-        const products = await stripeService.ensureSubscriptionProducts();
-        res.json({
-            student: products.student.price.id,
-            professional: products.professional.price.id
-        });
-    } catch (error) {
-        console.error('Get price IDs error:', error);
-        // Fallback to hardcoded prices for sandbox
-        res.json({
-            student: 'price_1SX1x1BMJMAmd04Cp1Aeq6TM',
-            professional: 'price_1SX1x1BMJMAmd04CG9J97tmG'
-        });
-    }
+// Get current subscription price IDs - use hardcoded prices to avoid creating duplicate Stripe plans
+app.get('/api/stripe/get-price-ids', (req, res) => {
+    res.json({
+        student: process.env.STRIPE_STUDENT_PRICE_ID || 'price_1SX1x1BMJMAmd04Cp1Aeq6TM',
+        professional: process.env.STRIPE_PROFESSIONAL_PRICE_ID || 'price_1SX1x1BMJMAmd04CG9J97tmG'
+    });
 });
 
 app.get('/api/stripe/subscription-prices', async (req, res) => {
@@ -5293,185 +5558,6 @@ app.post('/api/revenue/license/checkout', async (req, res) => {
     }
 });
 
-// Stripe webhook handler for subscription automation
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    try {
-        const sig = req.headers['stripe-signature'];
-        const event = stripeIntegration.constructWebhookEvent(req.body, sig);
-        
-        console.log(`📥 Stripe webhook received: ${event.type}`);
-        
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object;
-                const metadata = session.metadata;
-                
-                // Create license after successful checkout
-                if (metadata.licenseType === 'white_label') {
-                    const result = revenueTracker.createLicense({
-                        organizationName: metadata.organizationName,
-                        tier: metadata.tier,
-                        contactEmail: session.customer_email,
-                        customDomain: metadata.customDomain,
-                        stripeSubscriptionId: session.subscription
-                    });
-                    
-                    // Save to database
-                    if (dbConnection) {
-                        const license = result.license;
-                        await dbConnection.query(`
-                            INSERT INTO white_label_licenses (
-                                license_id, license_key, organization_name, tier, contact_email, 
-                                custom_domain, monthly_price, status, stripe_subscription_id, 
-                                stripe_customer_id, total_revenue, expires_at
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                        `, [
-                            license.licenseId, license.licenseKey, license.organizationName, 
-                            license.tier, license.contactEmail, license.customDomain, 
-                            license.monthlyPrice, license.status, license.stripeSubscriptionId,
-                            session.customer, license.totalRevenue, new Date(license.expiresAt)
-                        ]);
-                    }
-                    
-                    console.log(`✅ License created: ${result.license.licenseId} for ${metadata.organizationName}`);
-                }
-                break;
-            }
-            
-            case 'customer.subscription.created':
-            case 'customer.subscription.updated': {
-                const subscription = event.data.object;
-                const metadata = subscription.metadata;
-                
-                // Update license status in database (try by subscription ID first, then by metadata)
-                if (dbConnection) {
-                    let updated = false;
-                    
-                    // Try to find and update by subscription ID
-                    const result = await dbConnection.query(`
-                        UPDATE white_label_licenses 
-                        SET status = $1, stripe_subscription_id = $2, updated_at = CURRENT_TIMESTAMP
-                        WHERE stripe_subscription_id = $2
-                        RETURNING id
-                    `, [subscription.status === 'active' ? 'active' : 'inactive', subscription.id]);
-                    
-                    updated = result.rowCount > 0;
-                    
-                    // FALLBACK: If not found by subscription ID and we have metadata, create license
-                    if (!updated && metadata && metadata.organizationName) {
-                        console.log(`⚠️  License not found for subscription ${subscription.id}, creating from metadata`);
-                        
-                        const result = revenueTracker.createLicense({
-                            organizationName: metadata.organizationName,
-                            tier: metadata.tier,
-                            contactEmail: subscription.customer_email || 'unknown@email.com',
-                            customDomain: metadata.customDomain || '',
-                            stripeSubscriptionId: subscription.id
-                        });
-                        
-                        const license = result.license;
-                        await dbConnection.query(`
-                            INSERT INTO white_label_licenses (
-                                license_id, license_key, organization_name, tier, contact_email, 
-                                custom_domain, monthly_price, status, stripe_subscription_id, 
-                                stripe_customer_id, total_revenue, expires_at
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                            ON CONFLICT (stripe_subscription_id) DO UPDATE SET
-                                status = EXCLUDED.status,
-                                updated_at = CURRENT_TIMESTAMP
-                        `, [
-                            license.licenseId, license.licenseKey, license.organizationName, 
-                            license.tier, license.contactEmail, license.customDomain, 
-                            license.monthlyPrice, subscription.status === 'active' ? 'active' : 'inactive', 
-                            subscription.id, subscription.customer, license.totalRevenue, 
-                            new Date(license.expiresAt)
-                        ]);
-                        
-                        console.log(`✅ License created from metadata for ${metadata.organizationName}`);
-                        updated = true;
-                    }
-                    
-                    if (updated) {
-                        console.log(`✅ Subscription ${subscription.id} status: ${subscription.status}`);
-                    } else {
-                        console.error(`❌ Failed to update license for subscription ${subscription.id} - no subscription ID match and no metadata`);
-                    }
-                }
-                break;
-            }
-            
-            case 'customer.subscription.deleted': {
-                const subscription = event.data.object;
-                
-                // Mark license as cancelled
-                if (dbConnection) {
-                    await dbConnection.query(`
-                        UPDATE white_label_licenses 
-                        SET status = 'cancelled', is_active = false, updated_at = CURRENT_TIMESTAMP
-                        WHERE stripe_subscription_id = $1
-                    `, [subscription.id]);
-                }
-                
-                console.log(`❌ License cancelled for subscription: ${subscription.id}`);
-                break;
-            }
-            
-            case 'invoice.payment_succeeded': {
-                const invoice = event.data.object;
-                
-                // Record payment
-                if (dbConnection && invoice.subscription) {
-                    const licenseResult = await dbConnection.query(`
-                        SELECT license_id, monthly_price FROM white_label_licenses 
-                        WHERE stripe_subscription_id = $1
-                    `, [invoice.subscription]);
-                    
-                    if (licenseResult.rows.length > 0) {
-                        const license = licenseResult.rows[0];
-                        const period = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                        
-                        await dbConnection.query(`
-                            INSERT INTO license_payments (license_id, payment_id, amount, period, status)
-                            VALUES ($1, $2, $3, $4, 'completed')
-                        `, [license.license_id, invoice.id, invoice.amount_paid / 100, period]);
-                        
-                        await dbConnection.query(`
-                            UPDATE white_label_licenses 
-                            SET total_revenue = total_revenue + $1, 
-                                status = 'active',
-                                updated_at = CURRENT_TIMESTAMP
-                            WHERE license_id = $2
-                        `, [invoice.amount_paid / 100, license.license_id]);
-                        
-                        console.log(`💰 Payment recorded: $${(invoice.amount_paid / 100).toFixed(2)} for license ${license.license_id}`);
-                    }
-                }
-                break;
-            }
-            
-            case 'invoice.payment_failed': {
-                const invoice = event.data.object;
-                
-                // Mark license as past_due
-                if (dbConnection && invoice.subscription) {
-                    await dbConnection.query(`
-                        UPDATE white_label_licenses 
-                        SET status = 'past_due', updated_at = CURRENT_TIMESTAMP
-                        WHERE stripe_subscription_id = $1
-                    `, [invoice.subscription]);
-                }
-                
-                console.log(`⚠️  Payment failed for subscription: ${invoice.subscription}`);
-                break;
-            }
-        }
-        
-        res.json({ received: true });
-    } catch (error) {
-        console.error('Stripe webhook error:', error);
-        res.status(400).json({ error: error.message });
-    }
-});
 
 // ===== REVENUE ANALYTICS & REPORTING =====
 
