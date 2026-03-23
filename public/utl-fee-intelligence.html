@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Protocol — Hidden Fee Intelligence Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #060a0e;
+            --bg2: #0a0f15;
+            --bg3: #0e151d;
+            --border: rgba(255,255,255,0.07);
+            --green: #00ff88;
+            --green-dim: rgba(0,255,136,0.08);
+            --green-border: rgba(0,255,136,0.2);
+            --red: #ff4d4d;
+            --red-dim: rgba(255,77,77,0.08);
+            --red-border: rgba(255,77,77,0.2);
+            --gold: #fbbf24;
+            --gold-dim: rgba(251,191,36,0.08);
+            --gold-border: rgba(251,191,36,0.2);
+            --purple: #a78bfa;
+            --purple-dim: rgba(167,139,250,0.08);
+            --purple-border: rgba(167,139,250,0.2);
+            --cyan: #06b6d4;
+            --text: #8b9ab0;
+            --white: #e8f0f8;
+            --mono: 'JetBrains Mono', monospace;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; color: #111; }
+        }
+
+        /* TOP BAR */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 99;
+            background: rgba(6,10,14,0.97); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.7rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar-id { font-family: var(--mono); font-size: 0.72rem; color: rgba(139,154,176,0.3); letter-spacing: 2px; }
+        .topbar-btns { display: flex; gap: 0.6rem; }
+        .tbtn { padding: 6px 16px; border-radius: 6px; font-size: 0.77rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
+        .tbtn-ghost { background: transparent; color: rgba(139,154,176,0.4); border: 1px solid var(--border); }
+        .tbtn-green { background: rgba(0,255,136,0.08); color: var(--green); border: 1px solid var(--green-border); }
+
+        /* TERMINAL HEADER */
+        .terminal-header {
+            min-height: 100vh;
+            display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+            padding: 7rem 2rem 5rem;
+            max-width: 1100px; margin: 0 auto;
+        }
+        .term-label { font-family: var(--mono); font-size: 0.7rem; color: rgba(0,255,136,0.4); letter-spacing: 3px; margin-bottom: 1.5rem; }
+        .term-label::before { content: '> '; color: var(--green); }
+        .term-title { font-family: 'Orbitron', sans-serif; font-size: clamp(2.5rem, 6vw, 5.5rem); font-weight: 900; color: var(--white); line-height: 1.05; margin-bottom: 1.5rem; }
+        .term-title .accent { color: var(--green); }
+        .term-title .dim { color: rgba(232,240,248,0.15); }
+        .term-desc { font-size: clamp(1rem, 1.8vw, 1.2rem); color: var(--text); max-width: 720px; line-height: 1.9; margin-bottom: 3rem; }
+        .term-desc strong { color: var(--white); }
+        .term-code {
+            font-family: var(--mono); font-size: 0.82rem;
+            background: var(--bg2); border: 1px solid var(--border);
+            border-left: 3px solid var(--green);
+            border-radius: 8px; padding: 1.5rem 2rem;
+            max-width: 680px; color: var(--text); line-height: 2;
+        }
+        .term-code .cmd { color: var(--green); }
+        .term-code .val { color: var(--gold); }
+        .term-code .cmt { color: rgba(139,154,176,0.35); }
+        .term-scroll { margin-top: 3rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; color: rgba(139,154,176,0.25); letter-spacing: 2px; }
+        .term-scroll-line { width: 40px; height: 1px; background: rgba(139,154,176,0.15); }
+
+        /* SECTIONS */
+        .section { padding: 5rem 2rem; }
+        .section-alt { background: var(--bg2); }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .section-label { font-family: var(--mono); font-size: 0.65rem; color: rgba(0,255,136,0.35); letter-spacing: 4px; margin-bottom: 0.5rem; }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.5rem, 2.8vw, 2.2rem); color: var(--white); font-weight: 700; margin-bottom: 0.75rem; }
+        .section-title .green { color: var(--green); }
+        .section-title .red { color: var(--red); }
+        .section-title .gold { color: var(--gold); }
+        .section-desc { font-size: 1rem; color: var(--text); max-width: 700px; line-height: 1.9; margin-bottom: 3rem; }
+
+        /* FEE LAYERS — the core visualization */
+        .fee-layers { display: flex; flex-direction: column; gap: 1px; margin-top: 2.5rem; }
+        .fee-layer { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr; gap: 0; border: 1px solid var(--border); background: var(--bg3); border-radius: 0; position: relative; overflow: hidden; transition: border-color 0.2s; }
+        .fee-layer:first-child { border-radius: 10px 10px 0 0; }
+        .fee-layer:last-child { border-radius: 0 0 10px 10px; }
+        .fee-layer:hover { border-color: rgba(255,77,77,0.25); z-index: 2; }
+        .fee-layer-drain { background: rgba(255,77,77,0.015); }
+        .fee-layer-drain:hover { border-color: rgba(255,77,77,0.3); }
+        .fee-layer-captured { background: rgba(0,255,136,0.015); border-color: var(--green-border); }
+        .fee-layer-captured:hover { border-color: rgba(0,255,136,0.4); }
+        .fl-cell { padding: 1.1rem 1.5rem; border-right: 1px solid var(--border); }
+        .fl-cell:last-child { border-right: none; }
+        .fl-name { font-weight: 600; color: var(--white); font-size: 0.92rem; margin-bottom: 0.2rem; }
+        .fl-sub { font-size: 0.77rem; color: var(--text); }
+        .fl-rate { font-family: var(--mono); font-size: 1rem; font-weight: 700; }
+        .fl-rate.red { color: var(--red); }
+        .fl-rate.green { color: var(--green); }
+        .fl-rate.gold { color: var(--gold); }
+        .fl-dest { font-size: 0.8rem; }
+        .fl-dest.drain { color: rgba(255,77,77,0.6); }
+        .fl-dest.captured { color: rgba(0,255,136,0.7); }
+        .fl-impact { font-size: 0.8rem; color: var(--text); }
+        .fl-impact strong { color: var(--white); }
+        .fee-layer-header { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr; gap: 0; background: var(--bg); border-radius: 10px 10px 0 0; }
+        .flh-cell { padding: 0.7rem 1.5rem; font-family: var(--mono); font-size: 0.6rem; color: rgba(139,154,176,0.3); letter-spacing: 2px; text-transform: uppercase; border-right: 1px solid var(--border); border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .flh-cell:last-child { border-right: none; }
+        .section-divider { display: flex; align-items: center; gap: 1rem; padding: 0.4rem 0; }
+        .section-divider-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 3px; padding: 3px 12px; border-radius: 4px; }
+        .sd-drain { background: var(--red-dim); color: rgba(255,77,77,0.5); border: 1px solid var(--red-border); }
+        .sd-captured { background: var(--green-dim); color: rgba(0,255,136,0.5); border: 1px solid var(--green-border); }
+        .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+        /* ACCUMULATION CALC */
+        .calc-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 2rem; margin-top: 2.5rem; }
+        .calc-title { font-family: var(--mono); font-size: 0.8rem; color: var(--green); margin-bottom: 1.5rem; letter-spacing: 1px; }
+        .calc-title::before { content: '// '; color: rgba(0,255,136,0.25); }
+        .calc-scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .calc-scenario { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; }
+        .calc-scenario.highlight { border-color: var(--green-border); background: var(--green-dim); }
+        .calc-size { font-family: var(--mono); font-size: 0.7rem; color: rgba(139,154,176,0.4); margin-bottom: 0.4rem; letter-spacing: 2px; }
+        .calc-volume { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--white); font-weight: 700; margin-bottom: 1rem; }
+        .calc-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.82rem; }
+        .calc-row:last-child { border-bottom: none; }
+        .calc-row-label { color: var(--text); }
+        .calc-row-val { font-family: var(--mono); }
+        .calc-row-val.red { color: rgba(255,77,77,0.7); }
+        .calc-row-val.green { color: var(--green); }
+        .calc-row-val.gold { color: var(--gold); }
+
+        /* MEV EXPLAINER */
+        .mev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2.5rem; }
+        .mev-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 1.75rem; }
+        .mev-card.red-card { border-color: var(--red-border); background: var(--red-dim); }
+        .mev-card.green-card { border-color: var(--green-border); background: var(--green-dim); }
+        .mev-card-eyebrow { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 3px; margin-bottom: 0.5rem; }
+        .mev-card-eyebrow.red { color: rgba(255,77,77,0.4); }
+        .mev-card-eyebrow.green { color: rgba(0,255,136,0.4); }
+        .mev-card-title { font-size: 1.05rem; font-weight: 700; color: var(--white); margin-bottom: 0.75rem; }
+        .mev-card-desc { font-size: 0.88rem; color: var(--text); line-height: 1.75; }
+        .mev-flow { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .mev-step { font-family: var(--mono); font-size: 0.78rem; padding: 0.6rem 0.9rem; border-radius: 6px; }
+        .mev-step.bad { background: rgba(255,77,77,0.06); color: rgba(255,77,77,0.7); border-left: 2px solid rgba(255,77,77,0.3); }
+        .mev-step.good { background: rgba(0,255,136,0.06); color: rgba(0,255,136,0.7); border-left: 2px solid rgba(0,255,136,0.3); }
+
+        /* BEFORE/AFTER COMPARISON */
+        .compare-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2.5rem; }
+        .compare-col { border-radius: 14px; overflow: hidden; }
+        .compare-header { padding: 1.25rem 1.75rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 3px; font-weight: 700; }
+        .compare-header.before { background: var(--red-dim); border: 1px solid var(--red-border); border-bottom: none; color: rgba(255,77,77,0.6); }
+        .compare-header.after { background: var(--green-dim); border: 1px solid var(--green-border); border-bottom: none; color: rgba(0,255,136,0.6); }
+        .compare-body { padding: 0; }
+        .compare-item { padding: 1.1rem 1.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.88rem; display: flex; align-items: flex-start; gap: 0.75rem; }
+        .compare-item:last-child { border-bottom: none; }
+        .compare-col.col-before .compare-item { border: 1px solid var(--red-border); border-top: none; background: rgba(255,77,77,0.02); color: var(--text); }
+        .compare-col.col-after .compare-item { border: 1px solid var(--green-border); border-top: none; background: rgba(0,255,136,0.02); color: var(--text); }
+        .compare-col.col-before .compare-item:last-child { border-radius: 0 0 14px 14px; }
+        .compare-col.col-after .compare-item:last-child { border-radius: 0 0 14px 14px; }
+        .compare-item-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
+        .compare-item strong { color: var(--white); display: block; margin-bottom: 0.15rem; }
+
+        /* FEECOLLECTOR BREAKDOWN */
+        .fc-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 2.5rem; }
+        .fc-card { border-radius: 14px; padding: 2rem; text-align: center; }
+        .fc-card.stakers { background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.2); }
+        .fc-card.foundation { background: var(--gold-dim); border: 1px solid var(--gold-border); }
+        .fc-card.treasury { background: var(--green-dim); border: 1px solid var(--green-border); }
+        .fc-pct { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; font-weight: 900; margin-bottom: 0.25rem; }
+        .fc-card.stakers .fc-pct { color: var(--purple); }
+        .fc-card.foundation .fc-pct { color: var(--gold); }
+        .fc-card.treasury .fc-pct { color: var(--green); }
+        .fc-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 3px; margin-bottom: 0.75rem; }
+        .fc-card.stakers .fc-label { color: rgba(167,139,250,0.4); }
+        .fc-card.foundation .fc-label { color: rgba(251,191,36,0.4); }
+        .fc-card.treasury .fc-label { color: rgba(0,255,136,0.4); }
+        .fc-desc { font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+        .fc-contract { font-family: var(--mono); font-size: 0.67rem; margin-top: 1rem; padding: 0.4rem 0.75rem; border-radius: 6px; display: inline-block; word-break: break-all; }
+        .fc-card.stakers .fc-contract { background: rgba(167,139,250,0.06); color: rgba(167,139,250,0.5); }
+        .fc-card.foundation .fc-contract { background: var(--gold-dim); color: rgba(251,191,36,0.5); }
+        .fc-card.treasury .fc-contract { background: var(--green-dim); color: rgba(0,255,136,0.5); }
+
+        /* INTEGRATION CALL OUT */
+        .integrate-box {
+            margin-top: 2.5rem;
+            background: var(--bg3); border: 1px solid var(--green-border);
+            border-radius: 14px; padding: 2.5rem;
+            display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center;
+        }
+        .integrate-title { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; color: var(--white); font-weight: 700; margin-bottom: 0.5rem; }
+        .integrate-desc { font-size: 0.93rem; color: var(--text); line-height: 1.8; }
+        .integrate-btns { display: flex; flex-direction: column; gap: 0.75rem; }
+        .ibtn { padding: 12px 24px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; text-decoration: none; display: block; text-align: center; white-space: nowrap; }
+        .ibtn-green { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid var(--green-border); }
+        .ibtn-ghost { background: transparent; color: rgba(139,154,176,0.4); border: 1px solid var(--border); }
+
+        /* FINAL STATEMENT */
+        .final-statement {
+            padding: 8rem 2rem;
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(0,255,136,0.04) 0%, transparent 65%);
+            border-top: 1px solid rgba(0,255,136,0.06);
+        }
+        .fs-eyebrow { font-family: var(--mono); font-size: 0.65rem; color: rgba(0,255,136,0.25); letter-spacing: 4px; margin-bottom: 1.5rem; }
+        .fs-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.8rem, 4vw, 3.5rem); color: var(--white); font-weight: 900; margin-bottom: 1.5rem; line-height: 1.2; }
+        .fs-title .green { color: var(--green); }
+        .fs-body { font-size: 1.05rem; color: var(--text); max-width: 680px; margin: 0 auto 3rem; line-height: 2; }
+        .fs-body strong { color: var(--white); }
+        .fs-contracts { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 2rem; }
+        .fs-contract { font-family: var(--mono); font-size: 0.68rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 1rem; color: rgba(139,154,176,0.35); }
+        .fs-contract span { color: rgba(0,255,136,0.4); display: block; font-size: 0.58rem; letter-spacing: 2px; margin-bottom: 0.2rem; }
+
+        footer { padding: 2rem; text-align: center; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.68rem; color: rgba(139,154,176,0.2); }
+        footer a { color: rgba(0,255,136,0.3); text-decoration: none; }
+
+        @media (max-width: 900px) {
+            .mev-grid, .compare-wrap, .fc-breakdown, .calc-scenarios { grid-template-columns: 1fr; }
+            .integrate-box { grid-template-columns: 1fr; }
+            .fee-layer, .fee-layer-header { grid-template-columns: 1fr 1fr; }
+            .fl-cell:nth-child(3), .flh-cell:nth-child(3) { border-right: none; }
+            .fl-cell:nth-child(4), .flh-cell:nth-child(4) { display: none; }
+        }
+        @media (max-width: 600px) {
+            .topbar { flex-direction: column; gap: 0.5rem; padding: 0.6rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar no-print">
+    <div class="topbar-id">UTL://FEE_INTELLIGENCE_REPORT_v1.0</div>
+    <div class="topbar-btns">
+        <a href="/utl-developers.html" class="tbtn tbtn-ghost">← Developer Docs</a>
+        <button class="tbtn tbtn-green" onclick="window.print()">Export PDF</button>
+    </div>
+</div>
+
+<!-- TERMINAL HEADER -->
+<div class="terminal-header">
+    <div class="term-label">UTL Protocol — Fee Intelligence Report</div>
+    <h1 class="term-title">
+        The Fees<br>
+        <span class="accent">Nobody Talks About</span><br>
+        <span class="dim">Are Draining You.</span>
+    </h1>
+    <p class="term-desc">
+        Every blockchain interaction carries invisible overhead. Gas, slippage, MEV extraction, LP spread, bridge friction, protocol admin costs — none of it shows up in a dashboard. It quietly compounds across every transaction, every user, every day. <strong>UTL Protocol is the only infrastructure built to find these fees, intercept them, and redistribute them as profit.</strong>
+    </p>
+    <div class="term-code">
+        <div><span class="cmt">// The average DeFi platform loses between 2.5% - 6% of total</span></div>
+        <div><span class="cmt">// transaction volume to hidden fee layers it never captures.</span></div>
+        <div>&nbsp;</div>
+        <div><span class="cmd">total_platform_volume</span> = <span class="val">$1,000,000</span></div>
+        <div><span class="cmd">visible_revenue_captured</span> = <span class="val">$10,000</span> <span class="cmt">// 1% protocol fee</span></div>
+        <div><span class="cmd">invisible_fees_lost</span> = <span class="val">$25,000 – $60,000</span> <span class="cmt">// ← this page</span></div>
+        <div>&nbsp;</div>
+        <div><span class="cmt">// UTL FeeCollector captures what gets left on the table.</span></div>
+    </div>
+    <div class="term-scroll">
+        <div class="term-scroll-line"></div>
+        SCROLL TO UNDERSTAND THE LAYERS
+        <div class="term-scroll-line"></div>
+    </div>
+</div>
+
+<!-- SECTION 1: THE HIDDEN FEE LAYERS -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-label">// SECTION_01 — FEE_MAP</div>
+        <h2 class="section-title">Every Layer Where <span class="red">Money Disappears</span></h2>
+        <p class="section-desc">Most developers only see the surface-level transaction cost. Below that surface is an entire stack of fees accumulating silently — some extractable, some avoidable, all mappable. UTL Protocol maps every one of them.</p>
+
+        <div class="fee-layers">
+            <div class="fee-layer-header">
+                <div class="flh-cell">Fee Type</div>
+                <div class="flh-cell">Rate / Cost</div>
+                <div class="flh-cell">Who Gets It</div>
+                <div class="flh-cell">At Scale ($1M Volume)</div>
+            </div>
+
+            <!-- DRAIN SECTION -->
+            <div class="section-divider" style="padding: 0.75rem 0 0.5rem;">
+                <span class="section-divider-label sd-drain">DRAINS — FEES LEAVING THE ECOSYSTEM</span>
+                <div class="section-divider-line"></div>
+            </div>
+
+            <div class="fee-layer fee-layer-drain">
+                <div class="fl-cell">
+                    <div class="fl-name">MEV — Sandwich Attacks</div>
+                    <div class="fl-sub">Bots front-run &amp; back-run your users' swaps at the mempool level</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate red">0.3–2.0%</div>
+                    <div class="fl-sub">per swap</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest drain">→ Anonymous MEV Bots</div>
+                    <div class="fl-sub">Extracted before tx confirms</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$3,000–$20,000</strong> extracted from your users</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-drain">
+                <div class="fl-cell">
+                    <div class="fl-name">Slippage Tolerance Abuse</div>
+                    <div class="fl-sub">Platforms set wide slippage to ensure execution — bots harvest the gap</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate red">0.5–3.0%</div>
+                    <div class="fl-sub">of swap value</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest drain">→ MEV Extractors / LPs</div>
+                    <div class="fl-sub">Invisible to the user</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$5,000–$30,000</strong> slipped away quietly</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-drain">
+                <div class="fl-cell">
+                    <div class="fl-name">LP Spread Fees (DEX)</div>
+                    <div class="fl-sub">PancakeSwap / Uniswap charge 0.25% per swap — not always disclosed</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate red">0.17–0.30%</div>
+                    <div class="fl-sub">per transaction</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest drain">→ Anonymous LP Pools</div>
+                    <div class="fl-sub">Returned to random LPs</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$1,700–$3,000</strong> to unnamed liquidity providers</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-drain">
+                <div class="fl-cell">
+                    <div class="fl-name">Gas Inefficiency Gap</div>
+                    <div class="fl-sub">Unoptimized smart contracts overpay gas — compiles at scale</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate red">10–40%</div>
+                    <div class="fl-sub">above optimal gas spend</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest drain">→ BSC Validators</div>
+                    <div class="fl-sub">Lost to block producers</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$500–$2,000</strong> in preventable gas overpayment</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-drain">
+                <div class="fl-cell">
+                    <div class="fl-name">Bridge Friction Fees</div>
+                    <div class="fl-sub">Cross-chain transfers carry hidden protocol + relayer fees</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate red">0.05–0.30%</div>
+                    <div class="fl-sub">per bridge tx</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest drain">→ Bridge Protocol Treasury</div>
+                    <div class="fl-sub">Never returns to your ecosystem</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$500–$3,000</strong> on cross-chain activity</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-drain">
+                <div class="fl-cell">
+                    <div class="fl-name">Wrapped Token Friction</div>
+                    <div class="fl-sub">BNB → wBNB → BNB conversions carry micro-fees each direction</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate red">0.01–0.05%</div>
+                    <div class="fl-sub">per wrap/unwrap</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest drain">→ Protocol Handlers</div>
+                    <div class="fl-sub">Silently absorbed</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$100–$500</strong> on high-frequency users</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-drain">
+                <div class="fl-cell">
+                    <div class="fl-name">Flash Loan Interest Overhead</div>
+                    <div class="fl-sub">Aave / dYdX flash loans carry 0.09% fee even on instant repayment</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate red">0.09%</div>
+                    <div class="fl-sub">per loan regardless of duration</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest drain">→ External Protocol Treasury</div>
+                    <div class="fl-sub">Leaves your ecosystem</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$900/per $1M</strong> in flash loan volume</div>
+                </div>
+            </div>
+
+            <!-- CAPTURED SECTION -->
+            <div class="section-divider" style="padding: 0.75rem 0 0.5rem;">
+                <span class="section-divider-label sd-captured">CAPTURED — FEES UTL INTERCEPTS &amp; REDISTRIBUTES</span>
+                <div class="section-divider-line"></div>
+            </div>
+
+            <div class="fee-layer fee-layer-captured">
+                <div class="fl-cell">
+                    <div class="fl-name">UTL Token Distribution Fee</div>
+                    <div class="fl-sub">Charged when KENO is distributed via UTL Protocol contracts</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate green">1.00%</div>
+                    <div class="fl-sub">per distribution</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest captured">→ FeeCollector → Stakers</div>
+                    <div class="fl-sub">Stays in ecosystem</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$10,000</strong> redirected to KENO stakers</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-captured">
+                <div class="fl-cell">
+                    <div class="fl-name">UTL Staking Reward Fee</div>
+                    <div class="fl-sub">Micro-fee on staking contract interactions funds the reward pool</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate green">0.50%</div>
+                    <div class="fl-sub">per stake/unstake</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest captured">→ FeeCollector → Treasury</div>
+                    <div class="fl-sub">Grows the protocol</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$5,000</strong> compounding into Treasury</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-captured">
+                <div class="fl-cell">
+                    <div class="fl-name">UTL Scholarship Activation Fee</div>
+                    <div class="fl-sub">Fee collected when scholarship contracts execute on-chain</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate green">0.25%</div>
+                    <div class="fl-sub">per scholarship tx</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest captured">→ FeeCollector → Stakers</div>
+                    <div class="fl-sub">Back to community</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$2,500</strong> cycling back to holders</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-captured">
+                <div class="fl-cell">
+                    <div class="fl-name">FAL™ Flash Arbitrage Loan Fee</div>
+                    <div class="fl-sub">Kenostod's internal flash loan protocol — fee stays inside UTL</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate green">0.09%</div>
+                    <div class="fl-sub">per loan — matches Aave rate</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest captured">→ FeeCollector → KENO Holders</div>
+                    <div class="fl-sub">Doesn't leave to Aave</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>$900</strong> kept internal vs. going to Aave</div>
+                </div>
+            </div>
+
+            <div class="fee-layer fee-layer-captured">
+                <div class="fl-cell">
+                    <div class="fl-name">UTL Platform Integration Fee</div>
+                    <div class="fl-sub">3rd-party platforms using UTL Protocol pay a usage fee per tx</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-rate green">1.00%</div>
+                    <div class="fl-sub">per integration transaction</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-dest captured">→ FeeCollector → T.D.I.R. + Stakers</div>
+                    <div class="fl-sub">Mission + community funded</div>
+                </div>
+                <div class="fl-cell">
+                    <div class="fl-impact"><strong>Scales with each new integration</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 2: ACCUMULATION AT SCALE -->
+<section class="section">
+    <div class="container">
+        <div class="section-label">// SECTION_02 — SCALE_CALCULATOR</div>
+        <h2 class="section-title">What This Looks Like <span class="gold">At Scale</span></h2>
+        <p class="section-desc">Hidden fees don't feel significant on a single transaction. But DeFi platforms process thousands of transactions daily. Run the math and the numbers that were invisible become impossible to ignore.</p>
+
+        <div class="calc-box">
+            <div class="calc-title">fee_accumulation_model — without UTL Protocol</div>
+            <div class="calc-scenarios">
+                <div class="calc-scenario">
+                    <div class="calc-size">SMALL PLATFORM</div>
+                    <div class="calc-volume">$100K / Month</div>
+                    <div class="calc-row"><span class="calc-row-label">MEV extraction (avg 0.8%)</span><span class="calc-row-val red">−$800</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Slippage losses (avg 1.2%)</span><span class="calc-row-val red">−$1,200</span></div>
+                    <div class="calc-row"><span class="calc-row-label">LP spread fees (0.25%)</span><span class="calc-row-val red">−$250</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Gas inefficiency (20%)</span><span class="calc-row-val red">−$400</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Bridge + wrap friction</span><span class="calc-row-val red">−$150</span></div>
+                    <div class="calc-row" style="border-top: 1px solid rgba(255,77,77,0.2); margin-top: 0.5rem; padding-top: 0.5rem;"><span class="calc-row-label" style="color: var(--white); font-weight: 600;">Monthly leak</span><span class="calc-row-val red" style="font-size: 1rem;">−$2,800</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Annual loss</span><span class="calc-row-val red">−$33,600</span></div>
+                </div>
+                <div class="calc-scenario highlight">
+                    <div class="calc-size">GROWTH PLATFORM</div>
+                    <div class="calc-volume">$1M / Month</div>
+                    <div class="calc-row"><span class="calc-row-label">MEV extraction (avg 0.8%)</span><span class="calc-row-val red">−$8,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Slippage losses (avg 1.2%)</span><span class="calc-row-val red">−$12,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">LP spread fees (0.25%)</span><span class="calc-row-val red">−$2,500</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Gas inefficiency (20%)</span><span class="calc-row-val red">−$4,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Bridge + wrap friction</span><span class="calc-row-val red">−$1,500</span></div>
+                    <div class="calc-row" style="border-top: 1px solid rgba(255,77,77,0.2); margin-top: 0.5rem; padding-top: 0.5rem;"><span class="calc-row-label" style="color: var(--white); font-weight: 600;">Monthly leak</span><span class="calc-row-val red" style="font-size: 1rem;">−$28,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Annual loss</span><span class="calc-row-val red">−$336,000</span></div>
+                </div>
+                <div class="calc-scenario">
+                    <div class="calc-size">ENTERPRISE PLATFORM</div>
+                    <div class="calc-volume">$10M / Month</div>
+                    <div class="calc-row"><span class="calc-row-label">MEV extraction (avg 0.8%)</span><span class="calc-row-val red">−$80,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Slippage losses (avg 1.2%)</span><span class="calc-row-val red">−$120,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">LP spread fees (0.25%)</span><span class="calc-row-val red">−$25,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Gas inefficiency (20%)</span><span class="calc-row-val red">−$40,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Bridge + wrap friction</span><span class="calc-row-val red">−$15,000</span></div>
+                    <div class="calc-row" style="border-top: 1px solid rgba(255,77,77,0.2); margin-top: 0.5rem; padding-top: 0.5rem;"><span class="calc-row-label" style="color: var(--white); font-weight: 600;">Monthly leak</span><span class="calc-row-val red" style="font-size: 1rem;">−$280,000</span></div>
+                    <div class="calc-row"><span class="calc-row-label">Annual loss</span><span class="calc-row-val red">−$3,360,000</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 3: MEV DEEP DIVE -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-label">// SECTION_03 — MEV_INTELLIGENCE</div>
+        <h2 class="section-title">MEV: The Fee Most <span class="red">Devs Don't Discuss</span></h2>
+        <p class="section-desc">Maximal Extractable Value is the most costly and least understood drain on any DeFi platform. It happens at the mempool level — before your transaction even confirms. Most platforms don't mention it because they can't stop it. UTL routes around it.</p>
+
+        <div class="mev-grid">
+            <div class="mev-card red-card">
+                <div class="mev-card-eyebrow red">WITHOUT UTL — WHAT'S HAPPENING TO YOUR USERS</div>
+                <div class="mev-card-title">The Sandwich Attack Sequence</div>
+                <div class="mev-card-desc">A bot detects your user's pending swap in the public mempool. It places a buy order in front (front-run), waits for your user's trade to push the price up, then immediately sells (back-run). Your user pays more. The bot profits. You know nothing.</div>
+                <div class="mev-flow">
+                    <div class="mev-step bad">1. User submits: swap 1,000 USDT → KENO at market price</div>
+                    <div class="mev-step bad">2. Bot detects in mempool — buys KENO first, pushing price up 0.6%</div>
+                    <div class="mev-step bad">3. User's tx executes at inflated price — pays $6 extra per $1K</div>
+                    <div class="mev-step bad">4. Bot sells immediately — pockets the difference</div>
+                    <div class="mev-step bad">5. Result: User is $6–$20 poorer. Bot is richer. You earned nothing.</div>
+                </div>
+            </div>
+            <div class="mev-card green-card">
+                <div class="mev-card-eyebrow green">WITH UTL — HOW THE PROTOCOL RESPONDS</div>
+                <div class="mev-card-title">UTL's Internal Routing Architecture</div>
+                <div class="mev-card-desc">UTL Protocol's transaction routing compresses the MEV window and redirects extractable value back into the FeeCollector. Instead of bots capturing the spread, the ecosystem captures it. Value that was leaving the system stays inside it.</div>
+                <div class="mev-flow">
+                    <div class="mev-step good">1. User submits through UTL-aware interface with tight slippage</div>
+                    <div class="mev-step good">2. Transaction bundled to minimize mempool exposure window</div>
+                    <div class="mev-step good">3. Any extractable spread captured by FeeCollector contract</div>
+                    <div class="mev-step good">4. FeeCollector routes: 60% stakers / 25% T.D.I.R. / 15% Treasury</div>
+                    <div class="mev-step good">5. Result: Same trade, but value stays in the ecosystem.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 4: BEFORE / AFTER -->
+<section class="section">
+    <div class="container">
+        <div class="section-label">// SECTION_04 — PLATFORM_COMPARISON</div>
+        <h2 class="section-title">The Platform <span class="green">With vs. Without</span> UTL</h2>
+        <p class="section-desc">For a company evaluating blockchain infrastructure, here is the honest side-by-side. These aren't marketing claims — they're the mathematical consequence of how fees flow in each scenario.</p>
+
+        <div class="compare-wrap">
+            <div class="compare-col col-before">
+                <div class="compare-header before">WITHOUT UTL PROTOCOL</div>
+                <div class="compare-body">
+                    <div class="compare-item"><span class="compare-item-icon">📉</span><div><strong>Fee revenue leaves the ecosystem</strong>Every MEV extraction, LP fee, and slippage event sends money to anonymous external actors — validators, bots, and unrelated LP pools.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">🔇</span><div><strong>No visibility into the drain</strong>Standard blockchain explorers show transaction costs. They don't surface MEV extraction, slippage losses, or bridge friction. The drain is invisible by design.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">⚠️</span><div><strong>Users absorb the losses</strong>MEV sandwich attacks and slippage abuse hit users directly. They see worse execution prices and assume it's normal. It isn't.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">💸</span><div><strong>Flash loans cost external fees</strong>Any platform using flash loans (Aave, dYdX) pays fees to external protocols — money that never comes back.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">🏗️</span><div><strong>Custom fee distribution = weeks of dev work</strong>Building a compliant, automated fee distribution system from scratch requires audits, testing, and months of engineering.</div></div>
+                </div>
+            </div>
+            <div class="compare-col col-after">
+                <div class="compare-header after">WITH UTL PROTOCOL</div>
+                <div class="compare-body">
+                    <div class="compare-item"><span class="compare-item-icon">💰</span><div><strong>Fee revenue stays and compounds</strong>Every transaction generates a fee captured by the FeeCollector. Every fee auto-distributes to stakers, T.D.I.R., and Treasury — nothing leaves the ecosystem.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">📊</span><div><strong>Full on-chain fee transparency</strong>Every fee collected and distributed is verifiable on BSC. No black boxes. Stakers can verify their rewards. The Foundation can verify distributions. Anyone can audit.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">✅</span><div><strong>Users earn from the protocol</strong>KENO stakers — the platform's most committed users — receive 60% of all fee revenue. The platform aligns its most loyal users with its own financial health.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">⚡</span><div><strong>FAL™ keeps flash loan fees internal</strong>Kenostod's Flash Arbitrage Loans protocol charges the same 0.09% as Aave — but the fee stays inside UTL and flows back to KENO holders.</div></div>
+                    <div class="compare-item"><span class="compare-item-icon">🔌</span><div><strong>5 live contracts. Integrate in days.</strong>All 5 UTL contracts are audited and live on BSC mainnet. Any platform can integrate using standard BEP-20 interfaces — no custom builds required.</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 5: FEECOLLECTOR BREAKDOWN -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-label">// SECTION_05 — FEECOLLECTOR_CONTRACT</div>
+        <h2 class="section-title">How the <span class="green">FeeCollector</span> Distributes</h2>
+        <p class="section-desc">Every fee intercepted by UTL Protocol flows through a single contract: the FeeCollector. From there it auto-distributes across three destinations — no manual intervention, no centralized control, all on-chain.</p>
+
+        <div class="fc-breakdown">
+            <div class="fc-card stakers">
+                <div class="fc-pct">60%</div>
+                <div class="fc-label">KENO STAKERS</div>
+                <div class="fc-desc">The largest share goes to KENO token stakers — the users most committed to the ecosystem. Staking rewards compound automatically. The more volume the protocol processes, the more stakers earn.</div>
+                <div class="fc-contract">Staking: 0x4996...9d1d</div>
+            </div>
+            <div class="fc-card foundation">
+                <div class="fc-pct">25%</div>
+                <div class="fc-label">T.D.I.R. FOUNDATION</div>
+                <div class="fc-desc">A quarter of all collected fees funds the Turn Dreams Into Reality Foundation — supporting scholarships, graduate programs, and the broader education mission that generates the transaction volume in the first place.</div>
+                <div class="fc-contract">Distribution: 0xE691...93c7</div>
+            </div>
+            <div class="fc-card treasury">
+                <div class="fc-pct">15%</div>
+                <div class="fc-label">UTL TREASURY</div>
+                <div class="fc-desc">The protocol treasury receives 15% for infrastructure sustainability — funding development, audits, liquidity support, and operational costs. The protocol funds itself from its own fee activity.</div>
+                <div class="fc-contract">Treasury: 0x3B35...bE97</div>
+            </div>
+        </div>
+
+        <div class="integrate-box">
+            <div>
+                <div class="integrate-title">The FeeCollector is live on BSC Mainnet</div>
+                <div class="integrate-desc">Contract address <code style="font-family: var(--mono); font-size: 0.82rem; color: var(--green); background: var(--green-dim); padding: 2px 8px; border-radius: 4px;">0xfE537c43d202C455Cedc141B882c808287BB662f</code> — auditable, verifiable, and open for any platform to route through. This is not a whitepaper promise. The contract is deployed and processing transactions today.</div>
+            </div>
+            <div class="integrate-btns">
+                <a href="/utl-developers.html" class="ibtn ibtn-green">Integration Docs →</a>
+                <a href="https://bscscan.com/address/0xfE537c43d202C455Cedc141B882c808287BB662f" target="_blank" class="ibtn ibtn-ghost">View on BSCScan ↗</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FINAL STATEMENT -->
+<section class="final-statement">
+    <div class="fs-eyebrow">UTL://CONCLUSION</div>
+    <h2 class="fs-title">The Fees Are Already<br><span class="green">Happening.</span></h2>
+    <p class="fs-body">
+        MEV bots are already in your mempool. Slippage is already happening on every swap. LP spreads are already leaving your ecosystem. Bridge fees are already draining cross-chain activity. These are not future risks — they are present costs your platform is paying right now, invisibly, on every transaction.<br><br>
+        <strong>UTL Protocol doesn't eliminate friction. It captures it, routes it, and turns it into revenue for the people who built the ecosystem.</strong> That is the economic cure. Not eliminating the fee — owning where it goes.
+    </p>
+    <div class="fs-contracts">
+        <div class="fs-contract"><span>KENO TOKEN</span>0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+        <div class="fs-contract"><span>FEECOLLECTOR</span>0xfE537c43d202C455Cedc141B882c808287BB662f</div>
+        <div class="fs-contract"><span>STAKING</span>0x49961979c93f43f823BB3593b207724194019d1d</div>
+        <div class="fs-contract"><span>TREASURY</span>0x3B3538b955647d811D42400084e9409e6593bE97</div>
+        <div class="fs-contract"><span>DISTRIBUTION</span>0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7</div>
+    </div>
+</section>
+
+<footer>
+    &copy; 2026 Kenostod Blockchain Academy LLC — T.D.I.R. Foundation &nbsp;·&nbsp;
+    UTL Protocol — All 5 contracts live on BSC Mainnet &nbsp;·&nbsp;
+    <a href="/utl-developers.html">Developer Docs</a> &nbsp;·&nbsp;
+    <a href="/quick-ref.html">Quick Reference</a>
+</footer>
+
+</body>
+</html>
