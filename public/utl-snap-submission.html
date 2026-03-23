@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Protocol — MetaMask Snaps Store Submission</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #040608; --bg2: #080d12; --bg3: #0d1520;
+            --border: rgba(255,255,255,0.06);
+            --orange: #f97316; --orange-dim: rgba(249,115,22,0.08); --orange-border: rgba(249,115,22,0.2);
+            --green: #10b981; --green-dim: rgba(16,185,129,0.07); --green-border: rgba(16,185,129,0.18);
+            --purple: #a78bfa; --gold: #fbbf24; --red: #ef4444; --blue: #60a5fa;
+            --text: #6b7f96; --white: #d8e8f5;
+            --mono: 'JetBrains Mono', monospace;
+        }
+        @media print {
+            body { background: #fff !important; color: #222 !important; }
+            .no-print { display: none !important; }
+            .print-page { page-break-after: always; }
+            .nav, .print-bar { display: none !important; }
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+        /* NAV */
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 99; background: rgba(4,6,8,0.97); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(249,115,22,0.1); padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--orange); font-weight: 700; }
+        .nav-tag { font-family: var(--mono); font-size: 0.6rem; color: rgba(107,127,150,0.3); margin-left: 0.75rem; }
+        .nav-right { display: flex; gap: 0.75rem; align-items: center; }
+        .print-btn { padding: 7px 18px; border-radius: 6px; background: rgba(249,115,22,0.1); color: var(--orange); border: 1px solid var(--orange-border); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        .nav-link { font-size: 0.8rem; color: rgba(107,127,150,0.45); text-decoration: none; }
+
+        /* PAGE */
+        .page { max-width: 960px; margin: 0 auto; padding: 6rem 2rem 4rem; }
+
+        /* COVER */
+        .cover { text-align: center; padding: 3rem 0 4rem; border-bottom: 1px solid var(--border); margin-bottom: 4rem; }
+        .cover-badge { display: inline-block; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.2); border-radius: 20px; padding: 6px 20px; font-family: var(--mono); font-size: 0.65rem; color: rgba(249,115,22,0.5); letter-spacing: 2px; margin-bottom: 2rem; }
+        .cover-title { font-family: 'Orbitron', sans-serif; font-size: clamp(2rem, 4vw, 3.5rem); color: var(--white); font-weight: 900; line-height: 1.1; margin-bottom: 0.75rem; }
+        .cover-sub { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--orange); margin-bottom: 1.5rem; }
+        .cover-meta { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem; }
+        .meta-item { text-align: center; }
+        .meta-label { font-family: var(--mono); font-size: 0.6rem; color: rgba(107,127,150,0.3); letter-spacing: 2px; display: block; margin-bottom: 0.25rem; }
+        .meta-val { font-size: 0.88rem; color: var(--white); font-weight: 600; }
+
+        /* SECTIONS */
+        .doc-section { margin-bottom: 3.5rem; }
+        .doc-section-title { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--white); font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-num { font-family: var(--mono); font-size: 0.65rem; color: rgba(249,115,22,0.3); letter-spacing: 2px; display: block; margin-bottom: 0.5rem; }
+        .doc-section-body { font-size: 0.93rem; color: var(--text); line-height: 2; border-left: 2px solid rgba(249,115,22,0.1); padding-left: 1.5rem; }
+        .doc-section-body strong { color: var(--white); }
+        .doc-section-body p { margin-bottom: 1rem; }
+        .doc-section-body ul { padding-left: 1rem; }
+        .doc-section-body li { margin-bottom: 0.4rem; }
+
+        /* BOXES */
+        .info-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 1.5rem 0; }
+        .info-box.orange { border-color: var(--orange-border); background: var(--orange-dim); }
+        .info-box.green { border-color: var(--green-border); background: var(--green-dim); }
+        .info-box-title { font-weight: 700; color: var(--white); margin-bottom: 0.75rem; font-size: 0.92rem; }
+        .info-box-body { font-size: 0.87rem; color: var(--text); line-height: 1.9; }
+        .info-box-body strong { color: var(--white); }
+
+        /* GRID */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 1.5rem 0; }
+        .mini-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+        .mini-card-title { font-size: 0.85rem; font-weight: 700; color: var(--white); margin-bottom: 0.5rem; }
+        .mini-card-body { font-size: 0.82rem; color: var(--text); line-height: 1.8; }
+        .mini-card-body strong { color: var(--green); }
+
+        /* PERMISSION TABLE */
+        .perm-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.85rem; }
+        .perm-table th { background: rgba(249,115,22,0.06); border-bottom: 1px solid rgba(249,115,22,0.12); padding: 0.75rem 1rem; text-align: left; font-family: var(--mono); font-size: 0.6rem; color: rgba(249,115,22,0.35); letter-spacing: 2px; }
+        .perm-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .perm-table tr:last-child td { border-bottom: none; }
+        .perm-code { font-family: var(--mono); color: var(--blue); font-size: 0.78rem; }
+        .perm-why { color: var(--text); line-height: 1.6; }
+        .badge-required { display: inline-block; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 4px; padding: 1px 6px; font-family: var(--mono); font-size: 0.6rem; color: var(--green); }
+
+        /* CONTRACT TABLE */
+        .contract-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .contract-table th { background: rgba(249,115,22,0.06); border-bottom: 1px solid rgba(249,115,22,0.12); padding: 0.65rem 1rem; text-align: left; font-family: var(--mono); font-size: 0.6rem; color: rgba(249,115,22,0.35); letter-spacing: 2px; }
+        .contract-table td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+        .contract-table tr:last-child td { border-bottom: none; }
+        .addr { font-family: var(--mono); color: var(--blue); font-size: 0.76rem; word-break: break-all; }
+        .contract-name { color: var(--white); font-weight: 600; }
+
+        /* UB TABLE */
+        .ub-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .ub-table th { background: rgba(249,115,22,0.06); border-bottom: 1px solid rgba(249,115,22,0.12); padding: 0.65rem 1rem; text-align: left; font-family: var(--mono); font-size: 0.6rem; color: rgba(249,115,22,0.35); letter-spacing: 2px; }
+        .ub-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.87rem; color: var(--text); line-height: 1.7; }
+        .ub-table tr:last-child td { border-bottom: none; }
+        .ub-benefit { color: var(--white); font-weight: 700; }
+
+        /* USER JOURNEY */
+        .journey { display: flex; flex-direction: column; gap: 0; margin: 1.5rem 0; }
+        .journey-step { display: flex; gap: 1.25rem; padding: 1.25rem 0; border-bottom: 1px solid var(--border); }
+        .journey-step:last-child { border-bottom: none; }
+        .journey-step-num { width: 36px; height: 36px; border-radius: 50%; background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.2); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--orange); font-weight: 900; flex-shrink: 0; }
+        .journey-step-body { flex: 1; }
+        .journey-step-title { font-weight: 700; color: var(--white); margin-bottom: 0.25rem; font-size: 0.9rem; }
+        .journey-step-body p { font-size: 0.85rem; color: var(--text); }
+
+        /* DIVIDER */
+        hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+
+        /* FOOTER */
+        .doc-footer { text-align: center; padding: 3rem 0 2rem; border-top: 1px solid var(--border); margin-top: 4rem; }
+        .doc-footer p { font-family: var(--mono); font-size: 0.67rem; color: rgba(107,127,150,0.2); margin-bottom: 0.35rem; }
+        .doc-footer a { color: rgba(249,115,22,0.3); text-decoration: none; }
+
+        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } .cover-meta { gap: 1rem; } }
+    </style>
+</head>
+<body>
+
+<nav class="nav no-print">
+    <div style="display:flex;align-items:center;">
+        <div class="nav-brand">UTL PROTOCOL</div>
+        <span class="nav-tag">MetaMask Snap Submission v2.0</span>
+    </div>
+    <div class="nav-right">
+        <a href="/utl-snap-dashboard.html" class="nav-link">Live Preview</a>
+        <a href="/utl-developers.html" class="nav-link">Dev Docs</a>
+        <button class="print-btn" onclick="window.print()">⬇ Print / PDF</button>
+    </div>
+</nav>
+
+<div class="page">
+
+    <!-- COVER -->
+    <div class="cover">
+        <div class="cover-badge">METAMASK SNAPS STORE — SUBMISSION PACKAGE v2.0</div>
+        <h1 class="cover-title">UTL Protocol<br>by Kenostod</h1>
+        <div class="cover-sub">Universal Transaction Layer · Education-Fi (E-Fi) · BSC Mainnet</div>
+        <p style="font-size:0.95rem; color:var(--text); max-width:600px; margin:0 auto; line-height:1.9;">The first MetaMask Snap that turns everyday wallet users into active participants in a protocol fee economy — showing hidden extraction before it happens and sharing 60% of all captured value with KENO stakers, automatically.</p>
+        <div class="cover-meta">
+            <div class="meta-item"><span class="meta-label">SUBMITTED BY</span><span class="meta-val">Kenostod Blockchain Academy LLC</span></div>
+            <div class="meta-item"><span class="meta-label">SNAP VERSION</span><span class="meta-val">2.0.0</span></div>
+            <div class="meta-item"><span class="meta-label">NPM PACKAGE</span><span class="meta-val">@kenostod/utl-snap</span></div>
+            <div class="meta-item"><span class="meta-label">NETWORK</span><span class="meta-val">BSC Mainnet (Chain 56)</span></div>
+            <div class="meta-item"><span class="meta-label">DATE</span><span class="meta-val">March 2026</span></div>
+        </div>
+    </div>
+
+    <!-- 1. EXECUTIVE SUMMARY -->
+    <div class="doc-section">
+        <span class="section-num">// 01</span>
+        <h2 class="doc-section-title">Executive Summary</h2>
+        <div class="doc-section-body">
+            <p>The UTL Protocol MetaMask Snap is a transaction intelligence and passive income layer that installs directly into MetaMask. It serves two populations simultaneously: <strong>protection seekers</strong> (everyday users who want to stop being silently robbed by MEV bots and hidden DeFi fees) and <strong>income seekers</strong> (KENO token holders who want to earn a share of protocol revenue without changing how they use their wallet).</p>
+            <p>The Snap fires on every transaction, analyzes MEV risk, estimates extractable value, and shows the user exactly what is about to leave the ecosystem — before they sign. For opted-in participants who hold KENO, the Snap tracks their loyalty tier, cumulative governance weight, staking earnings, and FAL™ (Flash Arbitrage Loan) opportunities — all without leaving MetaMask.</p>
+            <div class="info-box orange">
+                <div class="info-box-title">Core Value Proposition</div>
+                <div class="info-box-body">
+                    The average DeFi user loses <strong>0.3–2.0% of transaction value</strong> to MEV bots, LP spread manipulation, and bridge friction on every interaction — and has no idea it is happening. UTL Protocol is the first Snap that shows this extraction in real time, offers a route to stop it, and then pays the user 60% of every dollar that gets captured instead of extracted.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. SNAP DESCRIPTION (Store Copy) -->
+    <div class="doc-section">
+        <span class="section-num">// 02</span>
+        <h2 class="doc-section-title">Snap Store Description</h2>
+        <div class="doc-section-body">
+            <div class="info-box">
+                <div class="info-box-title">Short Description (≤ 120 chars)</div>
+                <div class="info-box-body">X-Ray every transaction for hidden MEV fees — then earn 60% of all captured fees by staking KENO.</div>
+            </div>
+            <div class="info-box">
+                <div class="info-box-title">Full Description (Store Listing)</div>
+                <div class="info-box-body">
+                    <p><strong>UTL Protocol shows you what is being stolen from your transactions — and gives you a way to earn from it instead.</strong></p>
+                    <p>Every time you make a swap, transfer, or DeFi interaction, MEV bots, LP pools, and bridge protocols extract value from your transaction without your knowledge. UTL Protocol is the first MetaMask Snap that makes this extraction visible and reversible.</p>
+                    <p><strong>What the Snap does:</strong><br>
+                    🔍 Fee X-Ray — Before every transaction, see MEV risk level, estimated slippage extraction, and LP spread leak<br>
+                    💰 Passive Income — Stake KENO and earn 60% of every fee the UTL FeeCollector captures network-wide<br>
+                    🏆 Loyalty Tiers — Bronze → Silver → Gold → Platinum → Diamond, built automatically from your toll history<br>
+                    🗳️ Governance Weight — Your cumulative toll payments become your vote in protocol decisions<br>
+                    ⚡ FAL™ Alerts — Get notified when Flash Arbitrage Loan opportunities open up, inside MetaMask<br>
+                    🎓 Graduate Credentials — Kenostod graduates display on-chain verified credentials directly in their wallet</p>
+                    <p><strong>Who built this:</strong><br>
+                    Kenostod Blockchain Academy LLC, the originator of Education-Fi (E-Fi) — a new financial category coined in 2026 by Nickeo Coleman that merges financial literacy, on-chain education, and protocol-level economics.</p>
+                    <p><strong>Contracts (BSC Mainnet):</strong><br>
+                    FeeCollector: 0xfE537c43d202C455Cedc141B882c808287BB662f<br>
+                    KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PERMISSIONS JUSTIFICATION -->
+    <div class="doc-section">
+        <span class="section-num">// 03</span>
+        <h2 class="doc-section-title">Permission Justifications</h2>
+        <div class="doc-section-body">
+            <p>The following permissions are requested. Each is the minimum necessary for the described functionality.</p>
+            <table class="perm-table">
+                <thead>
+                    <tr><th>Permission</th><th>Why Required</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="perm-code">endowment:transaction-insight</span></td>
+                        <td class="perm-why">Fires the Fee X-Ray on every transaction before the user signs. Core feature. No data is sent externally; analysis is local to the Snap sandbox.</td>
+                        <td><span class="badge-required">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="perm-code">snap_manageState</span></td>
+                        <td class="perm-why">Persists user tier, toll history, staking balance, and governance weight locally inside the Snap. No external storage. Data stays in the user's MetaMask encrypted vault.</td>
+                        <td><span class="badge-required">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="perm-code">snap_notify</span></td>
+                        <td class="perm-why">Sends FAL™ arbitrage opportunity alerts and weekly earnings reports as in-wallet notifications. User can disable FAL alerts via <code>utl_toggleFAL</code>.</td>
+                        <td><span class="badge-required">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="perm-code">snap_dialog</span></td>
+                        <td class="perm-why">Renders the Dashboard, Earnings Breakdown, Governance panel, and Credential display inside MetaMask. All UI rendered natively — no external iframe.</td>
+                        <td><span class="badge-required">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="perm-code">endowment:network-access</span></td>
+                        <td class="perm-why">Fetches live wallet profile data, governance proposals, network fee stats, and FAL opportunities from the Kenostod API (kenostodblockchain.com). All requests are read-only GET calls. No wallet keys are transmitted. Requests timeout after 5 seconds with graceful fallback to local state.</td>
+                        <td><span class="badge-required">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="perm-code">endowment:rpc</span> (dapps: true)</td>
+                        <td class="perm-why">Allows the Kenostod dApp at kenostodblockchain.com to call Snap methods (utl_activate, utl_updateStake, utl_sync) when the user connects their wallet. Required for the opt-in flow and stake balance sync.</td>
+                        <td><span class="badge-required">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="perm-code">endowment:ethereum-provider</span></td>
+                        <td class="perm-why">Reserved for future on-chain balance reads (KENO holdings, staking contract state) without requiring user to manually sync. Not actively used in v2.0.</td>
+                        <td><span class="badge-required">Future</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="perm-code">endowment:cronjob</span></td>
+                        <td class="perm-why">Runs a daily background check (9AM UTC) for FAL opportunity alerts and weekly report delivery on Sundays. Cron expression: <code>0 9 * * *</code>. User can disable FAL alerts at any time.</td>
+                        <td><span class="badge-required">Core</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4. USER BENEFIT BREAKDOWN -->
+    <div class="doc-section">
+        <span class="section-num">// 04</span>
+        <h2 class="doc-section-title">User Benefit by Category</h2>
+        <div class="doc-section-body">
+            <p>Everyday MetaMask users who install UTL Protocol receive measurable, ongoing benefits across six dimensions. No crypto expertise required.</p>
+            <table class="ub-table">
+                <thead>
+                    <tr><th>Benefit</th><th>Who Gets It</th><th>How</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="ub-benefit">Hidden Fee X-Ray</td>
+                        <td>Every user, every transaction</td>
+                        <td>The <code>onTransaction</code> handler fires before signing, computes MEV risk from transaction value and destination, estimates slippage and LP spread, and renders the breakdown inside MetaMask — no action required by the user.</td>
+                    </tr>
+                    <tr>
+                        <td class="ub-benefit">Passive Staking Income</td>
+                        <td>KENO holders who stake</td>
+                        <td>60% of all 15 fee types collected by the UTL FeeCollector is distributed to KENO stakers. The Snap shows live earnings and supports auto-compound (rewards auto-restaked for exponential growth).</td>
+                    </tr>
+                    <tr>
+                        <td class="ub-benefit">Automatic Loyalty Tier</td>
+                        <td>All opted-in participants</td>
+                        <td>Every toll payment is logged against the wallet address. The Snap computes tier (Bronze → Diamond) from cumulative toll history. No form. No claim. Higher tiers bring toll discounts (5%–20%) and reward multipliers (1.0x–3.0x).</td>
+                    </tr>
+                    <tr>
+                        <td class="ub-benefit">Governance Voting Power</td>
+                        <td>Toll-paying participants</td>
+                        <td>Toll history converts to governance weight with tier multipliers (Bronze 1x → Diamond 3x). The Snap displays current weight and active proposals. Gold+ tier unlocks the ability to submit new proposals.</td>
+                    </tr>
+                    <tr>
+                        <td class="ub-benefit">Flash Arbitrage Alerts (FAL™)</td>
+                        <td>Opted-in participants with alerts enabled</td>
+                        <td>Daily cron job polls the FAL opportunity feed. When a profit spread &gt; 0.5% is found, an in-wallet notification fires with the pair and profit percent. User can toggle alerts with <code>utl_toggleFAL</code>.</td>
+                    </tr>
+                    <tr>
+                        <td class="ub-benefit">On-Chain Graduate Credentials</td>
+                        <td>Kenostod Academy graduates</td>
+                        <td>Graduates link their wallet via the dApp. The Snap fetches their verified record and displays Graduate ID, courses completed, KENO earned, and NFT tier — permanently readable by any employer or institution checking the wallet address.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. USER JOURNEY -->
+    <div class="doc-section">
+        <span class="section-num">// 05</span>
+        <h2 class="doc-section-title">User Journey — From Install to Earning</h2>
+        <div class="doc-section-body">
+            <div class="journey">
+                <div class="journey-step">
+                    <div class="journey-step-num">1</div>
+                    <div class="journey-step-body">
+                        <div class="journey-step-title">Install from Snap Store</div>
+                        <p>User finds UTL Protocol in the MetaMask Snap store and clicks Install. Permissions dialog explains what each permission does. User approves. The <code>onInstall</code> handler fires and shows a welcome panel with the tier roadmap and contract addresses.</p>
+                    </div>
+                </div>
+                <div class="journey-step">
+                    <div class="journey-step-num">2</div>
+                    <div class="journey-step-body">
+                        <div class="journey-step-title">First Transaction — X-Ray Fires</div>
+                        <p>Before the user signs their next swap or transfer, the Fee X-Ray panel appears automatically. Even without opting in, they see MEV risk, estimated slippage loss, and LP spread extraction — data no other Snap surfaces at this level of detail.</p>
+                    </div>
+                </div>
+                <div class="journey-step">
+                    <div class="journey-step-num">3</div>
+                    <div class="journey-step-body">
+                        <div class="journey-step-title">Activate via dApp</div>
+                        <p>User visits kenostodblockchain.com, connects their wallet. The dApp calls <code>utl_activate</code> with their wallet address. The Snap syncs their existing on-chain profile, sets their tier, and confirms activation with a full onboarding panel.</p>
+                    </div>
+                </div>
+                <div class="journey-step">
+                    <div class="journey-step-num">4</div>
+                    <div class="journey-step-body">
+                        <div class="journey-step-title">Stake KENO — Start Earning</div>
+                        <p>User stakes KENO on the platform. The dApp calls <code>utl_updateStake</code> which updates the Snap's local state. An in-wallet notification confirms the new tier and multiplier. From this point, every fee captured by the UTL FeeCollector anywhere in the network earns them a proportional share.</p>
+                    </div>
+                </div>
+                <div class="journey-step">
+                    <div class="journey-step-num">5</div>
+                    <div class="journey-step-body">
+                        <div class="journey-step-title">Tier Advances — Benefits Compound</div>
+                        <p>Every toll payment builds their tier automatically. At 100 KENO toll paid → Silver (5% discount). At 500 → Gold (can submit governance proposals). At 2,000 → Platinum (2x governance weight). At 10,000 → Diamond (advisory seat at T.D.I.R. Foundation). The Snap tracks this in real time.</p>
+                    </div>
+                </div>
+                <div class="journey-step">
+                    <div class="journey-step-num">6</div>
+                    <div class="journey-step-body">
+                        <div class="journey-step-title">Weekly Report + FAL Alerts</div>
+                        <p>Every Sunday morning, the Snap delivers an in-wallet weekly report: transaction count, fees contributed, KENO earned. Any time a profitable FAL opportunity opens (>0.5% spread), an alert fires immediately. Users can participate in flash arbitrage without leaving the ecosystem.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. PROTOCOL CONTRACTS -->
+    <div class="doc-section">
+        <span class="section-num">// 06</span>
+        <h2 class="doc-section-title">Protocol Contracts — BSC Mainnet</h2>
+        <div class="doc-section-body">
+            <p>All five UTL Protocol contracts are deployed and live on BNB Smart Chain (Chain ID 56). Contract addresses are hardcoded in the Snap source and cannot be altered post-publish.</p>
+            <table class="contract-table">
+                <thead><tr><th>Contract</th><th>Address</th><th>Role</th></tr></thead>
+                <tbody>
+                    <tr><td class="contract-name">KENO Token</td><td class="addr">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</td><td style="font-size:0.82rem;color:var(--text);">BEP-20 native token, $1.00 USDB peg</td></tr>
+                    <tr><td class="contract-name">Staking Contract</td><td class="addr">0x49961979c93f43f823BB3593b207724194019d1d</td><td style="font-size:0.82rem;color:var(--text);">KENO staking and reward distribution</td></tr>
+                    <tr><td class="contract-name">FeeCollector</td><td class="addr">0xfE537c43d202C455Cedc141B882c808287BB662f</td><td style="font-size:0.82rem;color:var(--text);">15 fee type engine, 60/25/15 split</td></tr>
+                    <tr><td class="contract-name">Treasury</td><td class="addr">0x3B3538b955647d811D42400084e9409e6593bE97</td><td style="font-size:0.82rem;color:var(--text);">Protocol reserves (15% of fees)</td></tr>
+                    <tr><td class="contract-name">Distribution</td><td class="addr">0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7</td><td style="font-size:0.82rem;color:var(--text);">Auto-distribution engine (60/25 split)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 7. SECURITY & PRIVACY -->
+    <div class="doc-section">
+        <span class="section-num">// 07</span>
+        <h2 class="doc-section-title">Security & Privacy Disclosure</h2>
+        <div class="doc-section-body">
+            <div class="two-col">
+                <div class="mini-card">
+                    <div class="mini-card-title">No Keys. Ever.</div>
+                    <div class="mini-card-body">The Snap never requests, stores, or transmits private keys or seed phrases. All state is stored in MetaMask's encrypted snap state using <code>snap_manageState</code>. The only wallet identifier used is the user-provided wallet address for API profile lookups.</div>
+                </div>
+                <div class="mini-card">
+                    <div class="mini-card-title">API Calls — Read Only</div>
+                    <div class="mini-card-body">All network requests are <strong>GET reads only</strong>. No transaction signing happens inside the Snap. No funds move without the user explicitly signing in MetaMask. API calls timeout after 5 seconds with full graceful fallback to locally stored state.</div>
+                </div>
+                <div class="mini-card">
+                    <div class="mini-card-title">Sandbox Isolated</div>
+                    <div class="mini-card-body">All Snap logic runs in the MetaMask Snap sandboxed environment. The Snap cannot access other Snaps, other dApps, browser history, or system resources. All computation is deterministic and auditable from the open-source repository.</div>
+                </div>
+                <div class="mini-card">
+                    <div class="mini-card-title">No Tracking</div>
+                    <div class="mini-card-body">No analytics SDK is bundled. No user behavior is reported to third-party services. The wallet address used for API profile sync is provided by the user via the dApp opt-in flow — the Snap does not extract it independently.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. EDUCATION-FI CONTEXT -->
+    <div class="doc-section">
+        <span class="section-num">// 08</span>
+        <h2 class="doc-section-title">The Education-Fi (E-Fi) Context</h2>
+        <div class="doc-section-body">
+            <p>UTL Protocol is the financial infrastructure layer of <strong>Kenostod Blockchain Academy LLC</strong>, a U.S.-based Web3 education company that coined the term <strong>Education-Fi (E-Fi)</strong> in 2026 — a new financial category where protocol economics are designed to fund and incentivize financial education.</p>
+            <p>The UTL FeeCollector distributes collected fees as follows:</p>
+            <div class="info-box green">
+                <div class="info-box-title">Revenue Distribution Model</div>
+                <div class="info-box-body">
+                    <strong>60% → KENO Stakers</strong> — Every user who holds and stakes KENO earns proportional income from all network fee activity<br><br>
+                    <strong>25% → T.D.I.R. Foundation</strong> (Turn Dreams Into Reality) — Funds scholarships, grants, and financial literacy programs for underserved communities<br><br>
+                    <strong>15% → Treasury</strong> — Protocol sustainability, liquidity depth, and ecosystem expansion
+                </div>
+            </div>
+            <p>The MetaMask Snap is the primary user-facing entry point into this ecosystem. Installing it is how an everyday MetaMask user becomes a UTL Protocol participant — without needing to understand smart contracts, tokenomics, or DeFi mechanics first. The Snap teaches by doing: every X-Ray, every tier notification, every FAL alert is also a lesson in how blockchain fee economics work.</p>
+        </div>
+    </div>
+
+    <!-- 9. REPOSITORY & AUDIT -->
+    <div class="doc-section">
+        <span class="section-num">// 09</span>
+        <h2 class="doc-section-title">Repository & Audit Trail</h2>
+        <div class="doc-section-body">
+            <table class="perm-table">
+                <thead><tr><th>Item</th><th>Detail</th></tr></thead>
+                <tbody>
+                    <tr><td class="perm-code">Source Repo</td><td class="perm-why"><a href="https://github.com/Keno2121/utl-metamask-snap" style="color:var(--blue)">github.com/Keno2121/utl-metamask-snap</a></td></tr>
+                    <tr><td class="perm-code">NPM Package</td><td class="perm-why">@kenostod/utl-snap (registry.npmjs.org)</td></tr>
+                    <tr><td class="perm-code">Entry Point</td><td class="perm-why">dist/bundle.js (TypeScript compiled via mm-snap build)</td></tr>
+                    <tr><td class="perm-code">PR Reference</td><td class="perm-why">MetaMask Snap Directory PR #1459</td></tr>
+                    <tr><td class="perm-code">Audit Status</td><td class="perm-why">Internal review complete. Arbitrum Foundation audit submission pending for smart contract layer. Snap-level security review self-completed against MetaMask Snaps security checklist.</td></tr>
+                    <tr><td class="perm-code">License</td><td class="perm-why">MIT (Snap code) · All Rights Reserved (protocol economics & E-Fi brand)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 10. CONTACT -->
+    <div class="doc-section">
+        <span class="section-num">// 10</span>
+        <h2 class="doc-section-title">Contact & Links</h2>
+        <div class="doc-section-body">
+            <div class="two-col">
+                <div class="mini-card">
+                    <div class="mini-card-title">Submission Contact</div>
+                    <div class="mini-card-body">
+                        <strong>Nickeo Coleman</strong><br>
+                        Founder & Chief Protocol Architect<br>
+                        Kenostod Blockchain Academy LLC<br>
+                        kenostodblockchain.com
+                    </div>
+                </div>
+                <div class="mini-card">
+                    <div class="mini-card-title">Resources</div>
+                    <div class="mini-card-body">
+                        🔗 Snap Dashboard: /utl-snap-dashboard.html<br>
+                        📋 Developer Docs: /utl-developers.html<br>
+                        ⚖️ Code is Law: /utl-code-is-law.html<br>
+                        🏦 Protocol Audit: /api/utl/fee/audit
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="doc-footer">
+        <p>UTL Protocol — Universal Transaction Layer · Kenostod Blockchain Academy LLC · Education-Fi (E-Fi) — coined 2026</p>
+        <p>FeeCollector: 0xfE537c43d202C455Cedc141B882c808287BB662f · BSC Chain 56</p>
+        <p><a href="/utl-snap-dashboard.html">Snap Dashboard</a> · <a href="/utl-developers.html">Dev Docs</a> · <a href="/utl-code-is-law.html">Code is Law</a> · <a href="/utl-fee-intelligence.html">Fee Intelligence Report</a></p>
+    </div>
+
+</div>
+</body>
+</html>

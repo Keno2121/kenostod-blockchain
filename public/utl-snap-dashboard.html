@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Protocol — MetaMask Snap Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #040608; --bg2: #080d12; --bg3: #0d1520;
+            --border: rgba(255,255,255,0.06);
+            --orange: #f97316; --orange-dim: rgba(249,115,22,0.08); --orange-border: rgba(249,115,22,0.2);
+            --green: #10b981; --green-dim: rgba(16,185,129,0.07); --green-border: rgba(16,185,129,0.18);
+            --purple: #a78bfa; --gold: #fbbf24; --red: #ef4444;
+            --text: #6b7f96; --white: #d8e8f5;
+            --mono: 'JetBrains Mono', monospace;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+        /* NAV */
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 99; background: rgba(4,6,8,0.97); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(249,115,22,0.1); padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-family: 'Orbitron', sans-serif; font-size: 0.82rem; color: var(--orange); font-weight: 700; }
+        .nav-right { display: flex; gap: 0.75rem; align-items: center; }
+        .nav-link { font-size: 0.8rem; color: rgba(107,127,150,0.5); text-decoration: none; }
+        .install-btn { padding: 8px 20px; border-radius: 6px; background: rgba(249,115,22,0.1); color: var(--orange); border: 1px solid var(--orange-border); font-size: 0.8rem; font-weight: 700; cursor: pointer; text-decoration: none; }
+
+        /* HERO */
+        .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 7rem 2rem 5rem; text-align: center; background: radial-gradient(ellipse at 50% 30%, rgba(249,115,22,0.06) 0%, transparent 60%); position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f97316' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); pointer-events: none; }
+        .mm-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.2); border-radius: 20px; padding: 6px 18px; margin-bottom: 2rem; font-size: 0.72rem; color: rgba(249,115,22,0.6); letter-spacing: 2px; font-weight: 600; }
+        .mm-fox { font-size: 1.1rem; }
+        .hero-title { font-family: 'Orbitron', sans-serif; font-size: clamp(2.5rem, 6vw, 5rem); color: var(--white); font-weight: 900; line-height: 1.05; margin-bottom: 1.5rem; }
+        .hero-title .orange { color: var(--orange); }
+        .hero-sub { font-size: clamp(1rem, 1.8vw, 1.2rem); color: var(--text); max-width: 650px; margin: 0 auto 3rem; line-height: 1.9; }
+        .hero-sub strong { color: var(--white); }
+        .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 4rem; }
+        .btn-primary { padding: 14px 32px; border-radius: 8px; background: linear-gradient(135deg, #f97316, #fb923c); color: #fff; font-weight: 800; font-size: 0.95rem; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
+        .btn-ghost { padding: 14px 32px; border-radius: 8px; background: transparent; color: var(--text); border: 1px solid var(--border); font-weight: 600; font-size: 0.95rem; cursor: pointer; text-decoration: none; display: inline-block; }
+        .hero-stats { display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap; }
+        .hs { text-align: center; }
+        .hs-num { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; font-weight: 900; color: var(--orange); }
+        .hs-label { font-size: 0.75rem; color: rgba(107,127,150,0.5); letter-spacing: 1px; }
+
+        /* SECTIONS */
+        .section { padding: 5.5rem 2rem; }
+        .section-alt { background: var(--bg2); }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .sec-id { font-family: var(--mono); font-size: 0.6rem; color: rgba(249,115,22,0.25); letter-spacing: 4px; margin-bottom: 0.5rem; }
+        .sec-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.5rem, 2.5vw, 2.2rem); color: var(--white); font-weight: 700; margin-bottom: 0.75rem; }
+        .sec-title .orange { color: var(--orange); }
+        .sec-title .green { color: var(--green); }
+        .sec-desc { font-size: 1rem; color: var(--text); max-width: 680px; line-height: 1.95; margin-bottom: 3rem; }
+        .sec-desc strong { color: var(--white); }
+
+        /* FEATURES GRID */
+        .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .feat-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 2rem; transition: border-color 0.2s, transform 0.2s; }
+        .feat-card:hover { border-color: rgba(249,115,22,0.25); transform: translateY(-3px); }
+        .feat-card-top { height: 2px; margin: -2rem -2rem 1.5rem; border-radius: 14px 14px 0 0; background: linear-gradient(90deg, var(--orange), transparent); }
+        .feat-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+        .feat-title { font-weight: 700; color: var(--white); margin-bottom: 0.5rem; font-size: 0.97rem; }
+        .feat-body { font-size: 0.86rem; color: var(--text); line-height: 1.75; }
+        .feat-body strong { color: var(--white); }
+
+        /* SIMULATED SNAP UI */
+        .snap-mockup { max-width: 480px; margin: 0 auto; }
+        .snap-chrome { background: #1a1a2e; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 40px 80px rgba(0,0,0,0.6); }
+        .snap-chrome-bar { background: #111128; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .snap-chrome-dots { display: flex; gap: 6px; }
+        .snap-chrome-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .snap-chrome-dot.red { background: #ff5f57; }
+        .snap-chrome-dot.yellow { background: #febc2e; }
+        .snap-chrome-dot.green { background: #28c840; }
+        .snap-chrome-title { font-family: var(--mono); font-size: 0.7rem; color: rgba(255,255,255,0.25); flex: 1; text-align: center; }
+        .snap-chrome-icon { font-size: 1.2rem; }
+        .snap-body { padding: 1.5rem; }
+        .snap-heading { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 1rem; }
+        .snap-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 1rem 0; }
+        .snap-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
+        .snap-row-label { font-size: 0.8rem; color: rgba(255,255,255,0.35); }
+        .snap-row-val { font-size: 0.8rem; color: rgba(255,255,255,0.8); font-weight: 600; }
+        .snap-row-val.red { color: #ff6b6b; }
+        .snap-row-val.green { color: #4ade80; }
+        .snap-row-val.orange { color: #fb923c; }
+        .snap-row-val.gold { color: #fbbf24; }
+        .snap-text { font-size: 0.8rem; color: rgba(255,255,255,0.35); line-height: 1.7; padding: 0.3rem 0; }
+        .snap-text strong { color: rgba(255,255,255,0.7); }
+        .snap-tab-row { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        .snap-tab { padding: 6px 14px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); transition: all 0.2s; }
+        .snap-tab.active { background: rgba(249,115,22,0.15); border-color: rgba(249,115,22,0.35); color: #fb923c; }
+        .snap-screen { display: none; }
+        .snap-screen.active { display: block; }
+
+        /* TIER TABLE */
+        .tier-table { width: 100%; border-collapse: collapse; margin-top: 2.5rem; }
+        .tier-table th { background: rgba(249,115,22,0.06); border-bottom: 1px solid rgba(249,115,22,0.15); padding: 0.85rem 1.25rem; text-align: left; font-family: var(--mono); font-size: 0.6rem; color: rgba(249,115,22,0.35); letter-spacing: 2px; }
+        .tier-table td { padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+        .tier-table tr:last-child td { border-bottom: none; }
+        .tier-table tr:hover td { background: rgba(249,115,22,0.02); }
+        .tier-name { color: var(--white); font-weight: 700; }
+        .tier-highlight { color: var(--green); font-weight: 700; font-family: var(--mono); }
+
+        /* INSTALL CTA */
+        .install-cta { background: linear-gradient(160deg, rgba(249,115,22,0.06), transparent 60%); border: 1px solid rgba(249,115,22,0.12); border-radius: 20px; padding: 4rem; text-align: center; margin-top: 3rem; }
+        .install-cta-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.5rem, 3vw, 2.5rem); color: var(--white); font-weight: 900; margin-bottom: 1rem; }
+        .install-cta-sub { font-size: 1rem; color: var(--text); max-width: 550px; margin: 0 auto 2rem; line-height: 1.9; }
+        .install-steps { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
+        .install-step { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1.75rem; text-align: center; flex: 1; min-width: 200px; max-width: 260px; }
+        .install-step-num { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--orange); font-weight: 900; margin-bottom: 0.4rem; }
+        .install-step-text { font-size: 0.85rem; color: var(--text); }
+
+        footer { padding: 2rem; text-align: center; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.67rem; color: rgba(107,127,150,0.2); }
+        footer a { color: rgba(249,115,22,0.3); text-decoration: none; }
+
+        @media (max-width: 900px) { .feat-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .feat-grid, .install-steps { grid-template-columns: 1fr; flex-direction: column; } .hero-stats { gap: 1.5rem; } }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-brand">UTL PROTOCOL</div>
+    <div class="nav-right">
+        <a href="/utl-developers.html" class="nav-link">Docs</a>
+        <a href="/utl-code-is-law.html" class="nav-link">Code is Law</a>
+        <a href="#install" class="install-btn">🦊 Install Snap</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div>
+        <div class="mm-badge"><span class="mm-fox">🦊</span> MetaMask Snap — Install Directly to Your Wallet</div>
+        <h1 class="hero-title">Your Wallet.<br><span class="orange">Now Earning.</span></h1>
+        <p class="hero-sub">UTL Protocol turns MetaMask into an active participant in the fee economy. <strong>See hidden fees before you sign. Earn 60% of every fee the protocol captures. Build governance power automatically.</strong> No separate app. No second wallet. Works right inside MetaMask.</p>
+        <div class="hero-btns">
+            <a href="#install" class="btn-primary">🦊 Install UTL Snap</a>
+            <a href="/utl-code-is-law.html" class="btn-ghost">How the Protocol Works →</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hs"><div class="hs-num">15</div><div class="hs-label">Fee Types Tracked</div></div>
+            <div class="hs"><div class="hs-num">60%</div><div class="hs-label">Revenue to Stakers</div></div>
+            <div class="hs"><div class="hs-num">5</div><div class="hs-label">Live BSC Contracts</div></div>
+            <div class="hs"><div class="hs-num">5</div><div class="hs-label">Loyalty Tiers</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="sec-id">// SNAP_FEATURES</div>
+        <h2 class="sec-title">What Happens the <span class="orange">Moment You Install It</span></h2>
+        <p class="sec-desc">No setup. No configuration. The Snap activates on install and starts working on your next transaction.</p>
+
+        <div class="feat-grid">
+            <div class="feat-card">
+                <div class="feat-card-top"></div>
+                <div class="feat-icon">🔍</div>
+                <div class="feat-title">Hidden Fee X-Ray</div>
+                <div class="feat-body">Before you sign <strong>any transaction</strong>, UTL shows you what MEV bots, slippage, and LP spread are about to extract. Estimated value being lost. Risk level. And whether routing through UTL would capture it instead.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-card-top"></div>
+                <div class="feat-icon">💰</div>
+                <div class="feat-title">Passive Staking Income</div>
+                <div class="feat-body">Stake KENO and earn <strong>60% of every fee</strong> the UTL FeeCollector captures across the entire network — not just your own transactions. Every other user's activity earns you a cut. Auto-compound keeps it growing.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-card-top"></div>
+                <div class="feat-icon">🏆</div>
+                <div class="feat-title">Loyalty Tier — Auto-Built</div>
+                <div class="feat-body">Every toll you pay is logged against your wallet. No form to fill. Your tier builds from <strong>Bronze → Silver → Gold → Platinum → Diamond</strong> automatically. Higher tiers unlock toll discounts, early access, and governance weight.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-card-top"></div>
+                <div class="feat-icon">🗳️</div>
+                <div class="feat-title">Governance Weight</div>
+                <div class="feat-body">Your toll history = your governance power. The Snap tracks your cumulative fee contributions and converts them into <strong>voting weight for protocol decisions</strong> — fee rates, new products, T.D.I.R. Foundation funding. Use the protocol, earn your voice.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-card-top"></div>
+                <div class="feat-icon">⚡</div>
+                <div class="feat-title">FAL™ Opportunity Alerts</div>
+                <div class="feat-body">When a profitable Flash Arbitrage Loan opportunity opens up, the Snap notifies you <strong>inside MetaMask</strong>. One tap to visit the FAL dashboard. 0.09% fee stays inside UTL instead of going to Aave. Zero default risk by design.</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-card-top"></div>
+                <div class="feat-icon">🎓</div>
+                <div class="feat-title">Graduate Credentials</div>
+                <div class="feat-body">Kenostod graduates link their wallet and their <strong>verified on-chain credentials display directly in MetaMask</strong>. Any employer or institution can tap your wallet address and see your verified course completions, NFT tier, and KENO standing — instantly.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SNAP MOCKUP + LIVE DEMO -->
+<section class="section">
+    <div class="container">
+        <div class="sec-id">// SNAP_PREVIEW</div>
+        <h2 class="sec-title">What You See <span class="orange">Inside MetaMask</span></h2>
+        <p class="sec-desc">Every screen the Snap shows lives inside your MetaMask wallet — no external app, no browser tab.</p>
+
+        <div class="snap-mockup">
+            <div class="snap-tab-row" style="margin-bottom: 1.5rem; justify-content: center;">
+                <button class="snap-tab active" onclick="showScreen('xray')">Fee X-Ray</button>
+                <button class="snap-tab" onclick="showScreen('dashboard')">Dashboard</button>
+                <button class="snap-tab" onclick="showScreen('earnings')">Earnings</button>
+                <button class="snap-tab" onclick="showScreen('governance')">Governance</button>
+            </div>
+
+            <div class="snap-chrome">
+                <div class="snap-chrome-bar">
+                    <div class="snap-chrome-dots"><div class="snap-chrome-dot red"></div><div class="snap-chrome-dot yellow"></div><div class="snap-chrome-dot green"></div></div>
+                    <div class="snap-chrome-title">MetaMask — Transaction Insight</div>
+                    <div class="snap-chrome-icon">🦊</div>
+                </div>
+                <div class="snap-body">
+
+                    <!-- X-Ray Screen -->
+                    <div class="snap-screen active" id="screen-xray">
+                        <div class="snap-heading">🏆 UTL Fee X-Ray — Gold Member</div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-heading" style="font-size:0.9rem; color: rgba(255,255,255,0.5);">Hidden Fee Alert</div>
+                        <div class="snap-row"><span class="snap-row-label">MEV Risk Level</span><span class="snap-row-val red">🔴 HIGH — bots targeting</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Est. Slippage Loss</span><span class="snap-row-val red">0.008400 BNB to bots</span></div>
+                        <div class="snap-row"><span class="snap-row-label">LP Spread</span><span class="snap-row-val red">0.001750 BNB to anon LPs</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Total Drain</span><span class="snap-row-val red">~0.010150 BNB leaving ecosystem</span></div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-heading" style="font-size:0.9rem; color: rgba(255,255,255,0.5);">Your UTL Position</div>
+                        <div class="snap-row"><span class="snap-row-label">Routing via UTL</span><span class="snap-row-val green">✅ FeeCollector — captured</span></div>
+                        <div class="snap-row"><span class="snap-row-label">UTL Toll (you pay)</span><span class="snap-row-val orange">0.000630 BNB (10% Gold discount)</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Your Tier</span><span class="snap-row-val gold">🏆 Gold · 1.5x weight</span></div>
+                        <div class="snap-row"><span class="snap-row-label">KENO Staked</span><span class="snap-row-val">2,500.0000 KENO</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Rewards Earned</span><span class="snap-row-val green">847.3200 KENO earned</span></div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-text">🔄 Auto-compound: ON — rewards auto-restaked</div>
+                        <div class="snap-text" style="margin-top:0.5rem; opacity:0.4;">UTL Protocol · Code is Law · BSC Mainnet</div>
+                    </div>
+
+                    <!-- Dashboard Screen -->
+                    <div class="snap-screen" id="screen-dashboard">
+                        <div class="snap-heading">🏆 UTL Dashboard — Gold</div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-heading" style="font-size:0.9rem; color: rgba(255,255,255,0.5);">Earnings</div>
+                        <div class="snap-row"><span class="snap-row-label">KENO Staked</span><span class="snap-row-val">2,500 KENO</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Rewards Earned</span><span class="snap-row-val green">847.32 KENO</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Your Fee Share</span><span class="snap-row-val">60% of network collections</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Auto-Compound</span><span class="snap-row-val green">🔄 ON</span></div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-heading" style="font-size:0.9rem; color: rgba(255,255,255,0.5);">Tier & Governance</div>
+                        <div class="snap-row"><span class="snap-row-label">Current Tier</span><span class="snap-row-val gold">🏆 Gold (1.5x weight)</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Toll Discount</span><span class="snap-row-val green">10% off your tolls</span></div>
+                        <div class="snap-row"><span class="snap-row-label">To Platinum</span><span class="snap-row-val orange">1,380 KENO more</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Gov. Weight</span><span class="snap-row-val">94.5 voting power</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Can Propose</span><span class="snap-row-val green">✅ Yes</span></div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-row"><span class="snap-row-label">Total Transactions</span><span class="snap-row-val">312</span></div>
+                        <div class="snap-row"><span class="snap-row-label">MEV Events Flagged</span><span class="snap-row-val red">28</span></div>
+                    </div>
+
+                    <!-- Earnings Screen -->
+                    <div class="snap-screen" id="screen-earnings">
+                        <div class="snap-heading">💰 UTL Earnings Breakdown</div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-heading" style="font-size:0.9rem; color: rgba(255,255,255,0.5);">Network Revenue</div>
+                        <div class="snap-row"><span class="snap-row-label">Total Collected</span><span class="snap-row-val">14,820 KENO</span></div>
+                        <div class="snap-row"><span class="snap-row-label">→ To All Stakers</span><span class="snap-row-val green">8,892 KENO (60%)</span></div>
+                        <div class="snap-row"><span class="snap-row-label">→ T.D.I.R. Found.</span><span class="snap-row-val gold">3,705 KENO (25%)</span></div>
+                        <div class="snap-row"><span class="snap-row-label">→ Treasury</span><span class="snap-row-val">2,223 KENO (15%)</span></div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-heading" style="font-size:0.9rem; color: rgba(255,255,255,0.5);">Fee Sources Earning You Money</div>
+                        <div class="snap-text">• Distribution toll (1%) — KENO distributions</div>
+                        <div class="snap-text">• Staking toll (0.5%) — stake/unstake events</div>
+                        <div class="snap-text">• FAL™ completion fee (0.09%) — flash loans</div>
+                        <div class="snap-text">• Graduate NFT royalty (7.5%) — every resale</div>
+                        <div class="snap-text">• Credential verification — employer checks</div>
+                        <div class="snap-text">• Cross-chain bridge fee (0.3%)</div>
+                        <div class="snap-text">• Partner integration licenses</div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-text"><strong>All 60% flows to KENO stakers automatically.</strong></div>
+                    </div>
+
+                    <!-- Governance Screen -->
+                    <div class="snap-screen" id="screen-governance">
+                        <div class="snap-heading">🗳️ UTL Governance</div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-row"><span class="snap-row-label">Your Tier</span><span class="snap-row-val gold">🏆 Gold</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Governance Weight</span><span class="snap-row-val">94.5 voting power</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Can Vote</span><span class="snap-row-val green">✅ Yes</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Can Propose</span><span class="snap-row-val green">✅ Yes — Gold+ tier</span></div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-heading" style="font-size:0.9rem; color: rgba(255,255,255,0.5);">Active Proposals</div>
+                        <div class="snap-row"><span class="snap-row-label">Title</span><span class="snap-row-val">Reduce staking toll to 0.4%</span></div>
+                        <div class="snap-row"><span class="snap-row-label">Status</span><span class="snap-row-val green">Active — 3 days left</span></div>
+                        <div class="snap-text" style="margin-top:0.5rem;">Vote at kenostodblockchain.com/governance</div>
+                        <div class="snap-divider"></div>
+                        <div class="snap-text">🥉 Bronze  — Observer (no vote)</div>
+                        <div class="snap-text">🥈 Silver  — Community Member</div>
+                        <div class="snap-text">🏆 Gold    — Active Contributor (vote + propose)</div>
+                        <div class="snap-text">💎 Platinum — Protocol Elder (2x weight)</div>
+                        <div class="snap-text">👑 Diamond — Founding Voice (3x weight)</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TIER TABLE -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="sec-id">// LOYALTY_TIERS</div>
+        <h2 class="sec-title">Your Tier Builds <span class="orange">Every Time You Transact</span></h2>
+        <p class="sec-desc">The more you interact with UTL Protocol, the higher your tier — and the more you earn and save. Tiers are computed automatically from your cumulative toll payments. No points system. No manual tracking.</p>
+
+        <table class="tier-table">
+            <thead>
+                <tr>
+                    <th>Tier</th>
+                    <th>KENO Toll Threshold</th>
+                    <th>Toll Discount</th>
+                    <th>Reward Multiplier</th>
+                    <th>Special Access</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="tier-name">🥉 Bronze</td><td class="tier-highlight">Starting</td><td>0%</td><td>1.0x</td><td>Dashboard, X-Ray, Toll Receipt</td></tr>
+                <tr><td class="tier-name">🥈 Silver</td><td class="tier-highlight">100 KENO paid</td><td>5%</td><td>1.2x</td><td>Early product access, Silver badge</td></tr>
+                <tr><td class="tier-name">🏆 Gold</td><td class="tier-highlight">500 KENO paid</td><td>10%</td><td>1.5x</td><td>Priority transactions, Governance proposals</td></tr>
+                <tr><td class="tier-name">💎 Platinum</td><td class="tier-highlight">2,000 KENO paid</td><td>15%</td><td>2.0x</td><td>Express support, 2x governance weight</td></tr>
+                <tr><td class="tier-name">👑 Diamond</td><td class="tier-highlight">10,000 KENO paid</td><td>20%</td><td>3.0x</td><td>Revenue share bonus, T.D.I.R. advisory seat</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- INSTALL -->
+<section class="section" id="install">
+    <div class="container">
+        <div class="install-cta">
+            <h2 class="install-cta-title">Install in 3 Steps</h2>
+            <p class="install-cta-sub">You need MetaMask installed. The Snap works on desktop Chrome, Firefox, and Brave with MetaMask Extension.</p>
+            <div class="install-steps">
+                <div class="install-step">
+                    <div class="install-step-num">01</div>
+                    <div class="install-step-text">Open MetaMask → Settings → Snaps → Find New Snaps → Search "UTL Kenostod"</div>
+                </div>
+                <div class="install-step">
+                    <div class="install-step-num">02</div>
+                    <div class="install-step-text">Click Install → Approve the permissions (transaction insight, notifications, network access)</div>
+                </div>
+                <div class="install-step">
+                    <div class="install-step-num">03</div>
+                    <div class="install-step-text">Connect your wallet at kenostodblockchain.com → Stake KENO → Start earning</div>
+                </div>
+            </div>
+            <a href="https://snaps.metamask.io" target="_blank" class="btn-primary">🦊 Open MetaMask Snap Store</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    &copy; 2026 Kenostod Blockchain Academy LLC — UTL Protocol · 
+    <a href="/utl-developers.html">Developer Docs</a> · 
+    <a href="/utl-code-is-law.html">Code is Law</a> · 
+    <a href="/utl-snap-submission.html">Submission Pitch</a>
+</footer>
+
+<script>
+function showScreen(name) {
+    document.querySelectorAll('.snap-screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.snap-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
