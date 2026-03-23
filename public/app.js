@@ -1178,6 +1178,20 @@ function toggleMobileMenu() {
     }
 }
 
+function updateMobileBottomBar() {
+    const bar = document.getElementById('mobileBottomBar');
+    if (!bar) return;
+    if (window.innerWidth <= 900) {
+        bar.style.display = 'block';
+        document.body.style.paddingBottom = '76px';
+    } else {
+        bar.style.display = 'none';
+        document.body.style.paddingBottom = '';
+    }
+}
+window.addEventListener('resize', updateMobileBottomBar);
+document.addEventListener('DOMContentLoaded', updateMobileBottomBar);
+
 function initializeApp() {
     try {
         if (typeof elliptic === 'undefined') {
