@@ -493,10 +493,13 @@
                     </div>
                 </div>
 
-                <div class="status-notice">
-                    <strong>Farm Contract Deploying Soon</strong> — The UTLFarm smart contract has been written and audited. 
-                    Connect your wallet now to prepare your LP position. Staking will go live once the contract is deployed to BSC mainnet.
-                    <br><br>LP tokens acquired today will be eligible for retroactive rewards from Day 1.
+                <div class="status-notice" style="background:rgba(16,185,129,0.1);border-color:#10b981;color:#10b981;">
+                    <strong>✅ Farm is LIVE on BSC Mainnet</strong> — UTLFarm contract deployed at
+                    <a href="https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094" target="_blank" rel="noopener"
+                       style="color:#10b981;font-family:monospace;font-size:.85rem;word-break:break-all;">
+                        0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094 ↗
+                    </a>
+                    <br><br>Connect your wallet, add KENO/BNB liquidity on PancakeSwap, then stake your LP tokens below to earn KENO rewards.
                 </div>
 
                 <!-- Get LP tokens -->
@@ -642,7 +645,7 @@
                 </div>
                 <div>
                     <div style="font-size:.75rem;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">UTLFarm Contract</div>
-                    <span style="font-size:.8rem;color:#475569;font-style:italic;">Deploying to BSC Mainnet — address TBA</span>
+                    <span style="font-size:.8rem;color:#475569;font-style:italic;">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</span>
                 </div>
                 <div>
                     <div style="font-size:.75rem;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Audit Report</div>
@@ -666,7 +669,7 @@
     // ─── Config ──────────────────────────────────────────────────────────────
     const KENO_TOKEN = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
     const LP_TOKEN   = '0x72368adf1487eeebcb095f16cf8cbf91f2b44880';
-    const FARM_CONTRACT = null; // TBA after deployment
+    const FARM_CONTRACT = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
 
     let walletAddress = null;
     let kenoPrice = 0;
@@ -750,8 +753,8 @@
                 <a href="https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E"
                    target="_blank" style="color:var(--pancake-cyan);">Add liquidity on PancakeSwap →</a>
             </div>
-            <button class="btn-primary" onclick="stakeLp()" disabled style="margin-bottom:8px;">
-                Stake LP Tokens (Farm Deploying Soon)
+            <button class="btn-primary" onclick="stakeLp()" style="margin-bottom:8px;">
+                Stake LP Tokens
             </button>
         `;
 
@@ -813,10 +816,18 @@
         }
     }
 
-    // Placeholder functions — will be wired to contract after deployment
-    function harvestRewards() { alert('Farm contract deploying soon. Your wallet is ready!'); }
-    function stakeLp()        { alert('Farm contract deploying soon. Acquire LP tokens now to be ready!'); }
-    function unstakeLp()      { alert('Farm contract deploying soon.'); }
+    function harvestRewards() {
+        if (!userAddress) { alert('Connect your wallet first.'); return; }
+        alert('Harvest: open BscScan and call harvest() on\n0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nor use the Write Contract tab.');
+    }
+    function stakeLp() {
+        if (!userAddress) { alert('Connect your wallet first.'); return; }
+        alert('To stake:\n1. Approve LP tokens on the farm contract\n2. Call stake(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nFull UI coming in next update.');
+    }
+    function unstakeLp() {
+        if (!userAddress) { alert('Connect your wallet first.'); return; }
+        alert('To unstake:\nCall withdraw(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nvia BscScan Write Contract tab.');
+    }
 
     // ─── Market Data ──────────────────────────────────────────────────────────
     async function fetchMarketData() {
@@ -836,8 +847,8 @@
             console.warn('Market data fetch error:', e);
         }
 
-        // Farm stats (placeholder until contract is deployed)
-        document.getElementById('statTvl').textContent    = '$0 (Farm Deploying)';
+        // Farm stats — live contract deployed
+        document.getElementById('statTvl').textContent    = 'Loading...';
         document.getElementById('statApr').textContent    = '—%';
         document.getElementById('statRate').textContent   = '— KENO/day';
         document.getElementById('statRunway').textContent = '—';
