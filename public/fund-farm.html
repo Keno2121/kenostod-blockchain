@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fund UTLFarm — Kenostod</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; }
+  h1 { font-size: 1.4rem; color: #10b981; margin-bottom: 8px; }
+  .sub { color: #94a3b8; font-size: .9rem; margin-bottom: 28px; }
+  .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; font-size: .85rem; }
+  .info-row:last-of-type { border-bottom: none; margin-bottom: 24px; }
+  .label { color: #94a3b8; }
+  .val { color: #e2e8f0; font-family: monospace; font-size: .8rem; word-break: break-all; text-align: right; max-width: 60%; }
+  .val.green { color: #10b981; }
+  .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+  .btn-connect { background: #f0b90b; color: #000; }
+  .btn-fund { background: #10b981; color: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .status { margin-top: 16px; padding: 12px 16px; border-radius: 10px; font-size: .85rem; display: none; }
+  .status.info { background: rgba(99,102,241,.15); border: 1px solid #6366f1; color: #a5b4fc; display: block; }
+  .status.success { background: rgba(16,185,129,.15); border: 1px solid #10b981; color: #6ee7b7; display: block; }
+  .status.error { background: rgba(239,68,68,.15); border: 1px solid #ef4444; color: #fca5a5; display: block; }
+  .wallet-info { margin-bottom: 20px; padding: 12px 16px; background: rgba(16,185,129,.08); border-radius: 10px; font-size: .82rem; color: #10b981; display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🌾 Fund UTLFarm Reward Pool</h1>
+  <p class="sub">Load 100,000 KENO into the live farm — 115 days of staking rewards</p>
+
+  <div class="info-row"><span class="label">Farm Contract</span><span class="val">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</span></div>
+  <div class="info-row"><span class="label">Amount</span><span class="val green">100,000 KENO</span></div>
+  <div class="info-row"><span class="label">Reward Rate</span><span class="val">864 KENO/day</span></div>
+  <div class="info-row"><span class="label">Runway</span><span class="val">~115 days</span></div>
+  <div class="info-row"><span class="label">Required Wallet</span><span class="val">0x75b4AE...E440e (keno)</span></div>
+
+  <div class="wallet-info" id="walletInfo"></div>
+
+  <button class="btn btn-connect" id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>
+  <button class="btn btn-fund" id="fundBtn" onclick="fundFarm()" style="display:none;margin-top:12px;">Fund Reward Pool — 100,000 KENO</button>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const FARM    = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+const KENO_OWNER = '0x75b4AE3859221bB6DF6D7C2146e93c08B16E440e';
+const AMOUNT  = '0x' + (100000n * 10n**18n).toString(16); // 100k KENO in hex
+
+// fundRewards(uint256) selector + encoded amount
+const FUND_DATA = '0x93707a1900000000000000000000000000000000000000000000152d02c7e14af6800000';
+
+let account = null;
+
+function setStatus(msg, type = 'info') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+async function connectWallet() {
+  if (!window.ethereum) { setStatus('MetaMask not detected. Open this page in MetaMask browser.', 'error'); return; }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    account = accounts[0];
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    
+    if (chainId !== '0x38') {
+      setStatus('Wrong network — please switch to BNB Smart Chain in MetaMask.', 'error');
+      return;
+    }
+
+    document.getElementById('walletInfo').style.display = 'block';
+    document.getElementById('walletInfo').textContent = '✅ Connected: ' + account;
+    document.getElementById('connectBtn').style.display = 'none';
+    document.getElementById('fundBtn').style.display = 'block';
+
+    if (account.toLowerCase() !== KENO_OWNER.toLowerCase()) {
+      setStatus('⚠️ Connected wallet is not the keno owner account. Switch to your keno account in MetaMask.', 'error');
+    } else {
+      setStatus('Wallet connected. Tap "Fund Reward Pool" to load 100,000 KENO into the farm.', 'info');
+    }
+  } catch(e) { setStatus('Connection failed: ' + e.message, 'error'); }
+}
+
+async function fundFarm() {
+  if (!account) { setStatus('Connect wallet first.', 'error'); return; }
+  try {
+    setStatus('Sending transaction — confirm in MetaMask...', 'info');
+    document.getElementById('fundBtn').disabled = true;
+
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: account,
+        to: FARM,
+        data: FUND_DATA,
+        gas: '0x30D40',  // 200,000 gas
+      }]
+    });
+
+    setStatus('✅ Transaction sent! Hash: ' + txHash + '\n\nWaiting for BSC confirmation (~15 seconds)...', 'success');
+    
+    setTimeout(() => {
+      setStatus('🎉 Farm funded! Check BscScan:\nhttps://bscscan.com/address/' + FARM, 'success');
+    }, 15000);
+
+  } catch(e) {
+    setStatus('Transaction failed: ' + (e.message || JSON.stringify(e)), 'error');
+    document.getElementById('fundBtn').disabled = false;
+  }
+}
+
+window.addEventListener('load', () => {
+  if (window.ethereum) {
+    window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+      if (accounts.length) { account = accounts[0]; connectWallet(); }
+    });
+  }
+});
+</script>
+</body>
+</html>
