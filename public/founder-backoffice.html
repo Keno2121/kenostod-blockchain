@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
     <meta name="robots" content="noindex, nofollow">
     <style>
         :root {
@@ -1570,12 +1569,7 @@
                     const lastFour = Math.floor(1000 + Math.random() * 9000);
                     document.getElementById('cardLastFour').textContent = lastFour;
                     
-                    showToast('Welcome back, Founder!');
-                    
-                    if (typeof window.ethereum !== 'undefined') {
-                        window.ethereum.request({ method: 'eth_accounts' })
-                            .then(accounts => { if (accounts.length > 0) connectWallet(); });
-                    }
+                    showToast('Welcome back, Founder! 👑');
                 } else {
                     showToast('Invalid access code');
                     btn.textContent = 'Access Backoffice';
@@ -1629,6 +1623,17 @@
         }
 
         // ==================== WALLET CONNECTION ====================
+        function loadWeb3Script() {
+            return new Promise((resolve, reject) => {
+                if (typeof Web3 !== 'undefined') return resolve();
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js';
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+
         async function connectWallet() {
             try {
                 if (typeof window.ethereum === 'undefined') {
@@ -1637,6 +1642,8 @@
                     return;
                 }
 
+                showToast('Loading Web3...');
+                await loadWeb3Script();
                 web3 = new Web3(window.ethereum);
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 
