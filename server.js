@@ -10043,6 +10043,69 @@ app.post('/api/admin/test-email', async (req, res) => {
     }
 });
 
+// ==================== FINLEGO / KUTL CARD API ENDPOINTS ====================
+
+const finlego = require('./src/FinlegoIntegration');
+
+app.get('/api/finlego/card', async (req, res) => {
+    try {
+        const accountId = req.query.accountId || (req.session && req.session.userId);
+        const result = await finlego.getCardInfo(accountId);
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, sandbox: true, data: null, error: e.message });
+    }
+});
+
+app.get('/api/finlego/balance', async (req, res) => {
+    try {
+        const accountId = req.query.accountId || (req.session && req.session.userId);
+        const result = await finlego.getBalance(accountId);
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, sandbox: true, data: null, error: e.message });
+    }
+});
+
+app.get('/api/finlego/transactions', async (req, res) => {
+    try {
+        const accountId = req.query.accountId || (req.session && req.session.userId);
+        const limit = parseInt(req.query.limit) || 20;
+        const result = await finlego.getTransactions(accountId, limit);
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, sandbox: true, data: null, error: e.message });
+    }
+});
+
+app.post('/api/finlego/issue-card', async (req, res) => {
+    try {
+        const { firstName, lastName, email, kenoBalance, userId } = req.body;
+        if (!email) return res.status(400).json({ success: false, error: 'Email required' });
+        const result = await finlego.issueVirtualCard({ firstName, lastName, email, kenoBalance, userId });
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.get('/api/finlego/status', async (req, res) => {
+    try {
+        const token = await finlego.getAuthToken();
+        res.json({
+            connected: !!token,
+            sandbox: true,
+            boUrl: finlego.FINLEGO_CONFIG.boBaseUrl,
+            foUrl: finlego.FINLEGO_CONFIG.foBaseUrl,
+            message: token ? 'Connected to Finlego sandbox' : 'Sandbox credentials ready — API session pending Tuesday tech session',
+        });
+    } catch (e) {
+        res.json({ connected: false, error: e.message });
+    }
+});
+
+// ==================== END FINLEGO / KUTL CARD API ENDPOINTS ====================
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
