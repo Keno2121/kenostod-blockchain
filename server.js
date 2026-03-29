@@ -10106,6 +10106,20 @@ app.get('/api/finlego/status', async (req, res) => {
 
 // ==================== END FINLEGO / KUTL CARD API ENDPOINTS ====================
 
+// ==================== FOUNDER BACKOFFICE AUTH ====================
+app.post('/api/auth/founder', (req, res) => {
+    const { password } = req.body || {};
+    const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+    if (!ADMIN_PASS) {
+        return res.status(500).json({ ok: false, error: 'Server not configured' });
+    }
+    if (password && password === ADMIN_PASS) {
+        return res.json({ ok: true });
+    }
+    res.status(401).json({ ok: false });
+});
+// ==================== END FOUNDER BACKOFFICE AUTH ====================
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
     console.log('API Documentation available at: http://localhost:5000');
