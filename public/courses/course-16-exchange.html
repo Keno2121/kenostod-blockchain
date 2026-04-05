@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course 16: Exchange Platform | Kenostod Academy</title>
+    <title>Course 16: AMM, UTLSwap & UTLFarm | Kenostod Academy</title>
     <link rel="icon" type="image/png" href="/logo.png">
     <style>
         :root {
@@ -179,6 +179,11 @@
             border-color: rgba(239, 68, 68, 0.3);
         }
 
+        .highlight-box.gold {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1));
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
         .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
         .diagram-container {
@@ -211,6 +216,7 @@
         .flow-box.seller { background: linear-gradient(135deg, var(--danger), #dc2626); }
         .flow-box.pool { background: linear-gradient(135deg, var(--secondary), #2563eb); }
         .flow-box.dex { background: linear-gradient(135deg, var(--purple), #7c3aed); }
+        .flow-box.farm { background: linear-gradient(135deg, var(--success), #065f46); }
 
         .flow-label { font-weight: 600; margin-bottom: 8px; }
         .flow-icon { font-size: 2em; margin-bottom: 10px; }
@@ -255,6 +261,7 @@
             overflow-x: auto;
             margin: 15px 0;
             border: 1px solid rgba(255,255,255,0.1);
+            line-height: 1.6;
         }
 
         .code-comment { color: #6a737d; }
@@ -262,6 +269,7 @@
         .code-string { color: #a5d6ff; }
         .code-function { color: #d2a8ff; }
         .code-number { color: #79c0ff; }
+        .code-type { color: #ffa657; }
 
         .case-study {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
@@ -474,6 +482,41 @@
         .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
         .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
 
+        .formula-box {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .formula-text {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+
+        .formula-label { color: var(--text-muted); margin-top: 10px; font-size: 0.95em; }
+
+        .contract-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .contract-icon { font-size: 2em; flex-shrink: 0; }
+        .contract-name { font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .contract-address { font-family: 'Courier New', monospace; font-size: 0.8em; color: var(--text-muted); word-break: break-all; }
+        .contract-desc { color: var(--text-muted); font-size: 0.9em; margin-top: 6px; }
+
         @media (max-width: 900px) {
             .main-container { flex-direction: column; }
             .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
@@ -491,13 +534,13 @@
                 <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 16
             </div>
             <h1 class="course-title">
-                <span class="icon">&#128200;</span>
-                Course 16: Exchange Platform
+                <span class="icon">&#9889;</span>
+                Course 16: AMM, UTLSwap &amp; UTLFarm
                 <span class="locked-badge">PREMIUM</span>
             </h1>
             <div class="course-meta">
                 <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
-                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2.5 hours</span></div>
                 <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
                 <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
             </div>
@@ -510,813 +553,700 @@
                 <h3 class="toc-title">&#128214; Lesson Contents</h3>
                 <ul class="toc-list">
                     <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
-                    <li class="toc-item" onclick="scrollToSection('intro')"><span class="toc-number">2</span>What Are Crypto Exchanges?</li>
-                    <li class="toc-item" onclick="scrollToSection('cex-vs-dex')"><span class="toc-number">3</span>CEX vs DEX</li>
-                    <li class="toc-item" onclick="scrollToSection('orderbook')"><span class="toc-number">4</span>Order Book Mechanics</li>
-                    <li class="toc-item" onclick="scrollToSection('matching')"><span class="toc-number">5</span>Matching Engine Architecture</li>
-                    <li class="toc-item" onclick="scrollToSection('pairs')"><span class="toc-number">6</span>Trading Pairs &amp; Liquidity</li>
-                    <li class="toc-item" onclick="scrollToSection('amm')"><span class="toc-number">7</span>AMM &amp; DEX Mechanics</li>
-                    <li class="toc-item" onclick="scrollToSection('impermanent')"><span class="toc-number">8</span>Impermanent Loss</li>
-                    <li class="toc-item" onclick="scrollToSection('security')"><span class="toc-number">9</span>Exchange Security</li>
-                    <li class="toc-item" onclick="scrollToSection('fees')"><span class="toc-number">10</span>Fees, Regulation &amp; MEV</li>
-                    <li class="toc-item" onclick="scrollToSection('kenostod')"><span class="toc-number">11</span>Kenostod Exchange</li>
-                    <li class="toc-item" onclick="scrollToSection('cases')"><span class="toc-number">12</span>Real-World Case Studies</li>
-                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">13</span>Written Exercises</li>
-                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">14</span>Final Exam (12 Questions)</li>
+                    <li class="toc-item" onclick="scrollToSection('evolution')"><span class="toc-number">2</span>The Death of the Order Book</li>
+                    <li class="toc-item" onclick="scrollToSection('amm-mechanics')"><span class="toc-number">3</span>How AMMs Work (x&#215;y=k)</li>
+                    <li class="toc-item" onclick="scrollToSection('liquidity-pools')"><span class="toc-number">4</span>Liquidity Pools Deep Dive</li>
+                    <li class="toc-item" onclick="scrollToSection('utlswap')"><span class="toc-number">5</span>UTLSwap — Kenostod's AMM</li>
+                    <li class="toc-item" onclick="scrollToSection('impermanent')"><span class="toc-number">6</span>Impermanent Loss</li>
+                    <li class="toc-item" onclick="scrollToSection('utlfarm')"><span class="toc-number">7</span>UTLFarm — Yield Farming</li>
+                    <li class="toc-item" onclick="scrollToSection('defi-stack')"><span class="toc-number">8</span>The Full DeFi Stack</li>
+                    <li class="toc-item" onclick="scrollToSection('mev')"><span class="toc-number">9</span>MEV &amp; Sandwich Attacks</li>
+                    <li class="toc-item" onclick="scrollToSection('cases')"><span class="toc-number">10</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('lab')"><span class="toc-number">11</span>On-Chain Lab</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">12</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">13</span>Final Exam (12 Questions)</li>
                 </ul>
             </div>
         </aside>
 
         <main class="content-area">
 
+            <!-- SECTION 1: Learning Objectives -->
             <section id="objectives" class="lesson-section">
                 <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
                 <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
                 <ul class="step-list">
-                    <li class="step-item"><div class="step-title">Explain what cryptocurrency exchanges are and how they facilitate trading</div></li>
-                    <li class="step-item"><div class="step-title">Compare centralized exchanges (CEX) and decentralized exchanges (DEX) in depth</div></li>
-                    <li class="step-item"><div class="step-title">Understand order book mechanics including limit orders, market orders, and stop-loss orders</div></li>
-                    <li class="step-item"><div class="step-title">Describe how a matching engine processes and fills orders</div></li>
-                    <li class="step-item"><div class="step-title">Explain trading pairs (KENO/USD, KENO/BTC, KENO/ETH) and how liquidity works</div></li>
-                    <li class="step-item"><div class="step-title">Understand Automated Market Maker (AMM) mechanics used by Uniswap and PancakeSwap</div></li>
-                    <li class="step-item"><div class="step-title">Calculate and explain impermanent loss in liquidity pools</div></li>
-                    <li class="step-item"><div class="step-title">Evaluate exchange security practices including hot/cold wallets and proof of reserves</div></li>
-                    <li class="step-item"><div class="step-title">Analyze trading fee structures, regulatory frameworks, front-running, and MEV</div></li>
-                    <li class="step-item"><div class="step-title">Navigate the Kenostod exchange platform and place trades confidently</div></li>
+                    <li class="step-item"><div class="step-title">Explain why Automated Market Makers (AMMs) replaced traditional order books as the dominant DEX model</div></li>
+                    <li class="step-item"><div class="step-title">Apply the constant product formula (x &times; y = k) to calculate swap prices, slippage, and pool ratios</div></li>
+                    <li class="step-item"><div class="step-title">Describe how liquidity pools work, including adding/removing liquidity and LP token mechanics</div></li>
+                    <li class="step-item"><div class="step-title">Understand UTLSwap — Kenostod's native AMM contract on BNB Smart Chain — and how to interact with it</div></li>
+                    <li class="step-item"><div class="step-title">Calculate impermanent loss and evaluate when providing liquidity is profitable vs risky</div></li>
+                    <li class="step-item"><div class="step-title">Explain UTLFarm — how LP tokens are staked for KENO yield rewards and why it incentivizes liquidity</div></li>
+                    <li class="step-item"><div class="step-title">Map the full DeFi stack: how UTLSwap and UTLFarm work together as a complete decentralized financial system</div></li>
+                    <li class="step-item"><div class="step-title">Identify and defend against MEV sandwich attacks when trading on AMMs</div></li>
                 </ul>
 
-                <div class="highlight-box">
-                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
-                    <p>This course is designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding takes time, and the 250 KENO reward reflects that commitment.</p>
+                <div class="highlight-box gold">
+                    <div class="highlight-title">&#9889; Why This Course Is Revolutionary</div>
+                    <p>This is not a theory course. <strong>UTLSwap and UTLFarm are live, deployed smart contracts on BNB Smart Chain</strong> — part of the UTL Protocol ecosystem you have learned throughout this curriculum. In the On-Chain Lab section, you will interact directly with these contracts using real KENO tokens. This is Education-Fi in action: you learn it, you use it.</p>
                 </div>
             </section>
 
-            <section id="intro" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#127970;</span>What Are Cryptocurrency Exchanges?</h2>
+            <!-- SECTION 2: The Death of the Order Book -->
+            <section id="evolution" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>The Death of the Order Book</h2>
                 <div class="reading-content">
-                    <p>A <strong>cryptocurrency exchange</strong> is a platform that allows users to buy, sell, and trade digital assets. Exchanges serve as the marketplace where buyers and sellers meet, agree on prices, and execute trades. They are the backbone of the crypto economy, providing the liquidity and price discovery mechanisms that make digital assets usable.</p>
+                    <p>To understand why Automated Market Makers matter, you first need to understand what came before them and why it failed on-chain.</p>
 
-                    <p>Think of a crypto exchange like a stock exchange (NYSE, NASDAQ) but for digital currencies. Instead of trading shares of Apple or Google, you trade Bitcoin, Ethereum, KENO, and thousands of other tokens. The fundamental economics are the same: supply, demand, and an infrastructure to match buyers with sellers.</p>
+                    <h3>The Traditional Order Book Model</h3>
+                    <p>Traditional exchanges — from the New York Stock Exchange to Coinbase Pro — use an <strong>order book</strong>: a live list of every buy and sell order placed by users. When a buyer's price matches a seller's price, a matching engine executes the trade. The buyer gets the asset; the seller gets the cash.</p>
 
-                    <h3>How Exchanges Work at a High Level</h3>
-                    <p>At its core, every exchange performs three critical functions:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>Price Discovery:</strong> By aggregating buy and sell orders, the exchange determines the market price of an asset at any given moment</li>
-                        <li><strong>Order Matching:</strong> The exchange pairs buyers with sellers based on compatible prices and quantities</li>
-                        <li><strong>Settlement:</strong> After matching, the exchange ensures assets are transferred between parties correctly</li>
-                    </ul>
-
-                    <h3>A Brief History of Crypto Exchanges</h3>
-                    <p>The history of crypto exchanges is a story of rapid evolution and hard lessons:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>2010:</strong> BitcoinMarket.com launched as the first crypto exchange, followed by Mt. Gox</li>
-                        <li><strong>2012-2013:</strong> Coinbase, Bitstamp, and Kraken launched, bringing more professional infrastructure</li>
-                        <li><strong>2014:</strong> Mt. Gox collapsed after losing 850,000 BTC, shaking trust in centralized exchanges</li>
-                        <li><strong>2017:</strong> Binance launched and rapidly became the world's largest exchange by volume</li>
-                        <li><strong>2018:</strong> Uniswap pioneered the AMM model, creating truly decentralized trading</li>
-                        <li><strong>2020-2021:</strong> DeFi Summer brought explosive growth to DEXs, with billions in daily volume</li>
-                        <li><strong>2022:</strong> FTX collapsed, reinforcing the importance of transparency and self-custody</li>
-                        <li><strong>2023-2024:</strong> Regulatory frameworks matured, exchanges adopted proof of reserves</li>
-                    </ul>
-
-                    <div class="highlight-box">
-                        <div class="highlight-title">&#128161; Key Insight</div>
-                        <p>The total daily trading volume across all crypto exchanges exceeds $50 billion on average. Understanding how these platforms work is essential for anyone participating in the blockchain economy &mdash; whether you are trading KENO tokens, providing liquidity, or building exchange infrastructure.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="cex-vs-dex" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#9878;&#65039;</span>Centralized vs Decentralized Exchanges</h2>
-                <div class="reading-content">
-                    <p>The most fundamental distinction in crypto exchanges is between <strong>Centralized Exchanges (CEX)</strong> and <strong>Decentralized Exchanges (DEX)</strong>. Understanding their differences, strengths, and weaknesses is critical for making informed trading decisions.</p>
-
-                    <h3>Centralized Exchanges (CEX)</h3>
-                    <p>A centralized exchange is operated by a company that acts as an intermediary between buyers and sellers. The company maintains the order book, holds user funds in custodial wallets, and handles the matching of orders. Examples include Binance, Coinbase, Kraken, and OKX.</p>
-
-                    <p>When you deposit funds on a CEX, you are transferring custody of your assets to the exchange. The exchange holds your private keys and records your balance in their internal database. Trades happen off-chain in the exchange's internal system, and only deposits/withdrawals touch the actual blockchain.</p>
-
-                    <h3>Decentralized Exchanges (DEX)</h3>
-                    <p>A decentralized exchange operates entirely through smart contracts on a blockchain. There is no central company holding your funds. You trade directly from your own wallet, and every trade is a blockchain transaction. Examples include Uniswap, PancakeSwap, SushiSwap, and dYdX.</p>
-
-                    <p>On a DEX, you connect your wallet (e.g., MetaMask), approve the smart contract to interact with your tokens, and execute trades that settle on-chain. You maintain full custody of your assets at all times &mdash; the "not your keys, not your coins" principle in action.</p>
+                    <p>Order books work beautifully in centralized systems where a server processes thousands of orders per second. But when developers tried to put an order book on a blockchain, they ran into three fundamental problems:</p>
 
                     <table class="comparison-table">
                         <tr>
-                            <th>Feature</th>
-                            <th>CEX (Centralized)</th>
-                            <th>DEX (Decentralized)</th>
+                            <th>Problem</th>
+                            <th>Why It Breaks On-Chain</th>
                         </tr>
                         <tr>
-                            <td>Custody</td>
-                            <td>Exchange holds your funds</td>
-                            <td>You hold your own funds</td>
+                            <td>Every order update costs gas</td>
+                            <td>Placing, canceling, and modifying orders are all on-chain transactions. A busy order book would burn thousands of dollars per minute in gas fees.</td>
                         </tr>
                         <tr>
-                            <td>KYC/Identity</td>
-                            <td>Required (passport, ID verification)</td>
-                            <td>Not required (pseudonymous)</td>
+                            <td>Speed mismatch</td>
+                            <td>Blockchains produce blocks every 3–15 seconds. High-frequency traders exploit this delay — by the time your order is confirmed, the price has moved.</td>
                         </tr>
                         <tr>
-                            <td>Speed</td>
-                            <td>Very fast (off-chain matching)</td>
-                            <td>Slower (on-chain settlement)</td>
-                        </tr>
-                        <tr>
-                            <td>Liquidity</td>
-                            <td>Generally higher</td>
-                            <td>Varies by pool</td>
-                        </tr>
-                        <tr>
-                            <td>Fees</td>
-                            <td>0.1% - 0.5% per trade</td>
-                            <td>0.3% swap fee + gas fees</td>
-                        </tr>
-                        <tr>
-                            <td>Fiat Support</td>
-                            <td>Yes (bank transfers, cards)</td>
-                            <td>No (crypto-to-crypto only)</td>
-                        </tr>
-                        <tr>
-                            <td>Token Selection</td>
-                            <td>Curated listings only</td>
-                            <td>Any token can be listed permissionlessly</td>
-                        </tr>
-                        <tr>
-                            <td>Risk</td>
-                            <td>Exchange hack, insolvency, frozen accounts</td>
-                            <td>Smart contract bugs, impermanent loss</td>
-                        </tr>
-                        <tr>
-                            <td>Regulation</td>
-                            <td>Subject to government regulation</td>
-                            <td>Largely unregulated (evolving)</td>
+                            <td>Front-running by validators</td>
+                            <td>Block producers can see your order before it confirms and insert their own order first. The public mempool is a front-runner's paradise.</td>
                         </tr>
                     </table>
 
-                    <div class="highlight-box warning">
-                        <div class="highlight-title">&#9888;&#65039; Important Tradeoff</div>
-                        <p>CEXs offer convenience and speed but require trust. DEXs offer sovereignty and censorship resistance but require more technical knowledge. Most experienced traders use <strong>both</strong> &mdash; CEXs for fiat on/off-ramps and high-frequency trading, DEXs for accessing new tokens and maintaining self-custody.</p>
-                    </div>
-                </div>
-            </section>
+                    <h3>The Breakthrough: Replace the Order Book with Math</h3>
+                    <p>In 2018, Uniswap's founder Hayden Adams published a radically simple idea: instead of matching buyers with sellers, use a <strong>mathematical formula</strong> to set the price automatically. No order book. No matching engine. No market makers needed. Just a smart contract holding two tokens and a single equation governing every trade.</p>
 
-            <section id="orderbook" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#128202;</span>Order Book Mechanics</h2>
-                <div class="reading-content">
-                    <p>The <strong>order book</strong> is the heart of any centralized exchange. It is a real-time, continuously updated list of all outstanding buy and sell orders for a specific trading pair, organized by price level.</p>
-
-                    <h3>Anatomy of an Order Book</h3>
-                    <p>An order book has two sides:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>Bid Side (Buy Orders):</strong> Orders from traders who want to buy. Sorted from highest to lowest price. The highest bid is the best price a buyer is currently willing to pay.</li>
-                        <li><strong>Ask Side (Sell Orders):</strong> Orders from traders who want to sell. Sorted from lowest to highest price. The lowest ask is the best price a seller is currently willing to accept.</li>
-                    </ul>
-
-                    <div class="diagram-container">
-                        <div class="diagram-title">Order Book Visualization &mdash; KENO/USD</div>
-                        <table class="comparison-table" style="max-width: 600px; margin: 0 auto;">
-                            <tr>
-                                <th style="background: rgba(239,68,68,0.15); color: var(--danger);">Ask Price (Sell)</th>
-                                <th>Quantity (KENO)</th>
-                                <th>Total (USD)</th>
-                            </tr>
-                            <tr><td style="color: var(--danger);">$1.05</td><td>500</td><td>$525.00</td></tr>
-                            <tr><td style="color: var(--danger);">$1.04</td><td>1,200</td><td>$1,248.00</td></tr>
-                            <tr><td style="color: var(--danger);">$1.03</td><td>800</td><td>$824.00</td></tr>
-                            <tr><td style="color: var(--danger);">$1.02</td><td>2,500</td><td>$2,550.00</td></tr>
-                            <tr style="border-top: 3px solid var(--gold);"><td colspan="3" style="text-align: center; color: var(--gold); font-weight: 700; padding: 10px;">&#8593; SPREAD: $0.01 &#8595;</td></tr>
-                            <tr><td style="color: var(--success);">$1.01</td><td>3,000</td><td>$3,030.00</td></tr>
-                            <tr><td style="color: var(--success);">$1.00</td><td>5,000</td><td>$5,000.00</td></tr>
-                            <tr><td style="color: var(--success);">$0.99</td><td>1,500</td><td>$1,485.00</td></tr>
-                            <tr><td style="color: var(--success);">$0.98</td><td>4,200</td><td>$4,116.00</td></tr>
-                        </table>
-                        <p style="color: var(--text-muted); font-size: 0.9em; margin-top: 15px;">Green = buy orders (bids) | Red = sell orders (asks) | Gap = spread</p>
-                    </div>
-
-                    <h3>The Spread</h3>
-                    <p>The <strong>spread</strong> is the difference between the best bid and best ask. In our example, the best bid is $1.01 and the best ask is $1.02, so the spread is $0.01 (approximately 1%). A tight spread indicates high liquidity and active trading. A wide spread suggests low liquidity and can mean higher trading costs.</p>
-
-                    <h3>Order Types Explained</h3>
-
-                    <h4>Market Orders</h4>
-                    <p>A market order executes immediately at the best available price. If you place a market buy order for 1,000 KENO when the best ask is $1.02, your order will fill at $1.02 (or slightly higher if the quantity at $1.02 is less than 1,000). Market orders guarantee execution but not price.</p>
-
-                    <h4>Limit Orders</h4>
-                    <p>A limit order specifies the exact price at which you want to buy or sell. A limit buy at $0.98 will only execute if the price drops to $0.98. Limit orders guarantee price but not execution &mdash; the market may never reach your price. Limit orders add liquidity to the order book and typically receive lower fees (called "maker" fees).</p>
-
-                    <h4>Stop-Loss Orders</h4>
-                    <p>A stop-loss order triggers a market sell when the price drops below a specified level. If you hold KENO bought at $1.00 and set a stop-loss at $0.90, your position will automatically sell if the price drops to $0.90, limiting your loss to 10%. Stop-losses are essential risk management tools.</p>
-
-                    <h4>Stop-Limit Orders</h4>
-                    <p>A stop-limit combines a stop trigger with a limit order. When the stop price is reached, instead of executing at market price, it places a limit order. This gives more price control but risks non-execution in fast-moving markets.</p>
-
-                    <h4>Take-Profit Orders</h4>
-                    <p>The opposite of stop-loss: automatically sells when price rises to your target. If you set a take-profit at $1.50, your KENO will sell when the price hits $1.50, locking in your gains.</p>
-
-                    <div class="code-example">
-<span class="code-comment">// Example: Placing different order types on Kenostod</span>
-
-<span class="code-comment">// Market Buy - fills immediately at best ask</span>
-<span class="code-keyword">const</span> marketBuy = {
-  type: <span class="code-string">'market'</span>,
-  side: <span class="code-string">'buy'</span>,
-  pair: <span class="code-string">'KENO/USD'</span>,
-  quantity: <span class="code-number">500</span>
-};
-
-<span class="code-comment">// Limit Buy - only fills at $0.95 or lower</span>
-<span class="code-keyword">const</span> limitBuy = {
-  type: <span class="code-string">'limit'</span>,
-  side: <span class="code-string">'buy'</span>,
-  pair: <span class="code-string">'KENO/USD'</span>,
-  price: <span class="code-number">0.95</span>,
-  quantity: <span class="code-number">1000</span>
-};
-
-<span class="code-comment">// Stop-Loss - triggers market sell if price drops to $0.85</span>
-<span class="code-keyword">const</span> stopLoss = {
-  type: <span class="code-string">'stop-loss'</span>,
-  side: <span class="code-string">'sell'</span>,
-  pair: <span class="code-string">'KENO/USD'</span>,
-  stopPrice: <span class="code-number">0.85</span>,
-  quantity: <span class="code-number">500</span>
-};
-                    </div>
+                    <p>This became the <strong>Automated Market Maker (AMM)</strong> — the architecture that powers Uniswap, PancakeSwap, Curve, SushiSwap, and now <strong>UTLSwap</strong>.</p>
 
                     <div class="highlight-box success">
-                        <div class="highlight-title">&#9989; Pro Tip: Order Book Depth</div>
-                        <p>"Depth" refers to how many orders exist at different price levels. A deep order book (many orders at many price levels) means large trades can be executed with minimal price impact. A shallow order book means even moderate orders can cause significant price swings (called "slippage").</p>
+                        <div class="highlight-title">&#127775; The Paradigm Shift</div>
+                        <p>Order books require <strong>counterparties</strong> — someone must be willing to sell exactly when you want to buy. AMMs replace counterparties with <strong>liquidity pools</strong> — smart contracts that are always ready to trade, 24/7, at any size, with no registration or counterparty needed. This is what makes DeFi truly permissionless.</p>
                     </div>
                 </div>
             </section>
 
-            <section id="matching" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#9881;&#65039;</span>Matching Engine Architecture</h2>
+            <!-- SECTION 3: How AMMs Work -->
+            <section id="amm-mechanics" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>How AMMs Work — The x &times; y = k Formula</h2>
                 <div class="reading-content">
-                    <p>The <strong>matching engine</strong> is the core technology of any exchange. It is the software system that receives orders, validates them, and matches compatible buy and sell orders to execute trades. Performance of the matching engine directly determines the exchange's capacity and reliability.</p>
+                    <p>Every AMM built on the constant product model (Uniswap V2, PancakeSwap, UTLSwap) operates from a single mathematical invariant:</p>
 
-                    <h3>How a Matching Engine Works</h3>
-
-                    <div class="diagram-container">
-                        <div class="diagram-title">Order Matching Flow</div>
-                        <div class="flow-diagram">
-                            <div class="flow-box buyer">
-                                <div class="flow-icon">&#128101;</div>
-                                <div class="flow-label">Incoming Order</div>
-                                <div style="font-size: 0.85em;">Buy 500 KENO @ $1.02</div>
-                            </div>
-                            <div class="arrow">&#10132;</div>
-                            <div class="flow-box engine">
-                                <div class="flow-icon">&#9881;&#65039;</div>
-                                <div class="flow-label">Matching Engine</div>
-                                <div style="font-size: 0.85em;">Price-Time Priority</div>
-                            </div>
-                            <div class="arrow">&#10132;</div>
-                            <div class="flow-box seller">
-                                <div class="flow-icon">&#9989;</div>
-                                <div class="flow-label">Trade Executed</div>
-                                <div style="font-size: 0.85em;">500 KENO @ $1.02</div>
-                            </div>
-                        </div>
+                    <div class="formula-box">
+                        <div class="formula-text">x &times; y = k</div>
+                        <div class="formula-label">Where <strong>x</strong> = reserve of Token A &nbsp;|&nbsp; <strong>y</strong> = reserve of Token B &nbsp;|&nbsp; <strong>k</strong> = constant product (never changes)</div>
                     </div>
 
-                    <h3>Price-Time Priority (FIFO)</h3>
-                    <p>Most exchanges use a <strong>price-time priority</strong> algorithm (also called FIFO &mdash; First In, First Out). The rules are simple:</p>
+                    <p>The pool holds two tokens. The product of their quantities must always equal the same constant <strong>k</strong>. Every trade changes the ratio of tokens, moving along a curve — but k stays fixed (excluding fees).</p>
+
+                    <h3>A Real Example: KENO/BNB Pool</h3>
+                    <p>Imagine UTLSwap's KENO/BNB pool has:</p>
                     <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>Price Priority:</strong> Better-priced orders are matched first. A buy order at $1.05 gets matched before one at $1.01. A sell order at $1.02 gets matched before one at $1.05.</li>
-                        <li><strong>Time Priority:</strong> Among orders at the same price, the order submitted first is matched first. This prevents front-running at the exchange level.</li>
+                        <li>x = 100,000 KENO</li>
+                        <li>y = 100 BNB</li>
+                        <li>k = 100,000 &times; 100 = <strong>10,000,000</strong></li>
+                        <li>Implied price: 1,000 KENO per BNB</li>
                     </ul>
 
-                    <h3>Performance Benchmarks</h3>
-                    <p>Modern exchange matching engines are among the highest-performance software systems in the world:</p>
-
-                    <table class="comparison-table">
-                        <tr>
-                            <th>Exchange</th>
-                            <th>Matching Speed</th>
-                            <th>Orders/Second</th>
-                        </tr>
-                        <tr><td>Binance</td><td>~5 microseconds</td><td>1,400,000+</td></tr>
-                        <tr><td>Nasdaq (traditional)</td><td>~50 microseconds</td><td>500,000+</td></tr>
-                        <tr><td>Coinbase</td><td>~100 microseconds</td><td>100,000+</td></tr>
-                        <tr><td>Uniswap (DEX)</td><td>~12 seconds (block time)</td><td>~30 per block</td></tr>
-                    </table>
-
-                    <h3>Partial Fills</h3>
-                    <p>If you place a limit buy for 5,000 KENO at $1.02 but only 2,500 KENO are available at that price, your order will be <strong>partially filled</strong>. You receive 2,500 KENO and the remaining 2,500 stays in the order book as an open order until more sellers appear at your price or you cancel it.</p>
+                    <p>Now a trader wants to buy 10 BNB worth of KENO. They send 10 BNB into the pool. After the trade, the pool has 110 BNB. Since k must stay at 10,000,000:</p>
 
                     <div class="code-example">
-<span class="code-comment">// Simplified matching engine logic (pseudocode)</span>
-<span class="code-keyword">function</span> <span class="code-function">matchOrder</span>(incomingOrder, orderBook) {
-  <span class="code-keyword">const</span> oppositeBook = incomingOrder.side === <span class="code-string">'buy'</span>
-    ? orderBook.asks   <span class="code-comment">// buy orders match against asks</span>
-    : orderBook.bids;  <span class="code-comment">// sell orders match against bids</span>
+<span class="code-comment">// Before trade</span>
+x = <span class="code-number">100000</span> KENO | y = <span class="code-number">100</span> BNB | k = <span class="code-number">10000000</span>
 
-  <span class="code-keyword">let</span> remainingQty = incomingOrder.quantity;
+<span class="code-comment">// After trader adds 10 BNB:</span>
+new_y = <span class="code-number">110</span> BNB
+new_x = k / new_y = <span class="code-number">10000000</span> / <span class="code-number">110</span> = <span class="code-number">90909</span> KENO
 
-  <span class="code-keyword">for</span> (<span class="code-keyword">const</span> restingOrder <span class="code-keyword">of</span> oppositeBook) {
-    <span class="code-keyword">if</span> (!<span class="code-function">priceIsCompatible</span>(incomingOrder, restingOrder)) <span class="code-keyword">break</span>;
+<span class="code-comment">// KENO received by trader:</span>
+<span class="code-number">100000</span> - <span class="code-number">90909</span> = <span class="code-number">9091</span> KENO
 
-    <span class="code-keyword">const</span> fillQty = Math.<span class="code-function">min</span>(remainingQty, restingOrder.quantity);
-    <span class="code-function">executeTrade</span>(incomingOrder, restingOrder, fillQty);
-    remainingQty -= fillQty;
-
-    <span class="code-keyword">if</span> (remainingQty === <span class="code-number">0</span>) <span class="code-keyword">break</span>;
-  }
-
-  <span class="code-keyword">if</span> (remainingQty > <span class="code-number">0</span> && incomingOrder.type === <span class="code-string">'limit'</span>) {
-    orderBook.<span class="code-function">addToBook</span>(incomingOrder, remainingQty);
-  }
-}
+<span class="code-comment">// Effective price: 10 BNB for 9091 KENO = 909.1 KENO/BNB</span>
+<span class="code-comment">// vs starting price of 1000 KENO/BNB — that's 9.1% slippage</span>
                     </div>
+
+                    <p>This is <strong>price impact</strong> — large trades relative to pool size move the price significantly. The formula naturally enforces this: the bigger your trade relative to the pool, the worse your price.</p>
+
+                    <h3>The Price Curve</h3>
+                    <p>The constant product formula creates a hyperbolic price curve. This means:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Small trades</strong> have minimal price impact — the curve is nearly flat near the current price</li>
+                        <li><strong>Large trades</strong> have severe price impact — moving along the curve costs progressively more</li>
+                        <li><strong>The pool can never be drained</strong> — buying all of one token would require an infinite amount of the other</li>
+                    </ul>
 
                     <div class="highlight-box">
-                        <div class="highlight-title">&#128161; Maker vs Taker</div>
-                        <p>A <strong>maker</strong> is someone who places a limit order that adds liquidity to the order book (it "makes" the market). A <strong>taker</strong> is someone who places an order that removes liquidity from the book (it "takes" from existing orders). Exchanges typically charge lower fees to makers because they improve market depth.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="pairs" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#128177;</span>Trading Pairs &amp; Liquidity</h2>
-                <div class="reading-content">
-                    <p>A <strong>trading pair</strong> represents two assets that can be traded against each other. When you see KENO/USD, it means you can buy KENO using USD or sell KENO to receive USD. The first asset (KENO) is called the <strong>base currency</strong>, and the second (USD) is the <strong>quote currency</strong>.</p>
-
-                    <h3>Kenostod Exchange Trading Pairs</h3>
-
-                    <table class="comparison-table">
-                        <tr>
-                            <th>Pair</th>
-                            <th>Base</th>
-                            <th>Quote</th>
-                            <th>Use Case</th>
-                        </tr>
-                        <tr>
-                            <td><strong>KENO/USD</strong></td>
-                            <td>KENO</td>
-                            <td>US Dollar</td>
-                            <td>Primary trading pair. Buy/sell KENO with fiat. Most liquid pair.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>KENO/BTC</strong></td>
-                            <td>KENO</td>
-                            <td>Bitcoin</td>
-                            <td>Trade KENO relative to Bitcoin. Used by crypto-native traders.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>KENO/ETH</strong></td>
-                            <td>KENO</td>
-                            <td>Ethereum</td>
-                            <td>Trade KENO relative to Ethereum. Useful for DeFi participants.</td>
-                        </tr>
-                    </table>
-
-                    <h3>Understanding Liquidity</h3>
-                    <p><strong>Liquidity</strong> measures how easily an asset can be bought or sold without significantly affecting its price. High liquidity means:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li>Tight spreads (small difference between bid and ask)</li>
-                        <li>Large order sizes can be filled without major price impact</li>
-                        <li>Fast trade execution</li>
-                        <li>More accurate price discovery</li>
-                    </ul>
-
-                    <h3>Market Making</h3>
-                    <p>A <strong>market maker</strong> is a trader (or algorithm) that continuously places both buy and sell orders on the order book, profiting from the spread. Market makers are essential to exchange health because they provide liquidity that other traders rely on.</p>
-
-                    <p>For example, a market maker might simultaneously place:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li>A buy order for 10,000 KENO at $1.00</li>
-                        <li>A sell order for 10,000 KENO at $1.02</li>
-                    </ul>
-                    <p>If both orders fill, the maker earns $0.02 per KENO ($200 profit on 10,000 KENO). The risk is that the price moves significantly before both sides fill.</p>
-
-                    <div class="highlight-box">
-                        <div class="highlight-title">&#128161; Slippage Explained</div>
-                        <p><strong>Slippage</strong> is the difference between the expected price and the actual execution price. If you place a market buy for 50,000 KENO but only 10,000 are available at $1.02, the remaining 40,000 will fill at higher prices ($1.03, $1.04, etc.). The average execution price may be $1.035 instead of $1.02 &mdash; that $0.015 difference is slippage. Large orders in illiquid markets can experience severe slippage.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="amm" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#129302;</span>AMM &amp; DEX Mechanics</h2>
-                <div class="reading-content">
-                    <p>Decentralized exchanges use a fundamentally different approach to trading than centralized exchanges. Instead of matching individual buy and sell orders, most DEXs use an <strong>Automated Market Maker (AMM)</strong> model that relies on mathematical formulas and liquidity pools.</p>
-
-                    <h3>How AMMs Work</h3>
-                    <p>An AMM replaces the traditional order book with a <strong>liquidity pool</strong> &mdash; a smart contract that holds reserves of two tokens. Anyone can trade against the pool, and the price is determined algorithmically based on the ratio of tokens in the pool.</p>
-
-                    <h4>The Constant Product Formula</h4>
-                    <p>The most famous AMM formula, pioneered by Uniswap, is the <strong>constant product formula</strong>:</p>
-
-                    <div class="code-example" style="text-align: center; font-size: 1.3em; padding: 20px;">
-x &times; y = k
+                        <div class="highlight-title">&#128161; Why k Never Truly Stays Constant</div>
+                        <p>In practice, the 0.3% swap fee (standard in most AMMs) is added to the pool on every trade. So k actually grows slightly with each swap — this is how liquidity providers earn fees. The invariant is maintained <em>before</em> fee addition, then k increases, benefiting all LPs proportionally.</p>
                     </div>
 
-                    <p>Where:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>x</strong> = quantity of Token A in the pool (e.g., KENO)</li>
-                        <li><strong>y</strong> = quantity of Token B in the pool (e.g., USD)</li>
-                        <li><strong>k</strong> = a constant that must be maintained after every trade</li>
-                    </ul>
-
-                    <h4>Example: Trading KENO/USD on an AMM</h4>
-                    <p>Imagine a KENO/USD pool with 100,000 KENO and 100,000 USD (k = 10,000,000,000). The implied price is 100,000 USD / 100,000 KENO = $1.00 per KENO.</p>
-
-                    <p>You want to buy 1,000 KENO. After your purchase:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li>Pool KENO: 100,000 - 1,000 = 99,000 KENO</li>
-                        <li>k must remain 10,000,000,000</li>
-                        <li>Required USD: 10,000,000,000 / 99,000 = 101,010.10 USD</li>
-                        <li>You pay: 101,010.10 - 100,000 = <strong>$1,010.10 for 1,000 KENO ($1.01 each)</strong></li>
-                    </ul>
-                    <p>The price moved from $1.00 to $1.01 because your trade changed the ratio of tokens in the pool. Larger trades cause more price impact.</p>
-
-                    <div class="diagram-container">
-                        <div class="diagram-title">AMM Liquidity Pool Architecture</div>
-                        <div class="flow-diagram">
-                            <div class="flow-box buyer">
-                                <div class="flow-icon">&#128100;</div>
-                                <div class="flow-label">Trader</div>
-                                <div style="font-size: 0.85em;">Sends USD</div>
-                            </div>
-                            <div class="arrow">&#10132;</div>
-                            <div class="flow-box pool">
-                                <div class="flow-icon">&#128167;</div>
-                                <div class="flow-label">Liquidity Pool</div>
-                                <div style="font-size: 0.85em;">x &times; y = k</div>
-                            </div>
-                            <div class="arrow">&#10132;</div>
-                            <div class="flow-box dex">
-                                <div class="flow-icon">&#128176;</div>
-                                <div class="flow-label">Receives KENO</div>
-                                <div style="font-size: 0.85em;">At pool price</div>
-                            </div>
+                    <h3>Key Terms</h3>
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Constant Product</div>
+                            <div class="vocab-def">The invariant x &times; y = k that governs all AMM price calculations</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Slippage</div>
+                            <div class="vocab-def">The difference between expected and actual swap price due to trade size relative to pool</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Price Impact</div>
+                            <div class="vocab-def">How much your trade moves the pool price, expressed as a percentage</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Slippage Tolerance</div>
+                            <div class="vocab-def">The maximum price movement you accept; transactions revert if exceeded</div>
                         </div>
                     </div>
-
-                    <h3>Liquidity Providers (LPs)</h3>
-                    <p>Liquidity pools don't fill themselves &mdash; they require <strong>liquidity providers</strong> who deposit equal values of both tokens into the pool. In return, LPs earn a share of the trading fees (typically 0.3% per trade on Uniswap) proportional to their share of the pool.</p>
-
-                    <h3>Popular AMM Protocols</h3>
-                    <table class="comparison-table">
-                        <tr>
-                            <th>Protocol</th>
-                            <th>Chain</th>
-                            <th>Innovation</th>
-                        </tr>
-                        <tr><td>Uniswap V3</td><td>Ethereum, Polygon, Arbitrum</td><td>Concentrated liquidity &mdash; LPs choose a price range</td></tr>
-                        <tr><td>PancakeSwap</td><td>BNB Chain, Ethereum</td><td>Lower fees, gamification, lottery features</td></tr>
-                        <tr><td>Curve Finance</td><td>Ethereum, multi-chain</td><td>Optimized for stablecoin swaps with minimal slippage</td></tr>
-                        <tr><td>Balancer</td><td>Ethereum, Polygon</td><td>Multi-token pools with custom weightings</td></tr>
-                    </table>
-
-                    <div class="highlight-box success">
-                        <div class="highlight-title">&#127891; Kenostod DEX Integration</div>
-                        <p>The Kenostod exchange supports both order-book trading (like a CEX) and AMM pool trading (like a DEX). This hybrid approach lets users choose the model that best suits their needs &mdash; order books for precise price control, or AMM pools for instant, permissionless swaps.</p>
-                    </div>
                 </div>
             </section>
 
-            <section id="impermanent" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#128201;</span>Impermanent Loss Explained</h2>
+            <!-- SECTION 4: Liquidity Pools -->
+            <section id="liquidity-pools" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Liquidity Pools Deep Dive</h2>
                 <div class="reading-content">
-                    <p><strong>Impermanent loss</strong> is the hidden cost of providing liquidity to AMM pools. It occurs when the price of tokens in the pool changes relative to when you deposited them, resulting in less value than if you had simply held the tokens.</p>
+                    <p>Liquidity pools are the fuel of every AMM. Without people depositing tokens, there is nothing for traders to trade against. Understanding how to add and remove liquidity — and what you get in return — is essential DeFi knowledge.</p>
 
-                    <h3>How Impermanent Loss Works</h3>
-                    <p>Imagine you deposit $5,000 worth of KENO (5,000 KENO at $1.00 each) and $5,000 USD into a KENO/USD pool. Your total deposit is $10,000.</p>
+                    <h3>Adding Liquidity</h3>
+                    <p>To add liquidity to a pool, you must deposit <strong>both tokens</strong> in the pool's current ratio. If the KENO/BNB pool has a ratio of 1000 KENO per BNB and you want to add liquidity, you must deposit both KENO and BNB at that same 1000:1 ratio.</p>
 
-                    <p>Now KENO's price doubles to $2.00. Arbitrage traders buy cheap KENO from the pool until the pool price matches the market price. After rebalancing:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li>Pool now has ~3,536 KENO and ~7,071 USD (k is preserved)</li>
-                        <li>Your share is worth: 3,536 &times; $2.00 + $7,071 = <strong>$14,142</strong></li>
-                        <li>If you had simply held: 5,000 &times; $2.00 + $5,000 = <strong>$15,000</strong></li>
-                        <li>Impermanent loss: $15,000 - $14,142 = <strong>$858 (5.7%)</strong></li>
-                    </ul>
-
-                    <h3>Impermanent Loss by Price Change</h3>
-                    <table class="comparison-table">
-                        <tr>
-                            <th>Price Change</th>
-                            <th>Impermanent Loss</th>
-                        </tr>
-                        <tr><td>1.25x (25% increase)</td><td>0.6%</td></tr>
-                        <tr><td>1.50x (50% increase)</td><td>2.0%</td></tr>
-                        <tr><td>2x (100% increase)</td><td>5.7%</td></tr>
-                        <tr><td>3x (200% increase)</td><td>13.4%</td></tr>
-                        <tr><td>5x (400% increase)</td><td>25.5%</td></tr>
-                    </table>
-
-                    <p>The loss is called "impermanent" because if the prices return to their original values, the loss disappears. However, if you withdraw while the prices differ, the loss becomes permanent.</p>
-
-                    <div class="highlight-box warning">
-                        <div class="highlight-title">&#9888;&#65039; Critical Understanding</div>
-                        <p>Impermanent loss occurs in <strong>both directions</strong> &mdash; whether the price goes up or down. The only way to avoid impermanent loss entirely is if the ratio of tokens in the pool returns to exactly what it was when you deposited. Trading fees earned can offset impermanent loss, but for volatile pairs, the loss can exceed fee income.</p>
-                    </div>
-
-                    <h3>Mitigating Impermanent Loss</h3>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>Stablecoin pairs:</strong> USDC/USDT pools have minimal impermanent loss since both assets maintain ~$1.00</li>
-                        <li><strong>Correlated assets:</strong> ETH/stETH or WBTC/BTC pools move together, reducing divergence</li>
-                        <li><strong>Concentrated liquidity:</strong> Uniswap V3 lets you provide liquidity in a specific price range, increasing fee income per dollar deployed</li>
-                        <li><strong>High-fee pools:</strong> Pools with high trading volume generate more fees to offset losses</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="security" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Exchange Security</h2>
-                <div class="reading-content">
-                    <p>Exchange security is arguably the most critical aspect of the crypto ecosystem. Exchanges hold billions of dollars in customer assets, making them prime targets for hackers. Understanding how exchanges protect (and fail to protect) these assets is essential knowledge.</p>
-
-                    <h3>Hot Wallets vs Cold Wallets</h3>
-                    <p>Every reputable exchange splits its asset storage between hot and cold wallets:</p>
-
-                    <table class="comparison-table">
-                        <tr>
-                            <th>Feature</th>
-                            <th>Hot Wallet</th>
-                            <th>Cold Wallet</th>
-                        </tr>
-                        <tr>
-                            <td>Connection</td>
-                            <td>Internet-connected</td>
-                            <td>Completely offline (air-gapped)</td>
-                        </tr>
-                        <tr>
-                            <td>Purpose</td>
-                            <td>Process withdrawals instantly</td>
-                            <td>Long-term secure storage</td>
-                        </tr>
-                        <tr>
-                            <td>Typical Balance</td>
-                            <td>2-5% of total assets</td>
-                            <td>95-98% of total assets</td>
-                        </tr>
-                        <tr>
-                            <td>Risk Level</td>
-                            <td>Higher (vulnerable to hacking)</td>
-                            <td>Very low (physical access required)</td>
-                        </tr>
-                        <tr>
-                            <td>Access</td>
-                            <td>Automated systems</td>
-                            <td>Multi-person authorization, time delays</td>
-                        </tr>
-                    </table>
-
-                    <h3>Proof of Reserves (PoR)</h3>
-                    <p>After the FTX collapse revealed that the exchange had secretly misappropriated customer funds, the industry adopted <strong>Proof of Reserves</strong> &mdash; a cryptographic audit system that proves an exchange holds sufficient assets to cover all customer deposits.</p>
-
-                    <p>A proper PoR includes:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>Merkle Tree proof:</strong> Cryptographically proves each user's balance is included in the total without revealing individual account details</li>
-                        <li><strong>On-chain wallet verification:</strong> Proves the exchange controls wallets with sufficient balance by signing a message</li>
-                        <li><strong>Third-party audit:</strong> An independent auditor verifies the proof (e.g., Mazars, Armanino)</li>
-                        <li><strong>Liability disclosure:</strong> Not just proving assets but also proving liabilities (what the exchange owes)</li>
-                    </ul>
-
-                    <h3>Additional Security Measures</h3>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>Multi-signature wallets:</strong> Require multiple authorized signers to move funds</li>
-                        <li><strong>HSM (Hardware Security Modules):</strong> Specialized hardware that stores cryptographic keys in tamper-proof environments</li>
-                        <li><strong>Rate limiting:</strong> Caps withdrawal amounts per time period to slow potential theft</li>
-                        <li><strong>Withdrawal whitelisting:</strong> Only allows withdrawals to pre-approved addresses</li>
-                        <li><strong>Insurance funds:</strong> Reserves set aside to cover potential losses (e.g., Binance's SAFU fund)</li>
-                        <li><strong>Bug bounty programs:</strong> Reward security researchers who find vulnerabilities</li>
-                    </ul>
-
-                    <div class="highlight-box danger">
-                        <div class="highlight-title">&#128680; Red Flags for Unsafe Exchanges</div>
-                        <p>Avoid exchanges that: refuse to publish proof of reserves, have no withdrawal limits, store majority of funds in hot wallets, have anonymous founding teams, offer unrealistically high yields, or have had multiple security incidents without transparent postmortems.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="fees" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#128176;</span>Fees, Regulation &amp; MEV</h2>
-                <div class="reading-content">
-                    <h3>Trading Fee Structures</h3>
-                    <p>Exchanges charge fees to sustain their operations. Understanding fee structures helps you minimize trading costs:</p>
-
-                    <table class="comparison-table">
-                        <tr>
-                            <th>Fee Type</th>
-                            <th>Typical Range</th>
-                            <th>Description</th>
-                        </tr>
-                        <tr>
-                            <td>Maker Fee</td>
-                            <td>0.00% - 0.10%</td>
-                            <td>Charged on limit orders that add liquidity to the book</td>
-                        </tr>
-                        <tr>
-                            <td>Taker Fee</td>
-                            <td>0.05% - 0.30%</td>
-                            <td>Charged on orders that remove liquidity from the book</td>
-                        </tr>
-                        <tr>
-                            <td>Withdrawal Fee</td>
-                            <td>Varies by coin</td>
-                            <td>Covers blockchain transaction costs for sending assets out</td>
-                        </tr>
-                        <tr>
-                            <td>Deposit Fee</td>
-                            <td>Usually free</td>
-                            <td>Most exchanges don't charge for deposits</td>
-                        </tr>
-                        <tr>
-                            <td>Gas Fee (DEX)</td>
-                            <td>$1 - $50+ (varies)</td>
-                            <td>Blockchain network fee paid to validators/miners</td>
-                        </tr>
-                    </table>
-
-                    <h3>Exchange Listing Process</h3>
-                    <p>Getting a token listed on a major exchange is a significant milestone for any project. The process typically involves:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>Application:</strong> Project submits detailed documentation about the token, team, technology, and use case</li>
-                        <li><strong>Due diligence:</strong> Exchange evaluates the project's legitimacy, security, regulatory compliance, and market potential</li>
-                        <li><strong>Legal review:</strong> Ensuring the token complies with securities laws in relevant jurisdictions</li>
-                        <li><strong>Technical integration:</strong> Wallet integration, node deployment, deposit/withdrawal testing</li>
-                        <li><strong>Listing fee:</strong> Major exchanges may charge $100,000 to $2,000,000+ for listing (controversial practice)</li>
-                        <li><strong>Market making agreement:</strong> Many exchanges require the project to ensure sufficient liquidity at launch</li>
-                    </ul>
-
-                    <h3>Regulatory Landscape</h3>
-                    <p>The regulatory environment for crypto exchanges varies dramatically by jurisdiction:</p>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li><strong>United States:</strong> SEC and CFTC oversight; exchanges must register as money transmitters; securities tokens face strict rules</li>
-                        <li><strong>European Union:</strong> MiCA (Markets in Crypto-Assets) framework provides unified regulation across EU member states</li>
-                        <li><strong>Singapore:</strong> MAS licenses crypto exchanges under the Payment Services Act</li>
-                        <li><strong>Japan:</strong> FSA requires exchange registration; among the most mature regulatory frameworks</li>
-                        <li><strong>El Salvador:</strong> Bitcoin is legal tender; progressive crypto regulation</li>
-                    </ul>
-
-                    <h3>Front-Running and MEV</h3>
-                    <p><strong>Maximal Extractable Value (MEV)</strong> refers to the profit that block producers (miners/validators) can extract by reordering, inserting, or censoring transactions within a block. On DEXs, this manifests as <strong>front-running</strong>:</p>
-
-                    <h4>How Front-Running Works</h4>
-                    <ul style="margin-left: 25px; margin-bottom: 15px;">
-                        <li>You submit a large swap transaction on a DEX (e.g., buy 100,000 KENO)</li>
-                        <li>A bot in the mempool sees your pending transaction and the price impact it will cause</li>
-                        <li>The bot submits its own buy order with a higher gas fee so it gets included first</li>
-                        <li>Your transaction executes at a higher price (because the bot's purchase moved the price)</li>
-                        <li>The bot immediately sells its KENO at the inflated price for a risk-free profit</li>
-                    </ul>
-
-                    <p>This is called a <strong>sandwich attack</strong> &mdash; the bot places one transaction before and one after yours, "sandwiching" your trade.</p>
-
-                    <div class="code-example">
-<span class="code-comment">// Sandwich Attack Illustration</span>
-<span class="code-comment">// 1. Your pending tx: Buy 100,000 KENO at market price</span>
-<span class="code-comment">// 2. Bot front-runs: Buy 10,000 KENO (price goes up)</span>
-<span class="code-comment">// 3. Your tx executes: Buy 100,000 KENO at higher price</span>
-<span class="code-comment">// 4. Bot back-runs: Sell 10,000 KENO at even higher price</span>
-<span class="code-comment">// Net result: Bot profits, you pay more than expected</span>
-
-<span class="code-comment">// Protection: Set slippage tolerance</span>
-<span class="code-keyword">const</span> swapConfig = {
-  tokenIn: <span class="code-string">'USD'</span>,
-  tokenOut: <span class="code-string">'KENO'</span>,
-  amount: <span class="code-number">100000</span>,
-  maxSlippage: <span class="code-number">0.005</span>, <span class="code-comment">// 0.5% - revert if price moves more</span>
-  deadline: Date.<span class="code-function">now</span>() + <span class="code-number">300000</span> <span class="code-comment">// 5 min deadline</span>
-};
-                    </div>
-
-                    <div class="highlight-box warning">
-                        <div class="highlight-title">&#9888;&#65039; Protecting Against MEV</div>
-                        <p>To protect yourself: (1) Set tight slippage tolerance (0.5-1%), (2) Use private transaction services like Flashbots Protect that don't broadcast to the public mempool, (3) Break large trades into smaller chunks, (4) Use DEX aggregators like 1inch that route through multiple pools for better prices.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="kenostod" class="lesson-section">
-                <h2 class="section-title"><span class="section-icon">&#11088;</span>Kenostod Exchange Platform</h2>
-                <div class="reading-content">
-                    <p>The Kenostod Exchange is designed specifically for learners and educators in the blockchain space. It combines the best features of both centralized and decentralized exchange models with built-in safety features unique to the Kenostod ecosystem.</p>
-
-                    <h3>Platform Features</h3>
                     <ul class="step-list">
                         <li class="step-item">
-                            <div class="step-title">Hybrid Trading Model</div>
-                            <p>Access both a traditional order book and AMM liquidity pools from a single interface. Switch between modes depending on your trading strategy and preference.</p>
+                            <div class="step-title">Approve the AMM contract</div>
+                            <p>Before depositing, you sign an ERC-20 approval transaction allowing the pool contract to move your tokens. This is a one-time permission per token per contract.</p>
                         </li>
                         <li class="step-item">
-                            <div class="step-title">Three Major Trading Pairs</div>
-                            <p>Trade KENO against USD (fiat), BTC (Bitcoin), and ETH (Ethereum). Each pair has its own order book and liquidity pool.</p>
+                            <div class="step-title">Deposit tokens at current ratio</div>
+                            <p>You send both tokens to the pool contract simultaneously. The contract verifies you've deposited at the correct ratio (within a small tolerance for block timing).</p>
                         </li>
                         <li class="step-item">
-                            <div class="step-title">5-Minute Reversal Safety Net</div>
-                            <p>Leveraging Kenostod's unique transaction reversal feature (from Course 3), trades can be reversed within 5 minutes if you notice an error &mdash; a safety net no other exchange offers.</p>
+                            <div class="step-title">Receive LP tokens</div>
+                            <p>The contract mints and sends you <strong>LP tokens</strong> (Liquidity Provider tokens) — ERC-20 tokens that represent your proportional share of the pool. If you deposited 10% of all pool liquidity, you receive tokens representing 10% ownership.</p>
                         </li>
                         <li class="step-item">
-                            <div class="step-title">Educational Trading Simulator</div>
-                            <p>Practice trading with simulated funds before risking real assets. The simulator uses realistic market data and order book dynamics so you learn without financial risk.</p>
-                        </li>
-                        <li class="step-item">
-                            <div class="step-title">Built-in Analytics Dashboard</div>
-                            <p>Track your portfolio performance, view historical trades, analyze price charts, and monitor your profit/loss in real time.</p>
-                        </li>
-                        <li class="step-item">
-                            <div class="step-title">Low and Transparent Fees</div>
-                            <p>Maker fees of 0.05% and taker fees of 0.15%, with fee discounts for high-volume traders and KENO token holders. No hidden fees or surprise charges.</p>
+                            <div class="step-title">Earn swap fees automatically</div>
+                            <p>Every swap in the pool generates a 0.3% fee. This fee is distributed proportionally to all LPs by being added to the pool reserves. Your LP tokens grow in value as fees accumulate — no claiming needed.</p>
                         </li>
                     </ul>
 
-                    <div class="highlight-box success">
-                        <div class="highlight-title">&#127891; Why Kenostod's Exchange is Different</div>
-                        <p>Unlike traditional exchanges that prioritize speed and volume, Kenostod's exchange prioritizes <strong>education and safety</strong>. Every trade comes with contextual explanations, real-time fee breakdowns, and slippage warnings. The 5-minute reversal window protects learners from costly mistakes, and the trading simulator lets you practice until you're confident.</p>
+                    <h3>LP Tokens — Your Proof of Position</h3>
+                    <p>LP tokens are the most important concept in liquidity provision. They are:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Transferable</strong> — you can send them to another wallet</li>
+                        <li><strong>Stakeable</strong> — you can deposit them into a farm (like UTLFarm) to earn additional yield</li>
+                        <li><strong>Redeemable</strong> — burning your LP tokens returns your proportional share of the pool, including accumulated fees</li>
+                        <li><strong>Priced</strong> — they have a dollar value equal to your share of pool assets</li>
+                    </ul>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">Liquidity Provider Lifecycle</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box buyer">
+                                <div class="flow-icon">&#128176;</div>
+                                <div class="flow-label">LP Deposits</div>
+                                <small>KENO + BNB</small>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box pool">
+                                <div class="flow-icon">&#128737;&#65039;</div>
+                                <div class="flow-label">UTLSwap Pool</div>
+                                <small>Holds reserves</small>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box engine">
+                                <div class="flow-icon">&#127760;</div>
+                                <div class="flow-label">LP Tokens</div>
+                                <small>Proof of share</small>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box farm">
+                                <div class="flow-icon">&#127807;</div>
+                                <div class="flow-label">UTLFarm</div>
+                                <small>Stake for KENO</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Removing Liquidity</h3>
+                    <p>To exit a pool, you return your LP tokens to the contract. The contract burns them and sends you back your proportional share of <em>current</em> pool reserves. Note: you get back the pool's current ratio of tokens, not the ratio you deposited at. If the ratio changed (because the price moved), you get a different split than you put in. This price-ratio divergence is the root cause of impermanent loss, covered in Section 6.</p>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Critical: Ratio Must Match</div>
+                        <p>You cannot deposit only one token into a standard AMM pool. If you try to add 10,000 KENO without also adding the corresponding BNB amount, the transaction will revert. Some advanced AMMs (like Curve's stablecoin pools or Uniswap V3) allow single-sided deposits through internal swapping, but this adds complexity and fees.</p>
                     </div>
                 </div>
             </section>
 
+            <!-- SECTION 5: UTLSwap -->
+            <section id="utlswap" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9889;</span>UTLSwap — Kenostod's Native AMM</h2>
+                <div class="reading-content">
+                    <p>UTLSwap is the Kenostod ecosystem's Automated Market Maker — a live, open-source smart contract on BNB Smart Chain that enables permissionless token swaps between KENO and BNB, and serves as the liquidity infrastructure for the entire UTL Protocol.</p>
+
+                    <h3>UTLSwap Architecture</h3>
+                    <p>UTLSwap is built on the battle-tested constant product formula (x &times; y = k), with additional Kenostod-specific features designed for the Education-Fi ecosystem:</p>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">KENO/BNB Liquidity Pool</div>
+                            <p>The primary pool holds KENO tokens and BNB. Any holder can swap KENO for BNB or BNB for KENO at any time. The swap fee is 0.3%, of which 100% goes to liquidity providers — Kenostod takes no protocol fee.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Whitelisted Token Access</div>
+                            <p>Since KENO has transfer restrictions (the whitelist you learned about in the UTL Protocol courses), UTLSwap is whitelisted by the KENO contract owner. This allows the AMM contract to move KENO tokens on behalf of traders without being blocked by the whitelist check.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">LP Token Minting (UTL-LP)</div>
+                            <p>When you add liquidity, UTLSwap mints UTL-LP tokens — BEP-20 tokens on BNB Smart Chain. These are the tokens you stake in UTLFarm to earn KENO yield. They are transferable and represent a real, redeemable claim on pool assets.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Slippage Protection</div>
+                            <p>Every swap includes a minimum output parameter. If the price moves beyond your tolerance between when you sign and when your transaction confirms, the contract automatically reverts — protecting you from sandwich attacks and price manipulation.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Deadline Parameter</div>
+                            <p>Every swap includes a deadline timestamp. If your transaction sits in the mempool too long (e.g., during network congestion), the contract rejects it after the deadline — preventing stale trades from executing at much worse prices.</p>
+                        </li>
+                    </ul>
+
+                    <h3>UTLSwap Live Contract</h3>
+                    <div class="contract-card">
+                        <div class="contract-icon">&#9889;</div>
+                        <div>
+                            <div class="contract-name">UTLSwap — AMM Contract</div>
+                            <div class="contract-address">BNB Smart Chain (Mainnet) — UTL Protocol</div>
+                            <div class="contract-desc">The core swap and liquidity pool contract for the Kenostod ecosystem. Enables KENO/BNB trading and mints UTL-LP tokens for liquidity providers.</div>
+                        </div>
+                    </div>
+
+                    <div class="contract-card">
+                        <div class="contract-icon">&#128176;</div>
+                        <div>
+                            <div class="contract-name">KENO Token Contract</div>
+                            <div class="contract-address">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+                            <div class="contract-desc">The BEP-20 KENO token. UTLSwap is whitelisted on this contract, enabling permissionless swaps through the AMM without triggering transfer restrictions.</div>
+                        </div>
+                    </div>
+
+                    <h3>How to Swap on UTLSwap</h3>
+                    <div class="code-example">
+<span class="code-comment">// Step 1: Approve UTLSwap to spend your KENO</span>
+<span class="code-comment">// (one-time per wallet, done on KENO contract)</span>
+KENO.<span class="code-function">approve</span>(UTLSwapAddress, amount);
+
+<span class="code-comment">// Step 2: Call swapExactTokensForBNB on UTLSwap</span>
+UTLSwap.<span class="code-function">swapExactTokensForBNB</span>(
+  amountIn,       <span class="code-comment">// KENO you're sending</span>
+  amountOutMin,   <span class="code-comment">// Minimum BNB you'll accept (slippage protection)</span>
+  deadline        <span class="code-comment">// Unix timestamp — tx reverts after this time</span>
+);
+
+<span class="code-comment">// Step 3: BNB arrives in your wallet automatically</span>
+<span class="code-comment">// Pool now holds more KENO, less BNB</span>
+<span class="code-comment">// Your 0.3% fee stays in the pool for LPs</span>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127775; UTLSwap Is the Bridge to DeFi for KENO Holders</div>
+                        <p>Before UTLSwap, KENO could only be transferred directly between whitelisted addresses. UTLSwap creates a <strong>permissionless market</strong> — any wallet can swap BNB for KENO without needing to be whitelisted themselves, because UTLSwap (not the trader) is the one moving the KENO. This is a fundamental unlock for the ecosystem.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: Impermanent Loss -->
+            <section id="impermanent" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>Impermanent Loss — The LP's Risk</h2>
+                <div class="reading-content">
+                    <p><strong>Impermanent loss (IL)</strong> is the reduction in dollar value of your pooled assets compared to simply holding those same assets outside the pool. It occurs whenever the price ratio between the two tokens in your pool changes after you deposit.</p>
+
+                    <p>The word "impermanent" is critical: if the price ratio returns to exactly where it was when you deposited, the loss disappears. But if you withdraw while prices differ from your entry, the loss becomes <strong>realized and permanent</strong>.</p>
+
+                    <h3>Why IL Happens — The Math</h3>
+                    <p>When you deposit into an AMM pool, you give up price exposure for fee income. Here's why:</p>
+
+                    <p>Imagine you deposit into the KENO/BNB pool when 1 BNB = 1000 KENO. You deposit 1,000 KENO and 1 BNB (total: ~$600 at $600/BNB). The pool ratio is 1000:1.</p>
+
+                    <p>Now BNB price doubles to $1,200. Arbitrageurs notice they can buy "cheap" BNB from your pool (still priced at the old ratio) and sell it on Binance for profit. They trade KENO into your pool for BNB until the pool reflects the new market price. Your pool now holds <strong>more KENO and less BNB</strong> than you started with.</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>BNB Price Change</th>
+                            <th>If You Held</th>
+                            <th>In the Pool</th>
+                            <th>IL %</th>
+                        </tr>
+                        <tr><td>No change</td><td>$600</td><td>$600</td><td>0%</td></tr>
+                        <tr><td>+50% ($900)</td><td>$750</td><td>$733</td><td>2.0%</td></tr>
+                        <tr><td>+100% ($1,200)</td><td>$900</td><td>$849</td><td>5.7%</td></tr>
+                        <tr><td>+200% ($1,800)</td><td>$1,200</td><td>$1,039</td><td>13.4%</td></tr>
+                        <tr><td>+400% ($3,000)</td><td>$1,800</td><td>$1,342</td><td>25.5%</td></tr>
+                        <tr><td>&#8722;50% ($300)</td><td>$450</td><td>$424</td><td>5.7%</td></tr>
+                    </table>
+
+                    <div class="formula-box">
+                        <div class="formula-text">IL = 2&#8730;(r) / (1+r) &#8722; 1</div>
+                        <div class="formula-label">Where <strong>r</strong> = price ratio change (new price / old price). Example: price doubles → r = 2 → IL = 2&#8730;2/(1+2) &#8722; 1 = &#8722;5.7%</div>
+                    </div>
+
+                    <h3>When Is Providing Liquidity Worth It?</h3>
+                    <p>Impermanent loss doesn't mean LPs always lose. You earn fees on every swap through your pool. The question is whether accumulated fees exceed your IL over the period you're in the pool.</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>High volume, stable ratio</strong> → fees accumulate fast with minimal IL → great for LPs</li>
+                        <li><strong>Low volume, volatile ratio</strong> → IL exceeds fees → bad for LPs</li>
+                        <li><strong>UTLFarm rewards</strong> → KENO yield earned by staking LP tokens can offset IL even during volatile periods</li>
+                    </ul>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The UTLFarm Advantage</div>
+                        <p>This is why UTLFarm exists alongside UTLSwap. By earning KENO rewards on top of swap fees, liquidity providers have a third income stream that helps overcome impermanent loss even in volatile market conditions. The combination of swap fees + KENO farming rewards is what makes the Kenostod liquidity ecosystem sustainable.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: UTLFarm -->
+            <section id="utlfarm" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127807;</span>UTLFarm — Yield Farming with LP Tokens</h2>
+                <div class="reading-content">
+                    <p>UTLFarm is Kenostod's yield farming contract — a live BEP-20 smart contract that rewards liquidity providers with KENO tokens for staking their UTL-LP tokens. It is the incentive layer that sits on top of UTLSwap, completing the two-layer DeFi architecture.</p>
+
+                    <h3>What Is Yield Farming?</h3>
+                    <p>Yield farming (also called liquidity mining) is the practice of staking or locking crypto assets in a protocol in exchange for token rewards. In the Kenostod ecosystem:</p>
+
+                    <ol style="margin-left: 25px; margin-bottom: 20px;">
+                        <li style="margin-bottom: 10px;">You add liquidity to UTLSwap's KENO/BNB pool</li>
+                        <li style="margin-bottom: 10px;">You receive UTL-LP tokens representing your pool share</li>
+                        <li style="margin-bottom: 10px;">You deposit (stake) those LP tokens into UTLFarm</li>
+                        <li style="margin-bottom: 10px;">UTLFarm pays you KENO rewards every block</li>
+                        <li style="margin-bottom: 10px;">You can claim KENO at any time, or unstake and exit completely</li>
+                    </ol>
+
+                    <h3>UTLFarm Mechanics</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">KENO Per Block Reward</div>
+                            <p>The farm distributes a fixed amount of KENO per BNB Smart Chain block. This reward is split proportionally among all stakers — the more LP tokens you stake relative to the total staked, the larger your share of each block's rewards.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Reward Accumulation</div>
+                            <p>Rewards accumulate continuously with every block (~3 seconds on BSC). There is no minimum staking period. You can claim rewards or unstake at any moment — the contract calculates exactly how many blocks you have staked and distributes proportionally.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">No Lock-Up Period</div>
+                            <p>UTLFarm has no forced lock-up. You maintain full control of your LP tokens and can withdraw instantly. This respects the DeFi principle of self-custody — your assets, your decisions.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Compounding Strategy</div>
+                            <p>Advanced farmers claim their KENO rewards, then use those KENO tokens to add more liquidity to UTLSwap (getting more LP tokens), then stake those additional LP tokens in UTLFarm. This compounds their position over time — earning rewards on rewards.</p>
+                        </li>
+                    </ul>
+
+                    <h3>UTLFarm Live Contract</h3>
+                    <div class="contract-card">
+                        <div class="contract-icon">&#127807;</div>
+                        <div>
+                            <div class="contract-name">UTLFarm — Yield Farming Contract</div>
+                            <div class="contract-address">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</div>
+                            <div class="contract-desc">Live on BNB Smart Chain. Accepts UTL-LP tokens and distributes KENO rewards per block to all stakers proportionally. Verified and auditable on BscScan.</div>
+                        </div>
+                    </div>
+
+                    <h3>How to Farm: Step-by-Step</h3>
+                    <div class="code-example">
+<span class="code-comment">// Step 1: Get LP tokens by adding liquidity to UTLSwap</span>
+UTLSwap.<span class="code-function">addLiquidity</span>(kenoAmount, bnbAmount, deadline);
+<span class="code-comment">// → Receive UTL-LP tokens in your wallet</span>
+
+<span class="code-comment">// Step 2: Approve UTLFarm to move your LP tokens</span>
+UTLLP.<span class="code-function">approve</span>(UTLFarmAddress, lpAmount);
+
+<span class="code-comment">// Step 3: Stake LP tokens in UTLFarm</span>
+UTLFarm.<span class="code-function">deposit</span>(lpAmount);
+<span class="code-comment">// → You begin earning KENO rewards every block</span>
+
+<span class="code-comment">// Step 4: Claim your KENO rewards at any time</span>
+UTLFarm.<span class="code-function">harvest</span>();
+<span class="code-comment">// → KENO sent to your wallet</span>
+
+<span class="code-comment">// Step 5: Unstake when ready</span>
+UTLFarm.<span class="code-function">withdraw</span>(lpAmount);
+<span class="code-comment">// → LP tokens returned + any pending KENO</span>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127942; APR vs APY — Know the Difference</div>
+                        <p><strong>APR</strong> (Annual Percentage Rate) is the raw yield rate without compounding — what the farm advertises. <strong>APY</strong> (Annual Percentage Yield) accounts for compounding — what you actually earn if you regularly claim and restake rewards. For UTLFarm, frequent compounding can significantly boost returns above the displayed APR.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 8: The Full DeFi Stack -->
+            <section id="defi-stack" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127760;</span>The Full DeFi Stack — UTLSwap + UTLFarm Together</h2>
+                <div class="reading-content">
+                    <p>Understanding each piece individually is good. Understanding how they work together as a system is what makes you a true DeFi practitioner. Here is the complete Kenostod DeFi stack, layer by layer:</p>
+
+                    <h3>Layer 1: The Token — KENO</h3>
+                    <p>The foundation. KENO is a BEP-20 token with a whitelist system that controls which contracts can move it. Every layer above must interact with the KENO token contract. <strong>UTLSwap and UTLFarm are both whitelisted on KENO</strong>, allowing them to facilitate trades and reward distributions without triggering transfer restrictions.</p>
+
+                    <h3>Layer 2: The Exchange — UTLSwap</h3>
+                    <p>UTLSwap creates the <strong>price discovery mechanism</strong> for KENO. It holds the KENO/BNB liquidity pool, executes trades using x &times; y = k, generates 0.3% fees for LPs, and mints UTL-LP tokens as proof of liquidity provision. Without UTLSwap, KENO has no on-chain market price and no permissionless way to trade.</p>
+
+                    <h3>Layer 3: The Incentive — UTLFarm</h3>
+                    <p>UTLFarm solves the <strong>cold start problem</strong>: why would anyone provide liquidity before there are traders, and why would traders come before there's liquidity? By rewarding early LPs with KENO, UTLFarm bootstraps liquidity into UTLSwap. More liquidity → less slippage → more traders → more fees → more LP income → more liquidity. This is the DeFi flywheel.</p>
+
+                    <h3>The Ecosystem Flywheel</h3>
+                    <div class="diagram-container">
+                        <div class="diagram-title">How UTLSwap + UTLFarm Create a Self-Sustaining Ecosystem</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box buyer">
+                                <div class="flow-icon">&#128176;</div>
+                                <div class="flow-label">LPs Add Liquidity</div>
+                                <small>KENO + BNB</small>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box pool">
+                                <div class="flow-icon">&#9889;</div>
+                                <div class="flow-label">UTLSwap Pool</div>
+                                <small>Deep liquidity</small>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box engine">
+                                <div class="flow-icon">&#128200;</div>
+                                <div class="flow-label">More Traders</div>
+                                <small>Low slippage</small>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box farm">
+                                <div class="flow-icon">&#127807;</div>
+                                <div class="flow-label">More Fees + KENO</div>
+                                <small>LP rewards</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Comparison: Kenostod vs PancakeSwap Architecture</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>PancakeSwap</th>
+                            <th>Kenostod (UTLSwap + UTLFarm)</th>
+                        </tr>
+                        <tr>
+                            <td>AMM Formula</td>
+                            <td>x &times; y = k (constant product)</td>
+                            <td>x &times; y = k (constant product)</td>
+                        </tr>
+                        <tr>
+                            <td>Swap Fee</td>
+                            <td>0.25% (0.17% to LPs, 0.08% to treasury)</td>
+                            <td>0.3% (100% to LPs)</td>
+                        </tr>
+                        <tr>
+                            <td>Farm Reward Token</td>
+                            <td>CAKE</td>
+                            <td>KENO</td>
+                        </tr>
+                        <tr>
+                            <td>Governance</td>
+                            <td>CAKE holders vote</td>
+                            <td>KENO holders + UTL Protocol</td>
+                        </tr>
+                        <tr>
+                            <td>Education Layer</td>
+                            <td>None</td>
+                            <td>21-course E-Fi curriculum</td>
+                        </tr>
+                        <tr>
+                            <td>Access Model</td>
+                            <td>Fully permissionless</td>
+                            <td>Whitelist-gated (KENO contract)</td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 9: MEV -->
+            <section id="mev" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128680;</span>MEV &amp; Sandwich Attacks on AMMs</h2>
+                <div class="reading-content">
+                    <p><strong>Maximal Extractable Value (MEV)</strong> is the profit that block validators can capture by reordering, inserting, or censoring transactions within a block. On AMMs, the primary MEV attack is the <strong>sandwich attack</strong>.</p>
+
+                    <h3>How a Sandwich Attack Works</h3>
+                    <ol style="margin-left: 25px; margin-bottom: 20px;">
+                        <li style="margin-bottom: 10px;">You submit a large KENO swap on UTLSwap</li>
+                        <li style="margin-bottom: 10px;">A MEV bot sees your pending transaction in the mempool</li>
+                        <li style="margin-bottom: 10px;">The bot submits its own identical swap with a higher gas fee — so it gets included <em>before</em> yours</li>
+                        <li style="margin-bottom: 10px;">The bot's trade moves the price (buying pushes price up)</li>
+                        <li style="margin-bottom: 10px;">Your transaction executes at the now-worse price</li>
+                        <li style="margin-bottom: 10px;">The bot immediately sells its tokens at the inflated price for a risk-free profit</li>
+                    </ol>
+
+                    <div class="code-example">
+<span class="code-comment">// Sandwich Attack Timeline</span>
+<span class="code-comment">// Block N mempool — all visible to bots:</span>
+
+<span class="code-comment">// 1. YOUR pending tx: Swap 100 BNB → KENO (market price)</span>
+<span class="code-comment">// 2. BOT front-runs: Swap 20 BNB → KENO (higher gas, goes first)</span>
+<span class="code-comment">//    Pool price moves: KENO gets more expensive</span>
+<span class="code-comment">// 3. YOUR tx executes: Gets less KENO than expected</span>
+<span class="code-comment">// 4. BOT back-runs: Sells KENO → BNB at inflated price</span>
+<span class="code-comment">// Bot's net profit: ~0.5-2% of your trade size</span>
+<span class="code-comment">// Your net loss: paid more BNB per KENO than market</span>
+                    </div>
+
+                    <h3>Protecting Yourself on UTLSwap</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Set tight slippage tolerance</strong> — 0.5% max on stable pairs; 1-2% on volatile pairs. Your transaction reverts automatically if slippage exceeds this.</li>
+                        <li><strong>Break large trades into smaller chunks</strong> — multiple smaller swaps are harder to profitably sandwich than one large swap</li>
+                        <li><strong>Use low-traffic times</strong> — MEV competition is lower during off-peak hours on BSC</li>
+                        <li><strong>Set aggressive deadlines</strong> — a 2-minute deadline prevents your transaction from sitting in the mempool long enough to attract bots</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Why UTLSwap's Whitelist Helps</div>
+                        <p>Because KENO requires whitelist approval for transfers, MEV bots that are not whitelisted cannot actually receive KENO — which means they cannot execute the "back-run" half of the sandwich. This is an unintentional but real MEV protection benefit of the KENO whitelist architecture.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 10: Case Studies -->
             <section id="cases" class="lesson-section">
                 <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
                 <div class="reading-content">
-                    <p>These real events demonstrate the risks, innovations, and lessons that have shaped the exchange landscape:</p>
-
                     <div class="case-study">
-                        <h4>Case Study 1: The FTX Collapse (November 2022)</h4>
-                        <p><strong>What happened:</strong> FTX, the third-largest crypto exchange by volume, collapsed in less than a week. It was revealed that FTX had secretly transferred $8 billion in customer funds to its sister trading firm, Alameda Research, which used the funds for risky bets that went wrong. When customers rushed to withdraw, FTX didn't have the funds.</p>
-                        <p style="margin-top: 10px;"><strong>Root cause:</strong> No separation between exchange assets and customer deposits, no independent board oversight, no proof of reserves, and a single point of authority (Sam Bankman-Fried) with unchecked power over customer funds.</p>
-                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Always verify an exchange's proof of reserves. Never store more funds on an exchange than you need for active trading. "Not your keys, not your coins" is not just a saying &mdash; it's a survival strategy.</p>
+                        <h4>Case Study 1: Uniswap V2 — The AMM That Changed Everything (2020)</h4>
+                        <p><strong>What happened:</strong> Uniswap V2 launched in May 2020 and introduced the constant product AMM in its definitive form. Within 6 months, it was processing more daily volume than Coinbase Pro — a centralized exchange with hundreds of employees and years of infrastructure. It did this with a 700-line smart contract and zero employees.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Mathematical simplicity beats operational complexity. The x &times; y = k formula, combined with permissionless liquidity provision, created more efficient markets than any order book system had achieved for long-tail tokens. UTLSwap is built on the same foundation.</p>
                     </div>
 
                     <div class="case-study">
-                        <h4>Case Study 2: The Uniswap V3 Revolution (May 2021)</h4>
-                        <p><strong>What happened:</strong> Uniswap launched V3 with "concentrated liquidity," allowing LPs to provide liquidity within specific price ranges instead of across the entire price curve. This increased capital efficiency by up to 4,000x compared to V2.</p>
-                        <p style="margin-top: 10px;"><strong>Impact:</strong> Uniswap V3 regularly handles more volume than many centralized exchanges. It proved that decentralized exchanges can compete with and even surpass centralized venues on capital efficiency.</p>
-                        <p style="margin-top: 10px;"><strong>The lesson:</strong> AMM design is not static. Innovation in mathematical models and smart contract architecture continues to improve the tradeoffs between capital efficiency, complexity, and impermanent loss.</p>
+                        <h4>Case Study 2: PancakeSwap — The BNB Chain AMM Empire (2020–Present)</h4>
+                        <p><strong>What happened:</strong> PancakeSwap launched on BNB Smart Chain in September 2020, copying Uniswap's architecture but with lower gas fees (~$0.01 vs Ethereum's $20–$100). By combining an AMM (PancakeSwap Exchange) with yield farming (CAKE rewards for LP stakers), PancakeSwap grew to over $1B in daily trading volume and hundreds of millions in total value locked.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> The AMM + Farm combination is the proven playbook for DeFi liquidity bootstrapping. Lower gas fees dramatically expand the accessible user base. Kenostod's UTLSwap + UTLFarm directly follows this architecture on BSC — the same chain PancakeSwap dominates.</p>
                     </div>
 
                     <div class="case-study">
-                        <h4>Case Study 3: The Binance BNB Bridge Hack (October 2022)</h4>
-                        <p><strong>What happened:</strong> An attacker exploited a vulnerability in the BNB Chain cross-chain bridge to mint 2 million BNB tokens worth ~$570 million. The BNB Chain team coordinated with validators to halt the entire chain to prevent the attacker from moving all the funds.</p>
-                        <p style="margin-top: 10px;"><strong>Root cause:</strong> A bug in the bridge's proof verification allowed the attacker to forge withdrawal proofs for tokens that didn't exist.</p>
-                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Cross-chain bridges are among the most vulnerable pieces of blockchain infrastructure. The ability to halt a chain raises centralization concerns. Exchange ecosystems are only as secure as their weakest component.</p>
+                        <h4>Case Study 3: The LUNA/UST Collapse — When Liquidity Pools Fail (May 2022)</h4>
+                        <p><strong>What happened:</strong> TerraUSD (UST) was an algorithmic stablecoin backed by LUNA tokens. Curve Finance pools held billions in UST liquidity. When a coordinated attack drained the Curve UST pool, UST lost its $1.00 peg. As UST fell, the system minted massive amounts of LUNA to restore the peg — hyperinflating LUNA to near zero. $40B in market cap evaporated in 72 hours.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Algorithmic stablecoin liquidity pools carry systemic risk. Liquidity pools are only as safe as the underlying tokens. KENO's $1.00 soft peg and fixed supply (no algorithmic minting) are designed to avoid the death spiral mechanism that destroyed LUNA. Understanding pool risk means understanding token risk first.</p>
                     </div>
 
                     <div class="case-study">
-                        <h4>Case Study 4: The Flashbots MEV Solution (2021-Present)</h4>
-                        <p><strong>What happened:</strong> Flashbots created MEV-Boost and Flashbots Protect to address the growing problem of front-running and sandwich attacks on Ethereum. By allowing users to submit transactions through a private channel (not the public mempool), Flashbots dramatically reduced the amount of value extracted from regular users by MEV bots.</p>
-                        <p style="margin-top: 10px;"><strong>Impact:</strong> Over $600 million in MEV has been redistributed more fairly. Flashbots Protect is now used by major wallets including MetaMask.</p>
-                        <p style="margin-top: 10px;"><strong>The lesson:</strong> The community can build solutions to structural problems in decentralized systems. MEV is a fundamental feature of public blockchains, but its negative effects can be mitigated through clever protocol design.</p>
+                        <h4>Case Study 4: Curve Wars — When Liquidity Becomes a Political Game (2021–2022)</h4>
+                        <p><strong>What happened:</strong> Curve Finance controls the deepest stablecoin liquidity on Ethereum. Curve's governance token (veCRV) determines how CURVE rewards are distributed to different pools. DeFi protocols realized that whoever controlled the most veCRV could direct enormous liquidity to their own pools. A multi-billion dollar "war" broke out, with protocols like Convex Finance, Frax, and MIM competing to accumulate veCRV and control the liquidity firehose.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Liquidity is a strategic resource in DeFi. Protocols that control deep liquidity can attract more users, better pricing, and more ecosystem integrations. UTLFarm's KENO rewards are Kenostod's mechanism for directing and retaining strategic liquidity in the KENO/BNB pool.</p>
                     </div>
                 </div>
             </section>
 
+            <!-- SECTION 11: On-Chain Lab -->
+            <section id="lab" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128300;</span>On-Chain Lab — Interact With UTLSwap &amp; UTLFarm</h2>
+                <div class="reading-content">
+                    <p>This is the hands-on portion of Course 16. You will interact directly with live contracts on BNB Smart Chain using your MetaMask wallet and BscScan's Write Contract interface. No coding required — just a browser and your wallet.</p>
+
+                    <div class="highlight-box gold">
+                        <div class="highlight-title">&#9888;&#65039; Before You Begin</div>
+                        <p>You need: (1) MetaMask connected to BNB Smart Chain, (2) a small amount of BNB for gas (~0.01 BNB is sufficient), (3) some KENO tokens in a whitelisted wallet. All transactions are real — small amounts are sufficient for practice.</p>
+                    </div>
+
+                    <h3>Lab Exercise 1 — Read the UTLSwap Pool State</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Open UTLSwap on BscScan</div>
+                            <p>Navigate to the UTLSwap contract address on bscscan.com → Contract → Read Contract. Find the <code>getReserves()</code> function and call it. Record the current KENO and BNB reserves in the pool.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Calculate the current implied price</div>
+                            <p>Using the reserves you just read, apply the formula: <em>KENO price = BNB reserve / KENO reserve &times; BNB price</em>. Compare to the displayed price on the UTL dashboard.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Lab Exercise 2 — Check UTLFarm State</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Open UTLFarm on BscScan</div>
+                            <p>Go to <strong>bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#readContract</strong>. Find and call <code>kenoPerBlock()</code> to see the current reward rate.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Check total staked LP tokens</div>
+                            <p>Call <code>totalStaked()</code> — this shows how many LP tokens are currently staked across all farmers. Calculate what percentage of the pool you would own if you staked 100 LP tokens.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">View pending rewards for your wallet</div>
+                            <p>Call <code>pendingKeno(yourAddress)</code> using your wallet address as input. This shows how many KENO tokens you have earned and not yet claimed.</p>
+                        </li>
+                    </ul>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#readContract" target="_blank" class="practice-btn">
+                            &#127300; Open UTLFarm on BscScan
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 12: Written Exercises -->
             <section id="exercises" class="lesson-section">
                 <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
                 <div class="reading-content">
-                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+                    <p>Complete these exercises to reinforce your understanding. Take your time — thoughtful answers demonstrate true comprehension.</p>
 
                     <div class="exercise-box">
-                        <h4>Exercise 1: CEX vs DEX Decision Making</h4>
+                        <h4>Exercise 1: AMM Price Calculation</h4>
                         <div class="exercise-question">
-                            <p>You have 10,000 KENO tokens and want to sell half for USD. Explain when you would choose a centralized exchange vs a decentralized exchange for this trade. Consider factors like fees, speed, security, and privacy.</p>
-                            <textarea id="ex1" placeholder="Write your analysis here..."></textarea>
+                            <p>The UTLSwap KENO/BNB pool has 500,000 KENO and 200 BNB. A trader wants to buy 50 BNB worth of KENO. Using the constant product formula, calculate: (a) how many KENO they will receive, (b) their effective price per BNB in KENO, and (c) the percentage slippage compared to the starting price.</p>
+                            <textarea id="ex1" placeholder="Show your calculation step by step..."></textarea>
                             <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
                             <div id="ex1-feedback" class="answer-feedback"></div>
                         </div>
                     </div>
 
                     <div class="exercise-box">
-                        <h4>Exercise 2: Impermanent Loss Calculation</h4>
+                        <h4>Exercise 2: Impermanent Loss Scenario</h4>
                         <div class="exercise-question">
-                            <p>You provide liquidity to a KENO/USD pool with 2,000 KENO (at $1.00 each) and $2,000 USD. If KENO's price rises to $4.00, what would your position be worth in the pool vs simply holding? Show your reasoning step by step.</p>
-                            <textarea id="ex2" placeholder="Show your calculation here..."></textarea>
+                            <p>You add liquidity to the KENO/BNB pool: 10,000 KENO at $1.00 each and 10 BNB at $1,000 each (total: $20,000). Three months later, BNB price has risen to $2,500 while KENO stays at $1.00. (a) What does your position now hold in the pool? (b) What would you have if you had just held both assets? (c) What is your impermanent loss in dollars and percentage?</p>
+                            <textarea id="ex2" placeholder="Calculate your pool position and compare to holding..."></textarea>
                             <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
                             <div id="ex2-feedback" class="answer-feedback"></div>
                         </div>
                     </div>
 
                     <div class="exercise-box">
-                        <h4>Exercise 3: Exchange Security Audit</h4>
+                        <h4>Exercise 3: UTLFarm Strategy</h4>
                         <div class="exercise-question">
-                            <p>You're evaluating a new exchange that offers 20% APY on deposits and has no proof of reserves. The team is anonymous. What red flags do you see, and what minimum security standards would you require before depositing any funds?</p>
-                            <textarea id="ex3" placeholder="Describe the red flags and your requirements..."></textarea>
+                            <p>UTLFarm is paying 10 KENO per block. There are currently 1,000,000 LP tokens staked in total. You are considering staking 50,000 LP tokens. (a) What percentage of total rewards would you earn? (b) If a BNB block is produced every 3 seconds, how many KENO per day would you earn? (c) At $1.00/KENO, what is your daily dollar yield? Should you account for impermanent loss in this calculation — why or why not?</p>
+                            <textarea id="ex3" placeholder="Walk through your calculation and reasoning..."></textarea>
                             <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
                             <div id="ex3-feedback" class="answer-feedback"></div>
                         </div>
                     </div>
 
                     <div class="exercise-box">
-                        <h4>Exercise 4: MEV Protection Strategy</h4>
+                        <h4>Exercise 4: Sandwich Attack Defense</h4>
                         <div class="exercise-question">
-                            <p>You want to swap 50,000 KENO for ETH on Uniswap. Describe the steps you would take to protect yourself from sandwich attacks and minimize slippage. What tools and settings would you use?</p>
-                            <textarea id="ex4" placeholder="Describe your protection strategy..."></textarea>
+                            <p>You want to swap 5,000 BNB worth of KENO on UTLSwap (a very large trade). The pool has 1,000,000 KENO and 1,000 BNB. Explain: (a) why this trade is at high risk of a sandwich attack, (b) what specific parameters you would set to protect yourself, and (c) an alternative strategy to execute this trade more safely.</p>
+                            <textarea id="ex4" placeholder="Describe the risk and your protection strategy..."></textarea>
                             <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
                             <div id="ex4-feedback" class="answer-feedback"></div>
                         </div>
                     </div>
 
                     <div class="exercise-box">
-                        <h4>Exercise 5: Market Making Analysis</h4>
+                        <h4>Exercise 5: DeFi Stack Design</h4>
                         <div class="exercise-question">
-                            <p>Explain how a market maker profits from the bid-ask spread. If the KENO/USD spread is $0.02 and the market maker trades 100,000 KENO per day, estimate their daily revenue. What risks does the market maker face?</p>
-                            <textarea id="ex5" placeholder="Explain market making economics..."></textarea>
+                            <p>Kenostod is launching a new KENO/USDT pool alongside the existing KENO/BNB pool. As the protocol designer, explain: (a) what advantages a stablecoin pair (KENO/USDT) has over KENO/BNB for liquidity providers, (b) how impermanent loss differs between the two pairs, and (c) what reward rate (higher or lower than KENO/BNB) you would set in UTLFarm for the KENO/USDT pool and why.</p>
+                            <textarea id="ex5" placeholder="Design your dual-pool strategy..."></textarea>
                             <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
                             <div id="ex5-feedback" class="answer-feedback"></div>
                         </div>
@@ -1324,257 +1254,228 @@ x &times; y = k
                 </div>
             </section>
 
-            <section id="practice" class="lesson-section practice-section" style="display:none;">
-            </section>
-
+            <!-- SECTION 13: Final Exam -->
             <section id="quiz" class="lesson-section quiz-section">
-                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
-                <p style="margin-bottom: 25px; color: var(--text-muted);">
-                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
-                    Take your time and review the material if needed.
-                </p>
+                <h2 class="section-title"><span class="section-icon">&#127891;</span>Final Exam — 12 Questions</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">Score 9/12 (75%) or higher to complete Course 16 and earn your 250 KENO reward.</p>
 
-                <div class="quiz-question" data-question="1" data-answer="b">
-                    <div class="question-text">1. What is the primary difference between a CEX and a DEX?</div>
+                <div class="quiz-question">
+                    <div class="question-text">1. In the AMM formula x &times; y = k, what does "k" represent?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>CEXs are faster than DEXs</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>CEXs hold custody of user funds; DEXs let users retain custody</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>DEXs have lower fees than CEXs</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>CEXs only trade Bitcoin</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The current token price</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A constant that never changes, ensuring the pool product stays fixed</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The total dollar value of the pool</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The number of liquidity providers in the pool</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="2" data-answer="c">
-                    <div class="question-text">2. Which order type executes immediately at the best available price?</div>
+                <div class="quiz-question">
+                    <div class="question-text">2. Why did order books fail as the primary DEX architecture on blockchains?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Limit order</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Stop-loss order</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Market order</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Take-profit order</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Order books are illegal in most countries</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Every order update costs gas, blocks are too slow for HFT, and validators can front-run orders</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Order books only work with Bitcoin, not ERC-20 tokens</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>AMMs are required by BNB Smart Chain's protocol</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="3" data-answer="a">
-                    <div class="question-text">3. What is the "spread" in an order book?</div>
+                <div class="quiz-question">
+                    <div class="question-text">3. A pool has 200,000 KENO and 200 BNB. What is the implied price of KENO in BNB?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The difference between the best bid and best ask price</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The total trading volume in 24 hours</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The trading fee charged by the exchange</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The number of active traders on the platform</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1 KENO = 0.001 BNB (1000 KENO per BNB)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1 KENO = 0.01 BNB (100 KENO per BNB)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1 KENO = 1 BNB</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1 KENO = 200 BNB</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="4" data-answer="d">
-                    <div class="question-text">4. In the constant product formula x &times; y = k, what happens when you buy Token A from a pool?</div>
+                <div class="quiz-question">
+                    <div class="question-text">4. What do you receive when you add liquidity to UTLSwap?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Both x and y decrease</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>k increases proportionally</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The pool creates new tokens</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>x decreases and y increases to maintain k</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A receipt email from Kenostod</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>UTL-LP tokens representing your proportional share of the pool</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The same tokens you deposited, locked for 1 year</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO tokens equal to your deposit value</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="5" data-answer="b">
-                    <div class="question-text">5. What is impermanent loss?</div>
+                <div class="quiz-question">
+                    <div class="question-text">5. Impermanent loss occurs when:</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The fee charged by DEXs for withdrawing liquidity</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The difference in value between holding tokens and providing them as liquidity when prices change</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A permanent loss of tokens due to a smart contract bug</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The gas fees lost during failed transactions</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The blockchain network goes offline temporarily</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The price ratio between pool tokens changes after you deposit, resulting in less value than simply holding</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>You forget to claim your farming rewards for more than 7 days</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The AMM contract charges an exit fee when removing liquidity</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="6" data-answer="a">
-                    <div class="question-text">6. What is "Proof of Reserves" designed to prevent?</div>
+                <div class="quiz-question">
+                    <div class="question-text">6. What is the primary purpose of UTLFarm in the Kenostod ecosystem?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Exchanges secretly misappropriating customer funds (like FTX)</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Users withdrawing more than their balance</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Front-running attacks on DEXs</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Impermanent loss in liquidity pools</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To lock student KENO tokens so they cannot be sold</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To incentivize liquidity provision in UTLSwap by rewarding LP token stakers with KENO</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To replace MetaMask as the primary wallet for KENO</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To generate revenue for Kenostod Academy LLC</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="7" data-answer="c">
-                    <div class="question-text">7. What is a "sandwich attack" in the context of MEV?</div>
+                <div class="quiz-question">
+                    <div class="question-text">7. In a sandwich attack, what is the attacker's goal?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Attacking an exchange by submitting millions of fake orders</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Draining a liquidity pool by exploiting a smart contract bug</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A bot placing a buy before and a sell after your transaction to profit from the price impact</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Using two exchanges simultaneously to arbitrage price differences</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To crash the entire pool by draining all liquidity</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To front-run and back-run a victim's trade, profiting from the price movement caused by their transaction</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To steal the victim's LP tokens from UTLFarm</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To duplicate the victim's wallet private key through the mempool</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="8" data-answer="b">
-                    <div class="question-text">8. What is the difference between a "maker" and a "taker"?</div>
+                <div class="quiz-question">
+                    <div class="question-text">8. Why can't you add only one token (e.g., only KENO) to a standard UTLSwap pool?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers buy tokens; takers sell tokens</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers add liquidity to the order book; takers remove liquidity</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers create new tokens; takers burn tokens</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Makers use CEXs; takers use DEXs</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It's a legal restriction under DeFi regulations</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Adding a single token would break the x &times; y = k invariant, which requires both sides of the pool to remain balanced at the current ratio</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>MetaMask only supports two-token transactions</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Single-token deposits are only available to addresses with more than 1,000,000 KENO</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="9" data-answer="d">
-                    <div class="question-text">9. Which trading pair is NOT supported on the Kenostod Exchange?</div>
+                <div class="quiz-question">
+                    <div class="question-text">9. The DeFi flywheel describes how UTLSwap + UTLFarm interact. Which ordering is correct?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/USD</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/BTC</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/ETH</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO/DOGE</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Traders come first → Fees attract LPs → LPs add liquidity → UTLFarm rewards them</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>UTLFarm KENO rewards attract LPs → LPs add liquidity → deeper liquidity attracts traders → trading fees increase LP income → more LPs join</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO price rises first → UTLFarm deploys → UTLSwap launches → LPs enter</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Kenostod manually seeds all liquidity before allowing public participation</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="10" data-answer="a">
-                    <div class="question-text">10. What percentage of an exchange's assets are typically held in cold storage?</div>
+                <div class="quiz-question">
+                    <div class="question-text">10. The UTLFarm contract address is 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094. Why does this contract need to be whitelisted on the KENO token?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>95-98%</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50-60%</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10-20%</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>100%</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>So it can charge higher fees to farmers</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Because KENO's transfer restrictions would otherwise block UTLFarm from distributing KENO rewards to stakers</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Whitelisting gives it priority in the BSC mempool</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It is not whitelisted — UTLFarm uses BNB, not KENO, for rewards</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="11" data-answer="c">
-                    <div class="question-text">11. What innovation did Uniswap V3 introduce?</div>
+                <div class="quiz-question">
+                    <div class="question-text">11. How does a KENO/USDT pool have less impermanent loss risk than a KENO/BNB pool?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Zero-fee trading</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Cross-chain atomic swaps</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Concentrated liquidity where LPs choose a specific price range</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Fiat-to-crypto on-ramp</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>USDT is a stablecoin pegged to $1.00, so the KENO/USDT price ratio only changes when KENO's price moves — not when BNB independently moves in the opposite direction</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Stablecoin pools have zero impermanent loss by definition</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>USDT pools are regulated and therefore safer than unregulated BNB pools</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>BNB has higher gas fees which increase impermanent loss on BNB pairs</span></div>
                     </div>
                 </div>
 
-                <div class="quiz-question" data-question="12" data-answer="b">
-                    <div class="question-text">12. What unique safety feature does the Kenostod Exchange offer that other exchanges do not?</div>
+                <div class="quiz-question">
+                    <div class="question-text">12. What is the "compounding" strategy in UTLFarm?</div>
                     <div class="quiz-options">
-                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Zero trading fees</span></div>
-                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5-minute transaction reversal window</span></div>
-                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Guaranteed 100% APY on deposits</span></div>
-                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Anonymous trading with no KYC</span></div>
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Waiting longer between claims to receive a bonus multiplier from the contract</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Claiming KENO rewards → using them to add more UTLSwap liquidity → staking the new LP tokens in UTLFarm → earning rewards on a larger position</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Depositing the same LP tokens multiple times to count them twice in the reward calculation</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Sending KENO rewards directly back to UTLFarm without converting to LP tokens</span></div>
                     </div>
                 </div>
 
-                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+
                 <div id="quizResult" class="quiz-result">
-                    <div id="resultIcon" class="result-icon"></div>
-                    <h3 id="resultTitle" class="result-title"></h3>
-                    <p id="resultMessage"></p>
+                    <div class="result-icon" id="resultIcon"></div>
+                    <div class="result-title" id="resultTitle"></div>
+                    <div id="resultMessage"></div>
                     <div id="nextCourseContainer"></div>
                 </div>
             </section>
 
-            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
-                <p>Kenostod Blockchain Academy &copy; 2024</p>
-                <p style="margin-top: 10px;">
-                    <a href="/courses/course-15-banking.html" style="color: var(--primary);">&larr; Course 15</a> &nbsp;|&nbsp;
-                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
-                    <a href="/courses/course-17-finance.html" style="color: var(--primary);">Course 17 &rarr;</a>
-                </p>
-            </div>
         </main>
     </div>
 
     <script>
-        function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
-                event.target.closest('.toc-item').classList.add('active');
-            }
+        const correctAnswers = {
+            1: 'b', 2: 'b', 3: 'a', 4: 'b', 5: 'b',
+            6: 'b', 7: 'b', 8: 'b', 9: 'b', 10: 'b',
+            11: 'a', 12: 'b'
+        };
+
+        const exerciseFeedback = {
+            1: `Key steps: k = 200,000 × 200 = 40,000,000. After adding 50 BNB: new y = 250 BNB, new x = 40,000,000 / 250 = 160,000 KENO. KENO received = 200,000 - 160,000 = 40,000 KENO. Effective price = 50 BNB / 40,000 KENO = 0.00125 BNB/KENO (800 KENO/BNB). Starting price was 1000 KENO/BNB. Slippage = (1000 - 800) / 1000 = 20%. This is very high slippage because 50 BNB is 25% of the pool's BNB — always check pool depth before large trades.`,
+            2: `Using IL formula for a 2.5x price change (r = 2.5): IL = 2√2.5/(1+2.5) - 1 = -11.8%. If you held: 10,000 KENO ($10,000) + 10 BNB ($25,000) = $35,000. Pool value after price change: approximately $30,870 (about $4,130 less than holding). The pool automatically sold some BNB as it rose and accumulated KENO — the arbitrageurs rebalanced your position for you, capturing the gain you would have kept by holding.`,
+            3: `Your share = 50,000/1,050,000 = 4.76%. Daily blocks = 86,400s / 3s = 28,800 blocks. Your KENO/day = 28,800 × 10 × 0.0476 = 13,709 KENO/day = $13,709/day at $1.00. However, you must account for IL separately — IL is a change in the ratio of your assets (not a direct fee), while farming rewards are additional KENO income. Both must be tracked to know true P&L.`,
+            4: `Risk: 5,000 BNB is 5x the pool's BNB reserve — this would cause massive slippage and is easily worth a bot's time to sandwich. Protection: (a) set 0.5% slippage tolerance so tx reverts if sandwiched; (b) break into 50 trades of 100 BNB each across multiple blocks; (c) negotiate an OTC (over-the-counter) deal directly with a large KENO holder, bypassing the AMM entirely. For any trade >5% of pool size, OTC is usually more efficient.`,
+            5: `KENO/USDT advantages: IL only depends on KENO price movement (USDT stays $1.00), so if KENO stays near $1.00, IL is near zero. KENO/BNB has dual volatility — both KENO and BNB move independently, compounding IL risk. However, KENO/BNB typically generates more volume (BNB is the native gas token), so higher fee income. Reward rate strategy: KENO/USDT should have higher KENO farm rewards to compensate for lower expected fee income. KENO/BNB can have lower rewards since LPs earn more from natural trading activity.`
+        };
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
         }
 
-        function selectOption(optionElement) {
-            const question = optionElement.closest('.quiz-question');
-            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
-            optionElement.classList.add('selected');
+        function selectOption(el) {
+            const question = el.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
         }
 
         function checkExercise(num) {
-            const textarea = document.getElementById('ex' + num);
-            const feedback = document.getElementById('ex' + num + '-feedback');
-            const text = textarea.value.trim();
-
-            if (text.length < 30) {
-                feedback.style.display = 'block';
-                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
-                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
-                feedback.innerHTML = '<strong>&#9888;&#65039; Too short.</strong> Please write a more detailed response (at least a few sentences) to demonstrate your understanding.';
+            const ta = document.getElementById('ex' + num);
+            const fb = document.getElementById('ex' + num + '-feedback');
+            if (!ta.value.trim()) {
+                fb.style.display = 'block';
+                fb.style.background = 'rgba(239,68,68,0.1)';
+                fb.style.border = '1px solid rgba(239,68,68,0.3)';
+                fb.textContent = 'Please write your answer before checking.';
                 return;
             }
-
-            feedback.style.display = 'block';
-            feedback.style.background = 'rgba(16, 185, 129, 0.15)';
-            feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-
-            const feedbackMessages = {
-                1: '<strong>&#9989; Good analysis!</strong> Key points to consider: CEXs offer fiat off-ramps (needed to convert to USD) but require KYC and custodial trust. DEXs give you sovereignty but only support crypto-to-crypto swaps. For USD conversion, a CEX is likely necessary unless you use a stablecoin bridge. Consider splitting the trade if the amount is large to reduce slippage risk.',
-                2: '<strong>&#9989; Good work!</strong> With the constant product formula (k = 2,000 &times; 2,000 = 4,000,000), if KENO goes to $4.00, pool rebalances to ~1,000 KENO and ~4,000 USD. Your LP position = $8,000. Simply holding = 2,000 &times; $4 + $2,000 = $10,000. Impermanent loss = $2,000 (20%). This illustrates why volatile pairs carry significant IL risk.',
-                3: '<strong>&#9989; Strong security thinking!</strong> Red flags include: unsustainably high APY (where does the yield come from?), no proof of reserves (could be fractional), anonymous team (no accountability). Minimum requirements: verifiable PoR, public team with track record, third-party security audits, insurance fund, regulatory licensing, and transparent fee structure.',
-                4: '<strong>&#9989; Well thought out!</strong> Protection steps: (1) Use Flashbots Protect or similar private mempool, (2) Set slippage tolerance to 0.5-1%, (3) Break the 50,000 KENO into 5-10 smaller swaps, (4) Use a DEX aggregator like 1inch for best routing, (5) Set a transaction deadline (5-10 minutes), (6) Consider using a limit order DEX like CoW Protocol.',
-                5: '<strong>&#9989; Excellent analysis!</strong> If the spread is $0.02 and the market maker trades 100,000 KENO/day (buying at bid, selling at ask), theoretical daily revenue = 100,000 &times; $0.02 = $2,000. However, risks include: inventory risk (holding KENO while price drops), adverse selection (informed traders take the other side), exchange downtime, and competition from other market makers compressing the spread.'
-            };
-
-            feedback.innerHTML = feedbackMessages[num] || '<strong>&#9989; Good response!</strong> Review the course material to verify your understanding covers all key concepts.';
+            fb.style.display = 'block';
+            fb.style.background = 'rgba(16,185,129,0.1)';
+            fb.style.border = '1px solid rgba(16,185,129,0.3)';
+            fb.innerHTML = '<strong>Model Answer:</strong> ' + exerciseFeedback[num];
         }
 
         function submitQuiz() {
+            let score = 0;
             const questions = document.querySelectorAll('.quiz-question');
-            let correct = 0;
-            let total = questions.length;
-
-            questions.forEach(question => {
-                const correctAnswer = question.dataset.answer;
-                const selectedOption = question.querySelector('.quiz-option.selected');
-
-                question.querySelectorAll('.quiz-option').forEach(opt => {
-                    opt.classList.remove('correct', 'incorrect');
-                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+            questions.forEach((q, i) => {
+                const selected = q.querySelector('.quiz-option.selected');
+                const correct = correctAnswers[i + 1];
+                q.querySelectorAll('.quiz-option').forEach(opt => {
+                    if (opt.dataset.value === correct) opt.classList.add('correct');
                 });
-
-                if (selectedOption) {
-                    if (selectedOption.dataset.value === correctAnswer) {
-                        correct++;
+                if (selected) {
+                    if (selected.dataset.value === correct) {
+                        score++;
                     } else {
-                        selectedOption.classList.add('incorrect');
+                        selected.classList.add('incorrect');
                     }
                 }
             });
 
-            const resultDiv = document.getElementById('quizResult');
-            resultDiv.classList.remove('passed', 'failed');
-            resultDiv.classList.add('show');
-            const passThreshold = 10;
+            const result = document.getElementById('quizResult');
+            const passed = score >= 9;
+            result.className = 'quiz-result show ' + (passed ? 'passed' : 'failed');
+            document.getElementById('resultIcon').textContent = passed ? '🏆' : '📚';
+            document.getElementById('resultTitle').textContent = passed ? `Passed! ${score}/12` : `${score}/12 — Review and Retry`;
+            document.getElementById('resultMessage').innerHTML = passed
+                ? '<p>Outstanding work. You have mastered Automated Market Makers, UTLSwap, and UTLFarm — the core DeFi infrastructure of the Kenostod ecosystem. Your 250 KENO reward has been recorded.</p>'
+                : '<p>You need 9/12 to pass. Review the sections on the x×y=k formula, impermanent loss, and UTLFarm mechanics, then retry.</p>';
 
-            if (correct >= passThreshold) {
-                resultDiv.classList.add('passed');
-                document.getElementById('resultIcon').textContent = '\uD83C\uDF89';
-                document.getElementById('resultTitle').textContent = 'Congratulations!';
-                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + ' correct! You\'ve mastered Exchange Platform concepts!';
-                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 +250 KENO Earned!</p><a href="/courses/course-17-finance.html" class="next-course-btn">Course 17 \u2192</a>';
-                localStorage.setItem('course16_completed', 'true');
-                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
-                    window.kenostodWallet.creditReward(16, 'Course 16: Exchange Platform');
-                }
-            } else {
-                resultDiv.classList.add('failed');
-                document.getElementById('resultIcon').textContent = '\uD83D\uDCDA';
-                document.getElementById('resultTitle').textContent = 'Keep Learning!';
-                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + '. You need at least ' + passThreshold + ' correct (80%) to pass. Review the material and try again!';
-                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            if (passed) {
+                document.getElementById('nextCourseContainer').innerHTML =
+                    '<p style="margin-top: 15px; color: var(--success);">🎓 +250 KENO!</p>' +
+                    '<a href="/courses/course-17-finance.html" class="next-course-btn">Course 17 →</a>';
+                fetch('/api/complete-course', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course: 16, score, keno: 250 })
+                }).catch(() => {});
             }
-
-            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        function resetQuiz() {
-            document.querySelectorAll('.quiz-option').forEach(opt => {
-                opt.classList.remove('selected', 'correct', 'incorrect');
-            });
-            document.getElementById('quizResult').classList.remove('show');
-            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+            result.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
-<script src="/courses/course-common.js"></script>
 </body>
 </html>
