@@ -2,6 +2,17 @@ const API_BASE = '';
 let ec;
 let currentLanguage = localStorage.getItem('language') || 'en';
 
+// HTML escape utility — prevents XSS when inserting dynamic data into innerHTML
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // KENO Token Contract Details
 const KENO_TOKEN = {
     address: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
@@ -1436,10 +1447,10 @@ async function createWallet() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>New Wallet Created!</h4>
-            <p><strong>Address:</strong> <code>${data.address}</code></p>
-            <p><strong>Private Key:</strong> <code>${data.privateKey}</code></p>
-            <p style="color: #dc3545; margin-top: 10px;">⚠️ ${data.warning}</p>
-            <button onclick="useThisWallet('${data.address}', '${data.privateKey}')" class="btn btn-secondary" style="margin-top: 10px;">Use This Wallet</button>
+            <p><strong>Address:</strong> <code>${escapeHtml(data.address)}</code></p>
+            <p><strong>Private Key:</strong> <code>${escapeHtml(data.privateKey)}</code></p>
+            <p style="color: #dc3545; margin-top: 10px;">⚠️ ${escapeHtml(data.warning)}</p>
+            <button onclick="useThisWallet('${escapeHtml(data.address)}', '${escapeHtml(data.privateKey)}')" class="btn btn-secondary" style="margin-top: 10px;">Use This Wallet</button>
         `;
     } catch (error) {
         showError('newWallet', error.message);
@@ -2403,7 +2414,7 @@ async function loadTransactions() {
 function showError(elementId, message) {
     const element = document.getElementById(elementId);
     element.className = 'result error';
-    element.innerHTML = `<p>❌ Error: ${message}</p>`;
+    element.innerHTML = `<p>❌ Error: ${escapeHtml(message)}</p>`;
 }
 
 async function togglePoRVMode() {
