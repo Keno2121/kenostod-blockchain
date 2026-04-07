@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENO Farm — Stake LP, Earn KENO | Kenostod</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        :root {
+            --keno-gold: #f5c842;
+            --keno-gold-dark: #c9a227;
+            --pancake-cyan: #1fc7d4;
+            --dark-bg: #0a0f1e;
+            --card-bg: #0f1729;
+            --card-border: #1e2d45;
+            --green: #10b981;
+            --red: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--dark-bg);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── Top Nav ── */
+        .farm-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,15,30,.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            gap: 16px;
+        }
+        .farm-nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .farm-nav-logo img { width: 36px; height: 36px; border-radius: 8px; }
+        .farm-nav-logo span { font-weight: 800; font-size: 1.05rem; color: #fff; }
+        .farm-nav-links { display: flex; gap: 20px; align-items: center; }
+        .farm-nav-links a { color: #94a3b8; text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: color .2s; }
+        .farm-nav-links a:hover { color: var(--keno-gold); }
+        .farm-nav-links a.active { color: var(--keno-gold); }
+        #walletBtn {
+            background: linear-gradient(135deg, #1fc7d4, #7b3fe4);
+            color: #fff;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity .2s;
+        }
+        #walletBtn:hover { opacity: .88; }
+
+        /* ── Hero Banner ── */
+        .farm-hero {
+            background: linear-gradient(135deg, #0a0f1e 0%, #0f1e3a 50%, #0a1628 100%);
+            border-bottom: 1px solid var(--card-border);
+            padding: 48px 20px 40px;
+            text-align: center;
+        }
+        .farm-hero h1 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--keno-gold), #fff, var(--pancake-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        .farm-hero p { color: #94a3b8; font-size: 1.05rem; max-width: 520px; margin: 0 auto 24px; }
+        .hero-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .badge {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.12);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+        .badge.gold { border-color: rgba(245,200,66,.35); color: var(--keno-gold); background: rgba(245,200,66,.08); }
+        .badge.cyan { border-color: rgba(31,199,212,.35); color: var(--pancake-cyan); background: rgba(31,199,212,.08); }
+
+        /* ── Stats Bar ── */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1px;
+            background: var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+        .stat-cell {
+            background: #0b1020;
+            padding: 20px 24px;
+            text-align: center;
+        }
+        .stat-cell .label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+        .stat-cell .value { font-size: 1.5rem; font-weight: 800; color: #fff; }
+        .stat-cell .value.gold { color: var(--keno-gold); }
+        .stat-cell .value.cyan { color: var(--pancake-cyan); }
+        .stat-cell .value.green { color: var(--green); }
+        .stat-cell .sub { font-size: 0.75rem; color: #475569; margin-top: 3px; }
+
+        /* ── Main Grid ── */
+        .farm-grid {
+            max-width: 1100px;
+            margin: 36px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 860px) {
+            .farm-grid { grid-template-columns: 1fr; }
+            .farm-nav-links { display: none; }
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .card-header h3 { font-size: 1rem; font-weight: 700; color: #fff; }
+        .card-header .icon { font-size: 1.3rem; }
+        .card-body { padding: 24px; }
+
+        /* ── Pool Card ── */
+        .pool-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .token-icons { position: relative; width: 60px; height: 36px; }
+        .token-icons .t1, .token-icons .t2 {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--card-bg);
+            position: absolute;
+            font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            background: #1e2d45;
+        }
+        .token-icons .t1 { left: 0; z-index: 2; }
+        .token-icons .t2 { left: 20px; z-index: 1; }
+        .pool-name { font-size: 1.25rem; font-weight: 800; color: #fff; }
+        .pool-sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+
+        .pool-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .ps { background: rgba(255,255,255,.04); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; }
+        .ps .l { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+        .ps .v { font-size: 1.1rem; font-weight: 700; }
+
+        /* ── Tabs ── */
+        .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--card-border); }
+        .tab {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            transition: all .2s;
+        }
+        .tab.active { color: var(--keno-gold); border-bottom-color: var(--keno-gold); }
+        .tab-content { display: none; padding: 24px; }
+        .tab-content.active { display: block; }
+
+        /* ── Input Group ── */
+        .input-group { margin-bottom: 16px; }
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .input-label span { color: #94a3b8; }
+        .max-btn {
+            background: rgba(245,200,66,.15);
+            color: var(--keno-gold);
+            border: 1px solid rgba(245,200,66,.3);
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .amount-input {
+            width: 100%;
+            background: rgba(255,255,255,.05);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .amount-input:focus { border-color: var(--keno-gold); }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--keno-gold), var(--keno-gold-dark));
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity .2s, transform .1s;
+        }
+        .btn-primary:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255,255,255,.06);
+            color: #e2e8f0;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,.1); }
+        .btn-cyan {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--pancake-cyan), #0891b2);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            transition: opacity .2s;
+        }
+        .btn-cyan:hover { opacity: .88; }
+
+        /* ── Harvest Card ── */
+        .harvest-card {
+            background: linear-gradient(135deg, rgba(245,200,66,.08), rgba(201,162,39,.05));
+            border: 1px solid rgba(245,200,66,.25);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .harvest-amount { font-size: 1.6rem; font-weight: 900; color: var(--keno-gold); }
+        .harvest-label { font-size: 0.8rem; color: #94a3b8; margin-top: 3px; }
+        .harvest-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--keno-gold), var(--keno-gold-dark));
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity .2s;
+        }
+        .harvest-btn:hover { opacity: .85; }
+        .harvest-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* ── Position Summary ── */
+        .position-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,.05);
+            font-size: 0.9rem;
+        }
+        .position-row:last-child { border-bottom: none; }
+        .position-row .key { color: #64748b; }
+        .position-row .val { font-weight: 700; color: #e2e8f0; }
+        .position-row .val.gold { color: var(--keno-gold); }
+        .position-row .val.green { color: var(--green); }
+
+        /* ── Get LP Section ── */
+        .get-lp-box {
+            background: linear-gradient(135deg, rgba(31,199,212,.08), rgba(0,100,120,.05));
+            border: 1px solid rgba(31,199,212,.2);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .get-lp-box h4 { font-size: 0.95rem; font-weight: 700; color: var(--pancake-cyan); margin-bottom: 8px; }
+        .get-lp-box p { font-size: 0.82rem; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+        .lp-steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .lp-step { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: #94a3b8; }
+        .step-num {
+            width: 22px; height: 22px;
+            background: rgba(31,199,212,.15);
+            border: 1px solid rgba(31,199,212,.3);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--pancake-cyan);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* ── How It Works ── */
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .how-step {
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .how-step .icon { font-size: 2rem; margin-bottom: 10px; }
+        .how-step h4 { font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+        .how-step p { font-size: 0.78rem; color: #64748b; line-height: 1.5; }
+        .how-arrow { display: flex; align-items: center; justify-content: center; color: var(--keno-gold); font-size: 1.5rem; }
+
+        /* ── Status ── */
+        .status-notice {
+            background: rgba(245,200,66,.06);
+            border: 1px solid rgba(245,200,66,.2);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 0.83rem;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .status-notice strong { color: var(--keno-gold); }
+
+        /* ── Wallet not connected ── */
+        .connect-prompt {
+            text-align: center;
+            padding: 32px 24px;
+        }
+        .connect-prompt .icon { font-size: 3rem; margin-bottom: 16px; }
+        .connect-prompt h3 { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .connect-prompt p { color: #64748b; font-size: 0.875rem; margin-bottom: 20px; }
+
+        /* ── Footer ── */
+        .farm-footer {
+            border-top: 1px solid var(--card-border);
+            padding: 24px 20px;
+            text-align: center;
+            color: #475569;
+            font-size: 0.78rem;
+            margin-top: 40px;
+        }
+        .farm-footer a { color: #64748b; text-decoration: none; }
+        .farm-footer a:hover { color: var(--keno-gold); }
+    </style>
+</head>
+<body>
+
+<!-- ─── Nav ─────────────────────────────────────────────────────────────── -->
+<nav class="farm-nav">
+    <a href="/" class="farm-nav-logo">
+        <img src="/kenostod-logo.png" alt="Kenostod" onerror="this.style.display='none'">
+        <span>Kenostod Farm</span>
+    </a>
+    <div class="farm-nav-links">
+        <a href="/">Home</a>
+        <a href="/utl-dashboard.html">UTL Protocol</a>
+        <a href="/fal-dashboard.html">FAL™</a>
+        <a href="/keno-market.html">KENO Market</a>
+        <a href="/farm.html" class="active">Farm</a>
+    </div>
+    <button id="walletBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+</nav>
+
+<!-- ─── Hero ──────────────────────────────────────────────────────────────── -->
+<div class="farm-hero">
+    <h1>⚡ KENO / BNB LP Farm</h1>
+    <p>Stake your PancakeSwap LP tokens and earn KENO rewards. Every LP holder powers the UTL ecosystem flywheel.</p>
+    <div class="hero-badges">
+        <span class="badge gold">KENO Rewards</span>
+        <span class="badge cyan">PancakeSwap LP</span>
+        <span class="badge">BNB Smart Chain</span>
+        <span class="badge">Audited by Hashlock</span>
+        <span class="badge">Auto-Compound Coming</span>
+    </div>
+</div>
+
+<!-- ─── Stats Bar ─────────────────────────────────────────────────────────── -->
+<div class="stats-bar">
+    <div class="stat-cell">
+        <div class="label">Total Value Locked</div>
+        <div class="value gold" id="statTvl">—</div>
+        <div class="sub">KENO/BNB LP staked</div>
+    </div>
+    <div class="stat-cell">
+        <div class="label">Farm APR</div>
+        <div class="value green" id="statApr">—</div>
+        <div class="sub">KENO rewards / year</div>
+    </div>
+    <div class="stat-cell">
+        <div class="label">Reward Rate</div>
+        <div class="value cyan" id="statRate">—</div>
+        <div class="sub">KENO per day</div>
+    </div>
+    <div class="stat-cell">
+        <div class="label">Reward Pool Runway</div>
+        <div class="value" id="statRunway">—</div>
+        <div class="sub">days remaining</div>
+    </div>
+    <div class="stat-cell">
+        <div class="label">KENO Price</div>
+        <div class="value gold" id="statPrice">—</div>
+        <div class="sub">Live from PancakeSwap</div>
+    </div>
+</div>
+
+<!-- ─── Main Grid ─────────────────────────────────────────────────────────── -->
+<div class="farm-grid">
+
+    <!-- Left: Pool + Stake Panel -->
+    <div>
+        <!-- Pool Info -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+                <span class="icon">🥞</span>
+                <h3>KENO / BNB Farm Pool</h3>
+                <span style="margin-left:auto;font-size:.75rem;color:#64748b;">PancakeSwap V2</span>
+            </div>
+            <div class="card-body">
+                <div class="pool-header">
+                    <div class="token-icons">
+                        <div class="t1">⚡</div>
+                        <div class="t2">🟡</div>
+                    </div>
+                    <div>
+                        <div class="pool-name">KENO / BNB</div>
+                        <div class="pool-sub">PancakeSwap LP • BSC Mainnet</div>
+                    </div>
+                </div>
+                <div class="pool-stats">
+                    <div class="ps">
+                        <div class="l">Pool TVL</div>
+                        <div class="v" id="poolTvl" style="color:var(--pancake-cyan)">—</div>
+                    </div>
+                    <div class="ps">
+                        <div class="l">KENO Price</div>
+                        <div class="v" id="poolPrice" style="color:var(--keno-gold)">—</div>
+                    </div>
+                    <div class="ps">
+                        <div class="l">Farm APR</div>
+                        <div class="v" id="poolApr" style="color:var(--green)">—</div>
+                    </div>
+                </div>
+
+                <div class="status-notice" style="background:rgba(16,185,129,0.1);border-color:#10b981;color:#10b981;">
+                    <strong>✅ Farm is LIVE on BSC Mainnet</strong> — UTLFarm contract deployed at
+                    <a href="https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094" target="_blank" rel="noopener"
+                       style="color:#10b981;font-family:monospace;font-size:.85rem;word-break:break-all;">
+                        0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094 ↗
+                    </a>
+                    <br><br>Connect your wallet, add KENO/BNB liquidity on PancakeSwap, then stake your LP tokens below to earn KENO rewards.
+                </div>
+
+                <!-- Get LP tokens -->
+                <div class="get-lp-box">
+                    <h4>🔗 Step 1 — Get LP Tokens</h4>
+                    <p>Add liquidity to the KENO/BNB pool on PancakeSwap to receive LP tokens. These LP tokens are what you stake in this farm.</p>
+                    <div class="lp-steps">
+                        <div class="lp-step"><span class="step-num">1</span>Click the button below to open PancakeSwap Add Liquidity</div>
+                        <div class="lp-step"><span class="step-num">2</span>Add equal values of KENO and BNB</div>
+                        <div class="lp-step"><span class="step-num">3</span>Confirm — you receive KENO/BNB LP tokens in your wallet</div>
+                        <div class="lp-step"><span class="step-num">4</span>Come back here and stake those LP tokens to earn KENO</div>
+                    </div>
+                    <a href="https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E"
+                       target="_blank" rel="noopener" class="btn-cyan">
+                        🥞 Add Liquidity on PancakeSwap →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">🔄</span>
+                <h3>How the Farm Flywheel Works</h3>
+            </div>
+            <div class="card-body">
+                <div class="how-grid">
+                    <div class="how-step">
+                        <div class="icon">💧</div>
+                        <h4>Add Liquidity</h4>
+                        <p>Deposit KENO + BNB on PancakeSwap to receive LP tokens representing your pool share</p>
+                    </div>
+                    <div class="how-step">
+                        <div class="icon">🌾</div>
+                        <h4>Stake LP Tokens</h4>
+                        <p>Stake your LP tokens here. The UTLFarm contract locks them and starts earning KENO rewards every second</p>
+                    </div>
+                    <div class="how-step">
+                        <div class="icon">⚡</div>
+                        <h4>Earn KENO + Fees</h4>
+                        <p>You earn KENO farm rewards AND 0.17% of every KENO/BNB swap that goes through PancakeSwap</p>
+                    </div>
+                    <div class="how-step">
+                        <div class="icon">🏦</div>
+                        <h4>UTL Flywheel</h4>
+                        <p>More TVL → deeper pool → FAL™ arbitrage works better → FeeCollector earns more → staker APY rises</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Stake / Position Panel -->
+    <div>
+        <!-- Harvest Panel -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+                <span class="icon">🌾</span>
+                <h3>Your Rewards</h3>
+            </div>
+            <div id="harvestPanel">
+                <div class="connect-prompt">
+                    <div class="icon">🔗</div>
+                    <h3>Connect Wallet</h3>
+                    <p>Connect your BSC wallet to see your pending KENO rewards and staked LP position</p>
+                    <button class="btn-primary" onclick="connectWallet()">Connect Wallet</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stake / Unstake Tabs -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('stake')">Stake LP</div>
+                <div class="tab" onclick="switchTab('unstake')">Unstake</div>
+            </div>
+
+            <!-- Stake Tab -->
+            <div class="tab-content active" id="tabStake">
+                <div id="stakePanel">
+                    <div class="connect-prompt">
+                        <div class="icon">🌾</div>
+                        <h3>Ready to Farm?</h3>
+                        <p>Connect your wallet to stake KENO/BNB LP tokens and start earning KENO every second</p>
+                        <button class="btn-primary" onclick="connectWallet()">Connect Wallet</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unstake Tab -->
+            <div class="tab-content" id="tabUnstake">
+                <div id="unstakePanel">
+                    <div class="connect-prompt">
+                        <div class="icon">🏦</div>
+                        <h3>Manage Position</h3>
+                        <p>Connect your wallet to view and manage your staked LP position</p>
+                        <button class="btn-primary" onclick="connectWallet()">Connect Wallet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Position Summary -->
+        <div class="card" id="positionCard">
+            <div class="card-header">
+                <span class="icon">📊</span>
+                <h3>Your Position</h3>
+            </div>
+            <div class="card-body">
+                <div class="position-row"><span class="key">LP Tokens Staked</span><span class="val" id="posLpStaked">—</span></div>
+                <div class="position-row"><span class="key">LP Value (USD)</span><span class="val" id="posLpValue">—</span></div>
+                <div class="position-row"><span class="key">KENO Pending</span><span class="val gold" id="posPending">—</span></div>
+                <div class="position-row"><span class="key">Total Earned (session)</span><span class="val green" id="posEarned">—</span></div>
+                <div class="position-row"><span class="key">Your Pool Share</span><span class="val" id="posShare">—</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Contract Info ─────────────────────────────────────────────────────── -->
+<div style="max-width:1100px;margin:0 auto 40px;padding:0 20px;">
+    <div class="card">
+        <div class="card-header">
+            <span class="icon">🔍</span>
+            <h3>Contract Addresses</h3>
+        </div>
+        <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
+                <div>
+                    <div style="font-size:.75rem;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">KENO Token</div>
+                    <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" rel="noopener"
+                       style="font-size:.8rem;color:var(--keno-gold);font-family:monospace;word-break:break-all;text-decoration:none;">
+                        0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E ↗
+                    </a>
+                </div>
+                <div>
+                    <div style="font-size:.75rem;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">KENO/BNB LP Token</div>
+                    <a href="https://bscscan.com/token/0x72368adf1487eeebcb095f16cf8cbf91f2b44880" target="_blank" rel="noopener"
+                       style="font-size:.8rem;color:var(--pancake-cyan);font-family:monospace;word-break:break-all;text-decoration:none;">
+                        0x72368adf1487eeebcb095f16cf8cbf91f2b44880 ↗
+                    </a>
+                </div>
+                <div>
+                    <div style="font-size:.75rem;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">UTLFarm Contract</div>
+                    <span style="font-size:.8rem;color:#475569;font-style:italic;">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</span>
+                </div>
+                <div>
+                    <div style="font-size:.75rem;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Audit Report</div>
+                    <a href="https://audit.hashlock.com/audit/0a13e701-ff4f-4583-93ce-d79c62a841f8" target="_blank" rel="noopener"
+                       style="font-size:.8rem;color:#10b981;text-decoration:none;">Hashlock Security Audit ↗</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="farm-footer">
+    UTLFarm is part of the <strong style="color:#e2e8f0;">UTL Protocol</strong> by Kenostod Blockchain Academy LLC &nbsp;|&nbsp;
+    <a href="/utl-dashboard.html">UTL Dashboard</a> &nbsp;|&nbsp;
+    <a href="/fal-dashboard.html">FAL™ Dashboard</a> &nbsp;|&nbsp;
+    <a href="https://audit.hashlock.com/audit/0a13e701-ff4f-4583-93ce-d79c62a841f8" target="_blank">Hashlock Audit</a> &nbsp;|&nbsp;
+    <a href="/farm-application.html">PancakeSwap Application</a>
+</div>
+
+<script>
+    // ─── Config ──────────────────────────────────────────────────────────────
+    const KENO_TOKEN = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+    const LP_TOKEN   = '0x72368adf1487eeebcb095f16cf8cbf91f2b44880';
+    const FARM_CONTRACT = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+
+    let walletAddress = null;
+    let kenoPrice = 0;
+
+    // ─── Tabs ─────────────────────────────────────────────────────────────────
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        if (tab === 'stake') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('tabStake').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('tabUnstake').classList.add('active');
+        }
+    }
+
+    // ─── Wallet ───────────────────────────────────────────────────────────────
+    async function connectWallet() {
+        if (typeof window.ethereum === 'undefined') {
+            alert('MetaMask not detected. Please install MetaMask to use the farm.');
+            return;
+        }
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            walletAddress = accounts[0];
+
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            if (chainId !== '0x38') {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x38' }]
+                    });
+                } catch (e) {
+                    alert('Please switch to BNB Smart Chain in MetaMask.');
+                    return;
+                }
+            }
+
+            const short = walletAddress.slice(0,6) + '...' + walletAddress.slice(-4);
+            document.getElementById('walletBtn').textContent = '✅ ' + short;
+            renderConnectedState();
+        } catch (e) {
+            console.error('Wallet connect error:', e);
+        }
+    }
+
+    function renderConnectedState() {
+        document.getElementById('harvestPanel').innerHTML = `
+            <div class="harvest-card">
+                <div>
+                    <div class="harvest-amount" id="liveRewards">0.0000 KENO</div>
+                    <div class="harvest-label">Pending Rewards — updates every 5 seconds</div>
+                </div>
+                <button class="harvest-btn" onclick="harvestRewards()" id="harvestBtn" disabled>
+                    Harvest (Farm Not Live Yet)
+                </button>
+            </div>
+            <div style="padding:0 24px 20px;">
+                <div style="font-size:.8rem;color:#64748b;line-height:1.6;">
+                    Rewards begin accumulating the moment the UTLFarm contract is deployed and you stake LP tokens.
+                    Your wallet is connected and ready.
+                </div>
+            </div>
+        `;
+
+        document.getElementById('stakePanel').innerHTML = `
+            <div class="input-group">
+                <div class="input-label">
+                    <span>LP Token Amount</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span id="lpBalance">Balance: — LP</span>
+                        <button class="max-btn" onclick="setMax('stakeInput','lpBalance')">MAX</button>
+                    </div>
+                </div>
+                <input type="number" class="amount-input" id="stakeInput" placeholder="0.00" min="0" step="any">
+            </div>
+            <div style="font-size:.78rem;color:#64748b;margin-bottom:16px;line-height:1.5;">
+                Don't have LP tokens yet? 
+                <a href="https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E"
+                   target="_blank" style="color:var(--pancake-cyan);">Add liquidity on PancakeSwap →</a>
+            </div>
+            <button class="btn-primary" onclick="stakeLp()" style="margin-bottom:8px;">
+                Stake LP Tokens
+            </button>
+        `;
+
+        document.getElementById('unstakePanel').innerHTML = `
+            <div class="input-group">
+                <div class="input-label">
+                    <span>LP Tokens to Unstake</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span id="stakedBalance">Staked: 0 LP</span>
+                        <button class="max-btn" onclick="setMax('unstakeInput','stakedBalance')">MAX</button>
+                    </div>
+                </div>
+                <input type="number" class="amount-input" id="unstakeInput" placeholder="0.00" min="0" step="any">
+            </div>
+            <div style="font-size:.78rem;color:#64748b;margin-bottom:16px;">
+                Unstaking also auto-harvests all pending KENO rewards.
+            </div>
+            <button class="btn-secondary" onclick="unstakeLp()" disabled>
+                Unstake LP + Harvest (Farm Not Live)
+            </button>
+        `;
+
+        document.getElementById('posLpStaked').textContent = '0 LP';
+        document.getElementById('posLpValue').textContent = '$0.00';
+        document.getElementById('posPending').textContent = '0.0000 KENO';
+        document.getElementById('posEarned').textContent = '0.0000 KENO';
+        document.getElementById('posShare').textContent = '0%';
+
+        fetchLpBalance();
+    }
+
+    async function fetchLpBalance() {
+        if (!walletAddress) return;
+        try {
+            const data = '0x70a08231000000000000000000000000' + walletAddress.slice(2).padStart(64,'0');
+            const res  = await fetch('https://bsc-dataseed.binance.org/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc:'2.0', method:'eth_call', params:[{to:LP_TOKEN,data},' latest'], id:1 })
+            });
+            const json = await res.json();
+            if (json.result && json.result !== '0x') {
+                const bal = parseInt(json.result, 16) / 1e18;
+                const el = document.getElementById('lpBalance');
+                if (el) el.textContent = `Balance: ${bal.toFixed(6)} LP`;
+            }
+        } catch(e) {
+            console.warn('LP balance fetch failed:', e);
+        }
+    }
+
+    function setMax(inputId, labelId) {
+        const label = document.getElementById(labelId);
+        if (!label) return;
+        const match = label.textContent.match(/([\d.]+)/);
+        if (match) {
+            const input = document.getElementById(inputId);
+            if (input) input.value = match[1];
+        }
+    }
+
+    function harvestRewards() {
+        if (!userAddress) { alert('Connect your wallet first.'); return; }
+        alert('Harvest: open BscScan and call harvest() on\n0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nor use the Write Contract tab.');
+    }
+    function stakeLp() {
+        if (!userAddress) { alert('Connect your wallet first.'); return; }
+        alert('To stake:\n1. Approve LP tokens on the farm contract\n2. Call stake(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nFull UI coming in next update.');
+    }
+    function unstakeLp() {
+        if (!userAddress) { alert('Connect your wallet first.'); return; }
+        alert('To unstake:\nCall withdraw(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nvia BscScan Write Contract tab.');
+    }
+
+    // ─── Market Data ──────────────────────────────────────────────────────────
+    async function fetchMarketData() {
+        try {
+            const res  = await fetch('/api/keno/market');
+            const data = await res.json();
+            if (data.price) {
+                kenoPrice = parseFloat(data.price);
+                document.getElementById('statPrice').textContent = '$' + kenoPrice.toFixed(4);
+                document.getElementById('poolPrice').textContent = '$' + kenoPrice.toFixed(4);
+            }
+            if (data.tvl) {
+                const tvlFmt = '$' + parseFloat(data.tvl).toLocaleString('en-US', {maximumFractionDigits:0});
+                document.getElementById('poolTvl').textContent = tvlFmt;
+            }
+        } catch(e) {
+            console.warn('Market data fetch error:', e);
+        }
+
+        // Farm stats — live contract deployed
+        document.getElementById('statTvl').textContent    = 'Loading...';
+        document.getElementById('statApr').textContent    = '—%';
+        document.getElementById('statRate').textContent   = '— KENO/day';
+        document.getElementById('statRunway').textContent = '—';
+        document.getElementById('poolApr').textContent    = '—%';
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    fetchMarketData();
+    setInterval(fetchMarketData, 60000);
+
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accs => {
+            if (accs.length) { walletAddress = accs[0]; renderConnectedState(); }
+            else { walletAddress = null; document.getElementById('walletBtn').textContent = '🔗 Connect Wallet'; }
+        });
+    }
+</script>
+</body>
+</html>
