@@ -2,6 +2,17 @@ const API_BASE = '';
 let ec;
 let currentLanguage = localStorage.getItem('language') || 'en';
 
+// HTML escape utility — prevents XSS when inserting dynamic data into innerHTML
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // KENO Token Contract Details
 const KENO_TOKEN = {
     address: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
@@ -286,8 +297,8 @@ const translations = {
         'feature.reputation.desc': 'Decentralized trust scores for wallets and merchants. Build credibility through verified transactions and community endorsements.',
         'feature.governance.title': 'Community Governance',
         'feature.governance.desc': 'Token holders vote on network parameters. Learn how DAOs work by participating in real blockchain governance decisions.',
-        'feature.exchange.title': 'Full Exchange Platform',
-        'feature.exchange.desc': 'Complete order book trading system with market/limit orders. Trade KENO against USD, BTC, and ETH pairs with real-time matching.',
+        'feature.exchange.title': 'AMM & DeFi Protocol',
+        'feature.exchange.desc': 'Automated Market Maker (UTLSwap) + yield farming (UTLFarm) — live on BNB Smart Chain. Swap KENO, provide liquidity, and earn KENO rewards through the full DeFi stack.',
         'feature.payment.title': 'Payment Gateway',
         'feature.payment.desc': 'Merchant-ready payment processing with QR codes, invoices, and automatic USD conversion. Build real-world e-commerce integrations.',
         'feature.fiat.title': 'Fiat Integration',
@@ -372,10 +383,10 @@ const translations = {
         'course.banking.description': 'Bridge traditional finance with blockchain. Deposit USD via Stripe/PayPal, withdraw to bank accounts, manage fiat balances, and understand crypto-to-fiat on/off ramps. Learn KYC/AML considerations and regulatory compliance basics.',
         'course.banking.use_case': 'Cryptocurrency exchanges, trading platforms, wallet apps with fiat support, remittance services, and any application requiring traditional banking integration.',
         'course.banking.skills': ['Fiat Integration', 'Payment Processing', 'Compliance Basics'],
-        'course.exchange_bonus.title': 'BONUS: Exchange Trading Platform',
-        'course.exchange_bonus.description': 'Build a complete cryptocurrency exchange. Implement order books for KENO/USD, KENO/BTC, and KENO/ETH pairs. Create market and limit orders, match trades, verify cryptographic signatures, maintain trade history, and understand exchange security architecture.',
-        'course.exchange_bonus.use_case': 'Cryptocurrency exchanges, decentralized trading platforms (DEXs), liquidity pools, market-making bots, and any trading infrastructure.',
-        'course.exchange_bonus.skills': ['Order Books', 'Trading Engines', 'Market Mechanics', 'DEX Architecture'],
+        'course.exchange_bonus.title': 'BONUS: AMM, UTLSwap & UTLFarm',
+        'course.exchange_bonus.description': 'Master Automated Market Makers using the x×y=k formula. Understand liquidity pools, LP tokens, impermanent loss, and yield farming. Interact live with UTLSwap and UTLFarm — Kenostod\'s deployed DeFi contracts on BNB Smart Chain.',
+        'course.exchange_bonus.use_case': 'Decentralized exchanges (Uniswap, PancakeSwap), yield farming protocols, liquidity pool management, DeFi infrastructure, and token ecosystem design.',
+        'course.exchange_bonus.skills': ['AMM / x×y=k', 'Liquidity Pools', 'Yield Farming', 'DEX Architecture'],
         'course.finance_foundations.title': 'Course 17: Financial Literacy & Investment Foundations 💰',
         'course.finance_foundations.description': 'Master personal finance AND investment fundamentals in one comprehensive course. Learn budgeting (50/30/20 rule), emergency funds, debt management strategies (avalanche vs snowball), compound growth with Rule of 72, dollar cost averaging, and portfolio diversification.',
         'course.finance_foundations.use_case': 'Essential life skills for everyone. Build the complete foundation for lifelong financial success: from budgeting your first paycheck to building a diversified investment portfolio.',
@@ -1178,6 +1189,20 @@ function toggleMobileMenu() {
     }
 }
 
+function updateMobileBottomBar() {
+    const bar = document.getElementById('mobileBottomBar');
+    if (!bar) return;
+    if (window.innerWidth <= 900) {
+        bar.style.display = 'block';
+        document.body.style.paddingBottom = '76px';
+    } else {
+        bar.style.display = 'none';
+        document.body.style.paddingBottom = '';
+    }
+}
+window.addEventListener('resize', updateMobileBottomBar);
+document.addEventListener('DOMContentLoaded', updateMobileBottomBar);
+
 function initializeApp() {
     try {
         if (typeof elliptic === 'undefined') {
@@ -1422,10 +1447,10 @@ async function createWallet() {
         resultDiv.className = 'result success';
         resultDiv.innerHTML = `
             <h4>New Wallet Created!</h4>
-            <p><strong>Address:</strong> <code>${data.address}</code></p>
-            <p><strong>Private Key:</strong> <code>${data.privateKey}</code></p>
-            <p style="color: #dc3545; margin-top: 10px;">⚠️ ${data.warning}</p>
-            <button onclick="useThisWallet('${data.address}', '${data.privateKey}')" class="btn btn-secondary" style="margin-top: 10px;">Use This Wallet</button>
+            <p><strong>Address:</strong> <code>${escapeHtml(data.address)}</code></p>
+            <p><strong>Private Key:</strong> <code>${escapeHtml(data.privateKey)}</code></p>
+            <p style="color: #dc3545; margin-top: 10px;">⚠️ ${escapeHtml(data.warning)}</p>
+            <button onclick="useThisWallet('${escapeHtml(data.address)}', '${escapeHtml(data.privateKey)}')" class="btn btn-secondary" style="margin-top: 10px;">Use This Wallet</button>
         `;
     } catch (error) {
         showError('newWallet', error.message);
@@ -2389,7 +2414,7 @@ async function loadTransactions() {
 function showError(elementId, message) {
     const element = document.getElementById(elementId);
     element.className = 'result error';
-    element.innerHTML = `<p>❌ Error: ${message}</p>`;
+    element.innerHTML = `<p>❌ Error: ${escapeHtml(message)}</p>`;
 }
 
 async function togglePoRVMode() {
