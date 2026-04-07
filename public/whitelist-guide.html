@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whitelist Guide — Step by Step</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0e1a; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+  h1 { color: #f0b429; font-size: 20px; margin-bottom: 6px; }
+  .sub { color: #7a8fb5; font-size: 13px; margin-bottom: 24px; }
+  .step { background: #12182b; border: 1px solid #1e2d4a; border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .step-badge { display: inline-block; background: #1a6fff; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+  .step-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .step-desc { font-size: 13px; color: #9ab; line-height: 1.6; margin-bottom: 14px; }
+  .bscscan-btn { display: block; text-align: center; padding: 14px 20px; background: #1557e0; border-radius: 10px; color: #fff; font-weight: 700; font-size: 15px; text-decoration: none; margin-bottom: 12px; }
+  .bscscan-btn:hover { background: #1a6fff; }
+  .field-label { font-size: 12px; color: #7a8fb5; margin-bottom: 4px; margin-top: 12px; }
+  .copy-row { display: flex; gap: 8px; align-items: center; }
+  .copy-val { flex: 1; background: #0a0e1a; border: 1px solid #1e2d4a; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 12px; color: #60a5fa; word-break: break-all; }
+  .copy-btn { background: #1e2d4a; border: none; color: #f0b429; font-size: 12px; font-weight: 600; padding: 10px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+  .copy-btn.done { background: #0d2d1a; color: #22c55e; }
+  .screenshot-hint { background: #0d1a2d; border: 1px solid #1a6fff; border-radius: 10px; padding: 14px; margin-top: 14px; }
+  .screenshot-hint p { font-size: 13px; color: #93c5fd; margin-bottom: 6px; }
+  .screenshot-hint code { background: #1e2d4a; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #fbbf24; }
+  .arrow { font-size: 18px; color: #f0b429; }
+  .done-banner { background: #0d2d1a; border: 1px solid #22c55e; border-radius: 10px; padding: 14px; text-align: center; color: #22c55e; font-weight: 700; font-size: 15px; display: none; margin-top: 10px; }
+  .sep { border: none; border-top: 1px solid #1e2d4a; margin: 20px 0; }
+  .warning { background: #2d1a00; border: 1px solid #f0b429; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #fcd34d; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<h1>⚡ Whitelist Guide — Use BscScan Directly</h1>
+<p class="sub">No MetaMask security warnings on BscScan. Follow each step carefully.</p>
+
+<!-- STEP A -->
+<div class="step">
+  <div class="step-badge">STEP 1 of 4</div>
+  <div class="step-title">Open the KENO Token on BscScan</div>
+  <div class="step-desc">This is the KENO <em>token</em> page — NOT the farm. You will call <strong>updateWhitelist</strong> here.</div>
+  <a class="bscscan-btn" href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E#writeContract" target="_blank">
+    🔗 Open KENO Token Write Contract on BscScan
+  </a>
+  <div class="screenshot-hint">
+    <p>On that page:</p>
+    <p>1. Click the <code>Contract</code> tab</p>
+    <p>2. Click <code>Write Contract</code></p>
+    <p>3. Click <code>Connect to Web3</code> → choose <strong>Account 2</strong> (0xDc41c…)</p>
+  </div>
+</div>
+
+<!-- STEP B -->
+<div class="step">
+  <div class="step-badge">STEP 2 of 4</div>
+  <div class="step-title">Whitelist the UTLFarm Contract</div>
+  <div class="step-desc">Scroll down the write function list and find <strong>updateWhitelist</strong>. It is near the bottom, usually listed alphabetically. Enter these two values:</div>
+
+  <div class="field-label">_address (paste the UTLFarm address)</div>
+  <div class="copy-row">
+    <div class="copy-val" id="v1">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</div>
+    <button class="copy-btn" onclick="copy('v1', this)">Copy</button>
+  </div>
+
+  <div class="field-label">_status</div>
+  <div class="copy-row">
+    <div class="copy-val">true</div>
+    <button class="copy-btn" onclick="copyText('true', this)">Copy</button>
+  </div>
+
+  <div class="screenshot-hint" style="margin-top:14px;">
+    <p>👉 Click <code>Write</code> next to updateWhitelist</p>
+    <p>👉 MetaMask opens — shows <strong>Account 2</strong> (no red alert on BscScan!)</p>
+    <p>👉 Click <code>Confirm</code></p>
+    <p>👉 Wait for the green ✓ "View your transaction" link to appear</p>
+  </div>
+</div>
+
+<!-- STEP C -->
+<div class="step">
+  <div class="step-badge">STEP 3 of 4</div>
+  <div class="step-title">Whitelist the Keno Wallet</div>
+  <div class="step-desc">Same page, same function — <strong>updateWhitelist</strong> again. This time paste the keno wallet:</div>
+
+  <div class="field-label">_address (paste the keno wallet address)</div>
+  <div class="copy-row">
+    <div class="copy-val" id="v2">0x75b4AE3859221bB6DF6D7C2146e93c08B16E440e</div>
+    <button class="copy-btn" onclick="copy('v2', this)">Copy</button>
+  </div>
+
+  <div class="field-label">_status</div>
+  <div class="copy-row">
+    <div class="copy-val">true</div>
+    <button class="copy-btn" onclick="copyText('true', this)">Copy</button>
+  </div>
+
+  <div class="screenshot-hint" style="margin-top:14px;">
+    <p>👉 Click <code>Write</code> → MetaMask → <code>Confirm</code></p>
+    <p>👉 Wait for green ✓ confirmation before moving to Step 4</p>
+  </div>
+</div>
+
+<!-- STEP D -->
+<div class="step">
+  <div class="step-badge">STEP 4 of 4</div>
+  <div class="step-title">Fund the Farm — Switch to Keno Wallet First</div>
+  <div class="step-desc">Switch MetaMask to the <strong>keno wallet</strong>, then open the UTLFarm Write Contract:</div>
+
+  <a class="bscscan-btn" style="background:#166534;" href="https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract" target="_blank">
+    🔗 Open UTLFarm Write Contract on BscScan
+  </a>
+
+  <div class="step-desc">Find <strong>fundRewards</strong> (function #1 at the top). Enter this amount:</div>
+
+  <div class="field-label">amount (100,000 KENO in 18 decimals)</div>
+  <div class="copy-row">
+    <div class="copy-val" id="v3">100000000000000000000000</div>
+    <button class="copy-btn" onclick="copy('v3', this)">Copy</button>
+  </div>
+
+  <div class="screenshot-hint" style="margin-top:14px;">
+    <p>👉 Click <code>Write</code> → MetaMask (keno wallet) → <code>Confirm</code></p>
+    <p>👉 Farm is funded! 🎉</p>
+  </div>
+</div>
+
+<script>
+function copy(id, btn) {
+  const txt = document.getElementById(id).textContent.trim();
+  navigator.clipboard.writeText(txt);
+  btn.textContent = 'Copied ✓';
+  btn.classList.add('done');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 2000);
+}
+function copyText(txt, btn) {
+  navigator.clipboard.writeText(txt);
+  btn.textContent = 'Copied ✓';
+  btn.classList.add('done');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 2000);
+}
+</script>
+</body>
+</html>
