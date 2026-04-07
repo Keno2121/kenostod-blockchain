@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PancakeSwap Farm Application — Kenostod / KENO</title>
+    <style>
+        :root {
+            --keno-gold: #f5c842;
+            --pancake-cyan: #1fc7d4;
+            --pancake-purple: #7645d9;
+            --dark: #0a0f1e;
+            --card: #0f1729;
+            --border: #1e2d45;
+            --green: #10b981;
+            --red: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--dark); color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--pancake-purple), #1fc7d4 80%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .app-header .status-pill {
+            display: inline-block;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.3);
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: .8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: .06em;
+        }
+        .app-header h1 { font-size: clamp(1.6rem,4vw,2.6rem); font-weight: 900; color: #fff; margin-bottom: 10px; }
+        .app-header p  { color: rgba(255,255,255,.8); font-size: 1rem; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+        /* ── Progress ── */
+        .progress-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .progress-step {
+            flex: 1;
+            padding: 14px 10px;
+            text-align: center;
+            font-size: .78rem;
+            font-weight: 700;
+            background: var(--card);
+            color: #475569;
+            border-right: 1px solid var(--border);
+            position: relative;
+        }
+        .progress-step:last-child { border-right: none; }
+        .progress-step.done { background: rgba(16,185,129,.1); color: var(--green); }
+        .progress-step.active { background: rgba(124,69,217,.15); color: var(--pancake-purple); }
+        .progress-step .step-icon { display: block; font-size: 1.1rem; margin-bottom: 4px; }
+
+        /* ── Cards ── */
+        .section-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .section-card .sc-head {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-card .sc-head h2 { font-size: 1rem; font-weight: 700; color: #fff; }
+        .section-card .sc-head .sc-badge {
+            margin-left: auto;
+            font-size: .72rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+        .badge-done { background: rgba(16,185,129,.15); color: var(--green); border: 1px solid rgba(16,185,129,.3); }
+        .badge-pending { background: rgba(245,200,66,.1); color: var(--keno-gold); border: 1px solid rgba(245,200,66,.3); }
+        .badge-required { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+        .sc-body { padding: 24px; }
+
+        /* ── Fields ── */
+        .field-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,.05);
+            align-items: start;
+        }
+        .field-row:last-child { border-bottom: none; }
+        @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+        .field-label { font-size: .78rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; padding-top: 3px; }
+        .field-value { font-size: .9rem; color: #e2e8f0; word-break: break-all; }
+        .field-value.mono { font-family: monospace; font-size: .82rem; color: var(--pancake-cyan); }
+        .field-value.gold { color: var(--keno-gold); font-weight: 700; }
+        .field-value.green { color: var(--green); font-weight: 700; }
+        .field-value a { color: var(--pancake-cyan); }
+
+        /* ── Copyable Box ── */
+        .copy-box {
+            background: rgba(255,255,255,.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            position: relative;
+            margin-top: 4px;
+        }
+        .copy-box pre {
+            font-family: monospace;
+            font-size: .8rem;
+            color: #94a3b8;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.7;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(124,69,217,.2);
+            border: 1px solid rgba(124,69,217,.4);
+            color: #a78bfa;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: .72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .copy-btn:hover { background: rgba(124,69,217,.35); }
+
+        /* ── Action Buttons ── */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        .btn-submit {
+            flex: 1;
+            min-width: 200px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, var(--pancake-purple), #1fc7d4);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: .95rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+            transition: opacity .2s;
+        }
+        .btn-submit:hover { opacity: .88; }
+        .btn-discord {
+            flex: 1;
+            min-width: 200px;
+            padding: 14px 20px;
+            background: #5865F2;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: .95rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+            transition: opacity .2s;
+        }
+        .btn-discord:hover { opacity: .88; }
+        .btn-secondary {
+            flex: 1;
+            min-width: 160px;
+            padding: 14px 20px;
+            background: rgba(255,255,255,.06);
+            color: #e2e8f0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: .95rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+            transition: background .2s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,.1); }
+
+        /* ── Checklist ── */
+        .checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .checklist li { display: flex; align-items: flex-start; gap: 12px; font-size: .875rem; color: #94a3b8; }
+        .checklist li .ck { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+        .checklist li.done { color: #e2e8f0; }
+        .checklist li.done .ck { color: var(--green); }
+        .checklist li.pending .ck { color: var(--keno-gold); }
+
+        /* ── Alert ── */
+        .alert {
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: .85rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .alert-info  { background: rgba(31,199,212,.07); border: 1px solid rgba(31,199,212,.2); color: #94a3b8; }
+        .alert-warn  { background: rgba(245,200,66,.07); border: 1px solid rgba(245,200,66,.2); color: #94a3b8; }
+        .alert-green { background: rgba(16,185,129,.07); border: 1px solid rgba(16,185,129,.2); color: #94a3b8; }
+        .alert strong { color: #e2e8f0; }
+    </style>
+</head>
+<body>
+
+<div class="app-header">
+    <div class="status-pill">📋 OFFICIAL APPLICATION PACKAGE</div>
+    <h1>🥞 PancakeSwap Farm Listing Application</h1>
+    <p>Kenostod Blockchain Academy LLC &nbsp;·&nbsp; KENO Token &nbsp;·&nbsp; BNB Smart Chain</p>
+</div>
+
+<div class="container">
+
+    <!-- Progress -->
+    <div class="progress-bar">
+        <div class="progress-step done">
+            <span class="step-icon">✅</span>
+            Token Live
+        </div>
+        <div class="progress-step done">
+            <span class="step-icon">✅</span>
+            LP Pool Created
+        </div>
+        <div class="progress-step done">
+            <span class="step-icon">✅</span>
+            Audited
+        </div>
+        <div class="progress-step done">
+            <span class="step-icon">✅</span>
+            Farm Built
+        </div>
+        <div class="progress-step active">
+            <span class="step-icon">📤</span>
+            Submit to PCS
+        </div>
+        <div class="progress-step">
+            <span class="step-icon">🌾</span>
+            Farm Live
+        </div>
+    </div>
+
+    <!-- How to Submit -->
+    <div class="alert alert-info">
+        <strong>How to submit this application:</strong> PancakeSwap accepts Farm/Syrup Pool applications via their official Google Form (preferred) or through Discord. Use the buttons below. Copy the pre-filled application text and paste it into the form — all the information PancakeSwap requires is prepared for you.
+    </div>
+
+    <!-- Submit Actions -->
+    <div class="action-row" style="margin-bottom:32px;">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfQNsAfh98SAfcqJKR3is2hdvMRdnvfd2F3Hxs6VEKFnMWgg/viewform"
+           target="_blank" rel="noopener" class="btn-submit">
+            📋 Open PancakeSwap Application Form →
+        </a>
+        <a href="https://discord.gg/pancakeswap" target="_blank" rel="noopener" class="btn-discord">
+            💬 PancakeSwap Discord (Backup)
+        </a>
+    </div>
+
+    <!-- Section 1: Project Overview -->
+    <div class="section-card">
+        <div class="sc-head">
+            <span>🏛️</span>
+            <h2>Section 1 — Project Overview</h2>
+            <span class="sc-badge badge-done">✅ Complete</span>
+        </div>
+        <div class="sc-body">
+            <div class="field-row">
+                <div class="field-label">Project Name</div>
+                <div class="field-value">Kenostod Blockchain Academy LLC</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Token Name</div>
+                <div class="field-value gold">KENO (BEP-20)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Category</div>
+                <div class="field-value">Education-Fi (E-Fi) · DeFi · EdTech · BNB Smart Chain</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">One-Line Pitch</div>
+                <div class="field-value">The world's first Education-Fi platform — learn blockchain, earn KENO, power real DeFi through the UTL Protocol.</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Full Description</div>
+                <div class="field-value" style="line-height:1.7;">
+                    Kenostod Blockchain Academy is the world's first Education-Fi (E-Fi) platform (coined 2026 by Nickeo Coleman). 
+                    Students complete a 21-course blockchain curriculum and earn KENO tokens as verifiable credentials. 
+                    KENO is the native token of the UTL Protocol — 5 live audited smart contracts on BSC mainnet — 
+                    including a FeeCollector that routes all ecosystem revenue to KENO stakers, a Flash Arbitrage Loan 
+                    (FAL™) system, a KUTL Card (first E-Fi payment card), and the T.D.I.R. Foundation for community reinvestment. 
+                    The farm deepens KENO/BNB liquidity, activating the UTL flywheel: more TVL → FAL™ earns more → 
+                    staker APY rises → more education demand → more KENO earned → more TVL.
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Launched</div>
+                <div class="field-value green">Live on BSC Mainnet — 2025</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Founder</div>
+                <div class="field-value">Nickeo Coleman — Kenostod Blockchain Academy LLC</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Token & Contract Info -->
+    <div class="section-card">
+        <div class="sc-head">
+            <span>🔗</span>
+            <h2>Section 2 — Token & Contract Addresses</h2>
+            <span class="sc-badge badge-done">✅ Verified On-Chain</span>
+        </div>
+        <div class="sc-body">
+            <div class="field-row">
+                <div class="field-label">KENO Token (BEP-20)</div>
+                <div class="field-value mono">
+                    <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">
+                        0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E ↗
+                    </a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">KENO/BNB LP Token</div>
+                <div class="field-value mono">
+                    <a href="https://bscscan.com/token/0x72368adf1487eeebcb095f16cf8cbf91f2b44880" target="_blank">
+                        0x72368adf1487eeebcb095f16cf8cbf91f2b44880 ↗
+                    </a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">UTL Staking</div>
+                <div class="field-value mono">
+                    <a href="https://bscscan.com/address/0x49961979c93f43f823BB3593b207724194019d1d" target="_blank">
+                        0x49961979c93f43f823BB3593b207724194019d1d ↗
+                    </a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">UTL FeeCollector</div>
+                <div class="field-value mono">
+                    <a href="https://bscscan.com/address/0xfE537c43d202C455Cedc141B882c808287BB662f" target="_blank">
+                        0xfE537c43d202C455Cedc141B882c808287BB662f ↗
+                    </a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">UTL Treasury</div>
+                <div class="field-value mono">
+                    <a href="https://bscscan.com/address/0x3B3538b955647d811D42400084e9409e6593bE97" target="_blank">
+                        0x3B3538b955647d811D42400084e9409e6593bE97 ↗
+                    </a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">UTL Distribution</div>
+                <div class="field-value mono">
+                    <a href="https://bscscan.com/address/0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7" target="_blank">
+                        0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7 ↗
+                    </a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">UTLFarm Contract</div>
+                <div class="field-value" id="farmContractField" style="color:#64748b;font-style:italic;">
+                    0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Network</div>
+                <div class="field-value">BNB Smart Chain Mainnet (Chain ID: 56)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">DEX</div>
+                <div class="field-value">
+                    <a href="https://pancakeswap.finance/swap?outputCurrency=0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E&chain=bsc" target="_blank" style="color:var(--pancake-cyan);">
+                        PancakeSwap V2 — KENO/BNB Pool ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Security & Audit -->
+    <div class="section-card">
+        <div class="sc-head">
+            <span>🔒</span>
+            <h2>Section 3 — Security & Audit</h2>
+            <span class="sc-badge badge-done">✅ Hashlock Audited</span>
+        </div>
+        <div class="sc-body">
+            <div class="field-row">
+                <div class="field-label">Audit Firm</div>
+                <div class="field-value green">Hashlock Security</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Audit Report</div>
+                <div class="field-value">
+                    <a href="https://audit.hashlock.com/audit/0a13e701-ff4f-4583-93ce-d79c62a841f8" target="_blank" style="color:var(--green);">
+                        https://audit.hashlock.com/audit/0a13e701-ff4f-4583-93ce-d79c62a841f8 ↗
+                    </a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Critical Issues</div>
+                <div class="field-value green">0 — All fixed (v1.1 contracts deployed)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">High Issues</div>
+                <div class="field-value green">0 — All fixed (v1.1 contracts deployed)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">UTLFarm Audit</div>
+                <div class="field-value gold">Re-audit scheduled — UTLFarm v1.0 follows same CEI patterns as audited contracts</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Rug Risk</div>
+                <div class="field-value green">None — LP tokens locked in farm contract, no admin withdrawal of LP</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Contract Source</div>
+                <div class="field-value">
+                    <a href="https://github.com" target="_blank" style="color:var(--pancake-cyan);">GitHub — Open Source ↗</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Farm Details -->
+    <div class="section-card">
+        <div class="sc-head">
+            <span>🌾</span>
+            <h2>Section 4 — Farm Reward Structure</h2>
+            <span class="sc-badge badge-done">✅ UTLFarm Built</span>
+        </div>
+        <div class="sc-body">
+            <div class="alert alert-green" style="margin-bottom:20px;">
+                <strong>Farm Type:</strong> Community Farm — Users stake KENO/BNB LP tokens and earn KENO rewards. 
+                We provide the reward tokens from the Kenostod Treasury allocation. No CAKE tokens required from PancakeSwap.
+            </div>
+            <div class="field-row">
+                <div class="field-label">Farm Type</div>
+                <div class="field-value">Community Farm (project-funded KENO rewards)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Stake Token</div>
+                <div class="field-value">KENO/BNB PancakeSwap V2 LP Token</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Reward Token</div>
+                <div class="field-value gold">KENO</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Initial Reward Rate</div>
+                <div class="field-value">0.01 KENO/second = 864 KENO/day</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Initial Reward Pool</div>
+                <div class="field-value">100,000 KENO (~115 days runway)</div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Farm URL</div>
+                <div class="field-value">
+                    <a href="/farm.html" style="color:var(--pancake-cyan);">https://kenostod.com/farm.html ↗</a>
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">LP Deeplink</div>
+                <div class="field-value">
+                    <a href="https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" style="color:var(--pancake-cyan);">
+                        PancakeSwap Add Liquidity → KENO/BNB ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 5: Links & Socials -->
+    <div class="section-card">
+        <div class="sc-head">
+            <span>🌐</span>
+            <h2>Section 5 — Website, Docs & Socials</h2>
+            <span class="sc-badge badge-done">✅ Complete</span>
+        </div>
+        <div class="sc-body">
+            <div class="field-row">
+                <div class="field-label">Website</div>
+                <div class="field-value"><a href="https://kenostod.com" target="_blank" style="color:var(--pancake-cyan);">https://kenostod.com ↗</a></div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Farm Dashboard</div>
+                <div class="field-value"><a href="/farm.html" style="color:var(--pancake-cyan);">https://kenostod.com/farm.html ↗</a></div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">UTL Protocol</div>
+                <div class="field-value"><a href="/utl-dashboard.html" style="color:var(--pancake-cyan);">https://kenostod.com/utl-dashboard.html ↗</a></div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">KENO Market</div>
+                <div class="field-value"><a href="/keno-market.html" style="color:var(--pancake-cyan);">https://kenostod.com/keno-market.html ↗</a></div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Security / Audit</div>
+                <div class="field-value"><a href="/security.html" style="color:var(--green);">https://kenostod.com/security.html ↗</a></div>
+            </div>
+            <div class="field-row">
+                <div class="field-label">Twitter / X</div>
+                <div class="field-value"><a href="https://twitter.com/kenostod" target="_blank" style="color:var(--pancake-cyan);">@kenostod ↗</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pre-filled Application Message -->
+    <div class="section-card">
+        <div class="sc-head">
+            <span>📋</span>
+            <h2>Pre-Filled Application Message</h2>
+            <span class="sc-badge badge-done">Ready to Copy</span>
+        </div>
+        <div class="sc-body">
+            <div class="alert alert-warn">
+                <strong>Instructions:</strong> Click "Copy" below, then paste this into the PancakeSwap Google Form or Discord #listing-application channel. All required fields are included.
+            </div>
+            <div class="copy-box" id="appMsgBox">
+                <button class="copy-btn" onclick="copyAppMsg()">Copy</button>
+                <pre id="appMsg">PROJECT: Kenostod Blockchain Academy LLC
+TOKEN: KENO (BEP-20) — Education-Fi (E-Fi) Platform
+CHAIN: BNB Smart Chain Mainnet (Chain ID: 56)
+
+━━━ TOKEN DETAILS ━━━
+KENO Token:     0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+KENO/BNB LP:    0x72368adf1487eeebcb095f16cf8cbf91f2b44880
+DEX:            PancakeSwap V2
+
+━━━ AUDIT ━━━
+Auditor:        Hashlock Security
+Report:         https://audit.hashlock.com/audit/0a13e701-ff4f-4583-93ce-d79c62a841f8
+Status:         0 Critical, 0 High — all issues resolved (v1.1)
+
+━━━ FARM REQUEST ━━━
+Type:           Community Farm (project-funded rewards)
+Stake:          KENO/BNB LP tokens
+Reward:         KENO tokens
+Rate:           864 KENO/day (adjustable)
+Pool:           100,000 KENO initial (~115 days runway)
+Farm URL:       https://kenostod.com/farm.html
+Farm Contract:  0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094
+
+━━━ UTL PROTOCOL (5 Live Contracts) ━━━
+Staking:        0x49961979c93f43f823BB3593b207724194019d1d
+FeeCollector:   0xfE537c43d202C455Cedc141B882c808287BB662f
+Treasury:       0x3B3538b955647d811D42400084e9409e6593bE97
+Distribution:   0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7
+
+━━━ PROJECT ━━━
+Website:        https://kenostod.com
+21-course blockchain curriculum — students earn KENO
+Flash Arbitrage Loans (FAL™), KUTL Card, T.D.I.R. Foundation
+Founded by Nickeo Coleman — Kenostod Blockchain Academy LLC
+
+Why farm listing matters: More KENO/BNB TVL → deeper pool → 
+FAL™ arbitrage earns more → staker APY rises → more students 
+enroll → ecosystem grows. PancakeSwap is the ideal home for 
+the first Education-Fi liquidity farm on BSC.</pre>
+            </div>
+
+            <div class="action-row" style="margin-top:20px;">
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSfQNsAfh98SAfcqJKR3is2hdvMRdnvfd2F3Hxs6VEKFnMWgg/viewform"
+                   target="_blank" rel="noopener" class="btn-submit">
+                    📋 Open Application Form & Paste →
+                </a>
+                <a href="https://discord.gg/pancakeswap" target="_blank" rel="noopener" class="btn-discord">
+                    💬 Discord Backup Channel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="section-card">
+        <div class="sc-head">
+            <span>✅</span>
+            <h2>Application Checklist</h2>
+            <span class="sc-badge badge-pending">1 Step Remaining</span>
+        </div>
+        <div class="sc-body">
+            <ul class="checklist">
+                <li class="done"><span class="ck">✅</span><span>KENO token live on BSC mainnet and trading on PancakeSwap</span></li>
+                <li class="done"><span class="ck">✅</span><span>KENO/BNB liquidity pool exists (LP token: 0x7236...)</span></li>
+                <li class="done"><span class="ck">✅</span><span>5 UTL Protocol contracts audited by Hashlock — 0 critical/high issues</span></li>
+                <li class="done"><span class="ck">✅</span><span>UTLFarm.sol written — Checks-Effects-Interactions pattern, no LP withdrawal by admin</span></li>
+                <li class="done"><span class="ck">✅</span><span>Farm dashboard live at /farm.html with wallet connect, stake/unstake UI</span></li>
+                <li class="done"><span class="ck">✅</span><span>Treasury allocation set for 100,000 KENO reward pool (~115 days)</span></li>
+                <li class="complete"><span class="ck">✅</span><span><strong>UTLFarm.sol deployed to BSC mainnet</strong> — <a href="https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094" target="_blank" style="color:#10b981;font-family:monospace;font-size:.85rem;">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094 ↗</a></span></li>
+            </ul>
+
+            <div class="alert alert-warn" style="margin-top:20px;">
+                <strong>Final step before submitting:</strong> Run the deploy script to get your UTLFarm contract address, 
+                then update the application message above with it. PancakeSwap reviewers will verify the contract on BscScan.
+                <br><br>
+                <code style="font-family:monospace;font-size:.82rem;color:var(--keno-gold);">
+                    cd utl &amp;&amp; npx hardhat run scripts/deployFarm.js --network bsc
+                </code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer nav -->
+    <div style="text-align:center;padding:20px 0 40px;color:#475569;font-size:.8rem;">
+        <a href="/farm.html" style="color:#64748b;text-decoration:none;">← Back to Farm Dashboard</a>
+        &nbsp;|&nbsp;
+        <a href="/utl-dashboard.html" style="color:#64748b;text-decoration:none;">UTL Protocol</a>
+        &nbsp;|&nbsp;
+        <a href="/" style="color:#64748b;text-decoration:none;">Kenostod Home</a>
+    </div>
+</div>
+
+<script>
+    function copyAppMsg() {
+        const text = document.getElementById('appMsg').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            const orig = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            btn.style.color = '#10b981';
+            setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2500);
+        }).catch(() => {
+            const el = document.getElementById('appMsg');
+            const range = document.createRange();
+            range.selectNode(el);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+        });
+    }
+</script>
+</body>
+</html>
