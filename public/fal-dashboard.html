@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAL™ Dashboard | Flash Arbitrage Loans | Kenostod</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #080c18;
+    --card: #0f1729;
+    --card2: #131d35;
+    --border: #1e2d45;
+    --gold: #f5c842;
+    --gold2: #c9a227;
+    --green: #00e676;
+    --red: #ff5252;
+    --purple: #7c3aed;
+    --blue: #3b82f6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; gap: 12px; padding: 14px 24px;
+    background: rgba(15,23,41,0.95); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
+  }
+  .nav-logo { font-size: 18px; font-weight: 900; color: var(--gold); }
+  .nav-badge { font-size: 10px; background: rgba(245,200,66,.15); border: 1px solid rgba(245,200,66,.35); color: var(--gold); padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+  .nav-links { display: flex; gap: 8px; margin-left: auto; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 8px; }
+  .nav-links a:hover { background: var(--card2); color: var(--text); }
+  .nav-links a.active { background: rgba(245,200,66,.1); color: var(--gold); }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f1432 40%, #1a0533 70%, #0a1628 100%);
+    padding: 48px 24px 40px; text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-icon { font-size: 40px; margin-bottom: 12px; }
+  .hero h1 { font-size: 36px; font-weight: 900; color: var(--gold); margin-bottom: 6px; }
+  .hero p  { font-size: 15px; color: var(--muted); max-width: 560px; margin: 0 auto 20px; line-height: 1.7; }
+  .hero-stats { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
+  .hero-stat { text-align: center; }
+  .hero-stat .val { font-size: 24px; font-weight: 900; color: var(--gold); }
+  .hero-stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-title .icon { font-size: 16px; }
+
+  /* STAT CARDS */
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .stat-card .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .stat-card .val { font-size: 26px; font-weight: 900; color: var(--text); }
+  .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* OPPORTUNITY CARDS */
+  .opp-card {
+    background: var(--card2); border-radius: 14px; padding: 18px;
+    border: 1px solid var(--border); margin-bottom: 12px;
+    transition: border-color .2s;
+  }
+  .opp-card:hover { border-color: rgba(245,200,66,.4); }
+  .opp-card.hot { border-color: rgba(0,230,118,.3); background: rgba(0,230,118,.04); }
+  .opp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .opp-pair { font-size: 15px; font-weight: 800; }
+  .opp-profit { font-size: 18px; font-weight: 900; color: var(--green); }
+  .opp-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 14px; }
+  .opp-meta-item .lbl { color: var(--muted); margin-bottom: 2px; }
+  .opp-meta-item .val { font-weight: 700; color: var(--text); }
+  .opp-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.06); margin-bottom: 14px; overflow: hidden; }
+  .opp-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--gold), var(--green)); transition: width .5s; }
+  .btn { padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: .2s; }
+  .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #000; width: 100%; }
+  .btn-gold:hover { filter: brightness(1.1); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,200,66,.05); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  /* COUNTDOWN */
+  .countdown { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .countdown.urgent { color: var(--red); }
+  .countdown .time { font-weight: 700; font-family: monospace; }
+
+  /* EXECUTE PANEL */
+  .exec-panel { background: linear-gradient(135deg,rgba(245,200,66,.08),rgba(201,162,39,.04)); border: 1px solid rgba(245,200,66,.25); border-radius: 16px; padding: 24px; }
+  .exec-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.05); font-size: 13px; }
+  .exec-row:last-child { border-bottom: none; }
+  .exec-row .lbl { color: var(--muted); }
+  .exec-row .val { font-weight: 700; }
+
+  /* LOAN AMOUNT SLIDER */
+  .loan-input { width: 100%; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  .loan-input:focus { outline: none; border-color: var(--gold); }
+  .preset-btns { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .preset { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1px solid var(--border); background: var(--card2); color: var(--muted); cursor: pointer; transition: .2s; }
+  .preset:hover, .preset.active { background: rgba(245,200,66,.12); border-color: rgba(245,200,66,.4); color: var(--gold); }
+
+  /* LEADERBOARD */
+  .lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; flex-shrink: 0; }
+  .lb-rank.r1 { background: linear-gradient(135deg,#f5c842,#c9a227); color:#000; }
+  .lb-rank.r2 { background: linear-gradient(135deg,#94a3b8,#64748b); color:#000; }
+  .lb-rank.r3 { background: linear-gradient(135deg,#cd7f32,#92400e); color:#fff; }
+  .lb-rank.rN { background: var(--card2); color: var(--muted); }
+  .lb-addr { font-family: monospace; font-size: 12px; flex: 1; }
+  .lb-profit { font-weight: 700; color: var(--green); font-size: 13px; }
+
+  /* STATUS BADGE */
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: rgba(0,230,118,.12); border: 1px solid rgba(0,230,118,.3); color: var(--green); }
+  .badge-gold  { background: rgba(245,200,66,.12); border: 1px solid rgba(245,200,66,.3); color: var(--gold); }
+  .badge-red   { background: rgba(255,82,82,.12); border: 1px solid rgba(255,82,82,.3); color: var(--red); }
+
+  /* HOW IT WORKS */
+  .step { display: flex; gap: 16px; margin-bottom: 20px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,var(--gold),var(--gold2)); color:#000; font-weight:900; font-size:14px; display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+  .step h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .step p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty .icon { font-size: 32px; margin-bottom: 10px; opacity: .4; }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-header h2 { font-size: 18px; font-weight: 800; color: var(--text); }
+  .section-header .sub { font-size: 12px; color: var(--muted); }
+
+  .mb-6 { margin-bottom: 24px; }
+  .mb-4 { margin-bottom: 16px; }
+  .mt-4 { margin-top: 16px; }
+  .text-gold { color: var(--gold); }
+  .text-green { color: var(--green); }
+  .text-muted { color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">⚡ FAL™</div>
+  <div class="nav-badge">Flash Arbitrage Loans</div>
+  <div class="live-dot"></div>
+  <span style="font-size:11px;color:var(--muted);">Live</span>
+  <div class="nav-links">
+    <a href="/utl-dashboard.html">UTL Dashboard</a>
+    <a href="/keno-market.html">KENO Market</a>
+    <a href="/fal-dashboard.html" class="active">FAL™</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-icon">⚡</div>
+  <h1>Flash Arbitrage Loans™</h1>
+  <p>Borrow up to 50,000 USDC. Arbitrage cross-exchange price spreads. Repay in one BSC block. Keep the profit. No collateral needed for UTL stakers.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="val" id="heroTotalLoans">—</div>
+      <div class="lbl">Total Loans Executed</div>
+    </div>
+    <div class="hero-stat">
+      <div class="val" id="heroTotalProfit">—</div>
+      <div class="lbl">Total Profit Generated</div>
+    </div>
+    <div class="hero-stat">
+      <div class="val" id="heroOpportunities">—</div>
+      <div class="lbl">Live Opportunities</div>
+    </div>
+    <div class="hero-stat">
+      <div class="val" id="heroTraders">—</div>
+      <div class="lbl">Active Traders</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- LIVE OPPORTUNITIES + EXECUTE -->
+  <div class="grid-2 mb-6">
+
+    <!-- Left: Live Opportunities -->
+    <div>
+      <div class="section-header">
+        <h2>⚡ Live Opportunities</h2>
+        <div class="sub" id="lastRefresh">—</div>
+      </div>
+      <div id="opportunitiesList">
+        <div class="empty"><div class="icon">📡</div>Scanning exchanges...</div>
+      </div>
+    </div>
+
+    <!-- Right: Execute FAL -->
+    <div>
+      <div class="section-header">
+        <h2>🚀 Execute FAL™</h2>
+        <span class="badge badge-green">✓ No Collateral</span>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-title">Selected Opportunity</div>
+        <div id="selectedOpp" style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0;">
+          Select an opportunity on the left to execute
+        </div>
+      </div>
+
+      <div class="exec-panel mb-4">
+        <div class="card-title"><span class="icon">💵</span> Loan Amount (USDC)</div>
+        <input type="number" class="loan-input" id="loanAmount" placeholder="10000" value="10000" min="100" max="50000" oninput="updateEstimate()">
+        <div class="preset-btns">
+          <button class="preset" onclick="setPreset(1000)">$1K</button>
+          <button class="preset" onclick="setPreset(5000)">$5K</button>
+          <button class="preset" onclick="setPreset(10000)">$10K</button>
+          <button class="preset" onclick="setPreset(25000)">$25K</button>
+          <button class="preset active" onclick="setPreset(50000)">$50K MAX</button>
+        </div>
+
+        <div class="exec-row">
+          <span class="lbl">Estimated Spread</span>
+          <span class="val text-gold" id="estSpread">—</span>
+        </div>
+        <div class="exec-row">
+          <span class="lbl">Est. Gross Profit</span>
+          <span class="val text-green" id="estProfit">—</span>
+        </div>
+        <div class="exec-row">
+          <span class="lbl">UTL Protocol Fee (0.5%)</span>
+          <span class="val" id="estFee" style="color:var(--muted)">—</span>
+        </div>
+        <div class="exec-row">
+          <span class="lbl">Est. Net Profit</span>
+          <span class="val text-green" style="font-size:17px;" id="estNet">—</span>
+        </div>
+        <div class="exec-row">
+          <span class="lbl">Block Time</span>
+          <span class="val">~3 sec (1 BSC block)</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;">Your BSC Wallet Address</label>
+        <input type="text" id="walletInput" placeholder="0x..." class="loan-input" style="font-size:13px;font-family:monospace;font-weight:400;">
+      </div>
+
+      <button class="btn btn-gold" onclick="executeFAL()" id="executeBtn">
+        ⚡ Execute Flash Arbitrage Loan
+      </button>
+      <div class="text-muted mt-4" style="text-align:center;line-height:1.6;">
+        Loan is issued, arbitrage executed, and repaid atomically in one transaction.<br>
+        If the trade is unprofitable, the transaction reverts — you owe nothing.
+      </div>
+
+      <div id="execResult" style="display:none;" class="card mt-4"></div>
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="grid-3 mb-6">
+    <div class="stat-card">
+      <div class="lbl">Total Loans</div>
+      <div class="val" id="statLoans">—</div>
+      <div class="sub">All time executed</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Total Profit Generated</div>
+      <div class="val text-gold" id="statProfit">—</div>
+      <div class="sub">Across all traders</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Bonuses Paid Out</div>
+      <div class="val text-green" id="statBonuses">—</div>
+      <div class="sub">To stakers via FeeCollector</div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD + HOW IT WORKS -->
+  <div class="grid-2 mb-6">
+
+    <!-- Leaderboard -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🏆</span> FAL Leaderboard</div>
+      <div id="leaderboard">
+        <div class="empty"><div class="icon">🏆</div>Loading...</div>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📖</span> How FAL™ Works</div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Spot a Price Spread</h4>
+          <p>The system scans Binance, Coinbase, Kraken, and KuCoin every 30 minutes for profitable price differences on the same asset across exchanges.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Borrow Flash Loan</h4>
+          <p>Select the opportunity, set your loan amount (up to 50,000 USDC), and hit Execute. UTL lends you the capital instantly — no collateral required for stakers.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Atomic Arbitrage Executes</h4>
+          <p>Within a single BSC block (~3 seconds), the protocol buys the asset at the lower price exchange and sells at the higher. All in one atomic transaction.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <h4>Repay & Keep Profit</h4>
+          <p>The loan is repaid automatically from the arbitrage proceeds. You keep the spread profit minus the 0.5% UTL protocol fee. Fee goes to FeeCollector → 60% to stakers.</p>
+        </div>
+      </div>
+
+      <div style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:10px;padding:12px;font-size:12px;color:var(--muted);line-height:1.6;">
+        <strong style="color:var(--gold);">Safety first:</strong> If the trade turns unprofitable before execution (slippage, race condition), the entire transaction reverts. You never owe more than you started with.
+      </div>
+    </div>
+  </div>
+
+  <!-- FLYWHEEL REMINDER -->
+  <div style="background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(245,200,66,0.05));border:1px solid rgba(124,58,237,0.25);border-radius:16px;padding:24px;text-align:center;">
+    <div style="font-size:20px;margin-bottom:8px;">🔄</div>
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px;">Every FAL feeds the staking flywheel</div>
+    <div style="font-size:13px;color:var(--muted);max-width:500px;margin:0 auto 16px;">The 0.5% protocol fee from every loan goes to UTL FeeCollector → 60% distributed to KENO stakers → higher yields attract more stakers → deeper liquidity → bigger FAL opportunities.</div>
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+      <a href="/utl-dashboard.html" style="padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;background:linear-gradient(135deg,rgba(99,102,241,.25),rgba(124,58,237,.25));border:1px solid rgba(99,102,241,.4);color:#a5b4fc;text-decoration:none;">
+        🪙 Stake KENO to Access FAL
+      </a>
+      <a href="/keno-market.html" style="padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;background:linear-gradient(135deg,rgba(245,200,66,.15),rgba(201,162,39,.15));border:1px solid rgba(245,200,66,.35);color:var(--gold);text-decoration:none;">
+        📊 View KENO Market
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentOpp  = null;
+let opportunities = [];
+
+// ── Load stats ───────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const r = await fetch('/api/arbitrage/stats');
+    const d = await r.json();
+    if (!d.success) return;
+    const s = d.stats;
+    const fmt = n => n >= 1e6 ? '$' + (n/1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n/1e3).toFixed(1) + 'K' : '$' + n.toFixed(0);
+    document.getElementById('heroTotalLoans').textContent     = (s.totalLoans || 0).toLocaleString();
+    document.getElementById('heroTotalProfit').textContent    = fmt(s.totalProfitGenerated || 0);
+    document.getElementById('heroOpportunities').textContent  = s.activeOpportunities || 0;
+    document.getElementById('heroTraders').textContent        = s.totalTraders || 0;
+    document.getElementById('statLoans').textContent          = (s.totalLoans || 0).toLocaleString();
+    document.getElementById('statProfit').textContent         = fmt(s.totalProfitGenerated || 0);
+    document.getElementById('statBonuses').textContent        = fmt(s.totalBonusesPaid || 0);
+  } catch(e) { console.warn('Stats load failed', e); }
+}
+
+// ── Load opportunities ───────────────────────────────────────────
+async function loadOpportunities() {
+  try {
+    const r = await fetch('/api/arbitrage/opportunities');
+    const d = await r.json();
+    opportunities = d.opportunities || [];
+
+    const el = document.getElementById('opportunitiesList');
+    document.getElementById('lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+    if (opportunities.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="icon">📡</div><div>No opportunities right now</div><div style="font-size:11px;margin-top:6px;">Scanning every 30 min — check back soon</div></div>';
+      return;
+    }
+
+    el.innerHTML = opportunities.map((o, i) => {
+      const spread    = o.profitPercent || 0;
+      const loanAmt   = parseFloat(document.getElementById('loanAmount').value) || 10000;
+      const gross     = (loanAmt * spread / 100);
+      const fee       = gross * 0.005;
+      const net       = gross - fee;
+      const timeLeft  = Math.max(0, Math.floor((o.expiresAt - Date.now()) / 1000));
+      const mins      = Math.floor(timeLeft / 60);
+      const secs      = timeLeft % 60;
+      const isHot     = spread > 5;
+      const barPct    = Math.min(spread * 4, 100);
+
+      return `
+        <div class="opp-card ${isHot ? 'hot' : ''}" onclick="selectOpp(${i})" id="opp-${i}" style="cursor:pointer;">
+          <div class="opp-header">
+            <div>
+              <div class="opp-pair">${o.asset} <span style="font-size:12px;color:var(--muted);font-weight:400;">${o.buyExchange} → ${o.sellExchange}</span></div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">Vol: ${(o.volume||0).toLocaleString()} units</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="opp-profit">+${spread.toFixed(2)}%</div>
+              <div style="font-size:11px;color:var(--green);">~$${net.toFixed(0)} net @ $${loanAmt.toLocaleString()}</div>
+            </div>
+          </div>
+          <div class="opp-bar"><div class="opp-bar-fill" style="width:${barPct}%"></div></div>
+          <div class="opp-meta">
+            <div class="opp-meta-item"><div class="lbl">Buy @ ${o.buyExchange}</div><div class="val">$${o.buyPrice?.toFixed(4)||'—'}</div></div>
+            <div class="opp-meta-item"><div class="lbl">Sell @ ${o.sellExchange}</div><div class="val">$${o.sellPrice?.toFixed(4)||'—'}</div></div>
+            <div class="opp-meta-item"><div class="lbl">Expires</div><div class="val ${timeLeft < 60 ? 'text-red' : 'text-gold'}" style="color:${timeLeft<60?'var(--red)':'var(--gold)'}">${mins}m ${secs}s</div></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span class="badge ${isHot ? 'badge-green' : 'badge-gold'}">${isHot ? '🔥 Hot' : '⚡ Active'}</span>
+            <span style="font-size:11px;color:var(--muted);">Click to select & execute</span>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) { console.warn('Opp load failed', e); }
+}
+
+// ── Load leaderboard ─────────────────────────────────────────────
+async function loadLeaderboard() {
+  try {
+    const r = await fetch('/api/arbitrage/leaderboard');
+    const d = await r.json();
+    const el = document.getElementById('leaderboard');
+    const traders = d.leaderboard || d.traders || [];
+
+    if (traders.length === 0) {
+      el.innerHTML = '<div class="empty"><div class="icon">🏆</div>Be the first on the leaderboard</div>';
+      return;
+    }
+
+    el.innerHTML = traders.slice(0, 10).map((t, i) => {
+      const rankClass = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rN';
+      const addr = t.walletAddress || t.wallet || '—';
+      const short = addr.length > 10 ? addr.slice(0,6) + '...' + addr.slice(-4) : addr;
+      const profit = t.totalProfit || t.profit || 0;
+      return `<div class="lb-row">
+        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div class="lb-addr">${short}</div>
+        <div>
+          <div class="lb-profit">$${profit.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+          <div style="font-size:10px;color:var(--muted);">${t.totalLoans || t.loans || 0} loans</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.warn('Leaderboard load failed', e); }
+}
+
+// ── Select opportunity ───────────────────────────────────────────
+function selectOpp(idx) {
+  currentOpp = opportunities[idx];
+  document.querySelectorAll('.opp-card').forEach((el, i) => {
+    el.style.outline = i === idx ? '2px solid var(--gold)' : 'none';
+  });
+
+  const loanAmt   = parseFloat(document.getElementById('loanAmount').value) || 10000;
+  const spread    = currentOpp.profitPercent || 0;
+  const gross     = loanAmt * spread / 100;
+  const fee       = gross * 0.005;
+  const net       = gross - fee;
+
+  document.getElementById('selectedOpp').innerHTML = `
+    <div style="text-align:left;">
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px;">
+        ${currentOpp.asset} &nbsp;<span style="color:var(--muted);font-size:13px;font-weight:400;">${currentOpp.buyExchange} → ${currentOpp.sellExchange}</span>
+      </div>
+      <div style="font-size:24px;font-weight:900;color:var(--green);margin-bottom:4px;">+${spread.toFixed(2)}% spread</div>
+      <div style="font-size:12px;color:var(--muted);">Buy $${currentOpp.buyPrice?.toFixed(4)} → Sell $${currentOpp.sellPrice?.toFixed(4)}</div>
+    </div>`;
+
+  updateEstimate();
+}
+
+function updateEstimate() {
+  const loanAmt = parseFloat(document.getElementById('loanAmount').value) || 0;
+  const spread  = currentOpp ? (currentOpp.profitPercent || 0) : 0;
+  const gross   = loanAmt * spread / 100;
+  const fee     = gross * 0.005;
+  const net     = gross - fee;
+
+  document.getElementById('estSpread').textContent  = currentOpp ? spread.toFixed(2) + '%' : '—';
+  document.getElementById('estProfit').textContent  = currentOpp ? '$' + gross.toFixed(2) : '—';
+  document.getElementById('estFee').textContent     = currentOpp ? '-$' + fee.toFixed(2) : '—';
+  document.getElementById('estNet').textContent     = currentOpp ? '$' + net.toFixed(2) : '—';
+}
+
+function setPreset(val) {
+  document.getElementById('loanAmount').value = val;
+  document.querySelectorAll('.preset').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  updateEstimate();
+  loadOpportunities();
+}
+
+// ── Execute FAL ──────────────────────────────────────────────────
+async function executeFAL() {
+  if (!currentOpp) {
+    alert('Select an opportunity on the left first.');
+    return;
+  }
+  const wallet = document.getElementById('walletInput').value.trim();
+  if (!wallet || !wallet.startsWith('0x')) {
+    alert('Enter your BSC wallet address (0x...)');
+    return;
+  }
+  const loanAmt = parseFloat(document.getElementById('loanAmount').value);
+  if (!loanAmt || loanAmt < 100) {
+    alert('Minimum loan amount is $100 USDC');
+    return;
+  }
+
+  const btn = document.getElementById('executeBtn');
+  btn.textContent = '⏳ Executing...';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/arbitrage/flash-loan/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        walletAddress: wallet,
+        loanAmount: loanAmt,
+        targetPair: currentOpp.asset,
+        opportunityId: currentOpp.id
+      })
+    });
+    const d = await r.json();
+    const res = document.getElementById('execResult');
+    res.style.display = 'block';
+
+    if (d.success || d.loan) {
+      const loan   = d.loan || {};
+      const profit = loan.estimatedProfit || (loanAmt * (currentOpp.profitPercent||0) / 100);
+      const fee    = profit * 0.005;
+      res.style.background = 'rgba(0,230,118,0.08)';
+      res.style.borderColor = 'rgba(0,230,118,0.3)';
+      res.innerHTML = `
+        <div style="text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;">✅</div>
+          <div style="font-size:16px;font-weight:800;color:var(--green);margin-bottom:4px;">FAL™ Executed Successfully</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Loan ID: ${loan.id || d.loanId || '—'}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;text-align:left;">
+            <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:10px;"><div style="color:var(--muted);font-size:10px;margin-bottom:3px;">LOAN AMOUNT</div><div style="font-weight:700;">$${loanAmt.toLocaleString()}</div></div>
+            <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:10px;"><div style="color:var(--muted);font-size:10px;margin-bottom:3px;">SPREAD</div><div style="font-weight:700;color:var(--gold);">+${(currentOpp.profitPercent||0).toFixed(2)}%</div></div>
+            <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:10px;"><div style="color:var(--muted);font-size:10px;margin-bottom:3px;">GROSS PROFIT</div><div style="font-weight:700;color:var(--green);">$${profit.toFixed(2)}</div></div>
+            <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:10px;"><div style="color:var(--muted);font-size:10px;margin-bottom:3px;">PROTOCOL FEE</div><div style="font-weight:700;color:var(--muted);">-$${fee.toFixed(2)}</div></div>
+          </div>
+          <div style="margin-top:14px;font-size:13px;color:var(--muted);">Net profit credited · Fee sent to FeeCollector → 60% to stakers</div>
+        </div>`;
+    } else {
+      res.style.background = 'rgba(255,82,82,0.08)';
+      res.style.borderColor = 'rgba(255,82,82,0.3)';
+      res.innerHTML = `<div style="text-align:center;color:var(--red);">❌ ${d.error || 'Execution failed — trade may have reverted. You owe nothing.'}</div>`;
+    }
+  } catch(e) {
+    const res = document.getElementById('execResult');
+    res.style.display = 'block';
+    res.innerHTML = `<div style="text-align:center;color:var(--red);">❌ Network error: ${e.message}</div>`;
+  } finally {
+    btn.textContent = '⚡ Execute Flash Arbitrage Loan';
+    btn.disabled = false;
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+loadStats();
+loadOpportunities();
+loadLeaderboard();
+
+setInterval(loadOpportunities, 30000);
+setInterval(loadStats, 60000);
+setInterval(loadLeaderboard, 60000);
+</script>
+</body>
+</html>
