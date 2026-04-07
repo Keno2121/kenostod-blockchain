@@ -9568,6 +9568,83 @@ app.post('/api/admin/usd-withdrawal/process', async (req, res) => {
 
 // ==================== END MERCURY BANK ENDPOINTS ====================
 
+// ==================== KENO MARKET (PancakeSwap Live Data) ====================
+
+app.get('/api/keno/market', async (req, res) => {
+    try {
+        const https = require('https');
+        const PAIR  = '0x72368adf1487eeebcb095f16cf8cbf91f2b44880';
+        const KENO  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+
+        function bscCall(to, data) {
+            return new Promise((resolve, reject) => {
+                const body = JSON.stringify({ jsonrpc:'2.0', id:1, method:'eth_call', params:[{to, data}, 'latest'] });
+                const req2 = https.request({
+                    hostname: 'bsc-dataseed1.binance.org', path:'/', method:'POST',
+                    headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)},
+                    timeout: 8000
+                }, r => { let d=''; r.on('data', c=>d+=c); r.on('end', ()=>{ try{resolve(JSON.parse(d))}catch(e){reject(e)} }); });
+                req2.on('error', reject);
+                req2.on('timeout', ()=>{ req2.destroy(); reject(new Error('BSC timeout')); });
+                req2.write(body); req2.end();
+            });
+        }
+
+        function getBNBPrice() {
+            return new Promise((resolve) => {
+                const url = 'https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd';
+                https.get(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'KenostodUTL/2.0' } }, r => {
+                    let d=''; r.on('data', c=>d+=c);
+                    r.on('end', ()=>{
+                        try {
+                            const price = parseFloat(JSON.parse(d).binancecoin?.usd);
+                            resolve(isNaN(price) ? 620 : price);
+                        } catch(e){ resolve(620); }
+                    });
+                }).on('error', ()=>resolve(620)).setTimeout(8000, function(){ this.destroy(); resolve(620); });
+            });
+        }
+
+        const [reservesRes, bnbPrice] = await Promise.all([
+            bscCall(PAIR, '0x0902f1ac'),
+            getBNBPrice()
+        ]);
+
+        const r = reservesRes.result;
+        const reserve0 = BigInt('0x' + r.slice(2, 66));
+        const reserve1 = BigInt('0x' + r.slice(66, 130));
+        const kenoReserve = Number(reserve0) / 1e18;
+        const bnbReserve  = Number(reserve1) / 1e18;
+        const kenoPerBNB  = kenoReserve / bnbReserve;
+        const kenoPriceUSD = bnbPrice / kenoPerBNB;
+        const tvl = kenoReserve * kenoPriceUSD * 2;
+
+        res.json({
+            ok: true,
+            pair: PAIR,
+            token: KENO,
+            symbol: 'KENO',
+            pairName: 'KENO/BNB',
+            dex: 'PancakeSwap V2',
+            chain: 'BSC',
+            price: { usd: kenoPriceUSD, bnb: 1 / kenoPerBNB },
+            peg: { usd: 1.00, status: kenoPriceUSD >= 0.95 ? 'ON_PEG' : 'BELOW_PEG' },
+            reserves: { keno: kenoReserve, bnb: bnbReserve },
+            tvl,
+            bnbPrice,
+            links: {
+                swap: `https://pancakeswap.finance/swap?outputCurrency=${KENO}&chain=bsc`,
+                addLiquidity: `https://pancakeswap.finance/add/BNB/${KENO}?chain=bsc`,
+                pair: `https://bscscan.com/address/${PAIR}`,
+                chart: `https://dexscreener.com/bsc/${PAIR}`,
+                token: `https://bscscan.com/token/${KENO}`
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
 // ==================== WITHDRAWAL RESERVE SYSTEM (Revenue-First Model) ====================
 
 // Get reserve status (public endpoint for transparency)
@@ -9965,6 +10042,83 @@ app.post('/api/admin/test-email', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+// ==================== FINLEGO / KUTL CARD API ENDPOINTS ====================
+
+const finlego = require('./src/FinlegoIntegration');
+
+app.get('/api/finlego/card', async (req, res) => {
+    try {
+        const accountId = req.query.accountId || (req.session && req.session.userId);
+        const result = await finlego.getCardInfo(accountId);
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, sandbox: true, data: null, error: e.message });
+    }
+});
+
+app.get('/api/finlego/balance', async (req, res) => {
+    try {
+        const accountId = req.query.accountId || (req.session && req.session.userId);
+        const result = await finlego.getBalance(accountId);
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, sandbox: true, data: null, error: e.message });
+    }
+});
+
+app.get('/api/finlego/transactions', async (req, res) => {
+    try {
+        const accountId = req.query.accountId || (req.session && req.session.userId);
+        const limit = parseInt(req.query.limit) || 20;
+        const result = await finlego.getTransactions(accountId, limit);
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, sandbox: true, data: null, error: e.message });
+    }
+});
+
+app.post('/api/finlego/issue-card', async (req, res) => {
+    try {
+        const { firstName, lastName, email, kenoBalance, userId } = req.body;
+        if (!email) return res.status(400).json({ success: false, error: 'Email required' });
+        const result = await finlego.issueVirtualCard({ firstName, lastName, email, kenoBalance, userId });
+        res.json(result);
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.get('/api/finlego/status', async (req, res) => {
+    try {
+        const token = await finlego.getAuthToken();
+        res.json({
+            connected: !!token,
+            sandbox: true,
+            boUrl: finlego.FINLEGO_CONFIG.boBaseUrl,
+            foUrl: finlego.FINLEGO_CONFIG.foBaseUrl,
+            message: token ? 'Connected to Finlego sandbox' : 'Sandbox credentials ready — API session pending Tuesday tech session',
+        });
+    } catch (e) {
+        res.json({ connected: false, error: e.message });
+    }
+});
+
+// ==================== END FINLEGO / KUTL CARD API ENDPOINTS ====================
+
+// ==================== FOUNDER BACKOFFICE AUTH ====================
+app.post('/api/auth/founder', (req, res) => {
+    const { password } = req.body || {};
+    const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+    if (!ADMIN_PASS) {
+        return res.status(500).json({ ok: false, error: 'Server not configured' });
+    }
+    if (password && password === ADMIN_PASS) {
+        return res.json({ ok: true });
+    }
+    res.status(401).json({ ok: false });
+});
+// ==================== END FOUNDER BACKOFFICE AUTH ====================
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Kenostod Blockchain server running on http://0.0.0.0:${PORT}`);
