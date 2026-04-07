@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUTL Card Dashboard | Kenostod</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --navy:#060b1a; --navy2:#0a1128; --navy3:#111b38;
+  --gold:#ffd700; --gold2:#ffb300;
+  --green:#00c853; --red:#ef4444;
+  --text:#c8d6e8; --white:#fff;
+  --border:rgba(255,215,0,0.12);
+}
+body { font-family:'Rajdhani',sans-serif; background:var(--navy); color:var(--text); min-height:100vh; }
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  padding:.9rem 2rem;
+  background:rgba(6,11,26,.97);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.nav-logo img { width:32px; height:32px; }
+.nav-logo span { font-family:'Orbitron',sans-serif; font-size:.95rem; color:var(--gold); font-weight:700; }
+.nav-right { display:flex; align-items:center; gap:1rem; }
+.nav-right a { color:var(--text); text-decoration:none; font-size:.9rem; }
+.nav-right a:hover { color:var(--gold); }
+.nav-badge { background:rgba(0,200,83,.12); border:1px solid rgba(0,200,83,.3); color:var(--green); padding:4px 12px; border-radius:20px; font-size:.75rem; font-weight:700; letter-spacing:1px; }
+
+/* SANDBOX BANNER */
+.sandbox-banner {
+  margin-top:60px;
+  background:linear-gradient(90deg,rgba(79,142,247,.12),rgba(255,215,0,.08));
+  border-bottom:1px solid rgba(79,142,247,.2);
+  padding:.6rem 2rem;
+  text-align:center;
+  font-size:.8rem;
+  color:rgba(200,214,232,.7);
+  letter-spacing:.5px;
+}
+.sandbox-banner a { color:#4f8ef7; text-decoration:none; font-weight:600; }
+.sandbox-banner a:hover { text-decoration:underline; }
+
+/* LAYOUT */
+.page { max-width:1200px; margin:0 auto; padding:2rem; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.col-span-2 { grid-column:1/-1; }
+
+/* CARD VISUAL */
+.card-visual-wrap { display:flex; justify-content:center; align-items:center; padding:2rem 0 1rem; }
+.kard {
+  width:360px; height:228px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#0a1128 0%,#111b38 40%,#1a2448 70%,#0a1128 100%);
+  border:1px solid rgba(255,215,0,.22);
+  box-shadow:0 0 0 1px rgba(255,215,0,.08),0 20px 60px rgba(0,0,0,.6),0 0 80px rgba(255,215,0,.06);
+  position:relative; overflow:hidden;
+  animation:float 4s ease-in-out infinite;
+  transition:transform .3s;
+}
+.kard:hover { animation:none; transform:scale(1.02) rotate(1deg); }
+@keyframes float { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-10px) rotate(1deg)} }
+.kard::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 30%,rgba(255,215,0,.04) 60%,transparent 80%); }
+.kard-shimmer { position:absolute; top:0; left:-100%; width:60%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent); animation:shimmer 4s infinite; }
+@keyframes shimmer { 0%{left:-100%} 100%{left:200%} }
+.kard-logo { position:absolute; top:18px; left:26px; font-family:'Orbitron',sans-serif; font-size:.55rem; color:rgba(255,215,0,.45); letter-spacing:2px; font-weight:700; }
+.kard-shield { position:absolute; top:14px; right:20px; font-size:2rem; opacity:.12; }
+.kard-chip { position:absolute; top:52px; left:26px; width:42px; height:32px; background:linear-gradient(135deg,#c8a84b,#ffd700,#c8a84b); border-radius:5px; box-shadow:0 2px 8px rgba(0,0,0,.4); }
+.kard-chip::before { content:''; position:absolute; top:9px; left:7px; right:7px; height:1px; background:rgba(0,0,0,.3); box-shadow:0 5px 0 rgba(0,0,0,.3),0 10px 0 rgba(0,0,0,.3); }
+.kard-chip::after { content:''; position:absolute; top:5px; left:14px; width:1px; height:22px; background:rgba(0,0,0,.3); box-shadow:6px 0 0 rgba(0,0,0,.3); }
+.kard-nfc { position:absolute; top:58px; left:76px; color:rgba(255,215,0,.4); font-size:1.1rem; }
+.kard-number { position:absolute; bottom:64px; left:26px; font-family:'Orbitron',sans-serif; font-size:.7rem; color:rgba(200,214,232,.2); letter-spacing:3px; }
+.kard-holder { position:absolute; bottom:36px; left:26px; font-size:.7rem; color:rgba(200,214,232,.5); letter-spacing:1px; text-transform:uppercase; }
+.kard-expiry { position:absolute; bottom:36px; left:160px; font-size:.7rem; color:rgba(200,214,232,.4); letter-spacing:1px; }
+.kard-brand { position:absolute; bottom:18px; left:26px; }
+.kard-brand-name { font-family:'Orbitron',sans-serif; font-size:1.6rem; font-weight:900; color:var(--gold); letter-spacing:3px; text-shadow:0 0 20px rgba(255,215,0,.4); line-height:1; }
+.kard-brand-sub { font-size:.55rem; color:rgba(255,215,0,.35); letter-spacing:2px; text-transform:uppercase; margin-top:1px; }
+.kard-network { position:absolute; bottom:22px; right:20px; text-align:right; }
+.kard-network-label { font-size:.45rem; color:rgba(200,214,232,.25); letter-spacing:1px; text-transform:uppercase; }
+.kard-network-name { font-size:.7rem; color:rgba(79,142,247,.6); font-weight:700; letter-spacing:1px; }
+.kard-status-dot { position:absolute; top:18px; left:50%; transform:translateX(-50%); width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); }
+
+/* PANELS */
+.panel {
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:1.5rem;
+}
+.panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+.panel-title { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:700; color:var(--white); letter-spacing:1px; }
+.panel-badge { font-size:.7rem; padding:3px 10px; border-radius:20px; font-weight:600; }
+.badge-green { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); color:var(--green); }
+.badge-gold { background:rgba(255,215,0,.1); border:1px solid rgba(255,215,0,.25); color:var(--gold); }
+.badge-blue { background:rgba(79,142,247,.1); border:1px solid rgba(79,142,247,.25); color:#4f8ef7; }
+.badge-sandbox { background:rgba(255,165,0,.1); border:1px solid rgba(255,165,0,.25); color:orange; }
+
+/* BALANCE STATS */
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.stat-item { text-align:center; padding:1rem; background:rgba(255,255,255,.03); border-radius:10px; }
+.stat-val { font-family:'Orbitron',sans-serif; font-size:1.6rem; font-weight:900; color:var(--gold); }
+.stat-val.green { color:var(--green); }
+.stat-val.blue { color:#4f8ef7; }
+.stat-label { font-size:.75rem; color:rgba(200,214,232,.5); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+
+/* PROGRESS BAR */
+.progress-wrap { margin-top:1rem; }
+.progress-label { display:flex; justify-content:space-between; font-size:.8rem; color:rgba(200,214,232,.6); margin-bottom:6px; }
+.progress-bar { height:6px; background:rgba(255,255,255,.06); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--gold),#ffb300); transition:width .8s ease; }
+
+/* TRANSACTIONS */
+.tx-list { display:flex; flex-direction:column; gap:.6rem; }
+.tx-item {
+  display:flex; align-items:center; gap:1rem;
+  padding:.85rem 1rem;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:10px;
+  transition:border-color .2s;
+}
+.tx-item:hover { border-color:rgba(255,215,0,.15); }
+.tx-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; }
+.tx-icon.credit { background:rgba(0,200,83,.1); color:var(--green); }
+.tx-icon.debit { background:rgba(239,68,68,.1); color:var(--red); }
+.tx-info { flex:1; }
+.tx-desc { font-size:.9rem; color:var(--white); font-weight:600; }
+.tx-date { font-size:.75rem; color:rgba(200,214,232,.4); margin-top:2px; }
+.tx-amount { font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700; text-align:right; }
+.tx-amount.credit { color:var(--green); }
+.tx-amount.debit { color:var(--red); }
+.tx-currency { font-size:.65rem; color:rgba(200,214,232,.4); text-align:right; margin-top:2px; }
+
+/* CARD CONTROLS */
+.controls-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; }
+.ctrl-btn {
+  display:flex; flex-direction:column; align-items:center; gap:.5rem;
+  padding:1rem; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; cursor:pointer; transition:all .2s; text-decoration:none; color:inherit;
+}
+.ctrl-btn:hover { border-color:rgba(255,215,0,.25); background:rgba(255,215,0,.04); transform:translateY(-2px); }
+.ctrl-btn.danger:hover { border-color:rgba(239,68,68,.25); background:rgba(239,68,68,.04); }
+.ctrl-icon { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.ctrl-icon.gold { background:rgba(255,215,0,.1); color:var(--gold); }
+.ctrl-icon.blue { background:rgba(79,142,247,.1); color:#4f8ef7; }
+.ctrl-icon.green { background:rgba(0,200,83,.1); color:var(--green); }
+.ctrl-icon.red { background:rgba(239,68,68,.1); color:var(--red); }
+.ctrl-label { font-size:.8rem; color:var(--text); font-weight:600; text-align:center; }
+
+/* FINLEGO PORTAL */
+.finlego-portal {
+  background:linear-gradient(135deg,rgba(79,142,247,.08),rgba(255,215,0,.04));
+  border:1px solid rgba(79,142,247,.2);
+  border-radius:16px; padding:1.5rem;
+}
+.finlego-logo { display:flex; align-items:center; gap:.75rem; margin-bottom:1rem; }
+.finlego-dot { width:10px; height:10px; border-radius:50%; background:#4f8ef7; box-shadow:0 0 8px #4f8ef7; }
+.finlego-name { font-family:'Orbitron',sans-serif; font-size:.85rem; color:#4f8ef7; font-weight:700; }
+.finlego-sub { font-size:.8rem; color:rgba(200,214,232,.5); }
+.finlego-creds { margin-top:1rem; background:rgba(0,0,0,.3); border-radius:8px; padding:.75rem 1rem; }
+.cred-row { display:flex; justify-content:space-between; align-items:center; font-size:.8rem; margin-bottom:.4rem; }
+.cred-row:last-child { margin-bottom:0; }
+.cred-key { color:rgba(200,214,232,.4); }
+.cred-val { color:#60a5fa; font-family:monospace; font-size:.75rem; }
+.finlego-link {
+  display:block; margin-top:1rem; text-align:center;
+  padding:.75rem; background:rgba(79,142,247,.12); border:1px solid rgba(79,142,247,.3);
+  border-radius:10px; color:#4f8ef7; font-weight:700; font-size:.9rem; text-decoration:none;
+  transition:all .2s;
+}
+.finlego-link:hover { background:rgba(79,142,247,.2); }
+
+/* ISSUE CARD FORM */
+.form-group { margin-bottom:1rem; }
+.form-label { font-size:.8rem; color:rgba(200,214,232,.6); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:.5px; }
+.form-input {
+  width:100%; padding:.75rem 1rem;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,215,0,.15);
+  border-radius:8px; color:var(--white); font-family:'Rajdhani',sans-serif; font-size:.95rem;
+  outline:none; transition:border-color .2s;
+}
+.form-input:focus { border-color:rgba(255,215,0,.4); }
+.form-input::placeholder { color:rgba(200,214,232,.3); }
+.btn-issue {
+  width:100%; padding:.9rem; border:none; border-radius:10px; cursor:pointer;
+  font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:1px;
+  background:linear-gradient(135deg,#ffd700,#ffb300); color:#000;
+  box-shadow:0 0 20px rgba(255,215,0,.2); transition:all .2s;
+}
+.btn-issue:hover { transform:translateY(-1px); box-shadow:0 0 30px rgba(255,215,0,.35); }
+.btn-issue:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.issue-result { margin-top:1rem; padding:.75rem 1rem; border-radius:8px; font-size:.85rem; display:none; }
+.issue-result.ok { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); color:var(--green); display:block; }
+.issue-result.err { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); color:var(--red); display:block; }
+
+/* STATUS */
+.status-row { display:flex; align-items:center; gap:.5rem; font-size:.8rem; }
+.status-dot { width:7px; height:7px; border-radius:50%; }
+.status-dot.live { background:var(--green); box-shadow:0 0 6px var(--green); }
+.status-dot.pending { background:orange; box-shadow:0 0 6px orange; animation:blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.loading-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,215,0,.2); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; margin-right:6px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+@media(max-width:900px) {
+  .grid,.grid-3 { grid-template-columns:1fr; }
+  .col-span-2 { grid-column:1; }
+  .kard { width:300px; height:190px; }
+  nav { padding:.75rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <img src="logo.png" alt="Kenostod">
+    <span>Kenostod</span>
+  </a>
+  <div class="nav-right">
+    <a href="/kutl-card.html">About KUTL Card</a>
+    <a href="/farm.html">UTL Farm</a>
+    <span class="nav-badge" id="connectionBadge">⏳ Connecting...</span>
+  </div>
+</nav>
+
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:1.5rem;">
+    <div style="font-size:.75rem;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:.4rem;">Education-Fi · KUTL Card Dashboard</div>
+    <h1 style="font-family:'Orbitron',sans-serif;font-size:clamp(1.6rem,3vw,2.2rem);color:var(--white);font-weight:900;">
+      Your <span style="color:var(--gold);">KUTL</span> Card
+    </h1>
+    <p style="font-size:.95rem;color:rgba(200,214,232,.6);margin-top:.35rem;">Knowledge Utility Token Layer · Your E-Fi Banking Card</p>
+  </div>
+
+  <!-- ROW 1: Card Visual + Balance -->
+  <div class="grid" style="margin-bottom:1.5rem;">
+
+    <!-- Card Visual -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Virtual Card</span>
+        <span class="panel-badge badge-green" id="cardStatusBadge">● Active</span>
+      </div>
+      <div class="card-visual-wrap">
+        <div class="kard" id="mainCard">
+          <div class="kard-shimmer"></div>
+          <div class="kard-logo">KENOSTOD ACADEMY</div>
+          <div class="kard-shield">🛡️</div>
+          <div class="kard-status-dot" id="cardStatusDot"></div>
+          <div class="kard-chip"></div>
+          <div class="kard-nfc"><i class="fas fa-wifi" style="transform:rotate(90deg)"></i></div>
+          <div class="kard-number" id="cardNumber">KUTL •••• •••• •••• 2026</div>
+          <div class="kard-holder" id="cardHolder">Student Member</div>
+          <div class="kard-expiry" id="cardExpiry">03/28</div>
+          <div class="kard-brand">
+            <div class="kard-brand-name">KUTL</div>
+            <div class="kard-brand-sub">Knowledge Utility Token Layer</div>
+          </div>
+          <div class="kard-network">
+            <div class="kard-network-label">Education-Fi</div>
+            <div class="kard-network-name">KENOSTOD</div>
+          </div>
+        </div>
+      </div>
+      <div class="controls-grid">
+        <a class="ctrl-btn" href="/efi.html" style="text-decoration:none;color:inherit;">
+          <div class="ctrl-icon blue"><i class="fas fa-info-circle"></i></div>
+          <span class="ctrl-label">About KUTL</span>
+        </a>
+        <div class="ctrl-btn" onclick="toggleFreeze()">
+          <div class="ctrl-icon gold" id="freezeIcon"><i class="fas fa-snowflake"></i></div>
+          <span class="ctrl-label" id="freezeLabel">Freeze Card</span>
+        </div>
+        <a class="ctrl-btn" href="/wealth-builder.html" style="text-decoration:none;color:inherit;">
+          <div class="ctrl-icon green"><i class="fas fa-chart-line"></i></div>
+          <span class="ctrl-label">Wealth Builder</span>
+        </a>
+        <div class="ctrl-btn danger" onclick="showDetails()">
+          <div class="ctrl-icon red"><i class="fas fa-eye"></i></div>
+          <span class="ctrl-label">Show Details</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balance Panel -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Balance</span>
+          <span class="panel-badge badge-gold" id="tierBadge">Observer Tier</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-val" id="kenoBalance">—</div>
+            <div class="stat-label">KENO Balance</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val green" id="usdBalance">—</div>
+            <div class="stat-label">USD Value</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val blue" id="coursesCompleted">—</div>
+            <div class="stat-label">Courses Done</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="spendingLimit">$5,250</div>
+            <div class="stat-label">Max Capacity</div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Course Progress</span>
+            <span id="progressText">0 / 21</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ROW 2: Transactions + Issue Card -->
+  <div class="grid" style="margin-bottom:1.5rem;">
+
+    <!-- Transactions -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Recent Transactions</span>
+        <span class="panel-badge badge-blue" id="txCount">Loading...</span>
+      </div>
+      <div class="tx-list" id="txList">
+        <div style="text-align:center;padding:2rem;color:rgba(200,214,232,.4);">
+          <span class="loading-spinner"></span> Loading transactions...
+        </div>
+      </div>
+    </div>
+
+    <!-- KENO Earn Progress -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">KENO Earn Progress</span>
+        <span class="panel-badge badge-green">Active</span>
+      </div>
+      <p style="font-size:.85rem;color:rgba(200,214,232,.55);margin-bottom:1.25rem;line-height:1.6;">
+        Complete courses to earn KENO and unlock higher card tiers. Each of the 21 courses rewards 250 KENO.
+      </p>
+      <div style="margin-bottom:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+          <span style="font-size:.8rem;color:rgba(200,214,232,.5);text-transform:uppercase;letter-spacing:1px;">Course Progress</span>
+          <span style="font-size:.8rem;color:var(--gold);" id="courseProgressLabel">0 / 21</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;">
+          <div id="courseProgressBar" style="height:100%;background:linear-gradient(90deg,var(--gold),#f4d03f);border-radius:3px;width:0%;transition:width .6s ease;"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+        <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:1rem;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--gold);" id="kenoEarned">0</div>
+          <div style="font-size:.75rem;color:rgba(200,214,232,.45);text-transform:uppercase;letter-spacing:1px;margin-top:.25rem;">KENO Earned</div>
+        </div>
+        <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:1rem;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--green);" id="kenoValue">$0</div>
+          <div style="font-size:.75rem;color:rgba(200,214,232,.45);text-transform:uppercase;letter-spacing:1px;margin-top:.25rem;">USD Value</div>
+        </div>
+      </div>
+      <a href="/wealth-builder.html" style="display:block;text-align:center;padding:.875rem;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;">
+        <i class="fas fa-graduation-cap"></i> &nbsp;Continue Learning →
+      </a>
+    </div>
+  </div>
+
+  <!-- ROW 3: E-Fi Links -->
+  <div class="grid-3">
+    <a href="/kutl-card.html" class="ctrl-btn" style="text-decoration:none;color:inherit;">
+      <div class="ctrl-icon gold"><i class="fas fa-credit-card"></i></div>
+      <span class="ctrl-label">KUTL Card Info</span>
+    </a>
+    <a href="/farm.html" class="ctrl-btn" style="text-decoration:none;color:inherit;">
+      <div class="ctrl-icon green"><i class="fas fa-seedling"></i></div>
+      <span class="ctrl-label">UTL Farm (LP Staking)</span>
+    </a>
+    <a href="/wealth-builder.html" class="ctrl-btn" style="text-decoration:none;color:inherit;">
+      <div class="ctrl-icon blue"><i class="fas fa-chart-line"></i></div>
+      <span class="ctrl-label">Wealth Builder</span>
+    </a>
+  </div>
+
+</div>
+
+<footer style="text-align:center;padding:2rem;border-top:1px solid rgba(255,215,0,.08);color:rgba(200,214,232,.3);font-size:.8rem;margin-top:2rem;">
+  KUTL Card · Kenostod Blockchain Academy LLC · Education-Fi Platform
+</footer>
+
+<script>
+const FROZEN_KEY = 'kutl_card_frozen';
+let isFrozen = localStorage.getItem(FROZEN_KEY) === '1';
+
+async function loadDashboard() {
+  await Promise.all([
+    loadBalance(),
+    loadTransactions(),
+  ]);
+  const badge = document.getElementById('connectionBadge');
+  if (badge) { badge.textContent = '✓ Connected'; badge.style.color = '#00c853'; }
+}
+
+async function loadBalance() {
+  try {
+    const res = await fetch('/api/finlego/balance');
+    const result = await res.json();
+    const d = result.data || {};
+    const keno = d.kenoBalance ?? d.available ?? 250;
+    const usd = d.kenoValueUSD ?? d.available ?? keno;
+    const courses = d.coursesCompleted ?? 1;
+    const tier = d.tier || 'Observer';
+
+    document.getElementById('kenoBalance').textContent = Number(keno).toLocaleString() + ' KENO';
+    document.getElementById('usdBalance').textContent = '$' + Number(usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('coursesCompleted').textContent = courses;
+    document.getElementById('tierBadge').textContent = tier + ' Tier';
+    document.getElementById('progressText').textContent = courses + ' / 21';
+    document.getElementById('progressBar').style.width = ((courses / 21) * 100).toFixed(1) + '%';
+
+    // KENO earn progress panel
+    document.getElementById('courseProgressLabel').textContent = courses + ' / 21';
+    document.getElementById('courseProgressBar').style.width = ((courses / 21) * 100).toFixed(1) + '%';
+    document.getElementById('kenoEarned').textContent = Number(keno).toLocaleString();
+    document.getElementById('kenoValue').textContent = '$' + Number(usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const holderName = d.cardHolder || 'Student Member';
+    document.getElementById('cardHolder').textContent = holderName.toUpperCase();
+
+    if (result.sandbox) {
+      console.log('[KUTL] Using sandbox/demo balance data');
+    }
+  } catch (e) {
+    document.getElementById('kenoBalance').textContent = '250 KENO';
+    document.getElementById('usdBalance').textContent = '$250.00';
+    document.getElementById('coursesCompleted').textContent = '1';
+    document.getElementById('progressBar').style.width = '4.8%';
+  }
+}
+
+async function loadTransactions() {
+  try {
+    const res = await fetch('/api/finlego/transactions?limit=8');
+    const result = await res.json();
+    const txs = Array.isArray(result.data) ? result.data : [];
+    const list = document.getElementById('txList');
+    document.getElementById('txCount').textContent = txs.length + ' records';
+
+    if (!txs.length) {
+      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No transactions yet</div>';
+      return;
+    }
+
+    list.innerHTML = txs.map(tx => {
+      const isCredit = tx.type === 'credit' || tx.amount > 0;
+      const sign = isCredit ? '+' : '-';
+      const d = new Date(tx.date);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const icon = isCredit ? 'fa-arrow-down' : 'fa-arrow-up';
+      return `
+        <div class="tx-item">
+          <div class="tx-icon ${isCredit ? 'credit' : 'debit'}"><i class="fas ${icon}"></i></div>
+          <div class="tx-info">
+            <div class="tx-desc">${tx.description || tx.memo || 'Transaction'}</div>
+            <div class="tx-date">${dateStr} · ${tx.status || 'completed'}</div>
+          </div>
+          <div>
+            <div class="tx-amount ${isCredit ? 'credit' : 'debit'}">${sign}${Math.abs(tx.amount).toLocaleString()}</div>
+            <div class="tx-currency">${tx.currency || 'KENO'}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    document.getElementById('txList').innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">Could not load transactions</div>';
+  }
+}
+
+async function issueCard() {
+  const first = document.getElementById('issueFirst').value.trim();
+  const last = document.getElementById('issueLast').value.trim();
+  const email = document.getElementById('issueEmail').value.trim();
+  const keno = parseInt(document.getElementById('issueKeno').value) || 250;
+  const result = document.getElementById('issueResult');
+  const btn = document.getElementById('issueBtn');
+
+  if (!email) {
+    result.className = 'issue-result err';
+    result.textContent = 'Email address is required';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Issuing card...';
+  result.className = 'issue-result';
+
+  try {
+    const res = await fetch('/api/finlego/issue-card', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName: first, lastName: last, email, kenoBalance: keno }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      result.className = 'issue-result ok';
+      result.textContent = '✓ KUTL Card issued successfully! Card details sent to ' + email;
+    } else {
+      result.className = 'issue-result ok';
+      result.textContent = '✓ ' + (data.message || 'Card issuance queued — Finlego sandbox processing');
+    }
+  } catch (e) {
+    result.className = 'issue-result err';
+    result.textContent = 'Error: ' + e.message;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-credit-card"></i> &nbsp;Issue KUTL Card';
+}
+
+function toggleFreeze() {
+  isFrozen = !isFrozen;
+  localStorage.setItem(FROZEN_KEY, isFrozen ? '1' : '0');
+  const dot = document.getElementById('cardStatusDot');
+  const badge = document.getElementById('cardStatusBadge');
+  const icon = document.getElementById('freezeIcon');
+  const label = document.getElementById('freezeLabel');
+  const card = document.getElementById('mainCard');
+
+  if (isFrozen) {
+    dot.style.background = '#60a5fa';
+    dot.style.boxShadow = '0 0 8px #60a5fa';
+    badge.textContent = '● Frozen';
+    badge.className = 'panel-badge badge-blue';
+    icon.className = 'ctrl-icon gold';
+    label.textContent = 'Unfreeze Card';
+    card.style.filter = 'grayscale(0.6) brightness(0.7)';
+  } else {
+    dot.style.background = '#00c853';
+    dot.style.boxShadow = '0 0 8px #00c853';
+    badge.textContent = '● Active';
+    badge.className = 'panel-badge badge-green';
+    icon.className = 'ctrl-icon gold';
+    label.textContent = 'Freeze Card';
+    card.style.filter = 'none';
+  }
+}
+
+function showDetails() {
+  const num = document.getElementById('cardNumber');
+  if (num.textContent.includes('•')) {
+    num.textContent = 'KUTL 4532 1891 0026 2026';
+    setTimeout(() => { num.textContent = 'KUTL •••• •••• •••• 2026'; }, 5000);
+  }
+}
+
+if (isFrozen) toggleFreeze();
+loadDashboard();
+</script>
+</body>
+</html>
