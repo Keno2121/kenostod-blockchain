@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTLFarm Admin — Whitelist & Fund</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0e1a; color: #fff; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .card { background: #12182b; border: 1px solid #1e2d4a; border-radius: 16px; padding: 36px; max-width: 560px; width: 100%; }
+  h1 { font-size: 22px; margin-bottom: 6px; color: #f0b429; }
+  .sub { color: #7a8fb5; font-size: 14px; margin-bottom: 28px; }
+  .step { background: #0d1424; border: 1px solid #1a2540; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .step-num { font-size: 11px; color: #7a8fb5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .step-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .step-desc { font-size: 13px; color: #7a8fb5; margin-bottom: 14px; }
+  .addr { font-size: 11px; background: #0a0e1a; border-radius: 6px; padding: 6px 10px; color: #4a9eff; font-family: monospace; word-break: break-all; margin-bottom: 12px; }
+  button { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-yellow { background: #f0b429; color: #0a0e1a; }
+  .btn-yellow:hover:not(:disabled) { background: #fac948; }
+  .btn-blue { background: #1a6fff; color: #fff; }
+  .btn-blue:hover:not(:disabled) { background: #2a7fff; }
+  .btn-green { background: #22c55e; color: #fff; }
+  .btn-green:hover:not(:disabled) { background: #16a34a; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .status { font-size: 13px; margin-top: 10px; padding: 8px 12px; border-radius: 8px; display: none; }
+  .status.ok { background: #0d2d1a; color: #22c55e; border: 1px solid #16a34a; display: block; }
+  .status.err { background: #2d0d0d; color: #f87171; border: 1px solid #ef4444; display: block; }
+  .status.info { background: #0d1a2d; color: #60a5fa; border: 1px solid #3b82f6; display: block; }
+  .wallet-info { font-size: 12px; color: #7a8fb5; margin-top: 8px; font-family: monospace; }
+  .check { color: #22c55e; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>⚡ UTLFarm Admin Panel</h1>
+  <p class="sub">Whitelist UTLFarm on KENO token, then fund the reward pool</p>
+
+  <!-- Step 1: Connect -->
+  <div class="step">
+    <div class="step-num">Step 1</div>
+    <div class="step-title">Connect Wallet</div>
+    <div class="step-desc">Connect with <strong>Account 2</strong> (0xDc41c…) — the KENO token owner</div>
+    <button class="btn-yellow" id="btnConnect" onclick="connectWallet()">Connect MetaMask</button>
+    <div class="wallet-info" id="walletInfo"></div>
+    <div class="status" id="s1"></div>
+  </div>
+
+  <!-- BscScan shortcut banner -->
+  <div style="background:#1a1200;border:1px solid #f0b429;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#f0b429;">
+    ⚡ <strong>Faster option:</strong> MetaMask flags Replit domains. Use BscScan directly — no security warnings. Steps below include BscScan links.
+  </div>
+
+  <!-- Step 2: Whitelist Farm -->
+  <div class="step">
+    <div class="step-num">Step 2</div>
+    <div class="step-title">Whitelist UTLFarm on KENO Token</div>
+    <div class="step-desc">Allows the farm contract to receive KENO rewards</div>
+    <div class="addr">KENO Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+    <div class="addr">UTLFarm: 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</div>
+    <button class="btn-blue" id="btnWhitelist" onclick="whitelistFarm()" disabled>Whitelist UTLFarm (this page)</button>
+    <a href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E#writeContract" target="_blank" style="display:block;margin-top:10px;text-align:center;padding:12px;background:#0d2d4a;border:1px solid #1a6fff;border-radius:10px;color:#60a5fa;font-weight:600;font-size:14px;text-decoration:none;">
+      🔗 Open KENO Write Contract on BscScan →<br>
+      <span style="font-size:11px;font-weight:400;color:#7a8fb5;">Find "updateWhitelist" → enter UTLFarm address + true → Write</span>
+    </a>
+    <div class="status" id="s2"></div>
+  </div>
+
+  <!-- Step 3: Whitelist Keno Wallet -->
+  <div class="step">
+    <div class="step-num">Step 3</div>
+    <div class="step-title">Whitelist Keno Wallet (Sender)</div>
+    <div class="step-desc">Ensures the keno wallet can send KENO to the farm</div>
+    <div class="addr">Keno Wallet: 0x75b4AE3859221bB6DF6D7C2146e93c08B16E440e</div>
+    <button class="btn-blue" id="btnWhitelistKeno" onclick="whitelistKenoWallet()" disabled>Whitelist Keno Wallet (this page)</button>
+    <a href="https://bscscan.com/address/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E#writeContract" target="_blank" style="display:block;margin-top:10px;text-align:center;padding:12px;background:#0d2d4a;border:1px solid #1a6fff;border-radius:10px;color:#60a5fa;font-weight:600;font-size:14px;text-decoration:none;">
+      🔗 Open KENO Write Contract on BscScan →<br>
+      <span style="font-size:11px;font-weight:400;color:#7a8fb5;">Same page — find "updateWhitelist" → enter keno wallet address + true → Write</span>
+    </a>
+    <div class="status" id="s3"></div>
+  </div>
+
+  <!-- Step 4: Fund Farm -->
+  <div class="step">
+    <div class="step-num">Step 4</div>
+    <div class="step-title">Fund Reward Pool — Switch to Keno Wallet</div>
+    <div class="step-desc">Switch MetaMask to the <strong>keno</strong> account, then click Fund. Sends 100,000 KENO to the farm.</div>
+    <button class="btn-green" id="btnFund" onclick="fundFarm()" disabled>Fund 100,000 KENO Rewards (this page)</button>
+    <a href="https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract" target="_blank" style="display:block;margin-top:10px;text-align:center;padding:12px;background:#0d2d1a;border:1px solid #22c55e;border-radius:10px;color:#4ade80;font-weight:600;font-size:14px;text-decoration:none;">
+      🔗 Open UTLFarm Write Contract on BscScan →<br>
+      <span style="font-size:11px;font-weight:400;color:#7a8fb5;">Find "fundRewards" → enter 100000000000000000000000 → Write</span>
+    </a>
+    <div class="status" id="s4"></div>
+  </div>
+</div>
+
+<script>
+const KENO  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+const FARM  = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+const KENO_WALLET = '0x75b4AE3859221bB6DF6D7C2146e93c08B16E440e';
+const DEPLOYER = '0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf';
+const BSC_CHAIN = '0x38'; // 56
+
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  el.textContent = msg;
+}
+
+async function ensureBSC() {
+  const chain = await ethereum.request({ method: 'eth_chainId' });
+  if (chain !== BSC_CHAIN) {
+    await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN }] });
+  }
+}
+
+async function connectWallet() {
+  if (!window.ethereum) { setStatus('s1', 'err', 'MetaMask not found'); return; }
+  try {
+    await ensureBSC();
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    const acct = accounts[0];
+    document.getElementById('walletInfo').textContent = 'Connected: ' + acct;
+    
+    const isDeployer = acct.toLowerCase() === DEPLOYER.toLowerCase();
+    const isKenoWallet = acct.toLowerCase() === KENO_WALLET.toLowerCase();
+    
+    if (isDeployer) {
+      setStatus('s1', 'ok', '✓ Connected as KENO token owner — ready to whitelist');
+      document.getElementById('btnWhitelist').disabled = false;
+      document.getElementById('btnWhitelistKeno').disabled = false;
+    } else if (isKenoWallet) {
+      setStatus('s1', 'ok', '✓ Connected as keno wallet — ready to fund');
+      document.getElementById('btnFund').disabled = false;
+    } else {
+      setStatus('s1', 'info', 'Connected as ' + acct.slice(0,6) + '...' + acct.slice(-4) + ' — switch to Account 2 (deployer) for steps 2-3 or keno wallet for step 4');
+      document.getElementById('btnWhitelist').disabled = false;
+      document.getElementById('btnWhitelistKeno').disabled = false;
+      document.getElementById('btnFund').disabled = false;
+    }
+  } catch(e) { setStatus('s1', 'err', e.message); }
+}
+
+async function whitelistFarm() {
+  try {
+    setStatus('s2', 'info', 'Sending whitelist transaction...');
+    document.getElementById('btnWhitelist').disabled = true;
+    await ensureBSC();
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    // updateWhitelist(0xaf991...41094, true)
+    const data = '0x0d392cd9000000000000000000000000af991d0a2b4ab522adc6766fc0fdcbaffa5410940000000000000000000000000000000000000000000000000000000000000001';
+    const tx = await ethereum.request({ method: 'eth_sendTransaction', params: [{ from: accounts[0], to: KENO, data, gas: '0x15f90' }] });
+    setStatus('s2', 'ok', '✓ TX submitted: ' + tx.slice(0,20) + '... Waiting for confirmation');
+    setTimeout(() => {
+      setStatus('s2', 'ok', '✓ UTLFarm whitelisted! Now do Step 3');
+    }, 4000);
+  } catch(e) { 
+    setStatus('s2', 'err', e.message); 
+    document.getElementById('btnWhitelist').disabled = false;
+  }
+}
+
+async function whitelistKenoWallet() {
+  try {
+    setStatus('s3', 'info', 'Sending whitelist transaction...');
+    document.getElementById('btnWhitelistKeno').disabled = true;
+    await ensureBSC();
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    // updateWhitelist(0x75b4...440e, true)
+    const data = '0x0d392cd900000000000000000000000075b4ae3859221bb6df6d7c2146e93c08b16e440e0000000000000000000000000000000000000000000000000000000000000001';
+    const tx = await ethereum.request({ method: 'eth_sendTransaction', params: [{ from: accounts[0], to: KENO, data, gas: '0x15f90' }] });
+    setStatus('s3', 'ok', '✓ TX submitted: ' + tx.slice(0,20) + '... Now switch MetaMask to keno wallet and do Step 4');
+    document.getElementById('btnFund').disabled = false;
+  } catch(e) { 
+    setStatus('s3', 'err', e.message); 
+    document.getElementById('btnWhitelistKeno').disabled = false;
+  }
+}
+
+async function fundFarm() {
+  try {
+    setStatus('s4', 'info', 'Sending fundRewards transaction...');
+    document.getElementById('btnFund').disabled = true;
+    await ensureBSC();
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    // fundRewards(100000 * 1e18)
+    const data = '0x93707a1900000000000000000000000000000000000000000000152d02c7e14af6800000';
+    const tx = await ethereum.request({ method: 'eth_sendTransaction', params: [{ from: accounts[0], to: FARM, data, gas: '0x30d40' }] });
+    setStatus('s4', 'ok', '✓ Farm funded! TX: ' + tx + '\n\nCheck: https://bscscan.com/tx/' + tx);
+  } catch(e) { 
+    setStatus('s4', 'err', e.message); 
+    document.getElementById('btnFund').disabled = false;
+  }
+}
+</script>
+</body>
+</html>
