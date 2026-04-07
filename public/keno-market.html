@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENO Market | Kenostod Blockchain Academy</title>
+<style>
+  :root {
+    --gold: #f5c842;
+    --green: #00e676;
+    --red: #ff5252;
+    --bg: #0a0e1a;
+    --card: #111827;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #6b7280;
+    --purple: #7c3aed;
+    --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a0533 50%, #0a1628 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header .logo { font-size: 22px; font-weight: 800; color: var(--gold); letter-spacing: -0.5px; }
+  header .sub  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  header nav { margin-left: auto; display: flex; gap: 12px; }
+  header nav a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 6px; transition: .2s; }
+  header nav a:hover { background: var(--border); color: var(--text); }
+
+  .hero {
+    background: linear-gradient(135deg, #0d1b2a, #1a0533 60%, #0a1628);
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 { font-size: 42px; font-weight: 900; color: var(--gold); letter-spacing: -1px; margin-bottom: 8px; }
+  .hero p  { font-size: 16px; color: var(--muted); max-width: 500px; margin: 0 auto 28px; }
+
+  .price-badge {
+    display: inline-flex; flex-direction: column; align-items: center;
+    background: rgba(245,200,66,.08); border: 1px solid rgba(245,200,66,.25);
+    border-radius: 16px; padding: 24px 48px; margin-bottom: 32px;
+  }
+  .price-badge .label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .price-badge .amount { font-size: 52px; font-weight: 900; color: var(--gold); line-height: 1; }
+  .price-badge .sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .peg-status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-top: 10px; }
+  .peg-status.below { background: rgba(255,82,82,.12); color: var(--red); border: 1px solid rgba(255,82,82,.25); }
+  .peg-status.on    { background: rgba(0,230,118,.12); color: var(--green); border: 1px solid rgba(0,230,118,.25); }
+
+  .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: 700;
+    text-decoration: none; border: none; cursor: pointer; transition: .2s; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-gold    { background: var(--gold); color: #000; }
+  .btn-gold:hover { background: #ffd633; transform: translateY(-1px); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--border); transform: translateY(-1px); }
+  .btn-green   { background: rgba(0,230,118,.15); border: 1px solid rgba(0,230,118,.35); color: var(--green); }
+  .btn-green:hover { background: rgba(0,230,118,.25); transform: translateY(-1px); }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 48px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; text-align: center;
+  }
+  .stat-card .s-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+  .stat-card .s-value { font-size: 26px; font-weight: 800; color: var(--gold); }
+  .stat-card .s-sub   { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .section-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 20px; }
+  .section-title span { color: var(--gold); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 48px; }
+  @media(max-width:700px){ .two-col { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px;
+  }
+  .panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--text); }
+
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .k { font-size: 13px; color: var(--muted); }
+  .info-row .v { font-size: 13px; font-weight: 600; color: var(--text); font-family: monospace; word-break: break-all; text-align: right; max-width: 60%; }
+  .info-row .v a { color: var(--blue); text-decoration: none; }
+  .info-row .v a:hover { text-decoration: underline; }
+
+  .steps { counter-reset: step; display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+  }
+  .step-num {
+    counter-increment: step;
+    width: 36px; height: 36px; min-width: 36px; border-radius: 50%;
+    background: rgba(245,200,66,.12); border: 1px solid rgba(245,200,66,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: var(--gold);
+  }
+  .step-num::before { content: counter(step); }
+  .step-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .step-body p  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .step-body .code { font-family: monospace; background: rgba(255,255,255,.05); border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--gold); }
+
+  .earn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 48px; }
+  .earn-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+  }
+  .earn-card .icon { font-size: 28px; margin-bottom: 10px; }
+  .earn-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .earn-card p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .peg-explain {
+    background: linear-gradient(135deg, rgba(245,200,66,.06), rgba(124,58,237,.06));
+    border: 1px solid rgba(245,200,66,.2); border-radius: 14px; padding: 28px; margin-bottom: 48px;
+  }
+  .peg-explain h3 { font-size: 18px; font-weight: 800; color: var(--gold); margin-bottom: 12px; }
+  .peg-explain p  { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
+  .peg-bar { background: rgba(255,255,255,.06); border-radius: 8px; height: 12px; overflow: hidden; margin: 16px 0 6px; position: relative; }
+  .peg-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--gold)); border-radius: 8px; transition: width 1s; }
+  .peg-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+  .links-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+  .link-card {
+    flex: 1; min-width: 140px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; text-decoration: none; text-align: center;
+    transition: .2s; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .link-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .link-card .lc-icon { font-size: 22px; }
+  .link-card .lc-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .link-card .lc-sub  { font-size: 11px; color: var(--muted); }
+
+  .loading { color: var(--muted); font-size: 13px; }
+  .badge-live { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--green); }
+  .badge-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 12px; color: var(--muted); }
+  footer a { color: var(--gold); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">KENOSTOD</div>
+    <div class="sub">Blockchain Academy LLC</div>
+  </div>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/utl-dashboard.html">UTL Dashboard</a>
+    <a href="/keno-market.html" style="color:var(--gold)">KENO Market</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <h1>KENO Token Market</h1>
+  <p>Live pricing, liquidity, and trading for KENO on PancakeSwap — BNB Smart Chain</p>
+
+  <div class="price-badge">
+    <div class="label">KENO Price <span class="badge-live" style="margin-left:8px">LIVE</span></div>
+    <div class="amount" id="priceUSD">...</div>
+    <div class="sub" id="priceBNB">loading...</div>
+    <div class="peg-status below" id="pegStatus">Checking peg...</div>
+  </div>
+
+  <div class="cta-buttons">
+    <a href="#" id="btnBuy" class="btn btn-gold" target="_blank">Buy KENO</a>
+    <a href="#" id="btnLiquidity" class="btn btn-green" target="_blank">+ Add Liquidity</a>
+    <a href="#" id="btnChart" class="btn btn-outline" target="_blank">View Chart</a>
+    <a href="/utl-dashboard.html" class="btn btn-outline">Stake KENO</a>
+    <a href="/fal-dashboard.html" class="btn btn-outline" style="background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.4);color:#f5c842;">⚡ FAL™</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Live Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="s-label">KENO Price</div>
+      <div class="s-value" id="statPrice">—</div>
+      <div class="s-sub">USD</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">Pool TVL</div>
+      <div class="s-value" id="statTVL">—</div>
+      <div class="s-sub">Total Value Locked</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">KENO in Pool</div>
+      <div class="s-value" id="statKENO">—</div>
+      <div class="s-sub">Tokens</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">BNB in Pool</div>
+      <div class="s-value" id="statBNB">—</div>
+      <div class="s-sub">BNB</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">Target Peg</div>
+      <div class="s-value">$1.00</div>
+      <div class="s-sub">USD (USDB)</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">DEX</div>
+      <div class="s-value" style="font-size:18px">PancakeSwap</div>
+      <div class="s-sub">V2 • BSC</div>
+    </div>
+  </div>
+
+  <!-- Peg Explanation -->
+  <div class="peg-explain">
+    <h3>The $1.00 USDB Peg — How It Works</h3>
+    <p>KENO is designed to trade near <strong style="color:var(--gold)">$1.00 USD</strong>. Right now liquidity in the pool is thin, so the price moves easily with small trades. As more liquidity providers add KENO + BNB to the pool, the price stabilizes and tracks $1.00 more reliably.</p>
+    <p>The UTL FeeCollector feeds 60% of all protocol fees to KENO stakers — this creates continuous buy pressure on KENO as the ecosystem grows. More volume → more fees → more demand for KENO → price rises toward peg.</p>
+    <div style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
+        <span>Current Price</span><span id="pegBarLabel">—</span>
+      </div>
+      <div class="peg-bar"><div class="peg-fill" id="pegFill" style="width:0%"></div></div>
+      <div class="peg-labels"><span>$0.00</span><span>$1.00 target</span></div>
+    </div>
+  </div>
+
+  <!-- How to Make Money -->
+  <div class="section-title">How to Earn with <span>KENO</span></div>
+  <div class="earn-grid">
+    <div class="earn-card">
+      <div class="icon">🏦</div>
+      <h4>Stake KENO — Earn Protocol Fees</h4>
+      <p>Stake KENO in UTL Protocol. Every transaction generates a 0.1% fee — 60% redistributed to KENO stakers in real time. Diamond stakers earn 2× the base rate.</p>
+    </div>
+    <div class="earn-card">
+      <div class="icon">💧</div>
+      <h4>Provide Liquidity — Earn LP Fees</h4>
+      <p>Add KENO + BNB to the PancakeSwap pool. You earn 0.25% on every swap through your share of the pool. Fees accumulate automatically.</p>
+    </div>
+    <div class="earn-card">
+      <div class="icon">⭐</div>
+      <h4>Pay KENO Tolls — Build Your Tier</h4>
+      <p>Use KENO to pay UTL protocol tolls. Each toll builds your loyalty tier (Bronze → Diamond), giving you higher reward multipliers on staking.</p>
+    </div>
+    <div class="earn-card">
+      <div class="icon">📈</div>
+      <h4>Hold KENO — Appreciation Upside</h4>
+      <p>KENO is currently below the $1.00 peg. As the ecosystem grows and liquidity deepens, KENO price rises toward target — early holders benefit most.</p>
+    </div>
+  </div>
+
+  <!-- Two Column: Pool Info + How to Add Liquidity -->
+  <div class="two-col">
+    <div class="panel">
+      <h3>Pool Details</h3>
+      <div class="info-row">
+        <span class="k">Pair</span>
+        <span class="v">KENO / BNB</span>
+      </div>
+      <div class="info-row">
+        <span class="k">DEX</span>
+        <span class="v">PancakeSwap V2</span>
+      </div>
+      <div class="info-row">
+        <span class="k">Chain</span>
+        <span class="v">BNB Smart Chain</span>
+      </div>
+      <div class="info-row">
+        <span class="k">Pool Address</span>
+        <span class="v"><a href="https://bscscan.com/address/0x72368adf1487eeebcb095f16cf8cbf91f2b44880" target="_blank">0x7236...4880</a></span>
+      </div>
+      <div class="info-row">
+        <span class="k">KENO Contract</span>
+        <span class="v"><a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">0x6579...FD0E</a></span>
+      </div>
+      <div class="info-row">
+        <span class="k">LP Fee</span>
+        <span class="v">0.25% per swap</span>
+      </div>
+      <div class="info-row">
+        <span class="k">Protocol Fee</span>
+        <span class="v">0.05% (to treasury)</span>
+      </div>
+      <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="https://dexscreener.com/bsc/0x72368adf1487eeebcb095f16cf8cbf91f2b44880" target="_blank" class="btn btn-outline" style="font-size:13px;padding:10px 16px;">DexScreener Chart</a>
+        <a href="https://bscscan.com/address/0x72368adf1487eeebcb095f16cf8cbf91f2b44880" target="_blank" class="btn btn-outline" style="font-size:13px;padding:10px 16px;">BSCScan</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>How to Add Liquidity</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num"></div>
+          <div class="step-body">
+            <h4>Get KENO tokens</h4>
+            <p>Buy KENO on PancakeSwap using BNB. Or purchase through the <a href="/" style="color:var(--gold)">ICO page</a> during the presale.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num"></div>
+          <div class="step-body">
+            <h4>Go to PancakeSwap Add Liquidity</h4>
+            <p>Click <strong>Add Liquidity</strong> below. PancakeSwap will open with the KENO/BNB pair pre-filled.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num"></div>
+          <div class="step-body">
+            <h4>Enter equal USD amounts</h4>
+            <p>Enter the amount of KENO you want to add. PancakeSwap will auto-calculate how much BNB to pair with it at the current ratio.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num"></div>
+          <div class="step-body">
+            <h4>Confirm and receive LP tokens</h4>
+            <p>Approve the transaction. You receive <span class="code">KENO-BNB LP</span> tokens representing your share of the pool — redeemable anytime.</p>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <a href="#" id="btnLiquidity2" class="btn btn-green" target="_blank" style="width:100%;justify-content:center;">+ Add Liquidity on PancakeSwap</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="section-title">Quick Links</div>
+  <div class="links-row">
+    <a href="#" id="lnkBuy" class="link-card" target="_blank">
+      <div class="lc-icon">🥞</div>
+      <div class="lc-name">Buy KENO</div>
+      <div class="lc-sub">PancakeSwap Swap</div>
+    </a>
+    <a href="#" id="lnkLiq" class="link-card" target="_blank">
+      <div class="lc-icon">💧</div>
+      <div class="lc-name">Add Liquidity</div>
+      <div class="lc-sub">PancakeSwap Pool</div>
+    </a>
+    <a href="https://dexscreener.com/bsc/0x72368adf1487eeebcb095f16cf8cbf91f2b44880" class="link-card" target="_blank">
+      <div class="lc-icon">📊</div>
+      <div class="lc-name">Live Chart</div>
+      <div class="lc-sub">DexScreener</div>
+    </a>
+    <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" class="link-card" target="_blank">
+      <div class="lc-icon">🔍</div>
+      <div class="lc-name">KENO Contract</div>
+      <div class="lc-sub">BSCScan</div>
+    </a>
+    <a href="/utl-dashboard.html" class="link-card">
+      <div class="lc-icon">🏦</div>
+      <div class="lc-name">UTL Dashboard</div>
+      <div class="lc-sub">Stake & Earn</div>
+    </a>
+    <a href="/" class="link-card">
+      <div class="lc-icon">🎓</div>
+      <div class="lc-name">Academy</div>
+      <div class="lc-sub">21 Courses</div>
+    </a>
+  </div>
+
+</div>
+
+<footer>
+  &copy; 2026 Kenostod Blockchain Academy LLC &mdash; KENO token is <strong>not</strong> investment advice. DeFi involves risk. &nbsp;|&nbsp;
+  <a href="/utl-dashboard.html">UTL Protocol</a> &nbsp;|&nbsp;
+  <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">BSCScan</a>
+</footer>
+
+<script>
+const PANCAKE_SWAP = 'https://pancakeswap.finance/swap?outputCurrency=0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E&chain=bsc';
+const PANCAKE_LIQ  = 'https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E?chain=bsc';
+const PANCAKE_CHART = 'https://dexscreener.com/bsc/0x72368adf1487eeebcb095f16cf8cbf91f2b44880';
+
+document.querySelectorAll('#btnBuy,#lnkBuy').forEach(el => el.href = PANCAKE_SWAP);
+document.querySelectorAll('#btnLiquidity,#btnLiquidity2,#lnkLiq').forEach(el => el.href = PANCAKE_LIQ);
+document.getElementById('btnChart').href = PANCAKE_CHART;
+
+async function loadMarket() {
+  try {
+    const res = await fetch('/api/keno/market');
+    const d   = await res.json();
+    if (!d.ok) throw new Error(d.error);
+
+    const usd = d.price.usd;
+    const fmt = v => v < 0.01 ? v.toFixed(6) : v < 1 ? v.toFixed(4) : v.toFixed(2);
+
+    document.getElementById('priceUSD').textContent = '$' + fmt(usd);
+    document.getElementById('priceBNB').textContent = fmt(d.price.bnb) + ' BNB per KENO  |  BNB = $' + d.bnbPrice.toFixed(2);
+    document.getElementById('statPrice').textContent = '$' + fmt(usd);
+    document.getElementById('statTVL').textContent   = '$' + (d.tvl < 1000 ? d.tvl.toFixed(2) : (d.tvl/1000).toFixed(1) + 'K');
+    document.getElementById('statKENO').textContent  = d.reserves.keno.toFixed(1);
+    document.getElementById('statBNB').textContent   = d.reserves.bnb.toFixed(4);
+
+    const peg = document.getElementById('pegStatus');
+    if (d.peg.status === 'ON_PEG') {
+      peg.textContent = 'On Peg — $1.00 Target Reached';
+      peg.className = 'peg-status on';
+    } else {
+      const pct = ((usd / 1.00) * 100).toFixed(1);
+      peg.textContent = `${pct}% of $1.00 target — needs liquidity`;
+      peg.className = 'peg-status below';
+    }
+
+    const fillPct = Math.min((usd / 1.00) * 100, 100);
+    document.getElementById('pegFill').style.width = fillPct + '%';
+    document.getElementById('pegBarLabel').textContent = '$' + fmt(usd) + ' / $1.00';
+  } catch (e) {
+    document.getElementById('priceUSD').textContent = 'Error';
+    document.getElementById('priceBNB').textContent = e.message;
+    console.error('Market fetch failed:', e);
+  }
+}
+
+loadMarket();
+setInterval(loadMarket, 30000);
+</script>
+</body>
+</html>
