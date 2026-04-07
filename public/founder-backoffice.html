@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Founder Backoffice | Kenostod Blockchain Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        :root {
+            --primary: #064e3b;
+            --primary-light: #065f46;
+            --accent: #d4af37;
+            --accent-light: #f4d03f;
+            --dark: #0f172a;
+            --darker: #020617;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(212, 175, 55, 0.2);
+            --snap-orange: #f6851b;
+            --protocol-purple: #6366f1;
+            --platinum: #e5e4e2;
+            --platinum-dark: #a8a8a8;
+            --diamond: #00d4ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--darker) 0%, rgba(6, 78, 59, 0.3) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .login-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(6, 78, 59, 0.2));
+            border: 2px solid var(--accent);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .login-card .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--darker);
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .login-card h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--darker);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .main-layout.authenticated {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.95);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-header .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--darker);
+            font-size: 1.25rem;
+        }
+
+        .sidebar-header .logo-text {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .sidebar-header .badge {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+            background: linear-gradient(135deg, var(--platinum), var(--diamond));
+            color: var(--darker);
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            padding-left: 0.75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 0.75rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--accent);
+            border-left: 3px solid var(--accent);
+        }
+
+        .nav-item .icon {
+            font-size: 1.25rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-title h2 {
+            font-size: 1.75rem;
+            color: var(--text);
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .wallet-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 9999px;
+        }
+
+        .wallet-pill .address {
+            font-size: 0.875rem;
+            color: var(--accent);
+        }
+
+        .wallet-pill .disconnect {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .wallet-pill .disconnect:hover {
+            color: var(--danger);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(6, 78, 59, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .stat-card.platinum {
+            border-color: var(--platinum);
+            background: linear-gradient(135deg, rgba(229, 228, 226, 0.05), rgba(15, 23, 42, 0.9));
+        }
+
+        .stat-card.platinum:hover {
+            border-color: var(--diamond);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.gold {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid var(--accent);
+        }
+
+        .stat-icon.platinum {
+            background: rgba(229, 228, 226, 0.15);
+            border: 1px solid var(--platinum);
+        }
+
+        .stat-icon.diamond {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid var(--diamond);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value.gold {
+            color: var(--accent);
+        }
+
+        .stat-value.platinum {
+            background: linear-gradient(135deg, var(--platinum), var(--diamond));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Virtual Card Section */
+        .card-section {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(6, 78, 59, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .card-section-header h3 {
+            font-size: 1.25rem;
+            color: var(--text);
+        }
+
+        /* Virtual Card */
+        .virtual-card-container {
+            perspective: 1000px;
+            margin: 2rem auto;
+            max-width: 400px;
+        }
+
+        .virtual-card {
+            width: 100%;
+            height: 250px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .virtual-card:hover {
+            transform: rotateY(10deg) rotateX(5deg) translateZ(20px);
+        }
+
+        .virtual-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .v-card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .v-card-front {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 2px solid var(--platinum);
+            box-shadow: 0 0 40px rgba(229, 228, 226, 0.15);
+        }
+
+        .v-card-back {
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+            border: 2px solid var(--platinum);
+            transform: rotateY(180deg);
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .card-chip {
+            width: 55px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--platinum), var(--platinum-dark));
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .card-chip::before,
+        .card-chip::after {
+            content: '';
+            position: absolute;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .card-chip::before {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+
+        .card-chip::after {
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            transform: translateX(-50%);
+        }
+
+        .card-number {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            color: var(--platinum);
+        }
+
+        .card-status-badge {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .tier-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .tier-platinum {
+            background: linear-gradient(135deg, var(--platinum), var(--platinum-dark));
+            color: var(--darker);
+        }
+
+        /* Mobile Wallet Buttons */
+        .mobile-wallets {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .wallet-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .wallet-btn.google-pay {
+            background: #000;
+            color: #fff;
+        }
+
+        .wallet-btn.google-pay:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        .wallet-btn.apple-pay {
+            background: #000;
+            color: #fff;
+        }
+
+        .wallet-btn.apple-pay:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        .wallet-btn img {
+            height: 20px;
+            width: auto;
+        }
+
+        /* Physical Card Request */
+        .form-section {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(6, 78, 59, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-section h3 {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-section > p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.875rem 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--darker);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Founder Perks */
+        .perks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .perk-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(6, 78, 59, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .perk-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+        }
+
+        .perk-card.platinum::before {
+            background: linear-gradient(90deg, var(--platinum), var(--diamond));
+        }
+
+        .perk-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .perk-card.platinum:hover {
+            border-color: var(--platinum);
+        }
+
+        .perk-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid var(--accent);
+        }
+
+        .perk-card.platinum .perk-icon {
+            background: rgba(229, 228, 226, 0.15);
+            border: 1px solid var(--platinum);
+        }
+
+        .perk-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .perk-card.platinum .perk-title {
+            background: linear-gradient(135deg, var(--platinum), var(--diamond));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .perk-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .perk-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .perk-card.platinum .perk-value {
+            background: linear-gradient(135deg, var(--platinum), var(--diamond));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Revenue Chart Placeholder */
+        .chart-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            color: var(--text);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .status-badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--darker);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mobile-wallets {
+                flex-direction: column;
+            }
+
+            .wallet-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <div class="logo-icon">K</div>
+            <h1>Founder Backoffice</h1>
+            <p>Restricted access. Authorized personnel only.</p>
+            <input type="password" class="password-input" id="passwordInput" placeholder="Enter access code">
+            <button class="login-btn" onclick="authenticate()">Access Backoffice</button>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout" id="mainLayout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon">K</div>
+                <div>
+                    <div class="logo-text">KENOSTOD</div>
+                    <span class="badge">FOUNDER</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <div class="nav-item active" onclick="showSection('overview')">
+                    <span class="icon">📊</span>
+                    <span>Overview</span>
+                </div>
+                <div class="nav-item" onclick="showSection('card')">
+                    <span class="icon">💳</span>
+                    <span>My KUTL Card</span>
+                </div>
+                <div class="nav-item" onclick="showSection('revenue')">
+                    <span class="icon">💰</span>
+                    <span>Revenue</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Founder Perks</div>
+                <div class="nav-item" onclick="showSection('perks')">
+                    <span class="icon">👑</span>
+                    <span>Exclusive Perks</span>
+                </div>
+                <div class="nav-item" onclick="showSection('physical-card')">
+                    <span class="icon">📮</span>
+                    <span>Physical Card</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Analytics</div>
+                <div class="nav-item" onclick="showSection('students')">
+                    <span class="icon">🎓</span>
+                    <span>Students</span>
+                </div>
+                <div class="nav-item" onclick="showSection('transactions')">
+                    <span class="icon">📈</span>
+                    <span>Transactions</span>
+                </div>
+                <div class="nav-item" onclick="showSection('utl-stats')">
+                    <span class="icon">⚡</span>
+                    <span>UTL Protocol</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="page-title">
+                    <h2 id="pageTitle">Overview</h2>
+                    <p id="pageSubtitle">Welcome back, Founder</p>
+                </div>
+                <div class="wallet-pill" id="walletPill" style="display: none;">
+                    <span class="address" id="walletAddress">Not Connected</span>
+                    <span class="disconnect" onclick="disconnectWallet()">Disconnect</span>
+                </div>
+            </div>
+
+            <!-- Overview Section -->
+            <div class="content-section active" id="overview-section">
+                <div class="stats-grid">
+                    <div class="stat-card platinum">
+                        <div class="stat-header">
+                            <div class="stat-icon platinum">💎</div>
+                            <div class="stat-label">Total KENO Balance</div>
+                        </div>
+                        <div class="stat-value platinum" id="totalBalance">12,500</div>
+                        <div class="stat-change">+15% this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon gold">🪙</div>
+                            <div class="stat-label">Wallet KENO</div>
+                        </div>
+                        <div class="stat-value gold" id="walletBalance">5,000</div>
+                        <div class="stat-change">MetaMask Connected</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon diamond">⚡</div>
+                            <div class="stat-label">FAL Rewards</div>
+                        </div>
+                        <div class="stat-value" style="color: var(--diamond);" id="falBalance">2,500</div>
+                        <div class="stat-change">+500 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon gold">💳</div>
+                            <div class="stat-label">Card Balance</div>
+                        </div>
+                        <div class="stat-value gold" id="cardBalance">5,000</div>
+                        <div class="stat-change">Available to spend</div>
+                    </div>
+                </div>
+
+                <div class="card-section">
+                    <div class="card-section-header">
+                        <div>
+                            <h3>Quick Actions</h3>
+                            <p style="color: var(--text-muted); font-size: 0.875rem;">Frequently used founder tools</p>
+                        </div>
+                    </div>
+                    <div class="mobile-wallets">
+                        <button class="wallet-btn" style="background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: var(--darker);" onclick="connectWallet()">
+                            <span>🦊</span> Connect MetaMask
+                        </button>
+                        <button class="wallet-btn" style="background: rgba(255,255,255,0.1);" onclick="showSection('physical-card')">
+                            <span>📮</span> Request Physical Card
+                        </button>
+                        <button class="wallet-btn" style="background: rgba(255,255,255,0.1);" onclick="showSection('revenue')">
+                            <span>💰</span> View Revenue
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Section -->
+            <div class="content-section" id="card-section">
+                <div class="card-section">
+                    <div class="card-section-header">
+                        <div>
+                            <h3>Your Platinum KUTL Card</h3>
+                            <p style="color: var(--text-muted); font-size: 0.875rem;">Click card to flip • Use for online purchases</p>
+                        </div>
+                        <div class="tier-badge tier-platinum">PLATINUM</div>
+                    </div>
+
+                    <div class="virtual-card-container" onclick="flipCard()">
+                        <div class="virtual-card" id="founderCard">
+                            <div class="v-card-face v-card-front">
+                                <div class="card-status-badge status-active">Active</div>
+                                
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--platinum), var(--platinum-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--darker); font-size: 1.5rem;">K</div>
+                                    <div>
+                                        <div style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--platinum), var(--diamond)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px;">KUTL</div>
+                                        <div style="font-size: 0.7rem; color: var(--text-muted);">Knowledge Unlocks The Ledger</div>
+                                    </div>
+                                </div>
+
+                                <div class="card-chip"></div>
+
+                                <div class="card-number">
+                                    9999 9999 9999 <span id="cardLastFour">0001</span>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                                    <div>
+                                        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Card Holder</div>
+                                        <div style="text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; color: var(--platinum);">FOUNDER</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Expires</div>
+                                        <div style="font-size: 1rem; color: var(--platinum);">12/30</div>
+                                    </div>
+                                    <div class="tier-badge tier-platinum">PLATINUM</div>
+                                </div>
+                            </div>
+
+                            <div class="v-card-face v-card-back">
+                                <div style="font-size: 4rem; margin-bottom: 0.5rem;">👑</div>
+                                <div style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.25rem; background: linear-gradient(135deg, var(--platinum), var(--diamond)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                    <span id="cardBackBalance">5,000</span> KENO
+                                </div>
+                                <div style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.125rem;">≈ $5,000.00 USD</div>
+                                
+                                <div style="display: flex; gap: 3rem; padding-top: 1.5rem; border-top: 2px solid rgba(229, 228, 226, 0.3);">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.5rem; background: linear-gradient(135deg, var(--platinum), var(--diamond)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">∞</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Courses</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.5rem; background: linear-gradient(135deg, var(--platinum), var(--diamond)); -webkit-text-fill-color: transparent; font-weight: 700;" id="cardScore">5,000</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Score</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.5rem; background: linear-gradient(135deg, var(--platinum), var(--diamond)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">$10K</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Limit</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Wallet Integration -->
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <p style="color: var(--text-muted); margin-bottom: 1rem;">Add to your mobile wallet for in-store purchases</p>
+                        <div class="mobile-wallets">
+                            <button class="wallet-btn google-pay" onclick="addToGooglePay()">
+                                <svg width="40" height="16" viewBox="0 0 40 16" fill="none">
+                                    <path d="M14.16 8.08c0-.57-.05-1.12-.14-1.65H8.16v3.12h3.36c-.15.8-.59 1.48-1.25 1.93v1.61h2.02c1.19-1.1 1.87-2.72 1.87-4.01z" fill="#4285F4"/>
+                                    <path d="M8.16 16c1.7 0 3.13-.56 4.17-1.52l-2.02-1.61c-.56.38-1.28.6-2.15.6-1.65 0-3.05-1.11-3.55-2.61H2.5v1.66C3.53 14.32 5.67 16 8.16 16z" fill="#34A853"/>
+                                    <path d="M4.61 9.86c-.13-.38-.2-.78-.2-1.2s.07-.82.2-1.2V5.8H2.5C2.02 6.74 1.75 7.8 1.75 8.93s.27 2.19.75 3.13l2.11-1.2z" fill="#FBBC05"/>
+                                    <path d="M8.16 3.12c.93 0 1.76.32 2.42.95l1.81-1.81C11.35 1.03 9.92.4 8.16.4 5.67.4 3.53 2.08 2.5 4.37l2.11 1.2c.5-1.5 1.9-2.45 3.55-2.45z" fill="#EA4335"/>
+                                    <text x="20" y="12" fill="white" font-size="10" font-weight="500">Pay</text>
+                                </svg>
+                            </button>
+                            <button class="wallet-btn apple-pay" onclick="addToApplePay()">
+                                <svg width="35" height="14" viewBox="0 0 35 14" fill="none">
+                                    <path d="M6.8 2.2c.35-.42.58-1 .5-1.58-.48.02-1.07.32-1.41.74-.32.4-.6 1.03-.52 1.6.55.04 1.1-.28 1.43-.76zm.52.85c-.78-.04-1.44.44-1.82.44-.38 0-.96-.42-1.58-.4C2.92 3.12 2 3.9 1.6 5c-.82 1.42-.22 3.52.58 4.68.38.56.84 1.18 1.44 1.16.58-.02.8-.38 1.5-.38.7 0 .9.38 1.52.36.62-.02 1.02-.56 1.4-1.12.44-.64.62-1.26.64-1.3-.02 0-1.22-.46-1.24-1.86-.02-1.16.96-1.72 1-1.74-.54-.8-1.38-.88-1.68-.9z" fill="white"/>
+                                    <text x="12" y="11" fill="white" font-size="10" font-weight="500">Pay</text>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card Details -->
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 1rem;">Card Details</h4>
+                        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                            <div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Spending Limit</div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--platinum);">$10,000/mo</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Cashback</div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent);">5%</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Card Tier</div>
+                                <div style="font-size: 1.25rem; font-weight: 700; background: linear-gradient(135deg, var(--platinum), var(--diamond)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Platinum</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Status</div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--success);">Active</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Section -->
+            <div class="content-section" id="revenue-section">
+                <div class="stats-grid">
+                    <div class="stat-card platinum">
+                        <div class="stat-header">
+                            <div class="stat-icon platinum">💰</div>
+                            <div class="stat-label">Total Revenue (All Time)</div>
+                        </div>
+                        <div class="stat-value platinum">145.89 BNB</div>
+                        <div class="stat-change">≈ $90,450 USD</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon gold">📅</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                        <div class="stat-value gold">12.45 BNB</div>
+                        <div class="stat-change">+8.2% vs last month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon diamond">⚡</div>
+                            <div class="stat-label">Your Share (25%)</div>
+                        </div>
+                        <div class="stat-value" style="color: var(--diamond);">3.11 BNB</div>
+                        <div class="stat-change">This month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon gold">👥</div>
+                            <div class="stat-label">Active Stakers</div>
+                        </div>
+                        <div class="stat-value gold">2,847</div>
+                        <div class="stat-change">+124 this week</div>
+                    </div>
+                </div>
+
+                <div class="card-section">
+                    <h3 style="margin-bottom: 1rem;">Revenue Breakdown</h3>
+                    <div class="chart-container">
+                        <div class="chart-placeholder">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                            <p>Revenue chart integration coming soon</p>
+                            <p style="font-size: 0.875rem; margin-top: 0.5rem;">Connect to your analytics backend</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Withdraw Revenue</h3>
+                    <p>Transfer your UTL revenue share to your wallet</p>
+                    <div class="form-grid" style="grid-template-columns: 1fr auto;">
+                        <div class="form-group">
+                            <label>Amount (BNB)</label>
+                            <input type="number" id="withdrawAmount" placeholder="0.00" step="0.001">
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button class="submit-btn" onclick="withdrawRevenue()">Withdraw</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Founder Perks Section -->
+            <div class="content-section" id="perks-section">
+                <div class="perks-grid">
+                    <div class="perk-card platinum">
+                        <div class="perk-icon">💎</div>
+                        <div class="perk-title">UTL Revenue Share</div>
+                        <div class="perk-desc">Earn 25% of all UTL protocol fees as the founder. Passive income from every transaction.</div>
+                        <div class="perk-value">3.11 BNB/mo</div>
+                    </div>
+                    <div class="perk-card platinum">
+                        <div class="perk-icon">🚀</div>
+                        <div class="perk-title">Early Access</div>
+                        <div class="perk-desc">Get first access to all new features, courses, and protocol upgrades before anyone else.</div>
+                        <div class="perk-value">Lifetime</div>
+                    </div>
+                    <div class="perk-card platinum">
+                        <div class="perk-icon">🎯</div>
+                        <div class="perk-title">Governance Power</div>
+                        <div class="perk-desc">Veto power on major protocol decisions. Your voice shapes the future of Kenostod.</div>
+                        <div class="perk-value">Founder Vote</div>
+                    </div>
+                    <div class="perk-card">
+                        <div class="perk-icon">💳</div>
+                        <div class="perk-title">Platinum Card</div>
+                        <div class="perk-desc">$10,000 monthly spending limit with 5% cashback on all purchases. No course required.</div>
+                        <div class="perk-value">$10K/mo</div>
+                    </div>
+                    <div class="perk-card">
+                        <div class="perk-icon">🎓</div>
+                        <div class="perk-title">Free Courses</div>
+                        <div class="perk-desc">Unlimited access to all 21 courses plus future releases. Learn at your own pace.</div>
+                        <div class="perk-value">∞ Courses</div>
+                    </div>
+                    <div class="perk-card">
+                        <div class="perk-icon">⚡</div>
+                        <div class="perk-title">FAL Priority</div>
+                        <div class="perk-desc">Priority access to Flash Arbitrage Loans with higher limits and better rates.</div>
+                        <div class="perk-value">2.5x Multiplier</div>
+                    </div>
+                    <div class="perk-card">
+                        <div class="perk-icon">📊</div>
+                        <div class="perk-title">Analytics Dashboard</div>
+                        <div class="perk-desc">Full access to student data, transaction analytics, and protocol metrics.</div>
+                        <div class="perk-value">Real-time</div>
+                    </div>
+                    <div class="perk-card">
+                        <div class="perk-icon">🤝</div>
+                        <div class="perk-title">Partner Network</div>
+                        <div class="perk-desc">Access to exclusive founder-only events, partnerships, and networking opportunities.</div>
+                        <div class="perk-value">VIP Access</div>
+                    </div>
+                    <div class="perk-card">
+                        <div class="perk-icon">🔧</div>
+                        <div class="perk-title">Custom Development</div>
+                        <div class="perk-desc">Priority support for custom integrations, features, and technical assistance.</div>
+                        <div class="perk-value">24/7 Support</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Physical Card Request Section -->
+            <div class="content-section" id="physical-card-section">
+                <div class="form-section">
+                    <h3>📮 Request Physical KUTL Card</h3>
+                    <p>Get your premium metal Platinum card delivered to your door</p>
+
+                    <form id="physicalCardForm" onsubmit="submitPhysicalCardRequest(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Full Name (as on card)</label>
+                                <input type="text" id="cardName" placeholder="JOHN DOE" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" id="phone" placeholder="+1 (555) 000-0000" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Street Address</label>
+                                <input type="text" id="address1" placeholder="123 Main Street" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Apartment, Suite, etc. (optional)</label>
+                                <input type="text" id="address2" placeholder="Apt 4B">
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" id="city" placeholder="New York" required>
+                            </div>
+                            <div class="form-group">
+                                <label>State/Province</label>
+                                <input type="text" id="state" placeholder="NY" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ZIP/Postal Code</label>
+                                <input type="text" id="zip" placeholder="10001" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Country</label>
+                                <select id="country" required>
+                                    <option value="">Select Country</option>
+                                    <option value="US">United States</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="JP">Japan</option>
+                                    <option value="SG">Singapore</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Delivery Instructions (optional)</label>
+                                <textarea id="instructions" placeholder="Any special delivery instructions..."></textarea>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                            <h4 style="color: var(--accent); margin-bottom: 0.75rem;">💎 Platinum Card Features</h4>
+                            <ul style="list-style: none; color: var(--text-muted); font-size: 0.9rem;">
+                                <li style="padding: 0.25rem 0;">✓ Premium metal card construction</li>
+                                <li style="padding: 0.25rem 0;">✓ Embossed platinum finish</li>
+                                <li style="padding: 0.25rem 0;">✓ Contactless NFC enabled</li>
+                                <li style="padding: 0.25rem 0;">✓ Free worldwide shipping</li>
+                                <li style="padding: 0.25rem 0;">✓ Express delivery (3-5 business days)</li>
+                            </ul>
+                        </div>
+
+                        <button type="submit" class="submit-btn">Submit Card Request</button>
+                    </form>
+                </div>
+
+                <!-- Card Status -->
+                <div class="card-section" id="cardStatusSection" style="display: none;">
+                    <h3 style="margin-bottom: 1rem;">Your Card Request Status</h3>
+                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: 12px;">
+                        <div style="font-size: 2rem;">📦</div>
+                        <div>
+                            <div style="font-weight: 700; color: var(--success);">Status: Processing</div>
+                            <div style="color: var(--text-muted); font-size: 0.9rem;">Your Platinum card is being prepared for shipment</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem;">Estimated delivery: 3-5 business days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Section -->
+            <div class="content-section" id="students-section">
+                <div class="card-section">
+                    <h3 style="margin-bottom: 1rem;">Student Overview</h3>
+                    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                        <div class="stat-card">
+                            <div class="stat-value gold">12,847</div>
+                            <div class="stat-label">Total Students</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--success);">8,234</div>
+                            <div class="stat-label">Active</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--diamond);">342</div>
+                            <div class="stat-label">Graduated</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--protocol-purple);">4,271</div>
+                            <div class="stat-label">Wealth Builder</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-section">
+                    <h3 style="margin-bottom: 1rem;">Recent Students</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Track</th>
+                                <th>Courses</th>
+                                <th>KENO Earned</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0x7a23...8f4a</td>
+                                <td>Wealth Builder</td>
+                                <td>12/21</td>
+                                <td>3,000</td>
+                                <td><span class="status-badge active">● Active</span></td>
+                                <td>2 days ago</td>
+                            </tr>
+                            <tr>
+                                <td>0x3b91...2c7e</td>
+                                <td>Professional</td>
+                                <td>5/21</td>
+                                <td>1,250</td>
+                                <td><span class="status-badge active">● Active</span></td>
+                                <td>1 week ago</td>
+                            </tr>
+                            <tr>
+                                <td>0x9f45...1a8d</td>
+                                <td>Wealth Builder</td>
+                                <td>21/21</td>
+                                <td>5,250</td>
+                                <td><span class="status-badge active">● Graduated</span></td>
+                                <td>2 weeks ago</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <div class="content-section" id="transactions-section">
+                <div class="card-section">
+                    <h3 style="margin-bottom: 1rem;">Recent Transactions</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>From/To</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🪙 KENO Transfer</td>
+                                <td style="color: var(--accent);">+500 KENO</td>
+                                <td>FAL Rewards</td>
+                                <td><span class="status-badge active">● Completed</span></td>
+                                <td>2 hours ago</td>
+                            </tr>
+                            <tr>
+                                <td>💳 Card Purchase</td>
+                                <td style="color: var(--danger);">-150 KENO</td>
+                                <td>Amazon.com</td>
+                                <td><span class="status-badge active">● Completed</span></td>
+                                <td>5 hours ago</td>
+                            </tr>
+                            <tr>
+                                <td>💰 Revenue Share</td>
+                                <td style="color: var(--accent);">+0.45 BNB</td>
+                                <td>UTL Protocol</td>
+                                <td><span class="status-badge active">● Completed</span></td>
+                                <td>1 day ago</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- UTL Stats Section -->
+            <div class="content-section" id="utl-stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card platinum">
+                        <div class="stat-header">
+                            <div class="stat-icon platinum">⚡</div>
+                            <div class="stat-label">Total Volume</div>
+                        </div>
+                        <div class="stat-value platinum">$2.4M</div>
+                        <div class="stat-change">All time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon gold">📊</div>
+                            <div class="stat-label">Transactions</div>
+                        </div>
+                        <div class="stat-value gold">45,892</div>
+                        <div class="stat-change">+1,234 today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon diamond">💎</div>
+                            <div class="stat-label">Fees Captured</div>
+                        </div>
+                        <div class="stat-value" style="color: var(--diamond);">583.45 BNB</div>
+                        <div class="stat-change">Total collected</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon gold">🏦</div>
+                            <div class="stat-label">TVL</div>
+                        </div>
+                        <div class="stat-value gold">$890K</div>
+                        <div class="stat-change">Total value locked</div>
+                    </div>
+                </div>
+
+                <div class="card-section">
+                    <h3 style="margin-bottom: 1rem;">Fee Distribution</h3>
+                    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(212, 175, 55, 0.1); border-radius: 12px;">
+                            <div style="font-size: 2rem; font-weight: 800; color: var(--accent);">60%</div>
+                            <div style="color: var(--text-muted); font-size: 0.875rem;">To Stakers</div>
+                        </div>
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(229, 228, 226, 0.1); border-radius: 12px;">
+                            <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--platinum), var(--diamond)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">25%</div>
+                            <div style="color: var(--text-muted); font-size: 0.875rem;">Founder Share</div>
+                        </div>
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px;">
+                            <div style="font-size: 2rem; font-weight: 800; color: var(--protocol-purple);">10%</div>
+                            <div style="color: var(--text-muted); font-size: 0.875rem;">Treasury</div>
+                        </div>
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px;">
+                            <div style="font-size: 2rem; font-weight: 800; color: var(--success);">5%</div>
+                            <div style="color: var(--text-muted); font-size: 0.875rem;">Development</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        const KENO_TOKEN_ADDRESS = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+        const KENO_ABI = [
+            {
+                "constant": true,
+                "inputs": [{"name": "_owner", "type": "address"}],
+                "name": "balanceOf",
+                "outputs": [{"name": "balance", "type": "uint256"}],
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [{"name": "", "type": "uint8"}],
+                "type": "function"
+            }
+        ];
+
+        // Password validated server-side via /api/auth/founder
+
+        // ==================== STATE ====================
+        let web3 = null;
+        let kenoContract = null;
+        let userAddress = null;
+        let isAuthenticated = false;
+
+        // ==================== AUTHENTICATION ====================
+        async function authenticate() {
+            const password = document.getElementById('passwordInput').value;
+            const btn = document.querySelector('.login-btn');
+            btn.textContent = 'Verifying...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api/auth/founder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    isAuthenticated = true;
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('mainLayout').classList.add('authenticated');
+                    
+                    const lastFour = Math.floor(1000 + Math.random() * 9000);
+                    document.getElementById('cardLastFour').textContent = lastFour;
+                    
+                    showToast('Welcome back, Founder! 👑');
+                } else {
+                    showToast('Invalid access code');
+                    btn.textContent = 'Access Backoffice';
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                showToast('Connection error — try again');
+                btn.textContent = 'Access Backoffice';
+                btn.disabled = false;
+            }
+
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('passwordInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') authenticate();
+        });
+
+        // ==================== NAVIGATION ====================
+        function showSection(sectionName) {
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget?.classList.add('active');
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.add('active');
+
+            // Update page title
+            const titles = {
+                'overview': { title: 'Overview', subtitle: 'Welcome back, Founder' },
+                'card': { title: 'My KUTL Card', subtitle: 'Manage your Platinum card' },
+                'revenue': { title: 'Revenue', subtitle: 'Your UTL protocol earnings' },
+                'perks': { title: 'Exclusive Perks', subtitle: 'Founder-only benefits' },
+                'physical-card': { title: 'Physical Card', subtitle: 'Request your metal card' },
+                'students': { title: 'Students', subtitle: 'Student analytics and data' },
+                'transactions': { title: 'Transactions', subtitle: 'Your transaction history' },
+                'utl-stats': { title: 'UTL Protocol', subtitle: 'Protocol statistics and metrics' }
+            };
+
+            if (titles[sectionName]) {
+                document.getElementById('pageTitle').textContent = titles[sectionName].title;
+                document.getElementById('pageSubtitle').textContent = titles[sectionName].subtitle;
+            }
+        }
+
+        // ==================== WALLET CONNECTION ====================
+        function loadWeb3Script() {
+            return new Promise((resolve, reject) => {
+                if (typeof Web3 !== 'undefined') return resolve();
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js';
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+
+        async function connectWallet() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showToast('Please install MetaMask');
+                    window.open('https://metamask.io/download/', '_blank');
+                    return;
+                }
+
+                showToast('Loading Web3...');
+                await loadWeb3Script();
+                web3 = new Web3(window.ethereum);
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                if (accounts.length === 0) return;
+                
+                userAddress = accounts[0];
+                kenoContract = new web3.eth.Contract(KENO_ABI, KENO_TOKEN_ADDRESS);
+
+                // Update UI
+                document.getElementById('walletPill').style.display = 'flex';
+                document.getElementById('walletAddress').textContent = 
+                    `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+
+                // Fetch balances
+                await fetchBalances();
+
+                showToast('Wallet connected!');
+
+                // Setup listeners
+                window.ethereum.on('accountsChanged', handleAccountChange);
+                window.ethereum.on('chainChanged', () => window.location.reload());
+
+            } catch (error) {
+                console.error('Connection error:', error);
+                showToast('Connection failed: ' + error.message);
+            }
+        }
+
+        function disconnectWallet() {
+            userAddress = null;
+            web3 = null;
+            kenoContract = null;
+            
+            document.getElementById('walletPill').style.display = 'none';
+            
+            if (window.ethereum) {
+                window.ethereum.removeListener('accountsChanged', handleAccountChange);
+            }
+            
+            showToast('Wallet disconnected');
+        }
+
+        function handleAccountChange(accounts) {
+            if (accounts.length === 0) {
+                disconnectWallet();
+            } else {
+                userAddress = accounts[0];
+                document.getElementById('walletAddress').textContent = 
+                    `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+                fetchBalances();
+            }
+        }
+
+        async function fetchBalances() {
+            if (!kenoContract || !userAddress) return;
+
+            try {
+                // Check chain
+                const chainId = await web3.eth.getChainId();
+                if (chainId !== 56) {
+                    await switchToBSC();
+                    return;
+                }
+
+                const balance = await kenoContract.methods.balanceOf(userAddress).call();
+                const decimals = await kenoContract.methods.decimals().call();
+                const kenoBalance = parseFloat(balance) / Math.pow(10, decimals);
+
+                // Update displays
+                document.getElementById('walletBalance').textContent = kenoBalance.toLocaleString();
+                
+                // Calculate totals (including demo FAL rewards)
+                const falRewards = 2500; // Demo value - replace with actual FAL API
+                const cardBalance = 5000; // Demo value - replace with actual card balance
+                const total = kenoBalance + falRewards + cardBalance;
+
+                document.getElementById('falBalance').textContent = falRewards.toLocaleString();
+                document.getElementById('cardBalance').textContent = cardBalance.toLocaleString();
+                document.getElementById('totalBalance').textContent = total.toLocaleString();
+
+                // Update card back
+                document.getElementById('cardBackBalance').textContent = cardBalance.toLocaleString();
+                document.getElementById('cardScore').textContent = cardBalance.toLocaleString();
+
+            } catch (error) {
+                console.error('Error fetching balances:', error);
+                // Use demo values
+                updateDemoBalances();
+            }
+        }
+
+        function updateDemoBalances() {
+            document.getElementById('walletBalance').textContent = '5,000';
+            document.getElementById('falBalance').textContent = '2,500';
+            document.getElementById('cardBalance').textContent = '5,000';
+            document.getElementById('totalBalance').textContent = '12,500';
+            document.getElementById('cardBackBalance').textContent = '5,000';
+            document.getElementById('cardScore').textContent = '5,000';
+        }
+
+        async function switchToBSC() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }]
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x38',
+                            chainName: 'BNB Smart Chain',
+                            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                            rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                            blockExplorerUrls: ['https://bscscan.com/']
+                        }]
+                    });
+                }
+            }
+        }
+
+        // ==================== CARD FUNCTIONS ====================
+        function flipCard() {
+            document.getElementById('founderCard').classList.toggle('flipped');
+        }
+
+        // ==================== MOBILE WALLET INTEGRATION ====================
+        function addToGooglePay() {
+            // Google Pay integration
+            // In production, this would call the Google Pay API
+            
+            const cardData = {
+                cardNumber: '999999999999' + document.getElementById('cardLastFour').textContent,
+                expiryMonth: '12',
+                expiryYear: '30',
+                cardHolder: 'FOUNDER'
+            };
+
+            // Check if Google Pay is available
+            if (window.PaymentRequest) {
+                showToast('Opening Google Pay...');
+                
+                // Demo - in production use actual Google Pay API
+                setTimeout(() => {
+                    showToast('✅ Card added to Google Pay!');
+                }, 1500);
+            } else {
+                showToast('Google Pay not available on this device');
+            }
+        }
+
+        function addToApplePay() {
+            // Apple Pay integration
+            // In production, this would call the Apple Pay API
+            
+            if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
+                showToast('Opening Apple Pay...');
+                
+                // Demo - in production use actual Apple Pay API
+                setTimeout(() => {
+                    showToast('✅ Card added to Apple Pay!');
+                }, 1500);
+            } else {
+                showToast('Apple Pay not available on this device');
+            }
+        }
+
+        // ==================== PHYSICAL CARD REQUEST ====================
+        function submitPhysicalCardRequest(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('cardName').value,
+                phone: document.getElementById('phone').value,
+                address1: document.getElementById('address1').value,
+                address2: document.getElementById('address2').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                zip: document.getElementById('zip').value,
+                country: document.getElementById('country').value,
+                instructions: document.getElementById('instructions').value
+            };
+
+            // In production, send this to your backend
+            console.log('Physical card request:', formData);
+
+            // Show success
+            document.getElementById('physicalCardForm').reset();
+            document.getElementById('cardStatusSection').style.display = 'block';
+            
+            showToast('✅ Physical card request submitted!');
+
+            // Scroll to status
+            document.getElementById('cardStatusSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ==================== REVENUE WITHDRAWAL ====================
+        function withdrawRevenue() {
+            const amount = document.getElementById('withdrawAmount').value;
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount');
+                return;
+            }
+
+            if (!userAddress) {
+                showToast('Please connect your wallet first');
+                return;
+            }
+
+            showToast(`Withdrawing ${amount} BNB...`);
+
+            // In production, call your smart contract
+            setTimeout(() => {
+                document.getElementById('withdrawAmount').value = '';
+                showToast('✅ Withdrawal successful!');
+            }, 2000);
+        }
+
+        // ==================== TOAST ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const card = document.getElementById('founderCard');
+                if (card?.classList.contains('flipped')) {
+                    card.classList.remove('flipped');
+                }
+            }
+        });
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set demo balances initially
+            updateDemoBalances();
+        });
+    </script>
+</body>
+</html>
