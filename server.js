@@ -1,4 +1,11 @@
 require('dotenv').config();
+
+// Detect Replit-internal database URLs that won't work outside Replit
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !process.env.REPLIT_DOMAINS) {
+    console.log('⚠️  Replit-internal DATABASE_URL detected on external host - database features disabled');
+    delete process.env.DATABASE_URL;
+}
+
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
