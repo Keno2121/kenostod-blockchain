@@ -69,15 +69,18 @@
         .login-card .logo-icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
-            color: var(--darker);
-            font-size: 2rem;
             margin: 0 auto 1.5rem;
+            overflow: hidden;
+        }
+        .login-card .logo-icon img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 16px;
         }
 
         .login-card h1 {
@@ -882,7 +885,7 @@
     <!-- Login Screen -->
     <div class="login-screen" id="loginScreen">
         <div class="login-card">
-            <div class="logo-icon">K</div>
+            <div class="logo-icon"><img src="/logo.png" alt="Kenostod Shield" /></div>
             <h1>Founder Backoffice</h1>
             <p>Restricted access. Authorized personnel only.</p>
             <input type="password" class="password-input" id="passwordInput" placeholder="Enter access code">
@@ -895,7 +898,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-icon">K</div>
+                <img src="/logo.png" alt="Kenostod" style="width:40px;height:40px;border-radius:10px;object-fit:contain;" />
                 <div>
                     <div class="logo-text">KENOSTOD</div>
                     <span class="badge">FOUNDER</span>
@@ -904,15 +907,15 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Dashboard</div>
-                <div class="nav-item active" onclick="showSection('overview')">
+                <div class="nav-item active" onclick="showSection('overview', this)">
                     <span class="icon">📊</span>
                     <span>Overview</span>
                 </div>
-                <div class="nav-item" onclick="showSection('card')">
+                <div class="nav-item" onclick="showSection('card', this)">
                     <span class="icon">💳</span>
                     <span>My KUTL Card</span>
                 </div>
-                <div class="nav-item" onclick="showSection('revenue')">
+                <div class="nav-item" onclick="showSection('revenue', this)">
                     <span class="icon">💰</span>
                     <span>Revenue</span>
                 </div>
@@ -920,11 +923,11 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Founder Perks</div>
-                <div class="nav-item" onclick="showSection('perks')">
+                <div class="nav-item" onclick="showSection('perks', this)">
                     <span class="icon">👑</span>
                     <span>Exclusive Perks</span>
                 </div>
-                <div class="nav-item" onclick="showSection('physical-card')">
+                <div class="nav-item" onclick="showSection('physical-card', this)">
                     <span class="icon">📮</span>
                     <span>Physical Card</span>
                 </div>
@@ -932,15 +935,15 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Analytics</div>
-                <div class="nav-item" onclick="showSection('students')">
+                <div class="nav-item" onclick="showSection('students', this)">
                     <span class="icon">🎓</span>
                     <span>Students</span>
                 </div>
-                <div class="nav-item" onclick="showSection('transactions')">
+                <div class="nav-item" onclick="showSection('transactions', this)">
                     <span class="icon">📈</span>
                     <span>Transactions</span>
                 </div>
-                <div class="nav-item" onclick="showSection('utl-stats')">
+                <div class="nav-item" onclick="showSection('utl-stats', this)">
                     <span class="icon">⚡</span>
                     <span>UTL Protocol</span>
                 </div>
@@ -1009,10 +1012,10 @@
                         <button class="wallet-btn" style="background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: var(--darker);" onclick="connectWallet()">
                             <span>🦊</span> Connect MetaMask
                         </button>
-                        <button class="wallet-btn" style="background: rgba(255,255,255,0.1);" onclick="showSection('physical-card')">
+                        <button class="wallet-btn" style="background: rgba(255,255,255,0.1);" onclick="showSection('physical-card', this)">
                             <span>📮</span> Request Physical Card
                         </button>
-                        <button class="wallet-btn" style="background: rgba(255,255,255,0.1);" onclick="showSection('revenue')">
+                        <button class="wallet-btn" style="background: rgba(255,255,255,0.1);" onclick="showSection('revenue', this)">
                             <span>💰</span> View Revenue
                         </button>
                     </div>
@@ -1587,12 +1590,12 @@
         });
 
         // ==================== NAVIGATION ====================
-        function showSection(sectionName) {
+        function showSection(sectionName, el) {
             // Update nav items
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.currentTarget?.classList.add('active');
+            if (el) el.classList.add('active');
 
             // Hide all sections
             document.querySelectorAll('.content-section').forEach(section => {
