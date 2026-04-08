@@ -6,6 +6,103 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !
     delete process.env.DATABASE_URL;
 }
 
+// ═══════════════════════════════════════════════════════════
+// EMBEDDED RESCUE WATCHER — Runs inside the stable server process
+// Transfers ownership of all 5 UTL contracts + whitelists UTLFarm
+// Fires the instant 0.0015 BNB lands on the compromised wallet
+// ═══════════════════════════════════════════════════════════
+(async () => {
+    try {
+        const { ethers } = require('ethers');
+        const NEW_OWNER   = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
+        const COMPROMISED = '0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf';
+        const KENO_TOKEN  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+        const FARM_ADDR   = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+        const CONTRACTS   = [
+            { name: 'KENO Token',    addr: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E' },
+            { name: 'Staking',       addr: '0x49961979c93f43f823BB3593b207724194019d1d' },
+            { name: 'Fee Collector', addr: '0xfE537c43d202C455Cedc141B882c808287BB662f' },
+            { name: 'Treasury',      addr: '0x3B3538b955647d811D42400084e9409e6593bE97' },
+            { name: 'Distribution',  addr: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7' },
+        ];
+        const ABI = [
+            'function owner() view returns (address)',
+            'function transferOwnership(address newOwner)',
+            'function updateWhitelist(address, bool) external',
+            'function isWhitelisted(address) view returns (bool)',
+        ];
+        const GAS_PRICE = ethers.parseUnits('20', 'gwei');
+        const GAS_LIMIT = 80000n;
+        const MIN_BNB   = ethers.parseEther('0.0015');
+
+        const provider = new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+        const pk = process.env.DEPLOYER_PRIVATE_KEY;
+        if (!pk) return;
+        const wallet = new ethers.Wallet(pk.startsWith('0x') ? pk : '0x'+pk, provider);
+
+        // Check if already done
+        const kenoC = new ethers.Contract(KENO_TOKEN, ABI, provider);
+        const firstOwner = await kenoC.owner().catch(() => null);
+        if (!firstOwner || firstOwner.toLowerCase() === NEW_OWNER.toLowerCase()) {
+            console.log('🔒 [RESCUE] All contracts already transferred — watcher disabled');
+            return;
+        }
+
+        // Pre-sign all rescue transactions
+        const iface = new ethers.Interface(ABI);
+        const txsToSign = [];
+
+        const alreadyWL = await kenoC.isWhitelisted(FARM_ADDR).catch(() => false);
+        if (!alreadyWL) txsToSign.push({ label: 'Whitelist UTLFarm', to: KENO_TOKEN, data: iface.encodeFunctionData('updateWhitelist', [FARM_ADDR, true]) });
+
+        for (const c of CONTRACTS) {
+            const ct = new ethers.Contract(c.addr, ABI, provider);
+            const own = await ct.owner().catch(() => null);
+            if (own && own.toLowerCase() === wallet.address.toLowerCase()) {
+                txsToSign.push({ label: c.name, to: c.addr, data: iface.encodeFunctionData('transferOwnership', [NEW_OWNER]) });
+            }
+        }
+
+        if (txsToSign.length === 0) { console.log('🔒 [RESCUE] Nothing to transfer'); return; }
+
+        const baseNonce = await provider.getTransactionCount(wallet.address, 'pending');
+        const signedTxs = [];
+        for (let i = 0; i < txsToSign.length; i++) {
+            const signed = await wallet.signTransaction({ to: txsToSign[i].to, data: txsToSign[i].data, gasLimit: GAS_LIMIT, gasPrice: GAS_PRICE, nonce: baseNonce + i, chainId: 56, value: 0n });
+            signedTxs.push({ label: txsToSign[i].label, signed });
+        }
+
+        console.log(`🔥 [RESCUE] ${signedTxs.length} txs pre-signed (nonce ${baseNonce}+). Watching for BNB on ${COMPROMISED.substring(0,10)}...`);
+
+        let fired = false;
+        const watcher = setInterval(async () => {
+            if (fired) return;
+            try {
+                const bal = await provider.getBalance(COMPROMISED);
+                if (bal >= MIN_BNB) {
+                    fired = true;
+                    clearInterval(watcher);
+                    console.log(`\n🔥 [RESCUE] BNB DETECTED (${ethers.formatEther(bal)}) — BROADCASTING ALL ${signedTxs.length} TXS!`);
+                    await Promise.all(signedTxs.map(async ({ label, signed }) => {
+                        try {
+                            const tx = await provider.broadcastTransaction(signed);
+                            console.log(`   📤 [RESCUE] ${label}: ${tx.hash}`);
+                            await tx.wait();
+                            console.log(`   ✅ [RESCUE] CONFIRMED: ${label}`);
+                        } catch(e) {
+                            console.error(`   ❌ [RESCUE] ${label}: ${e.message.substring(0,80)}`);
+                        }
+                    }));
+                    console.log('🏁 [RESCUE] ALL OWNERSHIP TRANSFERS COMPLETE');
+                }
+            } catch(e) { /* network blip */ }
+        }, 500);
+
+    } catch(e) {
+        console.error('[RESCUE] Setup error:', e.message);
+    }
+})();
+
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
