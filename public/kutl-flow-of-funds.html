@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KUTL Card — Flow of Funds | Kenostod Blockchain Academy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0a0f1e;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0a0f1e 0%, #1a1040 100%);
+      border-bottom: 1px solid #7c3aed44;
+      padding: 30px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-area h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #a78bfa;
+      letter-spacing: 1px;
+    }
+    .logo-area p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    .meeting-badge {
+      background: #7c3aed22;
+      border: 1px solid #7c3aed66;
+      border-radius: 10px;
+      padding: 12px 20px;
+      text-align: right;
+    }
+    .meeting-badge .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    .meeting-badge .date { font-size: 1rem; font-weight: 700; color: #a78bfa; margin-top: 4px; }
+    .meeting-badge .time { font-size: 0.85rem; color: #64748b; margin-top: 2px; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #7c3aed;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin-bottom: 48px;
+      max-width: 600px;
+    }
+
+    /* FLOW DIAGRAM */
+    .flow-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 60px;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .flow-node {
+      flex: 1;
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 6px;
+      position: relative;
+    }
+
+    .flow-node.highlight {
+      background: linear-gradient(135deg, #1e1040, #150d30);
+      border-color: #7c3aed44;
+    }
+
+    .flow-node .node-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .flow-node .node-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #7c3aed;
+      margin-bottom: 4px;
+    }
+
+    .flow-node h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+
+    .flow-node ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .flow-node ul li {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      padding: 3px 0;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .flow-node ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #7c3aed;
+      font-size: 0.7rem;
+    }
+
+    .flow-connector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .flow-connector .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .flow-connector .arrow-line {
+      width: 2px;
+      height: 24px;
+      background: linear-gradient(to bottom, #7c3aed, #a78bfa);
+    }
+
+    .flow-connector .arrow-label {
+      font-size: 0.7rem;
+      color: #7c3aed;
+      font-weight: 600;
+      background: #0a0f1e;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #7c3aed33;
+      white-space: nowrap;
+    }
+
+    .flow-connector .arrow-head {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #a78bfa;
+    }
+
+    /* TABLES */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .info-card {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .info-card h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid #0f172a;
+      gap: 12px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+
+    .info-row .key {
+      font-size: 0.8rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .info-row .val {
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      text-align: right;
+      font-weight: 500;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .tag-green { background: #064e3b; color: #34d399; }
+    .tag-purple { background: #3b1d6e33; color: #a78bfa; }
+    .tag-blue { background: #1e3a5f33; color: #60a5fa; }
+    .tag-yellow { background: #78350f33; color: #fbbf24; }
+
+    /* EMAIL SECTION */
+    .email-section {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+
+    .email-header {
+      background: #1e293b;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .email-header h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .copy-btn {
+      background: #7c3aed22;
+      border: 1px solid #7c3aed44;
+      color: #a78bfa;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { background: #7c3aed44; }
+
+    .email-body {
+      padding: 24px;
+    }
+
+    .email-field {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+    }
+
+    .email-field .field-label {
+      color: #64748b;
+      min-width: 60px;
+      font-weight: 600;
+    }
+
+    .email-field .field-val { color: #e2e8f0; }
+
+    .email-divider {
+      border: none;
+      border-top: 1px solid #1e293b;
+      margin: 16px 0;
+    }
+
+    .email-content {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* COMPLIANCE */
+    .compliance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .compliance-item {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .compliance-item .c-icon { font-size: 1.6rem; margin-bottom: 8px; }
+    .compliance-item h4 { font-size: 0.85rem; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+    .compliance-item p { font-size: 0.75rem; color: #64748b; line-height: 1.5; }
+
+    @media (max-width: 700px) {
+      header { flex-direction: column; gap: 16px; text-align: center; }
+      .info-grid { grid-template-columns: 1fr; }
+      .compliance-grid { grid-template-columns: 1fr; }
+      .flow-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <h1>KENOSTOD BLOCKCHAIN ACADEMY</h1>
+    <p>KUTL Card — Flow of Funds Documentation</p>
+  </div>
+  <div class="meeting-badge">
+    <div class="label">Cybrid Review Meeting</div>
+    <div class="date">Wednesday, April 22, 2026</div>
+    <div class="time">1:00 PM – 1:30 PM EST &nbsp;|&nbsp; Google Meet</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="section-title">Overview</div>
+  <h2>KUTL Card Flow of Funds</h2>
+  <p class="subtitle">
+    This document outlines how funds enter, move through, and exit the KUTL Card ecosystem,
+    from user onboarding through card issuance, transactions, and settlement — powered by Cybrid BaaS infrastructure.
+  </p>
+
+  <!-- FLOW DIAGRAM -->
+  <div class="flow-diagram">
+
+    <!-- Step 1 -->
+    <div class="flow-row">
+      <div class="flow-node">
+        <span class="node-icon">👤</span>
+        <div class="node-label">Step 1</div>
+        <h3>User Onboarding & KYC</h3>
+        <ul>
+          <li>User registers on Kenostod Academy platform</li>
+          <li>Identity verification via Cybrid KYC flow</li>
+          <li>AML screening at account creation</li>
+          <li>KUTL Card account created upon approval</li>
+        </ul>
+      </div>
+      <div class="flow-node">
+        <span class="node-icon">🏛️</span>
+        <div class="node-label">Entity</div>
+        <h3>Kenostod Blockchain Academy LLC</h3>
+        <ul>
+          <li>Wyoming LLC — File #2026-001863120</li>
+          <li>NAICS: 611430 (Professional Education)</li>
+          <li>FinCEN MSB Registered</li>
+          <li>Virtual Currencies Brokerage Activity</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flow-connector">
+      <div class="arrow">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Verified User → Funding</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="flow-row">
+      <div class="flow-node highlight">
+        <span class="node-icon">💵</span>
+        <div class="node-label">Step 2 — Funding Sources</div>
+        <h3>Funds Enter the Ecosystem</h3>
+        <ul>
+          <li>ACH bank transfer (primary)</li>
+          <li>Debit card top-up</li>
+          <li>KENO token conversion to USD</li>
+          <li>Crypto-to-fiat via Bridge.xyz / Rain.xyz</li>
+        </ul>
+      </div>
+      <div class="flow-node highlight">
+        <span class="node-icon">📊</span>
+        <div class="node-label">Expected Volume</div>
+        <h3>Transaction Profile</h3>
+        <ul>
+          <li>Source of funds: Sales of goods &amp; services</li>
+          <li>Projected monthly: $5,000 – $15,000</li>
+          <li>Annual revenue tier: $0 – $99K (initial)</li>
+          <li>Account purpose: Receive payment for services</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flow-connector">
+      <div class="arrow">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Fiat Deposited → Cybrid BaaS</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="flow-row">
+      <div class="flow-node">
+        <span class="node-icon">⚙️</span>
+        <div class="node-label">Step 3 — Cybrid Layer</div>
+        <h3>BaaS Infrastructure Processing</h3>
+        <ul>
+          <li>Cybrid holds and manages fiat balances</li>
+          <li>KUTL Card account linked to Cybrid ledger</li>
+          <li>Real-time balance updates via Cybrid API</li>
+          <li>Card issuance and provisioning (Q3 2026)</li>
+        </ul>
+      </div>
+      <div class="flow-node">
+        <span class="node-icon">💳</span>
+        <div class="node-label">Step 4 — Card Issuance</div>
+        <h3>KUTL Card Activated</h3>
+        <ul>
+          <li>Physical + virtual card issued via Cybrid</li>
+          <li>Card branded under Kenostod / KUTL</li>
+          <li>Spending limit tied to verified account balance</li>
+          <li>Contactless + chip + online capable</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flow-connector">
+      <div class="arrow">
+        <div class="arrow-line"></div>
+        <div class="arrow-label">Card Spend → Merchant Network</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-head"></div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="flow-row">
+      <div class="flow-node">
+        <span class="node-icon">🛍️</span>
+        <div class="node-label">Step 5 — Transactions</div>
+        <h3>Card Used at Point of Sale</h3>
+        <ul>
+          <li>User spends at any VISA/Mastercard merchant</li>
+          <li>Authorization routed through card network</li>
+          <li>Balance debited from Cybrid account in real time</li>
+          <li>Transaction logged on Kenostod platform</li>
+        </ul>
+      </div>
+      <div class="flow-node">
+        <span class="node-icon">🔄</span>
+        <div class="node-label">Step 6 — Settlement</div>
+        <h3>Funds Settlement</h3>
+        <ul>
+          <li>Merchant settlement via card network (T+1/T+2)</li>
+          <li>Cybrid settles net positions daily</li>
+          <li>KENO rewards optionally distributed on spend</li>
+          <li>Transaction history available on Kenostod dashboard</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INFO GRID -->
+  <div class="section-title">Key Details</div>
+  <h2 style="margin-bottom:24px;">Transaction & Compliance Profile</h2>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h3>Business Profile</h3>
+      <div class="info-row">
+        <span class="key">Entity Name</span>
+        <span class="val">Kenostod Blockchain Academy LLC</span>
+      </div>
+      <div class="info-row">
+        <span class="key">State</span>
+        <span class="val">Wyoming, USA</span>
+      </div>
+      <div class="info-row">
+        <span class="key">File Number</span>
+        <span class="val">2026-001863120</span>
+      </div>
+      <div class="info-row">
+        <span class="key">NAICS Code</span>
+        <span class="val">611430 — Prof. Education</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Regulation</span>
+        <span class="val">FinCEN MSB Registered</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Activity Type</span>
+        <span class="val">Virtual Currencies Brokerage</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>Fund Flow Profile</h3>
+      <div class="info-row">
+        <span class="key">Primary Source</span>
+        <span class="val">Sales of Goods &amp; Services</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Monthly Volume</span>
+        <span class="val">$5,000 – $15,000</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Annual Tier</span>
+        <span class="val">$0 – $99K (launch phase)</span>
+      </div>
+      <div class="info-row">
+        <span class="key">3rd Party Sending</span>
+        <span class="val">Not Applicable</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Card Target</span>
+        <span class="val"><span class="tag tag-yellow">Q3 2026</span></span>
+      </div>
+      <div class="info-row">
+        <span class="key">BaaS Partner</span>
+        <span class="val"><span class="tag tag-purple">Cybrid</span></span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>Funding Channels</h3>
+      <div class="info-row">
+        <span class="key">ACH Transfer</span>
+        <span class="val"><span class="tag tag-green">Primary</span></span>
+      </div>
+      <div class="info-row">
+        <span class="key">Debit Card Top-up</span>
+        <span class="val"><span class="tag tag-blue">Secondary</span></span>
+      </div>
+      <div class="info-row">
+        <span class="key">Crypto → Fiat</span>
+        <span class="val">Bridge.xyz / Rain.xyz</span>
+      </div>
+      <div class="info-row">
+        <span class="key">KENO Conversion</span>
+        <span class="val">Internal UTL Protocol</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Wire Transfer</span>
+        <span class="val">Available (future)</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>KENO Token Integration</h3>
+      <div class="info-row">
+        <span class="key">Token</span>
+        <span class="val">KENO (BEP-20)</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Contract</span>
+        <span class="val" style="font-size:0.7rem">0x65791E0B...D982FD0E</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Supply</span>
+        <span class="val">1,000,000,000 KENO</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Card Role</span>
+        <span class="val">Rewards on spend</span>
+      </div>
+      <div class="info-row">
+        <span class="key">Conversion</span>
+        <span class="val">KENO → USD via UTL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLIANCE -->
+  <div class="section-title">Compliance</div>
+  <h2 style="margin-bottom:24px;">Regulatory &amp; Compliance Framework</h2>
+
+  <div class="compliance-grid">
+    <div class="compliance-item">
+      <div class="c-icon">🪪</div>
+      <h4>KYC / Identity</h4>
+      <p>Identity verification at onboarding via Cybrid KYC flow. All cardholders verified before card issuance.</p>
+    </div>
+    <div class="compliance-item">
+      <div class="c-icon">🔍</div>
+      <h4>AML Screening</h4>
+      <p>AML checks at account creation and on an ongoing basis per FinCEN BSA obligations as a registered MSB.</p>
+    </div>
+    <div class="compliance-item">
+      <div class="c-icon">📋</div>
+      <h4>FinCEN MSB</h4>
+      <p>Kenostod is registered as a Money Services Business with FinCEN for Virtual Currencies Brokerage activity.</p>
+    </div>
+    <div class="compliance-item">
+      <div class="c-icon">🛡️</div>
+      <h4>No 3rd Party Transmission</h4>
+      <p>Funds are not transmitted on behalf of third parties. All movement is for Kenostod account holders only.</p>
+    </div>
+    <div class="compliance-item">
+      <div class="c-icon">📊</div>
+      <h4>Transaction Monitoring</h4>
+      <p>All card transactions logged in real time on the Kenostod platform dashboard with full audit trail.</p>
+    </div>
+    <div class="compliance-item">
+      <div class="c-icon">⚖️</div>
+      <h4>Wyoming LLC Structure</h4>
+      <p>Incorporated under Wyoming's blockchain-friendly LLC statutes. TDIR Foundation as umbrella governance.</p>
+    </div>
+  </div>
+
+  <!-- EMAIL TEMPLATE -->
+  <div class="section-title">Pre-Meeting Email</div>
+  <h2 style="margin-bottom:24px;">Draft — Send Night Before (April 21)</h2>
+
+  <div class="email-section">
+    <div class="email-header">
+      <h3>Email Draft for Beverly — Cybrid</h3>
+      <button class="copy-btn" onclick="copyEmail()">Copy Email</button>
+    </div>
+    <div class="email-body">
+      <div class="email-field">
+        <span class="field-label">To:</span>
+        <span class="field-val">beverly@cybrid.app</span>
+      </div>
+      <div class="email-field">
+        <span class="field-label">Subject:</span>
+        <span class="field-val">Nickeo x Cybrid — Flow of Funds Review (April 22) | Kenostod KUTL Card</span>
+      </div>
+      <hr class="email-divider" />
+      <div class="email-content" id="emailContent">Hi Beverly,
+
+Looking forward to our Flow of Funds Review tomorrow at 1:00 PM EST.
+
+To make our time as productive as possible, I wanted to share a quick overview of where we stand heading into the call:
+
+About Kenostod Blockchain Academy LLC:
+We are a Wyoming LLC (File #2026-001863120), FinCEN-registered Money Services Business, operating under NAICS 611430 (Professional Education) with Virtual Currencies Brokerage activity.
+
+KUTL Card — What We're Building:
+The KUTL Card (Kenostod Universal Transaction Layer) is our primary card product, powered by Cybrid BaaS. It will allow verified Kenostod Academy users to load funds via ACH or debit card, spend anywhere VISA/Mastercard is accepted, and earn KENO token rewards on purchases.
+
+Flow of Funds Summary:
+- Source of funds: Sales of goods and services (academy subscriptions, course fees)
+- Projected monthly volume: $5,000 – $15,000
+- Funding channels: ACH (primary), debit top-up, crypto-to-fiat via Bridge.xyz/Rain.xyz
+- No third-party fund transmission
+- Full KYC and AML at onboarding
+
+Questions I'd Like to Cover on the Call:
+1. What documentation do you need from us to finalize the integration setup?
+2. Is there anything specific about our crypto-to-fiat funding channel that needs additional review?
+3. Can you confirm the expected Q3 2026 timeline for card issuance, and what milestones we need to hit on our end?
+4. What does the sandbox/testing environment look like before we go live?
+
+I'm ready to move quickly on next steps. Looking forward to the conversation.
+
+Warm Regards,
+Nickeo
+Founder — Kenostod Blockchain Academy LLC
+kenostodblockchain.com</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function copyEmail() {
+    const text = document.getElementById('emailContent').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy Email', 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
