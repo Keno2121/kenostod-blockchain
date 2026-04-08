@@ -83,6 +83,29 @@ Revenue is generated through diverse streams including ICO token sales, course s
 ## Node Sale System
 A system for selling three node tiers (Scholar, Educator, Academy) with five utility functions: course validation, KENO distribution, FAL calculations, credential verification, and B.U.K security events. Supported by a PostgreSQL-backed whitelist registration system.
 
+## Card Products — CRITICAL DISTINCTION
+
+**KUTL Card** (Kenostod Universal Transaction Layer)
+- The active card product being built NOW via Finlego/Cybrid BaaS partnership
+- Standard card infrastructure — current development and partner focus
+- Cybrid Flow of Funds Review: April 22, 2026 at 1:00 PM EST
+- Card service available Q3 2026 per Cybrid
+- What Rain, Bridge, and Cybrid know about — public-facing product
+
+**B.U.K. Security Banking** (Back Up Key)
+- COMPLETELY SEPARATE product — not the same as KUTL Card
+- Built around a proprietary dual chip card concept — first of its kind in the industry
+- NOT shared with any partners yet — kept confidential until Kenostod has traction
+- Development begins AFTER KUTL Card is live
+- Do NOT confuse with KUTL Card or mention to partners unless user instructs
+
+## Security — Wallet Compromise (April 2026)
+- Deployer wallet Account 2 (0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf) was compromised via EIP-7702 drain attack
+- All 5 contracts (KENO, Staking, FeeCollector, Treasury, Distribution) are still owned by the compromised address
+- New safe wallet created: 0x4AA73FadfFd71E6549867a37455EA957A52Cf849
+- Pending: ownership transfer requires 0.002 BNB gas — user funding tonight
+- transfer-ownership.js script is ready — restart watcher when user is ready
+
 ## Mercury Bank USD Cashout System
 Integration with Mercury Business Banking API allows students to add encrypted bank details and request KENO-to-USD withdrawals, with admin approval leading to ACH transfers.
 
