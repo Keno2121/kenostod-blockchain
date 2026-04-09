@@ -704,9 +704,28 @@
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: '0x38' }]
                     });
-                } catch (e) {
-                    alert('Please switch to BNB Smart Chain in MetaMask.');
-                    return;
+                } catch (switchErr) {
+                    // Error 4902 = chain not added yet — add BSC automatically
+                    if (switchErr.code === 4902) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x38',
+                                    chainName: 'BNB Smart Chain',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                                    blockExplorerUrls: ['https://bscscan.com/']
+                                }]
+                            });
+                        } catch (addErr) {
+                            alert('Could not add BNB Smart Chain to MetaMask. Please add it manually.');
+                            return;
+                        }
+                    } else {
+                        alert('Please switch to BNB Smart Chain in MetaMask.');
+                        return;
+                    }
                 }
             }
 
@@ -714,7 +733,12 @@
             document.getElementById('walletBtn').textContent = '✅ ' + short;
             renderConnectedState();
         } catch (e) {
+            if (e.code === 4001) {
+                // User rejected the connection request — do nothing
+                return;
+            }
             console.error('Wallet connect error:', e);
+            alert('Could not connect wallet: ' + (e.message || 'Unknown error'));
         }
     }
 
@@ -817,16 +841,23 @@
     }
 
     function harvestRewards() {
-        if (!userAddress) { alert('Connect your wallet first.'); return; }
-        alert('Harvest: open BscScan and call harvest() on\n0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nor use the Write Contract tab.');
+        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        window.open(
+            'https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract',
+            '_blank'
+        );
     }
     function stakeLp() {
-        if (!userAddress) { alert('Connect your wallet first.'); return; }
-        alert('To stake:\n1. Approve LP tokens on the farm contract\n2. Call stake(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nFull UI coming in next update.');
+        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        alert('To stake KENO/BNB LP:\n\n1. Get LP tokens on PancakeSwap (Add Liquidity link below)\n2. Approve LP tokens: call approve() on the LP contract\n3. Call stake(amount) on the UTLFarm contract:\n   0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nFull one-click staking UI coming in next update.');
     }
     function unstakeLp() {
-        if (!userAddress) { alert('Connect your wallet first.'); return; }
-        alert('To unstake:\nCall withdraw(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nvia BscScan Write Contract tab.');
+        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        alert('To unstake LP + harvest KENO:\n\nCall withdraw(amount) on the UTLFarm contract:\n0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nUse BscScan Write Contract tab (link opens).');
+        window.open(
+            'https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract',
+            '_blank'
+        );
     }
 
     // ─── Market Data ──────────────────────────────────────────────────────────
