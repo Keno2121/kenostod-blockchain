@@ -725,13 +725,13 @@
                     <div class="harvest-amount" id="liveRewards">0.0000 KENO</div>
                     <div class="harvest-label">Pending Rewards — updates every 5 seconds</div>
                 </div>
-                <button class="harvest-btn" onclick="harvestRewards()" id="harvestBtn" disabled>
-                    Harvest (Farm Not Live Yet)
+                <button class="harvest-btn" onclick="harvestRewards()" id="harvestBtn">
+                    Harvest KENO Rewards
                 </button>
             </div>
             <div style="padding:0 24px 20px;">
                 <div style="font-size:.8rem;color:#64748b;line-height:1.6;">
-                    Rewards begin accumulating the moment the UTLFarm contract is deployed and you stake LP tokens.
+                    Farm is <strong style="color:#10b981;">LIVE on BSC Mainnet</strong>. Stake KENO/BNB LP tokens to start earning 864 KENO/day.
                     Your wallet is connected and ready.
                 </div>
             </div>
@@ -772,8 +772,8 @@
             <div style="font-size:.78rem;color:#64748b;margin-bottom:16px;">
                 Unstaking also auto-harvests all pending KENO rewards.
             </div>
-            <button class="btn-secondary" onclick="unstakeLp()" disabled>
-                Unstake LP + Harvest (Farm Not Live)
+            <button class="btn-secondary" onclick="unstakeLp()">
+                Unstake LP + Harvest KENO
             </button>
         `;
 
@@ -830,29 +830,47 @@
     }
 
     // ─── Market Data ──────────────────────────────────────────────────────────
+    const REWARD_RATE_PER_DAY = 864; // KENO/day from contract (0.01 KENO/sec)
+
     async function fetchMarketData() {
         try {
             const res  = await fetch('/api/keno/market');
             const data = await res.json();
-            if (data.price) {
-                kenoPrice = parseFloat(data.price);
+
+            // data.price is {usd, bnb} object
+            if (data.price && data.price.usd) {
+                kenoPrice = parseFloat(data.price.usd);
                 document.getElementById('statPrice').textContent = '$' + kenoPrice.toFixed(4);
                 document.getElementById('poolPrice').textContent = '$' + kenoPrice.toFixed(4);
             }
+
             if (data.tvl) {
-                const tvlFmt = '$' + parseFloat(data.tvl).toLocaleString('en-US', {maximumFractionDigits:0});
+                const tvl    = parseFloat(data.tvl);
+                const tvlFmt = '$' + tvl.toLocaleString('en-US', {maximumFractionDigits:0});
                 document.getElementById('poolTvl').textContent = tvlFmt;
+                document.getElementById('statTvl').textContent = tvlFmt;
+
+                // APR = (KENO/day * 365 * kenoPrice) / TVL * 100
+                if (kenoPrice > 0 && tvl > 0) {
+                    const apr = (REWARD_RATE_PER_DAY * 365 * kenoPrice) / tvl * 100;
+                    const aprFmt = apr > 1000 ? apr.toFixed(0) + '%' : apr.toFixed(1) + '%';
+                    document.getElementById('statApr').textContent  = aprFmt;
+                    document.getElementById('poolApr').textContent  = aprFmt;
+                } else {
+                    document.getElementById('statApr').textContent  = '—%';
+                    document.getElementById('poolApr').textContent  = '—%';
+                }
             }
+
+            // Reward rate and runway
+            document.getElementById('statRate').textContent   = REWARD_RATE_PER_DAY.toLocaleString() + ' KENO/day';
+            document.getElementById('statRunway').textContent = '—'; // updates when farm is funded
+
         } catch(e) {
             console.warn('Market data fetch error:', e);
+            document.getElementById('statTvl').textContent  = '—';
+            document.getElementById('statRate').textContent = REWARD_RATE_PER_DAY + ' KENO/day';
         }
-
-        // Farm stats — live contract deployed
-        document.getElementById('statTvl').textContent    = 'Loading...';
-        document.getElementById('statApr').textContent    = '—%';
-        document.getElementById('statRate').textContent   = '— KENO/day';
-        document.getElementById('statRunway').textContent = '—';
-        document.getElementById('poolApr').textContent    = '—%';
     }
 
     // ─── Init ─────────────────────────────────────────────────────────────────
