@@ -56,13 +56,12 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif;
 <!-- STEP 2: Withdraw presale KENO -->
 <div class="card">
   <h2>Step 2 — Withdraw 300M KENO from Presale <span class="badge wait" id="s2badge">Pending</span></h2>
-  <p>You now own the presale contract. This sends <strong>2 MetaMask approvals</strong>: first to finalize the presale, then to withdraw all 300,000,000 KENO to your wallet (0x4AA73...).</p>
+  <p>Presale is already finalized. One MetaMask approval will withdraw all 300,000,000 KENO to your wallet (0x4AA73...).</p>
   <div class="row"><span>Presale Contract</span><span>0xE26D6f...6D0</span></div>
   <div class="row"><span>KENO Available</span><span>~300,000,000 KENO</span></div>
-  <div class="row"><span>TX 1</span><span>finalizePresale()</span></div>
-  <div class="row"><span>TX 2</span><span>withdrawUnsoldTokens()</span></div>
+  <div class="row"><span>Function</span><span>withdrawUnsoldTokens()</span></div>
   <button class="btn btn-gold" id="btn2" onclick="withdrawPresale()" disabled>Withdraw 300M KENO</button>
-  <div class="status" id="st2">Complete Step 1 first, then withdraw.</div>
+  <div class="status" id="st2">Ready — connect wallet and tap to withdraw.</div>
 </div>
 
 <!-- STEP 3: Pay FAL reward -->
@@ -168,20 +167,13 @@ async function whitelistFarm() {
 
 async function withdrawPresale() {
   if (!account) { alert('Connect wallet first.'); return; }
+  st('st2', 'Approve withdrawUnsoldTokens() in MetaMask...', 'pend');
   try {
-    // TX 1: finalizePresale() — selector 0xa0a6e940
-    st('st2', 'Step 1/2: Approve finalizePresale() in MetaMask...', 'pend');
-    const { success: s1, hash: h1 } = await sendTx(PRESALE, '0xa0a6e940', '0x30D40', 'st2');
-    if (!s1) {
-      st('st2', s1===false ? '❌ finalizePresale TX failed. BSCScan: '+h1 : 'Timeout — check: '+h1, 'err');
-      return;
-    }
-    // TX 2: withdrawUnsoldTokens() — selector 0xc8bdbfb6
-    st('st2', '✅ Presale finalized! Step 2/2: Approve withdrawUnsoldTokens() in MetaMask...', 'pend');
-    const { success: s2, hash: h2 } = await sendTx(PRESALE, '0xc8bdbfb6', '0x30D40', 'st2');
-    if (s2) { st('st2', '✅ 300M KENO withdrawn to your wallet!\nTX: '+h2, 'ok'); badge('s2badge','Done','done'); }
-    else if (s2===false) st('st2', '❌ Withdraw failed. BSCScan: '+h2, 'err');
-    else st('st2', 'Timeout — check BSCScan: '+h2, 'pend');
+    // withdrawUnsoldTokens() — selector 0xc8bdbfb6 (presale already finalized)
+    const { success, hash } = await sendTx(PRESALE, '0xc8bdbfb6', '0x30D40', 'st2');
+    if (success) { st('st2', '✅ 300M KENO withdrawn to your wallet!\nTX: '+hash, 'ok'); badge('s2badge','Done','done'); }
+    else if (success===false) st('st2', '❌ Withdraw failed. BSCScan: '+hash, 'err');
+    else st('st2', 'Timeout — check BSCScan: '+hash, 'pend');
   } catch(e) { st('st2', e.code===4001?'Cancelled — tap again to retry.':'Error: '+e.message, 'err'); }
 }
 
