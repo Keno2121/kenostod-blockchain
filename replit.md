@@ -1,8 +1,33 @@
 # Overview
 
-Kenostod Blockchain Academy is an educational platform offering a blockchain simulator and the Knowledge Utility Token (KUT) KENO. KENO is earned by completing 21 educational courses and grants access to Flash Arbitrage Loan (FAL™) features. The platform aims to create a self-funding ecosystem where graduates generate revenue through FAL™, fostering employment and funding scholarships. KENO is a BEP-20 utility token, not a security, verified on BscScan.
+Kenostod Blockchain Academy LLC is the entry point to **The Sovereign Economy** — a physical-digital sovereign infrastructure built under the T.D.I.R. Foundation with 8 independent ventures all converging on KENO. The platform includes education (21 courses), banking (KUTL Card / Cybrid BaaS), DeFi (UTL Protocol / UTLFarm), security hardware (B.U.K. Back Up Key), smart apparel (G.I.F.T.), and a licensing empire of 6 patent-pending technologies. KENO is a BEP-20 utility token on BNB Smart Chain, earned through education, not purchased.
 
-The future vision includes the T.D.I.R. Foundation, an offshore umbrella foundation for all investments, integrating projects like solar energy with KENO holder discounts. The "Kingdom Philosophy" emphasizes a democratized wealth-building model through RVT NFTs, FALP pooled profits, and referral programs, ensuring all participants share in prosperity.
+---
+
+## Founding Philosophy — The Inversion Principle
+
+**Everything built here is designed to be the structural opposite of how the old economy was built.**
+
+The old wealth systems — Rothschild banking, Rockefeller verticals, J.P. Morgan financial consolidation, and the dynasties that followed — were not accidents. They were architectures deliberately engineered to concentrate wealth upward and keep it there permanently. Debt dependency, vertical monopolies, gatekept capital, and extraction from the masses were the mechanisms. Those systems oppressed the majority to enrich the few at the top.
+
+**The Sovereign Economy inverts every one of those mechanisms:**
+
+| Old Economy (Dynasty Model) | The Sovereign Economy (Inversion Model) |
+|---|---|
+| Charged tuition to access knowledge that made institutions rich | Pays students KENO for completing education |
+| Hoarded gold, issued fiat tied to nothing | KENO is earned, not printed — supply is fixed at 1B |
+| Banks charged the poor for account access | KENO earned in class loads directly onto a spendable card |
+| Fees collected privately, flows to the top | UTL Protocol fees are on-chain, auditable, redistributed |
+| Status through exclusion and gatekeeping | G.I.F.T. Eureka earned by showing up and learning |
+| Private protection only for the wealthy | B.U.K. security banking accessible to every cardholder |
+| Infrastructure owned by dynasties, masses pay rent | Licensing empire built by T.D.I.R., fees flow back to Foundation |
+| M&A to consolidate power upward | Each pillar is independently licensable — value stays distributed |
+
+**This principle guides every design decision going forward.** When building any new feature, document, pitch, or system — ask: does this flow value toward the people, or toward the top? If it flows toward the top, it is wrong. Rebuild it.
+
+Tagline: **Strong. Unbreakable. Yours.** — not theirs.
+
+---
 
 # User Preferences
 
