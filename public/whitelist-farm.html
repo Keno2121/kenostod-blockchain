@@ -3,190 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Whitelist UTLFarm — Kenostod Admin</title>
+<title>UTL Admin — Kenostod</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-  .card { background: #12121a; border: 1px solid #2a2a3a; border-radius: 16px; padding: 40px; max-width: 520px; width: 100%; margin: 20px; }
-  .logo { text-align: center; margin-bottom: 24px; }
-  .logo h1 { font-size: 22px; color: #c9a84c; letter-spacing: 2px; }
-  .logo p { font-size: 12px; color: #666; margin-top: 4px; }
-  h2 { font-size: 18px; color: #fff; margin-bottom: 8px; }
-  .subtitle { font-size: 13px; color: #888; margin-bottom: 28px; line-height: 1.5; }
-  .info-row { display: flex; justify-content: space-between; align-items: center; background: #1a1a26; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
-  .info-label { font-size: 12px; color: #888; }
-  .info-value { font-size: 12px; color: #c9a84c; font-family: monospace; word-break: break-all; max-width: 260px; text-align: right; }
-  .status-box { background: #1a1a26; border-radius: 8px; padding: 16px; margin: 20px 0; min-height: 52px; font-size: 13px; line-height: 1.6; border-left: 3px solid #2a2a3a; }
-  .status-box.success { border-left-color: #22c55e; color: #22c55e; }
-  .status-box.error   { border-left-color: #ef4444; color: #ef4444; }
-  .status-box.pending { border-left-color: #c9a84c; color: #c9a84c; }
-  .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
-  .btn-connect { background: #1d1d2e; border: 1px solid #3a3a5a; color: #c9a84c; }
-  .btn-connect:hover { background: #252540; }
-  .btn-action { background: linear-gradient(135deg, #c9a84c, #a8873a); color: #000; margin-top: 10px; }
-  .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
-  .btn-action:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .wallet-bar { display: flex; align-items: center; gap: 8px; background: #1a1a26; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #888; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
-  .dot.connected { background: #22c55e; }
-  .warning { background: #1a1208; border: 1px solid #c9a84c33; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #c9a84c; margin-bottom: 20px; line-height: 1.5; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; padding: 20px; }
+.header { text-align: center; margin-bottom: 28px; }
+.header h1 { font-size: 20px; color: #c9a84c; letter-spacing: 2px; }
+.header p { font-size: 12px; color: #555; margin-top: 4px; }
+.wallet-bar { display: flex; align-items: center; gap: 8px; background: #1a1a26; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #888; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
+.dot.on { background: #22c55e; }
+.card { background: #12121a; border: 1px solid #2a2a3a; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+.card h2 { font-size: 15px; color: #fff; margin-bottom: 6px; }
+.card p { font-size: 12px; color: #777; margin-bottom: 16px; line-height: 1.5; }
+.row { display: flex; justify-content: space-between; align-items: center; background: #1a1a26; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; font-size: 11px; }
+.row span:first-child { color: #888; }
+.row span:last-child { color: #c9a84c; font-family: monospace; }
+.btn { width: 100%; padding: 13px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-gold { background: linear-gradient(135deg, #c9a84c, #a8873a); color: #000; }
+.btn-gold:hover { opacity: 0.9; }
+.btn-gold:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-connect { background: #1d1d2e; border: 1px solid #3a3a5a; color: #c9a84c; margin-bottom: 20px; }
+.status { background: #1a1a26; border-radius: 8px; padding: 12px 14px; margin-top: 12px; font-size: 12px; line-height: 1.6; border-left: 3px solid #2a2a3a; min-height: 44px; }
+.status.ok  { border-left-color: #22c55e; color: #22c55e; }
+.status.err { border-left-color: #ef4444; color: #ef4444; }
+.status.pend { border-left-color: #c9a84c; color: #c9a84c; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; margin-left: 6px; }
+.badge.done { background: #14532d; color: #4ade80; }
+.badge.wait { background: #1c1a09; color: #c9a84c; }
 </style>
 </head>
 <body>
+<div class="header">
+  <h1>KENOSTOD — UTL ADMIN</h1>
+  <p>Post-Rescue Operations · Connect wallet <strong>0x4AA73...Cf849</strong></p>
+</div>
+
+<button class="btn btn-connect" onclick="connect()">Connect MetaMask</button>
+<div class="wallet-bar"><div class="dot" id="dot"></div><span id="wLabel">Not connected</span></div>
+
+<!-- STEP 1: Whitelist UTLFarm -->
 <div class="card">
-  <div class="logo">
-    <h1>KENOSTOD</h1>
-    <p>UTL Protocol — Owner Admin</p>
-  </div>
+  <h2>Step 1 — Whitelist UTLFarm on KENO Token <span class="badge wait" id="s1badge">Pending</span></h2>
+  <p>Allows UTLFarm to distribute KENO staking rewards without whitelist restriction.</p>
+  <div class="row"><span>KENO Token</span><span>0x65791E...FD0E</span></div>
+  <div class="row"><span>UTLFarm</span><span>0xaf991D...094</span></div>
+  <div class="row"><span>Function</span><span>updateWhitelist(address, true)</span></div>
+  <button class="btn btn-gold" id="btn1" onclick="whitelistFarm()" disabled>Whitelist UTLFarm</button>
+  <div class="status" id="st1">Connect wallet to begin.</div>
+</div>
 
-  <h2>Whitelist UTLFarm</h2>
-  <p class="subtitle">This will call <code>updateWhitelist(UTLFarm, true)</code> on the KENO token contract, allowing the farm to transfer tokens for staking rewards.</p>
+<!-- STEP 2: Withdraw presale KENO -->
+<div class="card">
+  <h2>Step 2 — Withdraw 300M KENO from Presale <span class="badge wait" id="s2badge">Pending</span></h2>
+  <p>You now own the presale contract. This withdraws all 300,000,000 KENO to your wallet (0x4AA73...).</p>
+  <div class="row"><span>Presale Contract</span><span>0xE26D6f...6D0</span></div>
+  <div class="row"><span>KENO Available</span><span>~300,000,000 KENO</span></div>
+  <div class="row"><span>Function</span><span>withdrawUnsoldTokens()</span></div>
+  <button class="btn btn-gold" id="btn2" onclick="withdrawPresale()" disabled>Withdraw 300M KENO</button>
+  <div class="status" id="st2">Complete Step 1 first, then withdraw.</div>
+</div>
 
-  <div class="warning">
-    ⚠ Connect with wallet <strong>0x4AA73FadfFd71E6549867a37455EA957A52Cf849</strong> (the new owner). Only the owner can call this function.
-  </div>
-
-  <div class="info-row">
-    <span class="info-label">KENO Token</span>
-    <span class="info-value">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</span>
-  </div>
-  <div class="info-row">
-    <span class="info-label">UTLFarm (to whitelist)</span>
-    <span class="info-value">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</span>
-  </div>
-  <div class="info-row">
-    <span class="info-label">Function</span>
-    <span class="info-value">updateWhitelist(address, bool)</span>
-  </div>
-  <div class="info-row">
-    <span class="info-label">Network</span>
-    <span class="info-value">BNB Smart Chain (Chain ID: 56)</span>
-  </div>
-
-  <div class="wallet-bar">
-    <div class="dot" id="dot"></div>
-    <span id="walletLabel">Not connected</span>
-  </div>
-
-  <button class="btn btn-connect" id="btnConnect" onclick="connectWallet()">Connect MetaMask</button>
-  <button class="btn btn-action" id="btnWhitelist" onclick="doWhitelist()" disabled>Whitelist UTLFarm on KENO Token</button>
-
-  <div class="status-box" id="statusBox">Waiting for MetaMask connection...</div>
+<!-- STEP 3: Pay FAL reward -->
+<div class="card">
+  <h2>Step 3 — Pay FAL Reward <span class="badge wait" id="s3badge">Pending</span></h2>
+  <p>Send the 2,175,114.30 KENO Flash Arbitrage Loan reward to <strong>0x75b4AE...</strong> (your earnings wallet).</p>
+  <div class="row"><span>Amount</span><span>2,175,114.30 KENO</span></div>
+  <div class="row"><span>Recipient</span><span>0x75b4AE...40e</span></div>
+  <div class="row"><span>Function</span><span>KENO.transfer(recipient, amount)</span></div>
+  <button class="btn btn-gold" id="btn3" onclick="payFAL()" disabled>Send FAL Reward</button>
+  <div class="status" id="st3">Complete Step 2 first to fund your wallet with KENO.</div>
 </div>
 
 <script>
-const KENO_TOKEN = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
-const FARM_ADDR  = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
-const NEW_OWNER  = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
-const BSC_CHAIN  = '0x38'; // 56 in hex
+const KENO    = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+const FARM    = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+const PRESALE = '0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0';
+const BENE    = '0x75b4AE3859221bB6DF6D7C2146e93c08B16E440e';
+const FAL_AMT = '2175114300000000000000000'; // 2175114.3 KENO in wei
+const NEW_OWNER = '0x4aa73fadfd71e6549867a37455ea957a52cf849';
+const BSC = '0x38';
 
-let userAccount = null;
+let account = null;
 
-function setStatus(msg, type='') {
-  const el = document.getElementById('statusBox');
+function st(id, msg, type='') {
+  const el = document.getElementById(id);
   el.textContent = msg;
-  el.className = 'status-box' + (type ? ' '+type : '');
+  el.className = 'status' + (type ? ' '+type : '');
+}
+function badge(id, text, cls) {
+  const b = document.getElementById(id);
+  b.textContent = text;
+  b.className = 'badge ' + cls;
 }
 
-async function connectWallet() {
-  if (!window.ethereum) { setStatus('MetaMask not detected. Please open in MetaMask browser.', 'error'); return; }
+async function connect() {
+  if (!window.ethereum) { alert('MetaMask not found. Open in MetaMask browser.'); return; }
+  const [acct] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  account = acct;
   try {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    userAccount = accounts[0];
-
-    // Switch to BSC
-    try {
-      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN }] });
-    } catch(e) {
-      if (e.code === 4902) {
-        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
-          chainId: BSC_CHAIN, chainName: 'BNB Smart Chain',
-          rpcUrls: ['https://bsc-dataseed1.binance.org/'],
-          nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-          blockExplorerUrls: ['https://bscscan.com']
-        }]});
-      }
-    }
-
-    const dot = document.getElementById('dot');
-    const label = document.getElementById('walletLabel');
-    dot.className = 'dot connected';
-    label.textContent = userAccount.slice(0,6)+'...'+userAccount.slice(-4) + (userAccount.toLowerCase() === NEW_OWNER.toLowerCase() ? ' ✅ Owner confirmed' : ' ⚠ Wrong wallet — must use owner wallet');
-
-    document.getElementById('btnWhitelist').disabled = false;
-    setStatus('Wallet connected. Ready to whitelist UTLFarm.', 'pending');
-
-    // Check if already whitelisted
-    await checkWhitelisted();
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC }] });
   } catch(e) {
-    setStatus('Connection failed: ' + e.message, 'error');
+    if (e.code === 4902) {
+      await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
+        chainId: BSC, chainName: 'BNB Smart Chain',
+        rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+        nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+        blockExplorerUrls: ['https://bscscan.com']
+      }]});
+    }
   }
+  const dot = document.getElementById('dot');
+  dot.className = 'dot' + (account.toLowerCase() === NEW_OWNER ? ' on' : '');
+  document.getElementById('wLabel').textContent = account.slice(0,6)+'...'+account.slice(-4) + (account.toLowerCase()===NEW_OWNER ? ' ✅ Owner' : ' ⚠ Use owner wallet');
+  document.getElementById('btn1').disabled = false;
+  document.getElementById('btn2').disabled = false;
+  document.getElementById('btn3').disabled = false;
+  st('st1', 'Ready. Click to whitelist UTLFarm.', 'pend');
+  st('st2', 'Ready. Click to withdraw 300M KENO.', 'pend');
+  st('st3', 'Ready. Click to send FAL reward (ensure Step 2 done first).', 'pend');
+  await checkWhitelisted();
 }
 
 async function checkWhitelisted() {
   try {
-    const selector = '0x61e3b96f'; // isWhitelisted(address)
-    const padded = FARM_ADDR.toLowerCase().replace('0x','').padStart(64,'0');
-    const result = await window.ethereum.request({
-      method: 'eth_call',
-      params: [{ to: KENO_TOKEN, data: '0x61e3b96f' + padded }, 'latest']
-    });
-    const isWhitelisted = result && result !== '0x' && parseInt(result, 16) === 1;
-    if (isWhitelisted) {
-      setStatus('UTLFarm is already whitelisted on KENO token! No action needed.', 'success');
-      document.getElementById('btnWhitelist').disabled = true;
-    } else {
-      setStatus('UTLFarm is NOT yet whitelisted. Click the button below to whitelist it.', 'pending');
+    const sel = '0x61e3b96f';
+    const pad = FARM.toLowerCase().replace('0x','').padStart(64,'0');
+    const r = await window.ethereum.request({ method:'eth_call', params:[{to:KENO,data:sel+pad},'latest'] });
+    if (r && parseInt(r,16) === 1) {
+      st('st1', '✅ UTLFarm already whitelisted!', 'ok');
+      badge('s1badge', 'Done', 'done');
+      document.getElementById('btn1').disabled = true;
     }
-  } catch(e) {
-    setStatus('Connected. Click below to whitelist UTLFarm.', 'pending');
-  }
+  } catch(e) {}
 }
 
-async function doWhitelist() {
-  if (!userAccount) { setStatus('Please connect wallet first.', 'error'); return; }
+async function sendTx(to, data, gasHex, statusId) {
+  const hash = await window.ethereum.request({
+    method: 'eth_sendTransaction',
+    params: [{ from: account, to, data, gas: gasHex }]
+  });
+  st(statusId, 'TX sent: ' + hash + '\nConfirming...', 'pend');
+  for (let i=0; i<40; i++) {
+    await new Promise(r=>setTimeout(r,3000));
+    const rec = await window.ethereum.request({ method:'eth_getTransactionReceipt', params:[hash] }).catch(()=>null);
+    if (rec) return { success: parseInt(rec.status,16)===1, hash };
+  }
+  return { success: null, hash };
+}
+
+async function whitelistFarm() {
+  if (!account) { alert('Connect wallet first.'); return; }
+  st('st1', 'Sending... approve in MetaMask.', 'pend');
   try {
-    setStatus('Sending transaction... Please confirm in MetaMask.', 'pending');
-
-    // updateWhitelist(address,bool) selector = 0x0d392cd9
-    const addr = FARM_ADDR.toLowerCase().replace('0x','').padStart(64,'0');
+    const addr = FARM.toLowerCase().replace('0x','').padStart(64,'0');
     const bool = '0000000000000000000000000000000000000000000000000000000000000001';
-    const data = '0x0d392cd9' + addr + bool;
-
-    const txHash = await window.ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [{ from: userAccount, to: KENO_TOKEN, data, gas: '0x15F90' }] // 90000 gas
-    });
-
-    setStatus('Transaction sent! Hash: ' + txHash + '\n\nWaiting for confirmation...', 'pending');
-
-    // Poll for receipt
-    let confirmed = false;
-    for (let i = 0; i < 30; i++) {
-      await new Promise(r => setTimeout(r, 3000));
-      try {
-        const receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
-        if (receipt) {
-          const success = parseInt(receipt.status, 16) === 1;
-          if (success) {
-            setStatus('SUCCESS! UTLFarm is now whitelisted on KENO token.\n\nTX: ' + txHash, 'success');
-            document.getElementById('btnWhitelist').disabled = true;
-          } else {
-            setStatus('Transaction failed. Check BSCScan: https://bscscan.com/tx/' + txHash, 'error');
-          }
-          confirmed = true;
-          break;
-        }
-      } catch(e) {}
-    }
-    if (!confirmed) setStatus('Check BSCScan for status: https://bscscan.com/tx/' + txHash, 'pending');
-  } catch(e) {
-    if (e.code === 4001) setStatus('Transaction rejected by user.', 'error');
-    else setStatus('Error: ' + e.message, 'error');
-  }
+    const { success, hash } = await sendTx(KENO, '0x0d392cd9'+addr+bool, '0x15F90', 'st1');
+    if (success) { st('st1', '✅ UTLFarm whitelisted!\nTX: '+hash, 'ok'); badge('s1badge','Done','done'); }
+    else if (success===false) st('st1', '❌ TX failed. Check BSCScan: '+hash, 'err');
+    else st('st1', 'Check BSCScan: '+hash, 'pend');
+  } catch(e) { st('st1', e.code===4001?'Rejected.':'Error: '+e.message, 'err'); }
 }
 
-window.ethereum && window.ethereum.on('accountsChanged', a => { userAccount = a[0]; });
+async function withdrawPresale() {
+  if (!account) { alert('Connect wallet first.'); return; }
+  st('st2', 'Sending... approve in MetaMask.', 'pend');
+  try {
+    // withdrawUnsoldTokens() selector
+    const { success, hash } = await sendTx(PRESALE, '0x3ccfd60b', '0x30D40', 'st2');
+    if (success) { st('st2', '✅ 300M KENO withdrawn to your wallet!\nTX: '+hash, 'ok'); badge('s2badge','Done','done'); }
+    else if (success===false) st('st2', '❌ TX failed. Check BSCScan: '+hash, 'err');
+    else st('st2', 'Check BSCScan: '+hash, 'pend');
+  } catch(e) { st('st2', e.code===4001?'Rejected.':'Error: '+e.message, 'err'); }
+}
+
+async function payFAL() {
+  if (!account) { alert('Connect wallet first.'); return; }
+  st('st3', 'Sending... approve in MetaMask.', 'pend');
+  try {
+    // transfer(address,uint256) = 0xa9059cbb
+    const to  = BENE.toLowerCase().replace('0x','').padStart(64,'0');
+    const amt = BigInt(FAL_AMT).toString(16).padStart(64,'0');
+    const { success, hash } = await sendTx(KENO, '0xa9059cbb'+to+amt, '0x15F90', 'st3');
+    if (success) { st('st3', '✅ 2,175,114.30 KENO sent to 0x75b4AE...!\nTX: '+hash, 'ok'); badge('s3badge','Done','done'); }
+    else if (success===false) st('st3', '❌ TX failed — ensure you withdrew KENO first (Step 2).\n'+hash, 'err');
+    else st('st3', 'Check BSCScan: '+hash, 'pend');
+  } catch(e) { st('st3', e.code===4001?'Rejected.':'Error: '+e.message, 'err'); }
+}
+window.ethereum?.on('accountsChanged', a => { account=a[0]; });
 </script>
 </body>
 </html>
