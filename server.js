@@ -7648,16 +7648,17 @@ app.post('/api/support/quick-question', async (req, res) => {
 
 app.post('/api/arbitrage/flash-loan/create', (req, res) => {
     try {
-        const { walletAddress, amount, purpose } = req.body;
+        const { walletAddress, amount, loanAmount, targetPair, opportunityId, purpose } = req.body;
+        const actualAmount = amount || loanAmount;
         
-        if (!walletAddress || !amount) {
+        if (!walletAddress || !actualAmount) {
             return res.status(400).json({ 
                 success: false, 
                 error: 'Wallet address and amount are required' 
             });
         }
         
-        const result = arbitrageSystem.createFlashLoan(walletAddress, amount, purpose || 'Arbitrage trading');
+        const result = arbitrageSystem.createFlashLoan(walletAddress, actualAmount, purpose || targetPair || 'Arbitrage trading');
         res.json(result);
     } catch (error) {
         console.error('Flash loan creation error:', error);

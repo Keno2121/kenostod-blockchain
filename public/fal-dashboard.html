@@ -540,12 +540,15 @@ async function executeFAL() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         walletAddress: wallet,
+        amount: loanAmt,
         loanAmount: loanAmt,
         targetPair: currentOpp.asset,
         opportunityId: currentOpp.id
       })
     });
-    const d = await r.json();
+    const text = await r.text();
+    let d;
+    try { d = JSON.parse(text); } catch(pe) { throw new Error('Server error (status ' + r.status + ')'); }
     const res = document.getElementById('execResult');
     res.style.display = 'block';
 
