@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whitelist UTLFarm — Kenostod Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .card { background: #12121a; border: 1px solid #2a2a3a; border-radius: 16px; padding: 40px; max-width: 520px; width: 100%; margin: 20px; }
+  .logo { text-align: center; margin-bottom: 24px; }
+  .logo h1 { font-size: 22px; color: #c9a84c; letter-spacing: 2px; }
+  .logo p { font-size: 12px; color: #666; margin-top: 4px; }
+  h2 { font-size: 18px; color: #fff; margin-bottom: 8px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 28px; line-height: 1.5; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; background: #1a1a26; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
+  .info-label { font-size: 12px; color: #888; }
+  .info-value { font-size: 12px; color: #c9a84c; font-family: monospace; word-break: break-all; max-width: 260px; text-align: right; }
+  .status-box { background: #1a1a26; border-radius: 8px; padding: 16px; margin: 20px 0; min-height: 52px; font-size: 13px; line-height: 1.6; border-left: 3px solid #2a2a3a; }
+  .status-box.success { border-left-color: #22c55e; color: #22c55e; }
+  .status-box.error   { border-left-color: #ef4444; color: #ef4444; }
+  .status-box.pending { border-left-color: #c9a84c; color: #c9a84c; }
+  .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+  .btn-connect { background: #1d1d2e; border: 1px solid #3a3a5a; color: #c9a84c; }
+  .btn-connect:hover { background: #252540; }
+  .btn-action { background: linear-gradient(135deg, #c9a84c, #a8873a); color: #000; margin-top: 10px; }
+  .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-action:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .wallet-bar { display: flex; align-items: center; gap: 8px; background: #1a1a26; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #888; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
+  .dot.connected { background: #22c55e; }
+  .warning { background: #1a1208; border: 1px solid #c9a84c33; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #c9a84c; margin-bottom: 20px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>KENOSTOD</h1>
+    <p>UTL Protocol — Owner Admin</p>
+  </div>
+
+  <h2>Whitelist UTLFarm</h2>
+  <p class="subtitle">This will call <code>updateWhitelist(UTLFarm, true)</code> on the KENO token contract, allowing the farm to transfer tokens for staking rewards.</p>
+
+  <div class="warning">
+    ⚠ Connect with wallet <strong>0x4AA73FadfFd71E6549867a37455EA957A52Cf849</strong> (the new owner). Only the owner can call this function.
+  </div>
+
+  <div class="info-row">
+    <span class="info-label">KENO Token</span>
+    <span class="info-value">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">UTLFarm (to whitelist)</span>
+    <span class="info-value">0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Function</span>
+    <span class="info-value">updateWhitelist(address, bool)</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Network</span>
+    <span class="info-value">BNB Smart Chain (Chain ID: 56)</span>
+  </div>
+
+  <div class="wallet-bar">
+    <div class="dot" id="dot"></div>
+    <span id="walletLabel">Not connected</span>
+  </div>
+
+  <button class="btn btn-connect" id="btnConnect" onclick="connectWallet()">Connect MetaMask</button>
+  <button class="btn btn-action" id="btnWhitelist" onclick="doWhitelist()" disabled>Whitelist UTLFarm on KENO Token</button>
+
+  <div class="status-box" id="statusBox">Waiting for MetaMask connection...</div>
+</div>
+
+<script>
+const KENO_TOKEN = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+const FARM_ADDR  = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+const NEW_OWNER  = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
+const BSC_CHAIN  = '0x38'; // 56 in hex
+
+let userAccount = null;
+
+function setStatus(msg, type='') {
+  const el = document.getElementById('statusBox');
+  el.textContent = msg;
+  el.className = 'status-box' + (type ? ' '+type : '');
+}
+
+async function connectWallet() {
+  if (!window.ethereum) { setStatus('MetaMask not detected. Please open in MetaMask browser.', 'error'); return; }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    userAccount = accounts[0];
+
+    // Switch to BSC
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN }] });
+    } catch(e) {
+      if (e.code === 4902) {
+        await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
+          chainId: BSC_CHAIN, chainName: 'BNB Smart Chain',
+          rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+          nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+          blockExplorerUrls: ['https://bscscan.com']
+        }]});
+      }
+    }
+
+    const dot = document.getElementById('dot');
+    const label = document.getElementById('walletLabel');
+    dot.className = 'dot connected';
+    label.textContent = userAccount.slice(0,6)+'...'+userAccount.slice(-4) + (userAccount.toLowerCase() === NEW_OWNER.toLowerCase() ? ' ✅ Owner confirmed' : ' ⚠ Wrong wallet — must use owner wallet');
+
+    document.getElementById('btnWhitelist').disabled = false;
+    setStatus('Wallet connected. Ready to whitelist UTLFarm.', 'pending');
+
+    // Check if already whitelisted
+    await checkWhitelisted();
+  } catch(e) {
+    setStatus('Connection failed: ' + e.message, 'error');
+  }
+}
+
+async function checkWhitelisted() {
+  try {
+    const selector = '0x61e3b96f'; // isWhitelisted(address)
+    const padded = FARM_ADDR.toLowerCase().replace('0x','').padStart(64,'0');
+    const result = await window.ethereum.request({
+      method: 'eth_call',
+      params: [{ to: KENO_TOKEN, data: '0x61e3b96f' + padded }, 'latest']
+    });
+    const isWhitelisted = result && result !== '0x' && parseInt(result, 16) === 1;
+    if (isWhitelisted) {
+      setStatus('UTLFarm is already whitelisted on KENO token! No action needed.', 'success');
+      document.getElementById('btnWhitelist').disabled = true;
+    } else {
+      setStatus('UTLFarm is NOT yet whitelisted. Click the button below to whitelist it.', 'pending');
+    }
+  } catch(e) {
+    setStatus('Connected. Click below to whitelist UTLFarm.', 'pending');
+  }
+}
+
+async function doWhitelist() {
+  if (!userAccount) { setStatus('Please connect wallet first.', 'error'); return; }
+  try {
+    setStatus('Sending transaction... Please confirm in MetaMask.', 'pending');
+
+    // updateWhitelist(address,bool) selector = 0x0d392cd9
+    const addr = FARM_ADDR.toLowerCase().replace('0x','').padStart(64,'0');
+    const bool = '0000000000000000000000000000000000000000000000000000000000000001';
+    const data = '0x0d392cd9' + addr + bool;
+
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{ from: userAccount, to: KENO_TOKEN, data, gas: '0x15F90' }] // 90000 gas
+    });
+
+    setStatus('Transaction sent! Hash: ' + txHash + '\n\nWaiting for confirmation...', 'pending');
+
+    // Poll for receipt
+    let confirmed = false;
+    for (let i = 0; i < 30; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      try {
+        const receipt = await window.ethereum.request({ method: 'eth_getTransactionReceipt', params: [txHash] });
+        if (receipt) {
+          const success = parseInt(receipt.status, 16) === 1;
+          if (success) {
+            setStatus('SUCCESS! UTLFarm is now whitelisted on KENO token.\n\nTX: ' + txHash, 'success');
+            document.getElementById('btnWhitelist').disabled = true;
+          } else {
+            setStatus('Transaction failed. Check BSCScan: https://bscscan.com/tx/' + txHash, 'error');
+          }
+          confirmed = true;
+          break;
+        }
+      } catch(e) {}
+    }
+    if (!confirmed) setStatus('Check BSCScan for status: https://bscscan.com/tx/' + txHash, 'pending');
+  } catch(e) {
+    if (e.code === 4001) setStatus('Transaction rejected by user.', 'error');
+    else setStatus('Error: ' + e.message, 'error');
+  }
+}
+
+window.ethereum && window.ethereum.on('accountsChanged', a => { userAccount = a[0]; });
+</script>
+</body>
+</html>
