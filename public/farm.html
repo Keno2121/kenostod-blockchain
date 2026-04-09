@@ -704,9 +704,28 @@
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: '0x38' }]
                     });
-                } catch (e) {
-                    alert('Please switch to BNB Smart Chain in MetaMask.');
-                    return;
+                } catch (switchErr) {
+                    // Error 4902 = chain not added yet — add BSC automatically
+                    if (switchErr.code === 4902) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x38',
+                                    chainName: 'BNB Smart Chain',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                                    blockExplorerUrls: ['https://bscscan.com/']
+                                }]
+                            });
+                        } catch (addErr) {
+                            alert('Could not add BNB Smart Chain to MetaMask. Please add it manually.');
+                            return;
+                        }
+                    } else {
+                        alert('Please switch to BNB Smart Chain in MetaMask.');
+                        return;
+                    }
                 }
             }
 
@@ -714,7 +733,12 @@
             document.getElementById('walletBtn').textContent = '✅ ' + short;
             renderConnectedState();
         } catch (e) {
+            if (e.code === 4001) {
+                // User rejected the connection request — do nothing
+                return;
+            }
             console.error('Wallet connect error:', e);
+            alert('Could not connect wallet: ' + (e.message || 'Unknown error'));
         }
     }
 
@@ -725,13 +749,13 @@
                     <div class="harvest-amount" id="liveRewards">0.0000 KENO</div>
                     <div class="harvest-label">Pending Rewards — updates every 5 seconds</div>
                 </div>
-                <button class="harvest-btn" onclick="harvestRewards()" id="harvestBtn" disabled>
-                    Harvest (Farm Not Live Yet)
+                <button class="harvest-btn" onclick="harvestRewards()" id="harvestBtn">
+                    Harvest KENO Rewards
                 </button>
             </div>
             <div style="padding:0 24px 20px;">
                 <div style="font-size:.8rem;color:#64748b;line-height:1.6;">
-                    Rewards begin accumulating the moment the UTLFarm contract is deployed and you stake LP tokens.
+                    Farm is <strong style="color:#10b981;">LIVE on BSC Mainnet</strong>. Stake KENO/BNB LP tokens to start earning 864 KENO/day.
                     Your wallet is connected and ready.
                 </div>
             </div>
@@ -772,8 +796,8 @@
             <div style="font-size:.78rem;color:#64748b;margin-bottom:16px;">
                 Unstaking also auto-harvests all pending KENO rewards.
             </div>
-            <button class="btn-secondary" onclick="unstakeLp()" disabled>
-                Unstake LP + Harvest (Farm Not Live)
+            <button class="btn-secondary" onclick="unstakeLp()">
+                Unstake LP + Harvest KENO
             </button>
         `;
 
@@ -817,42 +841,67 @@
     }
 
     function harvestRewards() {
-        if (!userAddress) { alert('Connect your wallet first.'); return; }
-        alert('Harvest: open BscScan and call harvest() on\n0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nor use the Write Contract tab.');
+        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        window.open(
+            'https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract',
+            '_blank'
+        );
     }
     function stakeLp() {
-        if (!userAddress) { alert('Connect your wallet first.'); return; }
-        alert('To stake:\n1. Approve LP tokens on the farm contract\n2. Call stake(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nFull UI coming in next update.');
+        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        alert('To stake KENO/BNB LP:\n\n1. Get LP tokens on PancakeSwap (Add Liquidity link below)\n2. Approve LP tokens: call approve() on the LP contract\n3. Call stake(amount) on the UTLFarm contract:\n   0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nFull one-click staking UI coming in next update.');
     }
     function unstakeLp() {
-        if (!userAddress) { alert('Connect your wallet first.'); return; }
-        alert('To unstake:\nCall withdraw(amount) on 0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\nvia BscScan Write Contract tab.');
+        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        alert('To unstake LP + harvest KENO:\n\nCall withdraw(amount) on the UTLFarm contract:\n0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nUse BscScan Write Contract tab (link opens).');
+        window.open(
+            'https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract',
+            '_blank'
+        );
     }
 
     // ─── Market Data ──────────────────────────────────────────────────────────
+    const REWARD_RATE_PER_DAY = 864; // KENO/day from contract (0.01 KENO/sec)
+
     async function fetchMarketData() {
         try {
             const res  = await fetch('/api/keno/market');
             const data = await res.json();
-            if (data.price) {
-                kenoPrice = parseFloat(data.price);
+
+            // data.price is {usd, bnb} object
+            if (data.price && data.price.usd) {
+                kenoPrice = parseFloat(data.price.usd);
                 document.getElementById('statPrice').textContent = '$' + kenoPrice.toFixed(4);
                 document.getElementById('poolPrice').textContent = '$' + kenoPrice.toFixed(4);
             }
+
             if (data.tvl) {
-                const tvlFmt = '$' + parseFloat(data.tvl).toLocaleString('en-US', {maximumFractionDigits:0});
+                const tvl    = parseFloat(data.tvl);
+                const tvlFmt = '$' + tvl.toLocaleString('en-US', {maximumFractionDigits:0});
                 document.getElementById('poolTvl').textContent = tvlFmt;
+                document.getElementById('statTvl').textContent = tvlFmt;
+
+                // APR = (KENO/day * 365 * kenoPrice) / TVL * 100
+                if (kenoPrice > 0 && tvl > 0) {
+                    const apr = (REWARD_RATE_PER_DAY * 365 * kenoPrice) / tvl * 100;
+                    const aprFmt = apr > 1000 ? apr.toFixed(0) + '%' : apr.toFixed(1) + '%';
+                    document.getElementById('statApr').textContent  = aprFmt;
+                    document.getElementById('poolApr').textContent  = aprFmt;
+                } else {
+                    document.getElementById('statApr').textContent  = '—%';
+                    document.getElementById('poolApr').textContent  = '—%';
+                }
             }
+
+            // Reward rate and runway
+            document.getElementById('statRate').textContent   = REWARD_RATE_PER_DAY.toLocaleString() + ' KENO/day';
+            document.getElementById('statRunway').textContent = '—'; // updates when farm is funded
+
         } catch(e) {
             console.warn('Market data fetch error:', e);
+            document.getElementById('statTvl').textContent  = '—';
+            document.getElementById('statRate').textContent = REWARD_RATE_PER_DAY + ' KENO/day';
         }
-
-        // Farm stats — live contract deployed
-        document.getElementById('statTvl').textContent    = 'Loading...';
-        document.getElementById('statApr').textContent    = '—%';
-        document.getElementById('statRate').textContent   = '— KENO/day';
-        document.getElementById('statRunway').textContent = '—';
-        document.getElementById('poolApr').textContent    = '—%';
     }
 
     // ─── Init ─────────────────────────────────────────────────────────────────
