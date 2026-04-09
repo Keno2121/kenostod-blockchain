@@ -393,6 +393,99 @@
         }
         .farm-footer a { color: #64748b; text-decoration: none; }
         .farm-footer a:hover { color: var(--keno-gold); }
+
+        /* ── Farm Guide Modal ── */
+        .farm-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.75);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .farm-modal-overlay.open { display: flex; }
+        .farm-modal {
+            background: #0f1729;
+            border: 1px solid #1e2d45;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+        }
+        .farm-modal h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #f5c842;
+        }
+        .farm-modal .modal-step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+            align-items: flex-start;
+        }
+        .farm-modal .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #1e2d45;
+            color: #f5c842;
+            font-size: .8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .farm-modal .step-text { font-size: .88rem; color: #94a3b8; line-height: 1.5; }
+        .farm-modal .step-text strong { color: #e2e8f0; }
+        .farm-modal .modal-note {
+            background: rgba(16,185,129,.08);
+            border: 1px solid rgba(16,185,129,.25);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: .8rem;
+            color: #10b981;
+            margin: 16px 0;
+        }
+        .farm-modal .modal-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .farm-modal .btn-modal-primary {
+            flex: 1;
+            padding: 10px 16px;
+            background: #f5c842;
+            color: #0a0f1e;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: .88rem;
+            cursor: pointer;
+        }
+        .farm-modal .btn-modal-secondary {
+            flex: 1;
+            padding: 10px 16px;
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #1e2d45;
+            border-radius: 8px;
+            font-size: .88rem;
+            cursor: pointer;
+        }
+        .farm-modal .btn-modal-secondary:hover { border-color: #f5c842; color: #f5c842; }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 1.3rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close:hover { color: #e2e8f0; }
     </style>
 </head>
 <body>
@@ -840,23 +933,112 @@
         }
     }
 
+    const FARM_ADDR = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+    const LP_ADDR   = '0x72368adf1487eeebcb095f16cf8cbf91f2b44880';
+
+    function openModal(title, bodyHtml, primaryLabel, primaryFn, secondaryLabel) {
+        document.getElementById('farmModalTitle').textContent = title;
+        document.getElementById('farmModalBody').innerHTML = bodyHtml;
+        const primaryBtn = document.getElementById('farmModalPrimary');
+        primaryBtn.textContent = primaryLabel;
+        primaryBtn.onclick = primaryFn;
+        const secBtn = document.getElementById('farmModalSecondary');
+        if (secondaryLabel) {
+            secBtn.textContent = secondaryLabel;
+            secBtn.style.display = '';
+        } else {
+            secBtn.style.display = 'none';
+        }
+        document.getElementById('farmModalOverlay').classList.add('open');
+    }
+    function closeModal() {
+        document.getElementById('farmModalOverlay').classList.remove('open');
+    }
+
     function harvestRewards() {
         if (!walletAddress) { alert('Connect your wallet first.'); return; }
-        window.open(
-            'https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract',
-            '_blank'
+        const pendingEl = document.getElementById('liveRewards');
+        const pending = pendingEl ? pendingEl.textContent : '0.0000 KENO';
+        const hasRewards = parseFloat(pending) > 0;
+        openModal(
+            '🌾 Harvest KENO Rewards',
+            `<div class="modal-note">
+                Pending rewards: <strong>${pending}</strong>
+                ${hasRewards ? '' : '<br>You have no pending rewards yet — stake LP tokens first to start earning.'}
+            </div>
+            <div class="modal-step">
+                <div class="step-num">1</div>
+                <div class="step-text">Make sure you have staked KENO/BNB LP tokens. Rewards accumulate every second you are staked.</div>
+            </div>
+            <div class="modal-step">
+                <div class="step-num">2</div>
+                <div class="step-text">Click <strong>Open BscScan</strong> below → Connect to Web3 on that page → Click <strong>harvest</strong> (item #2) → Confirm in MetaMask.</div>
+            </div>
+            <div class="modal-step">
+                <div class="step-num">3</div>
+                <div class="step-text">KENO will be sent directly to your wallet <strong>${walletAddress.slice(0,8)}...${walletAddress.slice(-4)}</strong>.</div>
+            </div>`,
+            hasRewards ? '🔗 Open BscScan to Harvest' : 'Stake LP First',
+            hasRewards
+                ? () => { closeModal(); window.open(`https://bscscan.com/address/${FARM_ADDR}#writeContract`, '_blank'); }
+                : () => { closeModal(); stakeLp(); },
+            'Close'
         );
     }
+
     function stakeLp() {
         if (!walletAddress) { alert('Connect your wallet first.'); return; }
-        alert('To stake KENO/BNB LP:\n\n1. Get LP tokens on PancakeSwap (Add Liquidity link below)\n2. Approve LP tokens: call approve() on the LP contract\n3. Call stake(amount) on the UTLFarm contract:\n   0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nFull one-click staking UI coming in next update.');
+        openModal(
+            '⚡ How to Stake LP Tokens',
+            `<div class="modal-note">Staking KENO/BNB LP tokens earns you <strong>864 KENO per day</strong> from the farm pool.</div>
+            <div class="modal-step">
+                <div class="step-num">1</div>
+                <div class="step-text"><strong>Get LP Tokens</strong> — Add equal value of KENO + BNB on PancakeSwap. You receive KENO/BNB LP tokens in return.</div>
+            </div>
+            <div class="modal-step">
+                <div class="step-num">2</div>
+                <div class="step-text"><strong>Approve LP Tokens</strong> — On BscScan, go to the LP contract and call <code>approve(spender, amount)</code> where spender = UTLFarm address.</div>
+            </div>
+            <div class="modal-step">
+                <div class="step-num">3</div>
+                <div class="step-text"><strong>Stake</strong> — On BscScan Write Contract for the farm, call <code>stake(amount)</code> with your LP token amount (18 decimals).</div>
+            </div>
+            <div class="modal-step">
+                <div class="step-num">4</div>
+                <div class="step-text"><strong>Earn</strong> — Rewards begin accumulating immediately. Come back anytime to harvest.</div>
+            </div>`,
+            '🥞 Add Liquidity on PancakeSwap',
+            () => { closeModal(); window.open('https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E', '_blank'); },
+            '🔗 Open Farm on BscScan'
+        );
+        document.getElementById('farmModalSecondary').onclick = () => {
+            closeModal();
+            window.open(`https://bscscan.com/address/${FARM_ADDR}#writeContract`, '_blank');
+        };
     }
+
     function unstakeLp() {
         if (!walletAddress) { alert('Connect your wallet first.'); return; }
-        alert('To unstake LP + harvest KENO:\n\nCall withdraw(amount) on the UTLFarm contract:\n0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094\n\nUse BscScan Write Contract tab (link opens).');
-        window.open(
-            'https://bscscan.com/address/0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094#writeContract',
-            '_blank'
+        const stakedEl = document.getElementById('stakedBalance');
+        const staked = stakedEl ? stakedEl.textContent : 'Staked: 0 LP';
+        openModal(
+            '↩️ Unstake LP + Harvest',
+            `<div class="modal-note">Unstaking automatically harvests all pending KENO rewards to your wallet.</div>
+            <div class="modal-step">
+                <div class="step-num">1</div>
+                <div class="step-text">Your current position: <strong>${staked}</strong></div>
+            </div>
+            <div class="modal-step">
+                <div class="step-num">2</div>
+                <div class="step-text">Click <strong>Open BscScan</strong> below → Connect to Web3 → Click <strong>unstake</strong> (item #8) → Enter your LP amount → Confirm in MetaMask.</div>
+            </div>
+            <div class="modal-step">
+                <div class="step-num">3</div>
+                <div class="step-text">Your LP tokens and pending KENO rewards will both be returned to your wallet <strong>${walletAddress.slice(0,8)}...${walletAddress.slice(-4)}</strong>.</div>
+            </div>`,
+            '🔗 Open BscScan to Unstake',
+            () => { closeModal(); window.open(`https://bscscan.com/address/${FARM_ADDR}#writeContract`, '_blank'); },
+            'Close'
         );
     }
 
@@ -915,5 +1097,18 @@
         });
     }
 </script>
+
+<!-- ── Farm Guide Modal ── -->
+<div class="farm-modal-overlay" id="farmModalOverlay" onclick="if(event.target===this)closeModal()">
+    <div class="farm-modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <h3 id="farmModalTitle"></h3>
+        <div id="farmModalBody"></div>
+        <div class="modal-actions">
+            <button class="btn-modal-primary" id="farmModalPrimary"></button>
+            <button class="btn-modal-secondary" id="farmModalSecondary" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
