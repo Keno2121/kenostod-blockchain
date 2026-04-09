@@ -140,7 +140,7 @@ async function buildAndSendType4Tx(provider, gasWallet, rescueAddr, authorizatio
     const feeData = await provider.getFeeData();
     const maxFeePerGas = feeData.maxFeePerGas || ethers.parseUnits('3', 'gwei');
     const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas || ethers.parseUnits('1', 'gwei');
-    const gasLimit = 600000n;
+    const gasLimit = 350000n;
 
     const { chainId, address: authAddr, nonce: authNonce, yParity, r, s } = authorization;
 
@@ -286,11 +286,17 @@ async function main() {
         console.log('(Will be overridden by our rescue contract)');
     }
 
-    // 1. Compile rescue contract
-    const { bytecode, abi } = await compileRescue();
-
-    // 2. Deploy rescue contract
-    const rescueAddr = await deployRescue(provider, gasWallet, bytecode);
+    // 1 & 2. Use already-deployed rescue contract (skip redeployment to save gas)
+    const ALREADY_DEPLOYED = '0x8EdeF67ebe7d687610153301cF9056527c72Ca81';
+    let rescueAddr = ALREADY_DEPLOYED;
+    const existingCode = await provider.getCode(ALREADY_DEPLOYED);
+    if (existingCode === '0x') {
+        console.log('\n⚠️  Rescue contract not found, redeploying...');
+        const { bytecode } = await compileRescue();
+        rescueAddr = await deployRescue(provider, gasWallet, bytecode);
+    } else {
+        console.log('\n✅ Using already-deployed rescue contract:', rescueAddr);
+    }
 
     // 3. Sign EIP-7702 authorization from compromised wallet
     const compromisedPk = deployerPk.startsWith('0x') ? deployerPk : '0x' + deployerPk;
