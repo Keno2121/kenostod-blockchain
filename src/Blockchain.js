@@ -8,6 +8,7 @@ const ResidualValueToken = require('./ResidualValueToken');
 const ComputationalJob = require('./ComputationalJob');
 const RoyaltyPool = require('./RoyaltyPool');
 const BuyAndBurn = require('./BuyAndBurn');
+const { monitor: benfordMonitor } = require('./Benford');
 const { EnterpriseClientManager } = require('./EnterpriseClient');
 const MerchantAccount = require('./MerchantAccount');
 const PaymentGateway = require('./PaymentGateway');
@@ -95,6 +96,9 @@ class Blockchain {
         transaction.submittedAt = Date.now();
         transaction.status = 'pending';
         this.pendingTransactions.push(transaction);
+
+        // Benford's Law: record amount for silent fraud pattern analysis
+        benfordMonitor.record(transaction.fromAddress, transaction.amount);
     }
 
     cancelTransaction(transactionHash, senderAddress) {
