@@ -1,4 +1,6 @@
 const { convergenceSteps } = require('./Kaprekar');
+const { continuousEarnings, toContinuousRate, naturalDecay } = require('./Euler');
+const { phiMultiplier } = require('./GoldenRatio');
 
 class MerchantIncentives {
     constructor(blockchain) {
@@ -211,10 +213,16 @@ class MerchantIncentives {
         const yearInMs = 365 * 24 * 60 * 60 * 1000;
         const timeRatio = timeStaked / yearInMs;
 
-        const rewards = stake.stakedAmount * apy * timeRatio;
+        // Euler: continuous compounding — mathematically maximum earnings
+        const continuousRate = toContinuousRate(apy);
+        const rewards = continuousEarnings(stake.stakedAmount, continuousRate, timeRatio);
 
-        // Preserve 6-digit precision — dust is real value, not discarded
-        return parseFloat(rewards.toFixed(6));
+        // Golden Ratio: φ multiplier rewards loyalty — grows silently toward φ
+        const consecutiveWeeks = Math.floor(timeStaked / (7 * 24 * 60 * 60 * 1000));
+        const phi = phiMultiplier(consecutiveWeeks);
+        const sovereignRewards = parseFloat((rewards * phi).toFixed(6));
+
+        return sovereignRewards;
     }
 
     claimStakingRewards(merchantId) {
