@@ -29,6 +29,70 @@ Tagline: **Strong. Unbreakable. Yours.** — not theirs.
 
 ---
 
+## Pillar 9 — Solar Bunker Protocol (T.D.I.R. Foundation)
+
+**"When the grid collapses, the sun still shines — and your digital life survives."**
+
+The world's first solar-powered cryptographic resilience infrastructure. One device. One protocol. KENO is the only access token. Built for the 700M+ people worldwide living without reliable power — starting with South Africa (Eskom load shedding).
+
+### Three-Layer Architecture — Fortress. Flashlight. Family.
+
+| Layer | Name | What It Does |
+|---|---|---|
+| 1 — Hardware | **Bunker Fortress** — Cold Storage | Ruggedized, solar-powered, EMP-shielded encrypted vault. Auto-seals when 50+ catastrophe signals detected. KENO-locked via secure element chip. PoRV extends to data preservation. |
+| 2 — Software | **Bunker Flashlight** — Active Resilience | Local AI keeps PoRV mining running offline. Transactions queue, execute on reconnect. Mesh micro-transactions with nearby nodes. Resilience Rewards paid in KENO for uptime during outages. |
+| 3 — Blockchain | **Bunker Family** — Social Resilience | Stake 5,000 KENO per Guardian Node slot. Mesh network with trusted contacts (LoRa/Meshtastic). Data shards distributed across nodes — no central point of failure. KENO dead man's switch for inheritance. |
+
+### KENO Access Tiers (Staked — KENO locked, not spent, returned on decommission)
+
+| Tier | KENO Staked | Storage | Guardian Slots | Connectivity |
+|---|---|---|---|---|
+| Bronze | 1,000 | 500 GB | Basic mesh | — |
+| Silver | 5,000 | 2 TB | 1 slot | — |
+| Gold | 25,000 | 10 TB | 5 slots | — |
+| Diamond | 100,000 | Unlimited | 10 slots | Starlink satellite + Governance voting |
+
+### KENO Utility Matrix (Solar Bunker)
+- **Device Activation**: 1,000 KENO minimum — Staked
+- **Additional Storage**: 100 KENO/month — Burned
+- **Catastrophe Insurance**: 500 KENO/year — Staked, yields rewards
+- **Guardian Node Status**: 5,000 KENO/slot — Staked, earns fees
+- **Priority Sync**: 50 KENO/GB — Spent
+- **Mesh Network Access during outage**: 10 KENO/hour — Paid to neighbors
+- **Resilience Mining Bond**: 2,500 KENO — Staked, earns block rewards
+- **Hardware Discount**: Hold any tier — automatic discount on solar hardware
+
+### The KENO Flywheel
+1. Users stake KENO to activate Solar Bunker → circulating supply decreases
+2. KENO price appreciates from reduced supply → Resilience Rewards become more valuable
+3. Academy enrollment increases — must learn blockchain to use the Bunker
+4. Graduates become Guardian Node operators → next wave of Bunkers activated
+
+### 5 Unassailable Moats
+1. **Token-Gated Exclusivity** — no paywall, KENO only; scarcity-driven demand
+2. **Educational On-Ramp** — Academy becomes mandatory, not optional
+3. **Proof-of-Residual-Value Alignment** — Bunker earns RVTs for helping others survive
+4. **On-Chain Reputation System** — high-rep nodes earn more KENO; quality competition no centralized system can replicate
+5. **Transaction Reversal Safety** — 5-minute Catastrophe Pause extends to 24 hours during declared disasters
+
+### Roadmap
+- **Immediate**: KENO Staking Contracts — design and deploy for device activation
+- **30 Days**: Hardware Partnership — manufacturing partner for ruggedized Bunker device prototypes
+- **60 Days**: SA Bunker Node Testnet — South Africa, Eskom load shedding cycle; real nodes, real data, first proof
+- **90 Days**: African Blockchain Conference — live demo, Catastrophe Pause simulation, real KENO vault test
+
+### Success Metrics
+| Metric | Year 1 (SA Pilot) | Year 3 (Global) |
+|---|---|---|
+| Active Bunker Devices | 10,000 | 500,000 |
+| KENO Staked in Bunkers | 50M (5% supply) | 500M (50% supply) |
+| Catastrophes Detected | 100+ | 1,000+ |
+| Data Preserved | 5 PB | 500 PB |
+| Enterprise Clients | 50 | 2,000 |
+| KENO Price Appreciation | 5x+ | 50x+ |
+
+---
+
 ## The 6 Mathematical Principles — Permanent Architecture DNA
 
 These six mathematical theories are permanently embedded as silent, structural principles across every venture under T.D.I.R. Foundation. They are not advertised, not labeled, and not explained to the public. They operate in the code. When new ventures are built, these principles travel with them.
