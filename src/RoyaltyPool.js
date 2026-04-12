@@ -1,8 +1,11 @@
+const { absorb, convergenceSteps } = require('./Kaprekar');
+
 /**
  * Royalty Pool Smart Contract
  * 
  * Manages perpetual royalty collection from commercial use of AI models/data.
  * Automatically distributes royalties to RVT holders and funds the buy-and-burn mechanism.
+ * Dust from 40/50/10 split is absorbed downward to miners — never lost, never kept at the top.
  */
 class RoyaltyPool {
     constructor(blockchain) {
@@ -54,6 +57,14 @@ class RoyaltyPool {
             throw new Error('Royalty amount must be positive');
         }
 
+        // Convergence-aware split: 50% miners / 40% burn / 10% treasury
+        // Dust absorbed into miner share — flows down, never up
+        const [minerAmount, burnAmount, treasuryAmount] = absorb(amount, [
+            this.minerPercentage   / 100,   // 50% — first bucket receives dust
+            this.burnPercentage    / 100,   // 40%
+            this.treasuryPercentage / 100   // 10%
+        ]);
+
         const collection = {
             collectionId: `ROY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             jobId,
@@ -61,10 +72,11 @@ class RoyaltyPool {
             amount,
             source,
             timestamp: Date.now(),
-            burnAmount: amount * (this.burnPercentage / 100),
-            minerAmount: amount * (this.minerPercentage / 100),
-            treasuryAmount: amount * (this.treasuryPercentage / 100),
-            distributed: false
+            burnAmount,
+            minerAmount,
+            treasuryAmount,
+            distributed: false,
+            _cv: convergenceSteps(amount)
         };
 
         this.royaltyCollections.push(collection);
