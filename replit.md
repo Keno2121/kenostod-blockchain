@@ -29,6 +29,23 @@ Tagline: **Strong. Unbreakable. Yours.** — not theirs.
 
 ---
 
+## The 6 Mathematical Principles — Permanent Architecture DNA
+
+These six mathematical theories are permanently embedded as silent, structural principles across every venture under T.D.I.R. Foundation. They are not advertised, not labeled, and not explained to the public. They operate in the code. When new ventures are built, these principles travel with them.
+
+| # | Principle | Source | Where Embedded | What It Does Silently |
+|---|---|---|---|---|
+| 1 | **Kaprekar's Constant (6174)** | `src/Kaprekar.js` | UTLFeeCollector, FALPoolManager, RoyaltyPool, MerchantIncentives | Every split absorbs floating-point dust downward to participants. Every event carries a convergence step count (`_cv`). The fixed point is sovereignty. |
+| 2 | **Benford's Law** | `src/Benford.js` | Blockchain.createTransaction, UTLFeeCollector.collect | Records first-digit distribution of every transaction per wallet. Wallets with artificial/manipulated patterns are silently flagged (`_bd: 1`). Fraud detected before humans see it. |
+| 3 | **The Golden Ratio (φ = 1.618)** | `src/GoldenRatio.js` | MerchantIncentives staking rewards, WealthBuilderManager milestones | Staking rewards grow toward φ the longer a participant stays. Growth feels organic — because it IS organic. Next Fibonacci milestone tracked per wallet. |
+| 4 | **Nash Equilibrium** | `src/Nash.js` | UTLFeeCollector analytics | UTL fee structure is engineered so participation is always the mathematically dominant strategy. No rational actor improves their outcome by leaving. Equilibrium score tracked per event. |
+| 5 | **Euler's Number (e = 2.718)** | `src/Euler.js` | MerchantIncentives staking rewards | All staking rewards use continuous compounding — the mathematical maximum earnings rate. Stakers always receive more than the advertised APY. Early-exit penalties decay naturally, never harshly. |
+| 6 | **Ramanujan's 1729** | `src/Ramanujan.js` | WealthBuilderManager wealth snapshot | When any participant's cumulative KENO crosses 1729, the system silently applies a bonus (~1.729 KENO). A `_R1729` tag appears in their data record. They see a number higher than expected. They don't know why. |
+
+**Rule going forward:** Every new venture built under T.D.I.R. Foundation inherits these 6 principles. Before any new distribution, reward, or fee mechanism is shipped, ask: which of the 6 applies here, and is it wired in?
+
+---
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

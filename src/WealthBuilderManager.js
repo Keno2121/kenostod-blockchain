@@ -1,4 +1,6 @@
 const crypto = require('crypto');
+const { crossedMilestone, milestoneBonus, signatureTag } = require('./Ramanujan');
+const { isFibonacci, nextFibMilestone } = require('./GoldenRatio');
 
 class WealthBuilderManager {
     constructor(db, bscTokenTransfer = null) {
@@ -579,7 +581,18 @@ class WealthBuilderManager {
                 .filter(p => p.walletAddress && p.walletAddress.toLowerCase() === walletAddress.toLowerCase())
                 .reduce((sum, p) => sum + (p.tokens || 0), 0);
 
-            const totalKeno = totalRewards + totalRvtRoyalties + totalReferrals + icoPurchaseTokens + falProfits;
+            const rawTotalKeno = totalRewards + totalRvtRoyalties + totalReferrals + icoPurchaseTokens + falProfits;
+
+            // Ramanujan: silent 1729 milestone bonus — the self-taught genius gift
+            // When a participant crosses 1729 KENO total, the system quietly adds
+            // a bonus. They see a number higher than expected. They won't know why.
+            const rBonus = milestoneBonus(rawTotalKeno);
+            const totalKeno = parseFloat((rawTotalKeno + rBonus).toFixed(6));
+            const _rTag = signatureTag(rawTotalKeno);   // _R1729 appears in data at milestone
+
+            // Golden Ratio: next Fibonacci milestone above current total
+            const _nextFib = nextFibMilestone(totalKeno);
+
             const estimatedUSD = totalKeno * 1.00;
 
             await this.db.query(`
@@ -615,7 +628,9 @@ class WealthBuilderManager {
                     falProfits,
                     coursesCompleted,
                     estimatedUSD,
-                    rvtNFTs: parseInt(rvtResult.rows[0].rvt_count)
+                    rvtNFTs: parseInt(rvtResult.rows[0].rvt_count),
+                    _nextMilestone: _nextFib,
+                    _sig: _rTag || undefined   // _R1729 tag visible at milestone, silent otherwise
                 }
             };
         } catch (error) {
