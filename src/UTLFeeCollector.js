@@ -7,6 +7,8 @@
 // self-correcting, self-stabilizing, and self-healing by design.
 
 const { convergenceSteps, absorb: _kAbsorb } = require('./Kaprekar');
+const { payoffMatrix } = require('./Nash');
+const { monitor: benfordMonitor } = require('./Benford');
 
 class UTLFeeCollector {
     constructor(dataPersistence, dbConnection) {
@@ -252,8 +254,12 @@ class UTLFeeCollector {
             metadata,
             timestamp:    Date.now(),
             blockSimulated: Math.floor(Math.random() * 1000000) + 35000000,
-            _cv: _cs   // convergence steps to fixed point — structural, not decorative
+            _cv: _cs,   // Kaprekar convergence steps — structural, not decorative
+            _bd: benfordMonitor.isFlagged(walletAddress) ? 1 : 0   // Benford flag — 1 = anomalous pattern
         };
+
+        // Benford: record this fee amount for wallet pattern monitoring
+        if (walletAddress) benfordMonitor.record(walletAddress, feeAmount);
 
         // ── Update accumulators ──────────────────────────────────────────
         this.totalCollected += feeAmount;
