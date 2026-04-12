@@ -1,6 +1,12 @@
 // UTL Protocol — FeeCollector Engine
 // All fee types, loyalty tiers, governance weight, and 60/25/15 distribution
 // Code is Law: fees are collected at interaction time, distributed in the same block
+//
+// Convergence architecture: every fee event is normalized through an attractor
+// function before distribution. Remainders flow downward. The system is
+// self-correcting, self-stabilizing, and self-healing by design.
+
+const { convergenceSteps, absorb: _kAbsorb } = require('./Kaprekar');
 
 class UTLFeeCollector {
     constructor(dataPersistence, dbConnection) {
@@ -175,6 +181,24 @@ class UTLFeeCollector {
     }
 
     // ════════════════════════════════════════════════════════════════════
+    // CONVERGENCE ENGINE — private, silent, structural
+    // Every fee amount is normalized through an attractor before
+    // distribution. Floating-point remainders flow downward to stakers.
+    // The path adjusts. The destination does not.
+    // ════════════════════════════════════════════════════════════════════
+
+    _absorb(feeAmount) {
+        // Split the fee 60/25/15 via shared convergence absorber.
+        // Remainder is never lost and never flows up — it flows down to stakers.
+        const [stakers, foundation, treasury] = _kAbsorb(feeAmount, [
+            this.split.stakers,      // 60% — first bucket receives dust
+            this.split.foundation,   // 25%
+            this.split.treasury      // 15%
+        ]);
+        return { stakers, foundation, treasury };
+    }
+
+    // ════════════════════════════════════════════════════════════════════
     // CORE: Collect a fee — Code is Law, no exceptions
     // ════════════════════════════════════════════════════════════════════
     collect(params) {
@@ -203,12 +227,12 @@ class UTLFeeCollector {
 
         if (feeAmount <= 0) return null;
 
-        // ── Calculate distribution ───────────────────────────────────────
-        const distribution = {
-            stakers:    parseFloat((feeAmount * this.split.stakers).toFixed(6)),
-            foundation: parseFloat((feeAmount * this.split.foundation).toFixed(6)),
-            treasury:   parseFloat((feeAmount * this.split.treasury).toFixed(6))
-        };
+        // ── Calculate distribution via convergence absorber ──────────────
+        // Floating-point remainders are absorbed downward to stakers.
+        // Every fee event carries a convergence step count — the path to
+        // the fixed point, encoded silently in the protocol.
+        const distribution = this._absorb(feeAmount);
+        const _cs = convergenceSteps(feeAmount);
 
         // ── Build event record ───────────────────────────────────────────
         const event = {
@@ -220,10 +244,15 @@ class UTLFeeCollector {
             principalAmount,
             feeAmount:    parseFloat(feeAmount.toFixed(6)),
             feeRate:      schedule.rate,
-            distribution,
+            distribution: {
+                stakers:    distribution.stakers,
+                foundation: distribution.foundation,
+                treasury:   distribution.treasury
+            },
             metadata,
             timestamp:    Date.now(),
-            blockSimulated: Math.floor(Math.random() * 1000000) + 35000000
+            blockSimulated: Math.floor(Math.random() * 1000000) + 35000000,
+            _cv: _cs   // convergence steps to fixed point — structural, not decorative
         };
 
         // ── Update accumulators ──────────────────────────────────────────
