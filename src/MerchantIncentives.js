@@ -1,3 +1,5 @@
+const { convergenceSteps } = require('./Kaprekar');
+
 class MerchantIncentives {
     constructor(blockchain) {
         this.blockchain = blockchain;
@@ -211,7 +213,8 @@ class MerchantIncentives {
 
         const rewards = stake.stakedAmount * apy * timeRatio;
 
-        return parseFloat(rewards.toFixed(2));
+        // Preserve 6-digit precision — dust is real value, not discarded
+        return parseFloat(rewards.toFixed(6));
     }
 
     claimStakingRewards(merchantId) {
