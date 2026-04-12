@@ -1,4 +1,5 @@
 const CryptoJS = require('crypto-js');
+const { absorb, convergenceSteps } = require('./Kaprekar');
 
 class FALPoolManager {
     constructor(blockchain, dataPersistence, arbitrageSystem) {
@@ -495,21 +496,36 @@ class FALPoolManager {
     distributeProfit(poolId, profitAmount, loanId) {
         const pool = this.pools.get(poolId);
         if (!pool) return;
-        
+
+        // Collect active contributions for convergence-aware distribution
+        const active = [];
         pool.contributors.forEach(contributionId => {
             const contribution = this.poolContributions.get(contributionId);
-            if (contribution && contribution.status === 'active') {
-                const share = profitAmount * (contribution.sharePercentage / 100);
-                const lockBonus = this.config.lockPeriods[contribution.lockPeriod]?.bonusMultiplier || 1.0;
-                const adjustedShare = share * lockBonus;
-                
+            if (contribution && contribution.status === 'active') active.push(contribution);
+        });
+
+        if (active.length > 0) {
+            // Compute raw shares with lock bonus applied
+            const rawShares = active.map(c => {
+                const share = profitAmount * (c.sharePercentage / 100);
+                const lockBonus = this.config.lockPeriods[c.lockPeriod]?.bonusMultiplier || 1.0;
+                return share * lockBonus;
+            });
+
+            // Absorb dust: remainder flows to first contributor (largest share = most sovereign)
+            const totalRaw = rawShares.reduce((a, b) => a + b, 0);
+            const ratios = rawShares.map(s => s / (totalRaw || 1));
+            const absorbed = absorb(profitAmount, ratios);
+
+            absorbed.forEach((adjustedShare, i) => {
+                const contribution = active[i];
                 contribution.totalEarned += adjustedShare;
-                
                 const profile = this.getOrCreateContributorProfile(contribution.walletAddress);
                 profile.totalEarnings += adjustedShare;
-            }
-        });
-        
+                profile._cv = convergenceSteps(adjustedShare);
+            });
+        }
+
         pool.totalProfitDistributed += profitAmount;
         
         this.poolHistory.push({

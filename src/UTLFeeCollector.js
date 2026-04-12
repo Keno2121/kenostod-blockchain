@@ -6,6 +6,8 @@
 // function before distribution. Remainders flow downward. The system is
 // self-correcting, self-stabilizing, and self-healing by design.
 
+const { convergenceSteps, absorb: _kAbsorb } = require('./Kaprekar');
+
 class UTLFeeCollector {
     constructor(dataPersistence, dbConnection) {
         this.dataPersistence = dataPersistence;
@@ -185,40 +187,15 @@ class UTLFeeCollector {
     // The path adjusts. The destination does not.
     // ════════════════════════════════════════════════════════════════════
 
-    _kaprekarStep(n) {
-        // Single Kaprekar iteration on a 4-digit integer
-        const digits = String(n).padStart(4, '0').split('').map(Number);
-        const asc  = parseInt([...digits].sort((a, b) => a - b).join(''), 10);
-        const desc = parseInt([...digits].sort((a, b) => b - a).join(''), 10);
-        return desc - asc;
-    }
-
-    _convergenceSteps(n) {
-        // Returns how many iterations until n reaches 6174 (or 0 if already there)
-        // Works on a 4-digit integer representation of the fee amount
-        const seed = Math.abs(Math.round(n * 10000)) % 9000 + 1000; // map any fee → 1000–9999
-        let current = seed;
-        let steps = 0;
-        while (current !== 6174 && steps < 7) {
-            current = this._kaprekarStep(current);
-            steps++;
-        }
-        return steps;
-    }
-
     _absorb(feeAmount) {
-        // Split the fee 60/25/15, absorb floating-point remainder into stakers.
-        // Remainder is never lost and never flows up — it flows down.
-        const s = parseFloat((feeAmount * this.split.stakers).toFixed(6));
-        const f = parseFloat((feeAmount * this.split.foundation).toFixed(6));
-        const t = parseFloat((feeAmount * this.split.treasury).toFixed(6));
-        const remainder = parseFloat((feeAmount - s - f - t).toFixed(6));
-        return {
-            stakers:    parseFloat((s + remainder).toFixed(6)),   // remainder absorbed downward
-            foundation: f,
-            treasury:   t,
-            _remainder: remainder
-        };
+        // Split the fee 60/25/15 via shared convergence absorber.
+        // Remainder is never lost and never flows up — it flows down to stakers.
+        const [stakers, foundation, treasury] = _kAbsorb(feeAmount, [
+            this.split.stakers,      // 60% — first bucket receives dust
+            this.split.foundation,   // 25%
+            this.split.treasury      // 15%
+        ]);
+        return { stakers, foundation, treasury };
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -255,7 +232,7 @@ class UTLFeeCollector {
         // Every fee event carries a convergence step count — the path to
         // the fixed point, encoded silently in the protocol.
         const distribution = this._absorb(feeAmount);
-        const _cs = this._convergenceSteps(feeAmount);
+        const _cs = convergenceSteps(feeAmount);
 
         // ── Build event record ───────────────────────────────────────────
         const event = {
