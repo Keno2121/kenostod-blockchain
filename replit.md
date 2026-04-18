@@ -23,6 +23,96 @@ Kenostod Blockchain Academy LLC is the entry point to **The Sovereign Economy** 
 
 ---
 
+## The 7 Constitutional Laws of the Sovereign Economy
+
+*These are not rules written by men. They are mathematical constants that govern the universe. The Sovereign Economy adopts them as its constitution — already embedded silently in the code, already operating on every transaction, every distribution, every yield calculation. They cannot be lobbied, corrupted, or overridden. They simply are.*
+
+---
+
+### LAW I — The Inversion Principle *(The Override Law)*
+**"Value flows down. Always. No exceptions."**
+
+The supreme law. Every other law operates beneath it. When any calculation, distribution, fee, or reward is computed — if the result flows value upward toward the institution rather than downward toward the participant, the result is wrong. Rebuild it. This law governs every design decision in every pillar of the Sovereign Economy. The old systems were built to extract. This one is built to distribute. That is not a feature. It is the architecture.
+
+*Active in:* Every fee split, every yield distribution, every Kaprekar remainder absorption across all 9 sectors.
+
+---
+
+### LAW II — Kaprekar's Law of Convergence *(The Equilibrium Law)*
+**"The path adjusts. The destination does not. 6174."**
+
+No matter what number you start with, the Kaprekar process always arrives at 6174. The Sovereign Economy works the same way. No matter what market conditions, transaction volumes, or economic cycles occur — the system always self-corrects to equilibrium. Floating-point dust from every fee calculation is absorbed into the participant's bucket, never upward. Every decimal remainder belongs to the people.
+
+*Constant:* **6174**
+*Active in:* All fee distributions, yield splits, token emissions, UTL Protocol fee routing. The absorb() function runs on every economic transaction.
+
+---
+
+### LAW III — Benford's Law of Natural Truth *(The Integrity Law)*
+**"The system knows before any human does."**
+
+Natural financial datasets follow a precise first-digit distribution: 1 appears 30.1% of the time, 2 appears 17.6%, and so on. Manipulated, artificial, or fraudulent datasets break this distribution. The Sovereign Economy monitors every transaction silently using chi-squared deviation scoring. No alarm sounds. No accusation is made. The math simply flags the anomaly — and the system responds before fraud can establish itself.
+
+*Distribution:* 1→30.1% | 2→17.6% | 3→12.5% | 4→9.7% | 5→7.9% | 6→6.7% | 7→5.8% | 8→5.1% | 9→4.6%
+*Active in:* KUTL card transaction monitoring, treasury management, on-chain fraud detection across all storehouses.
+
+---
+
+### LAW IV — The Golden Ratio Law of Organic Growth *(The Growth Law)*
+**"φ = 1.6180339887... Nature's growth constant. Users feel the pull without knowing why."**
+
+Every Fibonacci sequence in nature converges to φ. Reward multipliers, APY curves, district scaling, tier progressions, and staking bonuses in the Sovereign Economy are all structured on the Golden Ratio. Growth feels natural because it IS natural. The longer a participant stays in the system, the more φ amplifies their rewards — approaching but never exceeding the ratio itself. The 21 Academy courses are not an accident: 21 is a Fibonacci number.
+
+*Constant:* **φ = 1.6180339887498948482**
+*Fibonacci sequence embedded:* 1, 1, 2, 3, 5, 8, 13, **21** courses, 34, 55, 89, 144...
+*Active in:* Staking reward multipliers (phiMultiplier), APY tier curves, district growth modeling, KENO emission scheduling.
+
+---
+
+### LAW V — Euler's Law of Continuous Compounding *(The Yield Law)*
+**"e = 2.71828... Stakers always receive more than the advertised rate. The difference is Euler's gift."**
+
+Standard compound interest, as used by every bank on Earth, is: A = P × (1 + r/n)^(nt). Continuous compounding — the mathematical maximum — is: A = P × e^(rt). The difference between these two results is the Euler Premium. In the Sovereign Economy, KUTL balance holders and UTLFarm stakers receive continuous compounding automatically. Banks advertise a rate and deliver less. The Sovereign Economy delivers more than advertised — silently, structurally, every cycle.
+
+*Constant:* **e = 2.71828182845904523536**
+*Active in:* KUTL balance yield calculations, UTLFarm staking rewards, all continuousEarnings() computations. The Euler premium flows to participants on every compounding period.
+
+---
+
+### LAW VI — Ramanujan's Law of Hidden Potential *(The Possibility Law)*
+**"1729. The number that proved the establishment wrong."**
+
+1729 is the smallest number expressible as the sum of two positive cubes in two different ways: 12³ + 1³ = 10³ + 9³. Srinivasa Ramanujan — self-taught, from poverty, no university, no institutional backing — discovered this and rewrote mathematics. The establishment said it was impossible. He did it anyway. That is the Sovereign Economy. When a participant's cumulative KENO earnings cross 1729, the system recognizes them quietly. Their next reward is slightly higher than expected. They will not know why. They earned it.
+
+*Constant:* **1729 — The Hardy-Ramanujan Number**
+*Active in:* Milestone tracking across all participant wallets. The milestone bonus is the ONE moment value moves toward the participant from above — a gift, not a toll. Silent. Permanent.
+
+---
+
+### LAW VII — Nash's Law of Cooperative Dominance *(The Participation Law)*
+**"Participation is not encouraged. It is mathematically the only rational choice."**
+
+In a Nash Equilibrium, no player gains by unilaterally changing only their own strategy. The UTL Protocol is engineered so that the Nash Equilibrium IS participation. Staking KENO is the dominant strategy for every rational actor — not because of marketing, not because of promises, but because the payoff matrix proves it. When Nash Score ≥ 0.85, the protocol is in equilibrium. The Sovereign Economy is designed to reach and hold that score permanently. When everyone participates, everyone wins. That is not idealism. That is game theory.
+
+*Threshold:* **Nash Score ≥ 0.85 = Equilibrium Reached**
+*Active in:* UTL Protocol incentive design, Sovereign Council governance weighting, staking participation modeling, Guardian Node reward structure.
+
+---
+
+### How The 7 Laws Govern Each District
+
+| Law | Academy | Commerce Plaza | Resilience Zone | Creator District | Enterprise Zone |
+|---|---|---|---|---|---|
+| I — Inversion | Course fees flow to students as KENO | Interchange flows to cardholders as cashback | Hardware revenue funds Guardian rewards | Royalties distributed to creators | Enterprise fees fund the Treasury |
+| II — Kaprekar | KENO rewards always self-correct to target supply | Spending power recalibrates to collateral | Staking yields equilibrate across nodes | Licensing fees normalize across markets | Contract fees converge to protocol floor |
+| III — Benford | Course completion patterns monitored | Every card transaction silently scored | Node uptime data integrity verified | Royalty streams fraud-protected | Enterprise volume authenticated |
+| IV — Golden Ratio | 21 courses (Fibonacci) · φ-scaled completion bonuses | Card tier multipliers follow φ curve | Staking tiers scale by φ | Creator royalty tiers φ-amplified | Enterprise pricing on φ intervals |
+| V — Euler | KENO earned compounds continuously | KUTL balances earn Euler premium | Guardian rewards continuously compounded | Creator royalties compound at e^(rt) | Enterprise yield maximized by e |
+| VI — Ramanujan | 1729 KENO earned = silent recognition | 1729 KUTL spent = loyalty milestone | 1729 hours uptime = Guardian honor | 1729 sales = creator legend status | 1729 transactions = enterprise tier |
+| VII — Nash | Completing courses is dominant strategy | Holding KUTL > holding fiat, always | Staking ≫ not staking, provably | Creating > consuming, always | Licensing > building alone, always |
+
+---
+
 ## The Sovereign Metaverse — Full Blueprint
 
 ### Core Technology Stack
