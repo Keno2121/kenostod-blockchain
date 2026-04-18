@@ -4,6 +4,25 @@ Kenostod Blockchain Academy LLC is the entry point to **The Sovereign Economy** 
 
 ---
 
+## The Sovereign Metaverse — The Manifesto
+
+> *"For centuries, finance was hidden behind marble walls and guarded by gatekeepers. You could not see it, touch it, or understand it. You were a number in a database.*
+>
+> *The Sovereign Metaverse changes everything.*
+>
+> *Here, you walk through the Academy doors and feel your knowledge grow. You stand in the Solar Bunker and watch your resilience earn. You swipe your KUTL Card in the Commerce Plaza and feel the economy respond. You wear your G.I.F.T. apparel and know you belong.*
+>
+> *This is not a website. This is not an app. This is a world — a world where 15+ independent economies thrive, all connected by KENO, all governed by sovereigns, all open to anyone with the curiosity to enter.*
+>
+> *Welcome to The Sovereign Economy. Not a concept. A place."*
+
+**Creator:** Nickeo Coleman — Kenostod Blockchain Academy LLC / T.D.I.R. Foundation
+**Vision:** 1 trillion dollar sovereign economy serving underserved populations globally within 10 years.
+**Scale:** 2.4 billion unbanked and underbanked people worldwide — the true addressable market.
+**Mechanism:** The Wyoming SPDI charter transforms the Sovereign Economy from a platform that *uses* financial infrastructure into one that *is* financial infrastructure — with yield flowing down to every participant through the UTLFarm staking engine.
+
+---
+
 ## Founding Philosophy — The Inversion Principle
 
 **Everything built here is designed to be the structural opposite of how the old economy was built.**
