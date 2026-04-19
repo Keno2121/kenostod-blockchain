@@ -16,9 +16,9 @@ async function main() {
   const balance = await ethers.provider.getBalance(deployer.address);
   console.log("ETH balance: ", ethers.formatEther(balance), "ETH");
 
-  if (balance < ethers.parseEther("0.001")) {
+  if (balance < ethers.parseEther("0.0001")) {
     throw new Error(
-      "Insufficient ETH on Base. Fund " + deployer.address + " with at least 0.002 ETH on Base mainnet."
+      "Insufficient ETH on Base. Fund " + deployer.address + " with at least 0.0005 ETH on Base mainnet."
     );
   }
 
