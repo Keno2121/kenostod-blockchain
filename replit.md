@@ -1,6 +1,6 @@
 # Overview
 
-Kenostod Blockchain Academy LLC is the entry point to **The Sovereign Economy** — a physical-digital sovereign infrastructure built under the T.D.I.R. Foundation with 8 independent ventures all converging on KENO. The platform includes education (21 courses), banking (KUTL Card / Cybrid BaaS), DeFi (UTL Protocol / UTLFarm), security hardware (B.U.K. Back Up Key), smart apparel (G.I.F.T.), and a licensing empire of 6 patent-pending technologies. KENO is a BEP-20 utility token on BNB Smart Chain, earned through education, not purchased.
+Kenostod Blockchain Academy LLC is the entry point to **The Sovereign Economy** — a physical-digital sovereign infrastructure built under the T.D.I.R. Foundation with 8 independent ventures all converging on KENO. The platform includes education (21 courses), banking (KUTL Card / **Rain.xyz** — confirmed approved partner), DeFi (UTL Protocol / UTLFarm), security hardware (B.U.K. Back Up Key), smart apparel (G.I.F.T.), and a licensing empire of 6 patent-pending technologies. KENO is a BEP-20 utility token on BNB Smart Chain, earned through education, not purchased.
 
 ---
 
@@ -449,11 +449,10 @@ A system for selling three node tiers (Scholar, Educator, Academy) with five uti
 ## Card Products — CRITICAL DISTINCTION
 
 **KUTL Card** (Kenostod Universal Transaction Layer)
-- The active card product being built NOW via Finlego/Cybrid BaaS partnership
-- Standard card infrastructure — current development and partner focus
-- Cybrid Flow of Funds Review: April 22, 2026 at 1:00 PM EST
-- Card service available Q3 2026 per Cybrid
-- What Rain, Bridge, and Cybrid know about — public-facing product
+- **Rain.xyz is the CONFIRMED, APPROVED card infrastructure partner** — officially part of the ecosystem
+- Rain.xyz approval is confirmed — all other potential partners (Cybrid, Bridge, Finlego) are NOT set in stone
+- Card service: KUTL Card issues via Rain.xyz infrastructure, chartered under Wyoming SPDI when approved
+- What to say to investors and publicly: Rain.xyz powers the card layer
 
 **B.U.K. Security Banking** (Back Up Key)
 - COMPLETELY SEPARATE product — not the same as KUTL Card
