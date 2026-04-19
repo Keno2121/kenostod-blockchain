@@ -25,6 +25,11 @@ class UTLWalletConnector {
   detectAvailableWallets() {
     const wallets = [];
 
+    // Phantom — check for phantom.ethereum (EVM) injected provider
+    if (typeof window.phantom !== 'undefined' && window.phantom?.ethereum) {
+      wallets.push({ id: 'phantom', name: 'Phantom', icon: 'fa-solid fa-ghost', available: true, description: 'Phantom dApp browser detected' });
+    }
+
     if (typeof window.ethereum !== 'undefined') {
       if (window.ethereum.isMetaMask) {
         wallets.push({ id: 'metamask', name: 'MetaMask', icon: 'fa-brands fa-ethereum', available: true });
@@ -32,15 +37,35 @@ class UTLWalletConnector {
       if (window.ethereum.isCoinbaseWallet || window.coinbaseWalletExtension) {
         wallets.push({ id: 'coinbase-extension', name: 'Coinbase Wallet', icon: 'fa-solid fa-coins', available: true });
       }
-      if (!window.ethereum.isMetaMask && !window.ethereum.isCoinbaseWallet) {
+      // Phantom injects window.ethereum too — avoid double-listing
+      if (!window.ethereum.isMetaMask && !window.ethereum.isCoinbaseWallet && !window.phantom?.ethereum) {
         wallets.push({ id: 'injected', name: 'Browser Wallet', icon: 'fa-solid fa-wallet', available: true });
       }
     }
 
-    wallets.push({ id: 'walletconnect', name: 'WalletConnect', icon: 'fa-solid fa-qrcode', available: true, description: 'Trust Wallet, Rainbow, 300+ wallets' });
+    wallets.push({ id: 'walletconnect', name: 'WalletConnect', icon: 'fa-solid fa-qrcode', available: true, description: 'Phantom, Trust Wallet, Rainbow, 300+ wallets' });
     wallets.push({ id: 'coinbase-sdk', name: 'Coinbase Wallet', icon: 'fa-solid fa-coins', available: true, description: 'Mobile & Smart Wallet' });
 
     return wallets;
+  }
+
+  async connectPhantom() {
+    // Phantom injects window.phantom.ethereum for EVM chains when in dApp browser
+    const phantomEVM = window.phantom?.ethereum;
+    if (!phantomEVM) {
+      throw new Error('Phantom EVM provider not found. Open this page inside the Phantom mobile dApp browser, or use WalletConnect to connect Phantom.');
+    }
+
+    await phantomEVM.request({ method: 'eth_requestAccounts' });
+    await this._ensureBSCNetwork(phantomEVM);
+
+    this.provider = phantomEVM;
+    this.walletType = 'Phantom';
+    this.account = (await phantomEVM.request({ method: 'eth_accounts' }))[0];
+    this.chainId = BSC_CHAIN_ID;
+
+    this._setupListeners(phantomEVM);
+    return { provider: this.provider, account: this.account, walletType: this.walletType };
   }
 
   async connectMetaMask() {
@@ -151,6 +176,8 @@ class UTLWalletConnector {
 
   async connect(walletId, options = {}) {
     switch (walletId) {
+      case 'phantom':
+        return this.connectPhantom();
       case 'metamask':
         return this.connectMetaMask();
       case 'walletconnect':

