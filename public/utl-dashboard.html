@@ -1363,13 +1363,13 @@
             userAddress = await signer.getAddress();
 
             // Step 2: Try BSC switch AFTER connected — handle rejection gracefully
+            // NOTE: Phantom mobile does NOT support BSC — connect on Ethereum, still show address
             try {
                 await ensureBSC(phantomProvider);
             } catch (networkErr) {
-                // Phantom may reject BSC switch on mobile — still connected, warn user
                 setupContracts();
                 showConnected('Phantom');
-                showToast('Connected! ⚠️ Switch to BNB Smart Chain in Phantom Settings → Networks to use UTL features.', 'warning', 10000);
+                showPhantomBSCNotice();
                 loadDashboard();
                 phantomProvider.on('accountsChanged', (accounts) => {
                     if (accounts.length === 0) { showDisconnected(); }
@@ -1446,6 +1446,33 @@
                     showToast('WalletConnect error: ' + (err.message || err), 'error', 6000);
                 }
             }
+        }
+
+        function showPhantomBSCNotice() {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+            modal.innerHTML = `
+              <div style="background:#0a1128;border:1px solid rgba(255,165,0,0.3);border-radius:16px;padding:28px;max-width:380px;width:100%;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:12px;">👻 ✅</div>
+                <div style="font-family:'Orbitron',sans-serif;color:#ffd700;font-size:1rem;font-weight:700;margin-bottom:8px;">Phantom Connected</div>
+                <p style="color:#c8d6e8;font-size:0.85rem;line-height:1.6;margin-bottom:16px;">
+                  Your wallet is connected. However, <strong style="color:#ffa500;">Phantom mobile does not support BNB Smart Chain</strong> — KENO and UTL contracts live on BSC.
+                </p>
+                <div style="background:#060b1a;border:1px solid rgba(255,165,0,0.15);border-radius:10px;padding:14px;margin-bottom:16px;text-align:left;">
+                  <div style="color:#ffa500;font-size:0.78rem;font-weight:700;margin-bottom:8px;">For full UTL + KENO access:</div>
+                  <div style="color:#c8d6e8;font-size:0.8rem;line-height:1.8;">
+                    • Use <strong style="color:#f6851b;">MetaMask</strong> (supports BSC natively)<br/>
+                    • Or use <strong style="color:#3b99fc;">WalletConnect</strong> to connect Trust Wallet or another BSC wallet<br/>
+                    • Phantom EVM only supports: ETH, Base, Polygon
+                  </div>
+                </div>
+                <p style="color:#8a8070;font-size:0.75rem;margin-bottom:16px;">Your Phantom address is saved — useful for future Ethereum/Base deployments.</p>
+                <button onclick="this.closest('div[style]').remove()"
+                  style="background:linear-gradient(135deg,#8a6010,#d4af37);color:#07060b;border:none;border-radius:8px;padding:11px 20px;font-size:0.85rem;font-weight:800;cursor:pointer;width:100%;">
+                  Got It
+                </button>
+              </div>`;
+            document.body.appendChild(modal);
         }
 
         function showPhantomInstructions() {
