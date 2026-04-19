@@ -21,8 +21,7 @@ module.exports = {
     base: {
       url: "https://mainnet.base.org",
       chainId: 8453,
-      accounts: [NEW_WALLET_PRIVATE_KEY],
-      gasPrice: 1000000000
+      accounts: [NEW_WALLET_PRIVATE_KEY]
     },
     baseSepolia: {
       url: "https://sepolia.base.org",
