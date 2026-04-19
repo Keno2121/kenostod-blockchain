@@ -468,6 +468,29 @@ A system for selling three node tiers (Scholar, Educator, Academy) with five uti
 - Pending: ownership transfer requires 0.002 BNB gas — user funding tonight
 - transfer-ownership.js script is ready — restart watcher when user is ready
 
+## wKENO — Wrapped KENO (Base + Polygon)
+
+Cross-chain wrapped token so Phantom wallet users can hold KENO on Base and Polygon.
+
+**Workspace:** `wkeno/` — standalone Hardhat 2 project, separate from `utl/` BSC contracts.
+
+**Contract:** `wkeno/contracts/WrappedKENO.sol`
+- Name: Wrapped KENO | Symbol: wKENO | Decimals: 18 | Max supply: 1,000,000,000
+- Phase 1: Owner (safe wallet) manually calls `bridgeMint` / `bridgeBurn` for 1:1 peg
+- Phase 2: Automated trustless relayer (post-SPDI / Phase 2 roadmap)
+- Owner: `0x4AA73FadfFd71E6549867a37455EA957A52Cf849` (safe wallet)
+- Deployer: `0x4AA73FadfFd71E6549867a37455EA957A52Cf849` via `NEW_WALLET_PRIVATE_KEY`
+- Compiler: Solidity 0.8.28, Cancun EVM, OpenZeppelin v5 — **compiled clean**
+
+**Deploy commands (when wallet is funded):**
+```
+cd wkeno
+npm run deploy:base        # needs ≥0.002 ETH on Base
+npm run deploy:polygon     # needs ≥1 MATIC on Polygon
+```
+
+**Deployment records:** saved to `wkeno/deployments/wkeno-base.json` and `wkeno-polygon.json` after each run.
+
 ## Mercury Bank USD Cashout System
 Integration with Mercury Business Banking API allows students to add encrypted bank details and request KENO-to-USD withdrawals, with admin approval leading to ACH transfers.
 
