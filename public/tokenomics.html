@@ -1,1016 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KENO Tokenomics | Kenostod T.D.I.R. Foundation</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --gold: #ffc107;
-            --blue: #4299e1;
-            --green: #00c853;
-            --purple: #9b4dca;
-            --orange: #ed8936;
-            --red: #fc8181;
-            --bg: #010305;
-        }
-
-        body {
-            background: var(--bg);
-            color: #e2e8f0;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        /* NAV */
-        nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(1,3,5,0.95);
-            border-bottom: 1px solid rgba(255,193,7,0.15);
-            padding: 0.9rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(12px);
-        }
-        .nav-logo {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 1rem;
-            color: var(--gold);
-            text-decoration: none;
-            letter-spacing: 2px;
-        }
-        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
-        .nav-links a { color: rgba(200,216,200,0.65); text-decoration: none; font-size: 0.85rem; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; transition: color 0.2s; }
-        .nav-links a:hover { color: var(--gold); }
-        .nav-links a.active { color: var(--gold); }
-
-        /* HERO */
-        .hero {
-            text-align: center;
-            padding: 80px 2rem 60px;
-            background: radial-gradient(ellipse at 50% 0%, rgba(255,193,7,0.08) 0%, transparent 60%);
-            border-bottom: 1px solid rgba(255,193,7,0.1);
-        }
-        .hero-badge {
-            display: inline-block;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 4px;
-            color: var(--gold);
-            border: 1px solid rgba(255,193,7,0.3);
-            background: rgba(255,193,7,0.06);
-            padding: 6px 20px;
-            border-radius: 20px;
-            margin-bottom: 1.5rem;
-        }
-        .hero h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2rem, 7vw, 4rem);
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--gold), #fff 60%, var(--blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-        .hero-sub {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 4px;
-            color: rgba(200,216,200,0.35);
-            margin-bottom: 1.5rem;
-        }
-        .hero-desc {
-            max-width: 600px;
-            margin: 0 auto;
-            color: rgba(200,216,200,0.6);
-            font-size: 0.95rem;
-        }
-
-        /* STATS BAR */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            background: rgba(255,193,7,0.04);
-            border-bottom: 1px solid rgba(255,193,7,0.1);
-        }
-        .stat-item {
-            padding: 1.25rem 1.5rem;
-            text-align: center;
-            border-right: 1px solid rgba(255,193,7,0.08);
-        }
-        .stat-item:last-child { border-right: none; }
-        .stat-val {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 1.2rem;
-            color: var(--gold);
-            display: block;
-        }
-        .stat-label {
-            font-size: 0.72rem;
-            color: rgba(200,216,200,0.45);
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            margin-top: 0.2rem;
-        }
-
-        .container { max-width: 1100px; margin: 0 auto; }
-
-        section { padding: 70px 2rem; }
-
-        h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.4rem, 3.5vw, 2rem);
-            font-weight: 900;
-            text-align: center;
-            margin-bottom: 0.5rem;
-            color: #fff;
-        }
-        .section-sub {
-            text-align: center;
-            color: rgba(200,216,200,0.5);
-            font-size: 0.9rem;
-            margin-bottom: 3rem;
-        }
-
-        /* DONUT CHART */
-        .donut-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4rem;
-            flex-wrap: wrap;
-        }
-        .donut {
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            background: conic-gradient(
-                #ffc107 0% 30%,
-                #9b4dca 30% 40%,
-                #4299e1 40% 55%,
-                #00c853 55% 70%,
-                #ed8936 70% 75%,
-                #fc8181 75% 100%
-            );
-            position: relative;
-            flex-shrink: 0;
-        }
-        .donut::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 160px;
-            height: 160px;
-            background: var(--bg);
-            border-radius: 50%;
-        }
-        .donut-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1;
-            text-align: center;
-        }
-        .donut-center-val {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            color: var(--gold);
-            font-weight: 700;
-        }
-        .donut-center-label {
-            font-size: 0.65rem;
-            color: rgba(200,216,200,0.4);
-            letter-spacing: 2px;
-        }
-        .legend { display: flex; flex-direction: column; gap: 0.75rem; }
-        .legend-item { display: flex; align-items: center; gap: 0.75rem; }
-        .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-        .legend-name { font-size: 0.85rem; color: rgba(200,216,200,0.75); min-width: 180px; }
-        .legend-pct { font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; }
-        .legend-amt { font-size: 0.75rem; color: rgba(200,216,200,0.4); margin-left: auto; font-family: 'Share Tech Mono', monospace; }
-
-        /* ALLOCATION TABLE */
-        .alloc-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .alloc-table th {
-            background: rgba(255,193,7,0.08);
-            color: var(--gold);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.68rem;
-            letter-spacing: 2px;
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,193,7,0.2);
-        }
-        .alloc-table td {
-            padding: 13px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            font-size: 0.88rem;
-            vertical-align: top;
-        }
-        .alloc-table tr:hover td { background: rgba(255,255,255,0.02); }
-        .alloc-table .mono { font-family: 'Share Tech Mono', monospace; }
-
-        /* BAR */
-        .bar-bg {
-            height: 8px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 4px;
-            overflow: hidden;
-            width: 120px;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .bar-fill { height: 100%; border-radius: 4px; }
-
-        /* VENTURE CARDS */
-        .venture-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
-        .v-card {
-            border-radius: 16px;
-            padding: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.06);
-            background: rgba(5,10,20,0.8);
-        }
-        .v-icon { font-size: 1.8rem; margin-bottom: 0.75rem; }
-        .v-name { font-family: 'Orbitron', sans-serif; font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 0.25rem; }
-        .v-alloc { font-family: 'Share Tech Mono', monospace; font-size: 1.3rem; margin-bottom: 0.1rem; }
-        .v-pct { font-size: 0.75rem; color: rgba(200,216,200,0.4); margin-bottom: 1rem; }
-        .v-bar-wrap { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-bottom: 1rem; overflow: hidden; }
-        .v-bar { height: 100%; border-radius: 2px; }
-        .v-uses { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
-        .v-uses li { font-size: 0.78rem; color: rgba(200,216,200,0.6); display: flex; gap: 0.4rem; }
-        .v-uses li::before { content: '▸'; flex-shrink: 0; }
-
-        /* REVENUE STREAMS */
-        .revenue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
-        .rev-card {
-            background: rgba(5,10,20,0.8);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 14px;
-            padding: 1.25rem;
-        }
-        .rev-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-        .rev-icon { font-size: 1.2rem; }
-        .rev-name { font-family: 'Orbitron', sans-serif; font-size: 0.68rem; letter-spacing: 1px; }
-        .rev-streams { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
-        .rev-streams li { font-size: 0.78rem; color: rgba(200,216,200,0.6); display: flex; gap: 0.4rem; }
-        .rev-streams li::before { content: '→'; flex-shrink: 0; color: rgba(200,216,200,0.25); }
-        .rev-token-flow { margin-top: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.72rem; font-family: 'Share Tech Mono', monospace; }
-
-        /* STAKING TABLE */
-        .staking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .stake-card {
-            background: rgba(5,10,20,0.8);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-        .stake-head { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .stake-body { padding: 1.25rem; }
-        .stake-apy { font-family: 'Share Tech Mono', monospace; font-size: 1.6rem; }
-        .stake-rows { display: flex; flex-direction: column; gap: 0.5rem; }
-        .stake-row { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .stake-row:last-child { border-bottom: none; }
-        .stake-key { color: rgba(200,216,200,0.5); }
-        .stake-val { font-family: 'Share Tech Mono', monospace; }
-
-        /* VESTING */
-        .vesting-timeline { position: relative; padding-left: 2rem; }
-        .vesting-timeline::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--gold), var(--blue), var(--green)); }
-        .vest-item { position: relative; margin-bottom: 2rem; }
-        .vest-item::before { content: ''; position: absolute; left: -2.4rem; top: 0.4rem; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); border: 2px solid var(--bg); }
-        .vest-period { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; letter-spacing: 2px; color: var(--gold); margin-bottom: 0.25rem; }
-        .vest-desc { font-size: 0.85rem; color: rgba(200,216,200,0.7); }
-
-        /* PRICE TABLE */
-        .price-table { width: 100%; border-collapse: collapse; }
-        .price-table th { background: rgba(66,153,225,0.1); color: var(--blue); font-family: 'Orbitron', sans-serif; font-size: 0.68rem; letter-spacing: 2px; padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(66,153,225,0.2); }
-        .price-table td { padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.88rem; }
-        .price-table tr:hover td { background: rgba(66,153,225,0.03); }
-
-        /* RVT */
-        .rvt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        @media (max-width: 600px) { .rvt-grid { grid-template-columns: 1fr; } }
-        .rvt-card { background: rgba(155,77,202,0.08); border: 1px solid rgba(155,77,202,0.2); border-radius: 14px; padding: 1.25rem; text-align: center; }
-        .rvt-pct { font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900; }
-        .rvt-label { font-size: 0.8rem; color: rgba(200,216,200,0.6); margin-top: 0.25rem; }
-
-        /* DEFLATION */
-        .deflation-bar-wrap { background: rgba(255,255,255,0.04); border-radius: 12px; overflow: hidden; height: 40px; display: flex; margin-bottom: 0.5rem; }
-        .deflation-seg { display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: 0.6rem; letter-spacing: 1px; transition: width 0.3s; overflow: hidden; }
-
-        /* INVESTOR CTA */
-        .investor-cta {
-            text-align: center;
-            padding: 60px 2rem;
-            background: linear-gradient(135deg, rgba(255,193,7,0.04), rgba(66,153,225,0.04));
-            border-top: 1px solid rgba(255,193,7,0.1);
-        }
-        .btn-gold { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, var(--gold), #b7791f); color: #000; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 2px; font-weight: 700; text-decoration: none; border-radius: 8px; margin: 0.5rem; }
-        .btn-outline { display: inline-block; padding: 13px 30px; border: 1px solid var(--gold); color: var(--gold); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 2px; font-weight: 700; text-decoration: none; border-radius: 8px; margin: 0.5rem; background: transparent; }
-
-        .tag { display: inline-block; font-family: 'Orbitron', sans-serif; font-size: 0.6rem; letter-spacing: 2px; padding: 3px 10px; border-radius: 4px; font-weight: 700; vertical-align: middle; margin-left: 6px; }
-        .tag-lock { background: rgba(237,137,54,0.2); color: #ed8936; border: 1px solid rgba(237,137,54,0.3); }
-        .tag-live { background: rgba(0,200,83,0.15); color: var(--green); border: 1px solid rgba(0,200,83,0.3); }
-        .tag-new { background: rgba(255,193,7,0.15); color: var(--gold); border: 1px solid rgba(255,193,7,0.3); }
-        .tag-vest { background: rgba(155,77,202,0.15); color: var(--purple); border: 1px solid rgba(155,77,202,0.3); }
-
-        footer {
-            border-top: 1px solid rgba(255,255,255,0.06);
-            padding: 2rem;
-            text-align: center;
-            font-size: 0.78rem;
-            color: rgba(200,216,200,0.3);
-        }
-
-        @media (max-width: 768px) {
-            .donut { width: 220px; height: 220px; }
-            .donut::after { width: 120px; height: 120px; }
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KENO Token — Tokenomics | Kenostod Blockchain Academy LLC</title>
+  <meta name="description" content="Official KENO token tokenomics — BEP-20 on BNB Smart Chain. 1 billion fixed supply. The sovereign economy token of T.D.I.R. Foundation."/>
+  <style>
+    :root{--gold:#d4af37;--gold-lt:#f0d060;--gold-dk:#8a6010;--bg:#07060b;--bg2:#0e0c14;--bg3:#16131f;--text:#e8e2d4;--muted:#8a8070;--border:rgba(212,175,55,0.18);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;}
+    nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:rgba(7,6,11,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+    .nav-brand{display:flex;align-items:center;gap:12px;}
+    .nav-brand img{width:36px;height:36px;border-radius:50%;}
+    .nav-brand span{font-size:.95rem;font-weight:700;color:var(--gold);letter-spacing:.04em;}
+    .nav-link{font-size:.82rem;color:var(--muted);text-decoration:none;letter-spacing:.06em;text-transform:uppercase;transition:color .2s;}
+    .nav-link:hover{color:var(--gold-lt);}
+    .hero{text-align:center;padding:80px 24px 64px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(212,175,55,.07) 0%,transparent 70%);border-bottom:1px solid var(--border);}
+    .hero-tag{display:inline-block;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);border:1px solid var(--border);padding:5px 16px;border-radius:99px;margin-bottom:22px;}
+    .hero h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:900;letter-spacing:-.01em;background:linear-gradient(135deg,var(--gold-lt) 0%,var(--gold) 55%,var(--gold-dk) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
+    .hero-sub{font-size:1.05rem;color:var(--muted);max-width:580px;margin:0 auto 36px;}
+    .pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+    .pill{font-size:.78rem;font-weight:600;letter-spacing:.06em;padding:7px 18px;border-radius:99px;border:1px solid var(--border);background:rgba(212,175,55,.06);color:var(--gold-lt);}
+    .contract-badge{display:inline-flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:.78rem;color:var(--muted);font-family:monospace;margin:16px auto 0;}
+    .contract-badge .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;}
+    section{padding:64px 24px;max-width:1100px;margin:0 auto;}
+    .section-label{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+    h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:800;color:var(--gold-lt);margin-bottom:8px;letter-spacing:-.01em;}
+    .section-intro{color:var(--muted);font-size:.95rem;margin-bottom:40px;max-width:640px;}
+    hr.divider{border:none;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+    .stat-card{background:var(--bg2);padding:28px 24px;display:flex;flex-direction:column;gap:6px;}
+    .stat-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+    .stat-value{font-size:1.55rem;font-weight:800;color:var(--gold-lt);line-height:1.1;}
+    .stat-note{font-size:.75rem;color:var(--muted);}
+    .dist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+    .dist-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px 22px 18px;position:relative;overflow:hidden;}
+    .dist-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+    .dist-card.c1::before{background:linear-gradient(90deg,#3b6eea,#6b4de6);}
+    .dist-card.c2::before{background:linear-gradient(90deg,#d4af37,#f0d060);}
+    .dist-card.c3::before{background:linear-gradient(90deg,#22c55e,#16a34a);}
+    .dist-card.c4::before{background:linear-gradient(90deg,#f97316,#dc2626);}
+    .dist-card.c5::before{background:linear-gradient(90deg,#8b5cf6,#a78bfa);}
+    .dist-card.c6::before{background:linear-gradient(90deg,#06b6d4,#0ea5e9);}
+    .dist-card.c7::before{background:linear-gradient(90deg,#ec4899,#f43f5e);}
+    .dist-name{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+    .dist-pct{font-size:2rem;font-weight:900;color:var(--gold-lt);line-height:1;margin-bottom:4px;}
+    .dist-amt{font-size:.82rem;color:var(--gold);font-weight:600;margin-bottom:10px;}
+    .dist-desc{font-size:.82rem;color:var(--muted);line-height:1.5;}
+    .dist-bar{height:4px;border-radius:99px;background:rgba(212,175,55,.12);margin-top:14px;overflow:hidden;}
+    .dist-fill{height:100%;border-radius:99px;background:var(--gold);}
+    .pillars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+    .pillar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;gap:14px;align-items:flex-start;}
+    .pillar-icon{font-size:1.6rem;line-height:1;flex-shrink:0;}
+    .pillar-name{font-size:.92rem;font-weight:700;color:var(--gold-lt);margin-bottom:4px;}
+    .pillar-desc{font-size:.78rem;color:var(--muted);line-height:1.5;}
+    .util-list{display:flex;flex-direction:column;gap:10px;}
+    .util-item{display:flex;gap:16px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+    .util-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px;}
+    .util-title{font-size:.92rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+    .util-body{font-size:.82rem;color:var(--muted);}
+    .laws-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+    .law-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px;}
+    .law-num{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+    .law-name{font-size:.95rem;font-weight:800;color:var(--gold-lt);margin-bottom:4px;}
+    .law-tag{font-size:.75rem;color:var(--muted);font-style:italic;margin-bottom:10px;}
+    .law-const{display:inline-block;font-family:monospace;font-size:.78rem;background:rgba(212,175,55,.08);border:1px solid var(--border);padding:3px 10px;border-radius:6px;color:var(--gold);margin-bottom:8px;}
+    .law-desc{font-size:.8rem;color:var(--muted);line-height:1.55;}
+    .roadmap{display:flex;flex-direction:column;gap:0;}
+    .rm-phase{display:flex;gap:0;position:relative;}
+    .rm-phase::before{content:'';position:absolute;left:19px;top:44px;bottom:-20px;width:2px;background:var(--border);}
+    .rm-phase:last-child::before{display:none;}
+    .rm-dot-col{display:flex;flex-direction:column;align-items:center;padding-top:6px;margin-right:20px;flex-shrink:0;}
+    .rm-dot{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--gold);background:var(--bg2);flex-shrink:0;}
+    .rm-dot.active{border-color:var(--gold);background:rgba(212,175,55,.1);}
+    .rm-body{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:20px;flex:1;}
+    .rm-phase-label{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+    .rm-title{font-size:1rem;font-weight:800;color:var(--gold-lt);margin-bottom:8px;}
+    .rm-items{list-style:none;}
+    .rm-items li{font-size:.82rem;color:var(--muted);padding:3px 0;padding-left:14px;position:relative;}
+    .rm-items li::before{content:'→';position:absolute;left:0;color:var(--gold-dk);}
+    .cta-section{text-align:center;padding:72px 24px;background:linear-gradient(180deg,transparent 0%,rgba(212,175,55,.04) 100%);border-top:1px solid var(--border);}
+    .cta-section h2{font-size:1.8rem;color:var(--gold-lt);margin-bottom:10px;}
+    .cta-section p{color:var(--muted);font-size:.95rem;margin-bottom:32px;max-width:540px;margin-left:auto;margin-right:auto;}
+    .cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+    .btn-primary{padding:13px 28px;border-radius:10px;background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:#07060b;font-weight:800;font-size:.88rem;letter-spacing:.06em;text-decoration:none;text-transform:uppercase;transition:opacity .2s;}
+    .btn-primary:hover{opacity:.88;}
+    .btn-outline{padding:13px 28px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--gold-lt);font-weight:700;font-size:.88rem;letter-spacing:.04em;text-decoration:none;text-transform:uppercase;transition:background .2s;}
+    .btn-outline:hover{background:rgba(212,175,55,.06);}
+    footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted);}
+    footer a{color:var(--gold-dk);text-decoration:none;}
+    @media(max-width:600px){nav{padding:12px 16px;}.hero{padding:52px 16px 48px;}section{padding:48px 16px;}}
+  </style>
 </head>
 <body>
 
-    <nav>
-        <a href="/" class="nav-logo">KENOSTOD ☀️🏰</a>
-        <div class="nav-links">
-            <a href="/tdir-foundation.html">Foundation</a>
-            <a href="/digital-bunker.html">Solar Bunker</a>
-            <a href="/tokenomics.html" class="active">Tokenomics</a>
-            <a href="/ico.html" style="color: var(--gold); border: 1px solid rgba(255,193,7,0.3); padding: 6px 14px; border-radius: 6px;">Buy KENO</a>
-        </div>
-    </nav>
+<nav>
+  <div class="nav-brand">
+    <img src="/keno-logo-64.png" alt="KENO Token"/>
+    <span>KENOSTOD</span>
+  </div>
+  <a class="nav-link" href="/">&#8592; Back to Site</a>
+</nav>
 
-    <!-- HERO -->
-    <div class="hero">
-        <div class="hero-badge">T.D.I.R. FOUNDATION — KENO ECOSYSTEM</div>
-        <h1>KENO Tokenomics</h1>
-        <p class="hero-sub">WHERE EVERY TOKEN GOES — ACROSS EVERY VENTURE</p>
-        <p class="hero-desc">Full transparency on supply, allocation, revenue, staking, and deflationary mechanics across the entire Kenostod ecosystem.</p>
+<div class="hero">
+  <div class="hero-tag">Official Token Documentation &middot; April 2026</div>
+  <h1>KENO Tokenomics</h1>
+  <p class="hero-sub">The sovereign utility token of The Sovereign Economy &mdash; earned through education, spent through the KUTL Card, governed by mathematics.</p>
+  <div class="pills">
+    <span class="pill">BEP-20 &middot; BNB Smart Chain</span>
+    <span class="pill">1,000,000,000 Fixed Supply</span>
+    <span class="pill">No Mint &middot; No Inflation</span>
+    <span class="pill">Earned &mdash; Not Purchased</span>
+    <span class="pill">Wyoming SPDI Charter Phase 1</span>
+  </div>
+  <div class="contract-badge">
+    <span class="dot"></span>
+    Network: BNB Smart Chain (BSC) &middot; Chain ID 56 &middot; Standard: BEP-20
+  </div>
+</div>
+
+<section>
+  <div class="section-label">Token Overview</div>
+  <h2>Core Parameters</h2>
+  <p class="section-intro">Every number below is fixed in the smart contract at deployment. There is no admin key capable of minting additional supply.</p>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Total Supply</div><div class="stat-value">1,000,000,000</div><div class="stat-note">One Billion KENO &mdash; hard cap, forever</div></div>
+    <div class="stat-card"><div class="stat-label">Token Standard</div><div class="stat-value">BEP-20</div><div class="stat-note">BNB Smart Chain &middot; EVM-compatible</div></div>
+    <div class="stat-card"><div class="stat-label">Decimals</div><div class="stat-value">18</div><div class="stat-note">Standard ERC-20 / BEP-20 precision</div></div>
+    <div class="stat-card"><div class="stat-label">Minting</div><div class="stat-value">Disabled</div><div class="stat-note">No new tokens can ever be created</div></div>
+    <div class="stat-card"><div class="stat-label">Phase Status</div><div class="stat-value">Pre-Market</div><div class="stat-note">PancakeSwap listing pending SPDI</div></div>
+    <div class="stat-card"><div class="stat-label">Governance</div><div class="stat-value">UTL Protocol</div><div class="stat-note">5 on-chain BSC smart contracts</div></div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<section>
+  <div class="section-label">Token Distribution</div>
+  <h2>Allocation Breakdown</h2>
+  <p class="section-intro">The Inversion Principle requires that the majority of supply flows to participants &mdash; not founders, not VCs.</p>
+  <div class="dist-grid">
+    <div class="dist-card c3">
+      <div class="dist-name">Community Rewards</div>
+      <div class="dist-pct">40%</div>
+      <div class="dist-amt">400,000,000 KENO</div>
+      <div class="dist-desc">Earned by Academy students completing courses, UTLFarm stakers, KUTL Card cashback, and Guardian Node operators. Released over 10 years on a &phi;-scaled emission curve.</div>
+      <div class="dist-bar"><div class="dist-fill" style="width:40%"></div></div>
     </div>
-
-    <!-- STATS BAR -->
-    <div class="stats-bar">
-        <div class="stat-item">
-            <span class="stat-val">1,000,000,000</span>
-            <span class="stat-label">Total Supply (KENO)</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-val">BEP-20</span>
-            <span class="stat-label">Token Standard</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-val">BSC</span>
-            <span class="stat-label">Network</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-val">$0.01</span>
-            <span class="stat-label">Private Sale Price</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-val">$0.05</span>
-            <span class="stat-label">Public Sale Price</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-val">18</span>
-            <span class="stat-label">Decimals</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-val">Deflationary</span>
-            <span class="stat-label">Burn Mechanic</span>
-        </div>
+    <div class="dist-card c2">
+      <div class="dist-name">Treasury Reserve</div>
+      <div class="dist-pct">20%</div>
+      <div class="dist-amt">200,000,000 KENO</div>
+      <div class="dist-desc">Controlled by the T.D.I.R. Foundation multi-sig. Used for liquidity provision, DEX listings, strategic partnerships, and Wyoming SPDI operating reserve.</div>
+      <div class="dist-bar"><div class="dist-fill" style="width:20%"></div></div>
     </div>
-
-    <!-- SUPPLY ALLOCATION -->
-    <section style="background: #000;">
-        <div class="container">
-            <h2>Supply Allocation</h2>
-            <p class="section-sub">How the 1 Billion KENO is distributed across all stakeholders and mechanisms.</p>
-
-            <div class="donut-wrap" style="margin-bottom: 3rem;">
-                <div class="donut">
-                    <div class="donut-center">
-                        <div class="donut-center-val">1B</div>
-                        <div class="donut-center-label">KENO</div>
-                    </div>
-                </div>
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #ffc107;"></div>
-                        <span class="legend-name">ICO (Private + Public Sale)</span>
-                        <span class="legend-pct" style="color:#ffc107;">30%</span>
-                        <span class="legend-amt">300M KENO</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #9b4dca;"></div>
-                        <span class="legend-name">Team & Founders</span>
-                        <span class="legend-pct" style="color:#9b4dca;">10%</span>
-                        <span class="legend-amt">100M KENO</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #4299e1;"></div>
-                        <span class="legend-name">Staking Rewards (UTLFarm / PoRV / PoSR)</span>
-                        <span class="legend-pct" style="color:#4299e1;">15%</span>
-                        <span class="legend-amt">150M KENO</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #00c853;"></div>
-                        <span class="legend-name">Venture Development Fund</span>
-                        <span class="legend-pct" style="color:#00c853;">15%</span>
-                        <span class="legend-amt">150M KENO</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #ed8936;"></div>
-                        <span class="legend-name">DEX Liquidity</span>
-                        <span class="legend-pct" style="color:#ed8936;">5%</span>
-                        <span class="legend-amt">50M KENO</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #fc8181;"></div>
-                        <span class="legend-name">Foundation Reserve & Marketing</span>
-                        <span class="legend-pct" style="color:#fc8181;">25%</span>
-                        <span class="legend-amt">250M KENO</span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="overflow-x: auto;">
-                <table class="alloc-table">
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Allocation</th>
-                            <th>KENO Amount</th>
-                            <th>Weight</th>
-                            <th>Lock / Vesting</th>
-                            <th>Purpose</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><span style="color:#ffc107; font-weight:600;">🪙 ICO — Private Sale</span></td>
-                            <td class="mono" style="color:#ffc107;">5%</td>
-                            <td class="mono">50,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:5%; background:#ffc107;"></div></div></td>
-                            <td><span class="tag tag-lock">6 MO LOCK</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">Early backers — $0.01/KENO + 20% bonus</td>
-                        </tr>
-                        <tr>
-                            <td><span style="color:#ffc107; font-weight:600;">🪙 ICO — Public Sale</span></td>
-                            <td class="mono" style="color:#ffc107;">25%</td>
-                            <td class="mono">250,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:25%; background:#ffc107;"></div></div></td>
-                            <td><span class="tag tag-live">LIQUID</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">Community access — $0.05/KENO</td>
-                        </tr>
-                        <tr>
-                            <td><span style="color:#9b4dca; font-weight:600;">👥 Team & Founders</span></td>
-                            <td class="mono" style="color:#9b4dca;">10%</td>
-                            <td class="mono">100,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:10%; background:#9b4dca;"></div></div></td>
-                            <td><span class="tag tag-vest">12 MO LOCK</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">Locked in smart contract — released after 365 days</td>
-                        </tr>
-                        <tr>
-                            <td><span style="color:#4299e1; font-weight:600;">⛏️ Staking Rewards Pool</span></td>
-                            <td class="mono" style="color:#4299e1;">15%</td>
-                            <td class="mono">150,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:15%; background:#4299e1;"></div></div></td>
-                            <td><span class="tag tag-live">EMITTED</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">UTLFarm LP, PoRV mining, PoSR Solar rewards</td>
-                        </tr>
-                        <tr>
-                            <td><span style="color:#00c853; font-weight:600;">🏗️ Venture Development</span></td>
-                            <td class="mono" style="color:#00c853;">15%</td>
-                            <td class="mono">150,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:15%; background:#00c853;"></div></div></td>
-                            <td><span class="tag tag-vest">MILESTONED</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">Funds Academy, B.U.K., KUTL Card, Solar Bunker</td>
-                        </tr>
-                        <tr>
-                            <td><span style="color:#ed8936; font-weight:600;">💧 DEX Liquidity</span></td>
-                            <td class="mono" style="color:#ed8936;">5%</td>
-                            <td class="mono">50,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:5%; background:#ed8936;"></div></div></td>
-                            <td><span class="tag tag-live">LOCKED LP</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">PancakeSwap liquidity — LP tokens locked</td>
-                        </tr>
-                        <tr>
-                            <td><span style="color:#fc8181; font-weight:600;">🏛️ Foundation Reserve</span></td>
-                            <td class="mono" style="color:#fc8181;">20%</td>
-                            <td class="mono">200,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:20%; background:#fc8181;"></div></div></td>
-                            <td><span class="tag tag-vest">TIMELOCK</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">T.D.I.R. treasury — strategic partnerships, emergencies</td>
-                        </tr>
-                        <tr>
-                            <td><span style="color:#fc8181; font-weight:600;">📣 Marketing & Growth</span></td>
-                            <td class="mono" style="color:#fc8181;">5%</td>
-                            <td class="mono">50,000,000</td>
-                            <td><div class="bar-bg"><div class="bar-fill" style="width:5%; background:#fc8181;"></div></div></td>
-                            <td><span class="tag tag-live">QUARTERLY</span></td>
-                            <td style="font-size:0.8rem; color:rgba(200,216,200,0.6);">Exchange listings, conferences, community campaigns</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- VENTURE DEVELOPMENT FUND BREAKDOWN -->
-    <section style="background: linear-gradient(180deg, #010305 0%, #040d18 100%);">
-        <div class="container">
-            <h2>Venture Development Fund</h2>
-            <p class="section-sub">How the 150M KENO Venture Fund is allocated across the 4 T.D.I.R. ventures.</p>
-
-            <div class="venture-grid">
-                <div class="v-card" style="border-color: rgba(255,193,7,0.2);">
-                    <div class="v-icon">🎓</div>
-                    <div class="v-name" style="color: var(--gold);">KENOSTOD ACADEMY</div>
-                    <div class="v-alloc" style="color: var(--gold);">37.5M KENO</div>
-                    <div class="v-pct">25% of Venture Fund</div>
-                    <div class="v-bar-wrap"><div class="v-bar" style="width:25%; background: var(--gold);"></div></div>
-                    <ul class="v-uses">
-                        <li>21-course curriculum development & authoring</li>
-                        <li>Instructor compensation in KENO</li>
-                        <li>Student earn-to-learn reward pool</li>
-                        <li>Certificate NFT minting infrastructure</li>
-                        <li>Multi-language localisation (EN/PT/FR)</li>
-                    </ul>
-                </div>
-
-                <div class="v-card" style="border-color: rgba(66,153,225,0.2);">
-                    <div class="v-icon">🔒</div>
-                    <div class="v-name" style="color: var(--blue);">B.U.K. SECURITY BANKING</div>
-                    <div class="v-alloc" style="color: var(--blue);">45M KENO</div>
-                    <div class="v-pct">30% of Venture Fund</div>
-                    <div class="v-bar-wrap"><div class="v-bar" style="width:30%; background: var(--blue);"></div></div>
-                    <ul class="v-uses">
-                        <li>Dual-chip card hardware production</li>
-                        <li>Smart contract insurance underwriting pool</li>
-                        <li>Automated claims processing system</li>
-                        <li>Banking-grade security audit & certification</li>
-                        <li>Finlego BaaS integration (KUTL Card)</li>
-                    </ul>
-                </div>
-
-                <div class="v-card" style="border-color: rgba(0,200,83,0.2);">
-                    <div class="v-icon">💳</div>
-                    <div class="v-name" style="color: var(--green);">KUTL CARD</div>
-                    <div class="v-alloc" style="color: var(--green);">30M KENO</div>
-                    <div class="v-pct">20% of Venture Fund</div>
-                    <div class="v-bar-wrap"><div class="v-bar" style="width:20%; background: var(--green);"></div></div>
-                    <ul class="v-uses">
-                        <li>Finlego BaaS licensing & sandbox integration</li>
-                        <li>Visa/Mastercard card issuing setup</li>
-                        <li>KENO-to-fiat conversion bridge</li>
-                        <li>Founder Backoffice dashboard build</li>
-                        <li>Compliance & KYC infrastructure</li>
-                    </ul>
-                </div>
-
-                <div class="v-card" style="border-color: rgba(255,193,7,0.15); background: linear-gradient(135deg, rgba(255,193,7,0.03), rgba(66,153,225,0.03));">
-                    <div class="v-icon">☀️🏰</div>
-                    <div class="v-name" style="background: linear-gradient(135deg, var(--gold), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SOLAR BUNKER</div>
-                    <div class="v-alloc" style="color: var(--gold);">37.5M KENO</div>
-                    <div class="v-pct">25% of Venture Fund</div>
-                    <div class="v-bar-wrap"><div class="v-bar" style="width:25%; background: linear-gradient(90deg, var(--gold), var(--blue));"></div></div>
-                    <ul class="v-uses">
-                        <li>KENO Vault hardware prototyping (ruggedized SSD)</li>
-                        <li>Resilience OS software development</li>
-                        <li>PoSR smart contract deployment</li>
-                        <li>South Africa Bunker Node testnet</li>
-                        <li>Hardware manufacturing partnership</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- REVENUE STREAMS -->
-    <section style="background: #000;">
-        <div class="container">
-            <h2>Revenue Streams</h2>
-            <p class="section-sub">How each venture generates income — and how that income flows back to KENO.</p>
-
-            <div class="revenue-grid">
-                <div class="rev-card" style="border-color: rgba(255,193,7,0.15);">
-                    <div class="rev-head">
-                        <span class="rev-icon">🎓</span>
-                        <span class="rev-name" style="color: var(--gold);">ACADEMY</span>
-                    </div>
-                    <ul class="rev-streams">
-                        <li>Course fees (KENO + FIAT accepted)</li>
-                        <li>Certificate NFT minting fees</li>
-                        <li>Institutional licensing deals</li>
-                        <li>RVT royalties from commercial content usage</li>
-                        <li>Referral commission (4-tier)</li>
-                    </ul>
-                    <div class="rev-token-flow" style="background: rgba(255,193,7,0.06); color: var(--gold);">40% fees → Burned · 50% → RVT holders · 10% → Treasury</div>
-                </div>
-
-                <div class="rev-card" style="border-color: rgba(66,153,225,0.15);">
-                    <div class="rev-head">
-                        <span class="rev-icon">🔒</span>
-                        <span class="rev-name" style="color: var(--blue);">B.U.K. BANKING</span>
-                    </div>
-                    <ul class="rev-streams">
-                        <li>Security insurance premium subscriptions</li>
-                        <li>Smart contract claim processing fees</li>
-                        <li>Enterprise security licensing</li>
-                        <li>KENO staking yield from insurance pool</li>
-                        <li>Dual-chip card hardware margin</li>
-                    </ul>
-                    <div class="rev-token-flow" style="background: rgba(66,153,225,0.06); color: var(--blue);">30% → Staking pool · 40% → Operations · 30% → Treasury</div>
-                </div>
-
-                <div class="rev-card" style="border-color: rgba(0,200,83,0.15);">
-                    <div class="rev-head">
-                        <span class="rev-icon">💳</span>
-                        <span class="rev-name" style="color: var(--green);">KUTL CARD</span>
-                    </div>
-                    <ul class="rev-streams">
-                        <li>Interchange fees on card transactions</li>
-                        <li>FX conversion spread (KENO ↔ fiat)</li>
-                        <li>Monthly card subscription tiers</li>
-                        <li>ATM withdrawal fees</li>
-                        <li>Merchant payment gateway fees</li>
-                    </ul>
-                    <div class="rev-token-flow" style="background: rgba(0,200,83,0.06); color: var(--green);">50% → KENO buyback · 30% → Operations · 20% → Treasury</div>
-                </div>
-
-                <div class="rev-card" style="border-color: rgba(255,193,7,0.12); background: linear-gradient(135deg, rgba(255,193,7,0.03), rgba(66,153,225,0.03));">
-                    <div class="rev-head">
-                        <span class="rev-icon">☀️🏰</span>
-                        <span class="rev-name" style="color: var(--gold);">SOLAR BUNKER</span>
-                    </div>
-                    <ul class="rev-streams">
-                        <li>KENO Vault device hardware sales</li>
-                        <li>Enterprise distributed storage leasing</li>
-                        <li>PoSR node reward subscriptions</li>
-                        <li>Guardian slot premium fees</li>
-                        <li>Solar-to-KENO energy credit conversion</li>
-                    </ul>
-                    <div class="rev-token-flow" style="background: rgba(255,193,7,0.05); color: var(--gold);">60% → KENO stake lock · 20% → PoSR pool · 20% → Treasury</div>
-                </div>
-            </div>
-
-            <!-- UTL Protocol Revenue -->
-            <div style="margin-top: 2rem; border: 1px solid rgba(255,193,7,0.15); border-radius: 16px; padding: 2rem; background: rgba(5,10,20,0.6);">
-                <h3 style="font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--gold); margin-bottom: 1rem; letter-spacing: 2px;">⛓️ UTL PROTOCOL — CROSS-ECOSYSTEM REVENUE</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div>
-                        <div style="font-size: 0.72rem; color: rgba(200,216,200,0.4); font-family: 'Orbitron', sans-serif; letter-spacing: 1px; margin-bottom: 0.4rem;">FAL™ FLASH ARBITRAGE LOANS</div>
-                        <p style="font-size: 0.8rem; color: rgba(200,216,200,0.65);">0.09% fee on every flash loan. FALP pool stakers earn the spread. Active on BSC mainnet.</p>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.72rem; color: rgba(200,216,200,0.4); font-family: 'Orbitron', sans-serif; letter-spacing: 1px; margin-bottom: 0.4rem;">UTLFARM LP STAKING</div>
-                        <p style="font-size: 0.8rem; color: rgba(200,216,200,0.65);">LP providers earn KENO emissions from the 150M staking pool. Whitelisted BNB pairs active.</p>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.72rem; color: rgba(200,216,200,0.4); font-family: 'Orbitron', sans-serif; letter-spacing: 1px; margin-bottom: 0.4rem;">SCHEDULED PAYMENTS</div>
-                        <p style="font-size: 0.8rem; color: rgba(200,216,200,0.65);">Flat fee per scheduled transaction. Catastrophe-aware queuing earns Resilience Rewards.</p>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.72rem; color: rgba(200,216,200,0.4); font-family: 'Orbitron', sans-serif; letter-spacing: 1px; margin-bottom: 0.4rem;">TRANSACTION REVERSAL</div>
-                        <p style="font-size: 0.8rem; color: rgba(200,216,200,0.65);">5-min reversal window fee goes 100% to the KENO burn mechanism.</p>
-                    </div>
-                    <div>
-                        <div style="font-size: 0.72rem; color: rgba(200,216,200,0.4); font-family: 'Orbitron', sans-serif; letter-spacing: 1px; margin-bottom: 0.4rem;">PORV MINING</div>
-                        <p style="font-size: 0.8rem; color: rgba(200,216,200,0.65);">Enterprise computation fees: 40% burned, 50% to RVT holders, 10% to treasury.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- STAKING & EARNING -->
-    <section style="background: linear-gradient(180deg, #010305 0%, #040d18 100%);">
-        <div class="container">
-            <h2>Staking & Earning Mechanisms</h2>
-            <p class="section-sub">Three ways to earn KENO by participating in the ecosystem — from LP staking to solar energy contribution.</p>
-
-            <div class="staking-grid">
-                <div class="stake-card">
-                    <div class="stake-head" style="background: rgba(255,193,7,0.08); border-color: rgba(255,193,7,0.15);">
-                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                            <span style="font-size:1.2rem;">🌾</span>
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:2px; color: var(--gold);">UTLFARM</span>
-                        </div>
-                        <div class="stake-apy" style="color: var(--gold);">Variable APY</div>
-                        <div style="font-size:0.75rem; color:rgba(200,216,200,0.4);">LP staking on PancakeSwap</div>
-                    </div>
-                    <div class="stake-body">
-                        <div class="stake-rows">
-                            <div class="stake-row"><span class="stake-key">Pool Type</span><span class="stake-val">KENO/BNB LP</span></div>
-                            <div class="stake-row"><span class="stake-key">Platform</span><span class="stake-val">PancakeSwap</span></div>
-                            <div class="stake-row"><span class="stake-key">Reward Token</span><span class="stake-val">KENO</span></div>
-                            <div class="stake-row"><span class="stake-key">Emission Source</span><span class="stake-val">150M Pool</span></div>
-                            <div class="stake-row"><span class="stake-key">Lock Required</span><span class="stake-val">None (flexible)</span></div>
-                            <div class="stake-row"><span class="stake-key">Status</span><span class="stake-val" style="color:var(--green);">● LIVE on BSC</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stake-card">
-                    <div class="stake-head" style="background: rgba(66,153,225,0.08); border-color: rgba(66,153,225,0.15);">
-                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                            <span style="font-size:1.2rem;">⛏️</span>
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:2px; color: var(--blue);">PORV MINING</span>
-                        </div>
-                        <div class="stake-apy" style="color: var(--blue);">Compute-based</div>
-                        <div style="font-size:0.75rem; color:rgba(200,216,200,0.4);">Proof of Residual Value</div>
-                    </div>
-                    <div class="stake-body">
-                        <div class="stake-rows">
-                            <div class="stake-row"><span class="stake-key">What You Contribute</span><span class="stake-val">Compute jobs</span></div>
-                            <div class="stake-row"><span class="stake-key">Enterprise Fees Split</span><span class="stake-val">50% miners</span></div>
-                            <div class="stake-row"><span class="stake-key">Burn Rate</span><span class="stake-val">40% of fees</span></div>
-                            <div class="stake-row"><span class="stake-key">Treasury Cut</span><span class="stake-val">10% of fees</span></div>
-                            <div class="stake-row"><span class="stake-key">Bonus: RVT NFTs</span><span class="stake-val">Perpetual royalties</span></div>
-                            <div class="stake-row"><span class="stake-key">Status</span><span class="stake-val" style="color:var(--green);">● LIVE on BSC</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stake-card">
-                    <div class="stake-head" style="background: linear-gradient(135deg, rgba(255,193,7,0.08), rgba(66,153,225,0.06)); border-color: rgba(255,193,7,0.2);">
-                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                            <span style="font-size:1.2rem;">☀️</span>
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:2px; color: var(--gold);">POSR PROTOCOL <span class="tag tag-new">NEW</span></span>
-                        </div>
-                        <div class="stake-apy" style="color: var(--gold);">Solar-backed</div>
-                        <div style="font-size:0.75rem; color:rgba(200,216,200,0.4);">Proof of Solar Resilience</div>
-                    </div>
-                    <div class="stake-body">
-                        <div class="stake-rows">
-                            <div class="stake-row"><span class="stake-key">What You Contribute</span><span class="stake-val">Solar kWh + uptime</span></div>
-                            <div class="stake-row"><span class="stake-key">Earn</span><span class="stake-val">KENO + RVT</span></div>
-                            <div class="stake-row"><span class="stake-key">Loop Effect</span><span class="stake-val">KENO funds solar</span></div>
-                            <div class="stake-row"><span class="stake-key">Device Required</span><span class="stake-val">KENO Vault (1K stake)</span></div>
-                            <div class="stake-row"><span class="stake-key">Extra: Resilience Mining</span><span class="stake-val">Uptime during outages</span></div>
-                            <div class="stake-row"><span class="stake-key">Status</span><span class="stake-val" style="color:var(--gold);">● 2028 LAUNCH</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stake-card">
-                    <div class="stake-head" style="background: rgba(155,77,202,0.08); border-color: rgba(155,77,202,0.15);">
-                        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                            <span style="font-size:1.2rem;">🏰</span>
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:2px; color: var(--purple);">BUNKER NODES</span>
-                        </div>
-                        <div class="stake-apy" style="color: var(--purple);">Mesh-based</div>
-                        <div style="font-size:0.75rem; color:rgba(200,216,200,0.4);">Regional Resilience Nodes</div>
-                    </div>
-                    <div class="stake-body">
-                        <div class="stake-rows">
-                            <div class="stake-row"><span class="stake-key">Stake Required</span><span class="stake-val">1,000+ KENO</span></div>
-                            <div class="stake-row"><span class="stake-key">Earn</span><span class="stake-val">KENO (uptime)</span></div>
-                            <div class="stake-row"><span class="stake-key">Extra</span><span class="stake-val">On-chain rep score</span></div>
-                            <div class="stake-row"><span class="stake-key">Data Sharding</span><span class="stake-val">Distributed backup</span></div>
-                            <div class="stake-row"><span class="stake-key">Enterprise Revenue</span><span class="stake-val">Shared per storage</span></div>
-                            <div class="stake-row"><span class="stake-key">Status</span><span class="stake-val" style="color:var(--gold);">● 2026 TESTNET</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- RVT DEFLATIONARY MECHANIC -->
-    <section style="background: #000;">
-        <div class="container">
-            <h2>RVT — Deflationary Mechanic</h2>
-            <p class="section-sub">Every enterprise payment into PoRV triggers the deflationary engine. KENO supply decreases permanently.</p>
-
-            <div class="rvt-grid" style="margin-bottom: 2rem;">
-                <div class="rvt-card">
-                    <div class="rvt-pct" style="color: var(--purple);">50%</div>
-                    <div class="rvt-label">To RVT Holders<br><span style="font-size:0.7rem; color:rgba(200,216,200,0.35);">Perpetual royalties as long as content earns</span></div>
-                </div>
-                <div class="rvt-card" style="background: rgba(252,129,129,0.06); border-color: rgba(252,129,129,0.2);">
-                    <div class="rvt-pct" style="color: var(--red);">40%</div>
-                    <div class="rvt-label">Permanently Burned<br><span style="font-size:0.7rem; color:rgba(200,216,200,0.35);">Removed from supply forever — deflationary pressure</span></div>
-                </div>
-                <div class="rvt-card" style="background: rgba(66,153,225,0.06); border-color: rgba(66,153,225,0.2);">
-                    <div class="rvt-pct" style="color: var(--blue);">10%</div>
-                    <div class="rvt-label">To Treasury<br><span style="font-size:0.7rem; color:rgba(200,216,200,0.35);">T.D.I.R. Foundation operational reserve</span></div>
-                </div>
-            </div>
-
-            <div style="background: rgba(5,10,20,0.8); border: 1px solid rgba(252,129,129,0.2); border-radius: 14px; padding: 1.5rem;">
-                <h4 style="font-family:'Orbitron',sans-serif; font-size:0.75rem; letter-spacing:2px; color: var(--red); margin-bottom: 0.75rem;">DEFLATION PRESSURE SOURCES</h4>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
-                    <div style="font-size:0.82rem; color:rgba(200,216,200,0.65);"><span style="color:var(--red);">🔥</span> 40% of all PoRV enterprise fees</div>
-                    <div style="font-size:0.82rem; color:rgba(200,216,200,0.65);"><span style="color:var(--red);">🔥</span> 100% of transaction reversal fees</div>
-                    <div style="font-size:0.82rem; color:rgba(200,216,200,0.65);"><span style="color:var(--red);">🔥</span> % of KUTL Card interchange fees (buyback-and-burn)</div>
-                    <div style="font-size:0.82rem; color:rgba(200,216,200,0.65);"><span style="color:var(--red);">🔥</span> Solar Bunker device activation burns (partial)</div>
-                    <div style="font-size:0.82rem; color:rgba(200,216,200,0.65);"><span style="color:var(--red);">🔥</span> Failed FAL loan attempt fee (minor)</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ICO PRICING -->
-    <section style="background: linear-gradient(180deg, #010305 0%, #040d18 100%);">
-        <div class="container">
-            <h2>ICO Pricing & Phases</h2>
-            <p class="section-sub">Two-phase token sale with a 5× price increase between private and public rounds.</p>
-
-            <div style="overflow-x: auto;">
-                <table class="price-table">
-                    <thead>
-                        <tr>
-                            <th>Phase</th>
-                            <th>Price / KENO</th>
-                            <th>Allocation</th>
-                            <th>KENO Available</th>
-                            <th>Raise Target</th>
-                            <th>Lock Period</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="color: var(--purple); font-weight:600;">🔵 Private Sale</td>
-                            <td class="mono" style="color: var(--gold);">$0.01 <span style="font-size:0.72rem; color:var(--green);">+20% bonus</span></td>
-                            <td class="mono">5%</td>
-                            <td class="mono">50,000,000</td>
-                            <td class="mono">$500,000</td>
-                            <td><span class="tag tag-lock">6 MONTHS</span></td>
-                            <td style="color:var(--green);">● Completed</td>
-                        </tr>
-                        <tr>
-                            <td style="color: var(--gold); font-weight:600;">🟡 Public Sale</td>
-                            <td class="mono" style="color: var(--gold);">$0.05</td>
-                            <td class="mono">25%</td>
-                            <td class="mono">250,000,000</td>
-                            <td class="mono">$12,500,000</td>
-                            <td><span class="tag tag-live">LIQUID</span></td>
-                            <td style="color:var(--gold);">● Active</td>
-                        </tr>
-                        <tr style="background: rgba(0,200,83,0.03);">
-                            <td style="color: var(--green); font-weight:600;">🟢 DEX Listing</td>
-                            <td class="mono" style="color: var(--green);">Market</td>
-                            <td class="mono">5%</td>
-                            <td class="mono">50,000,000</td>
-                            <td class="mono">Liquidity</td>
-                            <td><span class="tag tag-live">LP LOCKED</span></td>
-                            <td style="color:var(--blue);">● PancakeSwap</td>
-                        </tr>
-                        <tr>
-                            <td style="color: rgba(200,216,200,0.5); font-weight:600;">📈 Exchange Target</td>
-                            <td class="mono" style="color: rgba(200,216,200,0.5);">$0.50–$1.00</td>
-                            <td class="mono">—</td>
-                            <td class="mono">—</td>
-                            <td class="mono">Tier-1 CEX</td>
-                            <td>—</td>
-                            <td style="color:var(--gold);">● 2026 Target</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-top:2rem;">
-                <div style="background: rgba(255,193,7,0.04); border:1px solid rgba(255,193,7,0.15); border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:2px; color:rgba(200,216,200,0.4); margin-bottom:0.5rem;">PRIVATE → PUBLIC MULTIPLIER</div>
-                    <div style="font-family:'Share Tech Mono',monospace; font-size:2rem; color:var(--gold);">5×</div>
-                    <div style="font-size:0.75rem; color:rgba(200,216,200,0.45);">Price increase from private to public</div>
-                </div>
-                <div style="background: rgba(0,200,83,0.04); border:1px solid rgba(0,200,83,0.15); border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:2px; color:rgba(200,216,200,0.4); margin-bottom:0.5rem;">PUBLIC → EXCHANGE TARGET</div>
-                    <div style="font-family:'Share Tech Mono',monospace; font-size:2rem; color:var(--green);">10–20×</div>
-                    <div style="font-size:0.75rem; color:rgba(200,216,200,0.45);">Public to $0.50–$1.00 target</div>
-                </div>
-                <div style="background: rgba(66,153,225,0.04); border:1px solid rgba(66,153,225,0.15); border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:2px; color:rgba(200,216,200,0.4); margin-bottom:0.5rem;">TOTAL ICO RAISE TARGET</div>
-                    <div style="font-family:'Share Tech Mono',monospace; font-size:2rem; color:var(--blue);">$13M</div>
-                    <div style="font-size:0.75rem; color:rgba(200,216,200,0.45);">Private + Public combined</div>
-                </div>
-                <div style="background: rgba(155,77,202,0.04); border:1px solid rgba(155,77,202,0.15); border-radius:12px; padding:1.25rem; text-align:center;">
-                    <div style="font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:2px; color:rgba(200,216,200,0.4); margin-bottom:0.5rem;">FULLY DILUTED VALUATION</div>
-                    <div style="font-family:'Share Tech Mono',monospace; font-size:2rem; color:var(--purple);">$50M</div>
-                    <div style="font-size:0.75rem; color:rgba(200,216,200,0.45);">At public sale price ($0.05 × 1B)</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- VESTING SCHEDULE -->
-    <section style="background: #000;">
-        <div class="container">
-            <h2>Vesting Schedule</h2>
-            <p class="section-sub">Time-locked releases prevent dumping and align every stakeholder with the long-term mission.</p>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; flex-wrap: wrap;">
-                <div class="vesting-timeline">
-                    <div class="vest-item">
-                        <div class="vest-period">TGE (Day 0)</div>
-                        <div class="vest-desc">Public sale tokens are immediately liquid. DEX liquidity pool is seeded. Trading begins on PancakeSwap.</div>
-                    </div>
-                    <div class="vest-item">
-                        <div class="vest-period">Month 6</div>
-                        <div class="vest-desc" style="color: var(--purple);">Private sale tokens unlock. Early backers can access their 50M KENO (with 20% bonus already factored in).</div>
-                    </div>
-                    <div class="vest-item">
-                        <div class="vest-period">Month 12</div>
-                        <div class="vest-desc" style="color: var(--gold);">Team & Founder tokens unlock — 100M KENO released from smart contract after 365-day lock. Encoded on BSC mainnet.</div>
-                    </div>
-                    <div class="vest-item">
-                        <div class="vest-period">Months 12–36</div>
-                        <div class="vest-desc">Foundation Reserve releases quarterly via timelock. Marketing budget released monthly based on milestone completion.</div>
-                    </div>
-                    <div class="vest-item">
-                        <div class="vest-period">Ongoing</div>
-                        <div class="vest-desc" style="color: var(--green);">Venture Development Fund releases milestone-gated — each venture tranche unlocked on completion of verified deliverables.</div>
-                    </div>
-                </div>
-
-                <div style="display:flex; flex-direction:column; gap:1rem;">
-                    <div style="background:rgba(5,10,20,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--gold);">ICO (Public) — 25%</span>
-                            <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--green);">LIQUID AT TGE</span>
-                        </div>
-                        <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;"><div style="width:25%; height:100%; background:var(--gold); border-radius:4px;"></div></div>
-                    </div>
-                    <div style="background:rgba(5,10,20,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--purple);">ICO (Private) — 5%</span>
-                            <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--orange);">6 MONTH LOCK</span>
-                        </div>
-                        <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;"><div style="width:5%; height:100%; background:var(--purple); border-radius:4px;"></div></div>
-                    </div>
-                    <div style="background:rgba(5,10,20,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--purple);">Team & Founders — 10%</span>
-                            <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--orange);">12 MONTH LOCK</span>
-                        </div>
-                        <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;"><div style="width:10%; height:100%; background:var(--purple); border-radius:4px;"></div></div>
-                    </div>
-                    <div style="background:rgba(5,10,20,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--blue);">Staking Rewards — 15%</span>
-                            <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--green);">CONTINUOUS EMISSION</span>
-                        </div>
-                        <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;"><div style="width:15%; height:100%; background:var(--blue); border-radius:4px;"></div></div>
-                    </div>
-                    <div style="background:rgba(5,10,20,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--green);">Venture Fund — 15%</span>
-                            <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--orange);">MILESTONE GATED</span>
-                        </div>
-                        <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;"><div style="width:15%; height:100%; background:var(--green); border-radius:4px;"></div></div>
-                    </div>
-                    <div style="background:rgba(5,10,20,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--red);">Foundation Reserve + Marketing — 25%</span>
-                            <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--orange);">TIMELOCKED</span>
-                        </div>
-                        <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;"><div style="width:25%; height:100%; background:var(--red); border-radius:4px;"></div></div>
-                    </div>
-                    <div style="background:rgba(5,10,20,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.25rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <span style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--orange);">DEX Liquidity — 5%</span>
-                            <span style="font-family:'Share Tech Mono',monospace; font-size:0.8rem; color:var(--green);">LP TOKENS LOCKED</span>
-                        </div>
-                        <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;"><div style="width:5%; height:100%; background:var(--orange); border-radius:4px;"></div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- INVESTOR CTA -->
-    <div class="investor-cta">
-        <h2 style="margin-bottom:0.5rem;">Ready to be part of the ecosystem?</h2>
-        <p style="color:rgba(200,216,200,0.5); margin-bottom:2rem; font-size:0.9rem;">Buy KENO in the public ICO, stake in UTLFarm, or reach out to explore a liquidity partnership with T.D.I.R. Foundation.</p>
-        <div>
-            <a href="/ico.html" class="btn-gold">BUY KENO — ICO</a>
-            <a href="/farm.html" class="btn-outline">STAKE IN UTLFARM</a>
-            <a href="/tdir-foundation.html" class="btn-outline">T.D.I.R. FOUNDATION</a>
-        </div>
+    <div class="dist-card c1">
+      <div class="dist-name">Ecosystem Development</div>
+      <div class="dist-pct">15%</div>
+      <div class="dist-amt">150,000,000 KENO</div>
+      <div class="dist-desc">Solar Bunker hardware incentives, G.I.F.T. Apparel royalty pool, B.U.K. security program grants, and white-label enterprise licensing fund.</div>
+      <div class="dist-bar"><div class="dist-fill" style="width:15%"></div></div>
     </div>
+    <div class="dist-card c5">
+      <div class="dist-name">Founding Team</div>
+      <div class="dist-pct">10%</div>
+      <div class="dist-amt">100,000,000 KENO</div>
+      <div class="dist-desc">4-year vesting, 12-month cliff. Releases linearly on-chain after cliff. Zero team tokens are liquid at launch &mdash; fully aligned with long-term community success.</div>
+      <div class="dist-bar"><div class="dist-fill" style="width:10%"></div></div>
+    </div>
+    <div class="dist-card c4">
+      <div class="dist-name">Strategic Investors</div>
+      <div class="dist-pct">10%</div>
+      <div class="dist-amt">100,000,000 KENO</div>
+      <div class="dist-desc">SPDI charter investors, seed round, strategic partners. 18-month vesting, 6-month cliff. Convertible to equity in Kenostod Blockchain Academy LLC at charter approval.</div>
+      <div class="dist-bar"><div class="dist-fill" style="width:10%"></div></div>
+    </div>
+    <div class="dist-card c6">
+      <div class="dist-name">DEX Liquidity Pool</div>
+      <div class="dist-pct">3%</div>
+      <div class="dist-amt">30,000,000 KENO</div>
+      <div class="dist-desc">PancakeSwap initial liquidity pool. Locked for 2 years via a time-lock contract. Cannot be withdrawn by any party during the lock period.</div>
+      <div class="dist-bar"><div class="dist-fill" style="width:3%"></div></div>
+    </div>
+    <div class="dist-card c7">
+      <div class="dist-name">T.D.I.R. Foundation</div>
+      <div class="dist-pct">2%</div>
+      <div class="dist-amt">20,000,000 KENO</div>
+      <div class="dist-desc">Nonprofit grant distribution, community emergency fund, and Sovereign Economy expansion into underserved populations globally. Audited annually.</div>
+      <div class="dist-bar"><div class="dist-fill" style="width:2%"></div></div>
+    </div>
+  </div>
+</section>
+<hr class="divider"/>
 
-    <footer>
-        <p>© 2026 Kenostod Blockchain Academy LLC · T.D.I.R. Foundation · KENO is a BEP-20 token on BSC · Smart contracts verified on BscScan</p>
-        <p style="margin-top:0.5rem;">This page is for informational purposes only and does not constitute financial advice.</p>
-    </footer>
+<section>
+  <div class="section-label">Token Utility</div>
+  <h2>What KENO Does</h2>
+  <p class="section-intro">KENO is not speculative. Every unit of utility is tied to a real economic action inside the Sovereign Economy.</p>
+  <div class="util-list">
+    <div class="util-item"><div class="util-dot"></div><div><div class="util-title">Education Mining (PoRV &mdash; Proof of Real Value)</div><div class="util-body">Students earn KENO by completing Academy courses. 21 courses (a Fibonacci number). Each completion triggers an on-chain reward event. KENO is the only educational token earned &mdash; not purchased &mdash; to access learning.</div></div></div>
+    <div class="util-item"><div class="util-dot"></div><div><div class="util-title">KUTL Card &mdash; Spend Layer</div><div class="util-body">KENO earned loads directly onto the KUTL Card via the UTL Protocol. Cardholders spend KENO at point-of-sale. Card cashback is paid back in KENO. Under the Wyoming SPDI charter, this card operates under a full banking charter &mdash; not a money transmitter license.</div></div></div>
+    <div class="util-item"><div class="util-dot"></div><div><div class="util-title">UTLFarm &mdash; Staking &amp; Yield</div><div class="util-body">KENO holders stake to UTLFarm. Yield is calculated using Euler's continuous compounding formula (A = Pe^rt) &mdash; meaning stakers always receive the mathematical maximum. No other staking protocol applies continuous compounding by default.</div></div></div>
+    <div class="util-item"><div class="util-dot"></div><div><div class="util-title">Governance &mdash; Sovereign Council</div><div class="util-body">100,000 KENO + 15 completed courses grants Sovereign Council status. 10,000 KENO + 5 courses = District Governor. Governance weight is knowledge-gated, not wealth-gated.</div></div></div>
+    <div class="util-item"><div class="util-dot"></div><div><div class="util-title">Guardian Node Access</div><div class="util-body">1,000 KENO staked + Solar Bunker hardware = Guardian Node status. Nodes validate transactions, earn rewards, and form the mesh network infrastructure for Phase 3 sovereign chain.</div></div></div>
+    <div class="util-item"><div class="util-dot"></div><div><div class="util-title">Phase 3 &mdash; Native Gas Token</div><div class="util-body">When the Sovereign Economy Network launches on Cosmos SDK, KENO becomes the native gas token. The Wyoming SPDI operates as an institutional node validator. BSC KENO bridges natively via IBC.</div></div></div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<section>
+  <div class="section-label">The Sovereign Economy</div>
+  <h2>9 Infrastructure Pillars</h2>
+  <p class="section-intro">KENO is the reserve currency connecting every pillar. Each pillar earns, spends, or stakes KENO &mdash; forming a closed circular economy.</p>
+  <div class="pillars-grid">
+    <div class="pillar"><div class="pillar-icon">&#127891;</div><div><div class="pillar-name">Kenostod Academy</div><div class="pillar-desc">21 courses. Students earn KENO for learning. The education layer that bootstraps every other pillar.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#128179;</div><div><div class="pillar-name">KUTL Card</div><div class="pillar-desc">Crypto debit card. KENO-to-spend bridge. Cashback in KENO. Powered by Cybrid BaaS, chartered under Wyoming SPDI.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#9889;</div><div><div class="pillar-name">UTL Protocol</div><div class="pillar-desc">5 BSC smart contracts governing value flow, fee distribution, and the UTLFarm staking engine.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#127807;</div><div><div class="pillar-name">UTLFarm</div><div class="pillar-desc">Continuous-compounding yield farm. Euler's formula applied. Stakers earn more than the advertised APY by design.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#128272;</div><div><div class="pillar-name">B.U.K. (Back Up Key)</div><div class="pillar-desc">Sovereign security hardware. Cold storage key backup infrastructure. Subscription revenue flows to Guardian reward pool.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#128085;</div><div><div class="pillar-name">G.I.F.T. Apparel</div><div class="pillar-desc">Smart apparel earned through Academy completion. Physical economy anchor. Royalties distributed in KENO.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#9728;&#65039;</div><div><div class="pillar-name">Solar Bunker</div><div class="pillar-desc">Energy resilience hardware. Guardian Node command center. Hardware sales denominated in KENO.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#127963;&#65039;</div><div><div class="pillar-name">T.D.I.R. Foundation</div><div class="pillar-desc">Nonprofit umbrella. Grant-eligible. Governs the 2% Foundation allocation. Mission: sovereign finance for the 2.4B unbanked.</div></div></div>
+    <div class="pillar"><div class="pillar-icon">&#127968;</div><div><div class="pillar-name">Wyoming SPDI Charter</div><div class="pillar-desc">Phase 1. Full banking charter &mdash; not a money transmitter. 100% reserve. Digital asset custody. The legal wrapper for the entire economy.</div></div></div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<section>
+  <div class="section-label">Mathematical Governance</div>
+  <h2>The 7 Constitutional Laws</h2>
+  <p class="section-intro">Not rules. Mathematical constants silently embedded in every contract, every fee calculation, and every reward distribution.</p>
+  <div class="laws-grid">
+    <div class="law-card"><div class="law-num">Law I</div><div class="law-name">The Inversion Principle</div><div class="law-tag">The Override Law</div><div class="law-const">Value flows DOWN. Always.</div><div class="law-desc">The supreme law. If any calculation flows value upward toward the institution rather than downward to participants &mdash; the result is wrong. Governs every design decision across all 9 pillars.</div></div>
+    <div class="law-card"><div class="law-num">Law II</div><div class="law-name">Kaprekar's Law</div><div class="law-tag">The Equilibrium Law</div><div class="law-const">Constant: 6174</div><div class="law-desc">All fee remainders converge to equilibrium and flow to participants. The absorb() function runs on every transaction &mdash; decimal dust belongs to the people, not the protocol.</div></div>
+    <div class="law-card"><div class="law-num">Law III</div><div class="law-name">Benford's Law</div><div class="law-tag">The Integrity Law</div><div class="law-const">1 &rarr; 30.1% &middot; 2 &rarr; 17.6%...</div><div class="law-desc">Every transaction silently scored against natural first-digit distribution. Fraud breaks the pattern. The system flags anomalies before humans notice.</div></div>
+    <div class="law-card"><div class="law-num">Law IV</div><div class="law-name">The Golden Ratio</div><div class="law-tag">The Growth Law</div><div class="law-const">&phi; = 1.6180339887</div><div class="law-desc">Reward multipliers, APY curves, staking tiers, and emission schedules follow &phi;. 21 Academy courses is not an accident &mdash; 21 is a Fibonacci number. Growth feels natural because it IS natural.</div></div>
+    <div class="law-card"><div class="law-num">Law V</div><div class="law-name">Euler's Number</div><div class="law-tag">The Yield Law</div><div class="law-const">e = 2.71828...</div><div class="law-desc">Stakers receive continuous compounding (A = Pe^rt) &mdash; the mathematical maximum. Banks advertise a rate and deliver less. The Sovereign Economy delivers more than advertised, every cycle.</div></div>
+    <div class="law-card"><div class="law-num">Law VI</div><div class="law-name">Ramanujan's Number</div><div class="law-tag">The Possibility Law</div><div class="law-const">1729 &mdash; Hardy-Ramanujan</div><div class="law-desc">When cumulative KENO earnings cross 1729, the system silently recognizes the participant. Their next reward is slightly higher than expected. A gift, not a toll. Silent. Permanent.</div></div>
+    <div class="law-card"><div class="law-num">Law VII</div><div class="law-name">Nash Equilibrium</div><div class="law-tag">The Participation Law</div><div class="law-const">Nash Score &ge; 0.85</div><div class="law-desc">Participation is not encouraged. It is mathematically the only rational choice. The UTL Protocol is engineered so the dominant strategy IS staking &mdash; proven by the payoff matrix, not marketing.</div></div>
+  </div>
+</section>
+<hr class="divider"/>
+
+<section>
+  <div class="section-label">Development Roadmap</div>
+  <h2>Three Phases to Sovereignty</h2>
+  <p class="section-intro">Infrastructure first. Charter second. Sovereign chain third.</p>
+  <div class="roadmap">
+    <div class="rm-phase">
+      <div class="rm-dot-col"><div class="rm-dot active">1</div></div>
+      <div class="rm-body">
+        <div class="rm-phase-label">Phase 1 &mdash; Current &middot; 2025&ndash;2026</div>
+        <div class="rm-title">Wyoming SPDI Charter + Live Infrastructure</div>
+        <ul class="rm-items">
+          <li>KENO token deployed on BSC (BEP-20, 1B supply)</li>
+          <li>UTL Protocol &mdash; 5 smart contracts live on BNB Smart Chain</li>
+          <li>KUTL Card dashboard with MetaMask, Phantom, WalletConnect</li>
+          <li>Academy infrastructure &mdash; 21-course curriculum framework</li>
+          <li>Wyoming SPDI charter application filing</li>
+          <li>PancakeSwap listing + CoinGecko / CMC submission</li>
+          <li>T.D.I.R. Foundation nonprofit registration</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rm-phase">
+      <div class="rm-dot-col"><div class="rm-dot">2</div></div>
+      <div class="rm-body">
+        <div class="rm-phase-label">Phase 2 &mdash; 2026&ndash;2027</div>
+        <div class="rm-title">KUTL Card Commercial Launch + Full DEX Integration</div>
+        <ul class="rm-items">
+          <li>SPDI charter approval &mdash; full banking operations begin</li>
+          <li>KUTL Card physical issuance &mdash; Cybrid BaaS live</li>
+          <li>UTLFarm public launch &mdash; continuous compound yield</li>
+          <li>B.U.K. hardware launch &mdash; Guardian Node program opens</li>
+          <li>G.I.F.T. Apparel first collection &mdash; royalty pool distributes</li>
+          <li>Solar Bunker hardware available &mdash; KENO-denominated</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rm-phase">
+      <div class="rm-dot-col"><div class="rm-dot">3</div></div>
+      <div class="rm-body">
+        <div class="rm-phase-label">Phase 3 &mdash; 2027&ndash;2028</div>
+        <div class="rm-title">Sovereign Economy Network &mdash; Own Chain (Cosmos SDK)</div>
+        <ul class="rm-items">
+          <li>Sovereign Economy Network launches on Cosmos SDK</li>
+          <li>KENO becomes native gas token of the sovereign chain</li>
+          <li>Wyoming SPDI operates as institutional node validator</li>
+          <li>IBC bridge &mdash; BSC KENO bridges natively to sovereign chain</li>
+          <li>Sovereign Metaverse browser-based world &mdash; 5 live districts</li>
+          <li>DAO governance &mdash; Sovereign Council fully on-chain</li>
+          <li>Global expansion &mdash; 2.4B unbanked addressable market</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-section">
+  <h2>Ready to Learn More?</h2>
+  <p>The infrastructure is live. The charter is in process. The token is pre-market. Early participants enter before the valuation is set.</p>
+  <div class="cta-btns">
+    <a href="/kutl-card-dashboard.html" class="btn-primary">Open KUTL Dashboard</a>
+    <a href="/" class="btn-outline">Return to Site</a>
+  </div>
+  <br/>
+  <p style="font-size:.78rem;color:var(--muted);margin-top:16px;">
+    Contact: Kenostod Blockchain Academy LLC &middot; T.D.I.R. Foundation<br/>
+    <a href="https://kenostodblockchain.com">kenostodblockchain.com</a>
+  </p>
+</div>
+
+<footer>
+  <p>&copy; 2026 Kenostod Blockchain Academy LLC &middot; T.D.I.R. Foundation &middot; All rights reserved.</p>
+  <p style="margin-top:6px;">KENO is a utility token. This document is for informational purposes only. Not financial advice.</p>
+</footer>
 
 </body>
 </html>
