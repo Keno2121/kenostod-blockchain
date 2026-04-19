@@ -1356,11 +1356,28 @@
                 return;
             }
 
+            // Step 1: Connect and get account FIRST — do NOT switch chain yet
             await phantomProvider.request({ method: 'eth_requestAccounts' });
-            await ensureBSC(phantomProvider);
             provider = new ethers.providers.Web3Provider(phantomProvider);
             signer = provider.getSigner();
             userAddress = await signer.getAddress();
+
+            // Step 2: Try BSC switch AFTER connected — handle rejection gracefully
+            try {
+                await ensureBSC(phantomProvider);
+            } catch (networkErr) {
+                // Phantom may reject BSC switch on mobile — still connected, warn user
+                setupContracts();
+                showConnected('Phantom');
+                showToast('Connected! ⚠️ Switch to BNB Smart Chain in Phantom Settings → Networks to use UTL features.', 'warning', 10000);
+                loadDashboard();
+                phantomProvider.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) { showDisconnected(); }
+                    else { userAddress = accounts[0]; loadDashboard(); }
+                });
+                return;
+            }
+
             setupContracts();
             showConnected('Phantom');
             loadDashboard();
