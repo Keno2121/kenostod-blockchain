@@ -188,10 +188,10 @@
                     <div class="font-semibold mb-1">MetaMask</div>
                     <div class="text-xs opacity-80">Browser & Mobile</div>
                 </button>
-                <button disabled class="btn-walletconnect rounded-xl p-5 text-center text-white transition-all" style="opacity:0.4;cursor:not-allowed;">
+                <button onclick="connectWallet('walletconnect')" class="btn-walletconnect rounded-xl p-5 text-center text-white transition-all hover:scale-105">
                     <i class="fas fa-qrcode text-3xl mb-3 block"></i>
                     <div class="font-semibold mb-1">WalletConnect</div>
-                    <div class="text-xs opacity-80">Coming Soon</div>
+                    <div class="text-xs opacity-80">Phantom · Trust · 300+ wallets</div>
                 </button>
                 <button onclick="connectWallet('coinbase-sdk')" class="btn-coinbase rounded-xl p-5 text-center text-white transition-all hover:scale-105">
                     <i class="fas fa-coins text-3xl mb-3 block"></i>
@@ -1267,9 +1267,8 @@
         async function connectWallet(walletId) {
             closeWalletModal();
 
-            // WalletConnect requires a Project ID — not configured yet
             if (walletId === 'walletconnect') {
-                showToast('WalletConnect coming soon — use MetaMask or Coinbase Wallet for now.', 'warning', 6000);
+                await connectWalletConnectDirect();
                 return;
             }
 
@@ -1330,13 +1329,30 @@
             }
         }
 
+        async function waitForPhantomProvider(maxMs = 3000) {
+            const start = Date.now();
+            while (Date.now() - start < maxMs) {
+                const p = window.phantom?.ethereum ||
+                    (window.ethereum?.providers?.find(p => p.isPhantom)) ||
+                    (window.ethereum?.isPhantom ? window.ethereum : null);
+                if (p) return p;
+                await new Promise(r => setTimeout(r, 150));
+            }
+            return null;
+        }
+
         async function connectPhantomDirect() {
-            const phantomProvider = window.phantom?.ethereum || 
-                (window.ethereum?.providers?.find(p => p.isPhantom)) ||
-                (window.ethereum?.isPhantom ? window.ethereum : null);
+            showToast('Looking for Phantom…', 'info', 4000);
+            const phantomProvider = await waitForPhantomProvider(3000);
 
             if (!phantomProvider) {
-                showToast('Phantom wallet not detected. Please install Phantom from phantom.app', 'error');
+                // Check if we're inside Phantom's browser but provider not yet ready
+                const inPhantomBrowser = !!(window.phantom?.solana || navigator.userAgent.includes('Phantom'));
+                if (inPhantomBrowser) {
+                    showToast('Phantom browser detected but EVM not ready — tap Phantom button again in 2 seconds.', 'warning', 6000);
+                } else {
+                    showToast('Phantom not detected in this browser. Open this page inside the Phantom app (Browser tab), or use WalletConnect below.', 'error', 8000);
+                }
                 return;
             }
 
@@ -1353,6 +1369,92 @@
                 if (accounts.length === 0) { showDisconnected(); }
                 else { userAddress = accounts[0]; loadDashboard(); }
             });
+        }
+
+        async function connectWalletConnectDirect() {
+            await configPromise;
+            if (!WALLETCONNECT_PROJECT_ID) {
+                showPhantomInstructions();
+                return;
+            }
+            showToast('Loading WalletConnect…', 'info', 5000);
+            try {
+                // Load WalletConnect EthereumProvider via CDN
+                await new Promise((resolve, reject) => {
+                    if (window.WalletConnectEthereumProvider) { resolve(); return; }
+                    const s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.3/dist/index.umd.min.js';
+                    s.onload = resolve;
+                    s.onerror = () => reject(new Error('CDN_LOAD_FAIL'));
+                    document.head.appendChild(s);
+                });
+
+                const WCProvider = window.WalletConnectEthereumProvider;
+                if (!WCProvider) throw new Error('CDN_LOAD_FAIL');
+
+                const wcEthProvider = await WCProvider.init({
+                    projectId: WALLETCONNECT_PROJECT_ID,
+                    chains: [56],
+                    optionalChains: [56],
+                    showQrModal: true,
+                    metadata: {
+                        name: 'UTL — Universal Transaction Layer',
+                        description: 'Stake USDC, earn passive income from every transaction.',
+                        url: window.location.origin,
+                        icons: [window.location.origin + '/keno-logo-128.png']
+                    },
+                    rpcMap: { 56: 'https://bsc-dataseed1.binance.org/' }
+                });
+
+                await wcEthProvider.connect({ chains: [56] });
+
+                provider = new ethers.providers.Web3Provider(wcEthProvider);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                setupContracts();
+                showConnected('WalletConnect');
+                loadDashboard();
+
+                wcEthProvider.on('disconnect', () => showDisconnected());
+                wcEthProvider.on('accountsChanged', (accounts) => {
+                    if (!accounts.length) showDisconnected();
+                    else { userAddress = accounts[0]; loadDashboard(); }
+                });
+            } catch (err) {
+                if (err.message === 'CDN_LOAD_FAIL') {
+                    showPhantomInstructions();
+                } else if (err.message?.includes('User rejected') || err.code === 4001) {
+                    showToast('Connection cancelled.', 'warning');
+                } else {
+                    showToast('WalletConnect error: ' + (err.message || err), 'error', 6000);
+                }
+            }
+        }
+
+        function showPhantomInstructions() {
+            // Show a modal guiding the user to open in Phantom's browser
+            const modal = document.createElement('div');
+            modal.id = 'phantomInstructionModal';
+            modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:20px;';
+            const siteUrl = window.location.origin + '/utl-dashboard.html';
+            modal.innerHTML = `
+              <div style="background:#0a1128;border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:28px;max-width:380px;width:100%;text-align:center;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">👻</div>
+                <div style="font-family:'Orbitron',sans-serif;color:#ffd700;font-size:1rem;font-weight:700;margin-bottom:8px;">Connect Phantom on Mobile</div>
+                <p style="color:#c8d6e8;font-size:0.85rem;line-height:1.6;margin-bottom:20px;">
+                  Open the <strong style="color:#ffd700;">Phantom app</strong> → tap <strong style="color:#ffd700;">Browser</strong> (bottom tab) → paste this URL:
+                </p>
+                <div style="background:#060b1a;border:1px solid rgba(255,215,0,0.15);border-radius:8px;padding:10px 14px;font-size:0.75rem;color:#ffd700;font-family:monospace;word-break:break-all;margin-bottom:16px;">${siteUrl}</div>
+                <button onclick="navigator.clipboard.writeText('${siteUrl}').then(()=>this.textContent='Copied!')" 
+                  style="background:linear-gradient(135deg,#ab9ff2,#534bb1);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-bottom:12px;width:100%;">
+                  Copy URL
+                </button>
+                <button onclick="document.getElementById('phantomInstructionModal').remove()"
+                  style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:#c8d6e8;border-radius:8px;padding:8px 20px;font-size:0.82rem;cursor:pointer;width:100%;">
+                  Close
+                </button>
+              </div>`;
+            document.body.appendChild(modal);
         }
 
         async function ensureBSC(prov) {
