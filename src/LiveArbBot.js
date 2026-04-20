@@ -1,7 +1,8 @@
 const { ethers } = require('ethers');
 
-const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-const BISWAP_ROUTER  = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
+const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
+const UTL_FARM        = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
 
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
@@ -11,13 +12,28 @@ const ROUTER_ABI = [
   'function getAmountsOut(uint amountIn, address[] calldata path) view returns (uint[] memory amounts)',
   'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) payable returns (uint[] memory amounts)',
   'function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) returns (uint[] memory amounts)',
-  'function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) returns (uint[] memory amounts)'
+  'function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) returns (uint[] memory amounts)',
+  'function addLiquidityETH(address token, uint amountTokenDesired, uint amountTokenMin, uint amountETHMin, address to, uint deadline) payable returns (uint amountToken, uint amountETH, uint liquidity)'
 ];
 
 const ERC20_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function balanceOf(address account) view returns (uint256)',
   'function allowance(address owner, address spender) view returns (uint256)'
+];
+
+const FARM_ABI = [
+  'function stake(uint256 amount) external',
+  'function unstake(uint256 amount) external',
+  'function harvest() external',
+  'function pendingRewards(address account) external view returns (uint256)',
+  'function aprBasisPoints() external view returns (uint256)',
+  'function userInfo(address) external view returns (uint256 staked, uint256 rewardPerTokenPaid, uint256 pendingHarvest)',
+  'function totalStaked() external view returns (uint256)',
+  'function rewardBalance() external view returns (uint256)',
+  'function rewardRate() external view returns (uint256)',
+  'function lpToken() external view returns (address)',
+  'function paused() external view returns (bool)'
 ];
 
 const BSC_RPC_ENDPOINTS = [
@@ -329,10 +345,7 @@ class LiveArbBot {
 
   async getWalletInfo() {
     try {
-      const [bnbBal, kenoBal] = await Promise.all([
-        this.provider.getBalance(this.wallet.address),
-        this.getAmountsOut(PANCAKE_ROUTER, ethers.parseEther('0'), [WBNB, KENO]).catch(() => 0n)
-      ]);
+      const bnbBal = await this.provider.getBalance(this.wallet.address);
       const kenoContract = new ethers.Contract(KENO, ERC20_ABI, this.provider);
       const kenoBalance  = await kenoContract.balanceOf(this.wallet.address);
       return {
@@ -343,6 +356,106 @@ class LiveArbBot {
     } catch (_) {
       return { address: this.wallet?.address, bnb: '?', keno: '?' };
     }
+  }
+
+  async getFarmStatus() {
+    try {
+      const farm = new ethers.Contract(UTL_FARM, FARM_ABI, this.provider);
+      const addr = this.wallet ? this.wallet.address : ethers.ZeroAddress;
+
+      const [userInfo, pending, totalStaked, rewardBal, rewardRate, apr, farmPaused, lpAddr] = await Promise.all([
+        farm.userInfo(addr),
+        farm.pendingRewards(addr),
+        farm.totalStaked(),
+        farm.rewardBalance(),
+        farm.rewardRate(),
+        farm.aprBasisPoints(),
+        farm.paused(),
+        farm.lpToken()
+      ]);
+
+      let lpWalletBal = 0n;
+      if (this.wallet) {
+        const lp = new ethers.Contract(lpAddr, ERC20_ABI, this.provider);
+        lpWalletBal = await lp.balanceOf(this.wallet.address);
+      }
+
+      return {
+        ok: true,
+        farmAddress:    UTL_FARM,
+        lpTokenAddress: lpAddr,
+        farmPaused,
+        totalStaked:    ethers.formatEther(totalStaked),
+        rewardBalance:  ethers.formatEther(rewardBal),
+        rewardRatePerSec: ethers.formatEther(rewardRate),
+        aprPercent:     (Number(apr) / 100).toFixed(2),
+        user: {
+          stakedLP:      ethers.formatEther(userInfo.staked),
+          pendingKENO:   ethers.formatEther(pending),
+          walletLP:      ethers.formatEther(lpWalletBal)
+        }
+      };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+
+  async stakeLPTokens(amountEther) {
+    if (!this.wallet) throw new Error('Bot not started');
+    const farm    = new ethers.Contract(UTL_FARM, FARM_ABI, this.wallet);
+    const lpAddr  = await farm.lpToken();
+    const lp      = new ethers.Contract(lpAddr, ERC20_ABI, this.wallet);
+    const amount  = amountEther === 'all'
+      ? await lp.balanceOf(this.wallet.address)
+      : ethers.parseEther(amountEther.toString());
+
+    if (amount === 0n) throw new Error('No LP tokens in wallet');
+
+    this.log(`🌾 Staking ${ethers.formatEther(amount)} LP tokens into UTLFarm...`);
+
+    const allowance = await lp.allowance(this.wallet.address, UTL_FARM);
+    if (allowance < amount) {
+      const approveTx = await lp.approve(UTL_FARM, ethers.MaxUint256, { gasPrice: this.config.gasPrice });
+      await approveTx.wait();
+      this.log('✅ LP token approved for UTLFarm');
+    }
+
+    const tx = await farm.stake(amount, { gasPrice: this.config.gasPrice, gasLimit: 250_000 });
+    const receipt = await tx.wait();
+    this.log(`✅ Staked! Tx: ${receipt.hash}`);
+    return { ok: true, txHash: receipt.hash, amount: ethers.formatEther(amount) };
+  }
+
+  async harvestFarm() {
+    if (!this.wallet) throw new Error('Bot not started');
+    const farm    = new ethers.Contract(UTL_FARM, FARM_ABI, this.wallet);
+    const pending = await farm.pendingRewards(this.wallet.address);
+
+    if (pending === 0n) {
+      this.log('⚠️ No KENO rewards to harvest yet');
+      return { ok: false, msg: 'No pending rewards' };
+    }
+
+    this.log(`🌿 Harvesting ${ethers.formatEther(pending)} KENO from UTLFarm...`);
+    const tx = await farm.harvest({ gasPrice: this.config.gasPrice, gasLimit: 200_000 });
+    const receipt = await tx.wait();
+    this.log(`✅ Harvested ${ethers.formatEther(pending)} KENO! Tx: ${receipt.hash}`);
+    return { ok: true, txHash: receipt.hash, kenoHarvested: ethers.formatEther(pending) };
+  }
+
+  async unstakeLPTokens(amountEther) {
+    if (!this.wallet) throw new Error('Bot not started');
+    const farm   = new ethers.Contract(UTL_FARM, FARM_ABI, this.wallet);
+    const info   = await farm.userInfo(this.wallet.address);
+    const amount = amountEther === 'all' ? info.staked : ethers.parseEther(amountEther.toString());
+
+    if (amount === 0n) throw new Error('No LP tokens staked');
+
+    this.log(`🔓 Unstaking ${ethers.formatEther(amount)} LP tokens from UTLFarm...`);
+    const tx = await farm.unstake(amount, { gasPrice: this.config.gasPrice, gasLimit: 250_000 });
+    const receipt = await tx.wait();
+    this.log(`✅ Unstaked! (auto-harvested any pending KENO) Tx: ${receipt.hash}`);
+    return { ok: true, txHash: receipt.hash, amount: ethers.formatEther(amount) };
   }
 
   log(msg, level = 'info') {

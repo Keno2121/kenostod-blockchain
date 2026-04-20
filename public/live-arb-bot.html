@@ -168,6 +168,38 @@
     </div>
 
     <div class="full-card">
+        <div class="section-title">🌾 UTLFarm — LP Staking & Harvest</div>
+
+        <div id="farmStatus" style="margin-bottom:16px;">
+            <div style="color:#94a3b8;font-size:0.85rem;">Loading farm data...</div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>Your Position</h3>
+                <div class="stat"><span class="stat-label">LP Tokens in Wallet</span><span class="stat-value white" id="farmWalletLP">—</span></div>
+                <div class="stat"><span class="stat-label">LP Tokens Staked</span><span class="stat-value" id="farmStaked">—</span></div>
+                <div class="stat"><span class="stat-label">Pending KENO Rewards</span><span class="stat-value yellow" id="farmPending">—</span></div>
+            </div>
+            <div class="card">
+                <h3>Farm Overview</h3>
+                <div class="stat"><span class="stat-label">Total LP Staked (all)</span><span class="stat-value white" id="farmTotal">—</span></div>
+                <div class="stat"><span class="stat-label">Reward Pool (KENO)</span><span class="stat-value" id="farmRewardBal">—</span></div>
+                <div class="stat"><span class="stat-label">Current APR</span><span class="stat-value yellow" id="farmAPR">—</span></div>
+            </div>
+        </div>
+
+        <div class="btn-group" style="margin-top:12px;flex-wrap:wrap;gap:10px;">
+            <button class="btn btn-green" onclick="farmStake()">🌾 Stake All LP Tokens</button>
+            <button class="btn btn-yellow" onclick="farmHarvest()">🌿 Harvest KENO Rewards</button>
+            <button class="btn btn-red" onclick="farmUnstake()">🔓 Unstake All LP</button>
+            <button class="btn btn-blue" onclick="fetchFarmStatus()">🔄 Refresh Farm</button>
+        </div>
+
+        <div id="farmResult" style="margin-top:12px;font-size:0.85rem;"></div>
+    </div>
+
+    <div class="full-card">
         <div class="section-title">📋 Live Bot Log</div>
         <div class="log-list" id="logList">
             <div class="log-entry info"><span class="log-time">—</span>Waiting for bot to start...</div>
@@ -331,8 +363,84 @@ function escHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+async function fetchFarmStatus() {
+    try {
+        const r = await fetch('/api/live-arb/farm-status');
+        const d = await r.json();
+        if (!d.ok) {
+            document.getElementById('farmStatus').innerHTML =
+                `<div style="color:#fca5a5;font-size:0.82rem;">⚠️ ${d.error || 'Could not load farm data'}</div>`;
+            return;
+        }
+        const paused = d.farmPaused ? ' <span style="color:#f59e0b">(PAUSED)</span>' : '';
+        document.getElementById('farmStatus').innerHTML = `
+            <div style="font-size:0.78rem;color:#64748b;margin-bottom:4px;">
+                Farm: ${d.farmAddress}${paused} | LP Token: ${d.lpTokenAddress}
+            </div>`;
+        document.getElementById('farmWalletLP').textContent  = parseFloat(d.user.walletLP).toFixed(6);
+        document.getElementById('farmStaked').textContent    = parseFloat(d.user.stakedLP).toFixed(6);
+        document.getElementById('farmPending').textContent   = parseFloat(d.user.pendingKENO).toLocaleString(undefined, {maximumFractionDigits:4}) + ' KENO';
+        document.getElementById('farmTotal').textContent     = parseFloat(d.totalStaked).toFixed(4);
+        document.getElementById('farmRewardBal').textContent = parseFloat(d.rewardBalance).toLocaleString(undefined, {maximumFractionDigits:0}) + ' KENO';
+        document.getElementById('farmAPR').textContent       = d.aprPercent + '%';
+    } catch (e) {
+        document.getElementById('farmStatus').innerHTML = `<div style="color:#fca5a5;">Error: ${e.message}</div>`;
+    }
+}
+
+async function farmStake() {
+    if (!confirm('Stake ALL LP tokens from your wallet into UTLFarm?')) return;
+    try {
+        showFarmResult('⏳ Staking LP tokens... (waiting for tx confirmation)', 'blue');
+        const r = await fetch('/api/live-arb/farm-stake', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ amount: 'all' }) });
+        const d = await r.json();
+        if (d.ok) {
+            showFarmResult(`✅ Staked ${parseFloat(d.amount).toFixed(6)} LP! <a href="https://bscscan.com/tx/${d.txHash}" target="_blank" style="color:#10b981;">View tx ↗</a>`, 'green');
+            setTimeout(fetchFarmStatus, 3000);
+        } else {
+            showFarmResult('❌ ' + (d.msg || 'Stake failed'), 'red');
+        }
+    } catch (e) { showFarmResult('❌ ' + e.message, 'red'); }
+}
+
+async function farmHarvest() {
+    try {
+        showFarmResult('⏳ Harvesting KENO rewards... (waiting for tx confirmation)', 'blue');
+        const r = await fetch('/api/live-arb/farm-harvest', { method: 'POST' });
+        const d = await r.json();
+        if (d.ok) {
+            showFarmResult(`✅ Harvested ${parseFloat(d.kenoHarvested).toLocaleString()} KENO! <a href="https://bscscan.com/tx/${d.txHash}" target="_blank" style="color:#10b981;">View tx ↗</a>`, 'green');
+            setTimeout(fetchFarmStatus, 3000);
+        } else {
+            showFarmResult('⚠️ ' + (d.msg || 'Nothing to harvest'), 'yellow');
+        }
+    } catch (e) { showFarmResult('❌ ' + e.message, 'red'); }
+}
+
+async function farmUnstake() {
+    if (!confirm('Unstake ALL LP tokens? (pending KENO rewards will be auto-harvested)')) return;
+    try {
+        showFarmResult('⏳ Unstaking LP tokens... (waiting for tx confirmation)', 'blue');
+        const r = await fetch('/api/live-arb/farm-unstake', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ amount: 'all' }) });
+        const d = await r.json();
+        if (d.ok) {
+            showFarmResult(`✅ Unstaked ${parseFloat(d.amount).toFixed(6)} LP! <a href="https://bscscan.com/tx/${d.txHash}" target="_blank" style="color:#10b981;">View tx ↗</a>`, 'green');
+            setTimeout(fetchFarmStatus, 3000);
+        } else {
+            showFarmResult('❌ ' + (d.msg || 'Unstake failed'), 'red');
+        }
+    } catch (e) { showFarmResult('❌ ' + e.message, 'red'); }
+}
+
+function showFarmResult(msg, color) {
+    const colors = { green: '#10b981', red: '#fca5a5', blue: '#93c5fd', yellow: '#fde68a' };
+    document.getElementById('farmResult').innerHTML = `<span style="color:${colors[color]||'#e2e8f0'}">${msg}</span>`;
+}
+
 fetchWallet();
 fetchStatus();
+fetchFarmStatus();
+setInterval(fetchFarmStatus, 30_000);
 </script>
 </body>
 </html>

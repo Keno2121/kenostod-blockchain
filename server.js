@@ -8306,6 +8306,44 @@ app.post('/api/live-arb/keno-volume', async (req, res) => {
     }
 });
 
+app.get('/api/live-arb/farm-status', async (req, res) => {
+    try {
+        const status = await liveArbBot.getFarmStatus();
+        res.json(status);
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
+app.post('/api/live-arb/farm-stake', async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const result = await liveArbBot.stakeLPTokens(amount || 'all');
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/live-arb/farm-harvest', async (req, res) => {
+    try {
+        const result = await liveArbBot.harvestFarm();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/live-arb/farm-unstake', async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const result = await liveArbBot.unstakeLPTokens(amount || 'all');
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
 // ==================== END LIVE ARB BOT API ENDPOINTS ====================
 
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
