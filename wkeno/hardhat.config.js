@@ -39,6 +39,9 @@ module.exports = {
       accounts: [NEW_WALLET_PRIVATE_KEY]
     }
   },
+  sourcify: {
+    enabled: true
+  },
   etherscan: {
     apiKey: {
       base: process.env.BASESCAN_API_KEY || "",
