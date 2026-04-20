@@ -146,10 +146,10 @@ contract UTLFarm {
         require(u.staked >= amount, "UTLFarm: insufficient stake");
 
         // Harvest first (CEI pattern)
-        uint256 harvest = u.pendingHarvest;
-        if (harvest > 0) {
+        uint256 pendingAmt = u.pendingHarvest;
+        if (pendingAmt > 0) {
             u.pendingHarvest = 0;
-            _sendReward(msg.sender, harvest);
+            _sendReward(msg.sender, pendingAmt);
         }
 
         u.staked    -= amount;
@@ -159,7 +159,7 @@ contract UTLFarm {
         require(ok, "UTLFarm: LP return failed");
 
         emit Unstaked(msg.sender, amount);
-        if (harvest > 0) emit Harvested(msg.sender, harvest);
+        if (pendingAmt > 0) emit Harvested(msg.sender, pendingAmt);
     }
 
     /**

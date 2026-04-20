@@ -13,7 +13,8 @@ module.exports = {
       optimizer: {
         enabled: true,
         runs: 200
-      }
+      },
+      evmVersion: "cancun"
     }
   },
   networks: {
@@ -21,6 +22,12 @@ module.exports = {
       url: "https://bsc-dataseed1.binance.org/",
       chainId: 56,
       accounts: [DEPLOYER_PRIVATE_KEY],
+      gasPrice: 3000000000
+    },
+    bscSafe: {
+      url: "https://bsc-dataseed1.binance.org/",
+      chainId: 56,
+      accounts: [NEW_WALLET_PRIVATE_KEY],
       gasPrice: 3000000000
     },
     bscTestnet: {

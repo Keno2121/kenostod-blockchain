@@ -234,6 +234,15 @@ contract UTLStaking is Ownable, ReentrancyGuard {
         return totalEffectiveStake > 0 ? totalEffectiveStake : 1;
     }
 
+    /// @dev Returns the appropriate Tier for a given staked amount
+    function _calculateTier(uint256 amount) internal view returns (Tier) {
+        if (amount >= tierThresholds[4]) return Tier.Guardian;
+        if (amount >= tierThresholds[3]) return Tier.Champion;
+        if (amount >= tierThresholds[2]) return Tier.Advocate;
+        if (amount >= tierThresholds[1]) return Tier.Participant;
+        return Tier.Observer;
+    }
+
     receive() external payable {
         if (totalStaked > 0) {
             // FIX: use totalEffectiveStake state variable — no loop

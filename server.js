@@ -8346,6 +8346,138 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
 
 // ==================== END LIVE ARB BOT API ENDPOINTS ====================
 
+// ==================== REAL ON-CHAIN FLASH ARB LOAN (FAL) API ENDPOINTS ====================
+// FlashArbLoan contract: 0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e on BSC
+(function() {
+    const { ethers } = require('ethers');
+    const FAL_CONTRACT = '0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e';
+    const BSC_RPC = 'https://bsc-dataseed1.binance.org/';
+    const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+    const BISWAP_ROUTER  = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
+    const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+    const USDT = '0x55d398326f99059fF775485246999027B3197955';
+
+    const ROUTER_ABI = [
+        'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)'
+    ];
+    const FAL_ABI = [
+        'function quoteArb(uint256 wbnbAmount) external view returns (uint256 usdtOut, uint256 wbnbBack, uint256 repayAmount, bool profitable)',
+        'function executeFlashArb(uint256 wbnbAmount) external',
+        'function totalProfitWBNB() view returns (uint256)',
+        'function totalArbs() view returns (uint256)',
+        'function paused() view returns (bool)',
+        'function owner() view returns (address)'
+    ];
+
+    function getProvider() { return new ethers.JsonRpcProvider(BSC_RPC); }
+    function getSigner() {
+        const pk = process.env.NEW_WALLET_PRIVATE_KEY;
+        if (!pk) throw new Error('NEW_WALLET_PRIVATE_KEY not set');
+        return new ethers.Wallet(pk, getProvider());
+    }
+
+    // GET /api/fal/quote?amount=0.1   (amount in BNB)
+    app.get('/api/fal/quote', async (req, res) => {
+        try {
+            const provider = getProvider();
+            const bnbAmount = parseFloat(req.query.amount || '0.1');
+            const wbnbWei = ethers.parseEther(String(bnbAmount));
+            const fal = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
+            const [usdtOut, wbnbBack, repayAmount, profitable] = await fal.quoteArb(wbnbWei);
+
+            // Also get raw prices for the UI
+            const pancake = new ethers.Contract(PANCAKE_ROUTER, ROUTER_ABI, provider);
+            const biswap  = new ethers.Contract(BISWAP_ROUTER,  ROUTER_ABI, provider);
+            const pathWU = [WBNB, USDT];
+            const pathUW = [USDT, WBNB];
+            const [, pancakeUSDT] = await pancake.getAmountsOut(wbnbWei, pathWU);
+            const [, biswapUSDT]  = await biswap.getAmountsOut(wbnbWei, pathWU);
+
+            const spread = Number(biswapUSDT - pancakeUSDT) * 100 / Number(pancakeUSDT);
+            const profitWBNB = profitable ? Number(wbnbBack - repayAmount) / 1e18 : 0;
+            const profitUSD  = profitWBNB * (Number(pancakeUSDT) / 1e18 / bnbAmount);
+
+            res.json({
+                ok: true,
+                input: { bnbAmount },
+                pancakeUSDT: (Number(pancakeUSDT) / 1e18).toFixed(4),
+                biswapUSDT:  (Number(biswapUSDT)  / 1e18).toFixed(4),
+                spreadPct:   spread.toFixed(4),
+                repayWBNB:   (Number(repayAmount) / 1e18).toFixed(6),
+                wbnbBack:    (Number(wbnbBack)    / 1e18).toFixed(6),
+                profitWBNB:  profitWBNB.toFixed(6),
+                profitUSD:   profitUSD.toFixed(4),
+                profitable
+            });
+        } catch (e) {
+            res.status(500).json({ ok: false, msg: e.message });
+        }
+    });
+
+    // GET /api/fal/status
+    app.get('/api/fal/status', async (req, res) => {
+        try {
+            const provider = getProvider();
+            const fal = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
+            const [totalProfit, totalArbs, paused, owner] = await Promise.all([
+                fal.totalProfitWBNB(),
+                fal.totalArbs(),
+                fal.paused(),
+                fal.owner()
+            ]);
+            res.json({
+                ok: true,
+                contract: FAL_CONTRACT,
+                bscscan: `https://bscscan.com/address/${FAL_CONTRACT}`,
+                totalProfitWBNB: (Number(totalProfit) / 1e18).toFixed(6),
+                totalArbs: Number(totalArbs),
+                paused,
+                owner,
+                network: 'BSC Mainnet'
+            });
+        } catch (e) {
+            res.status(500).json({ ok: false, msg: e.message });
+        }
+    });
+
+    // POST /api/fal/execute   { amount: "0.05" }  (BNB to borrow)
+    app.post('/api/fal/execute', async (req, res) => {
+        try {
+            const signer = getSigner();
+            const bnbAmount = parseFloat(req.body.amount || '0.05');
+            if (bnbAmount < 0.01 || bnbAmount > 5) {
+                return res.status(400).json({ ok: false, msg: 'Amount must be 0.01–5 BNB' });
+            }
+            const wbnbWei = ethers.parseEther(String(bnbAmount));
+
+            // Pre-flight quote check
+            const fal = new ethers.Contract(FAL_CONTRACT, FAL_ABI, signer);
+            const [,, , profitable] = await fal.quoteArb(wbnbWei);
+            if (!profitable) {
+                return res.status(400).json({ ok: false, msg: 'Not profitable at current spread. Wait for a better opportunity.' });
+            }
+
+            // Execute on-chain
+            const tx = await fal.executeFlashArb(wbnbWei, {
+                gasPrice: ethers.parseUnits('3', 'gwei'),
+                gasLimit: 500000
+            });
+            const receipt = await tx.wait();
+            const success = receipt.status === 1;
+            res.json({
+                ok: success,
+                txHash: tx.hash,
+                bscscan: `https://bscscan.com/tx/${tx.hash}`,
+                gasUsed: Number(receipt.gasUsed),
+                msg: success ? 'Flash arb executed on-chain!' : 'Transaction reverted — spread closed before execution'
+            });
+        } catch (e) {
+            res.status(500).json({ ok: false, msg: e.message });
+        }
+    });
+})();
+// ==================== END REAL FAL API ENDPOINTS ====================
+
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
 
 app.post('/api/fal-pool/create', (req, res) => {
