@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENO Live Arb Bot | Kenostod</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0f1e; color: #e2e8f0; min-height: 100vh; }
+
+        .header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 { font-size: 1.8rem; color: white; }
+        .header p  { opacity: 0.9; font-size: 0.95rem; margin-top: 4px; }
+
+        .nav { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .nav a {
+            padding: 7px 16px; background: rgba(255,255,255,0.2);
+            color: white; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
+        }
+        .nav a:hover { background: rgba(255,255,255,0.35); }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+
+        .status-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: #1e293b; border-radius: 10px; padding: 16px 20px;
+            margin-bottom: 20px; border: 1px solid #334155;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .dot.green { background: #10b981; box-shadow: 0 0 8px #10b981; animation: pulse 1.5s infinite; }
+        .dot.red   { background: #ef4444; }
+        .dot.yellow { background: #f59e0b; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+        .status-text { flex: 1; }
+        .status-text strong { font-size: 1rem; }
+        .status-text small { color: #94a3b8; font-size: 0.8rem; display: block; margin-top: 2px; }
+
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            padding: 9px 18px; border: none; border-radius: 7px;
+            font-weight: 700; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+        }
+        .btn-green  { background: #10b981; color: white; }
+        .btn-red    { background: #ef4444; color: white; }
+        .btn-yellow { background: #f59e0b; color: #1a1a1a; }
+        .btn-blue   { background: #3b82f6; color: white; }
+        .btn:hover  { filter: brightness(1.15); transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        @media(max-width:600px) { .grid { grid-template-columns: 1fr; } }
+
+        .card {
+            background: #1e293b; border-radius: 10px;
+            padding: 18px; border: 1px solid #334155;
+        }
+        .card h3 { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+        .stat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .stat-label { color: #94a3b8; font-size: 0.85rem; }
+        .stat-value { font-weight: 700; font-size: 1rem; color: #10b981; }
+        .stat-value.white { color: #e2e8f0; }
+        .stat-value.yellow { color: #f59e0b; }
+
+        .opp-card {
+            background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 8px; padding: 12px; margin-bottom: 10px;
+        }
+        .opp-card.low { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); }
+        .opp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .opp-pair { font-weight: 700; font-size: 0.95rem; }
+        .opp-spread { font-size: 0.85rem; color: #10b981; font-weight: 700; }
+        .opp-spread.low { color: #f59e0b; }
+        .opp-detail { font-size: 0.8rem; color: #94a3b8; }
+
+        .log-list { max-height: 320px; overflow-y: auto; }
+        .log-entry { padding: 7px 10px; border-bottom: 1px solid #1e293b; font-size: 0.8rem; }
+        .log-entry:last-child { border-bottom: none; }
+        .log-entry .log-time { color: #64748b; margin-right: 8px; font-size: 0.72rem; }
+        .log-entry.error { color: #fca5a5; }
+        .log-entry.warn  { color: #fde68a; }
+        .log-entry.info  { color: #e2e8f0; }
+
+        .wallet-box {
+            background: #0f172a; border-radius: 8px; padding: 12px;
+            font-size: 0.82rem; margin-bottom: 16px; border: 1px solid #1e293b;
+        }
+        .wallet-addr { color: #94a3b8; word-break: break-all; margin-bottom: 4px; }
+        .wallet-bal { display: flex; gap: 20px; margin-top: 6px; }
+        .wallet-bal span { font-weight: 700; }
+        .wallet-bal span.green { color: #10b981; }
+
+        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: #e2e8f0; }
+
+        .info-box {
+            background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 8px; padding: 14px; margin-bottom: 20px; font-size: 0.85rem; color: #93c5fd;
+        }
+        .info-box strong { color: #bfdbfe; }
+
+        .full-card { background: #1e293b; border-radius: 10px; padding: 18px; border: 1px solid #334155; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>⚡ KENO Live Arb Bot</h1>
+    <p>Real on-chain BSC arbitrage — PancakeSwap vs BiSwap + KENO volume generation</p>
+    <div class="nav">
+        <a href="/">🏠 Home</a>
+        <a href="/arbitrage.html">📊 FAL Simulator</a>
+        <a href="/arbitrage-intel.html">🔍 Intel</a>
+        <a href="/utl-dashboard.html">⚙️ UTL Dashboard</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="info-box">
+        <strong>How this works:</strong> The bot monitors WBNB/USDT prices on PancakeSwap and BiSwap every 30 seconds.
+        When a spread &gt; 0.5% is detected AND net profit after gas &gt; $0.20, it executes a real on-chain swap from your safe wallet.
+        Every hour it also makes a small KENO buy/sell to generate trading volume for DexScreener visibility.
+    </div>
+
+    <div class="status-bar">
+        <div class="dot red" id="statusDot"></div>
+        <div class="status-text">
+            <strong id="statusText">Bot Offline</strong>
+            <small id="statusSub">Start the bot to begin live arbitrage scanning</small>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-green" id="btnStart"  onclick="startBot()">▶ Start</button>
+            <button class="btn btn-yellow" id="btnPause" onclick="pauseBot()" disabled>⏸ Pause</button>
+            <button class="btn btn-red"   id="btnStop"  onclick="stopBot()"  disabled>⏹ Stop</button>
+        </div>
+    </div>
+
+    <div class="wallet-box" id="walletBox">
+        <div class="wallet-addr">Loading wallet info...</div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>Arb Performance</h3>
+            <div class="stat"><span class="stat-label">Trades Executed</span><span class="stat-value" id="statTrades">0</span></div>
+            <div class="stat"><span class="stat-label">Total Profit (USD)</span><span class="stat-value" id="statProfit">$0.00</span></div>
+            <div class="stat"><span class="stat-label">Last Check</span><span class="stat-value white" id="statLastCheck">—</span></div>
+            <div class="stat"><span class="stat-label">Uptime</span><span class="stat-value white" id="statUptime">—</span></div>
+        </div>
+        <div class="card">
+            <h3>KENO Volume</h3>
+            <div class="stat"><span class="stat-label">KENO Swaps Run</span><span class="stat-value" id="statKenoSwaps">0</span></div>
+            <div class="stat"><span class="stat-label">Volume Generated</span><span class="stat-value" id="statKenoVol">$0.00</span></div>
+            <div class="stat"><span class="stat-label">Next Vol Trade</span><span class="stat-value white" id="statNextVol">every 1h</span></div>
+            <button class="btn btn-blue" style="width:100%;margin-top:10px;" onclick="triggerKenoVol()">📊 Trigger KENO Volume Now</button>
+        </div>
+    </div>
+
+    <div class="full-card">
+        <div class="section-title">🔭 Last Detected Opportunity</div>
+        <div id="lastOpp" style="color:#94a3b8;font-size:0.85rem;">No opportunities detected yet. Bot will scan every 30 seconds once started.</div>
+    </div>
+
+    <div class="full-card">
+        <div class="section-title">📋 Live Bot Log</div>
+        <div class="log-list" id="logList">
+            <div class="log-entry info"><span class="log-time">—</span>Waiting for bot to start...</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let pollInterval = null;
+
+async function startBot() {
+    document.getElementById('btnStart').disabled = true;
+    document.getElementById('statusText').textContent = 'Starting...';
+    try {
+        const r = await fetch('/api/live-arb/start', { method: 'POST' });
+        const d = await r.json();
+        if (!d.ok) {
+            alert('Could not start bot: ' + d.msg);
+            document.getElementById('btnStart').disabled = false;
+        } else {
+            startPolling();
+            document.getElementById('btnStop').disabled  = false;
+            document.getElementById('btnPause').disabled = false;
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+        document.getElementById('btnStart').disabled = false;
+    }
+}
+
+async function stopBot() {
+    await fetch('/api/live-arb/stop', { method: 'POST' });
+    stopPolling();
+    document.getElementById('btnStart').disabled  = false;
+    document.getElementById('btnStop').disabled   = true;
+    document.getElementById('btnPause').disabled  = true;
+    setOfflineState();
+}
+
+async function pauseBot() {
+    const isPaused = document.getElementById('btnPause').textContent.includes('Pause');
+    if (isPaused) {
+        await fetch('/api/live-arb/pause', { method: 'POST' });
+        document.getElementById('btnPause').textContent = '▶ Resume';
+    } else {
+        await fetch('/api/live-arb/resume', { method: 'POST' });
+        document.getElementById('btnPause').textContent = '⏸ Pause';
+    }
+}
+
+async function triggerKenoVol() {
+    try {
+        const r = await fetch('/api/live-arb/keno-volume', { method: 'POST' });
+        const d = await r.json();
+        alert(d.ok ? '✅ KENO volume trade triggered — check log' : '❌ ' + d.msg);
+    } catch (e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+function startPolling() {
+    if (pollInterval) clearInterval(pollInterval);
+    fetchStatus();
+    fetchWallet();
+    pollInterval = setInterval(() => { fetchStatus(); fetchWallet(); }, 10_000);
+}
+
+function stopPolling() {
+    if (pollInterval) clearInterval(pollInterval);
+}
+
+function setOfflineState() {
+    const dot = document.getElementById('statusDot');
+    dot.className = 'dot red';
+    document.getElementById('statusText').textContent = 'Bot Offline';
+    document.getElementById('statusSub').textContent  = 'Start the bot to begin live arbitrage scanning';
+}
+
+async function fetchWallet() {
+    try {
+        const r = await fetch('/api/live-arb/wallet');
+        const d = await r.json();
+        document.getElementById('walletBox').innerHTML = `
+            <div class="wallet-addr">Wallet: ${d.address || '—'}</div>
+            <div class="wallet-bal">
+                <span class="green">${d.bnb} BNB</span>
+                <span>${d.keno} KENO</span>
+            </div>`;
+    } catch (_) {}
+}
+
+async function fetchStatus() {
+    try {
+        const r = await fetch('/api/live-arb/status');
+        const d = await r.json();
+        renderStatus(d);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderStatus(d) {
+    const dot = document.getElementById('statusDot');
+    if (d.running && !d.paused) {
+        dot.className = 'dot green';
+        document.getElementById('statusText').textContent = '🤖 Bot Running — Scanning BSC DEXes';
+    } else if (d.running && d.paused) {
+        dot.className = 'dot yellow';
+        document.getElementById('statusText').textContent = '⏸ Bot Paused';
+    } else {
+        dot.className = 'dot red';
+        document.getElementById('statusText').textContent = 'Bot Offline';
+    }
+
+    const s = d.stats || {};
+    document.getElementById('statTrades').textContent   = s.tradesExecuted ?? 0;
+    document.getElementById('statProfit').textContent   = '$' + (s.profitUSD ?? 0).toFixed(4);
+    document.getElementById('statKenoSwaps').textContent = s.kenoSwapsExecuted ?? 0;
+    document.getElementById('statKenoVol').textContent  = '$' + (s.kenoVolumeUSD ?? 0).toFixed(2);
+
+    if (s.lastCheck) {
+        document.getElementById('statLastCheck').textContent = new Date(s.lastCheck).toLocaleTimeString();
+    }
+    if (d.uptimeSeconds) {
+        const h = Math.floor(d.uptimeSeconds / 3600);
+        const m = Math.floor((d.uptimeSeconds % 3600) / 60);
+        const sec = d.uptimeSeconds % 60;
+        document.getElementById('statUptime').textContent = `${h}h ${m}m ${sec}s`;
+    }
+    document.getElementById('statusSub').textContent =
+        `Checking every ${d.config?.checkIntervalSec || 30}s | Min profit: $${d.config?.minProfitUSD || 0.20} | Vol trade every ${d.config?.kenoVolIntervalMin || 60}min`;
+
+    if (d.lastOpportunity) {
+        const o = d.lastOpportunity;
+        const exec = o.executable;
+        document.getElementById('lastOpp').innerHTML = `
+            <div class="opp-card ${exec ? '' : 'low'}">
+                <div class="opp-header">
+                    <span class="opp-pair">${o.pair}</span>
+                    <span class="opp-spread ${exec ? '' : 'low'}">${o.spread}% spread</span>
+                </div>
+                <div class="opp-detail">Buy on ${o.buyDex} → Sell on ${o.sellDex}</div>
+                <div class="opp-detail">Gross profit: $${parseFloat(o.grossProfitUSD).toFixed(4)} | Net (after gas): $${parseFloat(o.netProfitUSD).toFixed(4)}</div>
+                <div class="opp-detail" style="margin-top:4px;color:${exec ? '#10b981' : '#f59e0b'}">
+                    ${exec ? '✅ EXECUTED' : '⏳ Below min profit threshold — monitoring'}
+                </div>
+            </div>`;
+    }
+
+    const logs = d.recentLogs || [];
+    if (logs.length) {
+        document.getElementById('logList').innerHTML = logs.map(l => `
+            <div class="log-entry ${l.level || 'info'}">
+                <span class="log-time">${new Date(l.time).toLocaleTimeString()}</span>${escHtml(l.msg)}
+            </div>`).join('');
+    }
+}
+
+function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+fetchWallet();
+fetchStatus();
+</script>
+</body>
+</html>

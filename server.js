@@ -132,6 +132,7 @@ const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
+const LiveArbBot = require('./src/LiveArbBot');
 const UTLFeeCollector = require('./src/UTLFeeCollector');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('./src/secp256k1-compat').ec;
@@ -1018,6 +1019,7 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
+const liveArbBot = new LiveArbBot();
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
 // Function to log ICO purchases and save to file
@@ -8252,6 +8254,59 @@ app.get('/api/arbitrage/export/:walletAddress/csv', (req, res) => {
 });
 
 // ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
+
+// ==================== LIVE ARB BOT API ENDPOINTS ====================
+
+app.post('/api/live-arb/start', async (req, res) => {
+    try {
+        const result = await liveArbBot.start();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/live-arb/stop', (req, res) => {
+    res.json(liveArbBot.stop());
+});
+
+app.post('/api/live-arb/pause', (req, res) => {
+    liveArbBot.pause();
+    res.json({ ok: true });
+});
+
+app.post('/api/live-arb/resume', (req, res) => {
+    liveArbBot.resume();
+    res.json({ ok: true });
+});
+
+app.get('/api/live-arb/status', (req, res) => {
+    res.json(liveArbBot.getStatus());
+});
+
+app.get('/api/live-arb/wallet', async (req, res) => {
+    try {
+        if (!liveArbBot.wallet) {
+            return res.json({ address: process.env.NEW_WALLET_PRIVATE_KEY ? '(not connected)' : '(key not set)', bnb: '—', keno: '—' });
+        }
+        const info = await liveArbBot.getWalletInfo();
+        res.json(info);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/live-arb/keno-volume', async (req, res) => {
+    try {
+        if (!liveArbBot.wallet) return res.status(400).json({ ok: false, msg: 'Bot not started' });
+        liveArbBot.generateKenoVolume();
+        res.json({ ok: true, msg: 'KENO volume trade triggered' });
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+// ==================== END LIVE ARB BOT API ENDPOINTS ====================
 
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
 
