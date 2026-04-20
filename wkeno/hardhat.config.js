@@ -29,10 +29,9 @@ module.exports = {
       accounts: [NEW_WALLET_PRIVATE_KEY]
     },
     polygon: {
-      url: "https://polygon-rpc.com/",
+      url: "https://polygon-bor-rpc.publicnode.com",
       chainId: 137,
-      accounts: [NEW_WALLET_PRIVATE_KEY],
-      gasPrice: 50000000000
+      accounts: [NEW_WALLET_PRIVATE_KEY]
     },
     polygonAmoy: {
       url: "https://rpc-amoy.polygon.technology/",

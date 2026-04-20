@@ -490,8 +490,9 @@ npm run deploy:polygon     # needs ≥1 MATIC on Polygon
 ```
 
 **Deployed contracts:**
-- **Base mainnet:** `0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd` — [Basescan](https://basescan.org/address/0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd) | deploy tx: `0x04f69164873d53653e35c8e953430de6bb2f528b6e75d1cce7427159cf3c606c`
-- **Polygon mainnet:** pending — needs 1 MATIC in deployer wallet
+- **Base mainnet:** `0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd` — [Basescan](https://basescan.org/address/0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd)
+- **Polygon mainnet:** `0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd` — [Polygonscan](https://polygonscan.com/address/0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd)
+- **Same address on both chains** (deterministic — same deployer, same nonce 0)
 
 **Deployment records:** saved to `wkeno/deployments/wkeno-base.json` and `wkeno-polygon.json` after each run.
 
