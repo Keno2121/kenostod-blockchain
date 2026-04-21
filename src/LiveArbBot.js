@@ -50,15 +50,15 @@ class LiveArbBot {
     this.paused   = false;
 
     this.config = {
-      minProfitUSD:     0.20,
-      arbTradeAmountBNB: '0.05',
+      minProfitUSD:     0.05,          // lowered — gas at 1 gwei is ~$0.16, needs $0.05 net above that
+      arbTradeAmountBNB: '0.08',       // increased from 0.05 → bigger gross profit per spread
       kenoVolBNB:        '0.001',
       checkIntervalMs:   30_000,
       kenoVolIntervalMs: 3_600_000,
       maxSlippage:       0.02,
-      gasPrice:          ethers.parseUnits('5', 'gwei'),
-      gasLimitArb:       350_000,
-      gasLimitVol:       200_000,
+      gasPrice:          ethers.parseUnits('1', 'gwei'),  // BSC accepts 1 gwei — cuts gas cost 5x
+      gasLimitArb:       130_000,      // realistic single-swap gas on BSC
+      gasLimitVol:       130_000,
     };
 
     this.stats = {
@@ -198,7 +198,12 @@ class LiveArbBot {
 
     const grossProfit = sellOut - buyOut;
     const spread = ((grossProfit / buyOut) * 100).toFixed(3);
-    const gasCostUSD = 0.12;
+
+    // Dynamic gas cost: 2 swaps × gasLimit × gasPrice (gwei) × BNB price
+    const bnbPriceUSD = (pancakeUSD + biswapUSD) / 2 / tradeBNB;
+    const gasPriceGwei = parseFloat(ethers.formatUnits(this.config.gasPrice, 'gwei'));
+    const gasCostBNB   = (this.config.gasLimitArb * 2 * gasPriceGwei) / 1e9;
+    const gasCostUSD   = gasCostBNB * bnbPriceUSD;
     const netProfitUSD = grossProfit - gasCostUSD;
 
     if (parseFloat(spread) < 0.1) return null;
