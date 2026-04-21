@@ -10469,6 +10469,18 @@ app.listen(PORT, '0.0.0.0', () => {
     // CRITICAL: Initialize blockchain systems immediately (async - won't block port)
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
+
+    // AUTO-START Live Arb Bot — starts automatically on every server boot
+    // 10 second delay ensures RPC connections are ready before first scan
+    setTimeout(async () => {
+        try {
+            console.log('🤖 Auto-starting Live Arb Bot...');
+            const result = await liveArbBot.start();
+            console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
+        } catch (err) {
+            console.error('⚠️ Live Arb Bot auto-start error:', err.message);
+        }
+    }, 10000);
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
