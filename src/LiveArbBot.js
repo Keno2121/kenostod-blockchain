@@ -365,7 +365,9 @@ class LiveArbBot {
 
   async getFarmStatus() {
     try {
-      const farm = new ethers.Contract(UTL_FARM, FARM_ABI, this.provider);
+      // Use a fresh read-only provider if bot hasn't started yet
+      const readProvider = this.provider || new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+      const farm = new ethers.Contract(UTL_FARM, FARM_ABI, readProvider);
       const addr = this.wallet ? this.wallet.address : ethers.ZeroAddress;
 
       const [userInfo, pending, totalStaked, rewardBal, rewardRate, apr, farmPaused, lpAddr] = await Promise.all([
@@ -381,7 +383,7 @@ class LiveArbBot {
 
       let lpWalletBal = 0n;
       if (this.wallet) {
-        const lp = new ethers.Contract(lpAddr, ERC20_ABI, this.provider);
+        const lp = new ethers.Contract(lpAddr, ERC20_ABI, readProvider);
         lpWalletBal = await lp.balanceOf(this.wallet.address);
       }
 
