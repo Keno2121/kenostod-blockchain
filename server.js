@@ -9975,6 +9975,76 @@ app.get('/api/keno/market', async (req, res) => {
     }
 });
 
+// ==================== KENO LIQUIDITY POOL API ====================
+
+app.get('/api/pool/keno-bnb', async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const provider = new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+        const PAIR  = '0x72368adf1487eeebCb095F16CF8cbf91f2B44880';
+        const KENO  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+        const WBNB  = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+        const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+
+        const PAIR_ABI = [
+            'function getReserves() view returns (uint112,uint112,uint32)',
+            'function totalSupply() view returns (uint256)',
+            'function balanceOf(address) view returns (uint256)',
+            'function token0() view returns (address)',
+            'function token1() view returns (address)'
+        ];
+        const ERC20_ABI = ['function balanceOf(address) view returns (uint256)'];
+
+        const pair = new ethers.Contract(PAIR, PAIR_ABI, provider);
+        const keno = new ethers.Contract(KENO, ERC20_ABI, provider);
+
+        const [reserves, totalSupply, token0] = await Promise.all([
+            pair.getReserves(),
+            pair.totalSupply(),
+            pair.token0()
+        ]);
+
+        const isToken0KENO = token0.toLowerCase() === KENO.toLowerCase();
+        const kenoReserve = isToken0KENO ? reserves[0] : reserves[1];
+        const bnbReserve  = isToken0KENO ? reserves[1] : reserves[0];
+
+        const kenoFloat = parseFloat(ethers.formatUnits(kenoReserve, 18));
+        const bnbFloat  = parseFloat(ethers.formatEther(bnbReserve));
+
+        // BNB price from PancakeSwap WBNB/BUSD if possible, else fallback
+        let bnbPriceUSD = 630;
+        try {
+            const r2 = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd',
+                { headers: { 'Accept': 'application/json', 'User-Agent': 'Kenostod/2.0' } });
+            const pd = await r2.json();
+            if (pd?.binancecoin?.usd) bnbPriceUSD = pd.binancecoin.usd;
+        } catch(_) {}
+
+        const bnbValueUSD  = bnbFloat * bnbPriceUSD;
+        const totalLiqUSD  = bnbValueUSD * 2; // equal value both sides
+        const kenoPriceUSD = kenoFloat > 0 ? bnbValueUSD / kenoFloat : 0;
+        const lpSupply     = parseFloat(ethers.formatEther(totalSupply));
+
+        res.json({
+            ok: true,
+            pair: PAIR,
+            kenoToken: KENO,
+            router: PANCAKE_ROUTER,
+            kenoReserve: kenoFloat.toFixed(2),
+            bnbReserve: bnbFloat.toFixed(8),
+            bnbReserveRaw: bnbReserve.toString(),
+            kenoReserveRaw: kenoReserve.toString(),
+            kenoPriceUSD: kenoPriceUSD.toFixed(10),
+            bnbPriceUSD: bnbPriceUSD.toFixed(2),
+            totalLiquidityUSD: totalLiqUSD.toFixed(2),
+            lpTotalSupply: lpSupply.toFixed(6),
+            isToken0KENO
+        });
+    } catch (e) {
+        res.json({ ok: false, error: e.message });
+    }
+});
+
 // ==================== WITHDRAWAL RESERVE SYSTEM (Revenue-First Model) ====================
 
 // Get reserve status (public endpoint for transparency)
