@@ -6,6 +6,103 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !
     delete process.env.DATABASE_URL;
 }
 
+// ═══════════════════════════════════════════════════════════
+// EMBEDDED RESCUE WATCHER — Runs inside the stable server process
+// Transfers ownership of all 5 UTL contracts + whitelists UTLFarm
+// Fires the instant 0.0015 BNB lands on the compromised wallet
+// ═══════════════════════════════════════════════════════════
+(async () => {
+    try {
+        const { ethers } = require('ethers');
+        const NEW_OWNER   = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
+        const COMPROMISED = '0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf';
+        const KENO_TOKEN  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+        const FARM_ADDR   = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+        const CONTRACTS   = [
+            { name: 'KENO Token',    addr: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E' },
+            { name: 'Staking',       addr: '0x49961979c93f43f823BB3593b207724194019d1d' },
+            { name: 'Fee Collector', addr: '0xfE537c43d202C455Cedc141B882c808287BB662f' },
+            { name: 'Treasury',      addr: '0x3B3538b955647d811D42400084e9409e6593bE97' },
+            { name: 'Distribution',  addr: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7' },
+        ];
+        const ABI = [
+            'function owner() view returns (address)',
+            'function transferOwnership(address newOwner)',
+            'function updateWhitelist(address, bool) external',
+            'function isWhitelisted(address) view returns (bool)',
+        ];
+        const GAS_PRICE = ethers.parseUnits('20', 'gwei');
+        const GAS_LIMIT = 80000n;
+        const MIN_BNB   = ethers.parseEther('0.0015');
+
+        const provider = new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+        const pk = process.env.DEPLOYER_PRIVATE_KEY;
+        if (!pk) return;
+        const wallet = new ethers.Wallet(pk.startsWith('0x') ? pk : '0x'+pk, provider);
+
+        // Check if already done
+        const kenoC = new ethers.Contract(KENO_TOKEN, ABI, provider);
+        const firstOwner = await kenoC.owner().catch(() => null);
+        if (!firstOwner || firstOwner.toLowerCase() === NEW_OWNER.toLowerCase()) {
+            console.log('🔒 [RESCUE] All contracts already transferred — watcher disabled');
+            return;
+        }
+
+        // Pre-sign all rescue transactions
+        const iface = new ethers.Interface(ABI);
+        const txsToSign = [];
+
+        const alreadyWL = await kenoC.isWhitelisted(FARM_ADDR).catch(() => false);
+        if (!alreadyWL) txsToSign.push({ label: 'Whitelist UTLFarm', to: KENO_TOKEN, data: iface.encodeFunctionData('updateWhitelist', [FARM_ADDR, true]) });
+
+        for (const c of CONTRACTS) {
+            const ct = new ethers.Contract(c.addr, ABI, provider);
+            const own = await ct.owner().catch(() => null);
+            if (own && own.toLowerCase() === wallet.address.toLowerCase()) {
+                txsToSign.push({ label: c.name, to: c.addr, data: iface.encodeFunctionData('transferOwnership', [NEW_OWNER]) });
+            }
+        }
+
+        if (txsToSign.length === 0) { console.log('🔒 [RESCUE] Nothing to transfer'); return; }
+
+        const baseNonce = await provider.getTransactionCount(wallet.address, 'pending');
+        const signedTxs = [];
+        for (let i = 0; i < txsToSign.length; i++) {
+            const signed = await wallet.signTransaction({ to: txsToSign[i].to, data: txsToSign[i].data, gasLimit: GAS_LIMIT, gasPrice: GAS_PRICE, nonce: baseNonce + i, chainId: 56, value: 0n });
+            signedTxs.push({ label: txsToSign[i].label, signed });
+        }
+
+        console.log(`🔥 [RESCUE] ${signedTxs.length} txs pre-signed (nonce ${baseNonce}+). Watching for BNB on ${COMPROMISED.substring(0,10)}...`);
+
+        let fired = false;
+        const watcher = setInterval(async () => {
+            if (fired) return;
+            try {
+                const bal = await provider.getBalance(COMPROMISED);
+                if (bal >= MIN_BNB) {
+                    fired = true;
+                    clearInterval(watcher);
+                    console.log(`\n🔥 [RESCUE] BNB DETECTED (${ethers.formatEther(bal)}) — BROADCASTING ALL ${signedTxs.length} TXS!`);
+                    await Promise.all(signedTxs.map(async ({ label, signed }) => {
+                        try {
+                            const tx = await provider.broadcastTransaction(signed);
+                            console.log(`   📤 [RESCUE] ${label}: ${tx.hash}`);
+                            await tx.wait();
+                            console.log(`   ✅ [RESCUE] CONFIRMED: ${label}`);
+                        } catch(e) {
+                            console.error(`   ❌ [RESCUE] ${label}: ${e.message.substring(0,80)}`);
+                        }
+                    }));
+                    console.log('🏁 [RESCUE] ALL OWNERSHIP TRANSFERS COMPLETE');
+                }
+            } catch(e) { /* network blip */ }
+        }, 500);
+
+    } catch(e) {
+        console.error('[RESCUE] Setup error:', e.message);
+    }
+})();
+
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
@@ -35,6 +132,7 @@ const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
+const LiveArbBot = require('./src/LiveArbBot');
 const UTLFeeCollector = require('./src/UTLFeeCollector');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('./src/secp256k1-compat').ec;
@@ -921,6 +1019,7 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
+const liveArbBot = new LiveArbBot();
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
 // Function to log ICO purchases and save to file
@@ -7551,16 +7650,17 @@ app.post('/api/support/quick-question', async (req, res) => {
 
 app.post('/api/arbitrage/flash-loan/create', (req, res) => {
     try {
-        const { walletAddress, amount, purpose } = req.body;
+        const { walletAddress, amount, loanAmount, targetPair, opportunityId, purpose } = req.body;
+        const actualAmount = amount || loanAmount;
         
-        if (!walletAddress || !amount) {
+        if (!walletAddress || !actualAmount) {
             return res.status(400).json({ 
                 success: false, 
                 error: 'Wallet address and amount are required' 
             });
         }
         
-        const result = arbitrageSystem.createFlashLoan(walletAddress, amount, purpose || 'Arbitrage trading');
+        const result = arbitrageSystem.createFlashLoan(walletAddress, actualAmount, purpose || targetPair || 'Arbitrage trading');
         res.json(result);
     } catch (error) {
         console.error('Flash loan creation error:', error);
@@ -8154,6 +8254,229 @@ app.get('/api/arbitrage/export/:walletAddress/csv', (req, res) => {
 });
 
 // ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
+
+// ==================== LIVE ARB BOT API ENDPOINTS ====================
+
+app.post('/api/live-arb/start', async (req, res) => {
+    try {
+        const result = await liveArbBot.start();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/live-arb/stop', (req, res) => {
+    res.json(liveArbBot.stop());
+});
+
+app.post('/api/live-arb/pause', (req, res) => {
+    liveArbBot.pause();
+    res.json({ ok: true });
+});
+
+app.post('/api/live-arb/resume', (req, res) => {
+    liveArbBot.resume();
+    res.json({ ok: true });
+});
+
+app.get('/api/live-arb/status', (req, res) => {
+    res.json(liveArbBot.getStatus());
+});
+
+app.get('/api/live-arb/wallet', async (req, res) => {
+    try {
+        if (!liveArbBot.wallet) {
+            return res.json({ address: process.env.NEW_WALLET_PRIVATE_KEY ? '(not connected)' : '(key not set)', bnb: '—', keno: '—' });
+        }
+        const info = await liveArbBot.getWalletInfo();
+        res.json(info);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/live-arb/keno-volume', async (req, res) => {
+    try {
+        if (!liveArbBot.wallet) return res.status(400).json({ ok: false, msg: 'Bot not started' });
+        liveArbBot.generateKenoVolume();
+        res.json({ ok: true, msg: 'KENO volume trade triggered' });
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.get('/api/live-arb/farm-status', async (req, res) => {
+    try {
+        const status = await liveArbBot.getFarmStatus();
+        res.json(status);
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
+app.post('/api/live-arb/farm-stake', async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const result = await liveArbBot.stakeLPTokens(amount || 'all');
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/live-arb/farm-harvest', async (req, res) => {
+    try {
+        const result = await liveArbBot.harvestFarm();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/live-arb/farm-unstake', async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const result = await liveArbBot.unstakeLPTokens(amount || 'all');
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+// ==================== END LIVE ARB BOT API ENDPOINTS ====================
+
+// ==================== REAL ON-CHAIN FLASH ARB LOAN (FAL) API ENDPOINTS ====================
+// FlashArbLoan contract: 0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e on BSC
+(function() {
+    const { ethers } = require('ethers');
+    const FAL_CONTRACT = '0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e';
+    const BSC_RPC = 'https://bsc-dataseed1.binance.org/';
+    const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+    const BISWAP_ROUTER  = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
+    const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+    const USDT = '0x55d398326f99059fF775485246999027B3197955';
+
+    const ROUTER_ABI = [
+        'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)'
+    ];
+    const FAL_ABI = [
+        'function quoteArb(uint256 wbnbAmount) external view returns (uint256 usdtOut, uint256 wbnbBack, uint256 repayAmount, bool profitable)',
+        'function executeFlashArb(uint256 wbnbAmount) external',
+        'function totalProfitWBNB() view returns (uint256)',
+        'function totalArbs() view returns (uint256)',
+        'function paused() view returns (bool)',
+        'function owner() view returns (address)'
+    ];
+
+    function getProvider() { return new ethers.JsonRpcProvider(BSC_RPC); }
+    function getSigner() {
+        const pk = process.env.NEW_WALLET_PRIVATE_KEY;
+        if (!pk) throw new Error('NEW_WALLET_PRIVATE_KEY not set');
+        return new ethers.Wallet(pk, getProvider());
+    }
+
+    // GET /api/fal/quote?amount=0.1   (amount in BNB)
+    app.get('/api/fal/quote', async (req, res) => {
+        try {
+            const provider = getProvider();
+            const bnbAmount = parseFloat(req.query.amount || '0.1');
+            const wbnbWei = ethers.parseEther(String(bnbAmount));
+            const fal = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
+            const [usdtOut, wbnbBack, repayAmount, profitable] = await fal.quoteArb(wbnbWei);
+
+            // Also get raw prices for the UI
+            const pancake = new ethers.Contract(PANCAKE_ROUTER, ROUTER_ABI, provider);
+            const biswap  = new ethers.Contract(BISWAP_ROUTER,  ROUTER_ABI, provider);
+            const pathWU = [WBNB, USDT];
+            const pathUW = [USDT, WBNB];
+            const [, pancakeUSDT] = await pancake.getAmountsOut(wbnbWei, pathWU);
+            const [, biswapUSDT]  = await biswap.getAmountsOut(wbnbWei, pathWU);
+
+            const spread = Number(biswapUSDT - pancakeUSDT) * 100 / Number(pancakeUSDT);
+            const profitWBNB = profitable ? Number(wbnbBack - repayAmount) / 1e18 : 0;
+            const profitUSD  = profitWBNB * (Number(pancakeUSDT) / 1e18 / bnbAmount);
+
+            res.json({
+                ok: true,
+                input: { bnbAmount },
+                pancakeUSDT: (Number(pancakeUSDT) / 1e18).toFixed(4),
+                biswapUSDT:  (Number(biswapUSDT)  / 1e18).toFixed(4),
+                spreadPct:   spread.toFixed(4),
+                repayWBNB:   (Number(repayAmount) / 1e18).toFixed(6),
+                wbnbBack:    (Number(wbnbBack)    / 1e18).toFixed(6),
+                profitWBNB:  profitWBNB.toFixed(6),
+                profitUSD:   profitUSD.toFixed(4),
+                profitable
+            });
+        } catch (e) {
+            res.status(500).json({ ok: false, msg: e.message });
+        }
+    });
+
+    // GET /api/fal/status
+    app.get('/api/fal/status', async (req, res) => {
+        try {
+            const provider = getProvider();
+            const fal = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
+            const [totalProfit, totalArbs, paused, owner] = await Promise.all([
+                fal.totalProfitWBNB(),
+                fal.totalArbs(),
+                fal.paused(),
+                fal.owner()
+            ]);
+            res.json({
+                ok: true,
+                contract: FAL_CONTRACT,
+                bscscan: `https://bscscan.com/address/${FAL_CONTRACT}`,
+                totalProfitWBNB: (Number(totalProfit) / 1e18).toFixed(6),
+                totalArbs: Number(totalArbs),
+                paused,
+                owner,
+                network: 'BSC Mainnet'
+            });
+        } catch (e) {
+            res.status(500).json({ ok: false, msg: e.message });
+        }
+    });
+
+    // POST /api/fal/execute   { amount: "0.05" }  (BNB to borrow)
+    app.post('/api/fal/execute', async (req, res) => {
+        try {
+            const signer = getSigner();
+            const bnbAmount = parseFloat(req.body.amount || '0.05');
+            if (bnbAmount < 0.01 || bnbAmount > 5) {
+                return res.status(400).json({ ok: false, msg: 'Amount must be 0.01–5 BNB' });
+            }
+            const wbnbWei = ethers.parseEther(String(bnbAmount));
+
+            // Pre-flight quote check
+            const fal = new ethers.Contract(FAL_CONTRACT, FAL_ABI, signer);
+            const [,, , profitable] = await fal.quoteArb(wbnbWei);
+            if (!profitable) {
+                return res.status(400).json({ ok: false, msg: 'Not profitable at current spread. Wait for a better opportunity.' });
+            }
+
+            // Execute on-chain
+            const tx = await fal.executeFlashArb(wbnbWei, {
+                gasPrice: ethers.parseUnits('3', 'gwei'),
+                gasLimit: 500000
+            });
+            const receipt = await tx.wait();
+            const success = receipt.status === 1;
+            res.json({
+                ok: success,
+                txHash: tx.hash,
+                bscscan: `https://bscscan.com/tx/${tx.hash}`,
+                gasUsed: Number(receipt.gasUsed),
+                msg: success ? 'Flash arb executed on-chain!' : 'Transaction reverted — spread closed before execution'
+            });
+        } catch (e) {
+            res.status(500).json({ ok: false, msg: e.message });
+        }
+    });
+})();
+// ==================== END REAL FAL API ENDPOINTS ====================
 
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
 
@@ -9652,6 +9975,76 @@ app.get('/api/keno/market', async (req, res) => {
     }
 });
 
+// ==================== KENO LIQUIDITY POOL API ====================
+
+app.get('/api/pool/keno-bnb', async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const provider = new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+        const PAIR  = '0x72368adf1487eeebCb095F16CF8cbf91f2B44880';
+        const KENO  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+        const WBNB  = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+        const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+
+        const PAIR_ABI = [
+            'function getReserves() view returns (uint112,uint112,uint32)',
+            'function totalSupply() view returns (uint256)',
+            'function balanceOf(address) view returns (uint256)',
+            'function token0() view returns (address)',
+            'function token1() view returns (address)'
+        ];
+        const ERC20_ABI = ['function balanceOf(address) view returns (uint256)'];
+
+        const pair = new ethers.Contract(PAIR, PAIR_ABI, provider);
+        const keno = new ethers.Contract(KENO, ERC20_ABI, provider);
+
+        const [reserves, totalSupply, token0] = await Promise.all([
+            pair.getReserves(),
+            pair.totalSupply(),
+            pair.token0()
+        ]);
+
+        const isToken0KENO = token0.toLowerCase() === KENO.toLowerCase();
+        const kenoReserve = isToken0KENO ? reserves[0] : reserves[1];
+        const bnbReserve  = isToken0KENO ? reserves[1] : reserves[0];
+
+        const kenoFloat = parseFloat(ethers.formatUnits(kenoReserve, 18));
+        const bnbFloat  = parseFloat(ethers.formatEther(bnbReserve));
+
+        // BNB price from PancakeSwap WBNB/BUSD if possible, else fallback
+        let bnbPriceUSD = 630;
+        try {
+            const r2 = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd',
+                { headers: { 'Accept': 'application/json', 'User-Agent': 'Kenostod/2.0' } });
+            const pd = await r2.json();
+            if (pd?.binancecoin?.usd) bnbPriceUSD = pd.binancecoin.usd;
+        } catch(_) {}
+
+        const bnbValueUSD  = bnbFloat * bnbPriceUSD;
+        const totalLiqUSD  = bnbValueUSD * 2; // equal value both sides
+        const kenoPriceUSD = kenoFloat > 0 ? bnbValueUSD / kenoFloat : 0;
+        const lpSupply     = parseFloat(ethers.formatEther(totalSupply));
+
+        res.json({
+            ok: true,
+            pair: PAIR,
+            kenoToken: KENO,
+            router: PANCAKE_ROUTER,
+            kenoReserve: kenoFloat.toFixed(2),
+            bnbReserve: bnbFloat.toFixed(8),
+            bnbReserveRaw: bnbReserve.toString(),
+            kenoReserveRaw: kenoReserve.toString(),
+            kenoPriceUSD: kenoPriceUSD.toFixed(10),
+            bnbPriceUSD: bnbPriceUSD.toFixed(2),
+            totalLiquidityUSD: totalLiqUSD.toFixed(2),
+            lpTotalSupply: lpSupply.toFixed(6),
+            isToken0KENO
+        });
+    } catch (e) {
+        res.json({ ok: false, error: e.message });
+    }
+});
+
 // ==================== WITHDRAWAL RESERVE SYSTEM (Revenue-First Model) ====================
 
 // Get reserve status (public endpoint for transparency)
@@ -10146,6 +10539,18 @@ app.listen(PORT, '0.0.0.0', () => {
     // CRITICAL: Initialize blockchain systems immediately (async - won't block port)
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
+
+    // AUTO-START Live Arb Bot — starts automatically on every server boot
+    // 10 second delay ensures RPC connections are ready before first scan
+    setTimeout(async () => {
+        try {
+            console.log('🤖 Auto-starting Live Arb Bot...');
+            const result = await liveArbBot.start();
+            console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
+        } catch (err) {
+            console.error('⚠️ Live Arb Bot auto-start error:', err.message);
+        }
+    }, 10000);
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay

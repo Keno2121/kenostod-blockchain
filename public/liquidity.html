@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KENO Liquidity Manager — Kenostod</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <script src="/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a12;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    .top-bar {
+      background: linear-gradient(135deg, #0f172a, #1e1b4b);
+      border-bottom: 1px solid rgba(139,92,246,0.3);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .top-bar a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+    .top-bar a:hover { color: #a78bfa; }
+    .top-bar h1 { font-size: 16px; font-weight: 700; color: #a78bfa; margin-left: auto; }
+    .page { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 14px;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: #94a3b8; }
+    .stat-val { font-weight: 600; }
+    .amber { color: #f59e0b; }
+    .green { color: #10b981; }
+    .red   { color: #ef4444; }
+    .blue  { color: #60a5fa; }
+
+    .warn-box {
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.35);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #fbbf24;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .info-box {
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #c4b5fd;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .connect-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      margin-bottom: 14px;
+      transition: opacity 0.2s;
+    }
+    .connect-btn:hover { opacity: 0.85; }
+    .connect-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .wallet-chip {
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.35);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #10b981;
+      margin-bottom: 14px;
+      text-align: center;
+      word-break: break-all;
+    }
+
+    label { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 6px; }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .input-row input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: #e2e8f0;
+      font-size: 16px;
+      padding: 13px 14px;
+      outline: none;
+    }
+    .input-badge {
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #f59e0b;
+    }
+    .max-btn {
+      padding: 7px 12px;
+      margin-right: 8px;
+      background: rgba(139,92,246,0.25);
+      border: 1px solid rgba(139,92,246,0.4);
+      border-radius: 6px;
+      color: #a78bfa;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    select {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 14px;
+      padding: 11px 14px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-green  { background: linear-gradient(135deg, #059669, #10b981); color: white; }
+    .btn-red    { background: linear-gradient(135deg, #b91c1c, #ef4444); color: white; }
+
+    .tab-row {
+      display: flex;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 11px;
+      border: none;
+      background: none;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: rgba(139,92,246,0.2);
+      color: #c4b5fd;
+      border-bottom: 2px solid #8b5cf6;
+    }
+
+    .calc-preview {
+      background: rgba(0,0,0,0.25);
+      border-radius: 8px;
+      padding: 11px 13px;
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+    .calc-preview strong { color: #e2e8f0; }
+
+    .tx-log {
+      background: rgba(0,0,0,0.35);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      font-family: monospace;
+      color: #64748b;
+      max-height: 180px;
+      overflow-y: auto;
+      line-height: 1.7;
+    }
+    .log-ok  { color: #10b981; }
+    .log-err { color: #ef4444; }
+    .log-inf { color: #60a5fa; }
+
+    .pancake-link {
+      display: block;
+      text-align: center;
+      padding: 13px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .pancake-link:hover { color: #e2e8f0; background: rgba(255,255,255,0.07); }
+
+    .spin {
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white; border-radius: 50%;
+      animation: sp .7s linear infinite;
+      vertical-align: middle; margin-right: 5px;
+    }
+    @keyframes sp { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="/">← Home</a>
+  <a href="/keno-market.html">📊 Market</a>
+  <a href="/farm.html">🌾 Farm</a>
+  <h1>💧 KENO Liquidity</h1>
+</div>
+
+<div class="page">
+
+  <!-- Pool Status -->
+  <div class="card">
+    <div class="card-title">🏊 KENO / BNB Pool — PancakeSwap V2</div>
+    <div id="poolStats"><div class="stat-row"><span class="stat-label">Loading pool data…</span></div></div>
+  </div>
+
+  <!-- Connect -->
+  <div id="connectSection">
+    <button class="connect-btn" onclick="connectWallet()">🦊 Connect MetaMask</button>
+    <div class="info-box">
+      Open this page <strong>inside MetaMask's browser</strong>, then tap Connect. Make sure you're on <strong>BNB Smart Chain</strong>.
+    </div>
+  </div>
+
+  <div id="walletSection" style="display:none">
+    <div class="wallet-chip" id="walletChip">—</div>
+
+    <div class="card">
+      <div class="card-title">👛 Your Balances</div>
+      <div class="stat-row"><span class="stat-label">BNB</span><span class="stat-val" id="bnbBal">—</span></div>
+      <div class="stat-row"><span class="stat-label">KENO</span><span class="stat-val" id="kenoBal">—</span></div>
+      <div class="stat-row"><span class="stat-label">LP Tokens</span><span class="stat-val green" id="lpBal">—</span></div>
+      <div class="stat-row"><span class="stat-label">Your Pool Share</span><span class="stat-val" id="poolShare">—</span></div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabBtnAdd" onclick="switchTab('add')">➕ Add Liquidity</button>
+      <button class="tab-btn" id="tabBtnRemove" onclick="switchTab('remove')">➖ Remove</button>
+    </div>
+
+    <!-- ADD TAB -->
+    <div id="tabAdd">
+      <div class="warn-box">
+        ⚠️ The pool has almost no BNB — it was drained previously. Adding BNB now makes you the dominant liquidity provider and sets the new KENO price. <strong>You only need BNB</strong> — the zap auto-buys KENO for you.
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Zap In — BNB Only</div>
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:14px;line-height:1.5">Half of your BNB swaps to KENO automatically, then both go into the pool. You receive LP tokens.</p>
+
+        <label>BNB Amount</label>
+        <div class="input-row">
+          <input type="number" id="zapBNB" placeholder="0.00" step="0.001" oninput="calcZap()">
+          <button class="max-btn" onclick="setMaxBNB()">MAX</button>
+          <span class="input-badge">BNB</span>
+        </div>
+
+        <div class="calc-preview" id="zapPreview">Enter BNB amount above to see breakdown.</div>
+
+        <label>Slippage Tolerance</label>
+        <select id="slippage">
+          <option value="5">5%</option>
+          <option value="10">10%</option>
+          <option value="15" selected>15% — recommended (pool is imbalanced)</option>
+          <option value="20">20%</option>
+          <option value="30">30%</option>
+        </select>
+
+        <button class="action-btn btn-green" id="zapBtn" onclick="doZap()" disabled>⚡ Zap In with BNB</button>
+      </div>
+      <div class="info-box">💡 After zapping you'll receive LP tokens in MetaMask. Stake them on the Farm page to earn KENO rewards.</div>
+      <a class="pancake-link" href="https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">🥞 Also available on PancakeSwap.finance ↗</a>
+    </div>
+
+    <!-- REMOVE TAB -->
+    <div id="tabRemove" style="display:none">
+      <div class="card">
+        <div class="card-title">➖ Remove Liquidity</div>
+        <div class="stat-row" style="margin-bottom:12px"><span class="stat-label">Your LP Tokens</span><span class="stat-val green" id="lpBalRemove">—</span></div>
+        <label>LP Tokens to Remove</label>
+        <div class="input-row">
+          <input type="number" id="removeLP" placeholder="0.000000" step="0.000001" oninput="calcRemove()">
+          <button class="max-btn" onclick="setMaxLP()">ALL</button>
+          <span class="input-badge">LP</span>
+        </div>
+        <div class="calc-preview" id="removePreview">Enter LP amount to see what you'll receive.</div>
+        <button class="action-btn btn-red" id="removeBtn" onclick="doRemove()" disabled>Remove Liquidity</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">📋 Transaction Log</div>
+      <div class="tx-log" id="txLog">Waiting for activity…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Constants ────────────────────────────────────────────────
+  const KENO_ADDR = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+  const WBNB_ADDR = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+  const ROUTER   = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+  const PAIR     = '0x72368adf1487eeebCb095F16CF8cbf91f2B44880';
+  const BSC_ID   = 56n;
+
+  const ROUTER_ABI = [
+    'function swapExactETHForTokens(uint amountOutMin, address[] path, address to, uint deadline) payable returns (uint[])',
+    'function addLiquidityETH(address token, uint amountTokenDesired, uint amountTokenMin, uint amountETHMin, address to, uint deadline) payable returns (uint,uint,uint)',
+    'function removeLiquidityETH(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline) returns (uint,uint)',
+    'function getAmountsOut(uint amountIn, address[] path) view returns (uint[])'
+  ];
+  const ERC20_ABI = [
+    'function balanceOf(address) view returns (uint256)',
+    'function allowance(address,address) view returns (uint256)',
+    'function approve(address,uint256) returns (bool)'
+  ];
+  const PAIR_ABI = [
+    'function getReserves() view returns (uint112,uint112,uint32)',
+    'function totalSupply() view returns (uint256)',
+    'function balanceOf(address) view returns (uint256)',
+    'function token0() view returns (address)',
+    'function allowance(address,address) view returns (uint256)',
+    'function approve(address,uint256) returns (bool)'
+  ];
+
+  let provider, signer, userAddress;
+  let poolData = {};
+
+  // ── Pool data ────────────────────────────────────────────────
+  async function loadPool() {
+    try {
+      const r = await fetch('/api/pool/keno-bnb');
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error);
+      poolData = d;
+      const bnbUSD  = parseFloat(d.bnbPriceUSD);
+      const bnbAmt  = parseFloat(d.bnbReserve);
+      const lowBNB  = bnbAmt < 0.01;
+      document.getElementById('poolStats').innerHTML = `
+        <div class="stat-row">
+          <span class="stat-label">Pool Status</span>
+          <span class="stat-val ${lowBNB ? 'amber' : 'green'}">${lowBNB ? '⚠️ Low BNB — needs liquidity' : '✅ Active'}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">BNB in Pool</span>
+          <span class="stat-val">${bnbAmt.toFixed(6)} BNB ($${(bnbAmt * bnbUSD).toFixed(2)})</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">KENO in Pool</span>
+          <span class="stat-val">${Number(Math.round(parseFloat(d.kenoReserve))).toLocaleString()} KENO</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">BNB Price</span>
+          <span class="stat-val">$${bnbUSD.toFixed(2)}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Pair Address</span>
+          <span class="stat-val blue" style="font-size:11px;font-family:monospace">${PAIR.slice(0,10)}…${PAIR.slice(-6)}</span>
+        </div>`;
+    } catch(e) {
+      document.getElementById('poolStats').innerHTML = `<div class="stat-row"><span class="stat-val red">Error: ${e.message}</span></div>`;
+    }
+  }
+
+  // ── Connect MetaMask ─────────────────────────────────────────
+  async function connectWallet() {
+    if (!window.ethereum) {
+      alert('MetaMask not detected.\n\nOpen this URL inside MetaMask\'s built-in browser:\nTap the globe/browser icon at the bottom of MetaMask.');
+      return;
+    }
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send('eth_requestAccounts', []);
+      const net = await provider.getNetwork();
+      if (net.chainId !== BSC_ID) {
+        try {
+          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
+          provider = new ethers.BrowserProvider(window.ethereum);
+        } catch(e) {
+          alert('Please switch to BNB Smart Chain (BSC) in MetaMask and try again.');
+          return;
+        }
+      }
+      signer = await provider.getSigner();
+      userAddress = await signer.getAddress();
+      document.getElementById('connectSection').style.display = 'none';
+      document.getElementById('walletSection').style.display = 'block';
+      document.getElementById('walletChip').textContent = '✅ ' + userAddress.slice(0,8) + '…' + userAddress.slice(-6) + '  (BNB Smart Chain)';
+      await refreshBalances();
+    } catch(e) {
+      alert('Connection failed: ' + e.message);
+    }
+  }
+
+  async function refreshBalances() {
+    if (!userAddress) return;
+    try {
+      const kenoC = new ethers.Contract(KENO_ADDR, ERC20_ABI, provider);
+      const pairC = new ethers.Contract(PAIR,      ERC20_ABI, provider);
+      const pairFull = new ethers.Contract(PAIR,   PAIR_ABI,  provider);
+      const [bnbRaw, kenoRaw, lpRaw, lpTotalRaw] = await Promise.all([
+        provider.getBalance(userAddress),
+        kenoC.balanceOf(userAddress),
+        pairC.balanceOf(userAddress),
+        pairFull.totalSupply()
+      ]);
+      const bnbF  = parseFloat(ethers.formatEther(bnbRaw));
+      const kenoF = parseFloat(ethers.formatUnits(kenoRaw, 18));
+      const lpF   = parseFloat(ethers.formatEther(lpRaw));
+      const lpT   = parseFloat(ethers.formatEther(lpTotalRaw));
+      const share = lpT > 0 ? (lpF / lpT * 100).toFixed(4) + '%' : '0.0000%';
+      const bnbUSD = parseFloat(poolData.bnbPriceUSD || 630);
+
+      document.getElementById('bnbBal').textContent  = bnbF.toFixed(5) + ' BNB  ($' + (bnbF * bnbUSD).toFixed(2) + ')';
+      document.getElementById('kenoBal').textContent = Number(Math.round(kenoF)).toLocaleString() + ' KENO';
+      document.getElementById('lpBal').textContent   = lpF.toFixed(6) + ' LP';
+      document.getElementById('lpBalRemove').textContent = lpF.toFixed(6) + ' LP';
+      document.getElementById('poolShare').textContent   = share;
+      document.getElementById('zapBtn').disabled    = false;
+      document.getElementById('removeBtn').disabled = lpF <= 0;
+    } catch(e) { addLog('Balance error: ' + e.message, 'err'); }
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────────
+  function switchTab(t) {
+    document.getElementById('tabAdd').style.display    = t === 'add' ? 'block' : 'none';
+    document.getElementById('tabRemove').style.display = t === 'remove' ? 'block' : 'none';
+    document.getElementById('tabBtnAdd').className    = 'tab-btn' + (t==='add' ? ' active' : '');
+    document.getElementById('tabBtnRemove').className = 'tab-btn' + (t==='remove' ? ' active' : '');
+  }
+
+  // ── Max helpers ───────────────────────────────────────────────
+  async function setMaxBNB() {
+    if (!userAddress) return;
+    const raw = await provider.getBalance(userAddress);
+    const fee = ethers.parseEther('0.005');
+    const max = raw > fee ? raw - fee : 0n;
+    document.getElementById('zapBNB').value = parseFloat(ethers.formatEther(max)).toFixed(4);
+    calcZap();
+  }
+  async function setMaxLP() {
+    if (!userAddress) return;
+    const pairC = new ethers.Contract(PAIR, ERC20_ABI, provider);
+    const raw   = await pairC.balanceOf(userAddress);
+    document.getElementById('removeLP').value = ethers.formatEther(raw);
+    calcRemove();
+  }
+
+  // ── Zap preview ───────────────────────────────────────────────
+  async function calcZap() {
+    const val = parseFloat(document.getElementById('zapBNB').value);
+    if (!val || val <= 0) { document.getElementById('zapPreview').innerHTML = 'Enter BNB amount above to see breakdown.'; return; }
+    const half = val / 2;
+    const bnbUSD = parseFloat(poolData.bnbPriceUSD || 630);
+    let kenoOut = '—';
+    try {
+      const rdr = provider || new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+      const routerC = new ethers.Contract(ROUTER, ROUTER_ABI, rdr);
+      const halfWei = ethers.parseEther(half.toFixed(8));
+      const amounts = await routerC.getAmountsOut(halfWei, [WBNB_ADDR, KENO_ADDR]);
+      kenoOut = Number(Math.round(parseFloat(ethers.formatUnits(amounts[1], 18)))).toLocaleString();
+    } catch(_) {}
+    document.getElementById('zapPreview').innerHTML =
+      `Swap <strong>${half.toFixed(4)} BNB</strong> → ~<strong>${kenoOut} KENO</strong><br>` +
+      `Add <strong>${half.toFixed(4)} BNB</strong> + KENO as liquidity<br>` +
+      `Total value: <strong>~$${(val * bnbUSD).toFixed(2)}</strong> → you receive LP tokens`;
+  }
+
+  async function calcRemove() {
+    const val = parseFloat(document.getElementById('removeLP').value);
+    if (!val || val <= 0) { document.getElementById('removePreview').innerHTML = 'Enter LP amount to see what you\'ll receive.'; return; }
+    try {
+      const rdr = provider || new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+      const pairC = new ethers.Contract(PAIR, PAIR_ABI, rdr);
+      const total = parseFloat(ethers.formatEther(await pairC.totalSupply()));
+      const frac  = val / total;
+      const bnbOut  = frac * parseFloat(poolData.bnbReserve  || 0);
+      const kenoOut = frac * parseFloat(poolData.kenoReserve || 0);
+      const usd = bnbOut * parseFloat(poolData.bnbPriceUSD || 630);
+      document.getElementById('removePreview').innerHTML =
+        `You receive: <strong>~${bnbOut.toFixed(5)} BNB</strong> + <strong>~${Number(Math.round(kenoOut)).toLocaleString()} KENO</strong><br>` +
+        `Estimated value: <strong>~$${(usd * 2).toFixed(2)}</strong>`;
+    } catch(e) { document.getElementById('removePreview').innerHTML = 'Estimate error: ' + e.message; }
+  }
+
+  // ── Zap In ────────────────────────────────────────────────────
+  async function doZap() {
+    const val = parseFloat(document.getElementById('zapBNB').value);
+    if (!val || val <= 0) { alert('Enter a BNB amount first.'); return; }
+    if (!signer) { alert('Connect MetaMask first.'); return; }
+
+    const slip     = parseInt(document.getElementById('slippage').value);
+    const totalWei = ethers.parseEther(val.toFixed(8));
+    const halfWei  = totalWei / 2n;
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
+    const gp       = ethers.parseUnits('1', 'gwei');
+
+    const routerC = new ethers.Contract(ROUTER, ROUTER_ABI, signer);
+    const kenoC   = new ethers.Contract(KENO_ADDR, ERC20_ABI, signer);
+
+    setBtn('zapBtn', true, 'Swapping BNB → KENO…');
+    addLog('Step 1: Swap ' + ethers.formatEther(halfWei) + ' BNB → KENO', 'inf');
+    try {
+      const amounts = await routerC.getAmountsOut(halfWei, [WBNB_ADDR, KENO_ADDR]);
+      const minKeno = amounts[1] * BigInt(100 - slip) / 100n;
+
+      const swapTx = await routerC.swapExactETHForTokens(
+        minKeno, [WBNB_ADDR, KENO_ADDR], userAddress, deadline,
+        { value: halfWei, gasPrice: gp, gasLimit: 200000n }
+      );
+      addLog('Swap tx: ' + swapTx.hash.slice(0,18) + '…', 'inf');
+      const swapR = await swapTx.wait();
+      addLog('✅ Swap confirmed! Block ' + swapR.blockNumber, 'ok');
+
+      const kenoBal = await kenoC.balanceOf(userAddress);
+      addLog('KENO received: ' + Number(Math.round(parseFloat(ethers.formatUnits(kenoBal,18)))).toLocaleString(), 'ok');
+
+      setBtn('zapBtn', true, 'Approving KENO…');
+      const allow = await kenoC.allowance(userAddress, ROUTER);
+      if (allow < kenoBal) {
+        const appTx = await kenoC.approve(ROUTER, ethers.MaxUint256, { gasPrice: gp, gasLimit: 60000n });
+        await appTx.wait();
+        addLog('✅ KENO approved', 'ok');
+      }
+
+      setBtn('zapBtn', true, 'Adding Liquidity…');
+      addLog('Step 2: Adding ' + ethers.formatEther(halfWei) + ' BNB + KENO to pool…', 'inf');
+      const minBNBAdd  = halfWei  * BigInt(100 - slip) / 100n;
+      const minKenoAdd = kenoBal  * BigInt(100 - slip) / 100n;
+
+      const addTx = await routerC.addLiquidityETH(
+        KENO_ADDR, kenoBal, minKenoAdd, minBNBAdd, userAddress, deadline,
+        { value: halfWei, gasPrice: gp, gasLimit: 300000n }
+      );
+      addLog('Add liquidity tx: ' + addTx.hash.slice(0,18) + '…', 'inf');
+      const addR = await addTx.wait();
+      addLog('🎉 Liquidity added! Block ' + addR.blockNumber, 'ok');
+      addLog('LP tokens are now in your MetaMask wallet', 'ok');
+
+      await refreshBalances();
+      await loadPool();
+    } catch(e) {
+      addLog('❌ ' + (e.reason || e.message), 'err');
+    }
+    setBtn('zapBtn', false, '⚡ Zap In with BNB');
+  }
+
+  // ── Remove ────────────────────────────────────────────────────
+  async function doRemove() {
+    const val = document.getElementById('removeLP').value;
+    if (!val || parseFloat(val) <= 0) { alert('Enter LP amount.'); return; }
+    if (!signer) { alert('Connect MetaMask first.'); return; }
+
+    const lpWei  = ethers.parseEther(parseFloat(val).toString());
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
+    const gp       = ethers.parseUnits('1', 'gwei');
+
+    const routerC = new ethers.Contract(ROUTER, ROUTER_ABI, signer);
+    const pairC   = new ethers.Contract(PAIR,   PAIR_ABI,   signer);
+
+    setBtn('removeBtn', true, 'Approving LP…');
+    try {
+      const allow = await pairC.allowance(userAddress, ROUTER);
+      if (allow < lpWei) {
+        const appTx = await pairC.approve(ROUTER, ethers.MaxUint256, { gasPrice: gp, gasLimit: 60000n });
+        await appTx.wait();
+        addLog('✅ LP approved', 'ok');
+      }
+      setBtn('removeBtn', true, 'Removing Liquidity…');
+      addLog('Removing ' + val + ' LP tokens…', 'inf');
+      const tx = await routerC.removeLiquidityETH(
+        KENO_ADDR, lpWei, 0n, 0n, userAddress, deadline,
+        { gasPrice: gp, gasLimit: 250000n }
+      );
+      addLog('Tx: ' + tx.hash.slice(0,18) + '…', 'inf');
+      const r = await tx.wait();
+      addLog('✅ Removed! Block ' + r.blockNumber, 'ok');
+      addLog('BNB + KENO returned to your wallet', 'ok');
+      await refreshBalances();
+      await loadPool();
+    } catch(e) {
+      addLog('❌ ' + (e.reason || e.message), 'err');
+    }
+    setBtn('removeBtn', false, 'Remove Liquidity');
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────
+  function setBtn(id, disabled, text) {
+    const b = document.getElementById(id);
+    b.disabled = disabled;
+    b.innerHTML = disabled ? '<span class="spin"></span>' + text : text;
+  }
+  function addLog(msg, type) {
+    const box = document.getElementById('txLog');
+    if (box.textContent === 'Waiting for activity…') box.textContent = '';
+    const el = document.createElement('div');
+    el.className = 'log-' + (type || 'inf');
+    el.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  loadPool();
+  setInterval(loadPool, 30000);
+</script>
+</body>
+</html>
