@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real FAL — On-Chain Flash Arbitrage | Kenostod</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0a0f1e;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1px solid rgba(16,185,129,0.3);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .header-nav a {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.08);
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+
+        .header-nav a:hover, .header-nav a.active {
+            background: rgba(16,185,129,0.2);
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #10b981;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .contract-badge {
+            display: inline-block;
+            margin-top: 12px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            color: #10b981;
+        }
+
+        .contract-badge a { color: #10b981; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 30px 16px; }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16,185,129,0.15);
+            border: 1px solid #10b981;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            color: #10b981;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .dot {
+            width: 8px; height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: blink 1.2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+
+        .card {
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { color: #94a3b8; font-size: 0.9rem; }
+        .stat-value { font-weight: 700; font-size: 1rem; }
+
+        .green { color: #10b981; }
+        .red { color: #ef4444; }
+        .yellow { color: #f59e0b; }
+        .blue { color: #3b82f6; }
+
+        .spread-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+
+        .spread-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #10b981);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .execute-card {
+            background: linear-gradient(135deg, #0d1f15 0%, #111827 100%);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+        }
+
+        .execute-card h2 {
+            font-size: 1.2rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .input-group { flex: 1; min-width: 160px; }
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+
+        .btn-presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+
+        .btn-preset {
+            padding: 6px 14px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 20px;
+            color: #10b981;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-preset:hover { background: rgba(16,185,129,0.25); }
+
+        .btn-quote {
+            padding: 12px 24px;
+            background: rgba(59,130,246,0.15);
+            border: 1px solid #3b82f6;
+            border-radius: 10px;
+            color: #3b82f6;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-quote:hover { background: rgba(59,130,246,0.3); }
+
+        .btn-execute {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+
+        .btn-execute:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16,185,129,0.4); }
+        .btn-execute:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .quote-result {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            display: none;
+        }
+
+        .quote-result.show { display: block; }
+
+        .quote-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .quote-row:last-child { border-bottom: none; }
+
+        .profitable-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .profitable-badge.yes {
+            background: rgba(16,185,129,0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+
+        .profitable-badge.no {
+            background: rgba(239,68,68,0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .tx-log {
+            background: #0a0f1e;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 24px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.82rem;
+        }
+
+        .tx-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .tx-entry:last-child { border-bottom: none; }
+        .tx-time { color: #475569; margin-right: 8px; }
+        .tx-success { color: #10b981; }
+        .tx-error { color: #ef4444; }
+        .tx-info { color: #3b82f6; }
+
+        .warning-box {
+            background: rgba(245,158,11,0.1);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 0.85rem;
+            color: #f59e0b;
+            margin-bottom: 20px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 500px) { .stats-row { grid-template-columns: 1fr; } }
+
+        .stat-box {
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-box-value { font-size: 1.5rem; font-weight: 800; color: #10b981; }
+        .stat-box-label { font-size: 0.75rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .spinner { animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+        50% { opacity: 0.85; box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+    }
+    </style>
+    <script src="/keno-utils.js" defer></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-nav">
+        <a href="/">🏠 Home</a>
+        <a href="/live-arb-bot.html">🤖 Live Arb Bot</a>
+        <a href="/arbitrage.html">📚 FAL Simulator</a>
+        <a href="/utl-dashboard.html">🏛️ UTL Dashboard</a>
+        <a href="/real-fal.html" class="active">⚡ Real FAL</a>
+    </div>
+    <h1>⚡ Real On-Chain Flash Arb</h1>
+    <p>PancakeSwap flash swaps → BiSwap execution → Profit to your wallet</p>
+    <div class="contract-badge">
+        Contract: <a href="https://bscscan.com/address/0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e" target="_blank">0xE08e...474e</a> · BSC Mainnet · Owned by 0x4AA7...Cf849
+    </div>
+</div>
+
+<div class="container">
+
+    <div style="text-align:center; margin-bottom: 20px;">
+        <span class="live-badge"><span class="dot"></span> LIVE ON BSC MAINNET</span>
+    </div>
+
+    <div class="warning-box">
+        ⚠️ <strong>Real money. Real transactions.</strong> The Execute button triggers an actual on-chain flash swap using the deployed contract. Always check the quote first — if the spread is too thin, the transaction will revert automatically (you only lose gas, ~$0.01).
+    </div>
+
+    <!-- Contract Stats -->
+    <div class="stats-row" id="statsRow">
+        <div class="stat-box">
+            <div class="stat-box-value" id="totalArbs">—</div>
+            <div class="stat-box-label">Total Arbs Executed</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-box-value" id="totalProfit">—</div>
+            <div class="stat-box-label">Total Profit (WBNB)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-box-value" id="contractStatus">—</div>
+            <div class="stat-box-label">Contract Status</div>
+        </div>
+    </div>
+
+    <!-- Live Price Grid -->
+    <div class="grid" style="margin-bottom: 24px;">
+        <div class="card">
+            <div class="card-title">🥞 PancakeSwap V2 — WBNB/USDT</div>
+            <div class="stat-row">
+                <span class="stat-label">WBNB Price</span>
+                <span class="stat-value green" id="pancakePrice">Loading…</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">You get (per 0.1 BNB)</span>
+                <span class="stat-value" id="pancakeOut">—</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">🔁 BiSwap V2 — WBNB/USDT</div>
+            <div class="stat-row">
+                <span class="stat-label">WBNB Price</span>
+                <span class="stat-value green" id="biswapPrice">Loading…</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">You get (per 0.1 BNB)</span>
+                <span class="stat-value" id="biswapOut">—</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spread Indicator -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title">📊 Current Spread (BiSwap vs PancakeSwap)</div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 2rem; font-weight: 800;" id="spreadPct">—</span>
+            <span id="spreadLabel" style="font-size: 0.85rem; color: #64748b;">Checking…</span>
+        </div>
+        <div class="spread-bar">
+            <div class="spread-fill" id="spreadBar" style="width: 0%"></div>
+        </div>
+        <div style="font-size: 0.8rem; color: #64748b;">Profitable threshold: >0.25% (PancakeSwap flash swap fee). Last update: <span id="lastUpdate">—</span></div>
+    </div>
+
+    <!-- Execute Panel -->
+    <div class="execute-card">
+        <h2>⚡ Execute Flash Arb</h2>
+
+        <div class="btn-presets">
+            <button class="btn-preset" onclick="setAmount(0.05)">0.05 BNB</button>
+            <button class="btn-preset" onclick="setAmount(0.1)">0.1 BNB</button>
+            <button class="btn-preset" onclick="setAmount(0.5)">0.5 BNB</button>
+            <button class="btn-preset" onclick="setAmount(1)">1 BNB</button>
+            <button class="btn-preset" onclick="setAmount(2)">2 BNB</button>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label>Borrow Amount (BNB)</label>
+                <input type="number" id="borrowAmount" value="0.1" min="0.01" max="5" step="0.01">
+            </div>
+            <button class="btn-quote" onclick="getQuote()">🔍 Get Quote</button>
+        </div>
+
+        <div class="quote-result" id="quoteResult">
+            <div class="quote-row">
+                <span>Borrow from PancakeSwap</span>
+                <span id="q_borrow" class="yellow">—</span>
+            </div>
+            <div class="quote-row">
+                <span>Sell on BiSwap → USDT</span>
+                <span id="q_usdt" class="green">—</span>
+            </div>
+            <div class="quote-row">
+                <span>Buy back WBNB on PancakeSwap</span>
+                <span id="q_wbnbBack">—</span>
+            </div>
+            <div class="quote-row">
+                <span>Repay PancakeSwap (+0.25%)</span>
+                <span id="q_repay" class="red">—</span>
+            </div>
+            <div class="quote-row" style="font-weight: 700;">
+                <span>Estimated Profit</span>
+                <span id="q_profit">—</span>
+            </div>
+            <div class="quote-row">
+                <span>Profitable?</span>
+                <span id="q_profitable">—</span>
+            </div>
+        </div>
+
+        <button class="btn-execute" id="btnExecute" onclick="executeArb()" disabled>
+            ⚡ Execute Flash Arb On-Chain
+        </button>
+
+        <div style="text-align:center; margin-top: 10px; font-size: 0.8rem; color: #475569;">
+            Tx cost ~$0.01 gas · If spread closes, tx auto-reverts · Profit goes to 0x4AA7…Cf849
+        </div>
+    </div>
+
+    <!-- Transaction Log -->
+    <div class="card">
+        <div class="card-title">📋 Transaction Log</div>
+        <div class="tx-log" id="txLog">
+            <div class="tx-entry tx-info">— Waiting for activity —</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let lastQuote = null;
+
+function setAmount(v) {
+    document.getElementById('borrowAmount').value = v;
+    document.getElementById('quoteResult').classList.remove('show');
+    document.getElementById('btnExecute').disabled = true;
+}
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/fal/status');
+        const d = await r.json();
+        if (d.ok) {
+            document.getElementById('totalArbs').textContent = d.totalArbs;
+            document.getElementById('totalProfit').textContent = d.totalProfitWBNB + ' WBNB';
+            document.getElementById('contractStatus').textContent = d.paused ? '⏸ Paused' : '✅ Active';
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function loadPrices() {
+    try {
+        const r = await fetch('/api/fal/quote?amount=0.1');
+        const d = await r.json();
+        if (!d.ok) return;
+
+        const bnbPrice = (parseFloat(d.pancakeUSDT) / 0.1).toFixed(2);
+        const biPrice  = (parseFloat(d.biswapUSDT) / 0.1).toFixed(2);
+
+        document.getElementById('pancakePrice').textContent = '$' + bnbPrice;
+        document.getElementById('pancakeOut').textContent = '$' + parseFloat(d.pancakeUSDT).toFixed(4);
+        document.getElementById('biswapPrice').textContent = '$' + biPrice;
+        document.getElementById('biswapOut').textContent = '$' + parseFloat(d.biswapUSDT).toFixed(4);
+
+        const spread = parseFloat(d.spreadPct);
+        const spreadEl = document.getElementById('spreadPct');
+        spreadEl.textContent = spread.toFixed(4) + '%';
+        spreadEl.className = spread >= 0.25 ? 'green' : spread >= 0 ? 'yellow' : 'red';
+
+        const barPct = Math.min(Math.max(spread * 100, 0), 100);
+        document.getElementById('spreadBar').style.width = barPct + '%';
+
+        document.getElementById('spreadLabel').textContent =
+            spread >= 0.25 ? '✅ Profitable — Execute now!' :
+            spread >= 0 ? '⏳ Below threshold — monitoring' :
+            '❌ Negative spread';
+
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+        // Auto-refresh quote whenever spread is near or above threshold
+        // so the Profitable? badge stays in sync with the spread bar
+        if (spread >= 0.18) {
+            const amount = parseFloat(document.getElementById('borrowAmount').value) || 0.1;
+            autoQuote(amount, d);
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function autoQuote(amount, priceData) {
+    try {
+        const r = await fetch(`/api/fal/quote?amount=${amount}`);
+        const d = await r.json();
+        if (!d.ok) return;
+        lastQuote = d;
+        document.getElementById('q_borrow').textContent = amount + ' WBNB';
+        document.getElementById('q_usdt').textContent = '$' + d.biswapUSDT + ' USDT';
+        document.getElementById('q_wbnbBack').textContent = d.wbnbBack + ' WBNB';
+        document.getElementById('q_repay').textContent = d.repayWBNB + ' WBNB';
+        const profitEl = document.getElementById('q_profit');
+        profitEl.textContent = (d.profitable ? '+' : '') + d.profitWBNB + ' WBNB (~$' + d.profitUSD + ')';
+        profitEl.className = d.profitable ? 'green' : 'red';
+        const profBadge = document.getElementById('q_profitable');
+        profBadge.innerHTML = d.profitable
+            ? '<span class="profitable-badge yes">✅ YES — Execute</span>'
+            : '<span class="profitable-badge no">❌ NO — Wait</span>';
+        document.getElementById('quoteResult').classList.add('show');
+        document.getElementById('btnExecute').disabled = !d.profitable;
+        if (d.profitable) {
+            document.getElementById('btnExecute').style.animation = 'pulse 0.8s infinite';
+        } else {
+            document.getElementById('btnExecute').style.animation = '';
+        }
+    } catch(e) { /* silent */ }
+}
+
+async function getQuote() {
+    const amount = parseFloat(document.getElementById('borrowAmount').value);
+    if (!amount || amount < 0.01) { await kenoAlert('Enter a valid BNB amount (minimum 0.01)', 'warn'); return; }
+
+    const r = await fetch(`/api/fal/quote?amount=${amount}`);
+    const d = await r.json();
+    if (!d.ok) { await kenoAlert('Quote failed: ' + d.msg, 'error'); return; }
+
+    lastQuote = d;
+    document.getElementById('q_borrow').textContent = amount + ' WBNB';
+    document.getElementById('q_usdt').textContent = '$' + d.biswapUSDT + ' USDT';
+    document.getElementById('q_wbnbBack').textContent = d.wbnbBack + ' WBNB';
+    document.getElementById('q_repay').textContent = d.repayWBNB + ' WBNB';
+
+    const profitEl = document.getElementById('q_profit');
+    profitEl.textContent = (d.profitable ? '+' : '') + d.profitWBNB + ' WBNB (~$' + d.profitUSD + ')';
+    profitEl.className = d.profitable ? 'green' : 'red';
+
+    const profBadge = document.getElementById('q_profitable');
+    profBadge.innerHTML = d.profitable
+        ? '<span class="profitable-badge yes">✅ YES — Execute</span>'
+        : '<span class="profitable-badge no">❌ NO — Wait</span>';
+
+    document.getElementById('quoteResult').classList.add('show');
+    document.getElementById('btnExecute').disabled = !d.profitable;
+}
+
+async function executeArb() {
+    const amount = parseFloat(document.getElementById('borrowAmount').value);
+    if (!amount) return;
+
+    const btn = document.getElementById('btnExecute');
+    btn.disabled = true;
+    btn.textContent = '⏳ Sending transaction…';
+
+    addLog('info', `Initiating flash arb for ${amount} BNB…`);
+
+    try {
+        const r = await fetch('/api/fal/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: String(amount) })
+        });
+        const d = await r.json();
+
+        if (d.ok) {
+            addLog('success', `✅ EXECUTED! TX: ${d.txHash}`);
+            addLog('success', `   Gas used: ${d.gasUsed} · BscScan: ${d.bscscan}`);
+            loadStatus();
+        } else {
+            addLog('error', `❌ ${d.msg}`);
+        }
+    } catch(e) {
+        addLog('error', '❌ Network error: ' + e.message);
+    }
+
+    btn.textContent = '⚡ Execute Flash Arb On-Chain';
+    btn.disabled = false;
+}
+
+function addLog(type, msg) {
+    const log = document.getElementById('txLog');
+    const entry = document.createElement('div');
+    entry.className = `tx-entry tx-${type}`;
+    const time = new Date().toLocaleTimeString();
+    entry.innerHTML = `<span class="tx-time">${time}</span>${msg}`;
+    if (log.querySelector('.tx-info')?.textContent.includes('Waiting')) log.innerHTML = '';
+    log.prepend(entry);
+}
+
+// Auto-refresh prices every 15 seconds for faster opportunity detection
+loadStatus();
+loadPrices();
+setInterval(loadPrices, 15000);
+setInterval(loadStatus, 60000);
+</script>
+</body>
+</html>
