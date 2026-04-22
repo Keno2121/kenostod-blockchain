@@ -246,6 +246,7 @@
     }
     @keyframes sp { to { transform: rotate(360deg); } }
   </style>
+  <script src="/keno-utils.js"></script>
 </head>
 <body>
 
@@ -417,7 +418,7 @@
   // ── Connect MetaMask ─────────────────────────────────────────
   async function connectWallet() {
     if (!window.ethereum) {
-      alert('MetaMask not detected.\n\nOpen this URL inside MetaMask\'s built-in browser:\nTap the globe/browser icon at the bottom of MetaMask.');
+      await kenoMetaMaskPrompt();
       return;
     }
     try {
@@ -429,7 +430,7 @@
           await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
           provider = new ethers.BrowserProvider(window.ethereum);
         } catch(e) {
-          alert('Please switch to BNB Smart Chain (BSC) in MetaMask and try again.');
+          await kenoAlert('Please switch to <strong>BNB Smart Chain</strong> in MetaMask, then tap Connect again.', 'warn');
           return;
         }
       }
@@ -440,7 +441,7 @@
       document.getElementById('walletChip').textContent = '✅ ' + userAddress.slice(0,8) + '…' + userAddress.slice(-6) + '  (BNB Smart Chain)';
       await refreshBalances();
     } catch(e) {
-      alert('Connection failed: ' + e.message);
+      if (e.code !== 4001) await kenoAlert('Connection failed: ' + e.message, 'error');
     }
   }
 
@@ -542,8 +543,8 @@
   // ── Zap In ────────────────────────────────────────────────────
   async function doZap() {
     const val = parseFloat(document.getElementById('zapBNB').value);
-    if (!val || val <= 0) { alert('Enter a BNB amount first.'); return; }
-    if (!signer) { alert('Connect MetaMask first.'); return; }
+    if (!val || val <= 0) { await kenoAlert('Please enter a BNB amount first.', 'warn'); return; }
+    if (!signer) { await kenoAlert('Please connect your wallet first.', 'warn'); return; }
 
     const slip     = parseInt(document.getElementById('slippage').value);
     const totalWei = ethers.parseEther(val.toFixed(8));
@@ -611,9 +612,9 @@
 
   // ── Add Liquidity (for users who already have KENO) ───────────
   async function doAddOnly() {
-    if (!signer) { alert('Connect MetaMask first.'); return; }
+    if (!signer) { await kenoAlert('Please connect your wallet first.', 'warn'); return; }
     const bnbVal = parseFloat(document.getElementById('zapBNB').value);
-    if (!bnbVal || bnbVal <= 0) { alert('Enter BNB amount to pair with your existing KENO.'); return; }
+    if (!bnbVal || bnbVal <= 0) { await kenoAlert('Please enter a BNB amount to pair with your existing KENO.', 'warn'); return; }
     const slip    = parseInt(document.getElementById('slippage').value);
     const bnbWei  = ethers.parseEther(bnbVal.toFixed(8));
     const gp      = ethers.parseUnits('3', 'gwei');
@@ -664,8 +665,8 @@
   // ── Remove ────────────────────────────────────────────────────
   async function doRemove() {
     const val = document.getElementById('removeLP').value;
-    if (!val || parseFloat(val) <= 0) { alert('Enter LP amount.'); return; }
-    if (!signer) { alert('Connect MetaMask first.'); return; }
+    if (!val || parseFloat(val) <= 0) { await kenoAlert('Please enter the amount of LP tokens to remove.', 'warn'); return; }
+    if (!signer) { await kenoAlert('Please connect your wallet first.', 'warn'); return; }
 
     const lpWei  = ethers.parseEther(parseFloat(val).toString());
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
