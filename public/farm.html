@@ -487,6 +487,7 @@
         }
         .modal-close:hover { color: #e2e8f0; }
     </style>
+    <script src="/keno-utils.js"></script>
 </head>
 <body>
 
@@ -783,7 +784,7 @@
     // ─── Wallet ───────────────────────────────────────────────────────────────
     async function connectWallet() {
         if (typeof window.ethereum === 'undefined') {
-            alert('MetaMask not detected. Please install MetaMask to use the farm.');
+            await kenoMetaMaskPrompt();
             return;
         }
         try {
@@ -812,11 +813,11 @@
                                 }]
                             });
                         } catch (addErr) {
-                            alert('Could not add BNB Smart Chain to MetaMask. Please add it manually.');
+                            await kenoAlert('Could not automatically add BNB Smart Chain. In MetaMask, go to Settings → Networks → Add Network and add BSC manually.', 'error');
                             return;
                         }
                     } else {
-                        alert('Please switch to BNB Smart Chain in MetaMask.');
+                        await kenoAlert('Please switch to <strong>BNB Smart Chain</strong> in MetaMask, then try again.', 'warn');
                         return;
                     }
                 }
@@ -831,7 +832,7 @@
                 return;
             }
             console.error('Wallet connect error:', e);
-            alert('Could not connect wallet: ' + (e.message || 'Unknown error'));
+            await kenoAlert('Could not connect wallet: ' + (e.message || 'Unknown error'), 'error');
         }
     }
 
@@ -956,7 +957,7 @@
     }
 
     function harvestRewards() {
-        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        if (!walletAddress) { await kenoAlert('Please connect your wallet first.', 'warn'); return; }
         const pendingEl = document.getElementById('liveRewards');
         const pending = pendingEl ? pendingEl.textContent : '0.0000 KENO';
         const hasRewards = parseFloat(pending) > 0;
@@ -987,7 +988,7 @@
     }
 
     function stakeLp() {
-        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        if (!walletAddress) { await kenoAlert('Please connect your wallet first.', 'warn'); return; }
         openModal(
             '⚡ How to Stake LP Tokens',
             `<div class="modal-note">Staking KENO/BNB LP tokens earns you <strong>864 KENO per day</strong> from the farm pool.</div>
@@ -1018,7 +1019,7 @@
     }
 
     function unstakeLp() {
-        if (!walletAddress) { alert('Connect your wallet first.'); return; }
+        if (!walletAddress) { await kenoAlert('Please connect your wallet first.', 'warn'); return; }
         const stakedEl = document.getElementById('stakedBalance');
         const staked = stakedEl ? stakedEl.textContent : 'Staked: 0 LP';
         openModal(
