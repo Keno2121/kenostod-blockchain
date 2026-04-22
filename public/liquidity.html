@@ -316,8 +316,10 @@
         </select>
 
         <button class="action-btn btn-green" id="zapBtn" onclick="doZap()" disabled>⚡ Zap In with BNB</button>
+        <button class="action-btn" id="addOnlyBtn" onclick="doAddOnly()" disabled style="background:linear-gradient(135deg,#f5c842,#c9a227);color:#000;margin-top:8px">➕ Add Liquidity (already have KENO)</button>
       </div>
-      <div class="info-box">💡 After zapping you'll receive LP tokens in MetaMask. Stake them on the Farm page to earn KENO rewards.</div>
+      <div class="info-box" style="background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.4);color:#f5c842;margin-top:8px">⚠️ Already bought KENO in a previous attempt? Use <strong>Add Liquidity (already have KENO)</strong> — enter a BNB amount and it will pair your existing KENO balance with that BNB.</div>
+      <div class="info-box">💡 MetaMask will show <strong>up to 3 popups</strong> — tap CONFIRM on every one. Each popup is labelled in the Transaction Log above.</div>
       <a class="pancake-link" href="https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">🥞 Also available on PancakeSwap.finance ↗</a>
     </div>
 
@@ -467,6 +469,7 @@
       document.getElementById('lpBalRemove').textContent = lpF.toFixed(6) + ' LP';
       document.getElementById('poolShare').textContent   = share;
       document.getElementById('zapBtn').disabled    = false;
+      document.getElementById('addOnlyBtn').disabled = false;
       document.getElementById('removeBtn').disabled = lpF <= 0;
     } catch(e) { addLog('Balance error: ' + e.message, 'err'); }
   }
@@ -533,6 +536,9 @@
     } catch(e) { document.getElementById('removePreview').innerHTML = 'Estimate error: ' + e.message; }
   }
 
+  // helper: fresh 20-min deadline
+  const freshDeadline = () => BigInt(Math.floor(Date.now() / 1000) + 1200);
+
   // ── Zap In ────────────────────────────────────────────────────
   async function doZap() {
     const val = parseFloat(document.getElementById('zapBNB').value);
@@ -542,57 +548,117 @@
     const slip     = parseInt(document.getElementById('slippage').value);
     const totalWei = ethers.parseEther(val.toFixed(8));
     const halfWei  = totalWei / 2n;
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
-    const gp       = ethers.parseUnits('1', 'gwei');
+    const gp       = ethers.parseUnits('3', 'gwei');
 
     const routerC = new ethers.Contract(ROUTER, ROUTER_ABI, signer);
     const kenoC   = new ethers.Contract(KENO_ADDR, ERC20_ABI, signer);
 
     setBtn('zapBtn', true, 'Swapping BNB → KENO…');
-    addLog('Step 1: Swap ' + ethers.formatEther(halfWei) + ' BNB → KENO', 'inf');
+    addLog('Step 1 of 3: MetaMask will ask you to confirm a BNB→KENO swap. Tap CONFIRM.', 'inf');
     try {
       const amounts = await routerC.getAmountsOut(halfWei, [WBNB_ADDR, KENO_ADDR]);
       const minKeno = amounts[1] * BigInt(100 - slip) / 100n;
 
       const swapTx = await routerC.swapExactETHForTokens(
-        minKeno, [WBNB_ADDR, KENO_ADDR], userAddress, deadline,
-        { value: halfWei, gasPrice: gp, gasLimit: 200000n }
+        minKeno, [WBNB_ADDR, KENO_ADDR], userAddress, freshDeadline(),
+        { value: halfWei, gasPrice: gp, gasLimit: 250000n }
       );
-      addLog('Swap tx: ' + swapTx.hash.slice(0,18) + '…', 'inf');
+      addLog('Swap sent… waiting for BSC to confirm (15–30s)', 'inf');
       const swapR = await swapTx.wait();
       addLog('✅ Swap confirmed! Block ' + swapR.blockNumber, 'ok');
 
       const kenoBal = await kenoC.balanceOf(userAddress);
-      addLog('KENO received: ' + Number(Math.round(parseFloat(ethers.formatUnits(kenoBal,18)))).toLocaleString(), 'ok');
+      addLog('KENO in wallet: ' + Number(Math.round(parseFloat(ethers.formatUnits(kenoBal,18)))).toLocaleString(), 'ok');
 
       setBtn('zapBtn', true, 'Approving KENO…');
       const allow = await kenoC.allowance(userAddress, ROUTER);
       if (allow < kenoBal) {
-        const appTx = await kenoC.approve(ROUTER, ethers.MaxUint256, { gasPrice: gp, gasLimit: 60000n });
+        addLog('Step 2 of 3: MetaMask will ask you to APPROVE KENO spending. Tap CONFIRM — this lets PancakeSwap use your KENO.', 'inf');
+        const appTx = await kenoC.approve(ROUTER, ethers.MaxUint256, { gasPrice: gp, gasLimit: 80000n });
+        addLog('Approval sent… waiting for confirmation (15–30s)', 'inf');
         await appTx.wait();
-        addLog('✅ KENO approved', 'ok');
+        addLog('✅ KENO approved for router', 'ok');
+      } else {
+        addLog('✅ KENO already approved (skipping)', 'ok');
       }
 
       setBtn('zapBtn', true, 'Adding Liquidity…');
-      addLog('Step 2: Adding ' + ethers.formatEther(halfWei) + ' BNB + KENO to pool…', 'inf');
+      addLog('Step 3 of 3: MetaMask will ask you to confirm ADD LIQUIDITY. Tap CONFIRM — this puts BNB + KENO into the pool.', 'inf');
       const minBNBAdd  = halfWei  * BigInt(100 - slip) / 100n;
-      const minKenoAdd = kenoBal  * BigInt(100 - slip) / 100n;
+      const minKenoAdd = 0n; // Let router use pool-ratio-optimal amount
 
       const addTx = await routerC.addLiquidityETH(
-        KENO_ADDR, kenoBal, minKenoAdd, minBNBAdd, userAddress, deadline,
-        { value: halfWei, gasPrice: gp, gasLimit: 300000n }
+        KENO_ADDR, kenoBal, minKenoAdd, minBNBAdd, userAddress, freshDeadline(),
+        { value: halfWei, gasPrice: gp, gasLimit: 400000n }
       );
-      addLog('Add liquidity tx: ' + addTx.hash.slice(0,18) + '…', 'inf');
+      addLog('Add liquidity sent… waiting for confirmation (15–30s)', 'inf');
       const addR = await addTx.wait();
       addLog('🎉 Liquidity added! Block ' + addR.blockNumber, 'ok');
-      addLog('LP tokens are now in your MetaMask wallet', 'ok');
+      addLog('✅ LP tokens are now in your MetaMask wallet. Stake on Farm page for KENO rewards!', 'ok');
 
       await refreshBalances();
       await loadPool();
     } catch(e) {
-      addLog('❌ ' + (e.reason || e.message), 'err');
+      const msg = e?.reason || e?.message || String(e);
+      if (msg.toLowerCase().includes('user denied') || msg.toLowerCase().includes('rejected')) {
+        addLog('❌ Transaction cancelled in MetaMask. Tap Zap In again and tap CONFIRM on every MetaMask popup.', 'err');
+      } else {
+        addLog('❌ Error: ' + msg.slice(0, 120), 'err');
+      }
     }
     setBtn('zapBtn', false, '⚡ Zap In with BNB');
+  }
+
+  // ── Add Liquidity (for users who already have KENO) ───────────
+  async function doAddOnly() {
+    if (!signer) { alert('Connect MetaMask first.'); return; }
+    const bnbVal = parseFloat(document.getElementById('zapBNB').value);
+    if (!bnbVal || bnbVal <= 0) { alert('Enter BNB amount to pair with your existing KENO.'); return; }
+    const slip    = parseInt(document.getElementById('slippage').value);
+    const bnbWei  = ethers.parseEther(bnbVal.toFixed(8));
+    const gp      = ethers.parseUnits('3', 'gwei');
+    const routerC = new ethers.Contract(ROUTER, ROUTER_ABI, signer);
+    const kenoC   = new ethers.Contract(KENO_ADDR, ERC20_ABI, signer);
+
+    try {
+      setBtn('addOnlyBtn', true, 'Checking KENO balance…');
+      const kenoBal = await kenoC.balanceOf(userAddress);
+      if (kenoBal === 0n) { addLog('❌ No KENO in wallet. Use Zap In instead.', 'err'); setBtn('addOnlyBtn', false, '➕ Add Liquidity (have KENO)'); return; }
+      addLog('KENO balance: ' + Number(Math.round(parseFloat(ethers.formatUnits(kenoBal,18)))).toLocaleString(), 'ok');
+
+      const allow = await kenoC.allowance(userAddress, ROUTER);
+      if (allow < kenoBal) {
+        addLog('Step 1 of 2: MetaMask will ask to APPROVE KENO spending. Tap CONFIRM.', 'inf');
+        setBtn('addOnlyBtn', true, 'Approving KENO…');
+        const appTx = await kenoC.approve(ROUTER, ethers.MaxUint256, { gasPrice: gp, gasLimit: 80000n });
+        addLog('Approval sent… waiting (15–30s)', 'inf');
+        await appTx.wait();
+        addLog('✅ KENO approved', 'ok');
+      }
+
+      addLog('Step 2 of 2: MetaMask will ask to ADD LIQUIDITY. Tap CONFIRM.', 'inf');
+      setBtn('addOnlyBtn', true, 'Adding Liquidity…');
+      const minBNB  = bnbWei * BigInt(100 - slip) / 100n;
+      const minKeno = 0n; // Let router use pool-ratio-optimal KENO amount
+      const addTx = await routerC.addLiquidityETH(
+        KENO_ADDR, kenoBal, minKeno, minBNB, userAddress, freshDeadline(),
+        { value: bnbWei, gasPrice: gp, gasLimit: 400000n }
+      );
+      addLog('Add liquidity sent… waiting (15–30s)', 'inf');
+      const addR = await addTx.wait();
+      addLog('🎉 Liquidity added! Block ' + addR.blockNumber, 'ok');
+      addLog('✅ LP tokens in MetaMask. Stake on Farm page for KENO rewards!', 'ok');
+      await refreshBalances();
+      await loadPool();
+    } catch(e) {
+      const msg = e?.reason || e?.message || String(e);
+      if (msg.toLowerCase().includes('user denied') || msg.toLowerCase().includes('rejected')) {
+        addLog('❌ Cancelled in MetaMask. Tap the button again and confirm every popup.', 'err');
+      } else {
+        addLog('❌ Error: ' + msg.slice(0, 120), 'err');
+      }
+    }
+    setBtn('addOnlyBtn', false, '➕ Add Liquidity (have KENO)');
   }
 
   // ── Remove ────────────────────────────────────────────────────
