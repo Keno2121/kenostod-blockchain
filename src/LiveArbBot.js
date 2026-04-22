@@ -6,6 +6,7 @@ const UTL_FARM        = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
 
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
+const BUSD = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
 const KENO = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
 
 const ROUTER_ABI = [
@@ -53,7 +54,7 @@ class LiveArbBot {
       minProfitUSD:     0.05,          // lowered — gas at 1 gwei is ~$0.16, needs $0.05 net above that
       arbTradeAmountBNB: '0.08',       // increased from 0.05 → bigger gross profit per spread
       kenoVolBNB:        '0.001',
-      checkIntervalMs:   30_000,
+      checkIntervalMs:   15_000,
       kenoVolIntervalMs: 3_600_000,
       maxSlippage:       0.02,
       gasPrice:          ethers.parseUnits('1', 'gwei'),  // BSC accepts 1 gwei — cuts gas cost 5x
@@ -171,14 +172,11 @@ class LiveArbBot {
     }
   }
 
-  async detectOpportunity() {
-    const tradeAmountBNB = ethers.parseEther(this.config.arbTradeAmountBNB);
-
+  async _checkPair(tradeAmountBNB, stableToken, pairName) {
     const [pancakeOut, biswapOut] = await Promise.all([
-      this.getAmountsOut(PANCAKE_ROUTER, tradeAmountBNB, [WBNB, USDT]),
-      this.getAmountsOut(BISWAP_ROUTER,  tradeAmountBNB, [WBNB, USDT]),
+      this.getAmountsOut(PANCAKE_ROUTER, tradeAmountBNB, [WBNB, stableToken]),
+      this.getAmountsOut(BISWAP_ROUTER,  tradeAmountBNB, [WBNB, stableToken]),
     ]);
-
     if (!pancakeOut || !biswapOut || pancakeOut === 0n || biswapOut === 0n) return null;
 
     const pancakeUSD = parseFloat(ethers.formatUnits(pancakeOut, 18));
@@ -198,19 +196,18 @@ class LiveArbBot {
 
     const grossProfit = sellOut - buyOut;
     const spread = ((grossProfit / buyOut) * 100).toFixed(3);
+    if (parseFloat(spread) < 0.1) return null;
 
-    // Dynamic gas cost: 2 swaps × gasLimit × gasPrice (gwei) × BNB price
     const bnbPriceUSD = (pancakeUSD + biswapUSD) / 2 / tradeBNB;
     const gasPriceGwei = parseFloat(ethers.formatUnits(this.config.gasPrice, 'gwei'));
     const gasCostBNB   = (this.config.gasLimitArb * 2 * gasPriceGwei) / 1e9;
     const gasCostUSD   = gasCostBNB * bnbPriceUSD;
     const netProfitUSD = grossProfit - gasCostUSD;
 
-    if (parseFloat(spread) < 0.1) return null;
-
     return {
       time: new Date().toISOString(),
-      pair: 'WBNB/USDT',
+      pair: pairName,
+      stableToken,
       buyDex, sellDex, buyRouter, sellRouter,
       tradeBNB,
       pancakeUSD: pancakeUSD.toFixed(4),
@@ -220,6 +217,22 @@ class LiveArbBot {
       spread,
       executable: netProfitUSD >= this.config.minProfitUSD
     };
+  }
+
+  async detectOpportunity() {
+    const tradeAmountBNB = ethers.parseEther(this.config.arbTradeAmountBNB);
+
+    // Check both WBNB/USDT and WBNB/BUSD pairs simultaneously
+    const [usdtOpp, busdOpp] = await Promise.all([
+      this._checkPair(tradeAmountBNB, USDT, 'WBNB/USDT'),
+      this._checkPair(tradeAmountBNB, BUSD, 'WBNB/BUSD'),
+    ]);
+
+    // Return the more profitable opportunity
+    if (!usdtOpp && !busdOpp) return null;
+    if (!usdtOpp) return busdOpp;
+    if (!busdOpp) return usdtOpp;
+    return usdtOpp.netProfitUSD >= busdOpp.netProfitUSD ? usdtOpp : busdOpp;
   }
 
   async executeArb(opp) {
@@ -236,12 +249,14 @@ class LiveArbBot {
       const deadline = Math.floor(Date.now() / 1000) + 60;
       const minOut = BigInt(Math.floor(parseFloat(opp.pancakeUSD < opp.biswapUSD ? opp.pancakeUSD : opp.biswapUSD) * (1 - this.config.maxSlippage) * 1e18));
 
+      const stableAddr = opp.stableToken || USDT;
+      const stableName = stableAddr === BUSD ? 'BUSD' : 'USDT';
       const buyRouter = new ethers.Contract(opp.buyRouter, ROUTER_ABI, this.wallet);
 
-      this.log(`🔄 Step 1: Buy USDT on ${opp.buyDex} with ${this.config.arbTradeAmountBNB} BNB`);
+      this.log(`🔄 Step 1: Buy ${stableName} on ${opp.buyDex} with ${this.config.arbTradeAmountBNB} BNB [${opp.pair}]`);
       const buyTx = await buyRouter.swapExactETHForTokens(
         minOut,
-        [WBNB, USDT],
+        [WBNB, stableAddr],
         this.wallet.address,
         deadline,
         { value: tradeWei, gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitArb }
@@ -249,22 +264,22 @@ class LiveArbBot {
       const buyReceipt = await buyTx.wait();
       this.log(`✅ Buy tx: ${buyReceipt.hash}`);
 
-      const usdtContract  = new ethers.Contract(USDT, ERC20_ABI, this.wallet);
-      const usdtBal       = await usdtContract.balanceOf(this.wallet.address);
-      const minBNBOut     = BigInt(Math.floor(parseFloat(this.config.arbTradeAmountBNB) * (1 - this.config.maxSlippage) * 1e18));
+      const stableContract = new ethers.Contract(stableAddr, ERC20_ABI, this.wallet);
+      const stableBal      = await stableContract.balanceOf(this.wallet.address);
+      const minBNBOut      = BigInt(Math.floor(parseFloat(this.config.arbTradeAmountBNB) * (1 - this.config.maxSlippage) * 1e18));
 
-      const currentAllowance = await usdtContract.allowance(this.wallet.address, opp.sellRouter);
-      if (currentAllowance < usdtBal) {
-        const approveTx = await usdtContract.approve(opp.sellRouter, ethers.MaxUint256, { gasPrice: this.config.gasPrice });
+      const currentAllowance = await stableContract.allowance(this.wallet.address, opp.sellRouter);
+      if (currentAllowance < stableBal) {
+        const approveTx = await stableContract.approve(opp.sellRouter, ethers.MaxUint256, { gasPrice: this.config.gasPrice });
         await approveTx.wait();
       }
 
       const sellRouter = new ethers.Contract(opp.sellRouter, ROUTER_ABI, this.wallet);
-      this.log(`🔄 Step 2: Sell USDT on ${opp.sellDex} for BNB`);
+      this.log(`🔄 Step 2: Sell ${stableName} on ${opp.sellDex} for BNB`);
       const sellTx = await sellRouter.swapExactTokensForETH(
-        usdtBal,
+        stableBal,
         minBNBOut,
-        [USDT, WBNB],
+        [stableAddr, WBNB],
         this.wallet.address,
         deadline,
         { gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitArb }
