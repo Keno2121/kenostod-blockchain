@@ -57,7 +57,7 @@ contract UTLdeBridgeRouter {
 
     // ── deBridge addresses (BSC Mainnet) ──────────────────────────────────
     address public constant DLN_SOURCE      = 0xeF4fB24aD0916217251F553c0596F8Edc630EB66;
-    address public constant DLN_DESTINATION = 0xe7351Fd770A37282b91D153Ee690B63579D6dd7F;
+    address public constant DLN_DESTINATION = 0xE7351Fd770A37282b91D153Ee690B63579D6dd7f;
     address public constant DEBRIDGE_GATE   = 0x43dE2d77BF8027e25dBD179B491e8d64f38398aA;
 
     // ── UTL Protocol (BSC Mainnet) ────────────────────────────────────────
