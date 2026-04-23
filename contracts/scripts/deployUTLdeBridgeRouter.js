@@ -15,10 +15,10 @@ import { ethers } from 'ethers';
 
 const BSC_RPC = 'https://bsc-dataseed.binance.org';
 
-// ── Set your deBridge referral code here after registering ──────────────────
-// Register at: https://app.debridge.finance/affiliates
-// Leave 0 until you have a registered code
-const REFERRAL_CODE = 0;
+// ── UTL deBridge Referral Code — registered April 2025 ──────────────────────
+// Registered wallet: 0x4AA73FadfFd71E6549867a37455EA957A52Cf849
+// Verify: app.debridge.finance/statistics/0x4AA73FadfFd71E6549867a37455EA957A52Cf849
+const REFERRAL_CODE = 32946;
 
 // deBridge contracts to verify
 const DLN_SOURCE      = '0xeF4fB24aD0916217251F553c0596F8Edc630EB66';

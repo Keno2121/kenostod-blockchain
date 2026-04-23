@@ -73,8 +73,10 @@ contract UTLdeBridgeRouter {
     // 5000 bps = 50% of deBridge's protocol fee goes to UTL
     uint256 public affiliateFeeBps = 5000;
 
-    // UTL's registered deBridge referral code (register at app.debridge.finance)
-    uint32  public referralCode;
+    // UTL's registered deBridge referral code — registered April 2025
+    // Wallet: 0x4AA73FadfFd71E6549867a37455EA957A52Cf849
+    // Verify: app.debridge.finance/statistics/0x4AA73FadfFd71E6549867a37455EA957A52Cf849
+    uint32  public referralCode = 32946;
 
     // ── Maker fill fee ────────────────────────────────────────────────────
     // When UTL fills an order as a maker, it takes this cut of the fill amount
