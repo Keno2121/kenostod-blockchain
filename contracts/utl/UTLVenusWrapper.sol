@@ -58,7 +58,7 @@ contract UTLVenusWrapper {
     address public constant V_BUSD      = 0x95c78222B3D6e262426483D42CfA53685A67Ab9D;
     address public constant V_USDT      = 0xfD5840Cd36d94D7229439859C0112a4185BC0255;
     address public constant V_ETH       = 0xf508fCD89b8bd15579dc79A6827cB4686A3592c8;
-    address public constant V_BTC       = 0x882C173bC7Ff3b7786CA16dfeD3DFFfb9Ee7847;
+    // V_BTC (vBTCB) address TBD — verify on BscScan before enabling
 
     // ── UTL Protocol addresses (BSC Mainnet) ─────────────────────────────
     address public constant UTL_FEE_COLLECTOR =
@@ -378,8 +378,7 @@ contract UTLVenusWrapper {
             vToken != 0xecA88125a5ADbe82614ffC12D0DB554E2e2867C8 && // vUSDC
             vToken != 0x95c78222B3D6e262426483D42CfA53685A67Ab9D && // vBUSD
             vToken != 0xfD5840Cd36d94D7229439859C0112a4185BC0255 && // vUSDT
-            vToken != 0xf508fCD89b8bd15579dc79A6827cB4686A3592c8 && // vETH
-            vToken != 0x882C173bC7Ff3b7786CA16dfeD3DFFfb9Ee7847    // vBTC
+            vToken != 0xf508fCD89b8bd15579dc79A6827cB4686A3592c8    // vETH
         ) revert UnsupportedVToken();
     }
 
