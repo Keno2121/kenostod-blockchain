@@ -58,8 +58,8 @@ async function main() {
     console.log(`Network:  BSC Mainnet (chainId 56)`);
     console.log(`${'─'.repeat(62)}`);
 
-    if (parseFloat(ethers.formatEther(bal)) < 0.05) {
-        console.error('\n❌ Insufficient BNB. Need at least 0.05 BNB for deployment gas.');
+    if (parseFloat(ethers.formatEther(bal)) < 0.002) {
+        console.error('\n❌ Insufficient BNB. Need at least 0.002 BNB for deployment gas.');
         console.error('   Send BNB to:', deployer.address);
         process.exit(1);
     }
