@@ -1,8 +1,16 @@
 const { ethers } = require('ethers');
 
+// ── Deployed UTL contracts (BSC Mainnet) ──────────────────────────────────
+const FLASH_ARB_LOAN2    = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
+
 const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
 const UTL_FARM        = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+
+const FLASH_ARB_ABI = [
+  'function quoteBest(uint256 testAmountBNB) external view returns (bool profitable, address sellRouter, address buyRouter, address repayPair, uint256 grossProfitBNB, uint256 repayAmountWBNB)',
+  'function executeFlashArb(address borrowPair, address sellRouter, address buyRouter, address stableToken, uint256 borrowAmountWBNB) external',
+];
 
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
@@ -91,8 +99,10 @@ class LiveArbBot {
         this.provider = new ethers.JsonRpcProvider(rpc);
         await this.provider.getBlockNumber();
         this.wallet = new ethers.Wallet(key, this.provider);
+        this.flashArb = new ethers.Contract(FLASH_ARB_LOAN2, FLASH_ARB_ABI, this.wallet);
         this.log(`✅ Connected to BSC via ${rpc}`);
         this.log(`👛 Wallet: ${this.wallet.address}`);
+        this.log(`⚡ FlashArbLoan2: ${FLASH_ARB_LOAN2}`);
         return true;
       } catch (_) {
         continue;
@@ -141,7 +151,11 @@ class LiveArbBot {
 
         if (opp.netProfitUSD >= this.config.minProfitUSD) {
           this.log(`⚡ Profitable opp: ${opp.spread}% spread → ~$${opp.netProfitUSD.toFixed(3)} net profit`);
-          await this.executeArb(opp);
+          if (opp.flash) {
+            await this.executeFlashArb(opp);
+          } else {
+            await this.executeArb(opp);
+          }
         } else {
           this.log(`👀 Spread ${opp.spread}% detected — below min profit threshold ($${opp.netProfitUSD.toFixed(3)} < $${this.config.minProfitUSD})`);
         }
@@ -222,17 +236,68 @@ class LiveArbBot {
   async detectOpportunity() {
     const tradeAmountBNB = ethers.parseEther(this.config.arbTradeAmountBNB);
 
-    // Check both WBNB/USDT and WBNB/BUSD pairs simultaneously
+    // ── Primary: FlashArbLoan2.quoteBest() — free view call, scans 4 DEXes × 4 pairs ──
+    if (this.flashArb) {
+      try {
+        const q = await this.flashArb.quoteBest(tradeAmountBNB);
+        if (q.profitable) {
+          const grossBNB   = parseFloat(ethers.formatEther(q.grossProfitBNB));
+          const gasPriceGwei = 0.05;
+          const gasCostBNB   = (500_000 * gasPriceGwei) / 1e9;
+          const bnbPrice     = 600; // approximate — refined per actual market
+          const netProfitUSD = (grossBNB - gasCostBNB) * bnbPrice;
+          return {
+            time: new Date().toISOString(),
+            pair: 'FLASH (4-DEX scan)',
+            flash: true,
+            sellRouter:      q.sellRouter,
+            buyRouter:       q.buyRouter,
+            repayPair:       q.repayPair,
+            borrowAmountBNB: this.config.arbTradeAmountBNB,
+            grossProfitBNB:  grossBNB.toFixed(6),
+            netProfitUSD,
+            spread: ((grossBNB / parseFloat(this.config.arbTradeAmountBNB)) * 100).toFixed(3),
+            executable: netProfitUSD >= this.config.minProfitUSD
+          };
+        }
+      } catch (e) {
+        this.log(`⚠️ quoteBest() error: ${e.message}`, 'warn');
+      }
+    }
+
+    // ── Fallback: manual 2-DEX scan ────────────────────────────────────────
     const [usdtOpp, busdOpp] = await Promise.all([
       this._checkPair(tradeAmountBNB, USDT, 'WBNB/USDT'),
       this._checkPair(tradeAmountBNB, BUSD, 'WBNB/BUSD'),
     ]);
-
-    // Return the more profitable opportunity
     if (!usdtOpp && !busdOpp) return null;
     if (!usdtOpp) return busdOpp;
     if (!busdOpp) return usdtOpp;
     return usdtOpp.netProfitUSD >= busdOpp.netProfitUSD ? usdtOpp : busdOpp;
+  }
+
+  async executeFlashArb(opp) {
+    try {
+      this.log(`⚡ Executing flash arb via FlashArbLoan2...`);
+      const borrowAmt = ethers.parseEther(opp.borrowAmountBNB);
+      const tx = await this.flashArb.executeFlashArb(
+        opp.repayPair,
+        opp.sellRouter,
+        opp.buyRouter,
+        USDT,
+        borrowAmt,
+        { gasPrice: this.config.gasPrice, gasLimit: 500_000 }
+      );
+      this.log(`📤 Flash arb tx sent: ${tx.hash}`);
+      const receipt = await tx.wait();
+      this.log(`✅ Flash arb confirmed: block ${receipt.blockNumber}`);
+      this.stats.tradesExecuted++;
+      this.stats.profitBNB  += parseFloat(opp.grossProfitBNB);
+      this.stats.profitUSD  += opp.netProfitUSD;
+      this.stats.lastTrade   = new Date().toISOString();
+    } catch (e) {
+      this.log(`❌ Flash arb failed: ${e.message}`, 'error');
+    }
   }
 
   async executeArb(opp) {
