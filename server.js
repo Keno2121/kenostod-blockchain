@@ -1002,6 +1002,69 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ── KENO/BNB Pool Stats (live from PancakeSwap) ───────────────────────────
+app.get('/api/keno/pool', async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const provider = new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+
+        const KENO     = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+        const WBNB     = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+        const PAIR     = '0x72368adf1487eeebCb095F16CF8cbf91f2B44880';
+
+        const pairContract = new ethers.Contract(PAIR, [
+            'function getReserves() view returns (uint112,uint112,uint32)',
+            'function token0() view returns (address)',
+            'function totalSupply() view returns (uint256)'
+        ], provider);
+
+        const bnbPriceFeed = new ethers.Contract(
+            '0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE',
+            ['function latestAnswer() view returns (int256)'],
+            provider
+        );
+
+        const [reserves, token0, totalSupply, bnbAnswer] = await Promise.all([
+            pairContract.getReserves(),
+            pairContract.token0(),
+            pairContract.totalSupply(),
+            bnbPriceFeed.latestAnswer().catch(() => BigInt(60000000000))
+        ]);
+
+        const kenoIsToken0  = token0.toLowerCase() === KENO.toLowerCase();
+        const kenoReserve   = kenoIsToken0 ? reserves[0] : reserves[1];
+        const bnbReserve    = kenoIsToken0 ? reserves[1] : reserves[0];
+
+        const bnbUSD        = parseFloat(ethers.formatEther(bnbReserve)) * (Number(bnbAnswer) / 1e8);
+        const kenoAmt       = parseFloat(ethers.formatEther(kenoReserve));
+        const bnbAmt        = parseFloat(ethers.formatEther(bnbReserve));
+        const kenoPrice     = kenoAmt > 0 ? bnbUSD / kenoAmt : 0;
+        const totalValueUSD = bnbUSD * 2;
+        const lpSupply      = parseFloat(ethers.formatEther(totalSupply));
+
+        const slippage = (buyUSD) => ((buyUSD / (bnbUSD + buyUSD)) * 100).toFixed(1);
+
+        res.json({
+            pair:          PAIR,
+            bnbReserve:    bnbAmt.toFixed(6),
+            kenoReserve:   kenoAmt.toFixed(2),
+            bnbUSD:        bnbUSD.toFixed(2),
+            totalValueUSD: totalValueUSD.toFixed(2),
+            kenoPrice:     kenoPrice.toFixed(8),
+            bnbPrice:      (Number(bnbAnswer) / 1e8).toFixed(2),
+            lpSupply:      lpSupply.toFixed(6),
+            slippage10:    slippage(10),
+            slippage50:    slippage(50),
+            slippage100:   slippage(100),
+            bscscan:       `https://bscscan.com/address/${PAIR}`,
+            pancakeswap:   `https://pancakeswap.finance/add/BNB/${KENO}`,
+            updatedAt:     new Date().toISOString()
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Serve robots.txt and sitemap.xml for SEO
 app.get('/robots.txt', (req, res) => {
     res.sendFile(__dirname + '/public/robots.txt');
