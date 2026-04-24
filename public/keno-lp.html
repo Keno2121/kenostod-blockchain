@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENO/BNB Liquidity Pool — Kenostod Blockchain</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #060a14; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); }
+        .glow-green { box-shadow: 0 0 30px rgba(16,185,129,0.15); }
+        .glow-gold  { box-shadow: 0 0 30px rgba(251,191,36,0.12); }
+        .stat-val { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; }
+        .bar-track { background: rgba(255,255,255,0.06); border-radius: 99px; height: 8px; overflow: hidden; }
+        .bar-fill  { height: 100%; border-radius: 99px; transition: width 1s ease; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+        .week-row:hover { background: rgba(255,255,255,0.04); }
+        .copy-btn { cursor: pointer; transition: color 0.2s; }
+        .copy-btn:hover { color: #34d399; }
+        .action-btn { transition: all 0.2s; }
+        .action-btn:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Header -->
+    <div class="border-b border-white/5 px-4 py-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                    <i class="fas fa-water text-emerald-400 text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-white">KENO / BNB Pool</h1>
+                    <p class="text-xs text-slate-500">PancakeSwap V2 · BSC Mainnet</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="badge" style="background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.2)">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse"></span>
+                    LIVE
+                </span>
+                <button onclick="loadPool()" class="text-slate-400 hover:text-white transition-colors ml-2">
+                    <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 py-6 space-y-5">
+
+        <!-- Pool Health Banner -->
+        <div id="health-banner" class="glass rounded-2xl p-4 flex items-center gap-4 glow-green hidden">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-heartbeat text-emerald-400"></i>
+            </div>
+            <div class="flex-1">
+                <div class="font-semibold text-white" id="health-title">Pool Health</div>
+                <div class="text-sm text-slate-400" id="health-desc">Loading...</div>
+            </div>
+            <div id="health-score" class="text-2xl font-black"></div>
+        </div>
+
+        <!-- Main Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass rounded-2xl p-5">
+                <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Total Value</div>
+                <div class="stat-val text-emerald-400" id="stat-tvl">—</div>
+                <div class="text-xs text-slate-500 mt-1">USD locked in pool</div>
+            </div>
+            <div class="glass rounded-2xl p-5">
+                <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">KENO Price</div>
+                <div class="stat-val text-yellow-400" id="stat-price">—</div>
+                <div class="text-xs text-slate-500 mt-1">vs BNB on PancakeSwap</div>
+            </div>
+            <div class="glass rounded-2xl p-5">
+                <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">BNB in Pool</div>
+                <div class="stat-val text-blue-400" id="stat-bnb">—</div>
+                <div class="text-xs text-slate-500 mt-1" id="stat-bnb-usd">≈ $— USD</div>
+            </div>
+            <div class="glass rounded-2xl p-5">
+                <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">KENO in Pool</div>
+                <div class="stat-val text-purple-400" id="stat-keno">—</div>
+                <div class="text-xs text-slate-500 mt-1">tokens providing liquidity</div>
+            </div>
+        </div>
+
+        <!-- Slippage Meter -->
+        <div class="glass rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="font-bold text-white">Buy Slippage Calculator</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">How much price impact a purchase causes at current pool depth</p>
+                </div>
+                <span class="badge" id="slippage-badge" style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)">
+                    High Slippage
+                </span>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-sm mb-1.5">
+                        <span class="text-slate-400">$10 purchase</span>
+                        <span class="font-mono font-bold" id="slip10">—%</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill bg-gradient-to-r from-emerald-500 to-yellow-500" id="bar10" style="width:0%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1.5">
+                        <span class="text-slate-400">$50 purchase</span>
+                        <span class="font-mono font-bold" id="slip50">—%</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill bg-gradient-to-r from-yellow-500 to-orange-500" id="bar50" style="width:0%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1.5">
+                        <span class="text-slate-400">$100 purchase</span>
+                        <span class="font-mono font-bold" id="slip100">—%</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill bg-gradient-to-r from-orange-500 to-red-500" id="bar100" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 rounded-xl bg-slate-800/40 text-xs text-slate-400 flex gap-2">
+                <i class="fas fa-info-circle text-slate-500 mt-0.5 flex-shrink-0"></i>
+                <span>Target: under <strong class="text-white">3%</strong> for $50 purchases. That needs ~<strong class="text-white">$850</strong> total in the pool. Each $50 weekly deposit gets us closer.</span>
+            </div>
+        </div>
+
+        <!-- Growth Plan -->
+        <div class="glass rounded-2xl p-5">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                    <i class="fas fa-chart-line text-indigo-400 text-sm"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-white">$50/Week Growth Plan</h2>
+                    <p class="text-xs text-slate-400">Pool depth projection — adding BNB + KENO weekly</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-xs text-slate-500 uppercase tracking-wider border-b border-white/5">
+                            <th class="text-left pb-3">Week</th>
+                            <th class="text-right pb-3">Pool Value</th>
+                            <th class="text-right pb-3">$10 Slippage</th>
+                            <th class="text-right pb-3">$50 Slippage</th>
+                            <th class="text-right pb-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="growth-table" class="divide-y divide-white/5">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Actions + Links -->
+        <div class="grid md:grid-cols-2 gap-4">
+            <!-- Add Liquidity -->
+            <div class="glass rounded-2xl p-5 glow-gold">
+                <h3 class="font-bold text-white mb-1">Add Liquidity</h3>
+                <p class="text-xs text-slate-400 mb-4">Deposit BNB + KENO to deepen the pool. You earn 0.17% of all swap fees proportional to your share.</p>
+                <a id="add-lp-link" href="https://pancakeswap.finance/add/BNB/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E"
+                   target="_blank"
+                   class="action-btn flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm"
+                   style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000;">
+                    <i class="fas fa-plus-circle"></i>
+                    Add Liquidity on PancakeSwap
+                </a>
+                <div class="mt-3 text-xs text-slate-500 text-center">
+                    You'll need equal value of BNB and KENO in your wallet
+                </div>
+            </div>
+
+            <!-- Pool Contract -->
+            <div class="glass rounded-2xl p-5">
+                <h3 class="font-bold text-white mb-1">Pool Contract</h3>
+                <p class="text-xs text-slate-400 mb-4">Verified on BscScan. Anyone can audit the reserves and transactions in real time.</p>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between bg-slate-800/50 rounded-lg px-3 py-2">
+                        <span class="text-xs text-slate-400">Pair</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-mono text-slate-300">0x7236...4880</span>
+                            <i class="fas fa-copy copy-btn text-slate-500 text-xs" onclick="copy('0x72368adf1487eeebCb095F16CF8cbf91f2B44880')"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between bg-slate-800/50 rounded-lg px-3 py-2">
+                        <span class="text-xs text-slate-400">KENO Token</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-mono text-slate-300">0x6579...D0E</span>
+                            <i class="fas fa-copy copy-btn text-slate-500 text-xs" onclick="copy('0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E')"></i>
+                        </div>
+                    </div>
+                </div>
+                <a href="https://bscscan.com/address/0x72368adf1487eeebCb095F16CF8cbf91f2B44880" target="_blank"
+                   class="action-btn mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-semibold text-sm border border-white/10 hover:border-white/20 transition-colors">
+                    <i class="fas fa-external-link-alt text-xs"></i>
+                    View on BscScan
+                </a>
+            </div>
+        </div>
+
+        <!-- Custom Amount Slippage Calculator -->
+        <div class="glass rounded-2xl p-5">
+            <h3 class="font-bold text-white mb-1">Custom Slippage Estimate</h3>
+            <p class="text-xs text-slate-400 mb-4">Enter an amount to see expected price impact</p>
+            <div class="flex gap-3">
+                <div class="relative flex-1">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <input type="number" id="custom-amt" placeholder="25"
+                        class="w-full bg-slate-800/60 border border-white/10 rounded-xl pl-7 pr-4 py-3 text-white focus:outline-none focus:border-emerald-500/50"
+                        oninput="calcCustom()">
+                </div>
+                <div class="flex-1 bg-slate-800/60 rounded-xl px-4 py-3 flex items-center justify-between">
+                    <span class="text-slate-400 text-sm">Slippage</span>
+                    <span class="font-mono font-bold text-lg" id="custom-result">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Updated At -->
+        <div class="text-center text-xs text-slate-600 pb-4">
+            Data fetched live from BSC · Last updated <span id="updated-at">—</span>
+            · <a href="https://pancakeswap.finance/swap?outputCurrency=0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" class="text-indigo-400 hover:underline">Buy KENO on PancakeSwap</a>
+        </div>
+
+    </div>
+
+    <script>
+        let poolData = null;
+
+        async function loadPool() {
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('fa-spin');
+            try {
+                const r = await fetch('/api/keno/pool');
+                const d = await r.json();
+                poolData = d;
+                render(d);
+            } catch(e) {
+                console.error(e);
+            } finally {
+                icon.classList.remove('fa-spin');
+            }
+        }
+
+        function fmt(n, dec=2) { return parseFloat(n).toFixed(dec); }
+        function fmtUSD(n) { return '$' + parseFloat(n).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+        function slippageColor(pct) {
+            if (pct < 3)  return '#34d399';
+            if (pct < 8)  return '#fbbf24';
+            if (pct < 20) return '#f97316';
+            return '#ef4444';
+        }
+
+        function render(d) {
+            // Stats
+            document.getElementById('stat-tvl').textContent   = fmtUSD(d.totalValueUSD);
+            document.getElementById('stat-price').textContent = '$' + parseFloat(d.kenoPrice).toFixed(6);
+            document.getElementById('stat-bnb').textContent   = fmt(d.bnbReserve, 4) + ' BNB';
+            document.getElementById('stat-bnb-usd').textContent = '≈ ' + fmtUSD(d.bnbUSD) + ' USD';
+            document.getElementById('stat-keno').textContent  = parseFloat(d.kenoReserve).toLocaleString() + ' KENO';
+            document.getElementById('updated-at').textContent = new Date(d.updatedAt).toLocaleTimeString();
+
+            // Slippage bars
+            const s10  = parseFloat(d.slippage10);
+            const s50  = parseFloat(d.slippage50);
+            const s100 = parseFloat(d.slippage100);
+
+            document.getElementById('slip10').textContent  = s10 + '%';
+            document.getElementById('slip50').textContent  = s50 + '%';
+            document.getElementById('slip100').textContent = s100 + '%';
+            document.getElementById('slip10').style.color  = slippageColor(s10);
+            document.getElementById('slip50').style.color  = slippageColor(s50);
+            document.getElementById('slip100').style.color = slippageColor(s100);
+
+            document.getElementById('bar10').style.width   = Math.min(s10 * 2, 100) + '%';
+            document.getElementById('bar50').style.width   = Math.min(s50 * 1.5, 100) + '%';
+            document.getElementById('bar100').style.width  = Math.min(s100, 100) + '%';
+
+            // Slippage badge
+            const badge = document.getElementById('slippage-badge');
+            if (s50 < 3) {
+                badge.textContent = '✓ Good Liquidity';
+                badge.style.background = 'rgba(16,185,129,0.1)';
+                badge.style.color = '#34d399';
+                badge.style.border = '1px solid rgba(16,185,129,0.2)';
+            } else if (s50 < 10) {
+                badge.textContent = '⚠ Moderate';
+                badge.style.background = 'rgba(251,191,36,0.1)';
+                badge.style.color = '#fbbf24';
+                badge.style.border = '1px solid rgba(251,191,36,0.2)';
+            } else {
+                badge.textContent = '⚠ High Slippage';
+                badge.style.background = 'rgba(239,68,68,0.1)';
+                badge.style.color = '#f87171';
+                badge.style.border = '1px solid rgba(239,68,68,0.2)';
+            }
+
+            // Health banner
+            const tvl = parseFloat(d.totalValueUSD);
+            const banner = document.getElementById('health-banner');
+            banner.classList.remove('hidden');
+            if (tvl < 200) {
+                document.getElementById('health-title').textContent = 'Pool is Building';
+                document.getElementById('health-desc').textContent  = `$${fmt(tvl)} locked · Adding $50/week · Target: $850 for healthy trading`;
+                document.getElementById('health-score').textContent = '🌱';
+            } else if (tvl < 500) {
+                document.getElementById('health-title').textContent = 'Pool is Growing';
+                document.getElementById('health-desc').textContent  = `$${fmt(tvl)} locked · Small purchases now usable`;
+                document.getElementById('health-score').textContent = '📈';
+            } else {
+                document.getElementById('health-title').textContent = 'Pool is Healthy';
+                document.getElementById('health-desc').textContent  = `$${fmt(tvl)} locked · Good for purchases up to $50`;
+                document.getElementById('health-score').textContent = '✅';
+            }
+
+            // Growth table
+            buildGrowthTable(tvl);
+        }
+
+        function buildGrowthTable(currentTVL) {
+            const tbody = document.getElementById('growth-table');
+            tbody.innerHTML = '';
+            const weeks = [
+                { label: 'Now (current)', add: 0 },
+                { label: 'Week 1', add: 50 },
+                { label: 'Week 2', add: 100 },
+                { label: 'Week 3', add: 150 },
+                { label: 'Week 4', add: 200 },
+                { label: 'Week 8', add: 400 },
+                { label: 'Week 12', add: 600 },
+            ];
+
+            weeks.forEach((w, i) => {
+                const tvl      = currentTVL + w.add;
+                const bnbSide  = tvl / 2;
+                const slip10   = ((10  / (bnbSide + 10))  * 100).toFixed(1);
+                const slip50   = ((50  / (bnbSide + 50))  * 100).toFixed(1);
+                const isCurrent = i === 0;
+                const isTarget  = parseFloat(slip50) < 3 && !isCurrent;
+
+                const row = document.createElement('tr');
+                row.className = 'week-row transition-colors';
+                if (isCurrent) row.style.background = 'rgba(99,102,241,0.08)';
+
+                row.innerHTML = `
+                    <td class="py-3 pr-4">
+                        <span class="font-medium ${isCurrent ? 'text-indigo-400' : 'text-white'}">${w.label}</span>
+                        ${isCurrent ? '<span class="ml-2 text-xs text-indigo-500">← you are here</span>' : ''}
+                    </td>
+                    <td class="py-3 pr-4 text-right font-mono">${fmtUSD(tvl)}</td>
+                    <td class="py-3 pr-4 text-right font-mono" style="color:${slippageColor(parseFloat(slip10))}">${slip10}%</td>
+                    <td class="py-3 pr-4 text-right font-mono" style="color:${slippageColor(parseFloat(slip50))}">${slip50}%</td>
+                    <td class="py-3 text-right">
+                        ${isTarget ? '<span class="badge" style="background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.2)">Target ✓</span>' :
+                          isCurrent ? '<span class="badge" style="background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.2)">Current</span>' :
+                          '<span class="text-slate-600 text-xs">Building</span>'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function calcCustom() {
+            const amt = parseFloat(document.getElementById('custom-amt').value);
+            const result = document.getElementById('custom-result');
+            if (!poolData || isNaN(amt) || amt <= 0) { result.textContent = '—'; return; }
+            const bnbSide = parseFloat(poolData.bnbUSD);
+            const slip = ((amt / (bnbSide + amt)) * 100).toFixed(2);
+            result.textContent = slip + '%';
+            result.style.color = slippageColor(parseFloat(slip));
+        }
+
+        function copy(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const el = event.target;
+                el.classList.remove('fa-copy');
+                el.classList.add('fa-check');
+                el.style.color = '#34d399';
+                setTimeout(() => {
+                    el.classList.remove('fa-check');
+                    el.classList.add('fa-copy');
+                    el.style.color = '';
+                }, 1500);
+            });
+        }
+
+        // Auto-refresh every 60 seconds
+        loadPool();
+        setInterval(loadPool, 60000);
+    </script>
+</body>
+</html>
