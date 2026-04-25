@@ -37,7 +37,7 @@ const CHAINS = {
   },
   ethereum: {
     name:    'Ethereum Mainnet',
-    rpc:     'https://eth.llamarpc.com',
+    rpc:     'https://1rpc.io/eth',
     eid:     30101,
     chainId: 1,
   },
