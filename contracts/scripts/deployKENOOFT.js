@@ -198,8 +198,12 @@ async function deployOFT() {
   return address;
 }
 
+function addressToBytes32(addr) {
+  return ethers.zeroPadValue(addr, 32);
+}
+
 async function connectPeers() {
-  console.log('\n=== STEP 3: Connect OFTAdapter ↔ KENOOOFT peers ===\n');
+  console.log('\n=== STEP 3: Connect OFTAdapter ↔ KENOOOFT peers (both directions) ===\n');
 
   const addrFile = path.join(__dirname, '..', 'deployed-addresses.json');
   const addrs    = JSON.parse(fs.readFileSync(addrFile, 'utf8'));
@@ -211,36 +215,51 @@ async function connectPeers() {
   if (Object.keys(destinations).length === 0) throw new Error('No destination OFTs deployed yet — run --dest first');
 
   const privKey = process.env.DEPLOYER_PRIVATE_KEY;
-  const provider = new ethers.JsonRpcProvider(CHAINS.bsc.rpc);
-  const wallet   = new ethers.Wallet(privKey, provider);
 
   const { abi: adapterAbi } = compile('KENOOFTAdapter', 'KENOOFTAdapter.sol');
-  const adapter = new ethers.Contract(adapterAddress, adapterAbi, wallet);
+  const { abi: oftAbi }     = compile('KENOOOFT', 'KENOOOFT.sol');
 
   for (const [eidStr, dest] of Object.entries(destinations)) {
     const dstEid   = parseInt(eidStr);
     const destAddr = dest.address;
+    const chainCfg = Object.values(CHAINS).find(c => c.eid === dstEid);
 
-    console.log(`\nConnecting: BSC adapter → ${dest.chain} OFT (EID ${dstEid})`);
-    console.log(`  Adapter:  ${adapterAddress}`);
-    console.log(`  Dest OFT: ${destAddr}`);
+    console.log(`\n── Connecting BSC ↔ ${dest.chain} (EID ${dstEid}) ──`);
+    console.log(`  BSC Adapter: ${adapterAddress}`);
+    console.log(`  Dest OFT:    ${destAddr}`);
 
-    // Set peer on BSC adapter pointing to destination OFT
-    const tx = await adapter.setPeerAddress(dstEid, destAddr);
-    await tx.wait();
-    console.log(`  ✅ BSC adapter setPeer(${dstEid}, ${destAddr}) — tx: ${tx.hash}`);
+    // Direction 1: BSC adapter → destination OFT
+    // Call setPeer(dstEid, bytes32) directly — avoids the this.X() delegation bug
+    const bscProvider = new ethers.JsonRpcProvider(CHAINS.bsc.rpc);
+    const bscWallet   = new ethers.Wallet(privKey, bscProvider);
+    const adapter     = new ethers.Contract(adapterAddress, adapterAbi, bscWallet);
 
-    console.log(`\n  ⚠️  MANUAL STEP REQUIRED:`);
-    console.log(`  Call setPeerAddress(30102, ${adapterAddress}) on the KENOOOFT at ${destAddr}`);
-    console.log(`  using the deployer wallet on the ${dest.chain} network.`);
-    console.log(`  This can be done via BscScan/Arbiscan write contract tab.`);
+    const destBytes32 = addressToBytes32(destAddr);
+    console.log(`\n  [BSC] calling setPeer(${dstEid}, ${destBytes32})...`);
+    const tx1 = await adapter.setPeer(dstEid, destBytes32);
+    await tx1.wait();
+    console.log(`  ✅ BSC adapter now trusts ${dest.chain} OFT — tx: ${tx1.hash}`);
+
+    // Direction 2: destination OFT → BSC adapter
+    if (!chainCfg) {
+      console.log(`  ⚠️  No RPC configured for EID ${dstEid} — skipping dest-side setPeer`);
+      continue;
+    }
+    const destProvider = new ethers.JsonRpcProvider(chainCfg.rpc);
+    const destWallet   = new ethers.Wallet(privKey, destProvider);
+    const oft          = new ethers.Contract(destAddr, oftAbi, destWallet);
+
+    const adapterBytes32 = addressToBytes32(adapterAddress);
+    console.log(`  [${dest.chain}] calling setPeer(30102, ${adapterBytes32})...`);
+    const tx2 = await oft.setPeer(30102, adapterBytes32);
+    await tx2.wait();
+    console.log(`  ✅ ${dest.chain} OFT now trusts BSC adapter — tx: ${tx2.hash}`);
   }
 
-  console.log('\n=== Connection complete ===');
-  console.log('After setting peers on destination chains, KENO bridging is live.');
-  console.log('\nBridge test (small amount first!):');
-  console.log('  1. Approve adapter to spend your KENO on BSC');
-  console.log(`  2. Call sendKENO(dstEid, yourAddress, amount, defaultOptions())`);
+  console.log('\n=== Both directions connected — KENO bridging is LIVE ===');
+  console.log('\nTo bridge KENO from BSC → Base:');
+  console.log('  1. Approve KENOOFTAdapter to spend your KENO on BSC');
+  console.log(`  2. Call sendKENO(30184, yourAddress, amount, defaultOptions())`);
   console.log('  3. Monitor at https://layerzeroscan.com');
 }
 
