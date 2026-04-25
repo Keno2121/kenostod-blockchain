@@ -109,8 +109,13 @@ async function main() {
   const receipt = await tx.wait();
   console.log(`Confirmed in block ${receipt.blockNumber}`);
 
-  // Extract deployed address from event or use computed address
-  const kenoxAddress = existingAddr;
+  // Extract actual deployed address from SuperTokenCreated event log
+  // Topic: 0xb52c6d9d122e8c07769b96d7bb14e66db58ee03fdebaaa2f92547e9c7ef0e65f
+  const SF_TOKEN_CREATED = '0xb52c6d9d122e8c07769b96d7bb14e66db58ee03fdebaaa2f92547e9c7ef0e65f';
+  const createdLog = receipt.logs.find(l => l.topics[0] === SF_TOKEN_CREATED);
+  const kenoxAddress = createdLog
+    ? '0x' + createdLog.topics[1].slice(26)  // address is in topic[1], padded to 32 bytes
+    : existingAddr;
   console.log(`\n✅ KEENOx deployed: ${kenoxAddress}`);
   console.log(`   https://polygonscan.com/address/${kenoxAddress}`);
 
