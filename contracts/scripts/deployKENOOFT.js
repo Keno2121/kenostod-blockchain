@@ -55,7 +55,7 @@ const CHAINS = {
   },
   polygon: {
     name:    'Polygon',
-    rpc:     'https://polygon-rpc.com',
+    rpc:     'https://1rpc.io/matic',
     eid:     30109,
     chainId: 137,
   },
