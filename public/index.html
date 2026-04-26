@@ -2209,7 +2209,13 @@
                 });
 
                 clearTimeout(timeoutId);
-                const data = await response.json();
+                const rawText = await response.text();
+                let data = {};
+                try {
+                    data = rawText ? JSON.parse(rawText) : {};
+                } catch (e) {
+                    throw new Error('Server returned an invalid response. Please try again in a moment.');
+                }
 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to create checkout session');
