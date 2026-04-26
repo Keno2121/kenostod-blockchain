@@ -1,4 +1,16 @@
-const API_BASE = '';
+const API_BASE = 'https://kenostod-blockchain.onrender.com';
+
+// Route all /api/ fetch calls to the Node server automatically
+(function() {
+    const _fetch = window.fetch.bind(window);
+    window.fetch = function(url, opts) {
+        if (typeof url === 'string' && url.startsWith('/api/')) {
+            url = API_BASE + url;
+        }
+        return _fetch(url, opts);
+    };
+})();
+
 let ec;
 let currentLanguage = localStorage.getItem('language') || 'en';
 

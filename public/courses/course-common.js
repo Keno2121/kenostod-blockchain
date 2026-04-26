@@ -1,6 +1,18 @@
 // Kenostod Academy - Shared Course Functionality
 // Wallet Connection & KENO Reward System
 
+// Route /api/ calls to Node server (separate from the static site)
+if (typeof window !== 'undefined' && !window.__apiRouted) {
+    window.__apiRouted = true;
+    const _origFetch = window.fetch.bind(window);
+    window.fetch = function(url, opts) {
+        if (typeof url === 'string' && url.startsWith('/api/')) {
+            url = 'https://kenostod-blockchain.onrender.com' + url;
+        }
+        return _origFetch(url, opts);
+    };
+}
+
 (function() {
     // Load enrollment modal script
     if (!document.querySelector('script[src="/enrollment-modal.js"]')) {
