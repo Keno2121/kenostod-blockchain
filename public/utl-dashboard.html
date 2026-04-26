@@ -1180,17 +1180,16 @@
         };
         const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
         const BSC_CHAIN_ID = '0x38';
-        let WALLETCONNECT_PROJECT_ID = '';
+        let WALLETCONNECT_PROJECT_ID = 'b5a74d48402f00067b4979c315e7350a'; // public key, safe in frontend
         let configLoaded = false;
 
         const configPromise = (async () => {
             try {
                 const resp = await fetch('/api/utl/config');
                 const config = await resp.json();
-                WALLETCONNECT_PROJECT_ID = config.walletConnectProjectId || '';
+                WALLETCONNECT_PROJECT_ID = config.walletConnectProjectId || WALLETCONNECT_PROJECT_ID;
                 configLoaded = true;
             } catch (e) {
-                console.log('UTL config not available');
                 configLoaded = true;
             }
         })();
@@ -1289,37 +1288,50 @@
         }
 
         async function connectMetaMaskDirect() {
-            if (!window.ethereum) {
-                showToast('MetaMask not detected. Please install MetaMask.', 'error');
+            const mmProvider = window.ethereum?.providers?.find(p => p.isMetaMask) || (window.ethereum?.isMetaMask ? window.ethereum : null) || window.ethereum;
+            if (!mmProvider) {
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isMobile) {
+                    const dappUrl = encodeURIComponent(window.location.href);
+                    window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+                } else {
+                    showToast('MetaMask not detected. Install the MetaMask browser extension at metamask.io.', 'error', 7000);
+                }
                 return;
             }
-            await window.ethereum.request({ method: 'eth_requestAccounts' });
-            await ensureBSC(window.ethereum);
-            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await mmProvider.request({ method: 'eth_requestAccounts' });
+            await ensureBSC(mmProvider);
+            provider = new ethers.providers.Web3Provider(mmProvider);
             signer = provider.getSigner();
             userAddress = await signer.getAddress();
             setupContracts();
             showConnected('MetaMask');
             loadDashboard();
 
-            window.ethereum.on('accountsChanged', (accounts) => {
+            mmProvider.on('accountsChanged', (accounts) => {
                 if (accounts.length === 0) { showDisconnected(); }
                 else { userAddress = accounts[0]; loadDashboard(); }
             });
         }
 
         async function connectCoinbaseDirect() {
-            if (window.ethereum && window.ethereum.isCoinbaseWallet) {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                await ensureBSC(window.ethereum);
-                provider = new ethers.providers.Web3Provider(window.ethereum);
+            const cbProvider = window.ethereum?.providers?.find(p => p.isCoinbaseWallet) || (window.ethereum?.isCoinbaseWallet ? window.ethereum : null);
+            if (cbProvider) {
+                await cbProvider.request({ method: 'eth_requestAccounts' });
+                await ensureBSC(cbProvider);
+                provider = new ethers.providers.Web3Provider(cbProvider);
                 signer = provider.getSigner();
                 userAddress = await signer.getAddress();
                 setupContracts();
                 showConnected('Coinbase Wallet');
                 loadDashboard();
             } else {
-                showToast('Coinbase Wallet extension not detected. Try using the WalletConnect option or install Coinbase Wallet.', 'error');
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isMobile) {
+                    window.location.href = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(window.location.href)}`;
+                } else {
+                    showToast('Coinbase Wallet extension not detected. Install it at coinbase.com/wallet or use WalletConnect.', 'error', 7000);
+                }
             }
         }
 
@@ -1384,11 +1396,7 @@
 
         async function connectWalletConnectDirect() {
             await configPromise;
-            if (!WALLETCONNECT_PROJECT_ID) {
-                showPhantomInstructions();
-                return;
-            }
-            showToast('Loading WalletConnect…', 'info', 5000);
+            showToast('Opening WalletConnect…', 'info', 8000);
             try {
                 // Load WalletConnect EthereumProvider via CDN
                 await new Promise((resolve, reject) => {
@@ -1432,10 +1440,10 @@
                     else { userAddress = accounts[0]; loadDashboard(); }
                 });
             } catch (err) {
-                if (err.message === 'CDN_LOAD_FAIL') {
-                    showPhantomInstructions();
-                } else if (err.message?.includes('User rejected') || err.code === 4001) {
+                if (err.message?.includes('User rejected') || err.code === 4001) {
                     showToast('Connection cancelled.', 'warning');
+                } else if (err.message === 'CDN_LOAD_FAIL') {
+                    showToast('Could not load WalletConnect. Check your connection and try again.', 'error', 6000);
                 } else {
                     showToast('WalletConnect error: ' + (err.message || err), 'error', 6000);
                 }
