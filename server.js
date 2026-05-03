@@ -10567,6 +10567,12 @@ app.get('/api/finlego/status', async (req, res) => {
     }
 });
 
+// ==================== MOONPAY CASHOUT CONFIG ====================
+app.get('/api/moonpay/config', (req, res) => {
+    res.json({ publishableKey: process.env.MOONPAY_PUBLISHABLE_KEY || '' });
+});
+// ==================== END MOONPAY CASHOUT CONFIG ====================
+
 // ==================== END FINLEGO / KUTL CARD API ENDPOINTS ====================
 
 // ==================== FOUNDER BACKOFFICE AUTH ====================
