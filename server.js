@@ -10603,17 +10603,17 @@ app.listen(PORT, '0.0.0.0', () => {
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
 
-    // AUTO-START Live Arb Bot — starts automatically on every server boot
-    // 10 second delay ensures RPC connections are ready before first scan
-    setTimeout(async () => {
-        try {
-            console.log('🤖 Auto-starting Live Arb Bot...');
-            const result = await liveArbBot.start();
-            console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
-        } catch (err) {
-            console.error('⚠️ Live Arb Bot auto-start error:', err.message);
-        }
-    }, 10000);
+    // AUTO-START Live Arb Bot — PAUSED (insufficient BNB for gas, focusing on PinkSale Fair Launch)
+    // Uncomment to re-enable once wallet is funded with 0.5+ BNB
+    // setTimeout(async () => {
+    //     try {
+    //         console.log('🤖 Auto-starting Live Arb Bot...');
+    //         const result = await liveArbBot.start();
+    //         console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
+    //     } catch (err) {
+    //         console.error('⚠️ Live Arb Bot auto-start error:', err.message);
+    //     }
+    // }, 10000);
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
