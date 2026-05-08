@@ -781,6 +781,128 @@
     <script src="/ai-support-widget.js"></script>
     <script src="/custom-dialogs.js"></script>
     <script src="arbitrage.js"></script>
+
+    <!-- Subscription Gate Modal -->
+    <div id="subGateModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;">
+        <div style="background:#1e293b;border:2px solid #10b981;border-radius:20px;padding:36px 28px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+            <div style="font-size:2.8rem;margin-bottom:12px;">⚡</div>
+            <h2 style="color:#10b981;font-size:1.6rem;margin-bottom:10px;">Unlock the Arbitrage Platform</h2>
+            <p style="color:#94a3b8;font-size:0.95rem;line-height:1.6;margin-bottom:20px;">
+                Flash Arbitrage Loans and live opportunity execution are <strong style="color:#f59e0b;">Professional Plan</strong> features.<br><br>
+                You're looking at <strong style="color:#fff;">real live market data</strong> — these opportunities are happening right now.
+            </p>
+            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:16px;margin-bottom:24px;">
+                <div style="color:#10b981;font-weight:700;font-size:1.1rem;margin-bottom:8px;">Professional Plan — $35/month</div>
+                <div style="color:#cbd5e1;font-size:0.88rem;line-height:1.8;">
+                    ✅ Unlimited Flash Arbitrage Loans<br>
+                    ✅ Live opportunity execution<br>
+                    ✅ PoRV Mining & RVT Portfolio<br>
+                    ✅ Full platform access (15+ features)<br>
+                    ✅ Graduate Mining Program eligibility
+                </div>
+            </div>
+            <button onclick="startSubCheckout()" style="width:100%;padding:15px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:10px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-bottom:10px;">
+                🚀 Subscribe Now — $35/month
+            </button>
+            <button onclick="document.getElementById('subGateModal').style.display='none'" style="width:100%;padding:11px;background:transparent;color:#64748b;border:1px solid #334155;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+                Maybe later
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let _originalCreateFlashLoan = null;
+        let _originalExecuteArbitrage = null;
+        let _subCheckoutUrl = null;
+        let _subChecked = false;
+        let _hasProSub = false;
+
+        async function checkProSub() {
+            if (_subChecked) return _hasProSub;
+            try {
+                // Pre-fetch the checkout URL so it's ready instantly
+                fetch('/api/stripe/get-price-ids')
+                    .then(r => r.json())
+                    .then(ids => {
+                        if (ids.professional) {
+                            return fetch('/api/stripe/create-checkout-session', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ priceId: ids.professional, plan: 'professional' })
+                            });
+                        }
+                    })
+                    .then(r => r && r.json())
+                    .then(d => { if (d && d.url) _subCheckoutUrl = d.url; })
+                    .catch(() => {});
+            } catch(e) {}
+            _subChecked = true;
+            _hasProSub = false;
+            return false;
+        }
+
+        async function startSubCheckout() {
+            const btn = event.target;
+            btn.textContent = 'Loading...';
+            btn.disabled = true;
+            if (_subCheckoutUrl) {
+                window.location.href = _subCheckoutUrl;
+                return;
+            }
+            try {
+                const ids = await fetch('/api/stripe/get-price-ids').then(r => r.json());
+                const sess = await fetch('/api/stripe/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ priceId: ids.professional, plan: 'professional' })
+                }).then(r => r.json());
+                if (sess.url) window.location.href = sess.url;
+            } catch(e) {
+                btn.textContent = '🚀 Subscribe Now — $35/month';
+                btn.disabled = false;
+                alert('Could not load checkout. Please try again.');
+            }
+        }
+
+        function showSubGate() {
+            document.getElementById('subGateModal').style.display = 'flex';
+        }
+
+        window.addEventListener('load', function() {
+            checkProSub();
+            setTimeout(function() {
+                if (typeof createFlashLoan === 'function' && !_originalCreateFlashLoan) {
+                    _originalCreateFlashLoan = createFlashLoan;
+                    window.createFlashLoan = async function() {
+                        const hasSub = await checkProSub();
+                        if (!hasSub) { showSubGate(); return; }
+                        _originalCreateFlashLoan();
+                    };
+                }
+                if (typeof executeArbitrage === 'function' && !_originalExecuteArbitrage) {
+                    _originalExecuteArbitrage = executeArbitrage;
+                    window.executeArbitrage = async function(idx) {
+                        const hasSub = await checkProSub();
+                        if (!hasSub) { showSubGate(); return; }
+                        _originalExecuteArbitrage(idx);
+                    };
+                }
+            }, 1500);
+        });
+
+        // Handle subscription success redirect
+        const _urlP = new URLSearchParams(window.location.search);
+        if (_urlP.get('subscription') === 'success') {
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#10b981;color:#fff;text-align:center;padding:16px;font-weight:700;font-size:1rem;';
+            banner.innerHTML = '✅ Welcome to Professional Plan! Flash Arbitrage Loans and all features are now unlocked. <button onclick="this.parentElement.remove()" style="margin-left:12px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:3px 10px;border-radius:4px;cursor:pointer;">✕</button>';
+            document.body.prepend(banner);
+            _hasProSub = true;
+            _subChecked = true;
+            window.history.replaceState({}, '', '/arbitrage.html');
+        }
+    </script>
+
     <script>
         async function exportTradingHistory(format) {
             const wallet = document.getElementById('exportWalletAddress').value.trim();
