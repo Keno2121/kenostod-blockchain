@@ -2050,7 +2050,6 @@ app.get('/api/balance/:address', async (req, res) => {
             );
             databaseRewards = parseFloat(result.rows[0]?.total || 0);
         } else {
-            // Check by wallet address (try both internal format and 0x format)
             const result = await pool.query(
                 `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards WHERE user_wallet_address = $1`,
                 [address]
@@ -2070,8 +2069,28 @@ app.get('/api/balance/:address', async (req, res) => {
         return p.walletAddress && p.walletAddress.toLowerCase() === address.toLowerCase();
     });
     icoPurchaseTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+
+    // Query REAL BSC mainnet KENO balance (BEP-20 token)
+    let bscMainnetBalance = 0;
+    if (!isEmail && address.startsWith('0x') && address.length === 42) {
+        try {
+            const { ethers: _ethers } = require('ethers');
+            const KENO_CONTRACT = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+            const BSC_RPC = 'https://bsc-dataseed.binance.org/';
+            const bscProvider = new _ethers.JsonRpcProvider(BSC_RPC);
+            const minABI = ['function balanceOf(address) view returns (uint256)', 'function decimals() view returns (uint8)'];
+            const kenoContract = new _ethers.Contract(KENO_CONTRACT, minABI, bscProvider);
+            const [rawBal, bscDecimals] = await Promise.race([
+                Promise.all([kenoContract.balanceOf(address), kenoContract.decimals()]),
+                new Promise((_, rej) => setTimeout(() => rej(new Error('BSC timeout')), 10000))
+            ]);
+            bscMainnetBalance = parseFloat(_ethers.formatUnits(rawBal, bscDecimals));
+        } catch (bscErr) {
+            console.error('BSC mainnet balance check error:', bscErr.message);
+        }
+    }
     
-    const totalBalance = blockchainBalance + databaseRewards + icoPurchaseTokens;
+    const totalBalance = blockchainBalance + databaseRewards + icoPurchaseTokens + bscMainnetBalance;
     
     res.json({
         address: address,
@@ -2080,7 +2099,8 @@ app.get('/api/balance/:address', async (req, res) => {
         breakdown: {
             blockchain: blockchainBalance,
             courseRewards: databaseRewards,
-            icoPurchases: icoPurchaseTokens
+            icoPurchases: icoPurchaseTokens,
+            bscMainnet: bscMainnetBalance
         }
     });
 });
@@ -4037,44 +4057,64 @@ app.post('/api/banking/withdrawal/cancel', (req, res) => {
 app.post('/api/stripe/create-checkout-session', async (req, res) => {
     try {
         const { priceId, plan, customerEmail } = req.body;
-        
-        if (!priceId) {
-            return res.status(400).json({ error: 'priceId is required' });
-        }
-
+        if (!priceId) return res.status(400).json({ error: 'priceId is required' });
         const protocol = req.headers['x-forwarded-proto'] || req.protocol;
         const host = req.headers['x-forwarded-host'] || req.get('host');
         const baseUrl = `${protocol}://${host}`;
-        
         const successUrl = `${baseUrl}/?subscription=success&plan=${plan || 'unknown'}`;
         const cancelUrl = `${baseUrl}/?subscription=cancelled`;
-
-        // Create or get customer
-        let customer;
-        if (customerEmail) {
-            try {
-                customer = await stripeService.createCustomer(customerEmail, `user-${Date.now()}`);
-            } catch (err) {
-                console.error('Customer creation error:', err);
-                customer = { id: null };
-            }
-        }
-
-        // Create checkout session
-        const session = await stripeService.createCheckoutSession(
-            customer?.id,
-            priceId,
-            successUrl,
-            cancelUrl
-        );
-
-        res.json({ 
-            url: session.url,
-            sessionId: session.id,
-            testMode: process.env.STRIPE_MODE === 'test'
-        });
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const sessionParams = {
+            payment_method_types: ['card'],
+            line_items: [{ price: priceId, quantity: 1 }],
+            mode: 'subscription',
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            metadata: { plan: plan || 'unknown', product: 'subscription' }
+        };
+        if (customerEmail) sessionParams.customer_email = customerEmail;
+        const session = await stripe.checkout.sessions.create(sessionParams);
+        res.json({ url: session.url, sessionId: session.id });
     } catch (error) {
         console.error('Checkout session error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/stripe/create-node-checkout', async (req, res) => {
+    try {
+        const { tier, customerEmail } = req.body;
+        const nodeTiers = {
+            scholar:  { name: 'Scholar Node',  amount: 29900,  desc: 'Scholar Node — 50 KENO/month, 1x multiplier, 5,000 available' },
+            educator: { name: 'Educator Node', amount: 79900,  desc: 'Educator Node — 150 KENO/month, 3x multiplier, 2,500 available' },
+            academy:  { name: 'Academy Node',  amount: 199900, desc: 'Academy Node — 500 KENO/month, 10x multiplier, 1,000 available' }
+        };
+        const selected = nodeTiers[tier];
+        if (!selected) return res.status(400).json({ error: 'Invalid tier. Choose scholar, educator, or academy.' });
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.headers['x-forwarded-host'] || req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const sessionParams = {
+            payment_method_types: ['card'],
+            mode: 'payment',
+            line_items: [{
+                price_data: {
+                    currency: 'usd',
+                    product_data: { name: selected.name, description: selected.desc },
+                    unit_amount: selected.amount
+                },
+                quantity: 1
+            }],
+            success_url: `${baseUrl}/node-sale.html?purchase=success&tier=${tier}`,
+            cancel_url: `${baseUrl}/node-sale.html?purchase=cancelled`,
+            metadata: { tier, product: 'node-sale' }
+        };
+        if (customerEmail) sessionParams.customer_email = customerEmail;
+        const session = await stripe.checkout.sessions.create(sessionParams);
+        res.json({ url: session.url, sessionId: session.id });
+    } catch (error) {
+        console.error('Node checkout error:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -4100,6 +4140,39 @@ app.post('/api/stripe/create-portal-session', async (req, res) => {
     } catch (error) {
         console.error('Portal session error:', error);
         res.status(400).json({ error: error.message });
+    }
+});
+
+// Get live price IDs for subscriptions (used by frontend to load correct IDs)
+app.get('/api/stripe/get-price-ids', async (req, res) => {
+    try {
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const plans = [
+            { key: 'student',      name: 'Kenostod Student',      desc: 'Student Plan — Full blockchain education platform access', amount: 1500 },
+            { key: 'professional', name: 'Kenostod Professional',  desc: 'Professional Plan — Full access + career benefits',        amount: 3500 }
+        ];
+        const result = {};
+        for (const plan of plans) {
+            let product = null;
+            const products = await stripe.products.list({ limit: 100 });
+            product = products.data.find(p => p.name === plan.name && p.active);
+            if (!product) {
+                product = await stripe.products.create({ name: plan.name, description: plan.desc });
+            }
+            const prices = await stripe.prices.list({ product: product.id, active: true, limit: 100 });
+            let price = prices.data.find(p => p.unit_amount === plan.amount && p.recurring?.interval === 'month');
+            if (!price) {
+                price = await stripe.prices.create({
+                    product: product.id, unit_amount: plan.amount, currency: 'usd',
+                    recurring: { interval: 'month', interval_count: 1 }
+                });
+            }
+            result[plan.key] = price.id;
+        }
+        res.json(result);
+    } catch (error) {
+        console.error('get-price-ids error:', error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -6352,6 +6425,82 @@ app.post('/api/wealth/referrals/complete',
         }
     }
 );
+
+// ── Community Referral System ─────────────────────────────────────────────
+// Lightweight in-memory store (survives restarts via db fallback)
+const communityReferrals = new Map(); // code -> { identifier, visits, signups, createdAt }
+
+function generateCommunityCode(identifier) {
+    const base = identifier.replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase();
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `KE${base}${rand}`;
+}
+
+// Generate a community referral link
+app.post('/api/community/referral/generate', async (req, res) => {
+    try {
+        const { email, walletAddress } = req.body;
+        const identifier = walletAddress || email;
+        if (!identifier) return res.status(400).json({ success: false, error: 'Email or wallet address required' });
+
+        // Check if one already exists for this identifier
+        let existingCode = null;
+        for (const [code, data] of communityReferrals.entries()) {
+            if (data.identifier === identifier) { existingCode = code; break; }
+        }
+
+        if (existingCode) {
+            const data = communityReferrals.get(existingCode);
+            return res.json({ success: true, referralCode: existingCode, visits: data.visits, signups: data.signups, isExisting: true });
+        }
+
+        const code = generateCommunityCode(identifier);
+        communityReferrals.set(code, { identifier, visits: 0, signups: 0, createdAt: new Date().toISOString() });
+
+        // Also fire into the wealth builder referral system if available
+        if (wealthBuilderManager && walletAddress) {
+            try { await wealthBuilderManager.generateReferralCode(walletAddress, email || ''); } catch (_) {}
+        }
+
+        res.json({ success: true, referralCode: code, visits: 0, signups: 0, isExisting: false });
+    } catch (error) {
+        console.error('Community referral generate error:', error);
+        res.status(500).json({ success: false, error: 'Could not generate referral code' });
+    }
+});
+
+// Track a visit/signup via community referral link
+app.post('/api/community/referral/track', async (req, res) => {
+    try {
+        const { code, type } = req.body; // type: 'visit' | 'signup'
+        if (!code) return res.status(400).json({ success: false, error: 'Code required' });
+
+        const data = communityReferrals.get(code);
+        if (!data) return res.json({ success: false, error: 'Unknown referral code' });
+
+        if (type === 'signup') {
+            data.signups = (data.signups || 0) + 1;
+        } else {
+            data.visits = (data.visits || 0) + 1;
+        }
+
+        res.json({ success: true, code, visits: data.visits, signups: data.signups });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Tracking error' });
+    }
+});
+
+// Get referral stats for a code
+app.get('/api/community/referral/stats/:code', async (req, res) => {
+    try {
+        const data = communityReferrals.get(req.params.code);
+        if (!data) return res.status(404).json({ success: false, error: 'Code not found' });
+        res.json({ success: true, code: req.params.code, visits: data.visits, signups: data.signups, createdAt: data.createdAt });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Get user's RVT NFTs
 app.get('/api/wealth/rvt/:walletAddress', async (req, res) => {
@@ -10567,6 +10716,12 @@ app.get('/api/finlego/status', async (req, res) => {
     }
 });
 
+// ==================== MOONPAY CASHOUT CONFIG ====================
+app.get('/api/moonpay/config', (req, res) => {
+    res.json({ publishableKey: process.env.MOONPAY_PUBLISHABLE_KEY || '' });
+});
+// ==================== END MOONPAY CASHOUT CONFIG ====================
+
 // ==================== END FINLEGO / KUTL CARD API ENDPOINTS ====================
 
 // ==================== FOUNDER BACKOFFICE AUTH ====================
@@ -10603,17 +10758,17 @@ app.listen(PORT, '0.0.0.0', () => {
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
 
-    // AUTO-START Live Arb Bot — starts automatically on every server boot
-    // 10 second delay ensures RPC connections are ready before first scan
-    setTimeout(async () => {
-        try {
-            console.log('🤖 Auto-starting Live Arb Bot...');
-            const result = await liveArbBot.start();
-            console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
-        } catch (err) {
-            console.error('⚠️ Live Arb Bot auto-start error:', err.message);
-        }
-    }, 10000);
+    // AUTO-START Live Arb Bot — PAUSED (insufficient BNB for gas, focusing on PinkSale Fair Launch)
+    // Uncomment to re-enable once wallet is funded with 0.5+ BNB
+    // setTimeout(async () => {
+    //     try {
+    //         console.log('🤖 Auto-starting Live Arb Bot...');
+    //         const result = await liveArbBot.start();
+    //         console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
+    //     } catch (err) {
+    //         console.error('⚠️ Live Arb Bot auto-start error:', err.message);
+    //     }
+    // }, 10000);
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
