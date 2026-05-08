@@ -665,7 +665,7 @@
                         <li>Node license NFT</li>
                         <li>Community Discord access</li>
                     </ul>
-                    <a href="#whitelist" class="btn btn-secondary" style="width: 100%;">Join Whitelist</a>
+                    <button onclick="buyNode('scholar')" class="btn btn-secondary" style="width: 100%;">Buy Now — $299</button>
                 </div>
 
                 <div class="tier-card featured">
@@ -681,7 +681,7 @@
                         <li>Priority support channel</li>
                         <li>Early feature access</li>
                     </ul>
-                    <a href="#whitelist" class="btn btn-primary" style="width: 100%;">Join Whitelist</a>
+                    <button onclick="buyNode('educator')" class="btn btn-primary" style="width: 100%;">Buy Now — $799</button>
                 </div>
 
                 <div class="tier-card">
@@ -698,7 +698,7 @@
                         <li>Revenue share bonus</li>
                         <li>Lifetime license</li>
                     </ul>
-                    <a href="#whitelist" class="btn btn-secondary" style="width: 100%;">Join Whitelist</a>
+                    <button onclick="buyNode('academy')" class="btn btn-secondary" style="width: 100%;">Buy Now — $1,999</button>
                 </div>
             </div>
         </div>
@@ -837,6 +837,49 @@
         
         updateCountdown();
         setInterval(updateCountdown, 1000);
+
+        // Handle purchase result from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('purchase') === 'success') {
+            const tier = urlParams.get('tier') || 'node';
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#00c851;color:#fff;text-align:center;padding:18px 20px;font-size:1.1rem;font-weight:700;box-shadow:0 4px 20px rgba(0,200,81,0.4);';
+            banner.innerHTML = '&#10003; Payment successful! Your ' + tier.charAt(0).toUpperCase() + tier.slice(1) + ' Node purchase is confirmed. Check your email for details. <button onclick="this.parentElement.remove()" style="margin-left:16px;background:rgba(255,255,255,0.3);border:none;color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;">&#10005;</button>';
+            document.body.prepend(banner);
+            window.history.replaceState({}, '', '/node-sale.html');
+        } else if (urlParams.get('purchase') === 'cancelled') {
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#555;color:#fff;text-align:center;padding:14px 20px;font-size:1rem;';
+            banner.innerHTML = 'Purchase cancelled — no charge was made. <button onclick="this.parentElement.remove()" style="margin-left:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;">&#10005;</button>';
+            document.body.prepend(banner);
+            window.history.replaceState({}, '', '/node-sale.html');
+        }
+
+        async function buyNode(tier) {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Loading...';
+            btn.disabled = true;
+            try {
+                const response = await fetch('/api/stripe/create-node-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tier })
+                });
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert(data.error || 'Something went wrong. Please try again.');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert('Connection error. Please try again.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
 
         // KENO contract address (for validation)
         const KENO_CONTRACT = '0x65791e0b5cbac5f40c76cde31bf4f074d982fd0e';

@@ -4079,6 +4079,44 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     }
 });
 
+app.post('/api/stripe/create-node-checkout', async (req, res) => {
+    try {
+        const { tier, customerEmail } = req.body;
+        const nodeTiers = {
+            scholar:  { name: 'Scholar Node',  amount: 29900,  desc: 'Scholar Node — 50 KENO/month, 1x multiplier, 5,000 available' },
+            educator: { name: 'Educator Node', amount: 79900,  desc: 'Educator Node — 150 KENO/month, 3x multiplier, 2,500 available' },
+            academy:  { name: 'Academy Node',  amount: 199900, desc: 'Academy Node — 500 KENO/month, 10x multiplier, 1,000 available' }
+        };
+        const selected = nodeTiers[tier];
+        if (!selected) return res.status(400).json({ error: 'Invalid tier. Choose scholar, educator, or academy.' });
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.headers['x-forwarded-host'] || req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const sessionParams = {
+            payment_method_types: ['card'],
+            mode: 'payment',
+            line_items: [{
+                price_data: {
+                    currency: 'usd',
+                    product_data: { name: selected.name, description: selected.desc },
+                    unit_amount: selected.amount
+                },
+                quantity: 1
+            }],
+            success_url: `${baseUrl}/node-sale.html?purchase=success&tier=${tier}`,
+            cancel_url: `${baseUrl}/node-sale.html?purchase=cancelled`,
+            metadata: { tier, product: 'node-sale' }
+        };
+        if (customerEmail) sessionParams.customer_email = customerEmail;
+        const session = await stripe.checkout.sessions.create(sessionParams);
+        res.json({ url: session.url, sessionId: session.id });
+    } catch (error) {
+        console.error('Node checkout error:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
 app.post('/api/stripe/create-portal-session', async (req, res) => {
     try {
         const { customerId } = req.body;
