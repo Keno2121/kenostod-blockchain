@@ -817,7 +817,42 @@
         let _subChecked = false;
         let _hasProSub = false;
 
+        // ── Founder bypass ───────────────────────────────────────────
+        // Check URL for ?unlock=PASSWORD on first visit to activate founder mode
+        (async function activateFounderIfNeeded() {
+            const params = new URLSearchParams(window.location.search);
+            const unlockPass = params.get('unlock');
+            if (unlockPass) {
+                try {
+                    const res = await fetch('/api/auth/founder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: unlockPass })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        localStorage.setItem('kenostod_founder', '1');
+                        // Remove the password from URL immediately for security
+                        window.history.replaceState({}, '', '/arbitrage.html');
+                        const b = document.createElement('div');
+                        b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#10b981;color:#fff;text-align:center;padding:14px;font-weight:700;font-size:1rem;';
+                        b.innerHTML = '✅ Founder Mode Activated — all features unlocked on this browser. <button onclick="this.parentElement.remove()" style="margin-left:10px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:3px 10px;border-radius:4px;cursor:pointer;">✕</button>';
+                        document.body.prepend(b);
+                    } else {
+                        window.history.replaceState({}, '', '/arbitrage.html');
+                        alert('Incorrect password.');
+                    }
+                } catch(e) { window.history.replaceState({}, '', '/arbitrage.html'); }
+            }
+        })();
+
+        function isFounder() {
+            return localStorage.getItem('kenostod_founder') === '1';
+        }
+        // ─────────────────────────────────────────────────────────────
+
         async function checkProSub() {
+            if (isFounder()) return true;   // founder always has access
             if (_subChecked) return _hasProSub;
             try {
                 // Pre-fetch the checkout URL so it's ready instantly
