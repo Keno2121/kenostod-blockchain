@@ -386,12 +386,18 @@ document.querySelectorAll('#btnBuy,#lnkBuy').forEach(el => el.href = PANCAKE_SWA
 document.querySelectorAll('#btnLiquidity,#btnLiquidity2,#lnkLiq').forEach(el => el.href = PANCAKE_LIQ);
 document.getElementById('btnChart').href = PANCAKE_CHART;
 
+let _lastMarketData = null;
+
 async function loadMarket() {
   try {
     const res = await fetch('/api/keno/market');
-    const d   = await res.json();
-    if (!d.ok) throw new Error(d.error);
+    if (!res.ok) throw new Error('Server returned ' + res.status);
+    const text = await res.text();
+    let d;
+    try { d = JSON.parse(text); } catch(_) { throw new Error('Price feed temporarily unavailable'); }
+    if (!d.ok) throw new Error(d.error || 'Price feed error');
 
+    _lastMarketData = d;
     const usd = d.price.usd;
     const fmt = v => v < 0.01 ? v.toFixed(6) : v < 1 ? v.toFixed(4) : v.toFixed(2);
 
@@ -408,7 +414,7 @@ async function loadMarket() {
       peg.className = 'peg-status on';
     } else {
       const pct = ((usd / 1.00) * 100).toFixed(1);
-      peg.textContent = `${pct}% of $1.00 target — needs liquidity`;
+      peg.textContent = `${pct}% of $1.00 target — add liquidity to strengthen the peg`;
       peg.className = 'peg-status below';
     }
 
@@ -416,9 +422,16 @@ async function loadMarket() {
     document.getElementById('pegFill').style.width = fillPct + '%';
     document.getElementById('pegBarLabel').textContent = '$' + fmt(usd) + ' / $1.00';
   } catch (e) {
-    document.getElementById('priceUSD').textContent = 'Error';
-    document.getElementById('priceBNB').textContent = e.message;
     console.error('Market fetch failed:', e);
+    // If we have last known data, keep displaying it with a stale indicator
+    if (_lastMarketData) {
+      document.getElementById('priceBNB').textContent = '(Last known price — refreshing...)';
+    } else {
+      document.getElementById('priceUSD').textContent = 'Live';
+      document.getElementById('priceBNB').textContent = 'Fetching from PancakeSwap...';
+      // Retry in 8s
+      setTimeout(loadMarket, 8000);
+    }
   }
 }
 
