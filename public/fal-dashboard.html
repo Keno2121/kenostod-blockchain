@@ -155,6 +155,12 @@
 </head>
 <body>
 
+<!-- REAL FAL REDIRECT BANNER -->
+<div style="background:linear-gradient(135deg,#0d1f15,#111827);border-bottom:2px solid #10b981;padding:14px 20px;text-align:center;position:sticky;top:0;z-index:9999;">
+  <span style="color:#94a3b8;font-size:0.85rem;">📚 This is the <strong style="color:#f59e0b;">educational simulator</strong> — no real money. </span>
+  <a href="/real-fal.html" style="display:inline-block;margin-left:10px;background:#10b981;color:white;padding:6px 18px;border-radius:20px;font-weight:700;font-size:0.85rem;text-decoration:none;">⚡ Go to Real On-Chain FAL →</a>
+</div>
+
 <nav>
   <div class="nav-logo">⚡ FAL™</div>
   <div class="nav-badge">Flash Arbitrage Loans</div>
@@ -385,16 +391,26 @@ async function loadStats() {
 
 // ── Load opportunities ───────────────────────────────────────────
 async function loadOpportunities() {
+  const el = document.getElementById('opportunitiesList');
+
+  // Safety guard: if still showing spinner after 12s, replace with retry
+  const guard = setTimeout(() => {
+    if (el.querySelector('.icon') && el.textContent.includes('Scanning')) {
+      el.innerHTML = '<div class="empty"><div class="icon">📡</div><div>Scan taking longer than usual.</div><button onclick="loadOpportunities()" style="margin-top:10px;background:var(--gold);color:#000;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">Retry</button></div>';
+    }
+  }, 12000);
+
   try {
     const r = await fetch('/api/arbitrage/opportunities');
+    if (!r.ok) throw new Error('Server ' + r.status);
     const d = await r.json();
+    clearTimeout(guard);
     opportunities = d.opportunities || [];
 
-    const el = document.getElementById('opportunitiesList');
     document.getElementById('lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
 
     if (opportunities.length === 0) {
-      el.innerHTML = '<div class="empty"><div class="icon">📡</div><div>No opportunities right now</div><div style="font-size:11px;margin-top:6px;">Scanning every 30 min — check back soon</div></div>';
+      el.innerHTML = '<div class="empty"><div class="icon">📡</div><div>No opportunities right now</div><div style="font-size:11px;margin-top:6px;">Scanning Binance, Coinbase, Kraken every 60s</div></div>';
       return;
     }
 
@@ -426,7 +442,7 @@ async function loadOpportunities() {
           <div class="opp-meta">
             <div class="opp-meta-item"><div class="lbl">Buy @ ${o.buyExchange}</div><div class="val">$${o.buyPrice?.toFixed(4)||'—'}</div></div>
             <div class="opp-meta-item"><div class="lbl">Sell @ ${o.sellExchange}</div><div class="val">$${o.sellPrice?.toFixed(4)||'—'}</div></div>
-            <div class="opp-meta-item"><div class="lbl">Expires</div><div class="val ${timeLeft < 60 ? 'text-red' : 'text-gold'}" style="color:${timeLeft<60?'var(--red)':'var(--gold)'}">${mins}m ${secs}s</div></div>
+            <div class="opp-meta-item"><div class="lbl">Expires</div><div class="val" style="color:${timeLeft<60?'var(--red)':'var(--gold)'}">${mins}m ${secs}s</div></div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <span class="badge ${isHot ? 'badge-green' : 'badge-gold'}">${isHot ? '🔥 Hot' : '⚡ Active'}</span>
@@ -434,15 +450,28 @@ async function loadOpportunities() {
           </div>
         </div>`;
     }).join('');
-  } catch(e) { console.warn('Opp load failed', e); }
+  } catch(e) {
+    clearTimeout(guard);
+    console.warn('Opp load failed', e);
+    el.innerHTML = '<div class="empty"><div class="icon">📡</div><div>Could not reach exchange scanner.</div><button onclick="loadOpportunities()" style="margin-top:10px;background:var(--gold);color:#000;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">Retry</button></div>';
+  }
 }
 
 // ── Load leaderboard ─────────────────────────────────────────────
 async function loadLeaderboard() {
+  const el = document.getElementById('leaderboard');
+
+  const guard = setTimeout(() => {
+    if (el.textContent.includes('Loading')) {
+      el.innerHTML = '<div class="empty"><div class="icon">🏆</div><div>Loading timed out.</div><button onclick="loadLeaderboard()" style="margin-top:10px;background:var(--gold);color:#000;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">Retry</button></div>';
+    }
+  }, 12000);
+
   try {
     const r = await fetch('/api/arbitrage/leaderboard');
+    if (!r.ok) throw new Error('Server ' + r.status);
     const d = await r.json();
-    const el = document.getElementById('leaderboard');
+    clearTimeout(guard);
     const traders = d.leaderboard || d.traders || [];
 
     if (traders.length === 0) {
@@ -464,7 +493,11 @@ async function loadLeaderboard() {
         </div>
       </div>`;
     }).join('');
-  } catch(e) { console.warn('Leaderboard load failed', e); }
+  } catch(e) {
+    clearTimeout(guard);
+    console.warn('Leaderboard load failed', e);
+    el.innerHTML = '<div class="empty"><div class="icon">🏆</div><div>Could not load leaderboard.</div><button onclick="loadLeaderboard()" style="margin-top:10px;background:var(--gold);color:#000;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">Retry</button></div>';
+  }
 }
 
 // ── Select opportunity ───────────────────────────────────────────
@@ -540,12 +573,15 @@ async function executeFAL() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         walletAddress: wallet,
+        amount: loanAmt,
         loanAmount: loanAmt,
         targetPair: currentOpp.asset,
         opportunityId: currentOpp.id
       })
     });
-    const d = await r.json();
+    const text = await r.text();
+    let d;
+    try { d = JSON.parse(text); } catch(pe) { throw new Error('Server error (status ' + r.status + ')'); }
     const res = document.getElementById('execResult');
     res.style.display = 'block';
 
