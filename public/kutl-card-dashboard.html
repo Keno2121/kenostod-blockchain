@@ -740,6 +740,125 @@ nav {
     </div>
   </div>
 
+  <!-- ── CASH OUT TO BANK PANEL ────────────────── -->
+  <div class="panel" style="margin-bottom:1.5rem;" id="cashoutPanel">
+    <div class="panel-header" style="margin-bottom:1.25rem;">
+      <span class="panel-title" style="font-size:1.05rem;"><i class="fas fa-money-bill-wave" style="color:var(--green);margin-right:.5rem;"></i>Cash Out — Sell KENO to Your Bank</span>
+      <span class="panel-badge badge-green">Live</span>
+    </div>
+
+    <!-- Tab switcher -->
+    <div style="display:flex;gap:.5rem;margin-bottom:1.25rem;" id="cashoutTabs">
+      <button onclick="switchCashoutTab('moonpay')" id="tab-moonpay"
+        style="flex:1;padding:.65rem;border-radius:10px;border:1px solid rgba(0,200,83,.4);background:rgba(0,200,83,.12);color:var(--green);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;">
+        <i class="fas fa-moon"></i> MoonPay (Sell Crypto)
+      </button>
+      <button onclick="switchCashoutTab('manual')" id="tab-manual"
+        style="flex:1;padding:.65rem;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(200,214,232,.6);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;">
+        <i class="fas fa-route"></i> Manual Path
+      </button>
+    </div>
+
+    <!-- MoonPay Tab -->
+    <div id="cashout-moonpay">
+      <div style="background:rgba(0,200,83,.07);border:1px solid rgba(0,200,83,.15);border-radius:10px;padding:.85rem 1rem;font-size:.82rem;color:rgba(200,214,232,.75);margin-bottom:1.25rem;line-height:1.6;">
+        <i class="fas fa-info-circle" style="color:var(--green);"></i>
+        &nbsp;MoonPay lets you sell BNB or USDC directly to your bank account or debit card in minutes. No crypto exchange account needed.
+        Convert your KENO earnings to USDC above, then cash out here.
+      </div>
+
+      <!-- Wallet address auto-fill display -->
+      <div id="mpWalletRow" style="display:none;background:rgba(0,0,0,.25);border:1px solid rgba(0,200,83,.15);border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;">
+        <i class="fas fa-check-circle" style="color:var(--green);font-size:1.1rem;"></i>
+        <div>
+          <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:rgba(200,214,232,.4);margin-bottom:.2rem;">Wallet auto-detected</div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--white);font-family:'Rajdhani',monospace;" id="mpWalletDisplay">—</div>
+        </div>
+      </div>
+
+      <!-- Step guide -->
+      <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:rgba(0,0,0,.2);border-radius:10px;font-size:.83rem;">
+          <span style="min-width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;">1</span>
+          <span>Convert KENO → USDC using the panel above</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:rgba(0,0,0,.2);border-radius:10px;font-size:.83rem;">
+          <span style="min-width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;">2</span>
+          <span>Click <strong style="color:var(--green);">Open MoonPay Sell</strong> — your wallet is pre-filled</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:rgba(0,0,0,.2);border-radius:10px;font-size:.83rem;">
+          <span style="min-width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;">3</span>
+          <span>Choose bank transfer or debit card payout — arrives in minutes to 3 days</span>
+        </div>
+      </div>
+
+      <!-- Main CTA buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;">
+        <a id="mpSellBnbBtn" href="https://sell.moonpay.com?baseCurrencyCode=bnb&quoteCurrencyCode=usd" target="_blank"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:1.1rem .75rem;background:linear-gradient(135deg,rgba(0,200,83,.15),rgba(0,200,83,.08));border:1px solid rgba(0,200,83,.35);border-radius:14px;color:var(--green);font-weight:700;font-size:.9rem;text-decoration:none;text-align:center;transition:all .2s;">
+          <i class="fas fa-coins" style="font-size:1.4rem;"></i>
+          Sell BNB
+          <span style="font-size:.72rem;font-weight:400;color:rgba(200,214,232,.4);">Native BNB → USD</span>
+        </a>
+        <a id="mpSellUsdcBtn" href="https://sell.moonpay.com?baseCurrencyCode=usdc_bsc&quoteCurrencyCode=usd" target="_blank"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:1.1rem .75rem;background:linear-gradient(135deg,rgba(79,142,247,.12),rgba(79,142,247,.06));border:1px solid rgba(79,142,247,.3);border-radius:14px;color:#4f8ef7;font-weight:700;font-size:.9rem;text-decoration:none;text-align:center;transition:all .2s;">
+          <i class="fas fa-dollar-sign" style="font-size:1.4rem;"></i>
+          Sell USDC
+          <span style="font-size:.72rem;font-weight:400;color:rgba(200,214,232,.4);">USDC (BSC) → USD</span>
+        </a>
+      </div>
+
+      <a id="mpOpenFull" href="https://sell.moonpay.com" target="_blank"
+        style="display:flex;align-items:center;justify-content:center;gap:.6rem;padding:1rem;background:linear-gradient(135deg,rgba(0,200,83,.2),rgba(0,200,83,.1));border:1px solid rgba(0,200,83,.4);border-radius:14px;color:#fff;font-weight:800;font-size:1rem;text-decoration:none;letter-spacing:.3px;margin-bottom:.75rem;">
+        <i class="fas fa-external-link-alt" style="color:var(--green);"></i>
+        Open MoonPay Sell — Cash Out Now
+      </a>
+
+      <p style="font-size:.75rem;color:rgba(200,214,232,.3);text-align:center;">Powered by MoonPay · Bank transfer 1–3 days · Debit card instant · KYC may be required for larger amounts</p>
+    </div>
+
+    <!-- Manual Path Tab -->
+    <div id="cashout-manual" style="display:none;">
+      <div style="background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.15);border-radius:10px;padding:.85rem 1rem;font-size:.82rem;color:rgba(200,214,232,.75);margin-bottom:1.25rem;line-height:1.6;">
+        <i class="fas fa-info-circle" style="color:#4f8ef7;"></i>
+        &nbsp;Use this path if you already have a Coinbase or Binance account. Takes about 15 minutes total.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,215,0,.1);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;">1</div>
+          <div>
+            <div style="font-weight:700;color:var(--white);margin-bottom:.25rem;">Convert KENO → USDC</div>
+            <div style="font-size:.82rem;color:rgba(200,214,232,.55);">Use the conversion panel above to swap your earned KENO to USDC on PancakeSwap.</div>
+          </div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,215,0,.1);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;">2</div>
+          <div>
+            <div style="font-weight:700;color:var(--white);margin-bottom:.25rem;">Send USDC to Coinbase or Binance</div>
+            <div style="font-size:.82rem;color:rgba(200,214,232,.55);">Transfer your USDC (BNB Chain) to your exchange account. Paste your exchange deposit address in MetaMask.</div>
+          </div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,215,0,.1);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;">3</div>
+          <div>
+            <div style="font-weight:700;color:var(--white);margin-bottom:.25rem;">Sell USDC → USD → Withdraw to Bank</div>
+            <div style="font-size:.82rem;color:rgba(200,214,232,.55);">On Coinbase or Binance: sell USDC for USD, then withdraw to your linked bank account. Arrives in 1–3 business days.</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem;">
+        <a href="https://coinbase.com" target="_blank"
+          style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem;background:rgba(0,82,255,.12);border:1px solid rgba(0,82,255,.25);border-radius:12px;color:#4f8ef7;font-weight:700;font-size:.88rem;text-decoration:none;">
+          <i class="fas fa-exchange-alt"></i> Coinbase
+        </a>
+        <a href="https://binance.com" target="_blank"
+          style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:12px;color:var(--gold);font-weight:700;font-size:.88rem;text-decoration:none;">
+          <i class="fas fa-coins"></i> Binance
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- ROW 2: Transactions + Issue Card -->
   <div class="grid" style="margin-bottom:1.5rem;">
 
@@ -863,15 +982,21 @@ async function loadBalance() {
 }
 
 async function loadTransactions() {
+  const list = document.getElementById('txList');
   try {
     const res = await fetch('/api/finlego/transactions?limit=8');
-    const result = await res.json();
+    // Guard against HTML error pages being returned
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch(_) {
+      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — complete courses and trades to build history.</div>';
+      return;
+    }
     const txs = Array.isArray(result.data) ? result.data : [];
-    const list = document.getElementById('txList');
-    document.getElementById('txCount').textContent = txs.length + ' records';
+    document.getElementById('txCount').textContent = txs.length ? txs.length + ' records' : '—';
 
     if (!txs.length) {
-      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No transactions yet</div>';
+      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — earn KENO and convert to start your history.</div>';
       return;
     }
 
@@ -895,7 +1020,8 @@ async function loadTransactions() {
         </div>`;
     }).join('');
   } catch (e) {
-    document.getElementById('txList').innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">Could not load transactions</div>';
+    console.warn('Transactions load error:', e);
+    list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — earn KENO and convert to start your history.</div>';
   }
 }
 
@@ -1222,6 +1348,67 @@ function convReset() {
 }
 
 convFetchPrice();
+
+// ── MoonPay Cash Out ─────────────────────────────────────
+function switchCashoutTab(tab) {
+  const moonpayEl = document.getElementById('cashout-moonpay');
+  const manualEl  = document.getElementById('cashout-manual');
+  const tabMp     = document.getElementById('tab-moonpay');
+  const tabMan    = document.getElementById('tab-manual');
+
+  if (tab === 'moonpay') {
+    moonpayEl.style.display = 'block';
+    manualEl.style.display  = 'none';
+    tabMp.style.border      = '1px solid rgba(0,200,83,.4)';
+    tabMp.style.background  = 'rgba(0,200,83,.12)';
+    tabMp.style.color       = 'var(--green)';
+    tabMan.style.border     = '1px solid rgba(255,255,255,.1)';
+    tabMan.style.background = 'rgba(255,255,255,.04)';
+    tabMan.style.color      = 'rgba(200,214,232,.6)';
+  } else {
+    moonpayEl.style.display = 'none';
+    manualEl.style.display  = 'block';
+    tabMp.style.border      = '1px solid rgba(255,255,255,.1)';
+    tabMp.style.background  = 'rgba(255,255,255,.04)';
+    tabMp.style.color       = 'rgba(200,214,232,.6)';
+    tabMan.style.border     = '1px solid rgba(79,142,247,.4)';
+    tabMan.style.background = 'rgba(79,142,247,.12)';
+    tabMan.style.color      = '#4f8ef7';
+  }
+}
+
+async function loadMoonPayLinks() {
+  try {
+    const res  = await fetch('/api/moonpay/config');
+    const data = await res.json();
+    const key  = data.publishableKey || '';
+    const wallet = (window.CONV && window.CONV.walletAddr) ? window.CONV.walletAddr : '';
+
+    function buildUrl(base) {
+      let url = base;
+      if (key)    url += (url.includes('?') ? '&' : '?') + 'apiKey=' + encodeURIComponent(key);
+      if (wallet) url += '&walletAddress=' + encodeURIComponent(wallet);
+      return url;
+    }
+
+    const bnbBtn  = document.getElementById('mpSellBnbBtn');
+    const usdcBtn = document.getElementById('mpSellUsdcBtn');
+    const fullBtn = document.getElementById('mpOpenFull');
+
+    if (bnbBtn)  bnbBtn.href  = buildUrl('https://sell.moonpay.com?baseCurrencyCode=bnb&quoteCurrencyCode=usd');
+    if (usdcBtn) usdcBtn.href = buildUrl('https://sell.moonpay.com?baseCurrencyCode=usdc_bsc&quoteCurrencyCode=usd');
+    if (fullBtn) fullBtn.href = buildUrl('https://sell.moonpay.com');
+
+    if (wallet) {
+      const row = document.getElementById('mpWalletRow');
+      const disp = document.getElementById('mpWalletDisplay');
+      if (row)  { row.style.display = 'flex'; }
+      if (disp) { disp.textContent = wallet.slice(0, 8) + '...' + wallet.slice(-6); }
+    }
+  } catch (_) {}
+}
+
+loadMoonPayLinks();
 </script>
 </body>
 </html>
