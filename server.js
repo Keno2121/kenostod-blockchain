@@ -4037,42 +4037,24 @@ app.post('/api/banking/withdrawal/cancel', (req, res) => {
 app.post('/api/stripe/create-checkout-session', async (req, res) => {
     try {
         const { priceId, plan, customerEmail } = req.body;
-        
-        if (!priceId) {
-            return res.status(400).json({ error: 'priceId is required' });
-        }
-
+        if (!priceId) return res.status(400).json({ error: 'priceId is required' });
         const protocol = req.headers['x-forwarded-proto'] || req.protocol;
         const host = req.headers['x-forwarded-host'] || req.get('host');
         const baseUrl = `${protocol}://${host}`;
-        
         const successUrl = `${baseUrl}/?subscription=success&plan=${plan || 'unknown'}`;
         const cancelUrl = `${baseUrl}/?subscription=cancelled`;
-
-        // Create or get customer
-        let customer;
-        if (customerEmail) {
-            try {
-                customer = await stripeService.createCustomer(customerEmail, `user-${Date.now()}`);
-            } catch (err) {
-                console.error('Customer creation error:', err);
-                customer = { id: null };
-            }
-        }
-
-        // Create checkout session
-        const session = await stripeService.createCheckoutSession(
-            customer?.id,
-            priceId,
-            successUrl,
-            cancelUrl
-        );
-
-        res.json({ 
-            url: session.url,
-            sessionId: session.id,
-            testMode: process.env.STRIPE_MODE === 'test'
-        });
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const sessionParams = {
+            payment_method_types: ['card'],
+            line_items: [{ price: priceId, quantity: 1 }],
+            mode: 'subscription',
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            metadata: { plan: plan || 'unknown', product: 'subscription' }
+        };
+        if (customerEmail) sessionParams.customer_email = customerEmail;
+        const session = await stripe.checkout.sessions.create(sessionParams);
+        res.json({ url: session.url, sessionId: session.id });
     } catch (error) {
         console.error('Checkout session error:', error);
         res.status(400).json({ error: error.message });
@@ -4138,6 +4120,39 @@ app.post('/api/stripe/create-portal-session', async (req, res) => {
     } catch (error) {
         console.error('Portal session error:', error);
         res.status(400).json({ error: error.message });
+    }
+});
+
+// Get live price IDs for subscriptions (used by frontend to load correct IDs)
+app.get('/api/stripe/get-price-ids', async (req, res) => {
+    try {
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const plans = [
+            { key: 'student',      name: 'Kenostod Student',      desc: 'Student Plan — Full blockchain education platform access', amount: 1500 },
+            { key: 'professional', name: 'Kenostod Professional',  desc: 'Professional Plan — Full access + career benefits',        amount: 3500 }
+        ];
+        const result = {};
+        for (const plan of plans) {
+            let product = null;
+            const products = await stripe.products.list({ limit: 100 });
+            product = products.data.find(p => p.name === plan.name && p.active);
+            if (!product) {
+                product = await stripe.products.create({ name: plan.name, description: plan.desc });
+            }
+            const prices = await stripe.prices.list({ product: product.id, active: true, limit: 100 });
+            let price = prices.data.find(p => p.unit_amount === plan.amount && p.recurring?.interval === 'month');
+            if (!price) {
+                price = await stripe.prices.create({
+                    product: product.id, unit_amount: plan.amount, currency: 'usd',
+                    recurring: { interval: 'month', interval_count: 1 }
+                });
+            }
+            result[plan.key] = price.id;
+        }
+        res.json(result);
+    } catch (error) {
+        console.error('get-price-ids error:', error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 
