@@ -982,15 +982,21 @@ async function loadBalance() {
 }
 
 async function loadTransactions() {
+  const list = document.getElementById('txList');
   try {
     const res = await fetch('/api/finlego/transactions?limit=8');
-    const result = await res.json();
+    // Guard against HTML error pages being returned
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch(_) {
+      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — complete courses and trades to build history.</div>';
+      return;
+    }
     const txs = Array.isArray(result.data) ? result.data : [];
-    const list = document.getElementById('txList');
-    document.getElementById('txCount').textContent = txs.length + ' records';
+    document.getElementById('txCount').textContent = txs.length ? txs.length + ' records' : '—';
 
     if (!txs.length) {
-      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No transactions yet</div>';
+      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — earn KENO and convert to start your history.</div>';
       return;
     }
 
@@ -1014,7 +1020,8 @@ async function loadTransactions() {
         </div>`;
     }).join('');
   } catch (e) {
-    document.getElementById('txList').innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">Could not load transactions</div>';
+    console.warn('Transactions load error:', e);
+    list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — earn KENO and convert to start your history.</div>';
   }
 }
 
