@@ -2050,7 +2050,6 @@ app.get('/api/balance/:address', async (req, res) => {
             );
             databaseRewards = parseFloat(result.rows[0]?.total || 0);
         } else {
-            // Check by wallet address (try both internal format and 0x format)
             const result = await pool.query(
                 `SELECT COALESCE(SUM(reward_amount), 0) as total FROM student_rewards WHERE user_wallet_address = $1`,
                 [address]
@@ -2070,8 +2069,28 @@ app.get('/api/balance/:address', async (req, res) => {
         return p.walletAddress && p.walletAddress.toLowerCase() === address.toLowerCase();
     });
     icoPurchaseTokens = userPurchases.reduce((sum, p) => sum + (p.tokens || 0), 0);
+
+    // Query REAL BSC mainnet KENO balance (BEP-20 token)
+    let bscMainnetBalance = 0;
+    if (!isEmail && address.startsWith('0x') && address.length === 42) {
+        try {
+            const { ethers: _ethers } = require('ethers');
+            const KENO_CONTRACT = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+            const BSC_RPC = 'https://bsc-dataseed.binance.org/';
+            const bscProvider = new _ethers.JsonRpcProvider(BSC_RPC);
+            const minABI = ['function balanceOf(address) view returns (uint256)', 'function decimals() view returns (uint8)'];
+            const kenoContract = new _ethers.Contract(KENO_CONTRACT, minABI, bscProvider);
+            const [rawBal, bscDecimals] = await Promise.race([
+                Promise.all([kenoContract.balanceOf(address), kenoContract.decimals()]),
+                new Promise((_, rej) => setTimeout(() => rej(new Error('BSC timeout')), 10000))
+            ]);
+            bscMainnetBalance = parseFloat(_ethers.formatUnits(rawBal, bscDecimals));
+        } catch (bscErr) {
+            console.error('BSC mainnet balance check error:', bscErr.message);
+        }
+    }
     
-    const totalBalance = blockchainBalance + databaseRewards + icoPurchaseTokens;
+    const totalBalance = blockchainBalance + databaseRewards + icoPurchaseTokens + bscMainnetBalance;
     
     res.json({
         address: address,
@@ -2080,7 +2099,8 @@ app.get('/api/balance/:address', async (req, res) => {
         breakdown: {
             blockchain: blockchainBalance,
             courseRewards: databaseRewards,
-            icoPurchases: icoPurchaseTokens
+            icoPurchases: icoPurchaseTokens,
+            bscMainnet: bscMainnetBalance
         }
     });
 });

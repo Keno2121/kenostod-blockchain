@@ -115,11 +115,17 @@ async function loadOpportunities() {
         }
     } catch (error) {
         console.error('Failed to load opportunities:', error);
-        document.getElementById('opportunitiesList').innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #ef4444;">
-                <p>Error loading opportunities. Please try again.</p>
-            </div>
-        `;
+        const loadingEl = document.getElementById('opportunitiesLoading');
+        const listEl = document.getElementById('opportunitiesList');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (listEl) {
+            listEl.style.display = 'block';
+            listEl.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                    <p>Error loading opportunities. Please try again.</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -184,11 +190,17 @@ async function loadLeaderboard() {
         }
     } catch (error) {
         console.error('Failed to load leaderboard:', error);
-        document.getElementById('leaderboardContent').innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #ef4444;">
-                <p>Error loading leaderboard. Please try again.</p>
-            </div>
-        `;
+        const loadingEl = document.getElementById('leaderboardLoading');
+        const contentEl = document.getElementById('leaderboardContent');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (contentEl) {
+            contentEl.style.display = 'block';
+            contentEl.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                    <p>Error loading leaderboard. Please try again.</p>
+                </div>
+            `;
+        }
     }
 }
 

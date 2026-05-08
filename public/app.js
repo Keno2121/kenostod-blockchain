@@ -1538,22 +1538,23 @@ async function checkBalance() {
         const resultDiv = document.getElementById('balanceResult');
         resultDiv.className = 'result success';
         
-        // Show breakdown if available
+        // Build breakdown rows
         let breakdownHtml = '';
         if (data.breakdown) {
-            const parts = [];
-            if (data.breakdown.blockchain > 0) parts.push(`Blockchain: ${data.breakdown.blockchain}`);
-            if (data.breakdown.courseRewards > 0) parts.push(`Course Rewards: ${data.breakdown.courseRewards}`);
-            if (data.breakdown.icoPurchases > 0) parts.push(`ICO Purchases: ${data.breakdown.icoPurchases}`);
-            if (parts.length > 1) {
-                breakdownHtml = `<p style="font-size: 0.9em; opacity: 0.8;"><em>(${parts.join(' + ')})</em></p>`;
+            const rows = [];
+            if (data.breakdown.bscMainnet > 0) rows.push(`<tr><td>🔗 BSC Mainnet (real KENO)</td><td><strong style="color:#10b981;">${data.breakdown.bscMainnet.toLocaleString()}</strong></td></tr>`);
+            if (data.breakdown.icoPurchases > 0) rows.push(`<tr><td>🪙 ICO Purchases</td><td>${data.breakdown.icoPurchases.toLocaleString()}</td></tr>`);
+            if (data.breakdown.courseRewards > 0) rows.push(`<tr><td>🎓 Course Rewards</td><td>${data.breakdown.courseRewards.toLocaleString()}</td></tr>`);
+            if (data.breakdown.blockchain > 0) rows.push(`<tr><td>⛓ Platform Balance</td><td>${data.breakdown.blockchain.toLocaleString()}</td></tr>`);
+            if (rows.length > 0) {
+                breakdownHtml = `<table style="width:100%;margin-top:8px;font-size:0.9em;border-collapse:collapse;">${rows.join('')}</table>`;
             }
         }
         
         resultDiv.innerHTML = `
             <h4>Balance Information</h4>
             <p><strong>Address:</strong> <code>${data.address.substring(0, 20)}...</code></p>
-            <p><strong>Balance:</strong> ${data.balance.toLocaleString()} ${data.token}</p>
+            <p><strong>Total Balance:</strong> ${data.balance.toLocaleString()} ${data.token}</p>
             ${breakdownHtml}
         `;
     } catch (error) {
