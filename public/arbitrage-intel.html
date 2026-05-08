@@ -386,24 +386,19 @@
         let selectedPool = null;
         
         async function loadData() {
-            try {
-                const [oppRes, poolRes] = await Promise.all([
-                    fetch('/api/arbitrage/opportunities'),
-                    fetch('/api/fal-pool/list')
-                ]);
-                
-                const oppData = await oppRes.json();
-                const poolData = await poolRes.json();
-                
-                opportunities = oppData.success ? oppData.opportunities : [];
-                pools = poolData.success ? poolData.pools : [];
-                
-                renderHeatmap();
-                renderTrending();
-            } catch (error) {
-                console.error('Error loading data:', error);
-                document.getElementById('heatmap').innerHTML = '<div class="empty-state">Failed to load opportunities</div>';
-            }
+            // Fetch opportunities and pools independently so one failure doesn't kill the other
+            const [oppResult, poolResult] = await Promise.allSettled([
+                fetch('/api/arbitrage/opportunities').then(r => r.json()).catch(() => null),
+                fetch('/api/fal-pool/list').then(r => r.json()).catch(() => null)
+            ]);
+
+            opportunities = (oppResult.status === 'fulfilled' && oppResult.value?.success)
+                ? oppResult.value.opportunities : [];
+            pools = (poolResult.status === 'fulfilled' && poolResult.value?.success)
+                ? poolResult.value.pools : [];
+
+            renderHeatmap();
+            renderTrending();
         }
         
         function getProfitLevel(profit) {

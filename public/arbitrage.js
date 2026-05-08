@@ -67,19 +67,28 @@ async function loadStats() {
 }
 
 async function loadOpportunities() {
+    const loading = document.getElementById('opportunitiesLoading');
+    const list = document.getElementById('opportunitiesList');
+
+    function showOpps(html) {
+        if (loading) loading.style.display = 'none';
+        if (list) { list.style.display = 'block'; if (html) list.innerHTML = html; }
+    }
+
+    // Safety net: always hide spinner after 12 seconds
+    const guard = setTimeout(() => showOpps(`
+        <div style="text-align:center;padding:30px;color:#64748b;">
+            <p>Taking longer than expected. <button onclick="loadOpportunities()" style="background:#10b981;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">Retry</button></p>
+        </div>`), 12000);
+
     try {
         const response = await fetch('/api/arbitrage/opportunities');
         const data = await response.json();
-        
-        const loading = document.getElementById('opportunitiesLoading');
-        const list = document.getElementById('opportunitiesList');
-        
-        loading.style.display = 'none';
-        list.style.display = 'block';
-        
-        if (data.success && data.opportunities.length > 0) {
+        clearTimeout(guard);
+
+        if (data.success && data.opportunities && data.opportunities.length > 0) {
             currentOpportunities = data.opportunities;
-            list.innerHTML = data.opportunities.map((opp, index) => {
+            showOpps(data.opportunities.map((opp, index) => {
                 const profitPct = opp.profitPercent || opp.percentageDiff || 0;
                 return `
                 <div class="opportunity-card" id="opp-${index}">
@@ -94,113 +103,83 @@ async function loadOpportunities() {
                             Price: $${opp.sellPrice.toFixed(4)}
                         </div>
                     </div>
-                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
-                        <button onclick="executeArbitrage(${index})" class="btn-execute-arb" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">
+                    <div style="margin-top:15px;padding-top:15px;border-top:1px solid #e2e8f0;">
+                        <button onclick="executeArbitrage(${index})" class="btn-execute-arb" style="width:100%;padding:12px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;">
                             Execute This Arbitrage
                         </button>
-                        <small style="color: #64748b; display: block; margin-top: 8px; text-align: center;">
-                            Calculates profit automatically based on your loan
-                        </small>
+                        <small style="color:#64748b;display:block;margin-top:8px;text-align:center;">Calculates profit automatically based on your loan</small>
                     </div>
-                </div>
-            `}).join('');
+                </div>`;
+            }).join(''));
         } else {
-            list.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #64748b;">
-                    <div style="font-size: 3rem; margin-bottom: 15px;">📊</div>
-                    <p>No arbitrage opportunities detected right now.</p>
-                    <small>We scan exchanges every 30 seconds for price differentials ≥2%</small>
-                </div>
-            `;
+            showOpps(`
+                <div style="text-align:center;padding:40px;color:#64748b;">
+                    <div style="font-size:3rem;margin-bottom:15px;">📊</div>
+                    <p>No opportunities right now — check back in 30 seconds.</p>
+                    <small>We scan Binance, Coinbase, Kraken, KuCoin every 30s</small>
+                </div>`);
         }
     } catch (error) {
+        clearTimeout(guard);
         console.error('Failed to load opportunities:', error);
-        const loadingEl = document.getElementById('opportunitiesLoading');
-        const listEl = document.getElementById('opportunitiesList');
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (listEl) {
-            listEl.style.display = 'block';
-            listEl.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #ef4444;">
-                    <p>Error loading opportunities. Please try again.</p>
-                </div>
-            `;
-        }
+        showOpps(`
+            <div style="text-align:center;padding:30px;color:#ef4444;">
+                <p>Could not reach server. <button onclick="loadOpportunities()" style="background:#ef4444;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">Retry</button></p>
+            </div>`);
     }
 }
 
 async function loadLeaderboard() {
+    const loading = document.getElementById('leaderboardLoading');
+    const content = document.getElementById('leaderboardContent');
+
+    function showBoard(html) {
+        if (loading) loading.style.display = 'none';
+        if (content) { content.style.display = 'block'; if (html) content.innerHTML = html; }
+    }
+
+    // Safety net: force-hide after 12 seconds
+    const guard = setTimeout(() => showBoard(`
+        <div style="text-align:center;padding:30px;color:#64748b;">
+            <p>Taking longer than expected. <button onclick="loadLeaderboard()" style="background:#10b981;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">Retry</button></p>
+        </div>`), 12000);
+
     try {
         const response = await fetch('/api/arbitrage/leaderboard?limit=10');
         const data = await response.json();
-        
-        const loading = document.getElementById('leaderboardLoading');
-        const content = document.getElementById('leaderboardContent');
-        
-        loading.style.display = 'none';
-        content.style.display = 'block';
-        
-        if (data.success && data.leaderboard.length > 0) {
-            const table = `
+        clearTimeout(guard);
+
+        if (data.success && data.leaderboard && data.leaderboard.length > 0) {
+            showBoard(`
                 <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Trader</th>
-                            <th>Total Profit</th>
-                            <th>Successful Trades</th>
-                            <th>Level</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.leaderboard.map((trader, index) => {
-                            const rank = index + 1;
-                            const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-                            const levelBadge = getLevelBadge(trader.reputationLevel);
-                            
-                            return `
-                                <tr>
-                                    <td>
-                                        <span class="rank-badge ${rankClass}">${rank}</span>
-                                    </td>
-                                    <td>
-                                        <span style="font-family: 'Courier New', monospace; font-size: 0.85rem;">
-                                            ${trader.walletAddress.substring(0, 20)}...
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <strong style="color: #10b981;">${trader.totalProfit.toFixed(2)} KENO</strong>
-                                    </td>
-                                    <td>${trader.successfulLoans}</td>
-                                    <td>${levelBadge}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            `;
-            content.innerHTML = table;
+                    <thead><tr><th>Rank</th><th>Trader</th><th>Total Profit</th><th>Trades</th><th>Level</th></tr></thead>
+                    <tbody>${data.leaderboard.map((trader, index) => {
+                        const rank = index + 1;
+                        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                        return `
+                            <tr>
+                                <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+                                <td><span style="font-family:monospace;font-size:0.85rem;">${trader.walletAddress.substring(0,20)}...</span></td>
+                                <td><strong style="color:#10b981;">${trader.totalProfit.toFixed(2)} KENO</strong></td>
+                                <td>${trader.successfulLoans}</td>
+                                <td>${getLevelBadge(trader.reputationLevel)}</td>
+                            </tr>`;
+                    }).join('')}</tbody>
+                </table>`);
         } else {
-            content.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #64748b;">
-                    <div style="font-size: 3rem; margin-bottom: 15px;">🏆</div>
+            showBoard(`
+                <div style="text-align:center;padding:40px;color:#64748b;">
+                    <div style="font-size:3rem;margin-bottom:15px;">🏆</div>
                     <p>No traders yet. Be the first to join the revolution!</p>
-                </div>
-            `;
+                </div>`);
         }
     } catch (error) {
+        clearTimeout(guard);
         console.error('Failed to load leaderboard:', error);
-        const loadingEl = document.getElementById('leaderboardLoading');
-        const contentEl = document.getElementById('leaderboardContent');
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (contentEl) {
-            contentEl.style.display = 'block';
-            contentEl.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #ef4444;">
-                    <p>Error loading leaderboard. Please try again.</p>
-                </div>
-            `;
-        }
+        showBoard(`
+            <div style="text-align:center;padding:30px;color:#ef4444;">
+                <p>Could not load leaderboard. <button onclick="loadLeaderboard()" style="background:#ef4444;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">Retry</button></p>
+            </div>`);
     }
 }
 
@@ -546,38 +525,47 @@ async function checkWithdrawBalance() {
         statusDiv.innerHTML = '<p style="color: #fef08a;">Please enter your wallet address</p>';
         return;
     }
+
+    statusDiv.innerHTML = '<p style="color: #94a3b8;">Checking balance...</p>';
+    profileInfo.innerHTML = '';
     
     try {
-        const response = await fetch(`/api/arbitrage/profile/${walletAddress}`);
+        const response = await fetch(`/api/arbitrage/profile/${encodeURIComponent(walletAddress)}`);
+        if (!response.ok) throw new Error(`Server returned ${response.status}`);
         const data = await response.json();
         
         if (data.success && data.profile) {
-            const availableBalance = data.profile.totalProfit + data.profile.totalBonusEarned;
+            const availableBalance = (data.profile.totalProfit || 0) + (data.profile.totalBonusEarned || 0);
             profileInfo.innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;">
                     <div>
-                        <div style="font-size: 1.5rem; font-weight: 700;">${data.profile.totalProfit.toFixed(2)}</div>
-                        <div style="opacity: 0.8; font-size: 0.85rem;">Arbitrage Profits</div>
+                        <div style="font-size:1.5rem;font-weight:700;">${(data.profile.totalProfit||0).toFixed(2)}</div>
+                        <div style="opacity:0.8;font-size:0.85rem;">Arbitrage Profits</div>
                     </div>
                     <div>
-                        <div style="font-size: 1.5rem; font-weight: 700;">${data.profile.totalBonusEarned.toFixed(2)}</div>
-                        <div style="opacity: 0.8; font-size: 0.85rem;">Bonus Earnings</div>
+                        <div style="font-size:1.5rem;font-weight:700;">${(data.profile.totalBonusEarned||0).toFixed(2)}</div>
+                        <div style="opacity:0.8;font-size:0.85rem;">Bonus Earnings</div>
                     </div>
                 </div>
-                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size: 1.8rem; font-weight: 700;">${availableBalance.toFixed(2)} KENO</div>
-                    <div style="opacity: 0.8;">Available for Withdrawal</div>
+                <div style="margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.2);">
+                    <div style="font-size:1.8rem;font-weight:700;">${availableBalance.toFixed(2)} KENO</div>
+                    <div style="opacity:0.8;">Available for Withdrawal</div>
                 </div>
             `;
-            document.getElementById('withdrawAmount').max = availableBalance;
-            statusDiv.innerHTML = '<p style="color: #a7f3d0;">Balance loaded successfully!</p>';
+            const amtInput = document.getElementById('withdrawAmount');
+            if (amtInput) amtInput.max = availableBalance;
+            statusDiv.innerHTML = '<p style="color:#a7f3d0;">Balance loaded successfully!</p>';
         } else {
-            profileInfo.innerHTML = '<p style="opacity: 0.8;">No trading profile found for this wallet. Complete some FAL trades first!</p>';
+            profileInfo.innerHTML = `
+                <div style="padding:16px;background:rgba(255,255,255,0.05);border-radius:8px;opacity:0.85;">
+                    <p style="margin:0 0 8px;">No FAL trading history found for this wallet yet.</p>
+                    <small>Complete your first Flash Arbitrage Loan trade above to start building your profile and earnings.</small>
+                </div>`;
             statusDiv.innerHTML = '';
         }
     } catch (error) {
         console.error('Error checking balance:', error);
-        statusDiv.innerHTML = '<p style="color: #fef08a;">Error checking balance. Please try again.</p>';
+        statusDiv.innerHTML = '<p style="color:#fef08a;">Could not reach server. Please check your connection and try again.</p>';
     }
 }
 
