@@ -6426,6 +6426,82 @@ app.post('/api/wealth/referrals/complete',
     }
 );
 
+// ── Community Referral System ─────────────────────────────────────────────
+// Lightweight in-memory store (survives restarts via db fallback)
+const communityReferrals = new Map(); // code -> { identifier, visits, signups, createdAt }
+
+function generateCommunityCode(identifier) {
+    const base = identifier.replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase();
+    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `KE${base}${rand}`;
+}
+
+// Generate a community referral link
+app.post('/api/community/referral/generate', async (req, res) => {
+    try {
+        const { email, walletAddress } = req.body;
+        const identifier = walletAddress || email;
+        if (!identifier) return res.status(400).json({ success: false, error: 'Email or wallet address required' });
+
+        // Check if one already exists for this identifier
+        let existingCode = null;
+        for (const [code, data] of communityReferrals.entries()) {
+            if (data.identifier === identifier) { existingCode = code; break; }
+        }
+
+        if (existingCode) {
+            const data = communityReferrals.get(existingCode);
+            return res.json({ success: true, referralCode: existingCode, visits: data.visits, signups: data.signups, isExisting: true });
+        }
+
+        const code = generateCommunityCode(identifier);
+        communityReferrals.set(code, { identifier, visits: 0, signups: 0, createdAt: new Date().toISOString() });
+
+        // Also fire into the wealth builder referral system if available
+        if (wealthBuilderManager && walletAddress) {
+            try { await wealthBuilderManager.generateReferralCode(walletAddress, email || ''); } catch (_) {}
+        }
+
+        res.json({ success: true, referralCode: code, visits: 0, signups: 0, isExisting: false });
+    } catch (error) {
+        console.error('Community referral generate error:', error);
+        res.status(500).json({ success: false, error: 'Could not generate referral code' });
+    }
+});
+
+// Track a visit/signup via community referral link
+app.post('/api/community/referral/track', async (req, res) => {
+    try {
+        const { code, type } = req.body; // type: 'visit' | 'signup'
+        if (!code) return res.status(400).json({ success: false, error: 'Code required' });
+
+        const data = communityReferrals.get(code);
+        if (!data) return res.json({ success: false, error: 'Unknown referral code' });
+
+        if (type === 'signup') {
+            data.signups = (data.signups || 0) + 1;
+        } else {
+            data.visits = (data.visits || 0) + 1;
+        }
+
+        res.json({ success: true, code, visits: data.visits, signups: data.signups });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Tracking error' });
+    }
+});
+
+// Get referral stats for a code
+app.get('/api/community/referral/stats/:code', async (req, res) => {
+    try {
+        const data = communityReferrals.get(req.params.code);
+        if (!data) return res.status(404).json({ success: false, error: 'Code not found' });
+        res.json({ success: true, code: req.params.code, visits: data.visits, signups: data.signups, createdAt: data.createdAt });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Get user's RVT NFTs
 app.get('/api/wealth/rvt/:walletAddress', async (req, res) => {
     if (!wealthBuilderManager) {
