@@ -37,95 +37,127 @@ async function main() {
   const balance = await ethers.provider.getBalance(deployer.address);
   console.log("Balance: ", ethers.formatEther(balance), "BNB\n");
 
-  if (balance < ethers.parseEther("0.02")) {
-    throw new Error("Need at least 0.02 BNB for all deployments.");
+  if (balance < ethers.parseEther("0.008")) {
+    throw new Error("Need at least 0.008 BNB. Current: " + ethers.formatEther(balance));
   }
 
-  const deployments = {};
+  // Load any prior partial deployment so we can resume where we left off
+  const PROGRESS_FILE = "./deployments/utl-v1.1-progress.json";
+  let deployments = {};
+  try {
+    deployments = JSON.parse(fs.readFileSync(PROGRESS_FILE, "utf8"));
+    console.log("📂 Resuming from previous run:", deployments);
+  } catch { /* fresh start */ }
+
+  function save() {
+    fs.mkdirSync("./deployments", { recursive: true });
+    fs.writeFileSync(PROGRESS_FILE, JSON.stringify(deployments, null, 2));
+  }
+
+  async function checkGas(label) {
+    const bal = await ethers.provider.getBalance(deployer.address);
+    console.log(`   💰 Balance after ${label}: ${ethers.formatEther(bal)} BNB`);
+    if (bal < ethers.parseEther("0.001")) {
+      console.log("⚠️  Low on gas — saving progress and stopping.");
+      save();
+      process.exit(0);
+    }
+  }
 
   // ── 1. UTLTreasury v1.1 ────────────────────────────────────────────────────
-  console.log("1/4 Deploying UTLTreasury v1.1...");
-  
-  // Using safe wallet as all recipient addresses for now
-  // Update via updateRecipients() after launch once dedicated wallets exist
-  const UTLTreasury = await ethers.getContractFactory(
-    "UTLTreasury",
-    { signer: deployer }
-  );
-  
-  // Try v1.1 first, fall back to base if not found  
-  let treasuryFactory;
-  try {
-    treasuryFactory = await ethers.getContractFactory("UTLTreasury", {
-      signer: deployer
-    });
-  } catch {
-    treasuryFactory = UTLTreasury;
+  if (!deployments.treasury) {
+    console.log("1/5 Deploying UTLTreasury v1.1...");
+    const treasuryFactory = await ethers.getContractFactory("contracts/v1.1/UTLTreasury.sol:UTLTreasury");
+    const treasury = await treasuryFactory.deploy(
+      SAFE_WALLET, SAFE_WALLET, SAFE_WALLET, SAFE_WALLET
+    );
+    await treasury.waitForDeployment();
+    deployments.treasury = await treasury.getAddress();
+    save();
+    console.log("   ✅ UTLTreasury v1.1:", deployments.treasury);
+    await checkGas("Treasury");
+  } else {
+    console.log("1/5 UTLTreasury already deployed:", deployments.treasury);
   }
 
-  const treasury = await treasuryFactory.deploy(
-    SAFE_WALLET, // kenostodOperations
-    SAFE_WALLET, // scholarshipFund
-    SAFE_WALLET, // tdirFoundation
-    SAFE_WALLET  // insuranceReserve
-  );
-  await treasury.waitForDeployment();
-  const treasuryAddr = await treasury.getAddress();
-  deployments.treasury = treasuryAddr;
-  console.log("   ✅ UTLTreasury v1.1:", treasuryAddr);
-
   // ── 2. UTLStaking v1.1 ────────────────────────────────────────────────────
-  console.log("2/4 Deploying UTLStaking v1.1...");
-  const stakingFactory = await ethers.getContractFactory("UTLStaking");
-  const staking = await stakingFactory.deploy(KENO_TOKEN);
-  await staking.waitForDeployment();
-  const stakingAddr = await staking.getAddress();
-  deployments.staking = stakingAddr;
-  console.log("   ✅ UTLStaking v1.1:", stakingAddr);
+  if (!deployments.staking) {
+    console.log("2/5 Deploying UTLStaking v1.1...");
+    const stakingFactory = await ethers.getContractFactory("contracts/v1.1/UTLStaking.sol:UTLStaking");
+    const staking = await stakingFactory.deploy(KENO_TOKEN);
+    await staking.waitForDeployment();
+    deployments.staking = await staking.getAddress();
+    save();
+    console.log("   ✅ UTLStaking v1.1:", deployments.staking);
+    await checkGas("Staking");
+  } else {
+    console.log("2/5 UTLStaking already deployed:", deployments.staking);
+  }
 
   // ── 3. UTLDistribution v1.1 ───────────────────────────────────────────────
-  console.log("3/4 Deploying UTLDistribution v1.1...");
-  const distFactory = await ethers.getContractFactory("UTLDistribution");
-  const distribution = await distFactory.deploy(stakingAddr);
-  await distribution.waitForDeployment();
-  const distAddr = await distribution.getAddress();
-  deployments.distribution = distAddr;
-  console.log("   ✅ UTLDistribution v1.1:", distAddr);
+  if (!deployments.distribution) {
+    console.log("3/5 Deploying UTLDistribution v1.1...");
+    const distFactory = await ethers.getContractFactory("contracts/v1.1/UTLDistribution.sol:UTLDistribution");
+    const distribution = await distFactory.deploy(deployments.staking);
+    await distribution.waitForDeployment();
+    deployments.distribution = await distribution.getAddress();
+    save();
+    console.log("   ✅ UTLDistribution v1.1:", deployments.distribution);
+    await checkGas("Distribution");
+  } else {
+    console.log("3/5 UTLDistribution already deployed:", deployments.distribution);
+  }
 
   // ── 4. UTLFeeCollector v1.1 ───────────────────────────────────────────────
-  console.log("4/4 Deploying UTLFeeCollector v1.1...");
-  const feeCollectorFactory = await ethers.getContractFactory("UTLFeeCollector");
-  const feeCollector = await feeCollectorFactory.deploy(treasuryAddr, distAddr);
-  await feeCollector.waitForDeployment();
-  const feeCollectorAddr = await feeCollector.getAddress();
-  deployments.feeCollector = feeCollectorAddr;
-  console.log("   ✅ UTLFeeCollector v1.1:", feeCollectorAddr);
+  if (!deployments.feeCollector) {
+    console.log("4/5 Deploying UTLFeeCollector v1.1...");
+    const feeCollectorFactory = await ethers.getContractFactory("contracts/v1.1/UTLFeeCollector.sol:UTLFeeCollector");
+    const feeCollector = await feeCollectorFactory.deploy(
+      deployments.treasury, deployments.distribution
+    );
+    await feeCollector.waitForDeployment();
+    deployments.feeCollector = await feeCollector.getAddress();
+    save();
+    console.log("   ✅ UTLFeeCollector v1.1:", deployments.feeCollector);
+    await checkGas("FeeCollector");
+  } else {
+    console.log("4/5 UTLFeeCollector already deployed:", deployments.feeCollector);
+  }
 
-  // ── Post-deployment config ─────────────────────────────────────────────────
-  console.log("\nConfiguring contracts...");
+  // ── Post-deployment config (idempotent — skip if already done) ─────────────
+  if (!deployments.configured) {
+    console.log("\nConfiguring contracts...");
+    const USDC_BSC = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
+    const feeCollector = await ethers.getContractAt("contracts/v1.1/UTLFeeCollector.sol:UTLFeeCollector", deployments.feeCollector);
+    const treasury     = await ethers.getContractAt("contracts/v1.1/UTLTreasury.sol:UTLTreasury",     deployments.treasury);
 
-  // Add USDC as supported token in FeeCollector
-  const USDC_BSC = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-  await (await feeCollector.addSupportedToken(USDC_BSC)).wait();
-  console.log("   ✅ USDC added to FeeCollector");
+    await (await feeCollector.addSupportedToken(USDC_BSC)).wait();
+    console.log("   ✅ USDC added to FeeCollector");
 
-  // Add KENO as supported token
-  await (await feeCollector.addSupportedToken(KENO_TOKEN)).wait();
-  console.log("   ✅ KENO added to FeeCollector");
+    await (await feeCollector.addSupportedToken(KENO_TOKEN)).wait();
+    console.log("   ✅ KENO added to FeeCollector");
 
-  // Authorize FeeCollector to call Treasury
-  await (await treasury.authorizeCollector(feeCollectorAddr)).wait();
-  console.log("   ✅ FeeCollector authorized in Treasury");
+    await (await treasury.authorizeCollector(deployments.feeCollector)).wait();
+    console.log("   ✅ FeeCollector authorized in Treasury");
 
-  // ── UTLFarm ───────────────────────────────────────────────────────────────
-  console.log("5/5 Deploying UTLFarm...");
-  const farmFactory = await ethers.getContractFactory("UTLFarm");
-  const REWARD_RATE = ethers.parseEther("0.1"); // 0.1 KENO/sec initial rate
-  const farm = await farmFactory.deploy(KENO_TOKEN, KENO_WBNB_LP, REWARD_RATE);
-  await farm.waitForDeployment();
-  const farmAddr = await farm.getAddress();
-  deployments.farm = farmAddr;
-  console.log("   ✅ UTLFarm:", farmAddr);
+    deployments.configured = true;
+    save();
+    await checkGas("config");
+  }
+
+  // ── 5. UTLFarm (deploy last — lowest priority if gas runs low) ─────────────
+  if (!deployments.farm) {
+    console.log("5/5 Deploying UTLFarm...");
+    const farmFactory  = await ethers.getContractFactory("contracts/UTLFarm.sol:UTLFarm");
+    const REWARD_RATE  = ethers.parseEther("0.1");
+    const farm         = await farmFactory.deploy(KENO_TOKEN, KENO_WBNB_LP, REWARD_RATE);
+    await farm.waitForDeployment();
+    deployments.farm   = await farm.getAddress();
+    save();
+    console.log("   ✅ UTLFarm:", deployments.farm);
+  } else {
+    console.log("5/5 UTLFarm already deployed:", deployments.farm);
+  }
 
   // ── Save deployment record ─────────────────────────────────────────────────
   const record = {
