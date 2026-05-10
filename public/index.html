@@ -2723,6 +2723,17 @@
                     <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 16px;">KENO is earned through learning, not speculation. Complete 21 courses to earn 5,250 KENO</p>
                     <span style="display: inline-block; background: #3b82f6; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">Knowledge Utility Token</span>
                 </div>
+
+                <!-- CoinGecko Listed -->
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(140,198,63,0.4); border-radius: 12px; padding: 24px;">
+                    <div style="margin-bottom: 12px;">
+                        <img src="https://static.coingecko.com/s/coingecko-logo-white-ea42ded10e4d106e14227d48ea6140dc32214230aa82ef63d0499f9c1e109656.png" alt="CoinGecko" style="height: 28px; object-fit: contain;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <span style="display:none; font-size: 1.5rem; font-weight: 700; color: #8cc63f;">CoinGecko</span>
+                    </div>
+                    <h3 style="color: white; font-size: 1.2rem; margin-bottom: 8px;">Listed on CoinGecko</h3>
+                    <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 16px;">KENO is officially tracked and verified on CoinGecko — real-time price, volume, and market data available</p>
+                    <a href="https://www.coingecko.com/en/coins/kenostod-token" target="_blank" rel="noopener" style="display: inline-block; background: #8cc63f; color: #1a1a1a; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 0.9rem;">View on CoinGecko</a>
+                </div>
             </div>
             
             <!-- Token Stats -->
@@ -2806,6 +2817,23 @@
                 </p>
             </div>
             
+            <!-- Listed On / As Seen On -->
+            <div style="text-align: center; margin-bottom: 24px;">
+                <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Listed & Tracked On</p>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap;">
+                    <a href="https://www.coingecko.com/en/coins/kenostod-token" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 8px; background: rgba(140,198,63,0.1); border: 1px solid rgba(140,198,63,0.3); border-radius: 8px; padding: 10px 16px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(140,198,63,0.2)'" onmouseout="this.style.background='rgba(140,198,63,0.1)'">
+                        <img src="https://static.coingecko.com/s/coingecko-logo-white-ea42ded10e4d106e14227d48ea6140dc32214230aa82ef63d0499f9c1e109656.png" alt="CoinGecko" style="height: 20px; object-fit: contain;" onerror="this.style.display='none'">
+                        <span style="color: #8cc63f; font-weight: 600; font-size: 0.85rem;">CoinGecko</span>
+                    </a>
+                    <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 8px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 10px 16px; text-decoration: none;" onmouseover="this.style.background='rgba(245,158,11,0.2)'" onmouseout="this.style.background='rgba(245,158,11,0.1)'">
+                        <span style="color: #f59e0b; font-weight: 600; font-size: 0.85rem;">BscScan Verified</span>
+                    </a>
+                    <a href="https://pancakeswap.finance/swap?outputCurrency=0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 8px; padding: 10px 16px; text-decoration: none;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='rgba(99,102,241,0.1)'">
+                        <span style="color: #818cf8; font-weight: 600; font-size: 0.85rem;">PancakeSwap</span>
+                    </a>
+                </div>
+            </div>
+
             <div style="border-top: 1px solid #475569; padding-top: 20px; text-align: center;">
                 <p style="margin: 0; font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
                     <strong style="color: #cbd5e1;">Protected Intellectual Property:</strong><br>
@@ -2832,6 +2860,7 @@
         { id: 'binancecoin',  sym: 'BNB' },
         { id: 'usd-coin',     sym: 'USDC' },
         { id: 'matic-network',sym: 'MATIC' },
+        { id: 'kenostod-token', sym: 'KENO' },
       ];
 
       function fmtPrice(p) {
@@ -2866,8 +2895,15 @@
             return `<span class="ticker-item">${coin.sym} &nbsp;${price}&nbsp; ${chg}</span>`;
           }).filter(Boolean);
 
-          // Add KENO placeholder (not on CoinGecko yet)
-          items.push(`<span class="ticker-item">KENO &nbsp;<span style="color:#d4af37">Pre-Market</span></span>`);
+          // Add KENO price from CoinGecko
+          const kenoData = data['kenostod-token'];
+          if (kenoData) {
+            const kenoPrice = fmtPrice(kenoData.usd);
+            const kenoChg = fmtChg(kenoData.usd_24h_change || 0);
+            items.push(`<span class="ticker-item">KENO &nbsp;${kenoPrice}&nbsp; ${kenoChg}</span>`);
+          } else {
+            items.push(`<span class="ticker-item">KENO &nbsp;<a href="https://www.coingecko.com/en/coins/kenostod-token" target="_blank" style="color:#8cc63f;text-decoration:none;">Listed on CoinGecko</a></span>`);
+          }
 
           // Duplicate for seamless scroll loop
           ticker.innerHTML = [...items, ...items].join('');
