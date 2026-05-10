@@ -1,14 +1,28 @@
-# UTL Deployment Guide - Live Networks
+# UTL Protocol Deployment Guide
 
 ## Overview
-Deploy UTL (Universal Transaction Layer) smart contracts to BSC and Polygon mainnet
-to start generating real USDC residuals from the 0.1% fee capture.
+Deploy the full UTL Protocol stack including UTLHook (PancakeSwap v4) and v1.1 upgraded contracts.
+
+## Revenue Flow
+```
+KENO/USDC Swaps (PancakeSwap v4)
+   └─► UTLHook (0.09% afterSwap fee)
+         └─► UTLFeeCollector
+               ├─ 60% ─► UTLDistribution ─► KENO Stakers (earn USDC)
+               └─ 40% ─► UTLTreasury
+                           ├─ 37.5% Kenostod Operations
+                           ├─ 25%   Scholarship Fund
+                           ├─ 25%   T.D.I.R. Foundation
+                           └─ 12.5% Insurance Reserve
+```
 
 ## Contracts Being Deployed
-1. **UTLStaking** - Manages USDC participation tracking
-2. **UTLDistribution** - Merkle-tree based reward distribution (60% of fees)
-3. **UTLTreasury** - Manages the 40% treasury split (15% ops, 10% scholarship, 10% TDIR, 5% insurance)
-4. **UTLFeeCollector** - Captures 0.1% fee on every transaction, routes to Treasury + Distribution
+1. **UTLHook** - PancakeSwap v4 afterSwap hook (NEW — routes 0.09% of every KENO swap to stakers)
+2. **UTLStaking v1.1** - Fixed O(n) gas DoS vulnerability
+3. **UTLDistribution v1.1** - Fixed reentrancy in auto-compound
+4. **UTLTreasury v1.1** - 40% split (ops/scholarship/TDIR/insurance)
+5. **UTLFeeCollector v1.1** - Captures fees, routes to Treasury + Distribution
+6. **UTLFarm** - KENO/BNB LP staking farm
 
 ## Pre-Deployment Checklist
 
