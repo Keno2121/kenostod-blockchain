@@ -4,5 +4,6 @@ export const modules: ModuleMap = {
   "./components/mockups/keno-token/InversionPillar.tsx": () => import("../components/mockups/keno-token/InversionPillar.tsx"),
   "./components/mockups/keno-token/KenoEmblem.tsx": () => import("../components/mockups/keno-token/KenoEmblem.tsx"),
   "./components/mockups/keno-token/NonagonPrism.tsx": () => import("../components/mockups/keno-token/NonagonPrism.tsx"),
-  "./components/mockups/keno-token/SovereignMandala.tsx": () => import("../components/mockups/keno-token/SovereignMandala.tsx")
+  "./components/mockups/keno-token/SovereignMandala.tsx": () => import("../components/mockups/keno-token/SovereignMandala.tsx"),
+  "./components/mockups/utlhook/InvestorPitch.tsx": () => import("../components/mockups/utlhook/InvestorPitch.tsx")
 };
