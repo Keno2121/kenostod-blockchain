@@ -28,7 +28,7 @@ module.exports = {
       url: "https://bsc-dataseed1.binance.org/",
       chainId: 56,
       accounts: [NEW_WALLET_PRIVATE_KEY],
-      gasPrice: 3000000000
+      gasPrice: 1000000000
     },
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
