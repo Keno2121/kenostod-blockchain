@@ -146,10 +146,10 @@ async function main() {
   }
 
   // ── 5. UTLFarm (deploy last — lowest priority if gas runs low) ─────────────
+  const REWARD_RATE = ethers.parseEther("0.1");
   if (!deployments.farm) {
     console.log("5/5 Deploying UTLFarm...");
     const farmFactory  = await ethers.getContractFactory("contracts/UTLFarm.sol:UTLFarm");
-    const REWARD_RATE  = ethers.parseEther("0.1");
     const farm         = await farmFactory.deploy(KENO_TOKEN, KENO_WBNB_LP, REWARD_RATE);
     await farm.waitForDeployment();
     deployments.farm   = await farm.getAddress();

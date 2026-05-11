@@ -57,12 +57,18 @@ Design preferences: Professional, appealing, fun; market-ready for ROI growth an
 - **UTL Revenue Model:** Currently USDC-only for fee capture until KENO staking integration.
 
 ## Pointers
-- **BSC Mainnet Contracts:**
+- **BSC Mainnet Contracts (v1.1 — ACTIVE):**
+    - FeeCollector: `0xb9489B33Bd9bB835139369b1dD282fB44B2273d8`
+    - Staking: `0x77C3946A9FD5F509584F94e81C43efb25120c837`
+    - Treasury: `0x54A01A5bf5096c351F166C15143eA9a9Af393C84`
+    - Distribution: `0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167`
+    - UTLFarm: `0x37D320A881CcF553F6cd757f0A33743ae01A2644`
+    - USDC (BSC): `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`
+- **BSC Mainnet Contracts (v1.0 — RETIRED):**
     - FeeCollector: `0xfE537c43d202C455Cedc141B882c808287BB662f`
     - Staking: `0x49961979c93f43f823BB3593b207724194019d1d`
     - Treasury: `0x3B3538b955647d811D42400084e9409e6593bE97`
     - Distribution: `0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7`
-    - USDC (BSC): `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`
 - **wKENO Contracts:**
     - Base mainnet: `0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd` ([Basescan](https://basescan.org/address/0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd))
     - Polygon mainnet: `0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd` ([Polygonscan](https://polygonscan.com/address/0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd))
