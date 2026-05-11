@@ -37,8 +37,8 @@ async function main() {
   const balance = await ethers.provider.getBalance(deployer.address);
   console.log("Balance: ", ethers.formatEther(balance), "BNB\n");
 
-  if (balance < ethers.parseEther("0.008")) {
-    throw new Error("Need at least 0.008 BNB. Current: " + ethers.formatEther(balance));
+  if (balance < ethers.parseEther("0.006")) {
+    throw new Error("Need at least 0.006 BNB. Current: " + ethers.formatEther(balance));
   }
 
   // Load any prior partial deployment so we can resume where we left off
