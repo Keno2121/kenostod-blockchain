@@ -24,6 +24,8 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !
             { name: 'Fee Collector', addr: '0xb9489B33Bd9bB835139369b1dD282fB44B2273d8' },
             { name: 'Treasury',      addr: '0x54A01A5bf5096c351F166C15143eA9a9Af393C84' },
             { name: 'Distribution',  addr: '0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167' },
+            { name: 'UTLFarm',       addr: '0x37D320A881CcF553F6cd757f0A33743ae01A2644' },
+            { name: 'UTLHook (PS v4)', addr: '0xAF810a663995DCe98c5D7EdF5C970446A33bAA74' },
         ];
         const ABI = [
             'function owner() view returns (address)',

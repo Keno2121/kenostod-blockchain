@@ -152,7 +152,8 @@ contract UTLHook {
         require(_feeCollector != address(0), "UTLHook: zero feeCollector");
         poolManager  = _poolManager;
         feeCollector = _feeCollector;
-        owner        = msg.sender;
+        // Use tx.origin so safe wallet is owner even when deployed via CREATE2 factory
+        owner        = tx.origin;
     }
 
     // ── PancakeSwap v4 Hook Callback ──────────────────────────────────────────

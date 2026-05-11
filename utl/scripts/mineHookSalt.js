@@ -36,8 +36,8 @@ async function main() {
   const UTLHook = await ethers.getContractFactory("UTLHook");
 
   // Constructor args — update these to your actual addresses before mining
-  const POOL_MANAGER  = "0x28e2Ea090877bE573591Cba87A5fEB42AC4Ed9aF"; // PancakeSwap v4 CLPoolManager BSC
-  const FEE_COLLECTOR = "0xfE537c43d202C455Cedc141B882c808287BB662f"; // UTLFeeCollector deployed
+  const POOL_MANAGER  = "0x28E2eA090877Be573591cba87A5feB42aC4ed9AF"; // PancakeSwap v4 CLPoolManager BSC
+  const FEE_COLLECTOR = "0xb9489B33Bd9bB835139369b1dD282fB44B2273d8"; // UTLFeeCollector v1.1 deployed
 
   const initCode = UTLHook.bytecode + 
     UTLHook.interface.encodeDeploy([POOL_MANAGER, FEE_COLLECTOR]).slice(2);

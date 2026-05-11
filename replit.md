@@ -63,6 +63,7 @@ Design preferences: Professional, appealing, fun; market-ready for ROI growth an
     - Treasury: `0x54A01A5bf5096c351F166C15143eA9a9Af393C84`
     - Distribution: `0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167`
     - UTLFarm: `0x37D320A881CcF553F6cd757f0A33743ae01A2644`
+    - UTLHook (PancakeSwap v4): `0xAF810a663995DCe98c5D7EdF5C970446A33bAA74`
     - USDC (BSC): `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`
 - **BSC Mainnet Contracts (v1.0 — RETIRED):**
     - FeeCollector: `0xfE537c43d202C455Cedc141B882c808287BB662f`

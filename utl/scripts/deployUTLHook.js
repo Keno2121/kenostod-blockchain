@@ -19,10 +19,10 @@ const { ethers } = require("hardhat");
 // ── Configuration ─────────────────────────────────────────────────────────────
 
 // PancakeSwap v4 CLPoolManager on BSC Mainnet
-const POOL_MANAGER = "0x28e2Ea090877bE573591Cba87A5fEB42AC4Ed9aF";
+const POOL_MANAGER = "0x28E2eA090877Be573591cba87A5feB42aC4ed9AF";
 
-// Deployed UTLFeeCollector (BSC Mainnet)
-const FEE_COLLECTOR = "0xfE537c43d202C455Cedc141B882c808287BB662f";
+// Deployed UTLFeeCollector v1.1 (BSC Mainnet)
+const FEE_COLLECTOR = "0xb9489B33Bd9bB835139369b1dD282fB44B2273d8";
 
 // Paste the salt from mineHookSalt.js here
 // Example: "0xabc123..."
