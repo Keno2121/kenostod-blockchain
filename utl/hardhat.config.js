@@ -59,6 +59,9 @@ module.exports = {
       accounts: [NEW_WALLET_PRIVATE_KEY]
     }
   },
+  sourcify: {
+    enabled: true
+  },
   etherscan: {
     // Etherscan V2 — single key works across BSC, Polygon, Base, etc.
     apiKey: process.env.BSCSCAN_API_KEY || "",
