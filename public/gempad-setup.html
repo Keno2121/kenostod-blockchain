@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENO — GemPad Setup Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 700px; margin: 0 auto; }
+  h1 { color: #34d399; font-size: 1.5rem; margin-bottom: 4px; }
+  .subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; }
+  .step { background: #111827; border: 1px solid #1e293b; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+  .step-header { background: #1e293b; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .step-num { background: #34d399; color: #0a0e1a; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 0.95rem; color: #f1f5f9; }
+  .step-body { padding: 16px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 4px; }
+  .field-value { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.88rem; color: #e2e8f0; position: relative; cursor: pointer; transition: border-color 0.2s; word-break: break-all; }
+  .field-value:hover { border-color: #34d399; }
+  .field-note { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
+  .copy-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #1e293b; border: none; color: #94a3b8; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+  .copy-btn:hover { color: #34d399; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .badge { display: inline-block; background: #064e3b; color: #34d399; border: 1px solid #065f46; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; margin-left: 8px; }
+  .badge.warn { background: #451a03; color: #fb923c; border-color: #7c2d12; }
+  .badge.gold { background: #1c1407; color: #f0b429; border-color: #92400e; }
+  .badge.red { background: #450a0a; color: #f87171; border-color: #7f1d1d; }
+  .alert { background: #0d2b1f; border: 1px solid #065f46; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.83rem; color: #6ee7b7; line-height: 1.5; }
+  .alert.warn { background: #1c1407; border-color: #92400e; color: #fcd34d; }
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem; display: flex; align-items: flex-start; gap: 10px; line-height: 1.4; }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist .ck { color: #34d399; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .checklist .ck.warn { color: #fb923c; }
+  .checklist .ck.req { color: #f87171; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; text-align: center; }
+  .summary-card .val { font-size: 1.1rem; font-weight: 700; color: #34d399; }
+  .summary-card .lbl { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+  .summary-card.highlight .val { color: #f0b429; }
+  .link-btn { display: block; background: #34d399; color: #0a0e1a; text-align: center; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; margin-top: 20px; letter-spacing: 0.02em; }
+  .link-btn:hover { background: #6ee7b7; }
+  .link-btn.secondary { background: #1e293b; color: #94a3b8; margin-top: 10px; font-size: 0.88rem; padding: 10px; }
+  .link-btn.secondary:hover { background: #334155; color: #e2e8f0; }
+  .divider { border: none; border-top: 1px solid #1e293b; margin: 14px 0; }
+  .compare { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 8px; }
+  .compare th { background: #1e293b; color: #94a3b8; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .compare td { padding: 8px 10px; border-bottom: 1px solid #1e293b; }
+  .compare tr:last-child td { border-bottom: none; }
+  .compare .win { color: #34d399; font-weight: 600; }
+  .compare .lose { color: #64748b; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #065f46; color: #d1fae5; padding: 8px 18px; border-radius: 20px; font-size: 0.82rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<h1>KENO — GemPad Setup Guide</h1>
+<p class="subtitle">All fields pre-filled. Tap any value to copy it.</p>
+
+<div class="alert">
+  💎 GemPad charges <strong>no upfront flat fee</strong> — they take a small % of the BNB raised only if your presale succeeds. Check current % at <strong>gempad.app/create/presale</strong> before confirming. URL: <strong>gempad.app</strong>
+</div>
+
+<!-- PLATFORM COMPARISON -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">★</div>
+    <div class="step-title">GemPad vs DX Sale — Quick Comparison</div>
+  </div>
+  <div class="step-body">
+    <table class="compare">
+      <tr>
+        <th>Feature</th>
+        <th>GemPad</th>
+        <th>DX Sale</th>
+      </tr>
+      <tr>
+        <td>Upfront creation fee</td>
+        <td class="win">~0 BNB (% model)</td>
+        <td class="lose">0.3066 BNB</td>
+      </tr>
+      <tr>
+        <td>Success fee</td>
+        <td>~2% of raise</td>
+        <td>2% of raise</td>
+      </tr>
+      <tr>
+        <td>BSC / PancakeSwap</td>
+        <td class="win">✅</td>
+        <td class="win">✅</td>
+      </tr>
+      <tr>
+        <td>Auto LP creation</td>
+        <td class="win">✅</td>
+        <td class="win">✅</td>
+      </tr>
+      <tr>
+        <td>LP lock built-in</td>
+        <td class="win">✅ Free</td>
+        <td>✅ 0.01 BNB fee</td>
+      </tr>
+      <tr>
+        <td>Whitelist option</td>
+        <td class="win">✅ 3 types</td>
+        <td class="win">✅</td>
+      </tr>
+      <tr>
+        <td>Anti-bot protection</td>
+        <td class="win">✅ Built-in</td>
+        <td>✅</td>
+      </tr>
+    </table>
+    <div class="field-note" style="margin-top:10px;">⚡ GemPad is typically cheaper upfront — you only pay if you succeed.</div>
+  </div>
+</div>
+
+<!-- REQUIREMENTS CHECKLIST -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">0</div>
+    <div class="step-title">Pre-Launch Requirements <span class="badge red">Check First</span></div>
+  </div>
+  <div class="step-body">
+    <ul class="checklist">
+      <li><span class="ck">✅</span><span><strong>BEP-20 token deployed</strong> — KENO is live on BSC at 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E ✓</span></li>
+      <li><span class="ck">✅</span><span><strong>No mint function</strong> — KENO supply is fixed at 1B ✓</span></li>
+      <li><span class="ck">✅</span><span><strong>Contract verified</strong> — Verified on Sourcify/BSCScan ✓</span></li>
+      <li><span class="ck warn">⚠</span><span><strong>Fee exclusion support</strong> — GemPad's presale/router contract must be excludable from any transfer taxes. KENO has no transfer tax, so this passes automatically ✓</span></li>
+      <li><span class="ck warn">⚠</span><span><strong>Max wallet / max TX</strong> — Must be disabled or set to 100% so presale contract can receive full allocation. KENO has no max wallet restriction ✓</span></li>
+      <li><span class="ck warn">⚠</span><span><strong>No blacklist on GemPad contracts</strong> — Token must not be able to block the presale or router contract addresses</span></li>
+      <li><span class="ck req">📋</span><span><strong>Approve KENO spend</strong> — You must approve GemPad to spend 200,000,000 KENO (presale allocation). GemPad will prompt this automatically during creation.</span></li>
+      <li><span class="ck req">📋</span><span><strong>BNB in wallet</strong> — Enough for gas fees (~0.01–0.02 BNB). Safe wallet: 0x4AA73FadfFd71E6549867a37455EA957A52Cf849</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- STEP 1: Token -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <div class="step-title">Token Details <span class="badge">BSC Mainnet</span></div>
+  </div>
+  <div class="step-body">
+    <div class="field">
+      <div class="field-label">Token Contract Address</div>
+      <div class="field-value" onclick="copy(this, '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E')">
+        0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+        <button class="copy-btn">copy</button>
+      </div>
+      <div class="field-note">Paste this first — GemPad auto-fills Name, Symbol, Decimals</div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Token Name</div>
+        <div class="field-value" onclick="copy(this, 'Kenostod Token')">Kenostod Token<button class="copy-btn">copy</button></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Symbol</div>
+        <div class="field-value" onclick="copy(this, 'KENO')">KENO<button class="copy-btn">copy</button></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Decimals</div>
+        <div class="field-value" onclick="copy(this, '18')">18<button class="copy-btn">copy</button></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Total Supply</div>
+        <div class="field-value">1,000,000,000</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: Sale Type -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <div class="step-title">Sale Type</div>
+  </div>
+  <div class="step-body">
+    <div class="field">
+      <div class="field-label">Presale Type</div>
+      <div class="field-value">Public Presale (Standard)</div>
+      <div class="field-note">Choose "Public" or "Standard" — open to everyone. GemPad also offers Whitelist and Tiered Whitelist if you want invite-only.</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Fund-Raising Token</div>
+      <div class="field-value">BNB</div>
+      <div class="field-note">Buyers contribute BNB — standard for BSC presales</div>
+    </div>
+    <div class="field">
+      <div class="field-label">DEX for Auto-Listing</div>
+      <div class="field-value">PancakeSwap V2</div>
+      <div class="field-note">GemPad creates the KENO/BNB LP pair automatically after presale ends</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: Rates -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <div class="step-title">Presale Rates <span class="badge gold">Key Numbers</span></div>
+  </div>
+  <div class="step-body">
+    <div class="field">
+      <div class="field-label">Presale Rate (KENO per 1 BNB)</div>
+      <div class="field-value" onclick="copy(this, '2000000')">2000000<button class="copy-btn">copy</button></div>
+      <div class="field-note">≈ $0.000325/KENO at $650/BNB — early buyers get 2M KENO per BNB</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Listing Rate (KENO per 1 BNB on PancakeSwap)</div>
+      <div class="field-value" onclick="copy(this, '1600000')">1600000<button class="copy-btn">copy</button></div>
+      <div class="field-note">Must be ≤ presale rate. Presale buyers get 20% more than market buyers — strong incentive to join early.</div>
+    </div>
+    <hr class="divider">
+    <div class="summary-grid">
+      <div class="summary-card"><div class="val">$0.000325</div><div class="lbl">Presale Price/KENO</div></div>
+      <div class="summary-card"><div class="val">$0.000406</div><div class="lbl">Listing Price/KENO</div></div>
+      <div class="summary-card"><div class="val">20%</div><div class="lbl">Presale Discount</div></div>
+      <div class="summary-card highlight"><div class="val">$325K</div><div class="lbl">Implied Market Cap</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4: Caps & Limits -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <div class="step-title">Caps & Contribution Limits</div>
+  </div>
+  <div class="step-body">
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Soft Cap (BNB)</div>
+        <div class="field-value" onclick="copy(this, '26')">26<button class="copy-btn">copy</button></div>
+        <div class="field-note">~$16,900 — 52% of hard cap ✓</div>
+      </div>
+      <div class="field">
+        <div class="field-label">Hard Cap (BNB)</div>
+        <div class="field-value" onclick="copy(this, '50')">50<button class="copy-btn">copy</button></div>
+        <div class="field-note">~$32,500 max raise</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Min Contribution (BNB)</div>
+        <div class="field-value" onclick="copy(this, '0.1')">0.1<button class="copy-btn">copy</button></div>
+        <div class="field-note">~$65 minimum buy</div>
+      </div>
+      <div class="field">
+        <div class="field-label">Max Contribution (BNB)</div>
+        <div class="field-value" onclick="copy(this, '5')">5<button class="copy-btn">copy</button></div>
+        <div class="field-note">~$3,250 per wallet cap</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Total Tokens for Presale</div>
+      <div class="field-value" onclick="copy(this, '200000000')">200,000,000 KENO<button class="copy-btn">copy</button></div>
+      <div class="field-note">20% of total supply. GemPad will prompt token approval for this amount.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5: Liquidity & Lock -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">5</div>
+    <div class="step-title">Liquidity & Lock Settings</div>
+  </div>
+  <div class="step-body">
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Liquidity %</div>
+        <div class="field-value" onclick="copy(this, '60')">60%<button class="copy-btn">copy</button></div>
+        <div class="field-note">60% of raised BNB → PancakeSwap pool</div>
+      </div>
+      <div class="field">
+        <div class="field-label">LP Lock Duration (days)</div>
+        <div class="field-value" onclick="copy(this, '180')">180<button class="copy-btn">copy</button></div>
+        <div class="field-note">6 months — GemPad locks LP for free (no separate fee)</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Lock Note</div>
+      <div class="field-value">GemLock — auto-locked by GemPad</div>
+      <div class="field-note">GemPad uses GemLock (their own locker) — free, built-in, visible on presale page as proof of locked liquidity</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 6: Dates -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">6</div>
+    <div class="step-title">Presale Window <span class="badge warn">UTC Timezone</span></div>
+  </div>
+  <div class="step-body">
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Start Date (UTC)</div>
+        <div class="field-value" onclick="copy(this, '2026-05-15 18:00')">May 15, 2026 — 18:00 UTC<button class="copy-btn">copy</button></div>
+        <div class="field-note">4 days from now — gives you time to fund wallet and launch</div>
+      </div>
+      <div class="field">
+        <div class="field-label">End Date (UTC)</div>
+        <div class="field-value" onclick="copy(this, '2026-05-29 18:00')">May 29, 2026 — 18:00 UTC<button class="copy-btn">copy</button></div>
+        <div class="field-note">14-day presale window</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 7: Project Info -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">7</div>
+    <div class="step-title">Project Info & Socials</div>
+  </div>
+  <div class="step-body">
+    <div class="field">
+      <div class="field-label">Project Name</div>
+      <div class="field-value" onclick="copy(this, 'KENO — The Sovereign Economy')">KENO — The Sovereign Economy<button class="copy-btn">copy</button></div>
+    </div>
+    <div class="field">
+      <div class="field-label">Description</div>
+      <div class="field-value" style="line-height:1.5; font-family: sans-serif; font-size:0.83rem;" onclick="copy(this, 'KENO is the native utility token of The Sovereign Economy — financial infrastructure for the 2.4 billion unbanked and underbanked worldwide. Powered by the UTL Protocol (DeFi fee redistribution), PancakeSwap v4 Hook integration, KENO Arbitrage Revolution, and Solar Bunker hardware. Built by Kenostod Blockchain Academy LLC under T.D.I.R. Foundation. BSC BEP-20 | 1B supply | No mint function.')">
+        KENO is the native utility token of The Sovereign Economy — financial infrastructure for the 2.4 billion unbanked and underbanked worldwide. Powered by the UTL Protocol (DeFi fee redistribution), PancakeSwap v4 Hook integration, KENO Arbitrage Revolution, and Solar Bunker hardware. Built by Kenostod Blockchain Academy LLC under T.D.I.R. Foundation. BSC BEP-20 | 1B supply | No mint function.
+        <button class="copy-btn">copy</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Website</div>
+      <div class="field-value" onclick="copy(this, 'https://kenostod.com')">https://kenostod.com<button class="copy-btn">copy</button></div>
+    </div>
+    <div class="field">
+      <div class="field-label">Logo URL (must be direct image link, 256×256 PNG recommended)</div>
+      <div class="field-value" onclick="copy(this, 'https://raw.githubusercontent.com/Keno2121/token-list/main/src/tokens/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E.png')">
+        https://raw.githubusercontent.com/Keno2121/token-list/main/src/tokens/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E.png
+        <button class="copy-btn">copy</button>
+      </div>
+      <div class="field-note">Direct GitHub raw link — already uploaded ✓</div>
+    </div>
+    <div class="field">
+      <div class="field-label">GitHub (optional but adds credibility)</div>
+      <div class="field-value" onclick="copy(this, 'https://github.com/Keno2121')">https://github.com/Keno2121<button class="copy-btn">copy</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 8: Anti-Rug Settings -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">8</div>
+    <div class="step-title">Anti-Rug & Safety Settings <span class="badge">GemPad Exclusive</span></div>
+  </div>
+  <div class="step-body">
+    <div class="field">
+      <div class="field-label">Anti-Rug System</div>
+      <div class="field-value">Enable</div>
+      <div class="field-note">GemPad's anti-rug puts raised BNB into a time-locked vault — shows investors their funds are protected. Boosts trust and participation.</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Vesting (optional)</div>
+      <div class="field-value">No vesting (immediate release)</div>
+      <div class="field-note">Keep simple for first presale — vesting can be added for future rounds</div>
+    </div>
+  </div>
+</div>
+
+<!-- Cost Summary -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">✓</div>
+    <div class="step-title">Cost Summary</div>
+  </div>
+  <div class="step-body">
+    <div class="summary-grid">
+      <div class="summary-card"><div class="val">~0 BNB</div><div class="lbl">Upfront Creation Fee</div></div>
+      <div class="summary-card"><div class="val">~2%</div><div class="lbl">Success Fee (BNB raised)</div></div>
+      <div class="summary-card"><div class="val">Free</div><div class="lbl">GemLock LP Lock</div></div>
+      <div class="summary-card highlight"><div class="val">Gas only</div><div class="lbl">You need ~0.02 BNB</div></div>
+    </div>
+    <div class="alert" style="margin-top:14px; margin-bottom:0;">
+      ✅ If 50 BNB raised: GemPad takes ~1 BNB (2%) vs DX Sale's 1 BNB (2%) + 0.3066 BNB upfront = GemPad saves you ~$200 on this presale.
+    </div>
+  </div>
+</div>
+
+<a href="https://gempad.app/create/presale" target="_blank" class="link-btn">Open GemPad → Create Presale</a>
+<a href="/dxsale-setup.html" class="link-btn secondary">← Also have DX Sale guide ready</a>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+function copy(el, text) {
+  navigator.clipboard.writeText(text || el.innerText.replace('copy','').trim());
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1500);
+}
+</script>
+</body>
+</html>
