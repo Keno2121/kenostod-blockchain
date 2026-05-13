@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE KINGS SHIELD — Official Whitepaper v1.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --gold: #f0b429; --gold-light: #fcd34d; --purple: #9945FF; --navy: #060b18; --navy-2: #0a1020; --navy-3: #0f172a; --navy-4: #1e293b; --text: #e2e8f0; --text-muted: #94a3b8; --green: #34d399; }
+  body { background: var(--navy); color: var(--text); font-family: 'Inter', sans-serif; max-width: 800px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* COVER */
+  .cover { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; border-bottom: 1px solid rgba(240,180,41,0.15); background: radial-gradient(ellipse at 50% 30%, rgba(240,180,41,0.08) 0%, transparent 65%); }
+  .cover-icon { font-size: 5rem; margin-bottom: 20px; }
+  .cover-badge { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .cover-title { font-family: 'Cinzel', serif; font-size: clamp(2rem, 6vw, 3.5rem); font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 10px; }
+  .cover-title span { color: var(--gold); }
+  .cover-ticker { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--gold-light); letter-spacing: 0.15em; margin-bottom: 24px; }
+  .cover-meta { font-size: 0.8rem; color: var(--text-muted); line-height: 1.8; }
+  .cover-meta strong { color: var(--text); }
+
+  /* TOC */
+  .toc { background: var(--navy-3); border: 1px solid rgba(240,180,41,0.15); border-radius: 14px; padding: 24px; margin: 40px 0; }
+  .toc-title { font-family: 'Cinzel', serif; color: var(--gold); font-size: 0.9rem; margin-bottom: 16px; letter-spacing: 0.08em; }
+  .toc-list { list-style: none; display: grid; gap: 6px; }
+  .toc-list li { font-size: 0.83rem; }
+  .toc-list a { color: var(--text-muted); text-decoration: none; display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted rgba(240,180,41,0.1); transition: color 0.2s; }
+  .toc-list a:hover { color: var(--gold); }
+  .toc-num { color: rgba(240,180,41,0.5); font-family: 'Cinzel', serif; font-size: 0.75rem; }
+
+  /* SECTIONS */
+  .wp-section { margin: 50px 0; }
+  .section-num { font-family: 'Cinzel', serif; font-size: 0.75rem; color: rgba(240,180,41,0.6); letter-spacing: 0.1em; margin-bottom: 6px; }
+  .section-heading { font-family: 'Cinzel', serif; font-size: clamp(1.3rem, 3.5vw, 1.9rem); font-weight: 700; color: #fff; margin-bottom: 18px; line-height: 1.2; border-bottom: 1px solid rgba(240,180,41,0.15); padding-bottom: 14px; }
+  .wp-body { font-size: 0.92rem; color: var(--text-muted); line-height: 1.9; }
+  .wp-body p { margin-bottom: 16px; }
+  .wp-body p:last-child { margin-bottom: 0; }
+  .wp-body strong { color: var(--text); }
+  .wp-body em { font-family: 'Crimson Text', serif; font-size: 1.05rem; color: var(--gold); font-style: italic; }
+
+  /* CALLOUT */
+  .callout { background: rgba(240,180,41,0.06); border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-size: 0.88rem; color: var(--gold-light); line-height: 1.7; font-family: 'Crimson Text', serif; font-style: italic; font-size: 1rem; }
+  .callout.purple { background: rgba(153,69,255,0.07); border-color: var(--purple); color: #c4b5fd; }
+  .callout.green { background: rgba(52,211,153,0.07); border-color: var(--green); color: #6ee7b7; font-family: 'Inter', sans-serif; font-style: normal; font-size: 0.85rem; }
+
+  /* TABLE */
+  .wp-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+  .wp-table th { background: var(--navy-4); color: var(--text-muted); padding: 9px 12px; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .wp-table td { padding: 10px 12px; border-bottom: 1px solid var(--navy-4); vertical-align: top; color: var(--text-muted); }
+  .wp-table tr:last-child td { border-bottom: none; }
+  .wp-table td:first-child { color: var(--text); font-weight: 500; }
+  .wp-table .highlight { color: var(--gold); font-weight: 600; }
+
+  /* LIST */
+  .wp-list { list-style: none; margin: 16px 0; display: flex; flex-direction: column; gap: 10px; }
+  .wp-list li { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; padding-left: 18px; position: relative; }
+  .wp-list li::before { content: '◆'; position: absolute; left: 0; color: var(--gold); font-size: 0.5rem; top: 6px; }
+  .wp-list li strong { color: var(--text); }
+
+  /* MATH BOX */
+  .math-box { background: var(--navy-3); border: 1px solid var(--navy-4); border-radius: 10px; padding: 16px; margin: 18px 0; font-family: monospace; font-size: 0.88rem; color: var(--green); line-height: 1.8; }
+  .math-box .comment { color: var(--text-muted); font-size: 0.78rem; }
+
+  /* DISCLAIMER */
+  .disclaimer { background: var(--navy-3); border: 1px solid var(--navy-4); border-radius: 10px; padding: 18px; margin-top: 40px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.7; }
+  .disclaimer strong { color: var(--text); }
+
+  /* LINKS */
+  .back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.8rem; text-decoration: none; margin: 20px 0; transition: color 0.2s; }
+  .back:hover { color: var(--gold); }
+  .link-btn { display: block; background: var(--gold); color: #0a0e1a; text-align: center; padding: 13px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; text-decoration: none; margin-top: 20px; }
+  .link-btn.sec { background: var(--navy-4); color: var(--text-muted); margin-top: 10px; font-size: 0.85rem; }
+  .link-btn.sec:hover { background: #334155; }
+  .link-btn.purple { background: var(--purple); color: #fff; margin-top: 10px; }
+
+  hr.wp-divider { border: none; border-top: 1px solid rgba(240,180,41,0.1); margin: 30px 0; }
+</style>
+</head>
+<body>
+
+<a href="/kings-shield.html" class="back">← Back to KINGS SHIELD Home</a>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="cover-icon">🛡️</div>
+  <div class="cover-badge">Official Whitepaper — Version 1.0</div>
+  <h1 class="cover-title">THE KINGS<br><span>SHIELD</span></h1>
+  <div class="cover-ticker">$SHIELD · Solana Mainnet</div>
+  <div class="cover-meta">
+    <strong>A Kenostod Ecosystem Extension</strong><br>
+    Published by T.D.I.R. Foundation<br>
+    Date: May 2026 &nbsp;·&nbsp; Solana Blockchain<br>
+    KENO Token: <code style="color:var(--gold); font-size:0.75rem;">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</code> (BSC)
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <div class="toc-title">TABLE OF CONTENTS</div>
+  <ul class="toc-list">
+    <li><a href="#abstract"><span>Abstract</span><span class="toc-num">§1</span></a></li>
+    <li><a href="#origin"><span>The Origin Story</span><span class="toc-num">§2</span></a></li>
+    <li><a href="#problem"><span>The Problem — A World Without a Shield</span><span class="toc-num">§3</span></a></li>
+    <li><a href="#solution"><span>The Solution — THE KINGS SHIELD</span><span class="toc-num">§4</span></a></li>
+    <li><a href="#technology"><span>Technology & Architecture</span><span class="toc-num">§5</span></a></li>
+    <li><a href="#tokenomics"><span>Tokenomics</span><span class="toc-num">§6</span></a></li>
+    <li><a href="#fee"><span>Fee Mechanics & Reward Distribution</span><span class="toc-num">§7</span></a></li>
+    <li><a href="#keno"><span>The KENO–SHIELD Sovereign Bond</span><span class="toc-num">§8</span></a></li>
+    <li><a href="#presale"><span>Presale Structure</span><span class="toc-num">§9</span></a></li>
+    <li><a href="#roadmap"><span>Roadmap</span><span class="toc-num">§10</span></a></li>
+    <li><a href="#governance"><span>Governance & Treasury</span><span class="toc-num">§11</span></a></li>
+    <li><a href="#risk"><span>Risk Factors</span><span class="toc-num">§12</span></a></li>
+    <li><a href="#conclusion"><span>Conclusion</span><span class="toc-num">§13</span></a></li>
+  </ul>
+</div>
+
+<!-- §1 ABSTRACT -->
+<div class="wp-section" id="abstract">
+  <div class="section-num">§1</div>
+  <h2 class="section-heading">Abstract</h2>
+  <div class="wp-body">
+    <p>THE KINGS SHIELD (ticker: SHIELD) is a native Solana SPL token and the first cross-chain extension of the Kenostod Sovereign Economy. Designed as a <strong>defensive financial asset</strong>, SHIELD implements an automatic reward distribution mechanism that generates passive income for holders on every transaction without requiring staking, claiming, or any active participation.</p>
+    <p>SHIELD is structurally bonded to KENO — the native utility token of the Kenostod ecosystem on BNB Smart Chain — through a three-layer integration: holder airdrops, presale priority access, and a permanent cross-chain fee routing mechanism that sends 1% of every SHIELD transaction to the KENO Treasury on BSC Mainnet.</p>
+    <p>With a total supply of 1,000,000,000 (one billion) SHIELD tokens, a 3% transaction fee split equally between holder rewards, cross-chain treasury contribution, and auto-liquidity, and a presale hard cap of 50 SOL, THE KINGS SHIELD represents a new model of defensive tokenomics purpose-built for the 2.4 billion unbanked and underbanked people who need a financial shield most.</p>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §2 ORIGIN -->
+<div class="wp-section" id="origin">
+  <div class="section-num">§2</div>
+  <h2 class="section-heading">The Origin Story</h2>
+  <div class="wp-body">
+    <p>In ancient times, a king did not measure his wealth by the gold in his vault, but by the safety of his people. When the storms came, when the harvests failed, or when raiders arrived at the gates, the people did not look to the king's sword for comfort. They looked to his <strong>shield</strong>.</p>
+    <div class="callout">"The shield was a promise. It meant: You are covered. No matter what happens, there is a barrier between you and ruin."</div>
+    <p>In the modern world, financial instability is the storm. Inflation is the raider. Central banks print money at will while ordinary people watch their purchasing power evaporate. The wealthy hold assets — real estate, index funds, gold — that appreciate against inflation. Everyone else watches their wages and savings fall behind. They have swords — their daily labor — that grow duller by the year. They have no shield.</p>
+    <p>THE KINGS SHIELD was forged for them. Not as charity. Not as a handout. As a <strong>structural mechanism</strong> — a piece of financial architecture designed to automatically protect and grow the holdings of those who choose to participate, regardless of their starting capital, geography, or access to traditional financial systems.</p>
+    <p>Built on the Solana blockchain — the fastest, lowest-cost Layer 1 available today — SHIELD removes every barrier that historically kept the unbanked out of DeFi: high gas fees, complex staking interfaces, and minimum capital requirements. On Solana, a transaction costs less than one cent. SHIELD works for anyone, anywhere, with any amount.</p>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §3 PROBLEM -->
+<div class="wp-section" id="problem">
+  <div class="section-num">§3</div>
+  <h2 class="section-heading">The Problem — A World Without a Shield</h2>
+  <div class="wp-body">
+    <p>The global financial system is experiencing a crisis of inequality that traditional finance is structurally incapable of solving. The evidence is overwhelming:</p>
+    <ul class="wp-list">
+      <li><strong>2.4 billion people</strong> remain unbanked or underbanked globally, denied access to savings, credit, and investment tools taken for granted in developed economies.</li>
+      <li><strong>Inflation in emerging markets</strong> routinely exceeds 10–50% annually (Argentina, Nigeria, Zimbabwe, Turkey), silently destroying the savings of ordinary workers.</li>
+      <li><strong>Existing DeFi platforms</strong> are designed for crypto-native users with capital, technical sophistication, and high risk tolerance — the exact opposite of who needs financial protection most.</li>
+      <li><strong>Passive income mechanisms</strong> in traditional finance (savings accounts, bonds, dividends) require minimum capital thresholds that exclude those at the economic bottom.</li>
+      <li><strong>Cross-chain fragmentation</strong> means that users on different blockchains cannot participate in the same value-generating ecosystem — isolating communities by chain rather than uniting them.</li>
+    </ul>
+    <p>The result is a two-tier financial system where wealth compounds for those who already have it, and erodes for those who don't. THE KINGS SHIELD is designed to interrupt this cycle — not by redistributing existing wealth, but by creating a new mechanism that generates and distributes value automatically from within the community itself.</p>
+    <div class="callout purple">"You have fought hard enough. It is time to let the Shield take the blows."</div>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §4 SOLUTION -->
+<div class="wp-section" id="solution">
+  <div class="section-num">§4</div>
+  <h2 class="section-heading">The Solution — THE KINGS SHIELD</h2>
+  <div class="wp-body">
+    <p>SHIELD solves the passive income access problem through three core mechanisms, each operating automatically without any action required from the holder:</p>
+    <ul class="wp-list">
+      <li><strong>Auto-Reflect Rewards:</strong> 1% of every SHIELD transaction is instantly distributed proportionally to all holders. The more people trade SHIELD, the more every holder earns. No staking pool. No unstaking period. No gas fee to claim. Holding SHIELD is sufficient.</li>
+      <li><strong>Auto-Liquidity:</strong> 1% of every transaction is automatically split and added to the Raydium liquidity pool. This creates a rising liquidity floor — the pool deepens with every trade, making SHIELD increasingly difficult to crash through panic selling.</li>
+      <li><strong>Cross-Chain Treasury Contribution:</strong> 1% of every transaction is routed via Wormhole cross-chain bridge to the KENO Treasury on BSC Mainnet. This creates a permanent, self-reinforcing economic loop between the Solana and BSC ecosystems.</li>
+    </ul>
+    <p>Together, these three mechanisms form the <strong>Shield Protocol</strong> — a self-sustaining economic defense system that grows stronger with every participant who joins.</p>
+    <div class="callout green">A holder with 10,000,000 SHIELD (1% of supply) automatically receives 1% of all holder rewards generated by every transaction in the ecosystem — for life, with no additional action required.</div>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §5 TECHNOLOGY -->
+<div class="wp-section" id="technology">
+  <div class="section-num">§5</div>
+  <h2 class="section-heading">Technology & Architecture</h2>
+  <div class="wp-body">
+    <p>SHIELD is built on <strong>Solana Mainnet</strong> as a native SPL (Solana Program Library) token. The choice of Solana over other chains was deliberate and driven by the needs of the target population:</p>
+
+    <table class="wp-table">
+      <tr><th>Factor</th><th>Why Solana</th></tr>
+      <tr><td>Transaction Cost</td><td>$0.00025 per transaction — accessible to anyone globally, not just those with capital to pay $5–50 Ethereum gas fees</td></tr>
+      <tr><td>Speed</td><td>400ms finality — near-instant, real-world usable settlement</td></tr>
+      <tr><td>Ecosystem</td><td>Raydium, Jupiter, Phantom, Solflare — battle-tested infrastructure with hundreds of millions in daily DEX volume</td></tr>
+      <tr><td>Mobile First</td><td>Phantom mobile wallet is the dominant Solana wallet — perfectly aligned with mobile-first emerging markets</td></tr>
+      <tr><td>Cross-Chain</td><td>Wormhole bridge provides BSC↔Solana connectivity with proven security and $1B+ in lifetime bridged value</td></tr>
+    </table>
+
+    <p>The SHIELD SPL token contract implements the standard Solana Token Program with a custom transfer hook for fee collection. All fee mechanics are enforced at the smart contract level — no trusted intermediary is required to distribute rewards or add liquidity.</p>
+
+    <p><strong>Cross-Chain Architecture (Wormhole):</strong> The 1% KENO Treasury fee is collected in a Solana-side escrow account. Periodically (batched for gas efficiency), accumulated fees are bridged via Wormhole to the UTL Treasury contract on BSC Mainnet at address <code style="color:var(--gold); font-size:0.8rem;">0x54A01A5bf5096c351F166C15143eA9a9Af393C84</code>.</p>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §6 TOKENOMICS -->
+<div class="wp-section" id="tokenomics">
+  <div class="section-num">§6</div>
+  <h2 class="section-heading">Tokenomics</h2>
+  <div class="wp-body">
+    <p><strong>Total Supply: 1,000,000,000 SHIELD</strong> (one billion, fixed — no minting after TGE).</p>
+
+    <table class="wp-table">
+      <tr><th>Allocation</th><th>%</th><th>Amount</th><th>Terms</th></tr>
+      <tr><td>Public Presale</td><td class="highlight">35%</td><td>350,000,000</td><td>Liquid at TGE. KENO holders (100K+) get 24hr whitelist priority.</td></tr>
+      <tr><td>KENO Ecosystem Rewards</td><td class="highlight">20%</td><td>200,000,000</td><td>Airdropped to KENO stakers. 6-month linear vesting from snapshot.</td></tr>
+      <tr><td>DEX Liquidity</td><td class="highlight">15%</td><td>150,000,000</td><td>Locked 365 days on Raydium. LP tokens burned after lock expires.</td></tr>
+      <tr><td>Treasury & Reserve</td><td class="highlight">15%</td><td>150,000,000</td><td>Multi-sig + DAO vote required for any release.</td></tr>
+      <tr><td>Team</td><td class="highlight">10%</td><td>100,000,000</td><td>12-month cliff, then 24-month linear vesting. Verifiable on-chain.</td></tr>
+      <tr><td>Marketing & Community</td><td class="highlight">5%</td><td>50,000,000</td><td>Quarterly release, controlled by multi-sig wallet.</td></tr>
+    </table>
+
+    <p>The supply structure is designed to maximize community ownership. At TGE, <strong>70% of circulating supply is in public hands</strong> (presale + KENO airdrop) with zero insider advantage. Team tokens cannot be sold for a minimum of 12 months after launch.</p>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §7 FEE -->
+<div class="wp-section" id="fee">
+  <div class="section-num">§7</div>
+  <h2 class="section-heading">Fee Mechanics & Reward Distribution</h2>
+  <div class="wp-body">
+    <p>Every SHIELD transfer — buy, sell, or wallet-to-wallet — incurs a <strong>3% total fee</strong>, split equally three ways. This fee is enforced at the smart contract level and cannot be disabled by any party, including the development team.</p>
+
+    <div class="math-box">
+      Transfer Amount: 1,000,000 SHIELD<br>
+      ─────────────────────────────────────<br>
+      1% → Holder Rewards:    10,000 SHIELD distributed pro-rata<br>
+      1% → KENO Treasury:     10,000 SHIELD → bridged to BSC<br>
+      1% → Auto-Liquidity:    10,000 SHIELD → added to Raydium pool<br>
+      ─────────────────────────────────────<br>
+      Receiver gets:          970,000 SHIELD<br>
+      <span class="comment">// All fee mechanics enforced atomically in the same transaction</span>
+    </div>
+
+    <p><strong>Holder Reward Calculation:</strong> If you hold X% of the total SHIELD supply, you receive X% of the 1% holder reward on every transaction. A holder with 1% of supply (10,000,000 SHIELD) earns 1% of every reward pool generated.</p>
+
+    <p>As trading volume grows, holder rewards compound automatically. There is no action required — rewards accumulate in the holder's wallet with every transaction that occurs anywhere in the ecosystem.</p>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §8 KENO BOND -->
+<div class="wp-section" id="keno">
+  <div class="section-num">§8</div>
+  <h2 class="section-heading">The KENO–SHIELD Sovereign Bond</h2>
+  <div class="wp-body">
+    <p>SHIELD is not a standalone project. It is the Solana arm of the <strong>Kenostod Sovereign Economy</strong> — an integrated multi-chain financial infrastructure targeting the unbanked. The KENO token (BEP-20, BSC Mainnet) is the ecosystem's utility and governance layer. SHIELD is its defensive income layer on Solana.</p>
+
+    <p>The two tokens are bound by three structural mechanisms:</p>
+
+    <ul class="wp-list">
+      <li><strong>Layer 1 — Airdrop Loyalty Reward:</strong> 200,000,000 SHIELD (20% of total supply) is reserved exclusively for KENO stakers and long-term holders on BSC. A snapshot of KENO staking positions is taken at presale launch. SHIELD is distributed proportionally over a 6-month linear vesting schedule. The longer you've held KENO, the larger your SHIELD allocation.</li>
+      <li><strong>Layer 2 — Presale Priority Access:</strong> Any wallet holding 100,000 or more KENO tokens on BSC Mainnet at the time of presale launch receives a 24-hour exclusive whitelist window before the public presale opens. This is the ecosystem's reward for loyalty — KENO holders always come first in the kingdom.</li>
+      <li><strong>Layer 3 — Permanent Cross-Chain Fee Flow:</strong> 1% of every SHIELD transaction is permanently routed to the KENO UTL Treasury on BSC Mainnet via Wormhole bridge. This is not a one-time payment — it is a perpetual, self-enforcing economic connection. As long as SHIELD is traded on Solana, the KENO Treasury grows. As the KENO ecosystem expands, SHIELD's utility and reach expand with it.</li>
+    </ul>
+
+    <div class="callout">The KENO–SHIELD bond creates the first self-reinforcing cross-chain sovereign economy — where activity on Solana permanently strengthens the foundation on BSC, and KENO's growth on BSC validates and expands SHIELD's value proposition on Solana.</div>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §9 PRESALE -->
+<div class="wp-section" id="presale">
+  <div class="section-num">§9</div>
+  <h2 class="section-heading">Presale Structure</h2>
+  <div class="wp-body">
+    <p>The SHIELD presale is conducted on <strong>Streamflow Finance</strong>, Solana's premier token launch and vesting platform. All presale terms are enforced by smart contract — no trusted intermediary holds funds.</p>
+
+    <table class="wp-table">
+      <tr><th>Parameter</th><th>Value</th></tr>
+      <tr><td>Presale Platform</td><td>Streamflow Finance (streamflow.finance)</td></tr>
+      <tr><td>Presale Supply</td><td class="highlight">350,000,000 SHIELD (35% of total)</td></tr>
+      <tr><td>Presale Rate</td><td class="highlight">5,000 SHIELD per SOL</td></tr>
+      <tr><td>Listing Rate</td><td>4,000 SHIELD per SOL (Raydium)</td></tr>
+      <tr><td>Presale Discount</td><td class="highlight">25% below listing price</td></tr>
+      <tr><td>Soft Cap</td><td>20 SOL (~$3,000)</td></tr>
+      <tr><td>Hard Cap</td><td class="highlight">50 SOL (~$7,500)</td></tr>
+      <tr><td>Min Contribution</td><td>0.1 SOL</td></tr>
+      <tr><td>Max Contribution</td><td>5 SOL</td></tr>
+      <tr><td>KENO Whitelist</td><td>24-hour priority for wallets holding 100,000+ KENO (BSC)</td></tr>
+      <tr><td>Unsold Tokens</td><td>Burned permanently — no team allocation of unsold supply</td></tr>
+    </table>
+
+    <p>If the soft cap is not reached within the presale window, all contributed SOL is automatically refunded by the Streamflow smart contract. If the soft cap is met and the hard cap is not reached, the presale closes at the soft cap amount and proceeds to listing with available liquidity.</p>
+
+    <p><strong>Use of Presale Proceeds (50 SOL Hard Cap):</strong></p>
+    <ul class="wp-list">
+      <li><strong>60% (30 SOL):</strong> Raydium initial liquidity — locked 365 days, LP tokens burned</li>
+      <li><strong>20% (10 SOL):</strong> Development & smart contract audit</li>
+      <li><strong>10% (5 SOL):</strong> Marketing, community growth, exchange listing support</li>
+      <li><strong>10% (5 SOL):</strong> Wormhole cross-chain bridge integration and KENO treasury routing setup</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §10 ROADMAP -->
+<div class="wp-section" id="roadmap">
+  <div class="section-num">§10</div>
+  <h2 class="section-heading">Roadmap</h2>
+  <div class="wp-body">
+    <p><strong>Phase I — The Forging (Q2 2026, Current)</strong></p>
+    <ul class="wp-list">
+      <li>Whitepaper and tokenomics publication</li>
+      <li>SHIELD SPL token deployment on Solana Mainnet</li>
+      <li>Smart contract audit (third-party, results published publicly)</li>
+      <li>KENO holder whitelist verification system</li>
+      <li>Community launch: Telegram, X (Twitter), Discord</li>
+    </ul>
+    <br>
+    <p><strong>Phase II — The Presale (Q3 2026)</strong></p>
+    <ul class="wp-list">
+      <li>SHIELD presale launch on Streamflow Finance</li>
+      <li>24-hour KENO whitelist window opens</li>
+      <li>Public presale opens</li>
+      <li>KENO staker airdrop snapshot taken at presale launch</li>
+      <li>Raydium SHIELD/SOL liquidity pool creation and lock</li>
+    </ul>
+    <br>
+    <p><strong>Phase III — The Kingdom Expands (Q4 2026)</strong></p>
+    <ul class="wp-list">
+      <li>Raydium and Meteora DEX listing — public trading begins</li>
+      <li>Jupiter token list approval — SHIELD appears in all Solana wallet swaps</li>
+      <li>Wormhole cross-chain KENO treasury bridge goes live</li>
+      <li>KENO staker SHIELD airdrop distribution begins (6-month vesting)</li>
+      <li>CoinGecko and CoinMarketCap listing applications</li>
+      <li>SHIELD staking module for additional KENO rewards</li>
+    </ul>
+    <br>
+    <p><strong>Phase IV — The Sovereign Alliance (2027 &amp; Beyond)</strong></p>
+    <ul class="wp-list">
+      <li>SHIELD DAO governance for treasury allocation decisions</li>
+      <li>SHIELD-backed DeFi lending protocol on Solana</li>
+      <li>Physical SHIELD card powered by Solana Pay</li>
+      <li>SHIELD cross-chain expansion to Ethereum Mainnet and Base</li>
+      <li>KENO + SHIELD unified sovereign economy dashboard</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §11 GOVERNANCE -->
+<div class="wp-section" id="governance">
+  <div class="section-num">§11</div>
+  <h2 class="section-heading">Governance & Treasury</h2>
+  <div class="wp-body">
+    <p>At launch, SHIELD operates under a <strong>benevolent founder model</strong> — development decisions are made by the Kenostod core team (T.D.I.R. Foundation) to maintain speed and coherence during the critical early growth phase.</p>
+    <p>The Treasury (15% of supply, 150,000,000 SHIELD) is held in a <strong>multi-signature wallet</strong> requiring a minimum of 3-of-5 signatures for any release. Treasury wallet addresses are publicly disclosed and on-chain verifiable. No single party can access treasury funds unilaterally.</p>
+    <p>Phase IV introduces full <strong>SHIELD DAO governance</strong>. SHIELD holders will vote on:</p>
+    <ul class="wp-list">
+      <li>Treasury allocation and grant distributions</li>
+      <li>Protocol fee adjustments (within bounds set at contract deployment)</li>
+      <li>Strategic partnerships and ecosystem integrations</li>
+      <li>SHIELD expansion to new blockchain networks</li>
+    </ul>
+    <p>Voting power is proportional to SHIELD held, with a minimum holding threshold to prevent governance attacks from dust wallets. The DAO smart contract is designed so that no change can be implemented without a 7-day timelock after passing — protecting holders from rushed or malicious governance actions.</p>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §12 RISK -->
+<div class="wp-section" id="risk">
+  <div class="section-num">§12</div>
+  <h2 class="section-heading">Risk Factors</h2>
+  <div class="wp-body">
+    <p>Investing in cryptocurrency involves significant risk. Prospective participants should carefully consider the following before participating in the SHIELD presale:</p>
+    <ul class="wp-list">
+      <li><strong>Market Volatility:</strong> The price of SHIELD can fall below the presale price. Cryptocurrency markets are highly volatile and past performance of similar assets does not guarantee future results.</li>
+      <li><strong>Regulatory Risk:</strong> Cryptocurrency regulations vary by jurisdiction and are evolving rapidly. Participation may be restricted or prohibited in certain countries. It is the responsibility of each participant to verify the legality of participation in their jurisdiction.</li>
+      <li><strong>Smart Contract Risk:</strong> Despite best efforts and third-party auditing, smart contracts may contain unforeseen vulnerabilities. The team will conduct an audit prior to presale, but no audit can guarantee zero risk.</li>
+      <li><strong>Liquidity Risk:</strong> Early-stage tokens may have limited liquidity. Participants should not invest capital they cannot afford to lose or need on short notice.</li>
+      <li><strong>Bridge Risk:</strong> Cross-chain operations via Wormhole carry additional technical risks associated with bridge protocols. The team monitors bridge security actively and will pause cross-chain operations if a risk is identified.</li>
+      <li><strong>Competition Risk:</strong> The DeFi space is highly competitive. Similar projects may emerge that reduce SHIELD's market share or adoption.</li>
+    </ul>
+    <p>THE KINGS SHIELD team is committed to transparency, on-chain verifiability, and community-first governance. All risks disclosed here are real, and no projection of future value is made or implied by this whitepaper.</p>
+  </div>
+</div>
+
+<hr class="wp-divider">
+
+<!-- §13 CONCLUSION -->
+<div class="wp-section" id="conclusion">
+  <div class="section-num">§13</div>
+  <h2 class="section-heading">Conclusion</h2>
+  <div class="wp-body">
+    <p>THE KINGS SHIELD represents something genuinely new in the DeFi landscape — not just another token, but a structural instrument designed to defend and grow the financial position of its holders automatically, perpetually, and without barriers.</p>
+    <p>Built on the fastest blockchain in the world, bonded to the KENO ecosystem on BSC, and engineered to route value back to holders with every transaction, SHIELD is the financial instrument the unbanked have never had access to — until now.</p>
+    <p>The kingdom is being built. Every holder of SHIELD becomes part of its walls.</p>
+    <div class="callout">"In ancient times, a king did not measure his wealth by the gold in his vault, but by the safety of his people. We are building that safety — one transaction at a time."<br><br>— T.D.I.R. Foundation, 2026</div>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <strong>Legal Disclaimer:</strong> This whitepaper is for informational purposes only and does not constitute financial, legal, or investment advice. THE KINGS SHIELD (SHIELD) is a utility token and does not represent equity, ownership, or any claim against the T.D.I.R. Foundation or Kenostod Blockchain Academy LLC. Participation in the presale is entirely voluntary and at the participant's own risk. This document may be updated as the project evolves. Always do your own research (DYOR) before participating in any cryptocurrency project.
+</div>
+
+<a class="link-btn" href="https://streamflow.finance/token-launch/" target="_blank">Join the SHIELD Presale</a>
+<a class="link-btn purple" href="/kings-shield-tokenomics.html">View Full Tokenomics</a>
+<a class="link-btn sec" href="/kings-shield.html">← Back to KINGS SHIELD Home</a>
+
+</body>
+</html>

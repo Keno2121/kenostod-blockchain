@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHIELD Tokenomics — THE KINGS SHIELD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --gold: #f0b429; --gold-light: #fcd34d; --purple: #9945FF; --navy: #060b18; --navy-2: #0a1020; --navy-3: #0f172a; --navy-4: #1e293b; --text: #e2e8f0; --text-muted: #94a3b8; --green: #34d399; }
+  body { background: var(--navy); color: var(--text); font-family: 'Inter', sans-serif; padding: 20px; max-width: 760px; margin: 0 auto; }
+  h1 { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.6rem; margin-bottom: 4px; }
+  .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 28px; }
+  .back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.8rem; text-decoration: none; margin-bottom: 20px; transition: color 0.2s; }
+  .back:hover { color: var(--gold); }
+
+  /* CARDS */
+  .card { background: var(--navy-3); border: 1px solid var(--navy-4); border-radius: 14px; margin-bottom: 18px; overflow: hidden; }
+  .card-header { background: var(--navy-4); padding: 13px 18px; display: flex; align-items: center; gap: 10px; }
+  .card-icon { font-size: 1.1rem; }
+  .card-title { font-family: 'Cinzel', serif; font-size: 0.95rem; color: #f1f5f9; font-weight: 600; }
+  .card-body { padding: 20px 18px; }
+
+  /* DONUT CHART (CSS only) */
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  @media (min-width: 520px) { .donut-wrap { flex-direction: row; align-items: flex-start; } }
+  .donut { width: 200px; height: 200px; border-radius: 50%; flex-shrink: 0;
+    background: conic-gradient(
+      #f0b429 0% 35%,
+      #9945FF 35% 55%,
+      #34d399 55% 70%,
+      #fb923c 70% 85%,
+      #f87171 85% 95%,
+      #60a5fa 95% 100%
+    );
+    position: relative;
+  }
+  .donut::after { content: '1B\ASHIELD'; white-space: pre; font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 700; color: var(--gold); position: absolute; inset: 30%; background: var(--navy-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .legend { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .legend-label { font-size: 0.83rem; color: var(--text-muted); flex: 1; }
+  .legend-pct { font-weight: 700; font-size: 0.88rem; }
+  .legend-amt { font-size: 0.72rem; color: var(--text-muted); }
+
+  /* DISTRIBUTION BARS */
+  .dist-item { margin-bottom: 16px; }
+  .dist-item:last-child { margin-bottom: 0; }
+  .dist-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .dist-name { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+  .dist-meta { font-size: 0.75rem; color: var(--text-muted); }
+  .dist-pct-val { font-size: 0.88rem; font-weight: 700; }
+  .bar-track { height: 8px; background: var(--navy-4); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .dist-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* FEE TABLE */
+  .fee-table { width: 100%; border-collapse: collapse; }
+  .fee-table th { background: var(--navy-4); padding: 10px 12px; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; }
+  .fee-table td { padding: 12px; border-bottom: 1px solid var(--navy-4); font-size: 0.85rem; vertical-align: top; }
+  .fee-table tr:last-child td { border-bottom: none; }
+  .fee-pct-cell { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; color: var(--gold); }
+  .fee-dest { font-weight: 600; color: var(--text); display: block; margin-bottom: 3px; }
+  .fee-how { color: var(--text-muted); font-size: 0.78rem; }
+
+  /* PRESALE TABLE */
+  .presale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 500px) { .presale-grid { grid-template-columns: repeat(3, 1fr); } }
+  .presale-card { background: var(--navy-2); border: 1px solid var(--navy-4); border-radius: 10px; padding: 14px; text-align: center; }
+  .presale-val { font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+  .presale-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* VESTING */
+  .vesting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--navy-4); font-size: 0.84rem; }
+  .vesting-row:last-child { border-bottom: none; }
+  .vesting-who { color: var(--text); font-weight: 500; }
+  .vesting-terms { color: var(--text-muted); font-size: 0.78rem; text-align: right; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em; }
+  .pill.locked { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+  .pill.vested { background: rgba(240,180,41,0.12); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+  .pill.liquid { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+
+  /* CROSS-CHAIN FLOW */
+  .flow-diagram { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+  .flow-node { background: var(--navy-4); border: 1px solid rgba(240,180,41,0.2); border-radius: 10px; padding: 10px 14px; text-align: center; font-size: 0.78rem; }
+  .flow-node .icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+  .flow-node .label { color: var(--text-muted); }
+  .flow-node .name { font-weight: 600; color: var(--text); }
+  .flow-arrow { color: var(--gold); font-size: 1.2rem; }
+
+  /* LINKS */
+  .link-btn { display: block; background: var(--gold); color: #0a0e1a; text-align: center; padding: 13px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; text-decoration: none; margin-top: 20px; }
+  .link-btn:hover { background: var(--gold-light); }
+  .link-btn.sec { background: var(--navy-4); color: var(--text-muted); margin-top: 10px; font-size: 0.85rem; }
+  .link-btn.sec:hover { background: #334155; color: var(--text); }
+  .link-btn.purple { background: var(--purple); color: #fff; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<a href="/kings-shield.html" class="back">← Back to KINGS SHIELD Home</a>
+
+<h1>🛡️ SHIELD Tokenomics</h1>
+<p class="subtitle">Complete token distribution, fee mechanics, presale terms, and vesting schedule.</p>
+
+<!-- SUPPLY OVERVIEW -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">📊</span><span class="card-title">Total Supply Distribution</span></div>
+  <div class="card-body">
+    <div class="donut-wrap">
+      <div class="donut"></div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#f0b429;"></div>
+          <div class="legend-label">Public Presale</div>
+          <div>
+            <div class="legend-pct" style="color:#f0b429;">35%</div>
+            <div class="legend-amt">350,000,000 SHIELD</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#9945FF;"></div>
+          <div class="legend-label">KENO Ecosystem Rewards</div>
+          <div>
+            <div class="legend-pct" style="color:#9945FF;">20%</div>
+            <div class="legend-amt">200,000,000 SHIELD</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#34d399;"></div>
+          <div class="legend-label">DEX Liquidity</div>
+          <div>
+            <div class="legend-pct" style="color:#34d399;">15%</div>
+            <div class="legend-amt">150,000,000 SHIELD</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#fb923c;"></div>
+          <div class="legend-label">Treasury & Reserve</div>
+          <div>
+            <div class="legend-pct" style="color:#fb923c;">15%</div>
+            <div class="legend-amt">150,000,000 SHIELD</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#f87171;"></div>
+          <div class="legend-label">Team (locked)</div>
+          <div>
+            <div class="legend-pct" style="color:#f87171;">10%</div>
+            <div class="legend-amt">100,000,000 SHIELD</div>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#60a5fa;"></div>
+          <div class="legend-label">Marketing</div>
+          <div>
+            <div class="legend-pct" style="color:#60a5fa;">5%</div>
+            <div class="legend-amt">50,000,000 SHIELD</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DISTRIBUTION BARS -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">📈</span><span class="card-title">Allocation Breakdown</span></div>
+  <div class="card-body">
+
+    <div class="dist-item">
+      <div class="dist-header">
+        <span class="dist-name">Public Presale</span>
+        <span class="dist-pct-val" style="color:#f0b429;">35% — 350M SHIELD</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:35%; background:#f0b429;"></div></div>
+      <div class="dist-note">Available to all — KENO holders (100K+) get 24hr early access. Sold via Streamflow at 5,000 SHIELD per SOL.</div>
+    </div>
+
+    <div class="dist-item">
+      <div class="dist-header">
+        <span class="dist-name">KENO Ecosystem Rewards</span>
+        <span class="dist-pct-val" style="color:#9945FF;">20% — 200M SHIELD</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:20%; background:#9945FF;"></div></div>
+      <div class="dist-note">Airdropped to verified KENO stakers and long-term holders on BSC. Snapshot taken at presale launch. Distributed over 6 months.</div>
+    </div>
+
+    <div class="dist-item">
+      <div class="dist-header">
+        <span class="dist-name">DEX Liquidity (Raydium)</span>
+        <span class="dist-pct-val" style="color:#34d399;">15% — 150M SHIELD</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:15%; background:#34d399;"></div></div>
+      <div class="dist-note">Locked for 365 days on Raydium. Provides the SHIELD/SOL trading pair with deep initial liquidity. LP tokens burned after lock.</div>
+    </div>
+
+    <div class="dist-item">
+      <div class="dist-header">
+        <span class="dist-name">Treasury & Reserve</span>
+        <span class="dist-pct-val" style="color:#fb923c;">15% — 150M SHIELD</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:15%; background:#fb923c;"></div></div>
+      <div class="dist-note">Emergency reserve, future partnerships, DAO grant funding. Multi-sig controlled. Requires community vote to release.</div>
+    </div>
+
+    <div class="dist-item">
+      <div class="dist-header">
+        <span class="dist-name">Team</span>
+        <span class="dist-pct-val" style="color:#f87171;">10% — 100M SHIELD</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:10%; background:#f87171;"></div></div>
+      <div class="dist-note">12-month cliff lock, then 24-month linear vesting. Publicly verifiable on-chain. Team cannot sell before TGE + 12 months.</div>
+    </div>
+
+    <div class="dist-item">
+      <div class="dist-header">
+        <span class="dist-name">Marketing & Community</span>
+        <span class="dist-pct-val" style="color:#60a5fa;">5% — 50M SHIELD</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:5%; background:#60a5fa;"></div></div>
+      <div class="dist-note">Influencer campaigns, bounty programs, Telegram group growth, exchange listing support. Released quarterly.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FEE MECHANICS -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">⚡</span><span class="card-title">Transaction Fee Structure — 3% Total</span></div>
+  <div class="card-body">
+    <table class="fee-table">
+      <tr>
+        <th>%</th>
+        <th>Destination</th>
+        <th>Mechanism</th>
+      </tr>
+      <tr>
+        <td class="fee-pct-cell">1%</td>
+        <td>
+          <span class="fee-dest">SHIELD Holder Rewards</span>
+          <span class="fee-how">Auto-reflected proportionally to every wallet holding SHIELD. No staking or claiming needed — balance grows automatically.</span>
+        </td>
+        <td><span class="pill liquid">AUTO-REFLECT</span></td>
+      </tr>
+      <tr>
+        <td class="fee-pct-cell">1%</td>
+        <td>
+          <span class="fee-dest">KENO Treasury (BSC Mainnet)</span>
+          <span class="fee-how">Converted to USDC/BNB via Wormhole cross-chain bridge and sent to the UTL Treasury at 0x54A01A5b...393C84 on BSC. Every Solana trade builds KENO's reserve.</span>
+        </td>
+        <td><span class="pill vested">CROSS-CHAIN</span></td>
+      </tr>
+      <tr>
+        <td class="fee-pct-cell">1%</td>
+        <td>
+          <span class="fee-dest">Auto-Liquidity (Raydium)</span>
+          <span class="fee-how">SHIELD is split 50/50 with SOL and automatically injected into the Raydium SHIELD/SOL pool. Every transaction permanently deepens the liquidity floor.</span>
+        </td>
+        <td><span class="pill liquid">AUTO-LP</span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- PRESALE TERMS -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">🪙</span><span class="card-title">Presale Terms</span></div>
+  <div class="card-body">
+    <div class="presale-grid">
+      <div class="presale-card">
+        <div class="presale-val">5,000</div>
+        <div class="presale-lbl">SHIELD per SOL (Presale)</div>
+      </div>
+      <div class="presale-card">
+        <div class="presale-val">4,000</div>
+        <div class="presale-lbl">SHIELD per SOL (Listing)</div>
+      </div>
+      <div class="presale-card">
+        <div class="presale-val">20 SOL</div>
+        <div class="presale-lbl">Soft Cap</div>
+      </div>
+      <div class="presale-card">
+        <div class="presale-val">50 SOL</div>
+        <div class="presale-lbl">Hard Cap</div>
+      </div>
+      <div class="presale-card">
+        <div class="presale-val">0.1 SOL</div>
+        <div class="presale-lbl">Min Contribution</div>
+      </div>
+      <div class="presale-card">
+        <div class="presale-val">5 SOL</div>
+        <div class="presale-lbl">Max Contribution</div>
+      </div>
+    </div>
+    <div style="margin-top:16px; padding:12px 14px; background:rgba(240,180,41,0.06); border:1px solid rgba(240,180,41,0.2); border-radius:8px; font-size:0.82rem; color:#fcd34d; line-height:1.5;">
+      ⭐ <strong>KENO Holder Bonus:</strong> Wallets holding 100,000+ KENO on BSC get 24-hour whitelist access before public open. Connect both wallets to verify eligibility.
+    </div>
+    <div style="margin-top:10px; padding:12px 14px; background:rgba(52,211,153,0.05); border:1px solid rgba(52,211,153,0.2); border-radius:8px; font-size:0.82rem; color:#6ee7b7; line-height:1.5;">
+      🔒 <strong>Presale price = 25% discount</strong> vs listing price. Early participants lock in the best rate. There is no refund if soft cap is met.
+    </div>
+  </div>
+</div>
+
+<!-- VESTING -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">🔒</span><span class="card-title">Vesting & Lock Schedule</span></div>
+  <div class="card-body">
+    <div class="vesting-row">
+      <div class="vesting-who">Public Presale</div>
+      <div class="vesting-terms">
+        <span class="pill liquid">LIQUID AT TGE</span>
+        <div style="margin-top:4px; font-size:0.75rem; color:var(--text-muted);">100% released at Token Generation Event</div>
+      </div>
+    </div>
+    <div class="vesting-row">
+      <div class="vesting-who">DEX Liquidity</div>
+      <div class="vesting-terms">
+        <span class="pill locked">LOCKED 365 DAYS</span>
+        <div style="margin-top:4px; font-size:0.75rem; color:var(--text-muted);">LP tokens time-locked on Raydium</div>
+      </div>
+    </div>
+    <div class="vesting-row">
+      <div class="vesting-who">KENO Ecosystem Rewards</div>
+      <div class="vesting-terms">
+        <span class="pill vested">6-MONTH VESTING</span>
+        <div style="margin-top:4px; font-size:0.75rem; color:var(--text-muted);">Linear release over 6 months from snapshot</div>
+      </div>
+    </div>
+    <div class="vesting-row">
+      <div class="vesting-who">Treasury</div>
+      <div class="vesting-terms">
+        <span class="pill locked">MULTI-SIG + DAO VOTE</span>
+        <div style="margin-top:4px; font-size:0.75rem; color:var(--text-muted);">Released only by community governance</div>
+      </div>
+    </div>
+    <div class="vesting-row">
+      <div class="vesting-who">Team</div>
+      <div class="vesting-terms">
+        <span class="pill locked">12-MONTH CLIFF</span>
+        <div style="margin-top:4px; font-size:0.75rem; color:var(--text-muted);">Then 24-month linear vest. Verifiable on-chain.</div>
+      </div>
+    </div>
+    <div class="vesting-row">
+      <div class="vesting-who">Marketing</div>
+      <div class="vesting-terms">
+        <span class="pill vested">QUARTERLY RELEASE</span>
+        <div style="margin-top:4px; font-size:0.75rem; color:var(--text-muted);">25% per quarter, controlled by multi-sig</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CROSS-CHAIN FLOW -->
+<div class="card">
+  <div class="card-header"><span class="card-icon">🌉</span><span class="card-title">Cross-Chain Value Flow</span></div>
+  <div class="card-body">
+    <div class="flow-diagram">
+      <div class="flow-node">
+        <span class="icon">🛡️</span>
+        <span class="name">SHIELD Tx</span>
+        <span class="label">Solana</span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <span class="icon">⚡</span>
+        <span class="name">1% Fee</span>
+        <span class="label">Collected</span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <span class="icon">🌉</span>
+        <span class="name">Wormhole</span>
+        <span class="label">Bridge</span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <span class="icon">♦</span>
+        <span class="name">KENO Treasury</span>
+        <span class="label">BSC Mainnet</span>
+      </div>
+    </div>
+    <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; text-align:center;">Every SHIELD transaction on Solana automatically contributes to the KENO Treasury on BSC — creating a permanent, self-reinforcing cross-chain value loop.</p>
+  </div>
+</div>
+
+<a class="link-btn" href="https://streamflow.finance/token-launch/" target="_blank">Join SHIELD Presale on Streamflow</a>
+<a class="link-btn purple" href="/kings-shield-whitepaper.html">Read Full Whitepaper</a>
+<a class="link-btn sec" href="/kings-shield.html">← Back to KINGS SHIELD Home</a>
+
+</body>
+</html>
