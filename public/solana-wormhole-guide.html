@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENO — Solana / Wormhole Bridge Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0e1a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 700px; margin: 0 auto; }
+  h1 { color: #9945FF; font-size: 1.5rem; margin-bottom: 4px; }
+  .subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; }
+  .step { background: #111827; border: 1px solid #1e293b; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+  .step-header { background: #1e293b; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .step-num { background: #9945FF; color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+  .step-num.gold { background: #f0b429; color: #0a0e1a; }
+  .step-title { font-weight: 600; font-size: 0.95rem; color: #f1f5f9; }
+  .step-body { padding: 16px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 4px; }
+  .field-value { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.88rem; color: #e2e8f0; position: relative; cursor: pointer; transition: border-color 0.2s; word-break: break-all; }
+  .field-value:hover { border-color: #9945FF; }
+  .field-note { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
+  .copy-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #1e293b; border: none; color: #94a3b8; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+  .copy-btn:hover { color: #9945FF; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .badge { display: inline-block; background: #2d1b69; color: #c4b5fd; border: 1px solid #4c1d95; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; margin-left: 8px; }
+  .badge.warn { background: #451a03; color: #fb923c; border-color: #7c2d12; }
+  .badge.gold { background: #1c1407; color: #f0b429; border-color: #92400e; }
+  .badge.green { background: #064e3b; color: #34d399; border-color: #065f46; }
+  .badge.red { background: #450a0a; color: #f87171; border-color: #7f1d1d; }
+  .alert { background: #1a0d3b; border: 1px solid #4c1d95; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.83rem; color: #c4b5fd; line-height: 1.5; }
+  .alert.warn { background: #1c1407; border-color: #92400e; color: #fcd34d; }
+  .alert.green { background: #0d2b1f; border-color: #065f46; color: #6ee7b7; }
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem; display: flex; align-items: flex-start; gap: 10px; line-height: 1.4; }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist .ck { color: #9945FF; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .checklist .ck.warn { color: #fb923c; }
+  .checklist .ck.req { color: #f87171; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; text-align: center; }
+  .summary-card .val { font-size: 1.1rem; font-weight: 700; color: #9945FF; }
+  .summary-card .lbl { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+  .summary-card.highlight .val { color: #f0b429; }
+  .summary-card.green .val { color: #34d399; }
+  .link-btn { display: block; background: #9945FF; color: #fff; text-align: center; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 1rem; text-decoration: none; margin-top: 20px; letter-spacing: 0.02em; }
+  .link-btn:hover { background: #7c3aed; }
+  .link-btn.secondary { background: #1e293b; color: #94a3b8; margin-top: 10px; font-size: 0.88rem; padding: 10px; }
+  .link-btn.secondary:hover { background: #334155; color: #e2e8f0; }
+  .link-btn.green { background: #059669; margin-top: 10px; }
+  .link-btn.green:hover { background: #047857; }
+  .divider { border: none; border-top: 1px solid #1e293b; margin: 14px 0; }
+  .chain-row { display: flex; align-items: center; gap: 10px; padding: 10px; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
+  .chain-icon { font-size: 1.4rem; }
+  .chain-name { font-weight: 600; color: #f1f5f9; }
+  .chain-sub { font-size: 0.75rem; color: #64748b; }
+  .arrow { color: #9945FF; font-size: 1.2rem; margin: 0 auto; text-align: center; padding: 4px; }
+  .cost-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem; }
+  .cost-row:last-child { border-bottom: none; }
+  .cost-label { color: #94a3b8; }
+  .cost-val { font-weight: 600; color: #e2e8f0; }
+  .cost-val.purple { color: #c4b5fd; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #4c1d95; color: #e9d5ff; padding: 8px 18px; border-radius: 20px; font-size: 0.82rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; }
+  .phase-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #9945FF; font-weight: 700; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<h1>KENO — Solana Bridge Guide</h1>
+<p class="subtitle">Step-by-step: Wrap KENO on Solana via Wormhole Portal. Tap any value to copy.</p>
+
+<div class="alert">
+  🌉 Wormhole Portal is the most battle-tested BSC → Solana bridge. This creates <strong>Portal-wrapped KENO</strong> (an SPL token) that can be traded on Raydium and Meteora — Solana's top DEXes.
+</div>
+
+<!-- WHAT YOU NEED -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num gold">★</div>
+    <div class="step-title">What You Need Before Starting</div>
+  </div>
+  <div class="step-body">
+    <ul class="checklist">
+      <li><span class="ck">◆</span> <span><strong>MetaMask</strong> connected to BSC Mainnet with your safe wallet (0x4AA7…849)</span></li>
+      <li><span class="ck">◆</span> <span><strong>Phantom or Solflare wallet</strong> — install from phantom.app or solflare.com. Create a new Solana wallet and save the seed phrase.</span></li>
+      <li><span class="ck warn">◆</span> <span><strong>~0.01 SOL</strong> in your Solana wallet for account creation (rent fee). Buy SOL on any exchange or use a CEX withdrawal.</span></li>
+      <li><span class="ck warn">◆</span> <span><strong>~0.005 BNB</strong> in your BSC wallet for gas on the bridge transaction.</span></li>
+      <li><span class="ck req">◆</span> <span><strong>KENO tokens</strong> to bridge — only bridge what you need for liquidity seeding. Do NOT bridge your full treasury.</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- PHASE 1: BRIDGE -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <div class="step-title">Open Wormhole Portal Bridge</div>
+  </div>
+  <div class="step-body">
+    <div class="phase-label">URL to visit</div>
+    <div class="field">
+      <div class="field-value" onclick="copyText('https://portalbridge.com', this)">
+        https://portalbridge.com
+        <button class="copy-btn">copy</button>
+      </div>
+      <div class="field-note">Official Wormhole UI — also accessible at portal.wormhole.com</div>
+    </div>
+    <hr class="divider">
+    <div class="phase-label">Steps on the site</div>
+    <ul class="checklist">
+      <li><span class="ck">1</span> Click <strong>"Token Bridge"</strong> on the homepage</li>
+      <li><span class="ck">2</span> Connect <strong>MetaMask</strong> (Source wallet — BSC side)</li>
+      <li><span class="ck">3</span> Connect <strong>Phantom or Solflare</strong> (Target wallet — Solana side)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- STEP 2: SET ROUTE -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <div class="step-title">Set the Bridge Route</div>
+  </div>
+  <div class="step-body">
+    <div class="chain-row">
+      <span class="chain-icon">🔶</span>
+      <div>
+        <div class="chain-name">Source: BNB Smart Chain</div>
+        <div class="chain-sub">BSC Mainnet (Chain ID 56)</div>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="chain-row">
+      <span class="chain-icon">◎</span>
+      <div>
+        <div class="chain-name">Target: Solana</div>
+        <div class="chain-sub">Solana Mainnet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: SELECT TOKEN -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <div class="step-title">Select KENO Token</div>
+  </div>
+  <div class="step-body">
+    <div class="alert green">
+      KENO is not yet in the Wormhole default token list. Select <strong>"Custom Token"</strong> or paste the contract address manually.
+    </div>
+    <div class="field">
+      <div class="field-label">KENO Contract Address (BSC)</div>
+      <div class="field-value" onclick="copyText('0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E', this)">
+        0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+        <button class="copy-btn">copy</button>
+      </div>
+      <div class="field-note">Paste this into the "Token Address" field on Portal Bridge</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Amount to Bridge (Recommended)</div>
+      <div class="field-value" onclick="copyText('5000000', this)">
+        5,000,000 KENO
+        <button class="copy-btn">copy</button>
+      </div>
+      <div class="field-note">5M KENO is enough to seed a Raydium/Meteora pool. Start small — you can bridge more later.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4: APPROVE & BRIDGE -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <div class="step-title">Approve & Send the Bridge Transaction</div>
+  </div>
+  <div class="step-body">
+    <ul class="checklist">
+      <li><span class="ck">1</span> Click <strong>"Next"</strong> — Portal will show a summary of the transfer</li>
+      <li><span class="ck">2</span> Click <strong>"Approve"</strong> — MetaMask pops up to approve KENO spend (one-time)</li>
+      <li><span class="ck">3</span> Click <strong>"Transfer"</strong> — MetaMask pops up for the actual bridge tx (~0.003 BNB gas)</li>
+      <li><span class="ck warn">4</span> Wait <strong>15–30 minutes</strong> for Wormhole guardians to sign the VAA (cross-chain proof)</li>
+      <li><span class="ck">5</span> Click <strong>"Redeem"</strong> on the Solana side — Phantom pops up (~0.01 SOL to create token account)</li>
+      <li><span class="ck">6</span> Done — wrapped KENO (wKENO SPL) appears in your Phantom wallet</li>
+    </ul>
+    <hr class="divider">
+    <div class="alert warn">
+      ⚠️ Save the <strong>Wormhole transaction link</strong> after Step 3. If the page closes, go to portalbridge.com → "Redeem" tab and paste your BSC tx hash to resume.
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5: GET SPL ADDRESS -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">5</div>
+    <div class="step-title">Record Your Wrapped KENO (SPL) Address</div>
+  </div>
+  <div class="step-body">
+    <p style="font-size:0.85rem; color:#94a3b8; line-height:1.5; margin-bottom:12px;">
+      After redeeming, Wormhole creates a unique SPL token address for wrapped KENO on Solana. You need this for everything below.
+    </p>
+    <ul class="checklist">
+      <li><span class="ck">1</span> Open <strong>Phantom wallet</strong> → tap the token to expand it</li>
+      <li><span class="ck">2</span> Tap the <strong>contract address</strong> shown under the token name</li>
+      <li><span class="ck">3</span> Copy it and save it — this is your <strong>Solana wKENO mint address</strong></li>
+      <li><span class="ck warn">4</span> Verify it on <strong>solscan.io</strong> — search the mint address to confirm your balance</li>
+    </ul>
+    <div class="field" style="margin-top:12px;">
+      <div class="field-label">Your wKENO Mint Address (fill in after bridging)</div>
+      <div class="field-value" style="color:#64748b; font-style:italic;">
+        — Paste your SPL mint address here after redeeming —
+      </div>
+      <div class="field-note">Save this address in your records — you'll need it for Raydium listing and Jupiter registration</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 6: LIST ON RAYDIUM -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">6</div>
+    <div class="step-title">Create a Liquidity Pool on Raydium</div>
+  </div>
+  <div class="step-body">
+    <div class="phase-label">Raydium — Solana's #1 DEX</div>
+    <div class="field">
+      <div class="field-value" onclick="copyText('https://raydium.io/liquidity/create-pool/', this)">
+        https://raydium.io/liquidity/create-pool/
+        <button class="copy-btn">copy</button>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="row">
+      <div class="field">
+        <div class="field-label">Base Token</div>
+        <div class="field-value" onclick="copyText('wKENO SPL address', this)">
+          wKENO (your SPL mint)
+          <button class="copy-btn">copy</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Quote Token</div>
+        <div class="field-value" onclick="copyText('So11111111111111111111111111111111111111112', this)">
+          SOL (native)
+          <button class="copy-btn">copy</button>
+        </div>
+        <div class="field-note">Or USDC: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Pool Creation Fee</div>
+      <div class="field-value">~0.4 SOL (~$60 at current SOL price)</div>
+      <div class="field-note">One-time fee paid to Raydium. This creates the CLMM pool.</div>
+    </div>
+    <div class="alert warn" style="margin-top:8px;">
+      ⚠️ Set your initial price carefully — it should match your BSC presale rate converted to SOL. Once set, the starting price is permanent.
+    </div>
+  </div>
+</div>
+
+<!-- STEP 7: JUPITER REGISTRATION -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">7</div>
+    <div class="step-title">Register on Jupiter Token List</div>
+  </div>
+  <div class="step-body">
+    <p style="font-size:0.85rem; color:#94a3b8; line-height:1.5; margin-bottom:12px;">
+      Jupiter is Solana's #1 swap aggregator — getting listed here means KENO shows up in every Solana wallet's swap interface automatically.
+    </p>
+    <div class="field">
+      <div class="field-value" onclick="copyText('https://catdetlist.jup.ag/', this)">
+        https://catdetlist.jup.ag/
+        <button class="copy-btn">copy</button>
+      </div>
+      <div class="field-note">Jupiter's community token validation system — free to apply</div>
+    </div>
+    <hr class="divider">
+    <ul class="checklist">
+      <li><span class="ck">1</span> Connect your Solana wallet on catdetlist.jup.ag</li>
+      <li><span class="ck">2</span> Enter your wKENO SPL mint address</li>
+      <li><span class="ck">3</span> Fill in name, symbol, logo, and links</li>
+      <li><span class="ck warn">4</span> Your pool must have <strong>at least $500 liquidity</strong> and <strong>volume in the last 24h</strong> to qualify</li>
+      <li><span class="ck">5</span> Community votes — once approved, wKENO appears in Jupiter swap</li>
+    </ul>
+  </div>
+</div>
+
+<!-- OPTIONAL: STREAMFLOW FUNDRAISING -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num gold">+</div>
+    <div class="step-title">Optional: Fundraise on Streamflow (Solana Launchpad)</div>
+  </div>
+  <div class="step-body">
+    <div class="alert green">
+      Streamflow lets you run a token sale on Solana — like a presale but for the Solana community. Pairs perfectly with your BSC GemPad presale.
+    </div>
+    <div class="field">
+      <div class="field-value" onclick="copyText('https://streamflow.finance/token-launch/', this)">
+        https://streamflow.finance/token-launch/
+        <button class="copy-btn">copy</button>
+      </div>
+    </div>
+    <ul class="checklist" style="margin-top:12px;">
+      <li><span class="ck">◆</span> <span>Set sale token: wKENO SPL mint address</span></li>
+      <li><span class="ck">◆</span> <span>Accept SOL or USDC contributions</span></li>
+      <li><span class="ck">◆</span> <span>Set vesting schedule if desired (optional)</span></li>
+      <li><span class="ck warn">◆</span> <span>Small platform fee — check current rates at streamflow.finance</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- COST SUMMARY -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num gold">$</div>
+    <div class="step-title">Total Estimated Cost</div>
+  </div>
+  <div class="step-body">
+    <div class="cost-row">
+      <span class="cost-label">Wormhole bridge gas (BSC)</span>
+      <span class="cost-val">~0.005 BNB</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label">Solana token account creation</span>
+      <span class="cost-val">~0.01 SOL</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label">Raydium pool creation</span>
+      <span class="cost-val">~0.4 SOL</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label">Jupiter listing</span>
+      <span class="cost-val cost-val" style="color:#34d399;">FREE</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label"><strong>Total SOL needed</strong></span>
+      <span class="cost-val cost-val" style="color:#9945FF;"><strong>~0.5 SOL (~$75)</strong></span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label"><strong>Total BNB needed</strong></span>
+      <span class="cost-val cost-val" style="color:#9945FF;"><strong>~0.005 BNB</strong></span>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY GRID -->
+<div class="summary-grid" style="margin-bottom:20px;">
+  <div class="summary-card">
+    <div class="val">BSC + ETH + Base + Solana</div>
+    <div class="lbl">Chains after launch</div>
+  </div>
+  <div class="summary-card highlight">
+    <div class="val">~$75 SOL</div>
+    <div class="lbl">Total Solana setup cost</div>
+  </div>
+  <div class="summary-card green">
+    <div class="val">~30 min</div>
+    <div class="lbl">Bridge wait time</div>
+  </div>
+  <div class="summary-card">
+    <div class="val">1B+</div>
+    <div class="lbl">Solana wallet users reached</div>
+  </div>
+</div>
+
+<a class="link-btn" href="https://portalbridge.com" target="_blank">Open Wormhole Portal Bridge</a>
+<a class="link-btn green" href="https://raydium.io/liquidity/create-pool/" target="_blank">Open Raydium — Create Pool</a>
+<a class="link-btn secondary" href="https://catdetlist.jup.ag/" target="_blank">Apply for Jupiter Listing (Free)</a>
+<a class="link-btn secondary" href="/gempad-setup.html">Back to GemPad Setup Guide</a>
+<a class="link-btn secondary" href="/dxsale-setup.html">Back to DX Sale Setup Guide</a>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+function copyText(text, el) {
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+    const btn = el.querySelector('.copy-btn');
+    if (btn) { btn.textContent = '✓'; setTimeout(() => btn.textContent = 'copy', 1500); }
+  });
+}
+</script>
+</body>
+</html>
