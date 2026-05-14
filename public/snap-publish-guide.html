@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTL Snap — Publish to MetaMask Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --gold: #f0b429; --navy: #060b18; --navy-3: #0f172a; --navy-4: #1e293b; --text: #e2e8f0; --text-muted: #94a3b8; --green: #34d399; --purple: #9945FF; }
+  body { background: var(--navy); color: var(--text); font-family: 'Inter', sans-serif; max-width: 760px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .header { padding: 32px 0 28px; border-bottom: 1px solid rgba(240,180,41,0.15); margin-bottom: 32px; }
+  .header-badge { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--green); margin-bottom: 10px; }
+  h1 { font-family: 'Cinzel', serif; font-size: 1.6rem; color: #fff; margin-bottom: 8px; }
+  .header-sub { color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; }
+
+  /* STATUS CHECKLIST */
+  .status-card { background: rgba(52,211,153,0.05); border: 1px solid rgba(52,211,153,0.25); border-radius: 14px; padding: 20px; margin-bottom: 28px; }
+  .status-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--green); margin-bottom: 14px; font-weight: 600; }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 0.88rem; }
+  .check-item:last-child { margin-bottom: 0; }
+  .check-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .check-text { color: var(--text-muted); line-height: 1.4; }
+  .check-text strong { color: var(--text); }
+  .check-item.done .check-text { color: var(--text); }
+  .check-item.pending .check-icon { opacity: 0.5; }
+
+  /* STEPS */
+  .step { margin-bottom: 32px; }
+  .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+  .step-num.done { background: rgba(52,211,153,0.2); color: var(--green); border: 1px solid rgba(52,211,153,0.4); }
+  .step-num.now { background: rgba(240,180,41,0.15); color: var(--gold); border: 1px solid rgba(240,180,41,0.4); }
+  .step-num.next { background: var(--navy-4); color: var(--text-muted); border: 1px solid var(--navy-4); }
+  .step-title { font-weight: 700; font-size: 1rem; color: #fff; }
+  .step-title.done { color: var(--green); }
+  .step-title.now { color: var(--gold); }
+  .step-body { color: var(--text-muted); font-size: 0.88rem; line-height: 1.7; margin-left: 44px; }
+  .step-body p { margin-bottom: 10px; }
+  .step-body p:last-child { margin-bottom: 0; }
+  .step-body strong { color: var(--text); }
+
+  /* CODE BLOCKS */
+  .code-block { background: #020817; border: 1px solid var(--navy-4); border-radius: 10px; padding: 16px; margin: 12px 0 12px 44px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--green); line-height: 1.8; overflow-x: auto; position: relative; }
+  .code-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 6px; font-family: 'Inter', sans-serif; }
+  .copy-btn { position: absolute; top: 10px; right: 10px; background: var(--navy-4); border: 1px solid rgba(240,180,41,0.2); color: var(--gold); font-size: 0.7rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+  .copy-btn:hover { background: rgba(240,180,41,0.1); }
+
+  /* CALLOUT */
+  .callout { background: rgba(240,180,41,0.06); border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0 12px 44px; font-size: 0.85rem; color: #fcd34d; line-height: 1.6; }
+  .callout.blue { border-color: #60a5fa; color: #93c5fd; background: rgba(96,165,250,0.06); }
+  .callout.green { border-color: var(--green); color: #6ee7b7; background: rgba(52,211,153,0.06); }
+
+  /* ACTION BUTTON */
+  .action-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--gold); color: #0a0e1a; padding: 12px 22px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; text-decoration: none; margin: 10px 0 10px 44px; transition: all 0.2s; }
+  .action-btn:hover { background: #fcd34d; transform: translateY(-1px); }
+  .action-btn.outline { background: transparent; border: 2px solid rgba(240,180,41,0.35); color: var(--gold); }
+  .action-btn.outline:hover { border-color: var(--gold); background: rgba(240,180,41,0.08); }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--navy-4); margin: 28px 0; }
+
+  /* TAG */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; margin-left: 8px; vertical-align: middle; }
+  .tag.live { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+  .tag.now { background: rgba(240,180,41,0.12); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+
+  .back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.78rem; text-decoration: none; margin-bottom: 20px; }
+  .back:hover { color: var(--gold); }
+
+  .json-key { color: #93c5fd; }
+  .json-str { color: #86efac; }
+  .json-num { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<a href="/hub.html" class="back">← Hub</a>
+
+<div class="header">
+  <div class="header-badge">✅ Published — Action Required</div>
+  <h1>UTL Protocol Snap<br>— MetaMask Listing Guide</h1>
+  <p class="header-sub">Your Snap is built, clean, and live on npm as <strong style="color:var(--green);">kenostod-utl-snap@2.1.0</strong>. One PR on GitHub gets it into MetaMask's permissionless directory — no approval needed, no waiting.</p>
+</div>
+
+<!-- STATUS CHECKLIST -->
+<div class="status-card">
+  <div class="status-title">Current Status</div>
+  <div class="check-item done">
+    <span class="check-icon">✅</span>
+    <span class="check-text"><strong>Snap built</strong> — Zero warnings. Buffer polyfill added. SVG icon wired in.</span>
+  </div>
+  <div class="check-item done">
+    <span class="check-icon">✅</span>
+    <span class="check-text"><strong>Contracts updated to v1.1</strong> — All 7 live BSC Mainnet addresses (was pointing to retired v1.0 contracts).</span>
+  </div>
+  <div class="check-item done">
+    <span class="check-icon">✅</span>
+    <span class="check-text"><strong>Published to npm</strong> — <code style="color:var(--green);">kenostod-utl-snap@2.1.0</code> is live and public.</span>
+  </div>
+  <div class="check-item pending">
+    <span class="check-icon">⏳</span>
+    <span class="check-text"><strong>Submit PR to permissionless directory</strong> — The one remaining step. Takes ~10 minutes. Instructions below.</span>
+  </div>
+  <div class="check-item pending">
+    <span class="check-icon">⏳</span>
+    <span class="check-text"><strong>Listed in MetaMask</strong> — Goes live after PR is merged. No review bottleneck.</span>
+  </div>
+</div>
+
+<!-- STEP 1 — DONE -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num done">1</div>
+    <div class="step-title done">Snap Published to npm ✅</div>
+  </div>
+  <div class="step-body">
+    <p>Already done. Your Snap is live at:</p>
+  </div>
+  <div class="code-block" style="margin-left:44px;">
+    https://www.npmjs.com/package/kenostod-utl-snap
+  </div>
+  <div class="step-body">
+    <p><strong>Version 2.1.0</strong> includes: v1.1 contract addresses (all 7 live BSC contracts), Buffer polyfill fix, SVG icon, clean zero-warning build.</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- STEP 2 — NOW -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num now">2</div>
+    <div class="step-title now">Fork the Permissionless Directory <span class="tag now">DO THIS NOW</span></div>
+  </div>
+  <div class="step-body">
+    <p>Open this link and click <strong>"Fork"</strong> (top right corner). This creates your own copy of the repo where you can make the edit.</p>
+  </div>
+  <a href="https://github.com/MetaMask/permissionless-snaps-directory" target="_blank" class="action-btn">
+    Open MetaMask/permissionless-snaps-directory ↗
+  </a>
+</div>
+
+<hr>
+
+<!-- STEP 3 — NOW -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num now">3</div>
+    <div class="step-title now">Add Your Snap Entry</div>
+  </div>
+  <div class="step-body">
+    <p>In your forked repo, find the file <code style="color:var(--green);">src/snap/registry.json</code> (or similar — check the repo structure after forking). Add this entry for the UTL Snap:</p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">Your snap entry — copy this exactly</div>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="json-key">"npm:kenostod-utl-snap"</span>: {
+  <span class="json-key">"id"</span>: <span class="json-str">"npm:kenostod-utl-snap"</span>,
+  <span class="json-key">"name"</span>: <span class="json-str">"UTL Protocol by Kenostod"</span>,
+  <span class="json-key">"description"</span>: <span class="json-str">"X-Ray every transaction for hidden MEV fees, earn 60% of captured protocol revenue as a KENO staker, track loyalty tier and governance weight — all inside MetaMask. Powered by 5 live contracts on BSC Mainnet."</span>,
+  <span class="json-key">"website"</span>: <span class="json-str">"https://kenostodblockchain.com"</span>,
+  <span class="json-key">"audits"</span>: [],
+  <span class="json-key">"category"</span>: <span class="json-str">"defi"</span>,
+  <span class="json-key">"latestVersion"</span>: <span class="json-str">"2.1.0"</span>
+}</div>
+
+  <div class="callout blue">The exact field names depend on which version of the permissionless directory schema is active when you submit. Look at an existing entry in the file for the exact format to match — your data above is correct regardless of schema.</div>
+</div>
+
+<hr>
+
+<!-- STEP 4 — PR TITLE AND BODY -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num now">4</div>
+    <div class="step-title now">Open the Pull Request</div>
+  </div>
+  <div class="step-body">
+    <p>After saving your edit, open a Pull Request from your fork back to <code style="color:var(--green);">MetaMask/permissionless-snaps-directory</code>. Use this exact title and body:</p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-label">PR Title</div>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+feat: add UTL Protocol by Kenostod (kenostod-utl-snap@2.1.0)</div>
+
+  <div class="code-block">
+    <div class="code-label">PR Body — copy this whole block</div>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+## Add UTL Protocol by Kenostod
+
+**npm package:** `kenostod-utl-snap@2.1.0`
+**npm URL:** https://www.npmjs.com/package/kenostod-utl-snap
+
+### What this Snap does
+
+UTL Protocol is a live DeFi fee redistribution system on BSC Mainnet. The Snap integrates directly into MetaMask to provide:
+
+- **Fee X-Ray** — shows MEV risk and hidden fee extraction BEFORE the user signs any transaction
+- **Earnings Dashboard** — tracks KENO staking rewards (60% of all collected protocol fees go to stakers)
+- **Loyalty Tier System** — Bronze → Diamond, auto-computed from on-chain toll history
+- **Governance Weight** — displays voting power for on-chain governance proposals
+- **Flash Arbitrage Alerts** (FAL™) — daily cronjob checks for arbitrage opportunities
+- **Weekly Reports** — Sunday push notification with week's earnings summary
+
+### Contracts (BSC Mainnet — all live, all verified)
+
+| Contract | Address |
+|---|---|
+| FeeCollector | `0xb9489B33Bd9bB835139369b1dD282fB44B2273d8` |
+| Staking | `0x77C3946A9FD5F509584F94e81C43efb25120c837` |
+| Treasury | `0x54A01A5bf5096c351F166C15143eA9a9Af393C84` |
+| Distribution | `0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167` |
+| UTLFarm | `0x37D320A881CcF553F6cd757f0A33743ae01A2644` |
+| KENO Token | `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` |
+
+### Permissions used
+
+| Permission | Why |
+|---|---|
+| `endowment:transaction-insight` | Power the Fee X-Ray on every transaction |
+| `endowment:network-access` | Fetch live wallet profile and protocol stats from BSC |
+| `endowment:cronjob` | Daily FAL alert check + weekly earnings report |
+| `snap_notify` | Push weekly summaries and arbitrage alerts |
+| `snap_dialog` | Show dashboards, MEV breakdowns, tier status |
+| `snap_manageState` | Store user tier, stats, and preferences locally |
+| `endowment:ethereum-provider` | Read wallet address for profile sync |
+
+### Prior submission
+
+This Snap was previously submitted to the allowlist directory as PR #1459 (submitted ~6 months ago, no response received). We are now re-targeting the permissionless directory instead.
+
+### Links
+
+- Website: https://kenostodblockchain.com
+- UTL Dashboard: https://kenostodblockchain.com/utl-dashboard.html
+- GitHub: https://github.com/kenostod/utl-metamask-snap</div>
+
+  <div class="callout green">Mentioning PR #1459 in the body is important — it shows you're a serious long-term builder, not a newcomer, and gives context for why you're submitting here instead.</div>
+</div>
+
+<hr>
+
+<!-- STEP 5 — ALSO CLOSE OLD PR -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num next">5</div>
+    <div class="step-title">Close the Old PR (Optional but Clean)</div>
+  </div>
+  <div class="step-body">
+    <p>Once your permissionless directory PR is merged, go to <code style="color:var(--green);">github.com/MetaMask/snaps-directory/pull/1459</code> and leave a comment:</p>
+  </div>
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+Closing this in favor of the permissionless directory submission.
+
+After 6 months without a response, we've re-targeted to `MetaMask/permissionless-snaps-directory`. The Snap has been published to npm as `kenostod-utl-snap@2.1.0` with all v1.1 contract addresses. Permissionless PR is now open.
+
+Thank you for your time — we still believe UTL Protocol would be a strong addition to the main directory if the review queue opens back up.
+  </div>
+</div>
+
+<hr>
+
+<!-- WHAT HAPPENS AFTER -->
+<div class="step">
+  <div class="step-header">
+    <div class="step-num next">6</div>
+    <div class="step-title">What Happens After Merge</div>
+  </div>
+  <div class="step-body">
+    <p>Once your PR is merged into the permissionless directory:</p>
+    <p>🛡️ <strong>Any MetaMask user</strong> can install the UTL Protocol Snap from <code>permissionless.snaps.metamask.io</code></p>
+    <p>💡 <strong>Your website</strong> can deep-link directly to install: <code style="color:var(--green); font-family:'JetBrains Mono',monospace;">metamask://snap/npm:kenostod-utl-snap</code></p>
+    <p>📊 <strong>The Fee X-Ray panel</strong> fires automatically inside MetaMask before every transaction — showing UTL Protocol to every single user on every single swap, with no extra clicks needed.</p>
+    <p>🔔 <strong>Daily notifications</strong> keep UTL Protocol visible in users' wallets every morning, with FAL arbitrage alerts and weekly earnings reports.</p>
+  </div>
+  <div class="callout">This is the original vision: UTL Protocol visible inside MetaMask itself — not just on your website. Every user who installs it is a permanent, in-wallet advertisement for KENO staking.</div>
+</div>
+
+<script>
+function copyCode(btn) {
+  const block = btn.closest('.code-block');
+  const text = block.innerText.replace('Copy\n', '').replace('Copy', '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+
+</body>
+</html>
