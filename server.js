@@ -17,13 +17,15 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !
         const NEW_OWNER   = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
         const COMPROMISED = '0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf';
         const KENO_TOKEN  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
-        const FARM_ADDR   = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+        const FARM_ADDR   = '0x37D320A881CcF553F6cd757f0A33743ae01A2644';
         const CONTRACTS   = [
             { name: 'KENO Token',    addr: '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E' },
-            { name: 'Staking',       addr: '0x49961979c93f43f823BB3593b207724194019d1d' },
-            { name: 'Fee Collector', addr: '0xfE537c43d202C455Cedc141B882c808287BB662f' },
-            { name: 'Treasury',      addr: '0x3B3538b955647d811D42400084e9409e6593bE97' },
-            { name: 'Distribution',  addr: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7' },
+            { name: 'Staking',       addr: '0x77C3946A9FD5F509584F94e81C43efb25120c837' },
+            { name: 'Fee Collector', addr: '0xb9489B33Bd9bB835139369b1dD282fB44B2273d8' },
+            { name: 'Treasury',      addr: '0x54A01A5bf5096c351F166C15143eA9a9Af393C84' },
+            { name: 'Distribution',  addr: '0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167' },
+            { name: 'UTLFarm',       addr: '0x37D320A881CcF553F6cd757f0A33743ae01A2644' },
+            { name: 'UTLHook (PS v4)', addr: '0xAF810a663995DCe98c5D7EdF5C970446A33bAA74' },
         ];
         const ABI = [
             'function owner() view returns (address)',
@@ -444,6 +446,17 @@ app.use((req, res, next) => {
     }
     next();
 });
+// ── UTL Protocol subdomain router ─────────────────────────────────────────
+// Handles utl.kenostodblockchain.com — serves the standalone UTL dApp.
+// All /api/* routes already exist on this server and respond to any hostname.
+app.use((req, res, next) => {
+    const host = req.hostname || '';
+    if (host.startsWith('utl.') && (req.path === '/' || req.path === '')) {
+        return res.sendFile(__dirname + '/public/utl-protocol.html');
+    }
+    next();
+});
+
 app.use(express.static('public', {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html')) {
@@ -467,10 +480,10 @@ app.get('/api/utl/config', (req, res) => {
     res.json({
         walletConnectProjectId: process.env.WALLETCONNECT_PROJECT_ID || '',
         contracts: {
-            FeeCollector: '0xfE537c43d202C455Cedc141B882c808287BB662f',
-            Staking: '0x49961979c93f43f823BB3593b207724194019d1d',
-            Treasury: '0x3B3538b955647d811D42400084e9409e6593bE97',
-            Distribution: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7',
+            FeeCollector: '0xb9489B33Bd9bB835139369b1dD282fB44B2273d8',
+            Staking: '0x77C3946A9FD5F509584F94e81C43efb25120c837',
+            Treasury: '0x54A01A5bf5096c351F166C15143eA9a9Af393C84',
+            Distribution: '0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167',
             USDC: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'
         },
         network: { chainId: 56, name: 'BNB Smart Chain', rpc: 'https://bsc-dataseed1.binance.org/' }
@@ -549,7 +562,7 @@ app.get('/api/utl/dex/quote', async (req, res) => {
         const fromInfo = DEX_TOKEN_MAP[net]?.[fromToken?.toLowerCase()] || { symbol: 'UNKNOWN', decimals: 18 };
         const toInfo   = DEX_TOKEN_MAP[net]?.[toToken?.toLowerCase()]   || { symbol: 'UNKNOWN', decimals: 18 };
 
-        const UTL_FEE_COLLECTOR = '0xfE537c43d202C455Cedc141B882c808287BB662f';
+        const UTL_FEE_COLLECTOR = '0xb9489B33Bd9bB835139369b1dD282fB44B2273d8';
         const url = `https://apiv5.paraswap.io/prices?srcToken=${fromToken}&destToken=${toToken}&srcDecimals=${fromInfo.decimals}&destDecimals=${toInfo.decimals}&amount=${amount}&side=SELL&network=${chainId}&userAddress=${userAddr}&partner=utl&partnerAddress=${UTL_FEE_COLLECTOR}&partnerFeeBps=10`;
         const resp = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) });
 

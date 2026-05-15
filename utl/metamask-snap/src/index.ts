@@ -6,16 +6,23 @@ import type {
 } from '@metamask/snaps-sdk';
 import { panel, text, heading, divider, copyable, row, bold } from '@metamask/snaps-sdk';
 
-// ── UTL Protocol Contract Addresses (BSC Mainnet) ──────────────────────────
+// ── UTL Protocol Contract Addresses (BSC Mainnet v1.1 — ACTIVE) ────────────
 const CONTRACTS = {
   keno:         '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',
-  staking:      '0x49961979c93f43f823BB3593b207724194019d1d',
-  feeCollector: '0xfE537c43d202C455Cedc141B882c808287BB662f',
-  treasury:     '0x3B3538b955647d811D42400084e9409e6593bE97',
-  distribution: '0xE6918cdBB9D8cd0d3532A88D974734B2F1A793c7',
+  staking:      '0x77C3946A9FD5F509584F94e81C43efb25120c837',
+  feeCollector: '0xb9489B33Bd9bB835139369b1dD282fB44B2273d8',
+  treasury:     '0x54A01A5bf5096c351F166C15143eA9a9Af393C84',
+  distribution: '0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167',
+  farm:         '0x37D320A881CcF553F6cd757f0A33743ae01A2644',
+  utlHook:      '0xAF810a663995DCe98c5D7EdF5C970446A33bAA74',
 };
 
-const API_BASE = 'https://kenostodblockchain.com';
+// ── UTL Protocol API — standalone endpoint, independent of any academy ──────
+// This subdomain can be hosted anywhere; it has no dependency on Kenostod Academy.
+const UTL_API = 'https://utl.kenostodblockchain.com';
+
+// ── UTL Protocol dApp URL ───────────────────────────────────────────────────
+const UTL_DAPP = 'https://utl.kenostodblockchain.com';
 
 // ── Loyalty Tiers (mirrors UTLFeeCollector.js) ─────────────────────────────
 const TIERS: Record<string, { min: number; label: string; discount: number; multiplier: string }> = {
@@ -44,8 +51,6 @@ interface UTLSnapState {
   mevBlocked:          number;
   autoCompound:        boolean;
   falAlertsEnabled:    boolean;
-  isGraduate:          boolean;
-  graduateCourses:     number;
   joinedAt:            string;
   lastSync:            string;
   weeklyStats: {
@@ -67,8 +72,8 @@ function defaultState(): UTLSnapState {
     walletAddress: '', isOptedIn: false, kenoStaked: '0',
     tier: 'BRONZE', totalTollPaid: 0, totalRewardsEarned: 0,
     govWeight: 0, transactionCount: 0, mevBlocked: 0,
-    autoCompound: false, falAlertsEnabled: true, isGraduate: false,
-    graduateCourses: 0, joinedAt: '', lastSync: '',
+    autoCompound: false, falAlertsEnabled: true,
+    joinedAt: '', lastSync: '',
     weeklyStats: { txCount: 0, feePaid: 0, rewards: 0, weekStart: new Date().toISOString() },
   };
 }
@@ -104,9 +109,11 @@ function mevRisk(valueBigInt: bigint, toAddress: string): 'HIGH' | 'MEDIUM' | 'L
   return 'LOW';
 }
 
+// ── Standalone wallet profile fetch — hits UTL Protocol API only ────────────
+// Fails gracefully: if the API is down, all callers fall back to local state.
 async function fetchWalletProfile(wallet: string): Promise<any> {
   try {
-    const res = await fetch(`${API_BASE}/api/utl/fee/wallet/${wallet}`, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(`${UTL_API}/api/utl/fee/wallet/${wallet}`, { signal: AbortSignal.timeout(5000) });
     if (res.ok) return await res.json();
   } catch (_) {}
   return null;
@@ -114,7 +121,7 @@ async function fetchWalletProfile(wallet: string): Promise<any> {
 
 async function fetchStats(): Promise<any> {
   try {
-    const res = await fetch(`${API_BASE}/api/utl/fee/stats`, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(`${UTL_API}/api/utl/fee/stats`, { signal: AbortSignal.timeout(5000) });
     if (res.ok) return await res.json();
   } catch (_) {}
   return null;
@@ -151,11 +158,10 @@ export const onInstall: OnInstallHandler = async () => {
         text('🏆  Build your loyalty tier automatically with every interaction'),
         text('🗳️  Earn governance weight — your voice in how the protocol runs'),
         text('⚡  Get Flash Arbitrage Loan opportunity alerts'),
-        text('🎓  Display your verified Kenostod graduate credentials'),
         divider(),
-        text('**Next step:** Visit kenostodblockchain.com to connect your wallet and stake KENO.'),
+        text(`**Next step:** Visit ${UTL_DAPP} to connect your wallet and stake KENO.`),
         divider(),
-        text('UTL Protocol — Code is Law — 5 live contracts on BSC Mainnet'),
+        text('UTL Protocol — Code is Law — 6 live contracts on BSC Mainnet'),
         copyable(CONTRACTS.feeCollector),
       ]),
     },
@@ -203,9 +209,9 @@ export const onTransaction: OnTransactionHandler = async ({ transaction }) => {
         row('Total Leaking Out',  text(`~${totalLeak.toFixed(6)} BNB → anonymous extractors`)),
         divider(),
         text('**UTL Protocol can capture this instead of losing it.**'),
-        text('Visit kenostodblockchain.com → stake KENO → earn from every transaction in the network.'),
+        text(`Stake KENO at ${UTL_DAPP} and earn from every transaction in the network.`),
         divider(),
-        text('UTL Protocol · kenostodblockchain.com'),
+        text('UTL Protocol · Fee Redistribution Layer · BSC Mainnet'),
       ]),
     };
   }
@@ -239,7 +245,7 @@ export const onTransaction: OnTransactionHandler = async ({ transaction }) => {
 
       text(state.autoCompound
         ? '🔄 Auto-compound: ON — rewards auto-restaked'
-        : '📥 Auto-compound: OFF — claim manually at kenostodblockchain.com'),
+        : `📥 Auto-compound: OFF — claim manually at ${UTL_DAPP}`),
       divider(),
       text('_UTL Protocol · Code is Law · BSC Mainnet_'),
     ]),
@@ -255,7 +261,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
   const state = await getState();
   if (!state.isOptedIn) return;
 
-  // Sync from API
+  // Sync from UTL Protocol API
   const synced = await syncWalletProfile(state);
   await saveState(synced);
 
@@ -276,10 +282,10 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
     await saveState(synced);
   }
 
-  // FAL alert check
+  // FAL alert check — hits UTL Protocol API, not any academy endpoint
   if (synced.falAlertsEnabled) {
     try {
-      const res = await fetch(`${API_BASE}/api/arbitrage/opportunities`, { signal: AbortSignal.timeout(4000) });
+      const res = await fetch(`${UTL_API}/api/arbitrage/opportunities`, { signal: AbortSignal.timeout(4000) });
       if (res.ok) {
         const opps = await res.json();
         const top  = Array.isArray(opps) ? opps[0] : opps?.opportunities?.[0];
@@ -288,7 +294,7 @@ export const onCronjob: OnCronjobHandler = async ({ request }) => {
             method: 'snap_notify',
             params: {
               type: 'inApp',
-              message: `⚡ FAL™ Alert: ${top.profitPercent?.toFixed(2)}% arbitrage opportunity on ${top.pair || 'KENO'} — visit kenostodblockchain.com/fal`,
+              message: `⚡ FAL™ Alert: ${top.profitPercent?.toFixed(2)}% arbitrage opportunity on ${top.pair || 'KENO'} — visit ${UTL_DAPP}/fal`,
             },
           });
         }
@@ -329,7 +335,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             row('Gov. Weight',  text(`${state.govWeight.toFixed(1)}`)),
             divider(),
             text('**How to earn:**'),
-            text('1. Stake KENO at kenostodblockchain.com'),
+            text(`1. Stake KENO at ${UTL_DAPP}`),
             text('2. Receive 60% of all FeeCollector revenue'),
             text('3. Every toll you pay raises your tier and governance weight'),
             text('4. Higher tiers = lower toll rate + more reward share'),
@@ -383,12 +389,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             heading('Activity'),
             row('Transactions',      text(`${state.transactionCount}`)),
             row('MEV Events Flagged',text(`${state.mevBlocked}`)),
-            row('Graduate Status',   text(state.isGraduate ? `✅ ${state.graduateCourses} courses verified` : 'Not linked')),
             row('Member Since',      text(state.joinedAt ? new Date(state.joinedAt).toLocaleDateString() : '—')),
             row('Last Sync',         text(state.lastSync ? new Date(state.lastSync).toLocaleDateString() : '—')),
             divider(),
 
-            text('Visit kenostodblockchain.com to stake, claim, and vote.'),
+            text(`Visit ${UTL_DAPP} to stake, claim, and vote.`),
           ]),
         },
       });
@@ -397,8 +402,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
     // ── EARNINGS BREAKDOWN ────────────────────────────────────────────────
     case 'utl_earnings': {
       const stats = await fetchStats();
-      const networkTotal  = stats?.totalCollected || 0;
-      const stakersTotal  = stats?.totalDistributed?.stakers || 0;
+      const networkTotal    = stats?.totalCollected || 0;
+      const stakersTotal    = stats?.totalDistributed?.stakers || 0;
       const foundationTotal = stats?.totalDistributed?.foundation || 0;
       const treasuryTotal   = stats?.totalDistributed?.treasury || 0;
 
@@ -411,10 +416,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             divider(),
 
             heading('Network Revenue (All Sources)'),
-            row('Total Collected',     text(`${formatKeno(networkTotal)} KENO`)),
-            row('→ To All Stakers',    text(`${formatKeno(stakersTotal)} KENO (60%)`)),
+            row('Total Collected',       text(`${formatKeno(networkTotal)} KENO`)),
+            row('→ To All Stakers',      text(`${formatKeno(stakersTotal)} KENO (60%)`)),
             row('→ T.D.I.R. Foundation', text(`${formatKeno(foundationTotal)} KENO (25%)`)),
-            row('→ Treasury',          text(`${formatKeno(treasuryTotal)} KENO (15%)`)),
+            row('→ Treasury',            text(`${formatKeno(treasuryTotal)} KENO (15%)`)),
             divider(),
 
             heading('Your Position'),
@@ -429,15 +434,13 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             text('• Staking toll (0.5%) — stake/unstake events'),
             text('• FAL™ completion fee (0.09%) — flash loans'),
             text('• Partner integration license — 3rd party platforms'),
-            text('• Credential verification fees — employer checks'),
-            text('• Graduate NFT royalty (7.5%) — every resale, forever'),
             text('• Cross-chain bridge fee (0.3%) — KENO transfers'),
             text('• Yield optimization fee (2% of yield)'),
             divider(),
             text('All 60% of all the above flows to KENO stakers automatically.'),
             text('Your stake earns proportionally. Stake more → earn more.'),
             divider(),
-            text('Stake at kenostodblockchain.com to activate earnings.'),
+            text(`Stake at ${UTL_DAPP} to activate earnings.`),
           ]),
         },
       });
@@ -487,7 +490,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
       let activeProposals: any[] = [];
       try {
-        const res = await fetch(`${API_BASE}/api/governance/proposals/active`, { signal: AbortSignal.timeout(4000) });
+        const res = await fetch(`${UTL_API}/api/governance/proposals/active`, { signal: AbortSignal.timeout(4000) });
         if (res.ok) { const d = await res.json(); activeProposals = d.proposals || []; }
       } catch (_) {}
 
@@ -507,12 +510,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             divider(),
             heading('Active Proposals'),
             ...(topProp ? [
-              row('Title',    text(topProp.title || 'See dashboard')),
+              row('Title',    text(topProp.title || 'See dApp')),
               row('Status',   text(topProp.status || 'Active')),
-              text('Vote at kenostodblockchain.com/governance'),
+              text(`Vote at ${UTL_DAPP}/governance`),
             ] : [
               text('No active proposals right now.'),
-              text('Visit kenostodblockchain.com/governance to stay updated.'),
+              text(`Visit ${UTL_DAPP}/governance to stay updated.`),
             ]),
             divider(),
             heading('Your Governance Rights by Tier'),
@@ -523,54 +526,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             text('👑 Diamond — Founding Voice (3x weight + advisory seat)'),
             divider(),
             text('Your voice grows with your participation. The more you use UTL, the louder you get.'),
-          ]),
-        },
-      });
-    }
-
-    // ── GRADUATE CREDENTIALS ─────────────────────────────────────────────
-    case 'utl_credentials': {
-      let gradData: any = null;
-      if (state.walletAddress) {
-        try {
-          const res = await fetch(`${API_BASE}/api/graduates/wallet/${state.walletAddress}`, { signal: AbortSignal.timeout(4000) });
-          if (res.ok) { gradData = await res.json(); }
-        } catch (_) {}
-      }
-
-      const isGrad = gradData?.success && gradData?.graduate;
-      if (isGrad) {
-        state.isGraduate      = true;
-        state.graduateCourses = gradData.graduate.totalCourses || 0;
-        await saveState(state);
-      }
-
-      return snap.request({
-        method: 'snap_dialog',
-        params: {
-          type: 'alert',
-          content: panel([
-            heading('🎓 Kenostod Graduate Credentials'),
-            divider(),
-            ...(isGrad ? [
-              row('Status',          text('✅ VERIFIED ON-CHAIN')),
-              row('Graduate ID',     text(gradData.graduate.graduateId || '—')),
-              row('Courses Completed', text(`${gradData.graduate.totalCourses} / 21`)),
-              row('KENO Earned',     text(`${formatKeno(gradData.graduate.kenoEarned || 0)} KENO`)),
-              row('NFT Tier',        text(gradData.graduate.rvtNftTier || '—')),
-              row('Verified Since',  text(gradData.graduate.completionDate ? new Date(gradData.graduate.completionDate).toLocaleDateString() : '—')),
-              divider(),
-              text('Your credentials are permanently recorded on BSC. Any employer or institution can verify your wallet address to confirm your Kenostod graduation.'),
-              divider(),
-              text('Share your wallet address for instant on-chain verification:'),
-              copyable(state.walletAddress),
-            ] : [
-              row('Status', text('Not linked to a Kenostod graduate account')),
-              divider(),
-              text('Complete the Kenostod Blockchain Academy curriculum to earn verifiable on-chain credentials.'),
-              text('21 courses covering blockchain, DeFi, E-Fi, and financial literacy.'),
-              text('Visit kenostodblockchain.com/courses to start.'),
-            ]),
           ]),
         },
       });
@@ -592,7 +547,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             divider(),
             text('Flash Arbitrage Loans let you borrow, profit, and repay in one block — 0% default risk by design.'),
             text('The 0.09% FAL fee stays inside UTL instead of going to Aave.'),
-            text('Visit kenostodblockchain.com/fal to participate.'),
+            text(`Visit ${UTL_DAPP}/fal to participate.`),
           ]),
         },
       });
@@ -610,7 +565,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             heading('🔄 Auto-Compound'),
             text(state.autoCompound
               ? '✅ Auto-compound ON — your staking rewards are automatically restaked. Compounding accelerates your tier growth and future earnings.'
-              : 'Auto-compound OFF — rewards accumulate and can be claimed manually at kenostodblockchain.com.'),
+              : `Auto-compound OFF — rewards accumulate and can be claimed manually at ${UTL_DAPP}.`),
           ]),
         },
       });
@@ -665,7 +620,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         totalRewardsEarned: state.totalRewardsEarned, govWeight: state.govWeight,
         transactionCount: state.transactionCount, mevBlocked: state.mevBlocked,
         autoCompound: state.autoCompound, falAlertsEnabled: state.falAlertsEnabled,
-        isGraduate: state.isGraduate, graduateCourses: state.graduateCourses,
         joinedAt: state.joinedAt, contracts: CONTRACTS,
       };
     }
