@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UTL Protocol — Fee Redistribution Layer on BSC</title>
+  <meta name="description" content="UTL Protocol captures hidden DeFi fees and returns 60% to KENO stakers. Install the MetaMask Snap to X-Ray every transaction for MEV risk." />
+  <meta property="og:title" content="UTL Protocol — Fee Redistribution Layer" />
+  <meta property="og:description" content="Capture hidden DeFi fees. Earn 60% as a KENO staker. Live on BSC Mainnet." />
+  <meta property="og:type" content="website" />
+  <style>
+    :root {
+      --gold: #f0b429;
+      --gold-light: #ffd875;
+      --navy: #0b1120;
+      --navy-mid: #111827;
+      --navy-card: #1a2235;
+      --navy-border: #1e2d45;
+      --teal: #00d4b8;
+      --teal-dark: #009e8e;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { color: var(--gold-light); }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,17,32,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--navy-border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 1.5rem;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 1.1rem; font-weight: 700; color: var(--text);
+    }
+    .nav-logo span { color: var(--gold); }
+    .nav-logo .badge {
+      font-size: 0.6rem; font-weight: 700; background: var(--teal);
+      color: #000; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.05em;
+    }
+    .nav-links { display: flex; align-items: center; gap: 1.4rem; }
+    .nav-links a { color: var(--text-muted); font-size: 0.875rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .btn-snap {
+      background: var(--gold);
+      color: #000; font-weight: 700; font-size: 0.85rem;
+      padding: 0.5rem 1rem; border-radius: 8px; border: none;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-snap:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 5rem 1.5rem 4rem;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(240,180,41,0.08) 0%, transparent 70%);
+      position: relative;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 1.5rem;
+      background: rgba(0,212,184,0.1); padding: 0.35rem 0.9rem; border-radius: 20px;
+      border: 1px solid rgba(0,212,184,0.2);
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800;
+      line-height: 1.15; max-width: 800px; margin: 0 auto 1.25rem;
+    }
+    .hero h1 em { font-style: normal; color: var(--gold); }
+    .hero-sub {
+      font-size: 1.1rem; color: var(--text-muted);
+      max-width: 560px; margin: 0 auto 2.5rem;
+    }
+    .hero-actions { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--gold); color: #000; font-weight: 700;
+      padding: 0.85rem 1.75rem; border-radius: 10px; border: none;
+      cursor: pointer; font-size: 1rem; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240,180,41,0.3); }
+    .btn-secondary {
+      border: 1px solid var(--navy-border); color: var(--text);
+      padding: 0.85rem 1.75rem; border-radius: 10px;
+      cursor: pointer; font-size: 1rem; transition: all 0.2s;
+      background: transparent; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── LIVE STATS ── */
+    .live-stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px; background: var(--navy-border);
+      border: 1px solid var(--navy-border); border-radius: 16px;
+      overflow: hidden; margin: 2.5rem auto; max-width: 1000px;
+    }
+    .stat-box {
+      background: var(--navy-card); padding: 1.5rem 1.25rem; text-align: center;
+    }
+    .stat-value {
+      font-size: 1.6rem; font-weight: 800; color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; letter-spacing: 0.05em; }
+    .stat-dot {
+      display: inline-block; width: 6px; height: 6px;
+      background: var(--green); border-radius: 50%;
+      margin-right: 4px; animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 4rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.75rem;
+    }
+    h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: 0.75rem; }
+    .section-sub { color: var(--text-muted); max-width: 580px; margin-bottom: 2.5rem; }
+    .divider { border: none; border-top: 1px solid var(--navy-border); margin: 0; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+    .step-card {
+      background: var(--navy-card); border: 1px solid var(--navy-border);
+      border-radius: 14px; padding: 1.75rem 1.5rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .step-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+    .step-num {
+      width: 36px; height: 36px; background: rgba(240,180,41,0.12);
+      border: 1px solid rgba(240,180,41,0.3); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.9rem; color: var(--gold); margin-bottom: 1rem;
+    }
+    .step-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .step-card p { font-size: 0.875rem; color: var(--text-muted); }
+
+    /* ── SNAP INSTALL ── */
+    .snap-cta {
+      background: linear-gradient(135deg, var(--navy-card), rgba(240,180,41,0.06));
+      border: 1px solid rgba(240,180,41,0.2);
+      border-radius: 20px; padding: 3rem 2rem; text-align: center;
+    }
+    .snap-icon {
+      width: 72px; height: 72px; margin: 0 auto 1.5rem;
+      background: rgba(240,180,41,0.1); border-radius: 18px;
+      display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+    }
+    .snap-features {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; margin: 2rem 0; text-align: left;
+    }
+    .snap-feature {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      background: rgba(255,255,255,0.03); border-radius: 10px; padding: 1rem;
+    }
+    .snap-feature-icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .snap-feature h4 { font-size: 0.875rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .snap-feature p { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ── TIERS ── */
+    .tier-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+    .tier-row {
+      display: grid; grid-template-columns: 140px 1fr auto auto;
+      align-items: center; gap: 1rem;
+      background: var(--navy-card); border: 1px solid var(--navy-border);
+      border-radius: 12px; padding: 1rem 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .tier-row:hover { border-color: var(--gold); }
+    .tier-name { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+    .tier-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 6px; height: 8px; }
+    .tier-bar { height: 8px; border-radius: 6px; background: linear-gradient(90deg, var(--gold), var(--teal)); }
+    .tier-keno { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+    .tier-perks { font-size: 0.8rem; color: var(--teal); font-weight: 600; white-space: nowrap; }
+
+    /* ── FEES ── */
+    .fee-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .fee-card {
+      background: var(--navy-card); border: 1px solid var(--navy-border);
+      border-radius: 12px; padding: 1.25rem;
+    }
+    .fee-card .pct { font-size: 1.5rem; font-weight: 800; color: var(--gold); }
+    .fee-card .name { font-size: 0.875rem; font-weight: 600; margin: 0.25rem 0; }
+    .fee-card .desc { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ── CONTRACTS ── */
+    .contract-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .contract-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: var(--navy-card); border: 1px solid var(--navy-border);
+      border-radius: 10px; padding: 0.75rem 1rem;
+      font-family: 'Courier New', monospace; font-size: 0.8rem;
+    }
+    .contract-label { font-weight: 700; color: var(--gold); min-width: 120px; font-family: inherit; }
+    .contract-addr { color: var(--text-muted); flex: 1; word-break: break-all; }
+    .copy-btn {
+      background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.2);
+      color: var(--gold); border-radius: 6px; padding: 0.3rem 0.6rem;
+      font-size: 0.75rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .copy-btn:hover { background: rgba(240,180,41,0.2); }
+
+    /* ── EARN SPLIT ── */
+    .split-bar {
+      border-radius: 12px; overflow: hidden;
+      display: flex; height: 48px; margin: 1.5rem 0;
+    }
+    .split-seg {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; transition: flex 0.5s;
+    }
+    .split-legend { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .split-legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); }
+    .split-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--navy-border);
+      padding: 2.5rem 1.5rem;
+      text-align: center; color: var(--text-muted); font-size: 0.85rem;
+    }
+    footer .footer-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; }
+    footer .footer-links a { color: var(--text-muted); }
+    footer .footer-links a:hover { color: var(--gold); }
+    .verified-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(34,197,94,0.1); color: var(--green);
+      border: 1px solid rgba(34,197,94,0.2); border-radius: 20px;
+      font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.65rem;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    /* ── DASHBOARD PANEL ── */
+    .dashboard-panel {
+      background: var(--navy-card); border: 1px solid var(--navy-border);
+      border-radius: 16px; padding: 1.5rem; margin-top: 2rem;
+    }
+    .dash-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.65rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .dash-row:last-child { border-bottom: none; }
+    .dash-key { font-size: 0.85rem; color: var(--text-muted); }
+    .dash-val { font-size: 0.875rem; font-weight: 600; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 640px) {
+      nav { padding: 0.75rem 1rem; }
+      .nav-links { display: none; }
+      .hero { padding: 3.5rem 1rem 3rem; }
+      .tier-row { grid-template-columns: 1fr 1fr; }
+      .tier-bar-wrap { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    🛡️ <span>UTL</span> Protocol <div class="badge">LIVE</div>
+  </div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#snap">Snap</a>
+    <a href="#tiers">Tiers</a>
+    <a href="#earn">Earn</a>
+    <a href="#contracts">Contracts</a>
+  </div>
+  <button class="btn-snap" onclick="installSnap()">🦊 Install Snap</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <span class="stat-dot"></span> BSC Mainnet · 6 Live Contracts · Code Is Law
+  </div>
+  <h1>Every hidden DeFi fee<br/><em>returned to you</em></h1>
+  <p class="hero-sub">
+    UTL Protocol captures MEV and protocol fees that would otherwise go to anonymous bots and extractors — and redistributes 60% directly to KENO stakers.
+  </p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="installSnap()">
+      🦊 Install MetaMask Snap
+    </button>
+    <a href="#earn" class="btn-secondary">
+      💰 Start Earning
+    </a>
+  </div>
+
+  <!-- Live Stats -->
+  <div class="live-stats" id="liveStats">
+    <div class="stat-box">
+      <div class="stat-value" id="statCollected">—</div>
+      <div class="stat-label"><span class="stat-dot"></span>Total Collected (KENO)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statDistributed">—</div>
+      <div class="stat-label">Paid to Stakers (KENO)</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statEvents">—</div>
+      <div class="stat-label">Fee Events Captured</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value">60%</div>
+      <div class="stat-label">Your Cut as Staker</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-value" id="statLeaders">—</div>
+      <div class="stat-label">Active Participants</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-tag">How It Works</div>
+  <h2>Fee redistribution, on-chain, automatic</h2>
+  <p class="section-sub">Every time anyone interacts with DeFi on BSC, value is silently extracted. UTL Protocol intercepts that value and routes it back to the community.</p>
+  <div class="steps">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <h3>Extraction Detected</h3>
+      <p>Bots and LPs capture spread, slippage, and MEV from every swap. Most users never know it's happening.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <h3>FeeCollector Captures It</h3>
+      <p>The UTL FeeCollector contract intercepts extractable value before it leaves the ecosystem — permanently, on-chain.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <h3>Distribution Splits It</h3>
+      <p>60% goes to KENO stakers. 25% funds T.D.I.R. Foundation grants. 15% builds the protocol treasury.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <h3>You Earn Automatically</h3>
+      <p>No action needed. Stake KENO once. Earn from every interaction in the protocol, forever, proportional to your stake.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- INSTALL SNAP -->
+<section id="snap">
+  <div class="snap-cta">
+    <div class="snap-icon">🦊</div>
+    <div class="section-tag" style="margin-bottom:0.5rem;">MetaMask Snap v2.2.0</div>
+    <h2>UTL Protocol lives inside MetaMask</h2>
+    <p style="color:var(--text-muted);max-width:520px;margin:0.75rem auto 0;">The UTL Snap fires on every single transaction you make — before you sign. No separate app. No browser extension. Just your wallet, upgraded.</p>
+    <div class="snap-features">
+      <div class="snap-feature">
+        <div class="snap-feature-icon">🔍</div>
+        <div>
+          <h4>Fee X-Ray</h4>
+          <p>See estimated MEV extraction and slippage loss before you confirm any transaction.</p>
+        </div>
+      </div>
+      <div class="snap-feature">
+        <div class="snap-feature-icon">💰</div>
+        <div>
+          <h4>Earnings Dashboard</h4>
+          <p>Live view of your staking rewards, tier, and governance weight — inside MetaMask.</p>
+        </div>
+      </div>
+      <div class="snap-feature">
+        <div class="snap-feature-icon">🏆</div>
+        <div>
+          <h4>Loyalty Tiers</h4>
+          <p>Your tier builds automatically as you interact. Higher tiers get lower fees and more rewards.</p>
+        </div>
+      </div>
+      <div class="snap-feature">
+        <div class="snap-feature-icon">⚡</div>
+        <div>
+          <h4>FAL™ Alerts</h4>
+          <p>Get push notifications inside MetaMask when Flash Arbitrage Loan opportunities open.</p>
+        </div>
+      </div>
+      <div class="snap-feature">
+        <div class="snap-feature-icon">🗳️</div>
+        <div>
+          <h4>Governance Weight</h4>
+          <p>See your live voting power for UTL Protocol governance proposals.</p>
+        </div>
+      </div>
+      <div class="snap-feature">
+        <div class="snap-feature-icon">📊</div>
+        <div>
+          <h4>Weekly Reports</h4>
+          <p>Every Sunday, a push summary: transactions, fees paid, and KENO earned that week.</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="installSnap()" style="font-size:1.05rem;padding:1rem 2.25rem;">
+      🦊 Install UTL Snap in MetaMask
+    </button>
+    <p style="margin-top:0.85rem;font-size:0.8rem;color:var(--text-muted);">
+      Listed on MetaMask Snaps Directory · npm: kenostod-utl-snap@2.2.0
+    </p>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- EARN -->
+<section id="earn">
+  <div class="section-tag">Earnings</div>
+  <h2>Stake KENO. Earn from everything.</h2>
+  <p class="section-sub">You don't need to do anything after staking. Every toll, every swap routed through UTL, every FAL repayment earns you a proportional share.</p>
+
+  <div class="split-bar">
+    <div class="split-seg" style="flex:60;background:linear-gradient(90deg,#f0b429,#ffd875);color:#000;">60% — Stakers</div>
+    <div class="split-seg" style="flex:25;background:#00d4b8;color:#000;">25% Foundation</div>
+    <div class="split-seg" style="flex:15;background:#3b82f6;color:#fff;">15% Treasury</div>
+  </div>
+  <div class="split-legend">
+    <div class="split-legend-item"><div class="split-dot" style="background:var(--gold);"></div> 60% → KENO Stakers</div>
+    <div class="split-legend-item"><div class="split-dot" style="background:var(--teal);"></div> 25% → T.D.I.R. Foundation</div>
+    <div class="split-legend-item"><div class="split-dot" style="background:#3b82f6;"></div> 15% → Protocol Treasury</div>
+  </div>
+
+  <div style="margin-top:2.5rem;">
+    <div class="section-tag">Fee Sources That Pay You</div>
+    <div class="fee-grid">
+      <div class="fee-card"><div class="pct">1%</div><div class="name">Distribution Toll</div><div class="desc">Every KENO distribution routes through FeeCollector</div></div>
+      <div class="fee-card"><div class="pct">0.5%</div><div class="name">Staking Toll</div><div class="desc">Every stake and unstake event generates a fee</div></div>
+      <div class="fee-card"><div class="pct">0.09%</div><div class="name">FAL™ Completion</div><div class="desc">Flash Arbitrage Loans repaid within one block</div></div>
+      <div class="fee-card"><div class="pct">0.3%</div><div class="name">Bridge Fee</div><div class="desc">Cross-chain KENO transfers (BSC ↔ Base ↔ Polygon)</div></div>
+      <div class="fee-card"><div class="pct">2%</div><div class="name">Yield Optimization</div><div class="desc">Percentage of yield from protocol-managed positions</div></div>
+      <div class="fee-card"><div class="pct">License</div><div class="name">Partner Integration</div><div class="desc">Third-party platforms paying for UTL integration access</div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- TIERS -->
+<section id="tiers">
+  <div class="section-tag">Loyalty System</div>
+  <h2>Your tier builds automatically</h2>
+  <p class="section-sub">Every toll you pay through UTL Protocol accumulates toward a higher tier. Higher tiers get lower toll rates, bigger reward multipliers, and governance power.</p>
+  <div class="tier-grid">
+    <div class="tier-row">
+      <div class="tier-name">🥉 Bronze</div>
+      <div class="tier-bar-wrap"><div class="tier-bar" style="width:8%"></div></div>
+      <div class="tier-keno">0 KENO toll</div>
+      <div class="tier-perks">1.0x · Entry</div>
+    </div>
+    <div class="tier-row">
+      <div class="tier-name">🥈 Silver</div>
+      <div class="tier-bar-wrap"><div class="tier-bar" style="width:30%"></div></div>
+      <div class="tier-keno">100 KENO toll</div>
+      <div class="tier-perks">1.2x · −5% · Early access</div>
+    </div>
+    <div class="tier-row">
+      <div class="tier-name">🏆 Gold</div>
+      <div class="tier-bar-wrap"><div class="tier-bar" style="width:55%"></div></div>
+      <div class="tier-keno">500 KENO toll</div>
+      <div class="tier-perks">1.5x · −10% · Propose votes</div>
+    </div>
+    <div class="tier-row">
+      <div class="tier-name">💎 Platinum</div>
+      <div class="tier-bar-wrap"><div class="tier-bar" style="width:78%"></div></div>
+      <div class="tier-keno">2,000 KENO toll</div>
+      <div class="tier-perks">2.0x · −15% · 2x gov weight</div>
+    </div>
+    <div class="tier-row">
+      <div class="tier-name">👑 Diamond</div>
+      <div class="tier-bar-wrap"><div class="tier-bar" style="width:100%"></div></div>
+      <div class="tier-keno">10,000 KENO toll</div>
+      <div class="tier-perks">3.0x · −20% · Advisory seat</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- CONTRACTS -->
+<section id="contracts">
+  <div class="section-tag">Transparency</div>
+  <h2>All contracts verified on BSCScan</h2>
+  <p class="section-sub">UTL Protocol is fully on-chain. Every fee collection, every distribution, every governance vote is publicly auditable.</p>
+  <div class="contract-list">
+    <div class="contract-row">
+      <span class="contract-label">FeeCollector</span>
+      <span class="contract-addr">0xb9489B33Bd9bB835139369b1dD282fB44B2273d8</span>
+      <button class="copy-btn" onclick="copyAddr('0xb9489B33Bd9bB835139369b1dD282fB44B2273d8',this)">Copy</button>
+    </div>
+    <div class="contract-row">
+      <span class="contract-label">Staking</span>
+      <span class="contract-addr">0x77C3946A9FD5F509584F94e81C43efb25120c837</span>
+      <button class="copy-btn" onclick="copyAddr('0x77C3946A9FD5F509584F94e81C43efb25120c837',this)">Copy</button>
+    </div>
+    <div class="contract-row">
+      <span class="contract-label">Treasury</span>
+      <span class="contract-addr">0x54A01A5bf5096c351F166C15143eA9a9Af393C84</span>
+      <button class="copy-btn" onclick="copyAddr('0x54A01A5bf5096c351F166C15143eA9a9Af393C84',this)">Copy</button>
+    </div>
+    <div class="contract-row">
+      <span class="contract-label">Distribution</span>
+      <span class="contract-addr">0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167</span>
+      <button class="copy-btn" onclick="copyAddr('0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167',this)">Copy</button>
+    </div>
+    <div class="contract-row">
+      <span class="contract-label">UTLFarm</span>
+      <span class="contract-addr">0x37D320A881CcF553F6cd757f0A33743ae01A2644</span>
+      <button class="copy-btn" onclick="copyAddr('0x37D320A881CcF553F6cd757f0A33743ae01A2644',this)">Copy</button>
+    </div>
+    <div class="contract-row">
+      <span class="contract-label">KENO Token</span>
+      <span class="contract-addr">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</span>
+      <button class="copy-btn" onclick="copyAddr('0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E',this)">Copy</button>
+    </div>
+    <div class="contract-row">
+      <span class="contract-label">UTLHook (PS v4)</span>
+      <span class="contract-addr">0xAF810a663995DCe98c5D7EdF5C970446A33bAA74</span>
+      <button class="copy-btn" onclick="copyAddr('0xAF810a663995DCe98c5D7EdF5C970446A33bAA74',this)">Copy</button>
+    </div>
+  </div>
+  <div style="margin-top:1.25rem;display:flex;gap:1rem;flex-wrap:wrap;">
+    <span class="verified-badge">✓ BSC Mainnet · Chain ID 56</span>
+    <span class="verified-badge">✓ KENO: BEP-20 · 1B Supply</span>
+    <span class="verified-badge">✓ Open Source</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="https://kenostodblockchain.com">Kenostod</a>
+    <a href="/utl-dashboard.html">UTL Dashboard</a>
+    <a href="/utl-farm.html">Farm</a>
+    <a href="https://bscscan.com/address/0xb9489B33Bd9bB835139369b1dD282fB44B2273d8" target="_blank">BSCScan</a>
+    <a href="https://www.npmjs.com/package/kenostod-utl-snap" target="_blank">npm</a>
+    <a href="https://github.com/MetaMask/permissionless-snaps-directory/pull/231" target="_blank">Snap PR</a>
+  </div>
+  <p>UTL Protocol · Fee Redistribution Layer · BSC Mainnet · Code Is Law</p>
+  <p style="margin-top:0.35rem;font-size:0.78rem;">A product of the T.D.I.R. Foundation sovereign economy infrastructure</p>
+</footer>
+
+<script>
+  // ── Install Snap ──────────────────────────────────────────────────────────
+  async function installSnap() {
+    if (typeof window.ethereum === 'undefined') {
+      alert('Please install MetaMask first at metamask.io, then return here to install the UTL Snap.');
+      return;
+    }
+    try {
+      const result = await window.ethereum.request({
+        method: 'wallet_requestSnaps',
+        params: {
+          'npm:kenostod-utl-snap': { version: '^2.2.0' }
+        }
+      });
+      if (result && result['npm:kenostod-utl-snap']) {
+        showSnapped();
+      }
+    } catch (err) {
+      if (err.code === 4001) {
+        // User rejected
+      } else {
+        console.error('Snap install error:', err);
+        alert('Could not install Snap. Make sure you are using MetaMask Flask or MetaMask with Snaps support.');
+      }
+    }
+  }
+
+  function showSnapped() {
+    const btn = document.querySelector('.btn-snap');
+    if (btn) { btn.textContent = '✅ UTL Snap Active'; btn.style.background = 'var(--green)'; }
+    const hero = document.querySelector('.btn-primary');
+    if (hero) { hero.textContent = '✅ Snap Installed — You\'re Earning'; hero.style.background = 'var(--green)'; }
+  }
+
+  // ── Copy Address ─────────────────────────────────────────────────────────
+  function copyAddr(addr, btn) {
+    navigator.clipboard.writeText(addr).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied';
+      btn.style.color = 'var(--green)';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+    });
+  }
+
+  // ── Load Live Stats ───────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const res = await fetch('/api/utl/fee/stats');
+      if (!res.ok) return;
+      const d = await res.json();
+      if (!d.success) return;
+
+      const fmt = (n) => {
+        if (!n || isNaN(n)) return '0';
+        if (n >= 1000000) return (n/1000000).toFixed(2) + 'M';
+        if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+        return Number(n).toLocaleString();
+      };
+
+      const el = (id) => document.getElementById(id);
+      if (d.totalCollected !== undefined)   el('statCollected').textContent   = fmt(d.totalCollected);
+      if (d.totalDistributed?.stakers !== undefined) el('statDistributed').textContent = fmt(d.totalDistributed.stakers);
+      if (d.totalEvents !== undefined)      el('statEvents').textContent      = fmt(d.totalEvents);
+    } catch (_) {}
+
+    try {
+      const res2 = await fetch('/api/utl/fee/leaderboard?limit=1000');
+      if (res2.ok) {
+        const d2 = await res2.json();
+        const count = d2.leaderboard?.length || 0;
+        if (count > 0) document.getElementById('statLeaders').textContent = count.toLocaleString();
+      }
+    } catch (_) {}
+  }
+
+  loadStats();
+</script>
+</body>
+</html>

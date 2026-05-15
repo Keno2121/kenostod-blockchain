@@ -446,6 +446,17 @@ app.use((req, res, next) => {
     }
     next();
 });
+// ── UTL Protocol subdomain router ─────────────────────────────────────────
+// Handles utl.kenostodblockchain.com — serves the standalone UTL dApp.
+// All /api/* routes already exist on this server and respond to any hostname.
+app.use((req, res, next) => {
+    const host = req.hostname || '';
+    if (host.startsWith('utl.') && (req.path === '/' || req.path === '')) {
+        return res.sendFile(__dirname + '/public/utl-protocol.html');
+    }
+    next();
+});
+
 app.use(express.static('public', {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html')) {
