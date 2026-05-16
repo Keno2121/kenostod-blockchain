@@ -6835,6 +6835,99 @@ app.get('/api/graduates/scholarship/progress/:wallet', async (req, res) => {
     }
 });
 
+// ============================================================
+// COURSE SECTION PROGRESS — save & restore across devices
+// ============================================================
+
+// Ensure the section_data column exists (safe to run repeatedly)
+(async () => {
+    if (!dbConnection) return;
+    try {
+        await dbConnection.query(`
+            ALTER TABLE course_progress
+            ADD COLUMN IF NOT EXISTS section_data JSONB DEFAULT '{}'::jsonb,
+            ADD COLUMN IF NOT EXISTS sections_completed INTEGER DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS total_sections INTEGER DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS time_spent_seconds INTEGER DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)
+        `);
+    } catch(e) { /* column may already exist */ }
+})();
+
+app.post('/api/course/progress/save', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'Database unavailable' });
+    try {
+        const { identifier, courseId, sectionData, sectionsCompleted, totalSections, timeSpent } = req.body;
+        if (!identifier || !courseId) return res.status(400).json({ error: 'identifier and courseId required' });
+
+        const isEmail = identifier.includes('@');
+        const walletCol = isEmail ? null : identifier;
+        const emailCol  = isEmail ? identifier : null;
+
+        await dbConnection.query(`
+            INSERT INTO course_progress
+                (user_wallet_address, user_email, course_id, section_data, sections_completed, total_sections, time_spent_seconds, completion_verified, updated_at)
+            VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7, false, NOW())
+            ON CONFLICT (user_wallet_address, course_id)
+            DO UPDATE SET
+                section_data         = EXCLUDED.section_data,
+                sections_completed   = EXCLUDED.sections_completed,
+                total_sections       = EXCLUDED.total_sections,
+                time_spent_seconds   = EXCLUDED.time_spent_seconds,
+                user_email           = COALESCE(EXCLUDED.user_email, course_progress.user_email),
+                updated_at           = NOW()
+        `, [
+            walletCol || 'guest_' + emailCol,
+            emailCol,
+            courseId,
+            JSON.stringify(sectionData || {}),
+            sectionsCompleted || 0,
+            totalSections || 0,
+            timeSpent || 0
+        ]);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error saving course progress:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/course/progress/load/:identifier/:courseId', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'Database unavailable' });
+    try {
+        const { identifier, courseId } = req.params;
+        const isEmail = identifier.includes('@');
+
+        const result = await dbConnection.query(`
+            SELECT section_data, sections_completed, total_sections, time_spent_seconds
+            FROM course_progress
+            WHERE course_id = $1
+              AND (
+                  LOWER(user_wallet_address) = LOWER($2)
+                  OR LOWER(user_email) = LOWER($2)
+                  OR LOWER(user_wallet_address) = LOWER($3)
+              )
+            ORDER BY updated_at DESC
+            LIMIT 1
+        `, [courseId, identifier, isEmail ? 'guest_' + identifier : identifier]);
+
+        if (result.rows.length === 0) return res.json({ found: false });
+
+        const row = result.rows[0];
+        res.json({
+            found: true,
+            sectionData: row.section_data || {},
+            sectionsCompleted: row.sections_completed || 0,
+            totalSections: row.total_sections || 0,
+            timeSpent: row.time_spent_seconds || 0
+        });
+    } catch (error) {
+        console.error('Error loading course progress:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Trigger scholarship graduation (ADMIN ONLY — unlocks KENO + creates graduate record + flags card activation)
 app.post('/api/graduates/scholarship/graduate', async (req, res) => {
     if (!wealthBuilderManager || !dbConnection) {
