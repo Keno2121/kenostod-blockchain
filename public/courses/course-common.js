@@ -1,6 +1,18 @@
 // Kenostod Academy - Shared Course Functionality
 // Wallet Connection & KENO Reward System
 
+// Route /api/ calls to Node server (separate from the static site)
+if (typeof window !== 'undefined' && !window.__apiRouted) {
+    window.__apiRouted = true;
+    const _origFetch = window.fetch.bind(window);
+    window.fetch = function(url, opts) {
+        if (typeof url === 'string' && url.startsWith('/api/')) {
+            url = 'https://kenostod-blockchain.onrender.com' + url;
+        }
+        return _origFetch(url, opts);
+    };
+}
+
 (function() {
     // Load enrollment modal script
     if (!document.querySelector('script[src="/enrollment-modal.js"]')) {
@@ -483,6 +495,50 @@
     // COURSE PROGRESS TRACKING SYSTEM
     // ========================================
     
+    // Get best identifier (wallet or email) for server sync
+    function getIdentifier() {
+        return localStorage.getItem('userWalletAddress') ||
+               localStorage.getItem('walletAddress') ||
+               localStorage.getItem('userEmail') ||
+               null;
+    }
+
+    // Save section progress to server (fire-and-forget, never blocks UI)
+    function syncProgressToServer(courseId, sectionProgress, totalTimeSpent, totalSections) {
+        const identifier = getIdentifier();
+        if (!identifier) return;
+        const completed = Object.keys(sectionProgress).filter(k => sectionProgress[k]).length;
+        fetch('/api/course/progress/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                identifier,
+                courseId,
+                sectionData: sectionProgress,
+                sectionsCompleted: completed,
+                totalSections: totalSections || 0,
+                timeSpent: totalTimeSpent || 0
+            })
+        }).catch(() => {}); // silent fail — localStorage is the backup
+    }
+
+    // Load progress from server and merge with localStorage
+    async function loadProgressFromServer(courseId, localProgress) {
+        const identifier = getIdentifier();
+        if (!identifier) return localProgress;
+        try {
+            const res = await fetch('/api/course/progress/load/' + encodeURIComponent(identifier) + '/' + courseId);
+            if (!res.ok) return localProgress;
+            const data = await res.json();
+            if (!data.found) return localProgress;
+            // Merge: server wins for sections it knows about; keep any local-only sections too
+            const merged = Object.assign({}, localProgress, data.sectionData || {});
+            return { progress: merged, timeSpent: data.timeSpent || 0 };
+        } catch(e) {
+            return localProgress;
+        }
+    }
+
     function initCourseProgress() {
         const courseMatch = window.location.pathname.match(/course-(\d+)/);
         if (!courseMatch) return;
@@ -498,6 +554,23 @@
         const timeKey = `course${courseId}_time_spent`;
         let totalTimeSpent = parseInt(localStorage.getItem(timeKey) || '0');
         let sectionStartTime = Date.now();
+
+        // Restore progress from server on load (async — updates UI once loaded)
+        loadProgressFromServer(courseId, sectionProgress).then(result => {
+            if (result && result.progress) {
+                sectionProgress = result.progress;
+                if (result.timeSpent > totalTimeSpent) totalTimeSpent = result.timeSpent;
+                localStorage.setItem(progressKey, JSON.stringify(sectionProgress));
+                localStorage.setItem(timeKey, totalTimeSpent.toString());
+                updateProgress();
+                updateTimeDisplay();
+                // Show a toast if server had more progress than local (e.g. resumed on new device)
+                const serverCompleted = Object.keys(sectionProgress).filter(k => sectionProgress[k]).length;
+                if (serverCompleted > 0) {
+                    showToast('✅ Progress restored — ' + serverCompleted + ' section' + (serverCompleted !== 1 ? 's' : '') + ' already completed', 'success');
+                }
+            }
+        });
         
         setInterval(() => {
             totalTimeSpent += 1;
@@ -565,11 +638,13 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
                     const sectionId = entry.target.id;
-                    if (sectionId && allSections.includes(sectionId)) {
+                    if (sectionId && allSections.includes(sectionId) && !sectionProgress[sectionId]) {
                         setTimeout(() => {
                             sectionProgress[sectionId] = true;
                             localStorage.setItem(progressKey, JSON.stringify(sectionProgress));
                             updateProgress();
+                            // Save to server every time a new section is completed
+                            syncProgressToServer(courseId, sectionProgress, totalTimeSpent, allSections.length);
                         }, 5000);
                     }
                 }
@@ -580,6 +655,21 @@
             if (section.id && allSections.includes(section.id)) {
                 observer.observe(section);
             }
+        });
+
+        // Periodic backup sync every 60 seconds (catches time-spent updates)
+        setInterval(() => {
+            syncProgressToServer(courseId, sectionProgress, totalTimeSpent, allSections.length);
+        }, 60000);
+
+        // Save on page close/tab switch so nothing is lost when browser kills the tab
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                syncProgressToServer(courseId, sectionProgress, totalTimeSpent, allSections.length);
+            }
+        });
+        window.addEventListener('pagehide', () => {
+            syncProgressToServer(courseId, sectionProgress, totalTimeSpent, allSections.length);
         });
         
         updateProgress();
