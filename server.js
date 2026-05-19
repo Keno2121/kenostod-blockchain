@@ -8845,15 +8845,31 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
         'function paused() view returns (bool)'
     ];
 
+    // DEX factory addresses (for on-chain liquidity / reserve checks)
+    const DEX_FACTORY_BY_NAME = {
+        'PancakeSwap V2': '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73',
+        'BiSwap':         '0x858E3312ed3A876947EA49d572A7C42DE08af7EE',
+        'ApeSwap':        '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6',
+        'BabySwap':       '0x86407bEa2078ea5f5EB5A52B2caA963bC1F889Da',
+    };
+    const FACTORY_ABI = [
+        'function getPair(address tokenA, address tokenB) external view returns (address pair)'
+    ];
+    const PAIR_ABI = [
+        'function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)',
+        'function token0() external view returns (address)'
+    ];
+
     // Flash loan route: PancakeSwap↔BiSwap WBNB/USDT — threshold 0.25% (only flash swap fee)
     // Direct swap route: any DEX pair          — threshold 0.60% (covers both swap fees ~0.25% each)
     const POLL_INTERVAL_MS       = 30_000;
-    const EXEC_AMOUNT_BNB        = 0.1;
+    const EXEC_AMOUNT_BNB        = 0.05;   // reduced to limit price impact on thinner pools
     const COOLDOWN_MS            = 60_000;
     const FLASH_THRESHOLD        = 0.25;
     const DIRECT_THRESHOLD_MIN   = 0.60;   // must exceed combined swap fees
     const DIRECT_THRESHOLD_MAX   = 15.0;   // above 15% = illiquid pool trap — skip
     const GAS_RESERVE_BNB        = 0.005;  // always keep 0.005 BNB (~$3) for gas
+    const MIN_RESERVE_MULTIPLE   = 50n;    // pool must hold ≥50× trade amount (liquidity guard)
     const DEX_ROUTER_BY_NAME     = Object.fromEntries(DEXES.map(d => [d.name, d.router]));
 
     let lastExecAt   = 0;
@@ -8900,6 +8916,28 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
             const amounts  = await contract.getAmountsOut(amountWei, [tokenIn, tokenOut]);
             return BigInt(amounts[1]);
         } catch (_) { return null; }
+    }
+
+    // ── Reserve guard: returns false if pool is too shallow to trade safely ───
+    // Requires pool reserve of the input token ≥ MIN_RESERVE_MULTIPLE × tradeWei
+    async function hasEnoughLiquidity(dexName, tokenIn, tokenOut, tradeWei, provider) {
+        try {
+            const factoryAddr = DEX_FACTORY_BY_NAME[dexName];
+            if (!factoryAddr) return true; // unknown DEX — allow and let swap handle it
+            const factory  = new ethers.Contract(factoryAddr, FACTORY_ABI, provider);
+            const pairAddr = await factory.getPair(tokenIn, tokenOut);
+            if (!pairAddr || pairAddr === ethers.ZeroAddress) return false;
+            const pair     = new ethers.Contract(pairAddr, PAIR_ABI, provider);
+            const [r0, r1] = await pair.getReserves();
+            const t0       = (await pair.token0()).toLowerCase();
+            const reserveIn = t0 === tokenIn.toLowerCase() ? BigInt(r0) : BigInt(r1);
+            const ok = reserveIn >= BigInt(tradeWei) * MIN_RESERVE_MULTIPLE;
+            if (!ok) console.log(`[FAL Multi] ⚠️ ${dexName} ${dexName} pool too thin (reserve ${(Number(reserveIn)/1e18).toFixed(2)} < ${MIN_RESERVE_MULTIPLE}× trade) — skipping`);
+            return ok;
+        } catch (e) {
+            console.log(`[FAL Multi] ⚠️ Reserve check failed for ${dexName}: ${e.message} — skipping`);
+            return false;
+        }
     }
 
     // ── Scan all DEX×pair combos, return profitable spreads ───────────────────
@@ -9017,50 +9055,72 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
                     const pairData = PAIRS.find(p => p.label === opp.pair);
                     if (!pairData) continue;
 
-                    const buyRouterAddr  = DEX_ROUTER_BY_NAME[opp.sellOn];  // sell BNB here (most USDT out)
+                    const buyRouterAddr  = DEX_ROUTER_BY_NAME[opp.sellOn];  // sell BNB here (most stablecoin out)
                     const sellRouterAddr = DEX_ROUTER_BY_NAME[opp.buyOn];   // buy BNB back here (cheapest)
                     if (!buyRouterAddr || !sellRouterAddr) continue;
 
-                    const deadline    = Math.floor(Date.now() / 1000) + 60;
-                    const amountInWei = ethers.parseEther(String(arbAmountBNB));
-                    const slippage    = 0.997; // 0.3% slippage tolerance
+                    const amountInWei  = ethers.parseEther(String(arbAmountBNB));
+                    const leg1Slippage = 0.995; // 0.5% — leg 1 is BNB→stable, usually deep pools
+                    const leg2Slippage = 0.97;  // 3%   — leg 2 is stable→BNB, protects against thin pools
 
                     try {
-                        console.log(`[FAL Multi] 🔄 DIRECT ARB: ${opp.pair} | ${opp.sellOn}→${opp.buyOn} | spread ${opp.spreadPct}%`);
+                        // ── Pre-flight: check both pool reserves before touching the chain ──
+                        const [leg1Ok, leg2Ok] = await Promise.all([
+                            hasEnoughLiquidity(opp.sellOn, pairData.in, pairData.out, amountInWei, provider),
+                            hasEnoughLiquidity(opp.buyOn,  pairData.out, pairData.in, amountInWei, provider),
+                        ]);
+                        if (!leg1Ok) { console.log(`[FAL Multi] ⛔ ${opp.sellOn} leg-1 pool too shallow — skip`); continue; }
+                        if (!leg2Ok) {
+                            // Fallback: try PancakeSwap for leg 2 if the primary sell DEX is too thin
+                            const pcsFallback = DEX_ROUTER_BY_NAME['PancakeSwap V2'];
+                            const pcsOk = await hasEnoughLiquidity('PancakeSwap V2', pairData.out, pairData.in, amountInWei, provider);
+                            if (!pcsOk || !pcsFallback) { console.log(`[FAL Multi] ⛔ ${opp.buyOn} leg-2 pool too shallow, PCS fallback also thin — skip`); continue; }
+                            console.log(`[FAL Multi] ℹ️ ${opp.buyOn} leg-2 thin — falling back to PancakeSwap V2 for sell leg`);
+                            opp._sellRouterOverride = pcsFallback;
+                            opp._sellDexName        = 'PancakeSwap V2';
+                        }
+
+                        const activeSellRouter = opp._sellRouterOverride || sellRouterAddr;
+                        const activeSellName   = opp._sellDexName        || opp.buyOn;
+
+                        console.log(`[FAL Multi] 🔄 DIRECT ARB: ${opp.pair} | ${opp.sellOn}→${activeSellName} | spread ${opp.spreadPct}%`);
 
                         // Step 1: swap BNB → stablecoin on the DEX where BNB is most valuable
-                        const buyRouter = new ethers.Contract(buyRouterAddr, ROUTER_ABI, signer);
+                        const deadline1   = Math.floor(Date.now() / 1000) + 120;
+                        const buyRouter   = new ethers.Contract(buyRouterAddr, ROUTER_ABI, signer);
                         const [, stableOut] = await buyRouter.getAmountsOut(amountInWei, [pairData.in, pairData.out]);
-                        const stableMin = BigInt(Math.floor(Number(stableOut) * slippage));
+                        const stableMin   = BigInt(Math.floor(Number(stableOut) * leg1Slippage));
 
                         const tx1 = await buyRouter.swapExactETHForTokens(
                             stableMin,
                             [pairData.in, pairData.out],
                             SAFE_WALLET,
-                            deadline,
+                            deadline1,
                             { value: amountInWei, gasPrice: ethers.parseUnits('3', 'gwei'), gasLimit: 300000 }
                         );
                         const r1 = await tx1.wait();
-                        if (r1.status !== 1) { console.log('[FAL Multi] ⚠️ Step 1 reverted'); continue; }
+                        if (r1.status !== 1) { console.log('[FAL Multi] ⚠️ Leg 1 reverted — no funds moved'); continue; }
 
                         // Step 2: approve stablecoin for the sell router
                         const stableToken = new ethers.Contract(pairData.out, ERC20_ABI, signer);
                         const stableBal   = await stableToken.balanceOf(SAFE_WALLET);
-                        await (await stableToken.approve(sellRouterAddr, stableBal, {
+                        const approveTx   = await stableToken.approve(activeSellRouter, stableBal, {
                             gasPrice: ethers.parseUnits('3', 'gwei'), gasLimit: 100000
-                        })).wait();
+                        });
+                        await approveTx.wait();
 
-                        // Step 3: swap stablecoin → BNB on the DEX where BNB is cheapest
-                        const sellRouter = new ethers.Contract(sellRouterAddr, ROUTER_ABI, signer);
+                        // Step 3: swap stablecoin → BNB — 3% slippage guards against thin-pool reverts
+                        const deadline2   = Math.floor(Date.now() / 1000) + 120;
+                        const sellRouter  = new ethers.Contract(activeSellRouter, ROUTER_ABI, signer);
                         const [, bnbBack] = await sellRouter.getAmountsOut(stableBal, [pairData.out, pairData.in]);
-                        const bnbMin = BigInt(Math.floor(Number(bnbBack) * slippage));
+                        const bnbMin      = BigInt(Math.floor(Number(bnbBack) * leg2Slippage));
 
                         const tx2 = await sellRouter.swapExactTokensForETH(
                             stableBal,
                             bnbMin,
                             [pairData.out, pairData.in],
                             SAFE_WALLET,
-                            deadline,
+                            deadline2,
                             { gasPrice: ethers.parseUnits('3', 'gwei'), gasLimit: 300000 }
                         );
                         const r2 = await tx2.wait();
@@ -9071,13 +9131,18 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
                             console.log(`[FAL Multi] ✅ DIRECT SUCCESS: ${opp.pair} profit ~${profitBNB} BNB | TX: ${tx2.hash}`);
                             sendTelegramAlert(
                                 `🔄 <b>Direct Arb Executed!</b>\n\n` +
-                                `Pair: ${opp.pair}\nRoute: ${opp.sellOn} → ${opp.buyOn}\n` +
+                                `Pair: ${opp.pair}\nRoute: ${opp.sellOn} → ${activeSellName}\n` +
                                 `Spread: <b>${opp.spreadPct}%</b> | Amount: ${arbAmountBNB.toFixed(4)} BNB\n` +
                                 `Est. profit: ~${profitBNB} BNB → your wallet\n` +
                                 `<a href="https://bscscan.com/tx/${tx2.hash}">View on BSCScan</a>`
                             );
                         } else {
-                            console.log(`[FAL Multi] ⚠️ Direct step 2 reverted`);
+                            console.log(`[FAL Multi] ⚠️ Leg 2 reverted — stablecoin remains in wallet, no net loss`);
+                            sendTelegramAlert(
+                                `⚠️ <b>Arb Leg 2 Failed</b>\n\nPair: ${opp.pair}\n` +
+                                `Leg 2 (${activeSellName}) reverted — stablecoin stays in wallet.\n` +
+                                `Swap back manually via PancakeSwap if needed.`
+                            );
                         }
                     } catch (directErr) {
                         console.error(`[FAL Multi] Direct arb error (${opp.pair}):`, directErr.message);
