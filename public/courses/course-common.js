@@ -45,32 +45,26 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
         widget.id = 'wallet-connection-widget';
         widget.style.cssText = `
             position: fixed;
-            top: 16px;
-            right: 16px;
+            top: 12px;
+            right: 12px;
             z-index: 9999;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         `;
         
         if (wallet) {
+            // Wallet connected — small quiet pill
             widget.innerHTML = `
-                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                    <span style="font-size: 20px;">💰</span>
-                    <div>
-                        <div style="font-size: 11px; color: #059669; font-weight: 600;">WALLET CONNECTED</div>
-                        <div style="font-size: 13px; color: #065f46; font-weight: 700;">${wallet.slice(0,6)}...${wallet.slice(-4)}</div>
-                    </div>
-                    <button onclick="window.kenostodWallet.disconnect()" style="background: #fee2e2; border: 1px solid #ef4444; color: #dc2626; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">Disconnect</button>
+                <div style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); border-radius: 50px; padding: 6px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); cursor: pointer;" onclick="window.kenostodWallet.disconnect()" title="Click to disconnect">
+                    <span style="width:8px;height:8px;background:#10b981;border-radius:50%;display:inline-block;flex-shrink:0;"></span>
+                    <span style="font-size: 12px; color: #10b981; font-weight: 600;">${wallet.slice(0,6)}...${wallet.slice(-4)}</span>
                 </div>
             `;
         } else {
+            // No wallet — subtle "Earn KENO" pill, not a scary warning
             widget.innerHTML = `
-                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                    <span style="font-size: 20px;">⚠️</span>
-                    <div>
-                        <div style="font-size: 11px; color: #92400e; font-weight: 600;">NO WALLET CONNECTED</div>
-                        <div style="font-size: 12px; color: #b45309;">Connect to earn KENO</div>
-                    </div>
-                    <button onclick="window.kenostodWallet.showModal()" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700;">Connect Wallet</button>
+                <div onclick="window.kenostodWallet.showModal()" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: 50px; padding: 7px 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: all 0.2s;" title="Connect wallet to earn KENO rewards">
+                    <span style="font-size: 14px;">🎁</span>
+                    <span style="font-size: 12px; color: #10b981; font-weight: 600;">Earn KENO</span>
                 </div>
             `;
         }
