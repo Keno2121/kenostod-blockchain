@@ -8927,7 +8927,7 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
                 buyOn:      lowest.dex,
                 sellOn:     highest.dex,
                 spreadPct:  parseFloat(spreadPct.toFixed(4)),
-                profitable: spreadPct >= PROFIT_THRESHOLD,
+                profitable: spreadPct >= FLASH_THRESHOLD,
                 allPrices:  valid.map(p => ({ dex: p.dex, out: (Number(p.out) / 1e18).toFixed(6) }))
             });
         }
