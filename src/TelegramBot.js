@@ -87,6 +87,7 @@ class KenostodTelegramBot {
             if (!msg.text) return;
 
             const chatId = msg.chat.id;
+            console.log(`[TelegramBot] Message from ${msg.from.first_name || 'unknown'} — Chat ID: ${chatId}`);
 
             try {
                 await this.bot.sendChatAction(chatId, 'typing');
