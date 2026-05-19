@@ -8872,7 +8872,7 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
     const DIRECT_THRESHOLD_MIN   = 1.50;   // raised: must comfortably exceed fees + slippage
     const DIRECT_THRESHOLD_MAX   = 15.0;   // above 15% = illiquid pool trap — skip
     const GAS_RESERVE_BNB        = 0.01;   // raised: keep 0.01 BNB for gas (was 0.005)
-    const MIN_TRADE_BNB          = 0.025;  // don't trade if spendable < this — safety buffer
+    const MIN_TRADE_BNB          = 0.012;  // min spendable BNB required to trade
     const MIN_PROFIT_BNB         = 0.0005; // min net profit required before pulling trigger
     const MIN_RESERVE_MULTIPLE   = 100n;   // pool must hold ≥100× trade amount (tighter guard)
     const DEX_ROUTER_BY_NAME     = Object.fromEntries(DEXES.map(d => [d.name, d.router]));
