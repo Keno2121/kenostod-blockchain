@@ -8797,130 +8797,309 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
 })();
 // ==================== END REAL FAL API ENDPOINTS ====================
 
-// ==================== REAL FAL AUTO-EXECUTOR ====================
+// ==================== REAL FAL AUTO-EXECUTOR (MULTI-DEX) ====================
 (function() {
     const { ethers } = require('ethers');
-    const FAL_CONTRACT  = '0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e';
-    const SAFE_WALLET   = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
-    const BSC_RPC       = 'https://bsc-dataseed1.binance.org/';
-    const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-    const BISWAP_ROUTER  = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
-    const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
-    const USDT = '0x55d398326f99059fF775485246999027B3197955';
-    const ROUTER_ABI = ['function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)'];
+    const https = require('https');
+
+    const FAL_CONTRACT = '0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e';
+    const SAFE_WALLET  = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
+    const BSC_RPC      = 'https://bsc-dataseed1.binance.org/';
+
+    // All BSC DEXes using Uniswap V2 interface
+    const DEXES = [
+        { name: 'PancakeSwap V2', router: '0x10ED43C718714eb63d5aA57B78B54704E256024E' },
+        { name: 'BiSwap',         router: '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8' },
+        { name: 'ApeSwap',        router: '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b' },
+        { name: 'BabySwap',       router: '0x325E343f1dE602396E256B67eFd1F61C3A6B38Bd' },
+    ];
+
+    // Token addresses on BSC
+    const TOKENS = {
+        WBNB: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+        USDT: '0x55d398326f99059fF775485246999027B3197955',
+        BUSD: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56',
+        CAKE: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
+    };
+
+    // Token pairs to monitor: [tokenIn, tokenOut, humanLabel, inputAmount]
+    const PAIRS = [
+        { in: TOKENS.WBNB, out: TOKENS.USDT, label: 'WBNB/USDT', amount: '0.1' },
+        { in: TOKENS.WBNB, out: TOKENS.BUSD, label: 'WBNB/BUSD', amount: '0.1' },
+        { in: TOKENS.CAKE, out: TOKENS.WBNB, label: 'CAKE/WBNB', amount: '10'  },
+    ];
+
+    const ROUTER_ABI = [
+        'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)',
+        'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) external payable returns (uint[] memory amounts)',
+        'function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)',
+        'function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)'
+    ];
+    const ERC20_ABI = [
+        'function approve(address spender, uint256 amount) external returns (bool)',
+        'function balanceOf(address owner) external view returns (uint256)'
+    ];
     const FAL_ABI = [
         'function quoteArb(uint256 wbnbAmount) external view returns (uint256 usdtOut, uint256 wbnbBack, uint256 repayAmount, bool profitable)',
         'function executeFlashArb(uint256 wbnbAmount) external',
         'function paused() view returns (bool)'
     ];
 
-    const POLL_INTERVAL_MS = 30_000;   // check every 30 seconds
-    const EXEC_AMOUNT_BNB  = 0.1;      // borrow 0.1 BNB per arb
-    const COOLDOWN_MS      = 120_000;  // 2-minute cooldown after each execution
+    // Flash loan route: PancakeSwap↔BiSwap WBNB/USDT — threshold 0.25% (only flash swap fee)
+    // Direct swap route: any DEX pair          — threshold 0.60% (covers both swap fees ~0.25% each)
+    const POLL_INTERVAL_MS       = 30_000;
+    const EXEC_AMOUNT_BNB        = 0.1;
+    const COOLDOWN_MS            = 60_000;   // 1-min cooldown (was 2 min)
+    const FLASH_THRESHOLD        = 0.25;     // % for PancakeSwap↔BiSwap flash loan route
+    const DIRECT_THRESHOLD       = 0.60;     // % for all direct-swap routes
+    const DEX_ROUTER_BY_NAME     = Object.fromEntries(DEXES.map(d => [d.name, d.router]));
 
-    let lastExecAt = 0;
-    let isRunning  = false;
-    let autoEnabled = true;
+    let lastExecAt   = 0;
+    let isRunning    = false;
+    let autoEnabled  = true;
+    let lastSnapshot = []; // latest spread data for all pairs
 
-    // Expose control endpoints
+    // ── API endpoints ─────────────────────────────────────────────────────────
     app.post('/api/fal/auto/toggle', (req, res) => {
         autoEnabled = !autoEnabled;
-        console.log(`[FAL Auto] ${autoEnabled ? '▶️ Enabled' : '⏸️ Paused'} by admin`);
+        console.log(`[FAL Multi] ${autoEnabled ? '▶️ Enabled' : '⏸️ Paused'}`);
         res.json({ ok: true, autoEnabled });
     });
     app.get('/api/fal/auto/status', (req, res) => {
         res.json({ ok: true, autoEnabled, lastExecAt: lastExecAt ? new Date(lastExecAt).toISOString() : null, isRunning });
     });
+    app.get('/api/fal/opportunities', (req, res) => {
+        res.json({ ok: true, opportunities: lastSnapshot, updatedAt: new Date().toISOString() });
+    });
 
-    async function sendTelegramAlert(msg) {
-        const token = process.env.TELEGRAM_BOT_TOKEN;
-        if (!token) return;
+    // ── Telegram helper ───────────────────────────────────────────────────────
+    function sendTelegramAlert(msg) {
+        const token  = process.env.TELEGRAM_BOT_TOKEN;
+        const chatId = process.env.FAL_ALERT_CHAT_ID;
+        if (!token || !chatId) return;
         try {
-            const https = require('https');
-            // Get chat ID by finding any active chat (send to Nickeo directly via getUpdates)
-            const payload = JSON.stringify({ chat_id: process.env.FAL_ALERT_CHAT_ID || '0', text: msg, parse_mode: 'HTML' });
-            if (!process.env.FAL_ALERT_CHAT_ID) return; // need chat ID set
+            const payload = JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' });
             const opts = {
                 hostname: 'api.telegram.org',
                 path: `/bot${token}/sendMessage`,
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
             };
-            const req = https.request(opts);
-            req.write(payload);
-            req.end();
+            const r = https.request(opts);
+            r.write(payload);
+            r.end();
         } catch (e) { /* silent */ }
     }
 
+    // ── Get price on one DEX ──────────────────────────────────────────────────
+    async function getPrice(router, tokenIn, tokenOut, amountWei, provider) {
+        try {
+            const contract = new ethers.Contract(router, ROUTER_ABI, provider);
+            const amounts  = await contract.getAmountsOut(amountWei, [tokenIn, tokenOut]);
+            return BigInt(amounts[1]);
+        } catch (_) { return null; }
+    }
+
+    // ── Scan all DEX×pair combos, return profitable spreads ───────────────────
+    async function scanAllSpreads(provider) {
+        const results = [];
+        for (const pair of PAIRS) {
+            const amountWei = ethers.parseEther(pair.amount);
+            // Fetch price from every DEX in parallel
+            const prices = await Promise.all(
+                DEXES.map(dex => getPrice(dex.router, pair.in, pair.out, amountWei, provider)
+                    .then(out => ({ dex: dex.name, out }))
+                )
+            );
+            const valid = prices.filter(p => p.out !== null);
+            if (valid.length < 2) continue;
+
+            // Find highest and lowest price
+            valid.sort((a, b) => (a.out < b.out ? -1 : 1));
+            const lowest  = valid[0];
+            const highest = valid[valid.length - 1];
+            const spreadPct = Number(highest.out - lowest.out) * 100 / Number(lowest.out);
+
+            results.push({
+                pair:       pair.label,
+                buyOn:      lowest.dex,
+                sellOn:     highest.dex,
+                spreadPct:  parseFloat(spreadPct.toFixed(4)),
+                profitable: spreadPct >= PROFIT_THRESHOLD,
+                allPrices:  valid.map(p => ({ dex: p.dex, out: (Number(p.out) / 1e18).toFixed(6) }))
+            });
+        }
+        results.sort((a, b) => b.spreadPct - a.spreadPct);
+        return results;
+    }
+
+    // ── Main loop ─────────────────────────────────────────────────────────────
     async function checkAndExecute() {
         if (!autoEnabled || isRunning) return;
         const pk = process.env.NEW_WALLET_PRIVATE_KEY;
         if (!pk) return;
-
-        const now = Date.now();
-        if (now - lastExecAt < COOLDOWN_MS) return;
+        if (Date.now() - lastExecAt < COOLDOWN_MS) return;
 
         isRunning = true;
         try {
             const provider = new ethers.JsonRpcProvider(BSC_RPC);
-            const pancake  = new ethers.Contract(PANCAKE_ROUTER, ROUTER_ABI, provider);
-            const biswap   = new ethers.Contract(BISWAP_ROUTER,  ROUTER_ABI, provider);
-            const fal      = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
+            const spreads  = await scanAllSpreads(provider);
+            lastSnapshot   = spreads;
 
-            // Check if paused
-            const paused = await fal.paused();
-            if (paused) { isRunning = false; return; }
+            const summary = spreads.map(s =>
+                `${s.pair}: ${s.spreadPct > 0 ? '+' : ''}${s.spreadPct}% (buy ${s.buyOn} → sell ${s.sellOn})`
+            ).join(' | ');
+            console.log(`[FAL Multi] ${summary}`);
 
-            const wbnbWei  = ethers.parseEther(String(EXEC_AMOUNT_BNB));
-            const pathWU   = [WBNB, USDT];
-            const [, pancakeOut] = await pancake.getAmountsOut(wbnbWei, pathWU);
-            const [, biswapOut]  = await biswap.getAmountsOut(wbnbWei, pathWU);
-            const spreadPct = Number(biswapOut - pancakeOut) * 100 / Number(pancakeOut);
-
-            console.log(`[FAL Auto] Spread: ${spreadPct.toFixed(4)}% | Threshold: 0.25%`);
-
-            const [,, , profitable] = await fal.quoteArb(wbnbWei);
-            if (!profitable) { isRunning = false; return; }
-
-            // EXECUTE
-            console.log(`[FAL Auto] ⚡ Spread ${spreadPct.toFixed(4)}% — PROFITABLE! Executing flash arb...`);
-            const signer = new ethers.Wallet(pk, provider);
-            const falSigner = new ethers.Contract(FAL_CONTRACT, FAL_ABI, signer);
-            const tx = await falSigner.executeFlashArb(wbnbWei, {
-                gasPrice: ethers.parseUnits('3', 'gwei'),
-                gasLimit: 500000
-            });
-            const receipt = await tx.wait();
-            lastExecAt = Date.now();
-
-            if (receipt.status === 1) {
-                const profitEst = (spreadPct * EXEC_AMOUNT_BNB / 100).toFixed(6);
-                console.log(`[FAL Auto] ✅ SUCCESS! TX: ${tx.hash} | Est. profit: ~${profitEst} BNB → ${SAFE_WALLET}`);
-                await sendTelegramAlert(
-                    `⚡ <b>Real FAL Executed!</b>\n\n` +
-                    `Spread: <b>${spreadPct.toFixed(4)}%</b>\n` +
-                    `Amount: ${EXEC_AMOUNT_BNB} BNB\n` +
-                    `Est. profit: ~${profitEst} BNB\n` +
-                    `Wallet: ${SAFE_WALLET.slice(0,10)}...\n` +
-                    `<a href="https://bscscan.com/tx/${tx.hash}">View on BSCScan</a>`
-                );
-            } else {
-                console.log(`[FAL Auto] ⚠️ TX reverted — spread closed before execution`);
+            // Alert on any profitable pair (even ones without a deployed contract)
+            const profitable = spreads.filter(s => s.profitable);
+            for (const opp of profitable) {
+                console.log(`[FAL Multi] 🔥 ${opp.pair} spread ${opp.spreadPct}% — ${opp.buyOn} → ${opp.sellOn}`);
             }
+
+            const signer = new ethers.Wallet(pk, provider);
+
+            // ── ROUTE A: Flash loan via deployed contract (PancakeSwap↔BiSwap WBNB/USDT) ──
+            const fal    = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
+            const paused = await fal.paused();
+            if (!paused) {
+                const wbnbWei = ethers.parseEther(String(EXEC_AMOUNT_BNB));
+                const [,,,canExec] = await fal.quoteArb(wbnbWei);
+                if (canExec) {
+                    console.log(`[FAL Multi] ⚡ FLASH LOAN: PancakeSwap↔BiSwap WBNB/USDT — executing...`);
+                    const falSigner = new ethers.Contract(FAL_CONTRACT, FAL_ABI, signer);
+                    const tx = await falSigner.executeFlashArb(wbnbWei, {
+                        gasPrice: ethers.parseUnits('3', 'gwei'),
+                        gasLimit: 500000
+                    });
+                    const receipt = await tx.wait();
+                    lastExecAt = Date.now();
+                    if (receipt.status === 1) {
+                        const sp = spreads.find(s => s.pair === 'WBNB/USDT')?.spreadPct ?? '?';
+                        const profitEst = (Number(sp) * EXEC_AMOUNT_BNB / 100).toFixed(6);
+                        console.log(`[FAL Multi] ✅ FLASH SUCCESS: ${tx.hash}`);
+                        sendTelegramAlert(
+                            `⚡ <b>Flash Arb Executed!</b>\n\n` +
+                            `Pair: WBNB/USDT | Route: PancakeSwap → BiSwap\n` +
+                            `Spread: <b>${sp}%</b> | Amount: ${EXEC_AMOUNT_BNB} BNB\n` +
+                            `Est. profit: ~${profitEst} BNB → your wallet\n` +
+                            `<a href="https://bscscan.com/tx/${tx.hash}">View on BSCScan</a>`
+                        );
+                    } else {
+                        console.log(`[FAL Multi] ⚠️ Flash TX reverted — spread closed`);
+                    }
+                }
+            }
+
+            // ── ROUTE B: Direct swap arb on all other DEX×pair combos ──────────────────
+            // Uses actual BNB from safe wallet — no contract needed.
+            // Threshold is higher (0.60%) to cover both swap fees (~0.25% each).
+            const bnbBalance = await provider.getBalance(SAFE_WALLET);
+            const bnbAvailable = Number(bnbBalance) / 1e18;
+            const arbAmountBNB = Math.min(EXEC_AMOUNT_BNB, bnbAvailable * 0.8); // use max 80% of balance
+
+            if (arbAmountBNB >= 0.01) {
+                const directCandidates = spreads.filter(s =>
+                    s.spreadPct >= DIRECT_THRESHOLD &&
+                    // Skip the flash loan pair (handled above)
+                    !(s.pair === 'WBNB/USDT' && s.buyOn === 'PancakeSwap V2' && s.sellOn === 'BiSwap') &&
+                    // Only BNB-based pairs for now (WBNB/USDT, WBNB/BUSD)
+                    (s.pair === 'WBNB/USDT' || s.pair === 'WBNB/BUSD')
+                );
+
+                for (const opp of directCandidates) {
+                    if (Date.now() - lastExecAt < COOLDOWN_MS) break;
+
+                    const pairData = PAIRS.find(p => p.label === opp.pair);
+                    if (!pairData) continue;
+
+                    const buyRouterAddr  = DEX_ROUTER_BY_NAME[opp.sellOn];  // sell BNB here (most USDT out)
+                    const sellRouterAddr = DEX_ROUTER_BY_NAME[opp.buyOn];   // buy BNB back here (cheapest)
+                    if (!buyRouterAddr || !sellRouterAddr) continue;
+
+                    const deadline    = Math.floor(Date.now() / 1000) + 60;
+                    const amountInWei = ethers.parseEther(String(arbAmountBNB));
+                    const slippage    = 0.997; // 0.3% slippage tolerance
+
+                    try {
+                        console.log(`[FAL Multi] 🔄 DIRECT ARB: ${opp.pair} | ${opp.sellOn}→${opp.buyOn} | spread ${opp.spreadPct}%`);
+
+                        // Step 1: swap BNB → stablecoin on the DEX where BNB is most valuable
+                        const buyRouter = new ethers.Contract(buyRouterAddr, ROUTER_ABI, signer);
+                        const [, stableOut] = await buyRouter.getAmountsOut(amountInWei, [pairData.in, pairData.out]);
+                        const stableMin = BigInt(Math.floor(Number(stableOut) * slippage));
+
+                        const tx1 = await buyRouter.swapExactETHForTokens(
+                            stableMin,
+                            [pairData.in, pairData.out],
+                            SAFE_WALLET,
+                            deadline,
+                            { value: amountInWei, gasPrice: ethers.parseUnits('3', 'gwei'), gasLimit: 300000 }
+                        );
+                        const r1 = await tx1.wait();
+                        if (r1.status !== 1) { console.log('[FAL Multi] ⚠️ Step 1 reverted'); continue; }
+
+                        // Step 2: approve stablecoin for the sell router
+                        const stableToken = new ethers.Contract(pairData.out, ERC20_ABI, signer);
+                        const stableBal   = await stableToken.balanceOf(SAFE_WALLET);
+                        await (await stableToken.approve(sellRouterAddr, stableBal, {
+                            gasPrice: ethers.parseUnits('3', 'gwei'), gasLimit: 100000
+                        })).wait();
+
+                        // Step 3: swap stablecoin → BNB on the DEX where BNB is cheapest
+                        const sellRouter = new ethers.Contract(sellRouterAddr, ROUTER_ABI, signer);
+                        const [, bnbBack] = await sellRouter.getAmountsOut(stableBal, [pairData.out, pairData.in]);
+                        const bnbMin = BigInt(Math.floor(Number(bnbBack) * slippage));
+
+                        const tx2 = await sellRouter.swapExactTokensForETH(
+                            stableBal,
+                            bnbMin,
+                            [pairData.out, pairData.in],
+                            SAFE_WALLET,
+                            deadline,
+                            { gasPrice: ethers.parseUnits('3', 'gwei'), gasLimit: 300000 }
+                        );
+                        const r2 = await tx2.wait();
+                        lastExecAt = Date.now();
+
+                        if (r2.status === 1) {
+                            const profitBNB = (Number(bnbBack) / 1e18 - arbAmountBNB).toFixed(6);
+                            console.log(`[FAL Multi] ✅ DIRECT SUCCESS: ${opp.pair} profit ~${profitBNB} BNB | TX: ${tx2.hash}`);
+                            sendTelegramAlert(
+                                `🔄 <b>Direct Arb Executed!</b>\n\n` +
+                                `Pair: ${opp.pair}\nRoute: ${opp.sellOn} → ${opp.buyOn}\n` +
+                                `Spread: <b>${opp.spreadPct}%</b> | Amount: ${arbAmountBNB.toFixed(4)} BNB\n` +
+                                `Est. profit: ~${profitBNB} BNB → your wallet\n` +
+                                `<a href="https://bscscan.com/tx/${tx2.hash}">View on BSCScan</a>`
+                            );
+                        } else {
+                            console.log(`[FAL Multi] ⚠️ Direct step 2 reverted`);
+                        }
+                    } catch (directErr) {
+                        console.error(`[FAL Multi] Direct arb error (${opp.pair}):`, directErr.message);
+                    }
+                }
+            } else {
+                if (profitable.length > 0) {
+                    console.log(`[FAL Multi] ⚠️ Low BNB balance (${bnbAvailable.toFixed(4)} BNB) — direct arb skipped`);
+                }
+            }
+
         } catch (e) {
-            console.error('[FAL Auto] Error:', e.message);
+            console.error('[FAL Multi] Error:', e.message);
         }
         isRunning = false;
     }
 
-    // Start polling after 60s delay (let server fully initialize)
     setTimeout(() => {
         setInterval(checkAndExecute, POLL_INTERVAL_MS);
-        console.log(`[FAL Auto] ✅ Auto-executor started — checking spread every 30s`);
-        console.log(`[FAL Auto]    Exec amount: ${EXEC_AMOUNT_BNB} BNB | Cooldown: ${COOLDOWN_MS/1000}s | Profits → ${SAFE_WALLET}`);
+        console.log(`[FAL Multi] ✅ Multi-DEX auto-executor started (30s interval)`);
+        console.log(`[FAL Multi]    DEXes: ${DEXES.map(d => d.name).join(', ')}`);
+        console.log(`[FAL Multi]    Pairs: ${PAIRS.map(p => p.label).join(', ')}`);
+        console.log(`[FAL Multi]    Profits → ${SAFE_WALLET}`);
     }, 60_000);
 })();
-// ==================== END REAL FAL AUTO-EXECUTOR ====================
+// ==================== END REAL FAL AUTO-EXECUTOR (MULTI-DEX) ====================
 
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
 
