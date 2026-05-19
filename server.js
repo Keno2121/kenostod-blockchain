@@ -8860,16 +8860,21 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
         'function token0() external view returns (address)'
     ];
 
+    // DEXes approved for EXECUTION (deep liquidity only — BabySwap excluded)
+    const EXEC_DEXES = new Set(['PancakeSwap V2', 'BiSwap', 'ApeSwap']);
+
     // Flash loan route: PancakeSwap↔BiSwap WBNB/USDT — threshold 0.25% (only flash swap fee)
-    // Direct swap route: any DEX pair          — threshold 0.60% (covers both swap fees ~0.25% each)
+    // Direct swap route: deep DEXes only       — threshold 1.50% (fees + slippage margin)
     const POLL_INTERVAL_MS       = 30_000;
-    const EXEC_AMOUNT_BNB        = 0.05;   // reduced to limit price impact on thinner pools
+    const EXEC_AMOUNT_BNB        = 0.05;   // reduced to limit price impact
     const COOLDOWN_MS            = 60_000;
     const FLASH_THRESHOLD        = 0.25;
-    const DIRECT_THRESHOLD_MIN   = 0.60;   // must exceed combined swap fees
+    const DIRECT_THRESHOLD_MIN   = 1.50;   // raised: must comfortably exceed fees + slippage
     const DIRECT_THRESHOLD_MAX   = 15.0;   // above 15% = illiquid pool trap — skip
-    const GAS_RESERVE_BNB        = 0.005;  // always keep 0.005 BNB (~$3) for gas
-    const MIN_RESERVE_MULTIPLE   = 50n;    // pool must hold ≥50× trade amount (liquidity guard)
+    const GAS_RESERVE_BNB        = 0.01;   // raised: keep 0.01 BNB for gas (was 0.005)
+    const MIN_TRADE_BNB          = 0.025;  // don't trade if spendable < this — safety buffer
+    const MIN_PROFIT_BNB         = 0.0005; // min net profit required before pulling trigger
+    const MIN_RESERVE_MULTIPLE   = 100n;   // pool must hold ≥100× trade amount (tighter guard)
     const DEX_ROUTER_BY_NAME     = Object.fromEntries(DEXES.map(d => [d.name, d.router]));
 
     let lastExecAt   = 0;
@@ -9039,10 +9044,12 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
             const spendable   = Math.max(0, bnbAvailable - GAS_RESERVE_BNB);
             const arbAmountBNB = Math.min(EXEC_AMOUNT_BNB, spendable * 0.8); // keep gas reserve, use max 80% of rest
 
-            if (arbAmountBNB >= 0.01) {
+            if (arbAmountBNB >= MIN_TRADE_BNB) {
                 const directCandidates = spreads.filter(s =>
                     s.spreadPct >= DIRECT_THRESHOLD_MIN &&
                     s.spreadPct <= DIRECT_THRESHOLD_MAX &&   // skip illiquid pool traps (>15%)
+                    // Only execute on deep, trusted DEXes — BabySwap excluded (pool too thin)
+                    EXEC_DEXES.has(s.buyOn) && EXEC_DEXES.has(s.sellOn) &&
                     // Skip the flash loan pair (handled above)
                     !(s.pair === 'WBNB/USDT' && s.buyOn === 'PancakeSwap V2' && s.sellOn === 'BiSwap') &&
                     // Only BNB-based pairs (wallet holds BNB, not CAKE etc.)
@@ -9083,7 +9090,18 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
                         const activeSellRouter = opp._sellRouterOverride || sellRouterAddr;
                         const activeSellName   = opp._sellDexName        || opp.buyOn;
 
-                        console.log(`[FAL Multi] 🔄 DIRECT ARB: ${opp.pair} | ${opp.sellOn}→${activeSellName} | spread ${opp.spreadPct}%`);
+                        // ── Profit pre-check: simulate both legs, abort if net < MIN_PROFIT_BNB ──
+                        const simBuyRouter  = new ethers.Contract(buyRouterAddr, ROUTER_ABI, provider);
+                        const simSellRouter = new ethers.Contract(activeSellRouter, ROUTER_ABI, provider);
+                        const [, simStableOut] = await simBuyRouter.getAmountsOut(amountInWei, [pairData.in, pairData.out]);
+                        const [, simBnbBack]   = await simSellRouter.getAmountsOut(simStableOut, [pairData.out, pairData.in]);
+                        const simProfitBNB = Number(simBnbBack) / 1e18 - arbAmountBNB;
+                        if (simProfitBNB < MIN_PROFIT_BNB) {
+                            console.log(`[FAL Multi] ⛔ Profit sim ${simProfitBNB.toFixed(6)} BNB < floor ${MIN_PROFIT_BNB} — abort`);
+                            continue;
+                        }
+
+                        console.log(`[FAL Multi] 🔄 DIRECT ARB: ${opp.pair} | ${opp.sellOn}→${activeSellName} | spread ${opp.spreadPct}% | sim profit ${simProfitBNB.toFixed(6)} BNB`);
 
                         // Step 1: swap BNB → stablecoin on the DEX where BNB is most valuable
                         const deadline1   = Math.floor(Date.now() / 1000) + 120;
