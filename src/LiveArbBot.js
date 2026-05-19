@@ -1,4 +1,5 @@
 const { ethers } = require('ethers');
+const https = require('https');
 
 // ── Deployed UTL contracts (BSC Mainnet) ──────────────────────────────────
 const FLASH_ARB_LOAN2    = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
@@ -295,6 +296,12 @@ class LiveArbBot {
       this.stats.profitBNB  += parseFloat(opp.grossProfitBNB);
       this.stats.profitUSD  += opp.netProfitUSD;
       this.stats.lastTrade   = new Date().toISOString();
+      this.sendTelegramAlert(
+        `⚡ <b>Flash Arb Executed! (LiveArbBot)</b>\n\n` +
+        `Route: ${opp.spread}% spread | Zero capital used\n` +
+        `Est. profit: ~$${opp.netProfitUSD.toFixed(3)}\n` +
+        `<a href="https://bscscan.com/tx/${tx.hash}">View on BSCScan</a>`
+      );
     } catch (e) {
       this.log(`❌ Flash arb failed: ${e.message}`, 'error');
     }
@@ -363,6 +370,13 @@ class LiveArbBot {
       };
 
       this.log(`💰 Arb complete! Est. net profit: $${opp.netProfitUSD.toFixed(3)}`);
+      this.sendTelegramAlert(
+        `🔄 <b>Direct Arb Executed! (LiveArbBot)</b>\n\n` +
+        `Pair: ${opp.pair} | ${opp.buyDex} → ${opp.sellDex}\n` +
+        `Spread: <b>${opp.spread}%</b> | Amount: ${this.config.arbTradeAmountBNB} BNB\n` +
+        `Est. profit: ~$${opp.netProfitUSD.toFixed(3)}\n` +
+        `<a href="https://bscscan.com/tx/${sellReceipt.hash}">View on BSCScan</a>`
+      );
     } catch (e) {
       this.log(`❌ Arb execution failed: ${e.message}`, 'error');
     }
@@ -543,6 +557,24 @@ class LiveArbBot {
     const receipt = await tx.wait();
     this.log(`✅ Unstaked! (auto-harvested any pending KENO) Tx: ${receipt.hash}`);
     return { ok: true, txHash: receipt.hash, amount: ethers.formatEther(amount) };
+  }
+
+  sendTelegramAlert(msg) {
+    const token  = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.FAL_ALERT_CHAT_ID;
+    if (!token || !chatId) return;
+    try {
+      const payload = JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' });
+      const opts = {
+        hostname: 'api.telegram.org',
+        path:     `/bot${token}/sendMessage`,
+        method:   'POST',
+        headers:  { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+      };
+      const r = https.request(opts);
+      r.write(payload);
+      r.end();
+    } catch (_) {}
   }
 
   log(msg, level = 'info') {

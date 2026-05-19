@@ -11263,17 +11263,16 @@ app.listen(PORT, '0.0.0.0', () => {
         console.error('❌ Telegram bot init error:', err.message);
     }
 
-    // AUTO-START Live Arb Bot — PAUSED (insufficient BNB for gas, focusing on PinkSale Fair Launch)
-    // Uncomment to re-enable once wallet is funded with 0.5+ BNB
-    // setTimeout(async () => {
-    //     try {
-    //         console.log('🤖 Auto-starting Live Arb Bot...');
-    //         const result = await liveArbBot.start();
-    //         console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
-    //     } catch (err) {
-    //         console.error('⚠️ Live Arb Bot auto-start error:', err.message);
-    //     }
-    // }, 10000);
+    // AUTO-START Live Arb Bot (PancakeSwap ↔ BiSwap only — safe, deep pools)
+    setTimeout(async () => {
+        try {
+            console.log('🤖 Auto-starting Live Arb Bot...');
+            const result = await liveArbBot.start();
+            console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
+        } catch (err) {
+            console.error('⚠️ Live Arb Bot auto-start error:', err.message);
+        }
+    }, 75000); // start 15s after FAL Multi (which starts at 60s)
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
