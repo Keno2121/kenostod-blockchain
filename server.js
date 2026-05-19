@@ -132,6 +132,7 @@ const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
+const KenostodTelegramBot = require('./src/TelegramBot');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const LiveArbBot = require('./src/LiveArbBot');
@@ -10863,6 +10864,13 @@ app.listen(PORT, '0.0.0.0', () => {
     // CRITICAL: Initialize blockchain systems immediately (async - won't block port)
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
+
+    // Start Telegram bot
+    try {
+        new KenostodTelegramBot();
+    } catch (err) {
+        console.error('❌ Telegram bot init error:', err.message);
+    }
 
     // AUTO-START Live Arb Bot — PAUSED (insufficient BNB for gas, focusing on PinkSale Fair Launch)
     // Uncomment to re-enable once wallet is funded with 0.5+ BNB
