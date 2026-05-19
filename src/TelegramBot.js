@@ -56,9 +56,17 @@ class KenostodTelegramBot {
         this.bot.onText(/\/start/, (msg) => {
             const chatId = msg.chat.id;
             const name = msg.from.first_name || 'there';
+            console.log(`[TelegramBot] /start from ${name} — Chat ID: ${chatId}`);
             this.bot.sendMessage(chatId,
                 `Hey ${name}! I'm the Kenostod Assistant.\n\nI can answer questions about:\n• The Sovereign Economy\n• KENO Token & Tokenomics\n• UTL Protocol\n• Solar Bunker\n• The Academy\n• How to get involved\n\nWhat would you like to know?`
             );
+        });
+
+        this.bot.onText(/\/chatid/, (msg) => {
+            const chatId = msg.chat.id;
+            const name = msg.from.first_name || 'there';
+            console.log(`[TelegramBot] CHAT_ID captured — ${name}: ${chatId}`);
+            this.bot.sendMessage(chatId, `Your Telegram Chat ID is: \`${chatId}\`\n\nThis has been logged for FAL profit alerts.`, { parse_mode: 'Markdown' });
         });
 
         this.bot.onText(/\/help/, (msg) => {
