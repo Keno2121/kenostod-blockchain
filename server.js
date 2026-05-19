@@ -8797,6 +8797,131 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
 })();
 // ==================== END REAL FAL API ENDPOINTS ====================
 
+// ==================== REAL FAL AUTO-EXECUTOR ====================
+(function() {
+    const { ethers } = require('ethers');
+    const FAL_CONTRACT  = '0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e';
+    const SAFE_WALLET   = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
+    const BSC_RPC       = 'https://bsc-dataseed1.binance.org/';
+    const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+    const BISWAP_ROUTER  = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
+    const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+    const USDT = '0x55d398326f99059fF775485246999027B3197955';
+    const ROUTER_ABI = ['function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)'];
+    const FAL_ABI = [
+        'function quoteArb(uint256 wbnbAmount) external view returns (uint256 usdtOut, uint256 wbnbBack, uint256 repayAmount, bool profitable)',
+        'function executeFlashArb(uint256 wbnbAmount) external',
+        'function paused() view returns (bool)'
+    ];
+
+    const POLL_INTERVAL_MS = 30_000;   // check every 30 seconds
+    const EXEC_AMOUNT_BNB  = 0.1;      // borrow 0.1 BNB per arb
+    const COOLDOWN_MS      = 120_000;  // 2-minute cooldown after each execution
+
+    let lastExecAt = 0;
+    let isRunning  = false;
+    let autoEnabled = true;
+
+    // Expose control endpoints
+    app.post('/api/fal/auto/toggle', (req, res) => {
+        autoEnabled = !autoEnabled;
+        console.log(`[FAL Auto] ${autoEnabled ? '▶️ Enabled' : '⏸️ Paused'} by admin`);
+        res.json({ ok: true, autoEnabled });
+    });
+    app.get('/api/fal/auto/status', (req, res) => {
+        res.json({ ok: true, autoEnabled, lastExecAt: lastExecAt ? new Date(lastExecAt).toISOString() : null, isRunning });
+    });
+
+    async function sendTelegramAlert(msg) {
+        const token = process.env.TELEGRAM_BOT_TOKEN;
+        if (!token) return;
+        try {
+            const https = require('https');
+            // Get chat ID by finding any active chat (send to Nickeo directly via getUpdates)
+            const payload = JSON.stringify({ chat_id: process.env.FAL_ALERT_CHAT_ID || '0', text: msg, parse_mode: 'HTML' });
+            if (!process.env.FAL_ALERT_CHAT_ID) return; // need chat ID set
+            const opts = {
+                hostname: 'api.telegram.org',
+                path: `/bot${token}/sendMessage`,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+            };
+            const req = https.request(opts);
+            req.write(payload);
+            req.end();
+        } catch (e) { /* silent */ }
+    }
+
+    async function checkAndExecute() {
+        if (!autoEnabled || isRunning) return;
+        const pk = process.env.NEW_WALLET_PRIVATE_KEY;
+        if (!pk) return;
+
+        const now = Date.now();
+        if (now - lastExecAt < COOLDOWN_MS) return;
+
+        isRunning = true;
+        try {
+            const provider = new ethers.JsonRpcProvider(BSC_RPC);
+            const pancake  = new ethers.Contract(PANCAKE_ROUTER, ROUTER_ABI, provider);
+            const biswap   = new ethers.Contract(BISWAP_ROUTER,  ROUTER_ABI, provider);
+            const fal      = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
+
+            // Check if paused
+            const paused = await fal.paused();
+            if (paused) { isRunning = false; return; }
+
+            const wbnbWei  = ethers.parseEther(String(EXEC_AMOUNT_BNB));
+            const pathWU   = [WBNB, USDT];
+            const [, pancakeOut] = await pancake.getAmountsOut(wbnbWei, pathWU);
+            const [, biswapOut]  = await biswap.getAmountsOut(wbnbWei, pathWU);
+            const spreadPct = Number(biswapOut - pancakeOut) * 100 / Number(pancakeOut);
+
+            console.log(`[FAL Auto] Spread: ${spreadPct.toFixed(4)}% | Threshold: 0.25%`);
+
+            const [,, , profitable] = await fal.quoteArb(wbnbWei);
+            if (!profitable) { isRunning = false; return; }
+
+            // EXECUTE
+            console.log(`[FAL Auto] ⚡ Spread ${spreadPct.toFixed(4)}% — PROFITABLE! Executing flash arb...`);
+            const signer = new ethers.Wallet(pk, provider);
+            const falSigner = new ethers.Contract(FAL_CONTRACT, FAL_ABI, signer);
+            const tx = await falSigner.executeFlashArb(wbnbWei, {
+                gasPrice: ethers.parseUnits('3', 'gwei'),
+                gasLimit: 500000
+            });
+            const receipt = await tx.wait();
+            lastExecAt = Date.now();
+
+            if (receipt.status === 1) {
+                const profitEst = (spreadPct * EXEC_AMOUNT_BNB / 100).toFixed(6);
+                console.log(`[FAL Auto] ✅ SUCCESS! TX: ${tx.hash} | Est. profit: ~${profitEst} BNB → ${SAFE_WALLET}`);
+                await sendTelegramAlert(
+                    `⚡ <b>Real FAL Executed!</b>\n\n` +
+                    `Spread: <b>${spreadPct.toFixed(4)}%</b>\n` +
+                    `Amount: ${EXEC_AMOUNT_BNB} BNB\n` +
+                    `Est. profit: ~${profitEst} BNB\n` +
+                    `Wallet: ${SAFE_WALLET.slice(0,10)}...\n` +
+                    `<a href="https://bscscan.com/tx/${tx.hash}">View on BSCScan</a>`
+                );
+            } else {
+                console.log(`[FAL Auto] ⚠️ TX reverted — spread closed before execution`);
+            }
+        } catch (e) {
+            console.error('[FAL Auto] Error:', e.message);
+        }
+        isRunning = false;
+    }
+
+    // Start polling after 60s delay (let server fully initialize)
+    setTimeout(() => {
+        setInterval(checkAndExecute, POLL_INTERVAL_MS);
+        console.log(`[FAL Auto] ✅ Auto-executor started — checking spread every 30s`);
+        console.log(`[FAL Auto]    Exec amount: ${EXEC_AMOUNT_BNB} BNB | Cooldown: ${COOLDOWN_MS/1000}s | Profits → ${SAFE_WALLET}`);
+    }, 60_000);
+})();
+// ==================== END REAL FAL AUTO-EXECUTOR ====================
+
 // ==================== FLASH ARBITRAGE LOAN POOLS (FALP) API ENDPOINTS ====================
 
 app.post('/api/fal-pool/create', (req, res) => {
