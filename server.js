@@ -8849,9 +8849,11 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
     // Direct swap route: any DEX pair          — threshold 0.60% (covers both swap fees ~0.25% each)
     const POLL_INTERVAL_MS       = 30_000;
     const EXEC_AMOUNT_BNB        = 0.1;
-    const COOLDOWN_MS            = 60_000;   // 1-min cooldown (was 2 min)
-    const FLASH_THRESHOLD        = 0.25;     // % for PancakeSwap↔BiSwap flash loan route
-    const DIRECT_THRESHOLD       = 0.60;     // % for all direct-swap routes
+    const COOLDOWN_MS            = 60_000;
+    const FLASH_THRESHOLD        = 0.25;
+    const DIRECT_THRESHOLD_MIN   = 0.60;   // must exceed combined swap fees
+    const DIRECT_THRESHOLD_MAX   = 15.0;   // above 15% = illiquid pool trap — skip
+    const GAS_RESERVE_BNB        = 0.005;  // always keep 0.005 BNB (~$3) for gas
     const DEX_ROUTER_BY_NAME     = Object.fromEntries(DEXES.map(d => [d.name, d.router]));
 
     let lastExecAt   = 0;
@@ -8996,14 +8998,16 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
             // Threshold is higher (0.60%) to cover both swap fees (~0.25% each).
             const bnbBalance = await provider.getBalance(SAFE_WALLET);
             const bnbAvailable = Number(bnbBalance) / 1e18;
-            const arbAmountBNB = Math.min(EXEC_AMOUNT_BNB, bnbAvailable * 0.8); // use max 80% of balance
+            const spendable   = Math.max(0, bnbAvailable - GAS_RESERVE_BNB);
+            const arbAmountBNB = Math.min(EXEC_AMOUNT_BNB, spendable * 0.8); // keep gas reserve, use max 80% of rest
 
             if (arbAmountBNB >= 0.01) {
                 const directCandidates = spreads.filter(s =>
-                    s.spreadPct >= DIRECT_THRESHOLD &&
+                    s.spreadPct >= DIRECT_THRESHOLD_MIN &&
+                    s.spreadPct <= DIRECT_THRESHOLD_MAX &&   // skip illiquid pool traps (>15%)
                     // Skip the flash loan pair (handled above)
                     !(s.pair === 'WBNB/USDT' && s.buyOn === 'PancakeSwap V2' && s.sellOn === 'BiSwap') &&
-                    // Only BNB-based pairs for now (WBNB/USDT, WBNB/BUSD)
+                    // Only BNB-based pairs (wallet holds BNB, not CAKE etc.)
                     (s.pair === 'WBNB/USDT' || s.pair === 'WBNB/BUSD')
                 );
 

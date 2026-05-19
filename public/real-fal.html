@@ -360,7 +360,7 @@
         <a href="/real-fal.html" class="active">⚡ Real FAL</a>
     </div>
     <h1>⚡ Real On-Chain Flash Arb</h1>
-    <p>PancakeSwap flash swaps → BiSwap execution → Profit to your wallet</p>
+    <p>Multi-DEX arbitrage — flash loans + direct swaps → Profit to your wallet</p>
     <div class="contract-badge">
         Contract: <a href="https://bscscan.com/address/0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e" target="_blank">0xE08e...474e</a> · BSC Mainnet · Owned by 0x4AA7...Cf849
     </div>
@@ -429,6 +429,18 @@
             <div class="spread-fill" id="spreadBar" style="width: 0%"></div>
         </div>
         <div style="font-size: 0.8rem; color: #64748b;">Profitable threshold: >0.25% (PancakeSwap flash swap fee). Last update: <span id="lastUpdate">—</span></div>
+    </div>
+
+    <!-- Multi-DEX Live Opportunities -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title">🌐 Live Multi-DEX Opportunities <span style="font-size:0.75rem;color:#64748b;font-weight:400;">— updated every 30s · auto-executed when profitable</span></div>
+        <div id="multiDexGrid" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+            <div style="color:#475569;font-size:0.85rem;">Loading market scan…</div>
+        </div>
+        <div style="margin-top:12px;font-size:0.75rem;color:#475569;">
+            ⚡ Flash loan threshold: <b style="color:#10b981">0.25%</b> (PancakeSwap↔BiSwap, zero capital) &nbsp;|&nbsp;
+            🔄 Direct swap threshold: <b style="color:#f59e0b">0.60–15%</b> (all DEX pairs, uses wallet BNB)
+        </div>
     </div>
 
     <!-- Execute Panel -->
@@ -504,6 +516,35 @@ function setAmount(v) {
     document.getElementById('borrowAmount').value = v;
     document.getElementById('quoteResult').classList.remove('show');
     document.getElementById('btnExecute').disabled = true;
+}
+
+async function loadOpportunities() {
+    try {
+        const r = await fetch('/api/fal/opportunities');
+        const d = await r.json();
+        if (!d.ok || !d.opportunities.length) return;
+        const grid = document.getElementById('multiDexGrid');
+        grid.innerHTML = d.opportunities.map(o => {
+            const isFlash  = o.pair === 'WBNB/USDT' && o.buyOn === 'PancakeSwap V2' && o.sellOn === 'BiSwap';
+            const isTrap   = o.spreadPct > 15;
+            const isProfit = o.profitable && !isTrap;
+            const color    = isProfit ? '#10b981' : isTrap ? '#ef4444' : o.spreadPct > 0 ? '#f59e0b' : '#94a3b8';
+            const tag      = isFlash  ? '⚡ Flash Loan' :
+                             isTrap   ? '🚫 Illiquid (skip)' :
+                             isProfit ? '🔄 Direct Swap' : '⏳ Watching';
+            const tagColor = isFlash  ? '#10b981' :
+                             isTrap   ? '#ef4444' :
+                             isProfit ? '#f59e0b' : '#475569';
+            return `<div style="background:#111827;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <span style="font-weight:700;color:#e2e8f0">${o.pair}</span>
+                    <span style="margin-left:10px;font-size:0.75rem;background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:20px;color:${tagColor}">${tag}</span>
+                    <div style="font-size:0.8rem;color:#64748b;margin-top:4px;">Buy ${o.buyOn} → Sell ${o.sellOn}</div>
+                </div>
+                <div style="font-size:1.4rem;font-weight:800;color:${color}">${o.spreadPct > 0 ? '+' : ''}${o.spreadPct}%</div>
+            </div>`;
+        }).join('');
+    } catch(e) { /* silent */ }
 }
 
 async function loadStatus() {
@@ -656,8 +697,10 @@ function addLog(type, msg) {
 // Auto-refresh prices every 15 seconds for faster opportunity detection
 loadStatus();
 loadPrices();
+loadOpportunities();
 setInterval(loadPrices, 15000);
 setInterval(loadStatus, 60000);
+setInterval(loadOpportunities, 30000);
 </script>
 </body>
 </html>
