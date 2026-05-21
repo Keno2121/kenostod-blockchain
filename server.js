@@ -8575,6 +8575,40 @@ app.get('/api/arbitrage/export/:walletAddress/csv', (req, res) => {
 // ==================== END KENO ARBITRAGE REVOLUTION API ENDPOINTS ====================
 
 // ==================== LIVE ARB BOT API ENDPOINTS ====================
+// 🔒 Founder-only — protected by ADMIN_PASSWORD session auth
+
+app.post('/api/founder/login', (req, res) => {
+    const { password } = req.body;
+    const correct = process.env.ADMIN_PASSWORD;
+    if (!correct) return res.status(500).json({ ok: false, msg: 'Server not configured' });
+    if (password === correct) {
+        req.session.isFounder = true;
+        res.json({ ok: true });
+    } else {
+        res.status(401).json({ ok: false, msg: 'Wrong password' });
+    }
+});
+
+app.post('/api/founder/logout', (req, res) => {
+    req.session.destroy(() => res.json({ ok: true }));
+});
+
+app.get('/api/founder/check', (req, res) => {
+    res.json({ ok: !!req.session.isFounder });
+});
+
+// Protect the bot dashboard HTML page
+app.get('/live-arb-bot.html', (req, res, next) => {
+    if (req.session.isFounder) return next();
+    res.redirect('/founder-login.html');
+});
+
+// Middleware: all /api/live-arb/* require founder session
+function requireFounder(req, res, next) {
+    if (req.session.isFounder) return next();
+    res.status(401).json({ ok: false, msg: 'Unauthorized' });
+}
+app.use('/api/live-arb', requireFounder);
 
 app.post('/api/live-arb/start', async (req, res) => {
     try {

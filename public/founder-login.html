@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenostod — Founder Access</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0a0f1e;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        h1 {
+            font-size: 1.3rem;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+        p {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 28px;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            outline: none;
+            margin-bottom: 14px;
+            transition: border-color 0.2s;
+        }
+        input[type="password"]:focus {
+            border-color: #10b981;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #059669; }
+        button:disabled { background: #374151; cursor: not-allowed; }
+        .error {
+            color: #fca5a5;
+            font-size: 0.82rem;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="logo">⚡</div>
+    <h1>Founder Access</h1>
+    <p>Enter your founder password to continue</p>
+    <input type="password" id="pw" placeholder="Password" autofocus
+           onkeydown="if(event.key==='Enter') login()">
+    <button id="btn" onclick="login()">Continue</button>
+    <div class="error" id="err">Incorrect password. Try again.</div>
+</div>
+
+<script>
+async function login() {
+    const pw  = document.getElementById('pw').value;
+    const btn = document.getElementById('btn');
+    const err = document.getElementById('err');
+    if (!pw) return;
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    err.style.display = 'none';
+    try {
+        const r = await fetch('/api/founder/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw })
+        });
+        const d = await r.json();
+        if (d.ok) {
+            window.location.href = '/live-arb-bot.html';
+        } else {
+            err.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Continue';
+            document.getElementById('pw').value = '';
+            document.getElementById('pw').focus();
+        }
+    } catch (e) {
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+    }
+}
+</script>
+</body>
+</html>
