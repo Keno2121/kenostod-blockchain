@@ -11269,7 +11269,7 @@ app.listen(PORT, '0.0.0.0', () => {
         } catch (err) {
             console.error('⚠️ Live Arb Bot auto-start error:', err.message);
         }
-    }, 75000); // start 15s after FAL Multi (which starts at 60s)
+    }, 35000); // start 5s after FAL Multi (which starts at 30s)
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
