@@ -41,7 +41,8 @@ class KenostodTelegramBot {
             return;
         }
 
-        this.bot = new TelegramBot(this.token, { polling: true });
+        const isProduction = process.env.NODE_ENV === 'production';
+        this.bot = new TelegramBot(this.token, { polling: !isProduction });
         this.openai = new OpenAI({
             baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
             apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
