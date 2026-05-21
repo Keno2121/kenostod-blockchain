@@ -352,8 +352,25 @@ class BankingAPI {
             return null;
         }
 
+        const safeBankAccounts = (account.bankAccounts || []).map(ba => ({
+            id: ba.id,
+            accountHolderName: ba.accountHolderName,
+            accountType: ba.accountType,
+            last4: ba.last4,
+            addedAt: ba.addedAt,
+            verified: ba.verified
+        }));
+
         return {
-            ...account,
+            walletAddress: account.walletAddress,
+            email: account.email,
+            fullName: account.fullName,
+            registeredAt: account.registeredAt,
+            verified: account.verified,
+            bankAccounts: safeBankAccounts,
+            paypalEmail: account.paypalEmail,
+            totalDeposited: account.totalDeposited,
+            totalWithdrawn: account.totalWithdrawn,
             fiatBalance: this.getFiatBalance(walletAddress)
         };
     }

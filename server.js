@@ -1738,7 +1738,7 @@ app.get('/api/admin/node-whitelist', adminAuth, async (req, res) => {
 // ==================== KENO CLAIM SYSTEM (PostgreSQL) ====================
 
 // Get user's claimable KENO balance (supports email AND/OR wallet lookup)
-app.get('/api/claims/balance/:email', async (req, res) => {
+app.get('/api/claims/balance/:email', adminAuth, async (req, res) => {
     try {
         const emailOrWallet = req.params.email.toLowerCase();
         const walletParam = req.query.wallet ? req.query.wallet.toLowerCase() : null;
@@ -1828,7 +1828,7 @@ app.get('/api/claims/balance/:email', async (req, res) => {
 });
 
 // Submit a claim request
-app.post('/api/claims/request', async (req, res) => {
+app.post('/api/claims/request', adminAuth, async (req, res) => {
     try {
         const { email, walletAddress, amount } = req.body;
         
@@ -1865,15 +1865,31 @@ app.post('/api/claims/request', async (req, res) => {
         const rewardsResult = await dbConnection.query(
             `SELECT COALESCE(SUM(reward_amount), 0) as total_earned 
              FROM student_rewards 
-             WHERE LOWER(user_email) = $1 OR LOWER(user_wallet_address) = $2`,
+             WHERE LOWER(user_email) = $1`,
+            [email.toLowerCase()]
+        );
+
+        // Verify the provided wallet address is on file for this email to prevent
+        // an attacker from supplying a victim's email with their own wallet address
+        const walletCheckResult = await dbConnection.query(
+            `SELECT COUNT(*) as match_count 
+             FROM student_rewards 
+             WHERE LOWER(user_email) = $1 AND LOWER(user_wallet_address) = $2`,
             [email.toLowerCase(), walletAddress.toLowerCase()]
         );
+        const hasMatchingWallet = parseInt(walletCheckResult.rows[0]?.match_count || 0) > 0;
+        if (!hasMatchingWallet) {
+            return res.status(403).json({
+                success: false,
+                error: 'The wallet address does not match the records for this email.'
+            });
+        }
         
         const existingClaimsResult = await dbConnection.query(
             `SELECT COALESCE(SUM(amount), 0) as total_claimed 
              FROM keno_claims 
-             WHERE (LOWER(email) = $1 OR LOWER(wallet_address) = $2) AND (status = 'completed' OR status = 'pending')`,
-            [email.toLowerCase(), walletAddress.toLowerCase()]
+             WHERE LOWER(email) = $1 AND (status = 'completed' OR status = 'pending')`,
+            [email.toLowerCase()]
         );
         
         const totalEarned = parseFloat(rewardsResult.rows[0]?.total_earned || 0);
@@ -1929,7 +1945,7 @@ app.post('/api/claims/request', async (req, res) => {
 });
 
 // Get user's claim history
-app.get('/api/claims/history/:email', async (req, res) => {
+app.get('/api/claims/history/:email', adminAuth, async (req, res) => {
     try {
         if (!dbConnection) {
             return res.status(503).json({ success: false, error: 'Database unavailable' });
@@ -3982,7 +3998,7 @@ app.post('/api/banking/deposit/paypal/confirm', async (req, res) => {
 });
 
 // Create withdrawal (Stripe)
-app.post('/api/banking/withdrawal/stripe', async (req, res) => {
+app.post('/api/banking/withdrawal/stripe', adminAuth, async (req, res) => {
     try {
         const { walletAddress, amount } = req.body;
         
@@ -4032,7 +4048,7 @@ app.post('/api/banking/withdrawal/stripe', async (req, res) => {
 });
 
 // Create withdrawal (PayPal)
-app.post('/api/banking/withdrawal/paypal', async (req, res) => {
+app.post('/api/banking/withdrawal/paypal', adminAuth, async (req, res) => {
     try {
         const { walletAddress, amount, paypalEmail } = req.body;
         
@@ -4083,7 +4099,7 @@ app.post('/api/banking/withdrawal/paypal', async (req, res) => {
 });
 
 // Get fiat balance
-app.get('/api/banking/balance/:walletAddress', (req, res) => {
+app.get('/api/banking/balance/:walletAddress', adminAuth, (req, res) => {
     try {
         const balance = bankingAPI.getFiatBalance(req.params.walletAddress);
         console.log(`💰 Balance check for ${req.params.walletAddress.substring(0, 10)}...: $${balance.toFixed(2)}`);
@@ -4093,7 +4109,7 @@ app.get('/api/banking/balance/:walletAddress', (req, res) => {
     }
 });
 
-app.get('/api/banking/debug/all-balances', (req, res) => {
+app.get('/api/banking/debug/all-balances', adminAuth, (req, res) => {
     try {
         const allBalances = [];
         for (const [address, balance] of bankingAPI.fiatBalances.entries()) {
@@ -4109,7 +4125,7 @@ app.get('/api/banking/debug/all-balances', (req, res) => {
 });
 
 // Get account details
-app.get('/api/banking/account/:walletAddress', (req, res) => {
+app.get('/api/banking/account/:walletAddress', adminAuth, (req, res) => {
     try {
         const account = bankingAPI.getAccount(req.params.walletAddress);
         if (!account) {
@@ -4122,7 +4138,7 @@ app.get('/api/banking/account/:walletAddress', (req, res) => {
 });
 
 // Get deposits
-app.get('/api/banking/deposits/:walletAddress', (req, res) => {
+app.get('/api/banking/deposits/:walletAddress', adminAuth, (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 50;
         const deposits = bankingAPI.getDeposits(req.params.walletAddress, limit);
@@ -4133,7 +4149,7 @@ app.get('/api/banking/deposits/:walletAddress', (req, res) => {
 });
 
 // Get withdrawals
-app.get('/api/banking/withdrawals/:walletAddress', (req, res) => {
+app.get('/api/banking/withdrawals/:walletAddress', adminAuth, (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 50;
         const withdrawals = bankingAPI.getWithdrawals(req.params.walletAddress, limit);
@@ -4144,7 +4160,7 @@ app.get('/api/banking/withdrawals/:walletAddress', (req, res) => {
 });
 
 // Get all transactions
-app.get('/api/banking/transactions/:walletAddress', (req, res) => {
+app.get('/api/banking/transactions/:walletAddress', adminAuth, (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 100;
         const transactions = bankingAPI.getTransactions(req.params.walletAddress, limit);
@@ -4155,7 +4171,7 @@ app.get('/api/banking/transactions/:walletAddress', (req, res) => {
 });
 
 // Get banking stats
-app.get('/api/banking/stats', (req, res) => {
+app.get('/api/banking/stats', adminAuth, (req, res) => {
     try {
         const stats = bankingAPI.getStats();
         res.json(stats);
@@ -4165,7 +4181,7 @@ app.get('/api/banking/stats', (req, res) => {
 });
 
 // Cancel withdrawal
-app.post('/api/banking/withdrawal/cancel', (req, res) => {
+app.post('/api/banking/withdrawal/cancel', adminAuth, (req, res) => {
     try {
         const { withdrawalId } = req.body;
         const result = bankingAPI.cancelWithdrawal(withdrawalId);
