@@ -5239,7 +5239,7 @@ app.post('/api/merchant/payment/cashback', (req, res) => {
 // ==================== CORPORATE/TEAM PLANS API ENDPOINTS ====================
 
 // Create a new organization
-app.post('/api/organization/create', async (req, res) => {
+app.post('/api/organization/create', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5272,7 +5272,7 @@ app.post('/api/organization/create', async (req, res) => {
 });
 
 // Get organization by ID
-app.get('/api/organization/:id', async (req, res) => {
+app.get('/api/organization/:id', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5292,7 +5292,7 @@ app.get('/api/organization/:id', async (req, res) => {
 });
 
 // Get organizations by owner email
-app.get('/api/organization/owner/:email', async (req, res) => {
+app.get('/api/organization/owner/:email', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5307,7 +5307,7 @@ app.get('/api/organization/owner/:email', async (req, res) => {
 });
 
 // Invite a member to organization
-app.post('/api/organization/:id/invite', async (req, res) => {
+app.post('/api/organization/:id/invite', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5333,7 +5333,7 @@ app.post('/api/organization/:id/invite', async (req, res) => {
 });
 
 // Accept organization invite
-app.post('/api/organization/invite/:memberId/accept', async (req, res) => {
+app.post('/api/organization/invite/:memberId/accept', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5363,7 +5363,7 @@ app.post('/api/organization/invite/:memberId/accept', async (req, res) => {
 });
 
 // Get organization members
-app.get('/api/organization/:id/members', async (req, res) => {
+app.get('/api/organization/:id/members', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5378,7 +5378,7 @@ app.get('/api/organization/:id/members', async (req, res) => {
 });
 
 // Remove member from organization
-app.delete('/api/organization/:organizationId/member/:memberId', async (req, res) => {
+app.delete('/api/organization/:organizationId/member/:memberId', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5397,7 +5397,7 @@ app.delete('/api/organization/:organizationId/member/:memberId', async (req, res
 });
 
 // Get team learning progress
-app.get('/api/organization/:id/progress', async (req, res) => {
+app.get('/api/organization/:id/progress', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5412,7 +5412,7 @@ app.get('/api/organization/:id/progress', async (req, res) => {
 });
 
 // Get member learning progress
-app.get('/api/organization/member/:memberId/progress', async (req, res) => {
+app.get('/api/organization/member/:memberId/progress', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5427,7 +5427,7 @@ app.get('/api/organization/member/:memberId/progress', async (req, res) => {
 });
 
 // Update learning progress
-app.post('/api/organization/progress/update', async (req, res) => {
+app.post('/api/organization/progress/update', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5482,7 +5482,7 @@ app.post('/api/organization/pricing/calculate', async (req, res) => {
 });
 
 // Update Stripe subscription info
-app.post('/api/organization/:id/stripe', async (req, res) => {
+app.post('/api/organization/:id/stripe', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5503,7 +5503,7 @@ app.post('/api/organization/:id/stripe', async (req, res) => {
 });
 
 // Update subscription status
-app.post('/api/organization/:id/subscription/status', async (req, res) => {
+app.post('/api/organization/:id/subscription/status', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5528,7 +5528,7 @@ app.post('/api/organization/:id/subscription/status', async (req, res) => {
 });
 
 // Create Stripe checkout session for corporate subscription
-app.post('/api/organization/:id/checkout', async (req, res) => {
+app.post('/api/organization/:id/checkout', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5566,7 +5566,7 @@ app.post('/api/organization/:id/checkout', async (req, res) => {
 });
 
 // Get all organizations (admin endpoint)
-app.get('/api/organizations/all', async (req, res) => {
+app.get('/api/organizations/all', adminAuth, async (req, res) => {
     try {
         if (!organizationManager) {
             return res.status(503).json({ error: 'Organization management not available' });
@@ -5978,30 +5978,17 @@ app.post('/api/students/enroll', async (req, res) => {
 });
 
 // Check if student is enrolled
-app.get('/api/students/check/:walletAddress', async (req, res) => {
+app.get('/api/students/check/:walletAddress', requireAdminAuth, async (req, res) => {
     try {
         const walletAddress = req.params.walletAddress.toLowerCase();
         
         const result = await dbConnection.query(
-            `SELECT * FROM students WHERE wallet_address = $1`,
+            `SELECT student_id FROM students WHERE wallet_address = $1`,
             [walletAddress]
         );
         
         if (result.rows.length > 0) {
-            const student = result.rows[0];
-            res.json({ 
-                success: true, 
-                enrolled: true,
-                student: {
-                    studentId: student.student_id,
-                    name: student.name,
-                    email: student.email,
-                    walletAddress: student.wallet_address,
-                    enrollmentDate: student.enrollment_date,
-                    coursesCompleted: student.courses_completed,
-                    totalKenoEarned: student.total_keno_earned
-                }
-            });
+            res.json({ success: true, enrolled: true });
         } else {
             res.json({ success: true, enrolled: false });
         }
@@ -6011,8 +5998,8 @@ app.get('/api/students/check/:walletAddress', async (req, res) => {
     }
 });
 
-// Get student by email (for admin lookups)
-app.get('/api/students/by-email/:email', async (req, res) => {
+// Get student by email (admin only)
+app.get('/api/students/by-email/:email', requireAdminAuth, async (req, res) => {
     try {
         const email = req.params.email.toLowerCase();
         
@@ -7736,7 +7723,7 @@ app.post('/api/dev/create-test-graduate', async (req, res) => {
 // ==================== CHAT HISTORY API ENDPOINTS ====================
 
 // Create a new chat conversation
-app.post('/api/chat/conversations', async (req, res) => {
+app.post('/api/chat/conversations', adminAuth, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
@@ -7758,7 +7745,7 @@ app.post('/api/chat/conversations', async (req, res) => {
 });
 
 // Add a message to a conversation
-app.post('/api/chat/conversations/:conversationId/messages', async (req, res) => {
+app.post('/api/chat/conversations/:conversationId/messages', adminAuth, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
@@ -7791,7 +7778,7 @@ app.post('/api/chat/conversations/:conversationId/messages', async (req, res) =>
 });
 
 // Get all conversations for a user
-app.get('/api/chat/conversations', async (req, res) => {
+app.get('/api/chat/conversations', adminAuth, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
@@ -7824,7 +7811,7 @@ app.get('/api/chat/conversations', async (req, res) => {
 });
 
 // Get a specific conversation with all its messages
-app.get('/api/chat/conversations/:conversationId', async (req, res) => {
+app.get('/api/chat/conversations/:conversationId', adminAuth, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
@@ -7858,7 +7845,7 @@ app.get('/api/chat/conversations/:conversationId', async (req, res) => {
 });
 
 // Delete a conversation
-app.delete('/api/chat/conversations/:conversationId', async (req, res) => {
+app.delete('/api/chat/conversations/:conversationId', adminAuth, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
@@ -7882,7 +7869,7 @@ app.delete('/api/chat/conversations/:conversationId', async (req, res) => {
 });
 
 // Update conversation title
-app.put('/api/chat/conversations/:conversationId', async (req, res) => {
+app.put('/api/chat/conversations/:conversationId', adminAuth, async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
