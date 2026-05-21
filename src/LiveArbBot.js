@@ -6,7 +6,7 @@ const FLASH_ARB_LOAN2    = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
 
 const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
-const UTL_FARM        = '0xaf991D0A2b4Ab522Adc6766fc0FdCbAfFA541094';
+const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644'; // v1.1 active contract
 
 const FLASH_ARB_ABI = [
   'function quoteBest(uint256 testAmountBNB) external view returns (bool profitable, address sellRouter, address buyRouter, address repayPair, uint256 grossProfitBNB, uint256 repayAmountWBNB)',

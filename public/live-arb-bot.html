@@ -437,9 +437,38 @@ function showFarmResult(msg, color) {
     document.getElementById('farmResult').innerHTML = `<span style="color:${colors[color]||'#e2e8f0'}">${msg}</span>`;
 }
 
-fetchWallet();
-fetchStatus();
-fetchFarmStatus();
+// Auto-start bot if it's offline when the page loads
+async function initPage() {
+    fetchWallet();
+    fetchFarmStatus();
+    try {
+        const r = await fetch('/api/live-arb/status');
+        const d = await r.json();
+        if (d.running) {
+            // Already running (auto-started by server) — just start polling
+            renderStatus(d);
+            startPolling();
+            document.getElementById('btnStop').disabled  = false;
+            document.getElementById('btnPause').disabled = false;
+        } else {
+            // Not running yet — auto-start it silently
+            document.getElementById('statusText').textContent = 'Auto-starting...';
+            const sr = await fetch('/api/live-arb/start', { method: 'POST' });
+            const sd = await sr.json();
+            if (sd.ok) {
+                startPolling();
+                document.getElementById('btnStop').disabled  = false;
+                document.getElementById('btnPause').disabled = false;
+            } else {
+                setOfflineState();
+            }
+        }
+    } catch (e) {
+        setOfflineState();
+    }
+}
+
+initPage();
 setInterval(fetchFarmStatus, 30_000);
 </script>
 </body>
