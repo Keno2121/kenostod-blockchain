@@ -398,6 +398,117 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     }
 });
 
+// Printful webhook must be BEFORE express.json() to preserve raw body for HMAC verification
+app.post('/api/webhooks/printful', express.raw({ type: 'application/json' }), async (req, res) => {
+    const crypto = require('crypto');
+    const webhookSecret = process.env.PRINTFUL_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+        console.error('❌ PRINTFUL_WEBHOOK_SECRET not set — rejecting webhook');
+        return res.status(500).json({ error: 'Webhook secret not configured' });
+    }
+
+    const signature = req.headers['x-printful-signature'];
+    if (!signature) {
+        console.warn('⚠️  Printful webhook missing X-Printful-Signature header');
+        return res.status(401).json({ error: 'Missing webhook signature' });
+    }
+
+    if (!Buffer.isBuffer(req.body)) {
+        return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    const expectedSig = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(req.body)
+        .digest('hex');
+
+    if (!crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expectedSig, 'hex'))) {
+        console.warn('⚠️  Printful webhook signature mismatch — rejecting');
+        return res.status(401).json({ error: 'Invalid webhook signature' });
+    }
+
+    if (!dbConnection) {
+        return res.status(503).json({ error: 'Database features currently unavailable' });
+    }
+
+    let webhookData;
+    try {
+        webhookData = JSON.parse(req.body.toString('utf8'));
+    } catch {
+        return res.status(400).json({ error: 'Invalid JSON payload' });
+    }
+
+    try {
+        console.log('📬 Received Printful webhook:', webhookData.type || 'unknown type');
+
+        if (webhookData.type === 'package_shipped') {
+            const printfulOrderId = webhookData.data?.order?.id;
+            const trackingNumber = webhookData.data?.shipment?.tracking_number;
+            const trackingUrl = webhookData.data?.shipment?.tracking_url;
+
+            if (!printfulOrderId) {
+                console.warn('⚠️  Printful webhook missing order ID');
+                return res.status(400).json({ error: 'Missing order ID in webhook data' });
+            }
+
+            const orderResult = await dbConnection.query(
+                'SELECT * FROM graduate_merchandise_orders WHERE printful_order_id = $1',
+                [printfulOrderId.toString()]
+            );
+
+            if (orderResult.rows.length === 0) {
+                console.warn(`⚠️  No local order found for Printful ID: ${printfulOrderId}`);
+                return res.status(404).json({ error: 'Order not found' });
+            }
+
+            const order = orderResult.rows[0];
+
+            await dbConnection.query(`
+                UPDATE graduate_merchandise_orders
+                SET order_status = 'shipped',
+                    tracking_number = $1,
+                    shipped_at = CURRENT_TIMESTAMP
+                WHERE order_id = $2
+            `, [trackingNumber || null, order.order_id]);
+
+            console.log(`✅ Updated order ${order.order_id} to shipped status (tracking: ${trackingNumber})`);
+
+            const updatedOrderResult = await dbConnection.query(
+                'SELECT * FROM graduate_merchandise_orders WHERE order_id = $1',
+                [order.order_id]
+            );
+            const updatedOrder = updatedOrderResult.rows[0];
+
+            try {
+                if (updatedOrder.user_email) {
+                    await EmailService.sendOrderShippedEmail(updatedOrder);
+                    console.log(`📧 Shipped notification email sent for order ${order.order_id}`);
+                }
+            } catch (emailError) {
+                console.error('⚠️  Email notification failed (non-critical):', emailError.message);
+            }
+        } else if (webhookData.type === 'package_returned') {
+            const printfulOrderId = webhookData.data?.order?.id;
+
+            if (printfulOrderId) {
+                await dbConnection.query(`
+                    UPDATE graduate_merchandise_orders
+                    SET order_notes = COALESCE(order_notes || E'\n', '') || 'Package returned by carrier - ' || CURRENT_TIMESTAMP
+                    WHERE printful_order_id = $1
+                `, [printfulOrderId.toString()]);
+
+                console.log(`⚠️  Package returned for Printful order ${printfulOrderId}`);
+            }
+        }
+
+        res.json({ received: true });
+    } catch (error) {
+        console.error('Error processing Printful webhook:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.use(express.json());
 
 // Rate Limiting for Security
@@ -7650,84 +7761,6 @@ app.post('/api/graduate/merchandise/orders/:orderId/send-to-printful', (req, res
     }
 });
 
-// Printful webhook endpoint for shipping updates
-app.post('/api/webhooks/printful', async (req, res) => {
-    if (!dbConnection) {
-        return res.status(503).json({ error: 'Database features currently unavailable' });
-    }
-    
-    try {
-        const webhookData = req.body;
-        
-        console.log('📬 Received Printful webhook:', webhookData.type || 'unknown type');
-        
-        if (webhookData.type === 'package_shipped') {
-            const printfulOrderId = webhookData.data?.order?.id;
-            const trackingNumber = webhookData.data?.shipment?.tracking_number;
-            const trackingUrl = webhookData.data?.shipment?.tracking_url;
-            
-            if (!printfulOrderId) {
-                console.warn('⚠️  Printful webhook missing order ID');
-                return res.status(400).json({ error: 'Missing order ID in webhook data' });
-            }
-            
-            const orderResult = await dbConnection.query(
-                'SELECT * FROM graduate_merchandise_orders WHERE printful_order_id = $1',
-                [printfulOrderId.toString()]
-            );
-            
-            if (orderResult.rows.length === 0) {
-                console.warn(`⚠️  No local order found for Printful ID: ${printfulOrderId}`);
-                return res.status(404).json({ error: 'Order not found' });
-            }
-            
-            const order = orderResult.rows[0];
-            
-            await dbConnection.query(`
-                UPDATE graduate_merchandise_orders
-                SET order_status = 'shipped',
-                    tracking_number = $1,
-                    shipped_at = CURRENT_TIMESTAMP
-                WHERE order_id = $2
-            `, [trackingNumber || null, order.order_id]);
-            
-            console.log(`✅ Updated order ${order.order_id} to shipped status (tracking: ${trackingNumber})`);
-            
-            const updatedOrderResult = await dbConnection.query(
-                'SELECT * FROM graduate_merchandise_orders WHERE order_id = $1',
-                [order.order_id]
-            );
-            const updatedOrder = updatedOrderResult.rows[0];
-            
-            try {
-                if (updatedOrder.user_email) {
-                    await EmailService.sendOrderShippedEmail(updatedOrder);
-                    console.log(`📧 Shipped notification email sent for order ${order.order_id}`);
-                }
-            } catch (emailError) {
-                console.error('⚠️  Email notification failed (non-critical):', emailError.message);
-            }
-        } else if (webhookData.type === 'package_returned') {
-            const printfulOrderId = webhookData.data?.order?.id;
-            
-            if (printfulOrderId) {
-                await dbConnection.query(`
-                    UPDATE graduate_merchandise_orders
-                    SET order_notes = COALESCE(order_notes || E'\n', '') || 'Package returned by carrier - ' || CURRENT_TIMESTAMP
-                    WHERE printful_order_id = $1
-                `, [printfulOrderId.toString()]);
-                
-                console.log(`⚠️  Package returned for Printful order ${printfulOrderId}`);
-            }
-        }
-        
-        res.json({ received: true });
-    } catch (error) {
-        console.error('Error processing Printful webhook:', error.message);
-        res.status(500).json({ error: error.message });
-    }
-});
-
 // Create test graduate account (DEVELOPMENT ONLY)
 app.post('/api/dev/create-test-graduate', async (req, res) => {
     if (process.env.NODE_ENV === 'production') {
@@ -9798,28 +9831,52 @@ app.get('/api/ico/investor-stats', async (req, res) => {
     }
 });
 
-app.post('/api/ico/record-investment', async (req, res) => {
+app.post('/api/ico/record-investment', adminAuth, async (req, res) => {
     try {
         const {
             walletAddress,
             email,
             investmentAmount,
-            tokensPurchased,
-            tokenPrice,
             paymentMethod,
             transactionHash,
-            salePhase,
-            bonusPercentage,
-            bonusTokens,
             referralCode
         } = req.body;
 
-        if (!walletAddress || !investmentAmount || !tokensPurchased) {
+        if (!walletAddress || !investmentAmount) {
             return res.status(400).json({ 
                 success: false, 
                 error: 'Missing required fields' 
             });
         }
+
+        const parsedAmount = parseFloat(investmentAmount);
+        if (!isFinite(parsedAmount) || parsedAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'investmentAmount must be a positive number'
+            });
+        }
+
+        // Determine sale phase and token price server-side
+        const privateSaleDate = new Date('2025-11-28T00:00:00Z');
+        const dexListingDate = new Date('2025-12-29T00:00:00Z');
+        const now = new Date();
+
+        let serverSalePhase = 'upcoming';
+        let serverTokenPrice = 0.01;
+
+        if (now >= dexListingDate) {
+            serverSalePhase = 'dex_listed';
+            serverTokenPrice = 1.00;
+        } else if (now >= privateSaleDate) {
+            serverSalePhase = 'private';
+            serverTokenPrice = 0.01;
+        }
+
+        // Recalculate derived values server-side
+        const serverTokensPurchased = parsedAmount / serverTokenPrice;
+        const serverBonusPercentage = serverSalePhase === 'private' ? 20 : 0;
+        const serverBonusTokens = serverTokensPurchased * (serverBonusPercentage / 100);
 
         const investorId = `INV-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -9832,15 +9889,15 @@ app.post('/api/ico/record-investment', async (req, res) => {
             [
                 investorId,
                 walletAddress,
-                email,
-                investmentAmount,
-                tokensPurchased,
-                tokenPrice,
+                email || null,
+                parsedAmount,
+                serverTokensPurchased,
+                serverTokenPrice,
                 paymentMethod || 'crypto',
                 transactionHash || null,
-                salePhase || 'private',
-                bonusPercentage || 20,
-                bonusTokens || 0,
+                serverSalePhase,
+                serverBonusPercentage,
+                serverBonusTokens,
                 referralCode || null,
                 req.ip
             ]
@@ -9855,7 +9912,7 @@ app.post('/api/ico/record-investment', async (req, res) => {
                 total_investors = investment_statistics.total_investors + 1,
                 total_tokens_sold = investment_statistics.total_tokens_sold + $2,
                 updated_at = CURRENT_TIMESTAMP`,
-            [investmentAmount, tokensPurchased]
+            [parsedAmount, serverTokensPurchased]
         );
 
         res.json({ 
