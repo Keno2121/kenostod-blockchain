@@ -6179,7 +6179,7 @@ app.get('/api/admin/students', requireAdminAuth, async (req, res) => {
 
 // ==================== WEALTH BUILDER PROGRAM API ENDPOINTS ====================
 
-// Award course completion reward (SECURED: Rate Limited + Course Progress Verification)
+// Award course completion reward (SECURED: Wallet Signature + Rate Limited + Course Progress Verification)
 app.post('/api/wealth/rewards/course-complete', 
     (req, res, next) => {
         if (!securityMiddleware) {
@@ -6187,6 +6187,7 @@ app.post('/api/wealth/rewards/course-complete',
         }
         securityMiddleware.courseCompletionLimiter(req, res, next);
     },
+    (req, res, next) => securityMiddleware.verifyWalletSignature(req, res, next),
     (req, res, next) => securityMiddleware.trackCourseProgress(req, res, next),
     async (req, res) => {
         if (!wealthBuilderManager) {
@@ -6200,6 +6201,14 @@ app.post('/api/wealth/rewards/course-complete',
                 return res.status(400).json({ 
                     success: false, 
                     error: 'courseId is required to prevent duplicate rewards' 
+                });
+            }
+
+            // Ensure the proven wallet matches the wallet claiming the reward
+            if (req.verifiedWallet.toLowerCase() !== walletAddress.toLowerCase()) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'Wallet address does not match the signed wallet. You may only claim rewards for your own wallet.'
                 });
             }
             
@@ -6248,39 +6257,61 @@ app.post('/api/wealth/scholarships/apply',
 );
 
 // Get scholarship applications (admin)
-app.get('/api/wealth/scholarships', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+app.get('/api/wealth/scholarships',
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.requireAdmin(req, res, next);
+    },
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+        }
+        
+        try {
+            const status = req.query.status;
+            const result = await wealthBuilderManager.getScholarshipApplications(status);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-    
-    try {
-        const status = req.query.status;
-        const result = await wealthBuilderManager.getScholarshipApplications(status);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+);
 
 // Review scholarship application (admin)
-app.post('/api/wealth/scholarships/review', async (req, res) => {
-    if (!wealthBuilderManager) {
-        return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+app.post('/api/wealth/scholarships/review',
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.requireAdmin(req, res, next);
+    },
+    async (req, res) => {
+        if (!wealthBuilderManager) {
+            return res.status(503).json({ error: 'Wealth Builder features currently unavailable' });
+        }
+        
+        try {
+            const { applicationId, status, reviewerName, notes } = req.body;
+
+            const allowedStatuses = ['approved', 'rejected', 'pending'];
+            if (!allowedStatuses.includes(status)) {
+                return res.status(400).json({ success: false, error: 'Invalid status value.' });
+            }
+
+            const result = await wealthBuilderManager.reviewScholarshipApplication(
+                applicationId, 
+                status, 
+                reviewerName, 
+                notes
+            );
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-    
-    try {
-        const { applicationId, status, reviewerName, notes } = req.body;
-        const result = await wealthBuilderManager.reviewScholarshipApplication(
-            applicationId, 
-            status, 
-            reviewerName, 
-            notes
-        );
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+);
 
 // Check scholarship access (for course unlock)
 app.get('/api/wealth/scholarships/check-access', async (req, res) => {
@@ -6791,22 +6822,50 @@ app.get('/api/graduates/leaderboard', async (req, res) => {
 });
 
 // Award scholarship course completion (KENO locked until graduation)
-app.post('/api/graduates/scholarship/course-complete', async (req, res) => {
-    if (!wealthBuilderManager || !dbConnection) {
-        return res.status(503).json({ error: 'Graduate features currently unavailable' });
-    }
-    try {
-        const { walletAddress, email, courseName, courseId } = req.body;
-        if (!walletAddress || !courseName || !courseId) {
-            return res.status(400).json({ error: 'walletAddress, courseName, and courseId are required' });
+// SECURED: Wallet Signature + Scholarship Access Verification
+app.post('/api/graduates/scholarship/course-complete',
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
         }
-        const result = await wealthBuilderManager.awardScholarshipCourseCompletion(walletAddress, email, courseName, courseId);
-        res.json(result);
-    } catch (error) {
-        console.error('Error awarding scholarship course completion:', error.message);
-        res.status(500).json({ error: error.message });
+        securityMiddleware.courseCompletionLimiter(req, res, next);
+    },
+    (req, res, next) => securityMiddleware.verifyWalletSignature(req, res, next),
+    async (req, res) => {
+        if (!wealthBuilderManager || !dbConnection) {
+            return res.status(503).json({ error: 'Graduate features currently unavailable' });
+        }
+        try {
+            const { walletAddress, email, courseName, courseId } = req.body;
+            if (!walletAddress || !courseName || !courseId) {
+                return res.status(400).json({ error: 'walletAddress, courseName, and courseId are required' });
+            }
+
+            // Ensure the proven wallet matches the wallet claiming the reward
+            if (req.verifiedWallet.toLowerCase() !== walletAddress.toLowerCase()) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'Wallet address does not match the signed wallet. You may only claim rewards for your own wallet.'
+                });
+            }
+
+            // Verify the wallet actually has scholarship access before awarding
+            const accessCheck = await wealthBuilderManager.checkScholarshipAccess(walletAddress);
+            if (!accessCheck.hasAccess) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'Scholarship access not found for this wallet. Apply for and receive a scholarship before claiming scholarship course rewards.'
+                });
+            }
+
+            const result = await wealthBuilderManager.awardScholarshipCourseCompletion(walletAddress, email, courseName, courseId);
+            res.json(result);
+        } catch (error) {
+            console.error('Error awarding scholarship course completion:', error.message);
+            res.status(500).json({ error: error.message });
+        }
     }
-});
+);
 
 // Get scholarship student progress
 app.get('/api/graduates/scholarship/progress/:wallet', async (req, res) => {
@@ -6997,7 +7056,15 @@ app.get('/api/graduate/check-eligibility/:wallet', async (req, res) => {
 });
 
 // Submit graduate merchandise order
-app.post('/api/graduate/merchandise/order', async (req, res) => {
+// SECURED: Wallet Signature verifies caller owns the wallet before order is accepted
+app.post('/api/graduate/merchandise/order',
+    (req, res, next) => {
+        if (!securityMiddleware) {
+            return res.status(503).json({ error: 'Security features currently unavailable' });
+        }
+        securityMiddleware.verifyWalletSignature(req, res, next);
+    },
+    async (req, res) => {
     if (!dbConnection) {
         return res.status(503).json({ error: 'Database features currently unavailable' });
     }
@@ -7029,6 +7096,14 @@ app.post('/api/graduate/merchandise/order', async (req, res) => {
             return res.status(400).json({ 
                 success: false,
                 error: 'Invalid wallet address format. Must be a valid Ethereum address (0x...)' 
+            });
+        }
+
+        // Verify the signed wallet matches the wallet placing the order
+        if (req.verifiedWallet.toLowerCase() !== userWalletAddress.toLowerCase()) {
+            return res.status(403).json({
+                success: false,
+                error: 'Wallet address does not match the signed wallet. You may only place orders for your own wallet.'
             });
         }
         
