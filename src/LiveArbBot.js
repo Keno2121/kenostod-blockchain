@@ -318,11 +318,29 @@ class LiveArbBot {
         return;
       }
 
-      const deadline = Math.floor(Date.now() / 1000) + 60;
-      const minOut = BigInt(Math.floor(parseFloat(opp.pancakeUSD < opp.biswapUSD ? opp.pancakeUSD : opp.biswapUSD) * (1 - this.config.maxSlippage) * 1e18));
-
       const stableAddr = opp.stableToken || USDT;
       const stableName = stableAddr === BUSD ? 'BUSD' : 'USDT';
+
+      // ── On-chain profit simulation (fresh quotes at execution time) ──────
+      const simBuyRouter  = new ethers.Contract(opp.buyRouter,  ROUTER_ABI, this.provider);
+      const simSellRouter = new ethers.Contract(opp.sellRouter, ROUTER_ABI, this.provider);
+      const [, simStableOut] = await simBuyRouter.getAmountsOut(tradeWei, [WBNB, stableAddr]);
+      const [, simBnbBack]   = await simSellRouter.getAmountsOut(simStableOut, [stableAddr, WBNB]);
+      const gasCostBNB = (this.config.gasLimitArb * 2 * parseFloat(ethers.formatUnits(this.config.gasPrice, 'gwei'))) / 1e9;
+      const gasCostWei = ethers.parseEther(gasCostBNB.toFixed(18));
+      const simProfitBNB = (Number(simBnbBack) - Number(tradeWei) - Number(gasCostWei)) / 1e18;
+      if (simProfitBNB < 0.0001) {
+        this.log(`⛔ On-chain sim: profit ${simProfitBNB.toFixed(6)} BNB after gas — not worth executing`, 'warn');
+        return;
+      }
+      this.log(`✅ On-chain sim: +${simProfitBNB.toFixed(6)} BNB profit — proceeding`);
+
+      const deadline = Math.floor(Date.now() / 1000) + 60;
+      // leg-1 min: 99% of simulated stable output (tight — deep pools)
+      const minOut    = BigInt(Math.floor(Number(simStableOut) * 0.99));
+      // leg-2 min: must return AT LEAST trade amount + gas cost (no loss allowed)
+      const minBNBOut = tradeWei + gasCostWei + ethers.parseEther('0.0001'); // trade + gas + $0.06 min profit
+
       const buyRouter = new ethers.Contract(opp.buyRouter, ROUTER_ABI, this.wallet);
 
       this.log(`🔄 Step 1: Buy ${stableName} on ${opp.buyDex} with ${this.config.arbTradeAmountBNB} BNB [${opp.pair}]`);
@@ -338,7 +356,6 @@ class LiveArbBot {
 
       const stableContract = new ethers.Contract(stableAddr, ERC20_ABI, this.wallet);
       const stableBal      = await stableContract.balanceOf(this.wallet.address);
-      const minBNBOut      = BigInt(Math.floor(parseFloat(this.config.arbTradeAmountBNB) * (1 - this.config.maxSlippage) * 1e18));
 
       const currentAllowance = await stableContract.allowance(this.wallet.address, opp.sellRouter);
       if (currentAllowance < stableBal) {
