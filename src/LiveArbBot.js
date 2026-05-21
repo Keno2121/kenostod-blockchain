@@ -60,6 +60,7 @@ class LiveArbBot {
     this.paused   = false;
 
     this.config = {
+      autoExecute:       false,        // SAFETY: must be enabled manually via /api/live-arb/config before any real trade fires
       minProfitUSD:     0.05,          // lowered — gas at 1 gwei is ~$0.16, needs $0.05 net above that
       arbTradeAmountBNB: '0.08',       // increased from 0.05 → bigger gross profit per spread
       kenoVolBNB:        '0.001',
@@ -152,7 +153,9 @@ class LiveArbBot {
 
         if (opp.netProfitUSD >= this.config.minProfitUSD) {
           this.log(`⚡ Profitable opp: ${opp.spread}% spread → ~$${opp.netProfitUSD.toFixed(3)} net profit`);
-          if (opp.flash) {
+          if (!this.config.autoExecute) {
+            this.log(`🔒 AUTO-EXECUTE DISABLED — opportunity logged but no trade fired. Enable via dashboard.`);
+          } else if (opp.flash) {
             await this.executeFlashArb(opp);
           } else {
             await this.executeArb(opp);

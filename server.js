@@ -9147,9 +9147,11 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
             const signer = new ethers.Wallet(pk, provider);
 
             // ── ROUTE A: Flash loan via deployed contract (PancakeSwap↔BiSwap WBNB/USDT) ──
+            // SAFETY LOCK: autoExecute is disabled by default — set FAL_AUTO_EXECUTE=true to enable
+            const FAL_AUTO_EXECUTE = process.env.FAL_AUTO_EXECUTE === 'true';
             const fal    = new ethers.Contract(FAL_CONTRACT, FAL_ABI, provider);
             const paused = await fal.paused();
-            if (!paused) {
+            if (!paused && FAL_AUTO_EXECUTE) {
                 const wbnbWei = ethers.parseEther(String(EXEC_AMOUNT_BNB));
                 const [,,,canExec] = await fal.quoteArb(wbnbWei);
                 if (canExec) {
@@ -9186,7 +9188,7 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
             const spendable   = Math.max(0, bnbAvailable - GAS_RESERVE_BNB);
             const arbAmountBNB = Math.min(EXEC_AMOUNT_BNB, spendable * 0.8); // keep gas reserve, use max 80% of rest
 
-            if (arbAmountBNB >= MIN_TRADE_BNB) {
+            if (FAL_AUTO_EXECUTE && arbAmountBNB >= MIN_TRADE_BNB) {
                 const directCandidates = spreads.filter(s =>
                     s.spreadPct >= DIRECT_THRESHOLD_MIN &&
                     s.spreadPct <= DIRECT_THRESHOLD_MAX &&   // skip illiquid pool traps (>15%)
