@@ -8806,12 +8806,11 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
     const SAFE_WALLET  = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
     const BSC_RPC      = 'https://bsc-dataseed1.binance.org/';
 
-    // All BSC DEXes using Uniswap V2 interface
+    // All BSC DEXes using Uniswap V2 interface (deep liquidity only — BabySwap excluded)
     const DEXES = [
         { name: 'PancakeSwap V2', router: '0x10ED43C718714eb63d5aA57B78B54704E256024E' },
         { name: 'BiSwap',         router: '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8' },
         { name: 'ApeSwap',        router: '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b' },
-        { name: 'BabySwap',       router: '0x325E343f1dE602396E256B67eFd1F61C3A6B38Bd' },
     ];
 
     // Token addresses on BSC
@@ -8819,14 +8818,12 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
         WBNB: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
         USDT: '0x55d398326f99059fF775485246999027B3197955',
         BUSD: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56',
-        CAKE: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
     };
 
-    // Token pairs to monitor: [tokenIn, tokenOut, humanLabel, inputAmount]
+    // Token pairs to monitor: BNB-based only (wallet holds BNB)
     const PAIRS = [
         { in: TOKENS.WBNB, out: TOKENS.USDT, label: 'WBNB/USDT', amount: '0.1' },
         { in: TOKENS.WBNB, out: TOKENS.BUSD, label: 'WBNB/BUSD', amount: '0.1' },
-        { in: TOKENS.CAKE, out: TOKENS.WBNB, label: 'CAKE/WBNB', amount: '10'  },
     ];
 
     const ROUTER_ABI = [
