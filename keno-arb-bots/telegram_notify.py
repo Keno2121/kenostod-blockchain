@@ -15,7 +15,8 @@ import urllib.error
 from datetime import datetime
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID", "")
+# FAL_ALERT_CHAT_ID is the existing Replit secret used across the project
+TELEGRAM_CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID") or os.getenv("FAL_ALERT_CHAT_ID", "")
 
 BNB_PRICE_USD = 600.0  # approximate
 
