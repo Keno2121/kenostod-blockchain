@@ -35,6 +35,10 @@ except ImportError:
 ROOT = Path(__file__).parent.parent
 load_dotenv(ROOT / ".env")
 
+sys.path.insert(0, str(ROOT))
+from telegram_notify import (notify_bot_started, notify_arb_executed,
+                              notify_error, notify_daily_summary, get_chat_id_help)
+
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 NETWORK         = os.getenv("NETWORK", "testnet")
 BOT_PRIVATE_KEY = os.getenv("BOT_PRIVATE_KEY", "")
@@ -353,8 +357,13 @@ def cmd_status(w3, addrs, account):
 def cmd_run(w3, addrs, account, interval=15):
     log(f"Starting auto-scan (interval: {interval}s)...", Fore.GREEN)
     log("Press Ctrl+C to stop\n", Fore.WHITE)
+    notify_bot_started("Live Arb Bot", NETWORK, account.address)
 
     executions = 0
+    start_time = time.time()
+    total_profit = 0.0
+    last_summary = time.time()
+
     while True:
         try:
             spread = scan_spread(w3, addrs)
@@ -369,6 +378,11 @@ def cmd_run(w3, addrs, account, interval=15):
                 success = execute_arb(w3, addrs, spread, account)
                 if success:
                     executions += 1
+                    dir_label = ["PC→BiSwap", "BiSwap→PC"][spread["direction"]]
+                    est_profit = abs(spread["pc_price"] - spread["bi_price"]) * 0.01
+                    total_profit += est_profit
+                    notify_arb_executed("Live Arb Bot", est_profit, dir_label,
+                                        network=NETWORK)
                     log(f"✅ Arb #{executions} complete", Fore.GREEN)
             else:
                 reasons = []
@@ -378,12 +392,21 @@ def cmd_run(w3, addrs, account, interval=15):
                     reasons.append(f"gas {gas_gwei:.1f} > {MAX_GAS_GWEI} Gwei")
                 log(f"Waiting — {', '.join(reasons)}", Fore.WHITE)
 
+            # Daily summary at midnight UTC
+            if time.time() - last_summary >= 86400:
+                uptime = (time.time() - start_time) / 3600
+                notify_daily_summary(executions, total_profit, uptime)
+                last_summary = time.time()
+
             time.sleep(interval)
 
         except KeyboardInterrupt:
+            uptime = (time.time() - start_time) / 3600
+            notify_daily_summary(executions, total_profit, uptime)
             log(f"\nBot stopped. Total executions: {executions}", Fore.YELLOW)
             break
         except Exception as e:
+            notify_error("Live Arb Bot", str(e))
             log(f"Error: {e}", Fore.RED)
             time.sleep(30)
 
