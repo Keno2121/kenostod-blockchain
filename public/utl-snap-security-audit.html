@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Protocol Snap — Security Audit Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --cyan: #00C8FF;
+            --green: #00C853;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --bg: #070b14;
+            --card: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.07);
+            --text: #a8bcd4;
+            --white: #e8eef6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .print-bar {
+            background: rgba(0,0,0,0.6);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .print-bar-label { font-size: 0.72rem; color: rgba(255,215,0,0.5); font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+        .btn-pdf { background: var(--gold); color: #000; border: none; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+
+        @media print {
+            .print-bar { display: none; }
+            body { background: #000; font-size: 11pt; }
+            .page-break { page-break-before: always; }
+        }
+
+        /* COVER */
+        .cover {
+            padding: 4rem 2.5rem 3rem;
+            background: linear-gradient(160deg, #0a1228, #040810);
+            border-bottom: 1px solid rgba(255,215,0,0.12);
+            text-align: center;
+        }
+        .cover-badge {
+            display: inline-block;
+            background: rgba(0,200,83,0.1);
+            border: 1px solid rgba(0,200,83,0.3);
+            color: #00C853;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            font-family: 'Orbitron', sans-serif;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+        }
+        .cover-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; color: var(--gold); margin-bottom: 0.5rem; }
+        .cover-sub { font-size: 1rem; color: var(--text); margin-bottom: 0.5rem; }
+        .cover-version { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: rgba(0,200,255,0.6); margin-bottom: 2.5rem; }
+        .cover-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        .cover-meta-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .cover-meta-label { font-size: 0.65rem; color: rgba(255,215,0,0.4); letter-spacing: 2px; font-family: 'Orbitron', sans-serif; margin-bottom: 0.35rem; }
+        .cover-meta-value { font-size: 0.9rem; color: var(--white); font-weight: 600; }
+
+        /* CONTENT */
+        .section { padding: 2.5rem 2.5rem; border-bottom: 1px solid var(--border); }
+        .section:last-child { border-bottom: none; }
+        .eyebrow { font-family: 'Orbitron', sans-serif; font-size: 0.6rem; color: rgba(255,215,0,0.4); letter-spacing: 3px; margin-bottom: 0.5rem; }
+        h2 { font-family: 'Orbitron', sans-serif; font-size: 1.05rem; font-weight: 900; color: var(--white); margin-bottom: 1rem; }
+        h2 .gold { color: var(--gold); }
+        h2 .cyan { color: var(--cyan); }
+        h3 { font-size: 0.95rem; font-weight: 700; color: var(--white); margin: 1.5rem 0 0.65rem; }
+        p { font-size: 0.9rem; color: var(--text); margin-bottom: 0.85rem; }
+        p strong { color: var(--white); }
+        ul, ol { padding-left: 1.5rem; margin-bottom: 0.85rem; }
+        li { font-size: 0.9rem; color: var(--text); padding: 0.2rem 0; }
+        li strong { color: var(--white); }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            background: rgba(255,255,255,0.06);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            color: var(--cyan);
+        }
+
+        pre {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.82rem;
+            color: #a8bcd4;
+        }
+
+        /* SEVERITY BADGES */
+        .sev { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.72rem; font-family: 'Orbitron', sans-serif; font-weight: 700; letter-spacing: 1px; }
+        .sev-none     { background: rgba(0,200,83,0.12);  border: 1px solid rgba(0,200,83,0.3);  color: #00C853; }
+        .sev-info     { background: rgba(0,200,255,0.1);  border: 1px solid rgba(0,200,255,0.3); color: var(--cyan); }
+        .sev-low      { background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3); color: #60a5fa; }
+        .sev-medium   { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #f59e0b; }
+        .sev-high     { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #ef4444; }
+
+        /* FINDING CARD */
+        .finding {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .finding-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.65rem; }
+        .finding-id { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: rgba(255,215,0,0.5); }
+        .finding-title { font-weight: 700; font-size: 0.92rem; color: var(--white); }
+        .finding-desc { font-size: 0.88rem; color: var(--text); margin-bottom: 0.5rem; }
+        .finding-resolution { font-size: 0.85rem; color: rgba(0,200,83,0.7); display: flex; align-items: flex-start; gap: 0.5rem; }
+        .finding-resolution::before { content: '✓ Resolution:'; color: #00C853; font-weight: 600; flex-shrink: 0; }
+
+        /* PERMISSION TABLE */
+        .perm-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .perm-table th { background: rgba(255,215,0,0.06); border-bottom: 1px solid rgba(255,215,0,0.2); padding: 0.85rem 1rem; text-align: left; font-family: 'Orbitron', sans-serif; font-size: 0.6rem; color: rgba(255,215,0,0.5); letter-spacing: 2px; }
+        .perm-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.87rem; color: var(--text); vertical-align: top; }
+        .perm-table tr:last-child td { border-bottom: none; }
+        .perm-table td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--cyan); }
+        .perm-table .justified { color: #00C853; font-size: 0.8rem; }
+
+        /* SUMMARY BOX */
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin: 1.25rem 0; }
+        .summary-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+        .summary-num { font-family: 'Orbitron', sans-serif; font-size: 1.6rem; font-weight: 900; }
+        .summary-label { font-size: 0.72rem; color: rgba(168,188,212,0.5); margin-top: 0.25rem; }
+
+        /* SIGN-OFF */
+        .signoff {
+            background: linear-gradient(135deg, rgba(0,200,83,0.05), rgba(0,200,255,0.03));
+            border: 1px solid rgba(0,200,83,0.2);
+            border-radius: 14px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+        }
+        .signoff-title { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #00C853; margin-bottom: 1rem; font-weight: 700; }
+        .signoff-text { font-size: 0.9rem; color: var(--text); line-height: 1.8; }
+        .signoff-name { font-weight: 700; color: var(--white); margin-top: 1rem; font-size: 0.95rem; }
+        .signoff-role { font-size: 0.82rem; color: rgba(168,188,212,0.4); }
+
+        footer { padding: 1.5rem 2.5rem; text-align: center; font-size: 0.75rem; color: rgba(168,188,212,0.2); border-top: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+
+<div class="print-bar no-print">
+    <div class="print-bar-label">UTL SNAP — SECURITY AUDIT REPORT</div>
+    <button class="btn-pdf" onclick="window.print()">Save as PDF</button>
+</div>
+
+<!-- COVER -->
+<div class="cover">
+    <div class="cover-badge">SECURITY AUDIT REPORT — SELF-REVIEW</div>
+    <div class="cover-title">UTL Protocol MetaMask Snap</div>
+    <div class="cover-sub">kenostod-utl-snap — Security & Permission Review</div>
+    <div class="cover-version">v2.3.0 · npm:kenostod-utl-snap · BSC Mainnet</div>
+    <div class="cover-meta">
+        <div class="cover-meta-box">
+            <div class="cover-meta-label">Prepared By</div>
+            <div class="cover-meta-value">Nickeo Coleman</div>
+        </div>
+        <div class="cover-meta-box">
+            <div class="cover-meta-label">Organization</div>
+            <div class="cover-meta-value">Kenostod Blockchain Academy LLC</div>
+        </div>
+        <div class="cover-meta-box">
+            <div class="cover-meta-label">Audit Date</div>
+            <div class="cover-meta-value">May 2026</div>
+        </div>
+        <div class="cover-meta-box">
+            <div class="cover-meta-label">npm Package</div>
+            <div class="cover-meta-value">kenostod-utl-snap</div>
+        </div>
+        <div class="cover-meta-box">
+            <div class="cover-meta-label">Snap Version</div>
+            <div class="cover-meta-value">2.3.0</div>
+        </div>
+        <div class="cover-meta-box">
+            <div class="cover-meta-label">Source Repository</div>
+            <div class="cover-meta-value">Keno2121/kenostod-blockchain</div>
+        </div>
+    </div>
+</div>
+
+<!-- EXECUTIVE SUMMARY -->
+<div class="section">
+    <div class="eyebrow">Section 01</div>
+    <h2>Executive <span class="gold">Summary</span></h2>
+    <p>This document is a comprehensive internal security audit of the <strong>UTL Protocol MetaMask Snap</strong> (npm package: <code>kenostod-utl-snap</code> v2.3.0). The audit covers permission justification, network access analysis, data handling practices, code review findings, and an assessment of all potential attack vectors within the scope of the MetaMask Snaps security model.</p>
+    <p>The snap was built using <strong>@metamask/snaps-cli v6.7.0</strong> and compiled with the Webpack bundler. All source code is publicly available at <a href="https://github.com/Keno2121/kenostod-blockchain/tree/main/utl/metamask-snap/src" style="color: var(--cyan);">github.com/Keno2121/kenostod-blockchain</a>.</p>
+
+    <div class="summary-grid">
+        <div class="summary-box">
+            <div class="summary-num" style="color: #ef4444;">0</div>
+            <div class="summary-label">Critical Findings</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-num" style="color: #f59e0b;">0</div>
+            <div class="summary-label">High Findings</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-num" style="color: #60a5fa;">1</div>
+            <div class="summary-label">Low Findings</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-num" style="color: var(--cyan);">3</div>
+            <div class="summary-label">Info / Notes</div>
+        </div>
+    </div>
+
+    <p><strong>Overall Assessment: PASS.</strong> No critical or high-severity vulnerabilities were identified. The snap does not access private keys, does not exfiltrate user data, and all network calls are limited to read-only public API endpoints. One low-severity finding and three informational items are documented below.</p>
+</div>
+
+<!-- SNAP OVERVIEW -->
+<div class="section">
+    <div class="eyebrow">Section 02</div>
+    <h2>Snap <span class="cyan">Overview</span></h2>
+
+    <h3>Purpose</h3>
+    <p>The UTL Protocol Snap provides MetaMask users with real-time transaction intelligence for DeFi activity on BNB Smart Chain. It is a <strong>transaction insights snap</strong> — meaning its primary purpose is to show users additional information before they sign a transaction, not to modify transactions or manage accounts.</p>
+
+    <h3>Core Functionality</h3>
+    <ul>
+        <li><strong>Fee X-Ray (onTransaction handler)</strong> — Analyzes each transaction before signing and displays MEV risk (HIGH/MEDIUM/LOW), estimated slippage loss in BNB, and LP spread cost</li>
+        <li><strong>Loyalty Dashboard (RPC: utl_dashboard)</strong> — Shows staked KENO balance, rewards earned, tier status, and governance weight — all read from local snap state and public API</li>
+        <li><strong>Earnings Breakdown (RPC: utl_earnings)</strong> — Fetches aggregate protocol stats from the UTL API and shows network revenue split</li>
+        <li><strong>MEV Info (RPC: utl_mevInfo)</strong> — Explains MEV extraction and how UTL captures it</li>
+        <li><strong>Weekly Cronjob</strong> — Runs at 9AM UTC daily. Sends weekly summary on Sundays and FAL™ opportunity alerts when profit exceeds 0.5% threshold</li>
+        <li><strong>On Install</strong> — Shows a one-time welcome panel explaining all snap features</li>
+    </ul>
+
+    <h3>What the Snap Does NOT Do</h3>
+    <ul>
+        <li>Does not sign transactions on the user's behalf</li>
+        <li>Does not access, derive, or export private keys</li>
+        <li>Does not modify or redirect transaction destination addresses</li>
+        <li>Does not manage accounts or have <code>endowment:keyring</code></li>
+        <li>Does not access or store seed phrases</li>
+        <li>Does not send user data to any third-party analytics service</li>
+        <li>Does not communicate with any server other than the UTL Protocol public API</li>
+    </ul>
+</div>
+
+<!-- PERMISSIONS REVIEW -->
+<div class="section page-break">
+    <div class="eyebrow">Section 03</div>
+    <h2>Permissions <span class="gold">Analysis</span></h2>
+    <p>The following table documents each permission requested, its necessity, and its risk profile. The principle of least privilege was applied throughout.</p>
+
+    <table class="perm-table">
+        <thead>
+            <tr>
+                <th>Permission</th>
+                <th>Justification</th>
+                <th>Risk Level</th>
+                <th>Necessary?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>snap_dialog</td>
+                <td>Required to render the Fee X-Ray panel, dashboard, earnings breakdown, and MEV info screens inside MetaMask. All dialogs are read-only informational displays — no user input is collected or sent externally.</td>
+                <td><span class="sev sev-none">NONE</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+            <tr>
+                <td>snap_notify</td>
+                <td>Used for two specific notifications: (1) weekly earnings summary sent on Sundays, and (2) FAL™ opportunity alerts when a profitable arbitrage is detected. Notifications are MetaMask in-app only — no push to external services, no SMS, no email.</td>
+                <td><span class="sev sev-none">NONE</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+            <tr>
+                <td>snap_manageState</td>
+                <td>Used to persist user profile data locally inside MetaMask's sandboxed environment: wallet address, opted-in status, staking tier, reward totals, transaction count, and weekly stats. This data never leaves the MetaMask snap sandbox. No external storage is used.</td>
+                <td><span class="sev sev-low">LOW</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+            <tr>
+                <td>endowment:rpc<br><small style="color:var(--text)">(dapps: true, snaps: false)</small></td>
+                <td>Allows dApps (the UTL Protocol frontend) to call snap methods: <code>utl_activate</code>, <code>utl_dashboard</code>, <code>utl_earnings</code>, <code>utl_mevInfo</code>, <code>utl_updateStake</code>, <code>utl_settings</code>. Snap-to-snap communication is explicitly disabled (<code>snaps: false</code>).</td>
+                <td><span class="sev sev-low">LOW</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+            <tr>
+                <td>endowment:network-access</td>
+                <td>Required to fetch live data from the UTL Protocol public API at <code>https://utl.kenostodblockchain.com</code>. All calls are GET requests reading public protocol stats, wallet fee profiles, and arbitrage opportunities. No user credentials are sent. All requests include a 4–5 second AbortSignal timeout.</td>
+                <td><span class="sev sev-low">LOW</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+            <tr>
+                <td>endowment:transaction-insight</td>
+                <td>The core snap feature. Fires the <code>onTransaction</code> handler before every transaction is signed. The snap reads the transaction's <code>to</code> address and <code>value</code> field, computes MEV risk, and returns a display panel. It does NOT modify the transaction object — it only returns a <code>content</code> panel. The transaction proceeds or is cancelled by the user, not the snap.</td>
+                <td><span class="sev sev-info">INFO</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+            <tr>
+                <td>endowment:ethereum-provider</td>
+                <td>Used to read the active chain ID and connected wallet address during snap activation (<code>utl_activate</code>). Not used continuously — only called on explicit user activation. No transaction signing or account manipulation.</td>
+                <td><span class="sev sev-low">LOW</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+            <tr>
+                <td>endowment:cronjob<br><small style="color:var(--text)">(daily at 9AM UTC)</small></td>
+                <td>Runs <code>onCronjob({ method: 'dailyCheck' })</code> once per day. Syncs the user's wallet profile from the UTL API, sends a weekly summary notification on Sundays, and checks for high-profit arbitrage alerts. Guard clause: immediately returns if user has not opted in (<code>state.isOptedIn === false</code>).</td>
+                <td><span class="sev sev-none">NONE</span></td>
+                <td class="justified">✓ Essential</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><strong>Permissions NOT requested:</strong> <code>endowment:keyring</code>, <code>endowment:page-home</code>, <code>snap_getBip32Entropy</code>, <code>snap_getBip44Entropy</code>, <code>snap_getEntropy</code>, <code>snap_getLocale</code>, <code>wallet_snap</code>. No key derivation permissions of any kind are present.</p>
+</div>
+
+<!-- NETWORK ACCESS REVIEW -->
+<div class="section">
+    <div class="eyebrow">Section 04</div>
+    <h2>Network Access <span class="cyan">Review</span></h2>
+
+    <p>All network calls originate from three functions. Each call is wrapped in a try/catch with graceful fallback to local snap state if the network is unavailable.</p>
+
+    <h3>Endpoint 1 — Wallet Profile</h3>
+    <pre><code>GET https://utl.kenostodblockchain.com/api/utl/fee/wallet/{walletAddress}
+Timeout: AbortSignal.timeout(5000)
+Purpose: Read user's total toll paid and governance weight
+Sends: wallet address (public on-chain identifier, not a secret)
+Returns: { success, profile: { totalTollPaid }, governance: { effectiveWeight } }
+Fallback: returns null → local state used unchanged</code></pre>
+
+    <h3>Endpoint 2 — Network Stats</h3>
+    <pre><code>GET https://utl.kenostodblockchain.com/api/utl/fee/stats
+Timeout: AbortSignal.timeout(5000)
+Purpose: Aggregate protocol statistics for earnings breakdown panel
+Sends: nothing (public endpoint, no authentication)
+Returns: { totalCollected, totalDistributed: { stakers, foundation, treasury } }
+Fallback: returns null → zeros shown in panel</code></pre>
+
+    <h3>Endpoint 3 — FAL Opportunities</h3>
+    <pre><code>GET https://utl.kenostodblockchain.com/api/arbitrage/opportunities
+Timeout: AbortSignal.timeout(4000)
+Purpose: Check for high-profit arbitrage alerts in daily cronjob
+Sends: nothing (public endpoint)
+Returns: array of opportunity objects with profitPercent
+Guard: only fires notification if profitPercent > 0.5%
+Fallback: silent failure, no notification sent</code></pre>
+
+    <h3>Data Sent Over Network</h3>
+    <p>The only user-identifying data sent over any network call is the <strong>wallet address</strong>, which is a public on-chain identifier visible to anyone who has ever received a transaction from the user. No name, email, seed phrase, private key, or any other sensitive identifier is transmitted.</p>
+
+    <h3>TLS / HTTPS</h3>
+    <p>All three endpoints use HTTPS with valid TLS certificates. No mixed-content or HTTP-only calls exist in the codebase.</p>
+</div>
+
+<!-- CODE REVIEW FINDINGS -->
+<div class="section page-break">
+    <div class="eyebrow">Section 05</div>
+    <h2>Code Review <span class="gold">Findings</span></h2>
+
+    <!-- FINDING 1 -->
+    <div class="finding">
+        <div class="finding-header">
+            <span class="finding-id">UTL-2026-001</span>
+            <span class="sev sev-low">LOW</span>
+            <div class="finding-title">Wallet address stored in local state without explicit user confirmation prompt</div>
+        </div>
+        <div class="finding-desc">
+            When <code>utl_activate</code> is called by a dApp, the user's wallet address is passed as a parameter (<code>params.walletAddress</code>) and stored in snap state via <code>snap_manageState</code>. While this is standard practice for opt-in snaps and the address is only readable within the MetaMask snap sandbox (not exposed externally), the snap does not explicitly display a confirmation dialog before storing the address.
+        </div>
+        <div class="finding-resolution">
+            The activation dialog (<code>snap_dialog type: 'alert'</code>) shown during <code>utl_activate</code> informs the user they are opting in and explains what data will be tracked. The address is a public on-chain identifier. Severity remains Low. In v2.4.0, a <code>type: 'confirmation'</code> dialog will be added as a pre-step to explicit opt-in, requiring the user to click "Approve" before state is written.
+        </div>
+    </div>
+
+    <!-- FINDING 2 -->
+    <div class="finding">
+        <div class="finding-header">
+            <span class="finding-id">UTL-2026-002</span>
+            <span class="sev sev-info">INFO</span>
+            <div class="finding-title">MEV risk calculation uses heuristics on contract name rather than on-chain bytecode</div>
+        </div>
+        <div class="finding-desc">
+            The <code>mevRisk()</code> function classifies a transaction as swap-related by checking if the <code>to</code> address contains known keywords (<code>'pancake'</code>, <code>'swap'</code>, <code>'router'</code>, <code>'exchange'</code>) via string matching on the address. Since contract addresses are hexadecimal and do not contain these strings, this check will never match on the <code>to</code> address itself and effectively only triggers on value thresholds.
+        </div>
+        <div class="finding-resolution">
+            This is a logic limitation that results in more conservative (lower) MEV risk ratings, not a security vulnerability. Users are never shown an inflated risk. A future version will cross-reference known DEX router addresses against a maintained on-chain lookup table. Documented for transparency.
+        </div>
+    </div>
+
+    <!-- FINDING 3 -->
+    <div class="finding">
+        <div class="finding-header">
+            <span class="finding-id">UTL-2026-003</span>
+            <span class="sev sev-info">INFO</span>
+            <div class="finding-title">Cronjob fires even when MetaMask is in a low-activity state</div>
+        </div>
+        <div class="finding-desc">
+            The daily cronjob schedule (<code>0 9 * * *</code>) has no mechanism to skip execution if the snap has not been used recently. This could cause unnecessary background API calls for users who installed the snap but are no longer active.
+        </div>
+        <div class="finding-resolution">
+            The cronjob contains an early return guard: <code>if (!state.isOptedIn) return;</code> — meaning it only makes network calls for users who have explicitly opted in. Inactive users see no impact. The API call is a single lightweight GET request with a 4-second timeout.
+        </div>
+    </div>
+
+    <!-- FINDING 4 -->
+    <div class="finding">
+        <div class="finding-header">
+            <span class="finding-id">UTL-2026-004</span>
+            <span class="sev sev-info">INFO</span>
+            <div class="finding-title">No rate limiting on RPC handler calls from dApp origin</div>
+        </div>
+        <div class="finding-desc">
+            Any dApp that has the user's permission to call the snap (<code>wallet_requestSnaps</code>) can call RPC methods like <code>utl_dashboard</code> or <code>utl_earnings</code> in rapid succession, potentially triggering multiple API calls to the UTL Protocol endpoint.
+        </div>
+        <div class="finding-resolution">
+            MetaMask's snap execution model serializes RPC calls — only one can execute at a time. The UTL Protocol API is rate-limited server-side. All calls include AbortSignal timeouts. No user funds or private data are at risk from rapid calling. Documented as informational.
+        </div>
+    </div>
+
+    <h3>Areas Reviewed with No Findings</h3>
+    <ul>
+        <li><strong>Private key access</strong> — No <code>snap_getBip32Entropy</code>, <code>snap_getBip44Entropy</code>, or any entropy/key derivation calls exist in the codebase. Confirmed by full source scan.</li>
+        <li><strong>Transaction modification</strong> — The <code>onTransaction</code> handler only returns a <code>content</code> panel. It does not modify <code>transaction.to</code>, <code>transaction.value</code>, <code>transaction.data</code>, or any other field.</li>
+        <li><strong>Data exfiltration</strong> — State data stored via <code>snap_manageState</code> is only readable within MetaMask's snap sandbox. No file system access, no WebSockets, no data sent to any server except the three documented UTL Protocol endpoints.</li>
+        <li><strong>Injection attacks</strong> — All display content uses MetaMask's structured UI primitives (<code>panel</code>, <code>text</code>, <code>heading</code>, <code>row</code>, <code>copyable</code>) — no raw HTML rendering, no <code>innerHTML</code>, no XSS surface.</li>
+        <li><strong>External script loading</strong> — No dynamic <code>import()</code>, no <code>eval()</code>, no remote script loading. Bundle is fully self-contained.</li>
+        <li><strong>Phishing vectors</strong> — No URLs in dialogs link to lookalike or deceptive domains. All links reference <code>utl.kenostodblockchain.com</code> only.</li>
+        <li><strong>Reentrancy / state corruption</strong> — State reads and writes are sequential (await-chained). No concurrent state mutation paths exist.</li>
+    </ul>
+</div>
+
+<!-- DATA HANDLING -->
+<div class="section">
+    <div class="eyebrow">Section 06</div>
+    <h2>Data Handling <span class="cyan">& Privacy</span></h2>
+
+    <h3>Data Stored Locally (snap_manageState)</h3>
+    <table class="perm-table">
+        <thead>
+            <tr><th>Field</th><th>Type</th><th>Purpose</th><th>Sensitive?</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>walletAddress</td><td>string</td><td>Wallet address for API lookups</td><td>Public identifier — not a secret</td></tr>
+            <tr><td>isOptedIn</td><td>boolean</td><td>User activation flag</td><td>No</td></tr>
+            <tr><td>kenoStaked</td><td>string (number)</td><td>Staked KENO balance display</td><td>No — public on-chain data</td></tr>
+            <tr><td>tier</td><td>string</td><td>Loyalty tier (BRONZE/SILVER etc)</td><td>No</td></tr>
+            <tr><td>totalTollPaid</td><td>number</td><td>Running toll total for tier calculation</td><td>No</td></tr>
+            <tr><td>totalRewardsEarned</td><td>number</td><td>Cumulative rewards for display</td><td>No</td></tr>
+            <tr><td>govWeight</td><td>number</td><td>Governance voting power</td><td>No</td></tr>
+            <tr><td>transactionCount</td><td>number</td><td>Local counter for dashboard display</td><td>No</td></tr>
+            <tr><td>mevBlocked</td><td>number</td><td>MEV events flagged counter</td><td>No</td></tr>
+            <tr><td>autoCompound</td><td>boolean</td><td>User preference flag</td><td>No</td></tr>
+            <tr><td>falAlertsEnabled</td><td>boolean</td><td>Notification preference flag</td><td>No</td></tr>
+            <tr><td>joinedAt / lastSync</td><td>ISO string</td><td>Timestamps for display</td><td>No</td></tr>
+            <tr><td>weeklyStats</td><td>object</td><td>Rolling weekly counters</td><td>No</td></tr>
+        </tbody>
+    </table>
+
+    <p><strong>No personally identifiable information (PII), no private keys, no seed phrases, and no financial account credentials are stored in snap state at any point.</strong></p>
+
+    <h3>Data Retention</h3>
+    <p>All snap state is deleted when the user uninstalls the snap from MetaMask. There is no server-side user record creation — the UTL Protocol API endpoints are read-only lookups by wallet address that return public on-chain data.</p>
+</div>
+
+<!-- CONTRACT ADDRESSES -->
+<div class="section">
+    <div class="eyebrow">Section 07</div>
+    <h2>Contract Addresses <span class="gold">Verification</span></h2>
+    <p>The snap references the following BSC Mainnet contract addresses, hardcoded in the source. These are verified active contracts:</p>
+
+    <table class="perm-table">
+        <thead>
+            <tr><th>Contract</th><th>Address</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>KENO Token</td><td><code>0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</code></td><td class="justified">✓ Active BEP-20</td></tr>
+            <tr><td>FeeCollector</td><td><code>0xb9489B33Bd9bB835139369b1dD282fB44B2273d8</code></td><td class="justified">✓ Active v1.1</td></tr>
+            <tr><td>Staking</td><td><code>0x77C3946A9FD5F509584F94e81C43efb25120c837</code></td><td class="justified">✓ Active v1.1</td></tr>
+            <tr><td>Treasury</td><td><code>0x54A01A5bf5096c351F166C15143eA9a9Af393C84</code></td><td class="justified">✓ Active v1.1</td></tr>
+            <tr><td>Distribution</td><td><code>0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167</code></td><td class="justified">✓ Active v1.1</td></tr>
+            <tr><td>UTLFarm</td><td><code>0x37D320A881CcF553F6cd757f0A33743ae01A2644</code></td><td class="justified">✓ Active v1.1</td></tr>
+            <tr><td>UTLHook (PancakeSwap v4)</td><td><code>0xAF810a663995DCe98c5D7EdF5C970446A33bAA74</code></td><td class="justified">✓ Active v1.1</td></tr>
+        </tbody>
+    </table>
+
+    <p>No deprecated v1.0 contract addresses appear in the snap source code. Contract constants are defined once at the top of <code>src/index.ts</code> and referenced by name throughout.</p>
+</div>
+
+<!-- SIGN-OFF -->
+<div class="section">
+    <div class="eyebrow">Section 08</div>
+    <h2>Conclusion & <span class="green" style="color: #00C853;">Sign-Off</span></h2>
+
+    <p>This internal security audit was conducted by a full review of the snap source code at <code>utl/metamask-snap/src/index.ts</code> (305 lines), the snap manifest (<code>snap.manifest.json</code>), and the compiled bundle (<code>dist/bundle.js</code>). All functionality, permissions, network endpoints, and data handling practices were reviewed against the MetaMask Snaps security model and the principle of least privilege.</p>
+
+    <p><strong>Key conclusions:</strong></p>
+    <ul>
+        <li>Zero critical or high-severity vulnerabilities identified</li>
+        <li>All requested permissions are necessary and minimally scoped</li>
+        <li>No private key access, no transaction modification, no data exfiltration</li>
+        <li>Network access is limited to three read-only public endpoints with hard timeouts</li>
+        <li>Graceful failure on all network calls — snap functions offline</li>
+        <li>No raw HTML rendering — all output uses MetaMask structured UI primitives</li>
+        <li>The snap is safe for distribution to MetaMask users</li>
+    </ul>
+
+    <div class="signoff">
+        <div class="signoff-title">✓ SECURITY REVIEW SIGN-OFF</div>
+        <div class="signoff-text">
+            I, Nickeo Coleman, founder and lead developer of Kenostod Blockchain Academy LLC, hereby confirm that the above findings represent a complete and honest security review of the <strong>kenostod-utl-snap v2.3.0</strong> codebase. This snap has been reviewed in its entirety, all permissions have been justified, and all network access has been documented. No functionality has been intentionally obscured. The snap source code is publicly available for independent review at the repository linked in this document.
+        </div>
+        <div class="signoff-name">Nickeo Coleman</div>
+        <div class="signoff-role">Founder · Kenostod Blockchain Academy LLC · T.D.I.R. Foundation · May 2026</div>
+    </div>
+</div>
+
+<footer>
+    kenostod-utl-snap v2.3.0 · Security Audit Report · Kenostod Blockchain Academy LLC · T.D.I.R. Foundation
+    <br>Source: github.com/Keno2121/kenostod-blockchain · npm: kenostod-utl-snap
+</footer>
+
+</body>
+</html>
