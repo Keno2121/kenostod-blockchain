@@ -1,0 +1,40 @@
+services:
+  - type: worker
+    name: keno-live-arb-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python live_arb_bot/live_arb_bot.py --run
+    envVars:
+      - key: BOT_PRIVATE_KEY
+        sync: false
+      - key: BOT_ADDRESS
+        sync: false
+      - key: NETWORK
+        value: mainnet
+      - key: MIN_SPREAD_PCT
+        value: "0.6"
+      - key: MIN_PROFIT_USD
+        value: "0.25"
+      - key: MAX_BNB_PER_TRADE
+        value: "0.1"
+      - key: MAX_GAS_GWEI
+        value: "10"
+
+  - type: worker
+    name: keno-flash-orb-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python flash_orb_bot/flash_orb_bot.py --run --borrow 0.1 --interval 30
+    envVars:
+      - key: BOT_PRIVATE_KEY
+        sync: false
+      - key: BOT_ADDRESS
+        sync: false
+      - key: NETWORK
+        value: mainnet
+      - key: FLASH_ORB_CONTRACT
+        sync: false
+      - key: MIN_PROFIT_USD
+        value: "0.25"
+      - key: MAX_GAS_GWEI
+        value: "10"
