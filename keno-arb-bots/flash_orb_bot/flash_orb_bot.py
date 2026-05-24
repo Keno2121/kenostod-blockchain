@@ -36,6 +36,10 @@ except ImportError:
 ROOT = Path(__file__).parent.parent
 load_dotenv(ROOT / ".env")
 
+sys.path.insert(0, str(ROOT))
+from telegram_notify import (notify_bot_started, notify_flash_arb,
+                              notify_error, notify_daily_summary, get_chat_id_help)
+
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 NETWORK          = os.getenv("NETWORK", "testnet")
 BOT_PRIVATE_KEY  = os.getenv("BOT_PRIVATE_KEY", "")
@@ -202,8 +206,13 @@ def cmd_execute(w3, contract, account, borrow_bnb: float, direction: int):
 def cmd_run(w3, contract, account, borrow_bnb: float, interval: int):
     log(f"Starting auto-scan (borrow: {borrow_bnb} WBNB | interval: {interval}s)", Fore.GREEN)
     log("Press Ctrl+C to stop\n", Fore.WHITE)
+    notify_bot_started("Flash Orb Bot", NETWORK, account.address)
 
     executions = 0
+    start_time = time.time()
+    total_profit = 0.0
+    last_summary = time.time()
+
     while True:
         try:
             gas_gwei = w3.eth.gas_price / 1e9
@@ -227,6 +236,9 @@ def cmd_run(w3, contract, account, borrow_bnb: float, interval: int):
                 success = cmd_execute(w3, contract, account, borrow_bnb, best_dir)
                 if success:
                     executions += 1
+                    profit_bnb = best_profit / BNB_PRICE_USD
+                    total_profit += profit_bnb
+                    notify_flash_arb(profit_bnb, best_dir, borrow_bnb, network=NETWORK)
             else:
                 reasons = []
                 if best_profit is None or best_profit < MIN_PROFIT_USD:
@@ -236,12 +248,20 @@ def cmd_run(w3, contract, account, borrow_bnb: float, interval: int):
                     reasons.append(f"gas {gas_gwei:.1f} > {MAX_GAS_GWEI} Gwei")
                 log(f"Waiting — {', '.join(reasons)} | Execs: {executions}", Fore.WHITE)
 
+            if time.time() - last_summary >= 86400:
+                uptime = (time.time() - start_time) / 3600
+                notify_daily_summary(executions, total_profit, uptime)
+                last_summary = time.time()
+
             time.sleep(interval)
 
         except KeyboardInterrupt:
+            uptime = (time.time() - start_time) / 3600
+            notify_daily_summary(executions, total_profit, uptime)
             log(f"\nBot stopped. Total executions: {executions}", Fore.YELLOW)
             break
         except Exception as e:
+            notify_error("Flash Orb Bot", str(e))
             log(f"Error: {e}", Fore.RED)
             time.sleep(30)
 
