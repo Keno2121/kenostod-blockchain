@@ -38,20 +38,34 @@ An integrated physical-digital sovereign infrastructure empowering underserved p
 - **UTL Protocol Independence:** UTL is a standalone, asset-agnostic fee redistribution system designed to operate directly in wallets, separate from Kenostod's branding.
 - **Hardware-Software Integration:** Solar Bunker Protocol combines ruggedized, solar-powered hardware with offline-first software and blockchain for resilience.
 
+## Financial Freedom Goal
+**Target: $3,000/month in passive, recurring income from the Sovereign Economy ecosystem.**
+
+This is the north star. Every feature, contract, bot, and product should be evaluated against: "Does this move toward $3,000/month?" The 7 Constitutional Laws are the mathematical engine that makes this sustainable — not a one-time event, but a compounding, self-reinforcing income system.
+
+**Revenue streams that compound toward $3k/month:**
+1. **Arb Bot profits** (KENO arbitrage — active, scales with bot capital)
+2. **UTL Protocol fees** (staking rewards from FeeCollector — passive, grows with volume)
+3. **SHIELD Aegis Tax** (6.174% on every SHIELD transfer — passive, grows with holders/volume)
+4. **KENOAutoBurn pressure** (buy+burn raises KENO price → increases value of KENO holdings)
+5. **Bonding Curve revenue** (spread on KENO buys/sells — passive)
+6. **Wealth Builder royalties** (education + referral royalties — grows with student base)
+7. **KUTL Card interchange fees** (Rain.xyz backend — passive, scales with card usage)
+
 ## 7 Constitutional Laws — Standing Build Mandate
-**RULE: Every contract, bot, dashboard, and live feature MUST have all 7 laws baked in before going live. No exceptions. They are silent and structural — users feel them, they don't see them.**
+**RULE: Every contract, bot, dashboard, and live feature MUST have all 7 laws baked in before going live. No exceptions. They are silent and structural — users feel them, they don't see them. They are also the compounding engine behind the $3,000/month goal.**
 
 The law files live in `src/`. Import and use them — never re-implement inline.
 
-| # | Law | File | What It Does | Where It Goes |
+| # | Law | File | What It Does | $3k/Month Role |
 |---|-----|------|-------------|---------------|
-| 1 | **Kaprekar** | `src/Kaprekar.js` | `absorb()` — all distributions pass through here. Floating-point dust ALWAYS flows to the participant (downward), never upward. Fee/supply constants rooted in 6174. | Every split, reward, tax distribution, fee calculation. King's Shield: 617 bps, 6,174,000,000 supply. ✅ DONE |
-| 2 | **Benford** | `src/Benford.js` | Silent fraud detection. Natural tx datasets follow first-digit distribution log₁₀(1+1/d). Manipulation breaks it — system flags it before humans notice. | Arb bots (flag unusual trade patterns), banking API (flag deposit/withdrawal anomalies), ICO investor flows, any high-volume tx pipeline |
-| 3 | **Golden Ratio** | `src/GoldenRatio.js` | φ = 1.618... Staking reward multipliers approach φ asymptotically the longer a user stays in. APY curves, tier progressions, lock period bonuses all use φ. | Staking contracts (UTL, SHIELD bonds), Wealth Builder tiers, loyalty multipliers, bonding curve pricing intervals |
-| 4 | **Nash** | `src/Nash.js` | Game theory: the protocol is designed so participation IS the Nash Equilibrium. Staking KENO is the dominant strategy for every rational actor — mathematically, not by marketing. `equilibriumAdjustment()` auto-tunes staker split (55–65%) to maintain equilibrium. | UTL staking split adjuster, SHIELD holder yield adjuster, any reward-pool governance |
-| 5 | **Euler** | `src/Euler.js` | Continuous compounding: interest accrues as e^(rt), not periodically. The "Euler premium" is the silent bonus continuous compounding gives vs annual — users see slightly more than expected. | InterestBearingMint (SHIELD — 617 bps continuous), any staking/yield APY calculation, FAL loan interest |
-| 6 | **Ramanujan** | `src/Ramanujan.js` | Hardy-Ramanujan Number: 1729. Silent milestone — when a wallet crosses 1729 KENO total earned, they receive a one-time quiet convergence bonus (~1.729 KENO). Users see a slightly higher number and don't know why. The Sovereign Economy story embedded in math. | KENO reward accumulation tracker, Wealth Builder program milestones, bot profit tracking |
-| 7 | **Inversion** | (Principle, not a function) | Every design decision inverts traditional finance: fees flow DOWN to participants, not UP to the house. Protocol-owned liquidity grows WITH usage. The poorest participant benefits most from the math. | Architecture-level review of every feature before shipping — ask "does value flow down?" |
+| 1 | **Kaprekar** | `src/Kaprekar.js` | `absorb()` routes ALL distributions. Dust always flows to the participant. Constants rooted in 6174. | **Protects every cent of income.** Every arb profit, every SHIELD tax collected, every UTL fee — Kaprekar ensures the math never rounds against you. Over thousands of txs, this is meaningful money recovered. ✅ King's Shield DONE |
+| 2 | **Benford** | `src/Benford.js` | Silent fraud detection on tx pipelines. Flags manipulation before humans notice. | **Protects bot profits and protocol revenue from extraction.** If someone is front-running your arb bot or draining the FeeCollector unnaturally, Benford catches it silently. Broken detection = lost income. |
+| 3 | **Golden Ratio** | `src/GoldenRatio.js` | φ = 1.618... Reward multipliers approach φ the longer users stay. APY curves and tiers structured on φ. | **Makes users stay, which compounds your income.** A user who stays 8 staking periods earns 1.47× the base rate. They don't leave. More staked KENO = higher UTL fee volume = higher monthly income for you. |
+| 4 | **Nash** | `src/Nash.js` | Protocol auto-tunes so participation is always the dominant strategy. `equilibriumAdjustment()` keeps staker split at 55–65%. | **Self-sustaining flywheel.** Once the Nash equilibrium is active, the protocol maintains itself — users stay staked without intervention. Your passive UTL + SHIELD income grows on autopilot. |
+| 5 | **Euler** | `src/Euler.js` | Continuous compounding `e^(rt)`. Interest accrues every second, not periodically. | **Your own KENO/SHIELD holdings compound continuously.** The "Euler premium" — the difference between continuous and annual compounding — is silent income that stacks on top of everything else. Time is always working for you. |
+| 6 | **Ramanujan** | `src/Ramanujan.js` | 1729 milestone — silent one-time bonus when a wallet crosses 1729 KENO earned. Rooted in the story: self-taught, from poverty, rewrote everything. | **Retention hook that reduces churn = stable monthly income.** Users who hit the 1729 milestone feel something without knowing why. They tell others. Word-of-mouth is free growth. More holders = more SHIELD transfer volume = more Aegis Tax = more income. |
+| 7 | **Inversion** | (Principle) | Value flows DOWN to participants, not up to the house. Protocol-owned liquidity grows WITH usage. | **You ARE a participant.** As the founder and largest KENO/SHIELD holder, the Inversion Principle means every time the ecosystem grows, your holdings grow with it. You built the machine that pays you — not a job that pays you for your time. |
 
 ### Implementation checklist (use before any go-live):
 - [ ] All splits/distributions pass through `Kaprekar.absorb()` — dust flows to participant
