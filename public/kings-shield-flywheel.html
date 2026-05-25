@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>King's Shield × KENO Flywheel | Kenostod</title>
+  <style>
+    :root {
+      --gold:   #D4A017;
+      --shield: #7B5EA7;
+      --keno:   #00C896;
+      --bg:     #0A0A0F;
+      --card:   #12121A;
+      --border: #1E1E2E;
+      --text:   #E0E0F0;
+      --muted:  #6E7191;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #0A0A0F 0%, #1A0A2E 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .shield-icon { font-size: 2.4rem; }
+    header h1 { font-size: 1.5rem; font-weight: 700; color: var(--gold); }
+    header p  { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+    .live-badge {
+      margin-left: auto;
+      background: rgba(0,200,150,0.1);
+      border: 1px solid var(--keno);
+      color: var(--keno);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .live-badge::before { content: "● "; }
+
+    /* ── Stats Bar ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat {
+      background: var(--card);
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .stat-val  { font-size: 1.6rem; font-weight: 700; }
+    .stat-lbl  { font-size: 0.72rem; color: var(--muted); margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .stat.keno .stat-val  { color: var(--keno); }
+    .stat.shield .stat-val { color: var(--shield); }
+    .stat.gold .stat-val  { color: var(--gold); }
+
+    /* ── Main ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+    /* ── Flywheel Visual ── */
+    .flywheel-section { margin-bottom: 48px; }
+    .flywheel-section h2 {
+      font-size: 1.1rem; font-weight: 700; color: var(--gold);
+      margin-bottom: 24px; letter-spacing: 0.5px;
+    }
+    .flywheel {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+    .flywheel-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .flywheel-step:first-child { border-radius: 12px 12px 0 0; }
+    .flywheel-step:last-child  { border-radius: 0 0 12px 12px; }
+    .flywheel-step:not(:last-child) { border-bottom: none; }
+    .flywheel-step:hover { border-color: var(--gold); z-index: 1; }
+
+    .step-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .step-shield .step-num { background: rgba(123,94,167,0.2); color: var(--shield); border: 1px solid var(--shield); }
+    .step-keno   .step-num { background: rgba(0,200,150,0.15); color: var(--keno);   border: 1px solid var(--keno); }
+    .step-gold   .step-num { background: rgba(212,160,23,0.15); color: var(--gold);  border: 1px solid var(--gold); }
+    .step-fire   .step-num { background: rgba(255,100,50,0.15); color: #FF6432;      border: 1px solid #FF6432; }
+
+    .step-body { flex: 1; }
+    .step-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+    .step-desc  { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .step-tag   { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 1px;
+                  padding: 2px 8px; border-radius: 20px; margin-top: 6px; }
+    .tag-shield { background: rgba(123,94,167,0.2); color: var(--shield); }
+    .tag-bsc    { background: rgba(240,185,11,0.15); color: #F0B90B; }
+    .tag-sol    { background: rgba(153,69,255,0.15); color: #9945FF; }
+    .tag-fire   { background: rgba(255,100,50,0.15); color: #FF6432; }
+
+    .arrow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.2rem;
+      line-height: 0;
+      margin: 0;
+      z-index: 2;
+      position: relative;
+    }
+
+    /* ── Grid Cards ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+    @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; color: var(--gold); }
+
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.83rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row span:first-child { color: var(--muted); }
+    .info-row span:last-child  { font-weight: 600; font-family: monospace; }
+    .addr { font-size: 0.72rem !important; color: var(--keno) !important; }
+
+    /* ── Burn Feed ── */
+    .burn-feed { margin-bottom: 40px; }
+    .burn-feed h2 { font-size: 1.1rem; font-weight: 700; color: var(--gold); margin-bottom: 16px; }
+    .burn-entry {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.83rem;
+    }
+    .burn-icon { font-size: 1.2rem; }
+    .burn-data { flex: 1; }
+    .burn-data strong { color: #FF6432; }
+    .burn-data .burn-meta { color: var(--muted); font-size: 0.75rem; margin-top: 2px; }
+    .burn-link { color: var(--keno); font-size: 0.75rem; text-decoration: none; }
+    .burn-link:hover { text-decoration: underline; }
+    .no-burns { color: var(--muted); font-size: 0.85rem; padding: 20px; text-align: center;
+                background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+
+    /* ── Roadmap ── */
+    .roadmap { margin-bottom: 40px; }
+    .roadmap h2 { font-size: 1.1rem; font-weight: 700; color: var(--gold); margin-bottom: 16px; }
+    .milestone {
+      display: flex; gap: 16px; align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .m-dot {
+      width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
+    }
+    .m-done    { background: var(--keno); }
+    .m-active  { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    .m-pending { background: var(--border); border: 1px solid var(--muted); }
+    .m-body h4 { font-size: 0.88rem; font-weight: 700; }
+    .m-body p  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+    footer {
+      text-align: center; padding: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 0.78rem;
+    }
+    footer a { color: var(--keno); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="shield-icon">🛡️</div>
+  <div>
+    <h1>King's Shield × KENO Flywheel</h1>
+    <p>Protocol-Owned Liquidity on Solana · Auto-Burn on BSC</p>
+  </div>
+  <div class="live-badge">LIVE</div>
+</header>
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+  <div class="stat keno">
+    <div class="stat-val" id="stat-burned">—</div>
+    <div class="stat-lbl">Total KENO Burned</div>
+  </div>
+  <div class="stat gold">
+    <div class="stat-val" id="stat-bnb">—</div>
+    <div class="stat-lbl">BNB Used for Burns</div>
+  </div>
+  <div class="stat shield">
+    <div class="stat-val" id="stat-burns">—</div>
+    <div class="stat-lbl">Burn Events</div>
+  </div>
+  <div class="stat gold">
+    <div class="stat-val" id="stat-sol-lp">—</div>
+    <div class="stat-lbl">SHIELD/SOL LP Size</div>
+  </div>
+  <div class="stat keno">
+    <div class="stat-val" id="stat-pending">—</div>
+    <div class="stat-lbl">Pending Burn (BNB)</div>
+  </div>
+</div>
+
+<main>
+
+  <!-- Flywheel -->
+  <section class="flywheel-section">
+    <h2>🔄 THE FLYWHEEL</h2>
+    <div class="flywheel">
+
+      <div class="flywheel-step step-shield">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">SHIELD Bonds Sold</div>
+          <div class="step-desc">
+            Users deposit SOL to receive discounted SHIELD over a 5-day vesting period.
+            The protocol keeps the SOL and pairs it with SHIELD to build Raydium SHIELD/SOL liquidity.
+          </div>
+          <span class="step-tag tag-sol">SOLANA</span>
+        </div>
+      </div>
+
+      <div class="flywheel-step step-shield">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">SHIELD/SOL Liquidity Grows (Protocol-Owned)</div>
+          <div class="step-desc">
+            Protocol owns the LP tokens — not rentable liquidity. Trading fees accumulate
+            in the treasury forever. The deeper the pool, the lower the slippage, the more volume.
+          </div>
+          <span class="step-tag tag-sol">RAYDIUM LP</span>
+        </div>
+      </div>
+
+      <div class="flywheel-step step-shield">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Aegis Tax Collected on Every SHIELD Trade</div>
+          <div class="step-desc">
+            3% Aegis Tax on all SHIELD transfers accumulates SOL in the treasury.
+            More trading volume = more SOL collected. This is the fuel for the KENO burn engine.
+          </div>
+          <span class="step-tag tag-sol">3% AEGIS TAX</span>
+        </div>
+      </div>
+
+      <div class="flywheel-step step-gold">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Cross-Chain Relay Bridges SOL → BNB</div>
+          <div class="step-desc">
+            When treasury threshold is reached, the Aegis Relay bridges accumulated SOL to BSC
+            and sends BNB to the KENOAutoBurn contract. Fully automated, logged on-chain.
+          </div>
+          <span class="step-tag tag-bsc">CROSS-CHAIN</span>
+        </div>
+      </div>
+
+      <div class="flywheel-step step-fire">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">🔥 KENO Auto-Bought on PancakeSwap + Burned</div>
+          <div class="step-desc">
+            KENOAutoBurn contract swaps BNB → KENO via PancakeSwap V2 and immediately
+            sends KENO to <code>0x000...dEaD</code>. Supply decreases permanently. Verifiable on BscScan.
+          </div>
+          <span class="step-tag tag-bsc">BSC MAINNET</span>
+          <span class="step-tag tag-fire">PERMANENT BURN</span>
+        </div>
+      </div>
+
+      <div class="flywheel-step step-keno">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title">KENO Supply ↓ → Price ↑</div>
+          <div class="step-desc">
+            Reduced supply with constant or growing demand drives KENO price appreciation.
+            This strengthens the narrative backing SHIELD bonds — people bond for yield on a rising asset.
+          </div>
+          <span class="step-tag tag-bsc">KENO ECONOMICS</span>
+        </div>
+      </div>
+
+      <div class="flywheel-step step-shield" style="border-radius: 0 0 12px 12px;">
+        <div class="step-num">↺</div>
+        <div class="step-body">
+          <div class="step-title">More SHIELD Bond Demand → Loop Continues</div>
+          <div class="step-desc">
+            KENO price appreciation increases SHIELD's narrative value and credibility,
+            driving new bond buyers. More bonds = more LP = more Aegis Tax = more KENO burned. Self-reinforcing.
+          </div>
+          <span class="step-tag tag-shield">FLYWHEEL</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Contract Info -->
+  <div class="grid-2">
+    <div class="card">
+      <h3>🔥 KENOAutoBurn Contract (BSC)</h3>
+      <div class="info-row"><span>Contract</span><span class="addr" id="autoburn-addr">Deploying soon...</span></div>
+      <div class="info-row"><span>KENO Token</span><span class="addr">0x6579...FD0E</span></div>
+      <div class="info-row"><span>PancakeSwap</span><span class="addr">V2 Router</span></div>
+      <div class="info-row"><span>Burn Address</span><span class="addr">0x000...dEaD</span></div>
+      <div class="info-row"><span>Max Slippage</span><span>5%</span></div>
+      <div class="info-row"><span>Status</span><span style="color:var(--gold)">Awaiting Deploy</span></div>
+    </div>
+
+    <div class="card">
+      <h3>🛡️ Shield Bonds (Solana)</h3>
+      <div class="info-row"><span>Program</span><span class="addr">Shield-Bonds Anchor</span></div>
+      <div class="info-row"><span>Bond Vesting</span><span>5 Days</span></div>
+      <div class="info-row"><span>Max Discount</span><span>10%</span></div>
+      <div class="info-row"><span>Aegis Tax</span><span>3% on transfers</span></div>
+      <div class="info-row"><span>LP Protocol</span><span>Raydium SHIELD/SOL</span></div>
+      <div class="info-row"><span>Status</span><span style="color:var(--shield)">Architecture Ready</span></div>
+    </div>
+  </div>
+
+  <!-- Burn Feed -->
+  <section class="burn-feed">
+    <h2>🔥 Recent Burns</h2>
+    <div id="burn-feed">
+      <div class="no-burns">No burns yet — contract deploying. First burn incoming after bot wallet is funded.</div>
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section class="roadmap">
+    <h2>📍 Deployment Roadmap</h2>
+
+    <div class="milestone">
+      <div class="m-dot m-done"></div>
+      <div class="m-body">
+        <h4>KENOAutoBurn Contract — Built & Compiled</h4>
+        <p>Solidity contract ready, Hardhat project set up, pushed to GitHub.</p>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="m-dot m-done"></div>
+      <div class="m-body">
+        <h4>Aegis Cross-Chain Relay — Built</h4>
+        <p>Python relay monitors Solana treasury, bridges SOL, triggers BSC burns.</p>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="m-dot m-done"></div>
+      <div class="m-body">
+        <h4>Shield Bonds Anchor Program — Architecture Complete</h4>
+        <p>Rust/Anchor skeleton with all PDAs, instructions, and events designed.</p>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="m-dot m-active"></div>
+      <div class="m-body">
+        <h4>Fund Bot Wallet → Deploy KENOAutoBurn (BSC Testnet first)</h4>
+        <p>Send 0.05 BNB to 0x391C...52F2 — then testnet, then mainnet deploy.</p>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="m-dot m-pending"></div>
+      <div class="m-body">
+        <h4>SHIELD Token Launch on Solana</h4>
+        <p>SPL token deploy, Raydium pool creation, Aegis Tax activation.</p>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="m-dot m-pending"></div>
+      <div class="m-body">
+        <h4>Bond Sales Open — Flywheel Starts</h4>
+        <p>First bonds sold, first SOL bridged, first KENO burned. Loop begins.</p>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="m-dot m-pending"></div>
+      <div class="m-body">
+        <h4>Wormhole Auto-Bridge Integration (v2)</h4>
+        <p>Replace manual bridge alert with automated Wormhole SDK cross-chain transfer.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Kenostod Blockchain Academy LLC · King's Shield × KENO Sovereign Flywheel</p>
+  <p style="margin-top:8px">
+    <a href="/utl-dashboard.html">UTL Dashboard</a> ·
+    <a href="/utl-snap-security-audit.html">Security Audit</a> ·
+    <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">KENO on BscScan</a>
+  </p>
+</footer>
+
+<script>
+  // Live stats from server API
+  async function loadStats() {
+    try {
+      const r = await fetch('/api/shield-flywheel/stats');
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.totalKenoBurned !== undefined) {
+        document.getElementById('stat-burned').textContent =
+          Number(d.totalKenoBurned).toLocaleString() + ' KENO';
+      }
+      if (d.totalBnbUsed !== undefined) {
+        document.getElementById('stat-bnb').textContent =
+          parseFloat(d.totalBnbUsed).toFixed(4) + ' BNB';
+      }
+      if (d.burnCount !== undefined) {
+        document.getElementById('stat-burns').textContent = d.burnCount;
+      }
+      if (d.pendingBnb !== undefined) {
+        document.getElementById('stat-pending').textContent =
+          parseFloat(d.pendingBnb).toFixed(4) + ' BNB';
+      }
+      if (d.autoBurnAddress) {
+        document.getElementById('autoburn-addr').textContent =
+          d.autoBurnAddress.slice(0,6) + '...' + d.autoBurnAddress.slice(-4);
+      }
+      // Burn feed
+      if (d.recentBurns && d.recentBurns.length > 0) {
+        const feed = document.getElementById('burn-feed');
+        feed.innerHTML = d.recentBurns.map(b => `
+          <div class="burn-entry">
+            <div class="burn-icon">🔥</div>
+            <div class="burn-data">
+              <strong>${Number(b.kenoBurned).toLocaleString()} KENO burned</strong>
+              — ${parseFloat(b.bnbIn).toFixed(4)} BNB
+              <div class="burn-meta">${b.timestamp}</div>
+            </div>
+            ${b.txHash ? `<a class="burn-link" href="https://bscscan.com/tx/${b.txHash}" target="_blank">BscScan ↗</a>` : ''}
+          </div>
+        `).join('');
+      }
+    } catch (e) {
+      // API not yet wired — stats show placeholder
+    }
+  }
+
+  loadStats();
+  setInterval(loadStats, 30000);
+</script>
+</body>
+</html>
