@@ -38,6 +38,31 @@ An integrated physical-digital sovereign infrastructure empowering underserved p
 - **UTL Protocol Independence:** UTL is a standalone, asset-agnostic fee redistribution system designed to operate directly in wallets, separate from Kenostod's branding.
 - **Hardware-Software Integration:** Solar Bunker Protocol combines ruggedized, solar-powered hardware with offline-first software and blockchain for resilience.
 
+## 7 Constitutional Laws — Standing Build Mandate
+**RULE: Every contract, bot, dashboard, and live feature MUST have all 7 laws baked in before going live. No exceptions. They are silent and structural — users feel them, they don't see them.**
+
+The law files live in `src/`. Import and use them — never re-implement inline.
+
+| # | Law | File | What It Does | Where It Goes |
+|---|-----|------|-------------|---------------|
+| 1 | **Kaprekar** | `src/Kaprekar.js` | `absorb()` — all distributions pass through here. Floating-point dust ALWAYS flows to the participant (downward), never upward. Fee/supply constants rooted in 6174. | Every split, reward, tax distribution, fee calculation. King's Shield: 617 bps, 6,174,000,000 supply. ✅ DONE |
+| 2 | **Benford** | `src/Benford.js` | Silent fraud detection. Natural tx datasets follow first-digit distribution log₁₀(1+1/d). Manipulation breaks it — system flags it before humans notice. | Arb bots (flag unusual trade patterns), banking API (flag deposit/withdrawal anomalies), ICO investor flows, any high-volume tx pipeline |
+| 3 | **Golden Ratio** | `src/GoldenRatio.js` | φ = 1.618... Staking reward multipliers approach φ asymptotically the longer a user stays in. APY curves, tier progressions, lock period bonuses all use φ. | Staking contracts (UTL, SHIELD bonds), Wealth Builder tiers, loyalty multipliers, bonding curve pricing intervals |
+| 4 | **Nash** | `src/Nash.js` | Game theory: the protocol is designed so participation IS the Nash Equilibrium. Staking KENO is the dominant strategy for every rational actor — mathematically, not by marketing. `equilibriumAdjustment()` auto-tunes staker split (55–65%) to maintain equilibrium. | UTL staking split adjuster, SHIELD holder yield adjuster, any reward-pool governance |
+| 5 | **Euler** | `src/Euler.js` | Continuous compounding: interest accrues as e^(rt), not periodically. The "Euler premium" is the silent bonus continuous compounding gives vs annual — users see slightly more than expected. | InterestBearingMint (SHIELD — 617 bps continuous), any staking/yield APY calculation, FAL loan interest |
+| 6 | **Ramanujan** | `src/Ramanujan.js` | Hardy-Ramanujan Number: 1729. Silent milestone — when a wallet crosses 1729 KENO total earned, they receive a one-time quiet convergence bonus (~1.729 KENO). Users see a slightly higher number and don't know why. The Sovereign Economy story embedded in math. | KENO reward accumulation tracker, Wealth Builder program milestones, bot profit tracking |
+| 7 | **Inversion** | (Principle, not a function) | Every design decision inverts traditional finance: fees flow DOWN to participants, not UP to the house. Protocol-owned liquidity grows WITH usage. The poorest participant benefits most from the math. | Architecture-level review of every feature before shipping — ask "does value flow down?" |
+
+### Implementation checklist (use before any go-live):
+- [ ] All splits/distributions pass through `Kaprekar.absorb()` — dust flows to participant
+- [ ] Numeric constants rooted in 6174 where applicable (fees, supply, lock days)
+- [ ] Benford monitoring on any tx pipeline with >20 transactions
+- [ ] φ multiplier on any staking/loyalty duration-based reward
+- [ ] Nash `equilibriumAdjustment()` hooked into any reward pool that has a staker split
+- [ ] Continuous compounding (`Euler.continuousEarnings`) on any interest-bearing balance
+- [ ] Ramanujan 1729 milestone check on any cumulative KENO reward tracker
+- [ ] Final inversion review: does value flow down to the participant or up to the protocol?
+
 ## Product
 - **Education:** 21 courses, KENO rewards for completion, G.I.F.T. apparel access, PoRV Mining Labs.
 - **Finance & Banking:** KUTL Card (powered by Rain.xyz), UTL Protocol (DeFi, staking), KENO Arbitrage Revolution with Flash Arbitrage Loans (FAL), Mercury Bank USD cashout.
