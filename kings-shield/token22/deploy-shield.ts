@@ -2,7 +2,10 @@
  * King's Shield (SHIELD) — Token-2022 Deployment
  * ================================================
  * Deploys SHIELD on Solana using the Token-2022 program with:
- *   • TransferFeeConfig  — 3% Aegis Tax on every transfer (no cap)
+ *   • TransferFeeConfig  — 6.174% Aegis Tax on every transfer (no cap)
+ *       ├─ 3.000% → Holder Yield (redistributed to all SHIELD holders)
+ *       ├─ 2.000% → Auto-Liquidity (added to SHIELD/SOL Raydium pool)
+ *       └─ 1.174% → KENO Bridge/Burn (bridges to BSC, burns KENO)
  *   • InterestBearingMint — 6.174% annual interest (Kaprekar-themed)
  *
  * Supply: 6,174,000,000 SHIELD (Kaprekar's Constant × 1,000,000)
@@ -54,11 +57,12 @@ const DECIMALS          = 9;
 const TOTAL_SUPPLY      = 6_174_000_000n;                         // 6.174B SHIELD
 const TOTAL_SUPPLY_RAW  = TOTAL_SUPPLY * BigInt(10 ** DECIMALS);  // in base units
 
-// Aegis Tax: 3% = 300 basis points, no cap (u64 max)
-const TRANSFER_FEE_BPS  = 300;
+// Aegis Tax: 6.174% = 617 basis points (Kaprekar's Constant), no cap
+// Breakdown: 3% Holder Yield + 2% Auto-Liquidity + 1.174% KENO Bridge/Burn
+const TRANSFER_FEE_BPS  = 617;
 const MAXIMUM_FEE       = BigInt("18446744073709551615");  // u64::MAX = no cap
 
-// Interest: 6.174% annual = 617 basis points
+// Interest: 6.174% annual = 617 basis points (same Kaprekar alignment)
 // (Token-2022 interest is stored as i16 in basis points, signed)
 const INTEREST_RATE_BPS = 617;
 
@@ -227,10 +231,14 @@ async function main() {
     totalSupplyRaw:   TOTAL_SUPPLY_RAW.toString(),
     extensions: {
       transferFee: {
-        basisPoints: TRANSFER_FEE_BPS,
-        maximumFee:  "u64::MAX (no cap)",
-        aegisTaxPct: "3%",
-        bridgeTaxPct: "1.174% (of 3%)",
+        basisPoints:      TRANSFER_FEE_BPS,    // 617
+        maximumFee:       "u64::MAX (no cap)",
+        totalAegisTaxPct: "6.174%",
+        split: {
+          holderYield:   "3.000% → all SHIELD holders",
+          autoLiquidity: "2.000% → Raydium SHIELD/SOL pool",
+          kenoBridge:    "1.174% → BSC KENO buy+burn",
+        },
       },
       interestBearing: {
         rateBps: INTEREST_RATE_BPS,
@@ -266,8 +274,10 @@ async function main() {
   console.log("  DEPLOYMENT COMPLETE");
   console.log(`  Mint:         ${mintAddress}`);
   console.log(`  Total Supply: 6,174,000,000 SHIELD`);
-  console.log(`  Aegis Tax:    3% on every transfer (no cap)`);
-  console.log(`  Bridge Tax:   1.174% → Kenostod Bridge → KENO burn`);
+  console.log(`  Aegis Tax:    6.174% on every transfer (no cap) — Kaprekar's Constant`);
+  console.log(`    ├─ 3.000% → Holder Yield (all SHIELD holders)`);
+  console.log(`    ├─ 2.000% → Auto-Liquidity (Raydium SHIELD/SOL)`);
+  console.log(`    └─ 1.174% → KENO Bridge/Burn (BSC)`);  
   console.log(`  Interest:     6.174% annual (accruing)`);
   console.log("══════════════════════════════════════════════════");
   console.log("\n  Next: run distribute-allocations.ts to send tokens to wallets");
