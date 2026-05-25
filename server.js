@@ -1096,6 +1096,37 @@ app.get('/api/utl/fee/audit', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── King's Shield × KENO Flywheel ────────────────────────────────────────
+app.get('/kings-shield-flywheel', (req, res) => {
+    res.sendFile(__dirname + '/public/kings-shield-flywheel.html');
+});
+
+app.get('/api/shield-flywheel/stats', async (req, res) => {
+    // Live stats — reads from KENOAutoBurn deployment record when available
+    const fs   = require('fs');
+    const path = require('path');
+    try {
+        const deployFile = path.join(__dirname, 'keno-bonding/deployments/bsc-autoburn.json');
+        const autoBurnAddress = fs.existsSync(deployFile)
+            ? JSON.parse(fs.readFileSync(deployFile, 'utf8')).address
+            : null;
+
+        // Placeholder stats until contract deployed
+        res.json({
+            autoBurnAddress,
+            totalKenoBurned: 0,
+            totalBnbUsed:    0,
+            burnCount:       0,
+            pendingBnb:      0,
+            shieldLpSizeSol: 0,
+            recentBurns:     [],
+            status:          autoBurnAddress ? 'contract_deployed' : 'awaiting_deploy'
+        });
+    } catch (e) {
+        res.json({ totalKenoBurned: 0, totalBnbUsed: 0, burnCount: 0, recentBurns: [] });
+    }
+});
+
 app.get('/snap-package/snap.manifest.json', (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="snap.manifest.json"');
     res.sendFile(__dirname + '/utl/metamask-snap/snap.manifest.json');
