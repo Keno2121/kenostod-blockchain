@@ -43,6 +43,18 @@ An integrated physical-digital sovereign infrastructure empowering underserved p
 
 This is the north star. Every feature, contract, bot, and product should be evaluated against: "Does this move toward $3,000/month?" The 7 Constitutional Laws are the mathematical engine that makes this sustainable — not a one-time event, but a compounding, self-reinforcing income system.
 
+**Bot Capital Milestone Ladder (KENO Arb on BSC/PancakeSwap):**
+| Capital | Nash trade size | Income to you/month | Status |
+|---------|----------------|--------------------|----|
+| **$500** | $150/trade | ~$30–60/month | **← START HERE** |
+| $2,000 | $300/trade | ~$120–240/month | Milestone 2 |
+| $10,000 | $500/trade | ~$600–1,200/month | Milestone 3 |
+| $40,000 | $1,000/trade | ~$3,000/month | Financial Freedom |
+
+- Bot wallet: `0x391C30391C80Bdd100b78b740f89486569cC52f2` (needs 0.05 BNB gas + trading capital)
+- Kaprekar split on every bot profit: 60% reinvest → 25% your pocket → 15% KENOAutoBurn
+- Euler compounds the reinvested 60% continuously — capital grows to $1,482 by month 6 from $500 start
+
 **Revenue streams that compound toward $3k/month:**
 1. **Arb Bot profits** (KENO arbitrage — active, scales with bot capital)
 2. **UTL Protocol fees** (staking rewards from FeeCollector — passive, grows with volume)
