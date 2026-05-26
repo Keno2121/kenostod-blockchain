@@ -11462,16 +11462,9 @@ app.listen(PORT, '0.0.0.0', () => {
         console.error('❌ Telegram bot init error:', err.message);
     }
 
-    // AUTO-START Live Arb Bot (PancakeSwap ↔ BiSwap only — safe, deep pools)
-    setTimeout(async () => {
-        try {
-            console.log('🤖 Auto-starting Live Arb Bot...');
-            const result = await liveArbBot.start();
-            console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
-        } catch (err) {
-            console.error('⚠️ Live Arb Bot auto-start error:', err.message);
-        }
-    }, 35000); // start 5s after FAL Multi (which starts at 30s)
+    // Live Arb Bot — MANUAL START ONLY via dashboard (/api/live-arb/start)
+    // Auto-start is DISABLED. You must explicitly enable it from the founder dashboard.
+    console.log('🤖 Live Arb Bot ready — awaiting manual start from founder dashboard.');
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
