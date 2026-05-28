@@ -135,7 +135,8 @@ const AISupport = require('./src/AISupport');
 const KenostodTelegramBot = require('./src/TelegramBot');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
-const LiveArbBot = require('./src/LiveArbBot');
+const LiveArbBot      = require('./src/LiveArbBot');
+const KenoFlashOrbBot = require('./src/KenoFlashOrbBot');
 const UTLFeeCollector = require('./src/UTLFeeCollector');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('./src/secp256k1-compat').ec;
@@ -1238,7 +1239,8 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
-const liveArbBot = new LiveArbBot();
+const liveArbBot      = new LiveArbBot();
+const flashOrbBot     = new KenoFlashOrbBot();
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
 // Function to log ICO purchases and save to file
@@ -8840,6 +8842,66 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
 });
 
 // ==================== END LIVE ARB BOT API ENDPOINTS ====================
+
+// ==================== KENO FLASH ORB BOT API ENDPOINTS ====================
+// Pure flash loan arbitrage — 5 Kaprekar amounts, 30s scan, 7 Constitutional Laws
+// All routes require founder session (same guard as LiveArbBot)
+
+app.use('/api/flash-orb', requireFounder);
+
+app.post('/api/flash-orb/start', async (req, res) => {
+    try {
+        const result = await flashOrbBot.start();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/flash-orb/stop', (req, res) => {
+    res.json(flashOrbBot.stop());
+});
+
+app.post('/api/flash-orb/pause', (req, res) => {
+    flashOrbBot.pause();
+    res.json({ ok: true });
+});
+
+app.post('/api/flash-orb/resume', (req, res) => {
+    flashOrbBot.resume();
+    res.json({ ok: true });
+});
+
+app.get('/api/flash-orb/status', (req, res) => {
+    res.json(flashOrbBot.getStatus());
+});
+
+app.get('/api/flash-orb/wallet', async (req, res) => {
+    try {
+        if (!flashOrbBot.wallet) {
+            const info = { address: '(bot not started)', bnb: '0', keno: '0', bnbUSD: '0' };
+            return res.json(info);
+        }
+        res.json(await flashOrbBot.getWalletInfo());
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/flash-orb/config', (req, res) => {
+    try {
+        const result = flashOrbBot.updateConfig(req.body);
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.get('/api/flash-orb/profits', (req, res) => {
+    res.json(flashOrbBot.getProfitLog());
+});
+
+// ==================== END KENO FLASH ORB BOT API ENDPOINTS ====================
 
 // ==================== REAL ON-CHAIN FLASH ARB LOAN (FAL) API ENDPOINTS ====================
 // FlashArbLoan contract: 0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e on BSC
