@@ -29,7 +29,7 @@ import {
   createAssociatedTokenAccountIdempotent,
   transfer,
 } from "@solana/spl-token";
-import * as bs58 from "bs58";
+import bs58 from "bs58";
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
