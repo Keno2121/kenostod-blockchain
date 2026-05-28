@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENO Token — Official Presale | The Sovereign Economy</title>
+<meta name="description" content="KENO is the utility token powering The Sovereign Economy — financial infrastructure for the 2.4 billion unbanked. Join the presale on DX Sale.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold:    #f0b429;
+    --gold2:   #fcd34d;
+    --green:   #10b981;
+    --green2:  #34d399;
+    --bg:      #050a14;
+    --bg2:     #0a1020;
+    --bg3:     #111827;
+    --border:  #1e2d45;
+    --text:    #e2e8f0;
+    --muted:   #64748b;
+    --shield:  #7c3aed;
+    --shield2: #a78bfa;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Animated starfield background ─────────────────────────── */
+  .stars {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  }
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 50%;
+    animation: twinkle linear infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50%       { opacity: 1;   transform: scale(1.5); }
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  /* ── Nav ──────────────────────────────────────────────────── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px;
+    background: rgba(5,10,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 800; font-size: 1.1rem; color: var(--gold);
+  }
+  .nav-logo .emblem { font-size: 1.4rem; }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-btn {
+    padding: 8px 16px; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 600;
+    text-decoration: none; cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .nav-btn.outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .nav-btn.outline:hover { border-color: var(--gold); color: var(--gold); }
+  .nav-btn.primary {
+    background: var(--gold);
+    color: #000;
+  }
+  .nav-btn.primary:hover { background: var(--gold2); }
+
+  /* ── Hero ─────────────────────────────────────────────────── */
+  .hero {
+    text-align: center;
+    padding: 60px 24px 40px;
+    max-width: 820px;
+    margin: 0 auto;
+  }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(16,185,129,0.12);
+    border: 1px solid rgba(16,185,129,0.4);
+    color: var(--green2);
+    padding: 6px 16px; border-radius: 100px;
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 24px;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green2);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+    50%       { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 6vw, 3.6rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 0%, var(--gold) 60%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: #94a3b8;
+    max-width: 580px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  .hero-ctas {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center; margin-bottom: 48px;
+  }
+  .cta-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--gold), #d97706);
+    color: #000;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 1rem; font-weight: 800;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(240,180,41,0.35);
+  }
+  .cta-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(240,180,41,0.5); }
+  .cta-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 16px 28px;
+    border-radius: 12px;
+    font-size: 1rem; font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .cta-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── Stats bar ────────────────────────────────────────────── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 720px;
+    margin: 0 auto 64px;
+  }
+  .stat-cell {
+    background: var(--bg2);
+    padding: 20px 16px;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 1.4rem; font-weight: 800;
+    color: var(--gold);
+    display: block; margin-bottom: 4px;
+  }
+  .stat-lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+
+  /* ── Progress bar ─────────────────────────────────────────── */
+  .progress-section {
+    max-width: 720px; margin: 0 auto 64px;
+    padding: 0 24px;
+  }
+  .progress-header {
+    display: flex; justify-content: space-between; margin-bottom: 10px;
+    font-size: 0.85rem; color: var(--muted);
+  }
+  .progress-header strong { color: var(--text); }
+  .progress-bar {
+    height: 12px; background: var(--bg3);
+    border-radius: 100px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--gold), var(--green));
+    transition: width 1s ease;
+    width: 0%;
+  }
+  .progress-labels {
+    display: flex; justify-content: space-between; margin-top: 6px;
+    font-size: 0.72rem; color: var(--muted);
+  }
+
+  /* ── Countdown ────────────────────────────────────────────── */
+  .countdown-section {
+    max-width: 720px; margin: 0 auto 64px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 24px;
+    text-align: center;
+  }
+  .countdown-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+  .countdown-grid { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .countdown-unit { text-align: center; min-width: 64px; }
+  .countdown-num {
+    font-size: 2.2rem; font-weight: 900; color: var(--gold);
+    display: block; font-variant-numeric: tabular-nums;
+    background: var(--bg3); padding: 8px 16px;
+    border-radius: 10px; border: 1px solid var(--border);
+  }
+  .countdown-unit-label { font-size: 0.7rem; color: var(--muted); margin-top: 6px; text-transform: uppercase; }
+
+  /* ── How to buy ───────────────────────────────────────────── */
+  .section { max-width: 960px; margin: 0 auto 64px; padding: 0 24px; }
+  .section-title {
+    font-size: 1.6rem; font-weight: 800; margin-bottom: 8px;
+    text-align: center;
+  }
+  .section-sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+
+  .steps-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .step-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .step-card:hover { border-color: var(--gold); }
+  .step-num-badge {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), #d97706);
+    color: #000; font-weight: 800; font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+  }
+  .step-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+  .step-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+  .step-card a { color: var(--gold); text-decoration: none; }
+  .step-card a:hover { text-decoration: underline; }
+
+  /* ── Tokenomics ───────────────────────────────────────────── */
+  .tokenomics-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .token-slice {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .slice-dot {
+    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+  }
+  .slice-info h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 3px; }
+  .slice-info p { font-size: 0.75rem; color: var(--muted); }
+  .slice-pct { margin-left: auto; font-size: 1.1rem; font-weight: 800; }
+
+  /* ── Why KENO ─────────────────────────────────────────────── */
+  .why-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .why-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px;
+  }
+  .why-icon { font-size: 1.8rem; margin-bottom: 12px; }
+  .why-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+  .why-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── Presale details table ────────────────────────────────── */
+  .details-table {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; width: 100%;
+  }
+  .details-table tr:not(:last-child) { border-bottom: 1px solid var(--border); }
+  .details-table td {
+    padding: 14px 18px; font-size: 0.85rem;
+    vertical-align: middle;
+  }
+  .details-table td:first-child { color: var(--muted); width: 45%; }
+  .details-table td:last-child { font-weight: 600; color: var(--text); }
+  .mono { font-family: 'Courier New', monospace; font-size: 0.78rem; word-break: break-all; }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 700;
+  }
+  .tag.green { background: rgba(16,185,129,0.15); color: var(--green2); border: 1px solid rgba(16,185,129,0.3); }
+  .tag.gold  { background: rgba(240,180,41,0.12);  color: var(--gold);   border: 1px solid rgba(240,180,41,0.3); }
+
+  /* ── Footer CTA ───────────────────────────────────────────── */
+  .footer-cta {
+    text-align: center; padding: 60px 24px;
+    background: linear-gradient(180deg, transparent, rgba(240,180,41,0.04));
+    border-top: 1px solid var(--border);
+  }
+  .footer-cta h2 { font-size: 2rem; font-weight: 900; margin-bottom: 12px; }
+  .footer-cta p { color: var(--muted); margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+  .footer-links {
+    display: flex; justify-content: center; flex-wrap: wrap;
+    gap: 16px; margin-top: 40px;
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .footer-links a { color: var(--muted); text-decoration: none; }
+  .footer-links a:hover { color: var(--gold); }
+
+  /* ── Alert banner ─────────────────────────────────────────── */
+  .alert-banner {
+    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(16,185,129,0.1));
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 12px; padding: 16px 20px;
+    margin: 0 24px 40px;
+    max-width: 720px; margin-left: auto; margin-right: auto;
+    font-size: 0.83rem; line-height: 1.6;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .alert-banner .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Responsive ───────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    nav { padding: 12px 16px; }
+    .nav-links .nav-btn.outline { display: none; }
+    .hero { padding: 40px 16px 24px; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .countdown-num { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Starfield -->
+<div class="stars" id="stars"></div>
+
+<div class="content">
+
+<!-- ── Nav ──────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">
+    <span class="emblem">⚔️</span>
+    <span>KENO — Sovereign Economy</span>
+  </div>
+  <div class="nav-links">
+    <a href="/dxsale-setup.html" class="nav-btn outline">Setup Guide</a>
+    <a href="/ico-dashboard.html" class="nav-btn outline">My Tokens</a>
+    <a href="https://www.dx.app/dxsale/create" target="_blank" class="nav-btn primary">Buy KENO →</a>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    PRESALE LIVE ON DX SALE
+  </div>
+  <h1>The World's First<br>Sovereign Economy Token</h1>
+  <p>
+    KENO powers financial infrastructure for the 2.4 billion unbanked worldwide.
+    Utility token. Fixed supply. No mint function. Built on BSC.
+  </p>
+  <div class="hero-ctas">
+    <a href="https://www.dx.app/dxsale/create" target="_blank" class="cta-primary">
+      🚀 Join the Presale on DX Sale
+    </a>
+    <a href="/ico-dashboard.html" class="cta-secondary">
+      📊 View ICO Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- ── Stats bar ─────────────────────────────────────────────── -->
+<div class="stats-bar" style="max-width:720px;margin:0 auto 32px;">
+  <div class="stat-cell">
+    <span class="stat-val">$0.0005</span>
+    <span class="stat-lbl">Presale Price</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-val">300M</span>
+    <span class="stat-lbl">Tokens for Sale</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-val">1B</span>
+    <span class="stat-lbl">Fixed Supply</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-val">BSC</span>
+    <span class="stat-lbl">BEP-20 Network</span>
+  </div>
+</div>
+
+<!-- ── Progress bar ──────────────────────────────────────────── -->
+<div class="progress-section">
+  <div class="progress-header">
+    <span>Presale Progress</span>
+    <span><strong id="raised-pct">0%</strong> raised</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+  <div class="progress-labels">
+    <span>$0 Raised</span>
+    <span>Soft Cap: $25,000</span>
+    <span>Hard Cap: $150,000</span>
+  </div>
+</div>
+
+<!-- ── Countdown ─────────────────────────────────────────────── -->
+<div class="countdown-section" style="max-width:720px;margin:0 24px 48px;margin-left:auto;margin-right:auto;">
+  <div class="countdown-label" id="countdown-label">Presale Ends In</div>
+  <div class="countdown-grid">
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-days">--</span>
+      <div class="countdown-unit-label">Days</div>
+    </div>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-hours">--</span>
+      <div class="countdown-unit-label">Hours</div>
+    </div>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-mins">--</span>
+      <div class="countdown-unit-label">Minutes</div>
+    </div>
+    <div class="countdown-unit">
+      <span class="countdown-num" id="cd-secs">--</span>
+      <div class="countdown-unit-label">Seconds</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Alert ─────────────────────────────────────────────────── -->
+<div class="alert-banner">
+  <span class="icon">🛡️</span>
+  <span>
+    <strong>King's Shield Holders earn 3% Aegis Tax yield</strong> on every SHIELD transfer —
+    automatically. Once SHIELD launches on Solana, every token holder earns passive SOL yield.
+    KENO holders benefit from the 1.174% KENO bridge burn, continuously reducing supply.
+    <a href="/ico.html" style="color:var(--gold);">Learn more →</a>
+  </span>
+</div>
+
+<!-- ── How to Buy ─────────────────────────────────────────────── -->
+<div class="section">
+  <h2 class="section-title">How to Buy KENO in 4 Steps</h2>
+  <p class="section-sub">The presale is hosted on DX Sale — a trusted, audited presale platform on BSC.</p>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-num-badge">1</div>
+      <h3>Get BNB</h3>
+      <p>Buy BNB (Binance Coin) on any exchange — Binance, Coinbase, or Kraken. Transfer to your wallet.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num-badge">2</div>
+      <h3>Connect MetaMask</h3>
+      <p>Open <a href="https://metamask.io" target="_blank">MetaMask</a>, switch to <strong>BSC Mainnet</strong>. Go to the DX Sale presale link below.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num-badge">3</div>
+      <h3>Join on DX Sale</h3>
+      <p>Visit the <a href="https://www.dx.app/dxsale" target="_blank">KENO presale on DX Sale</a>. Enter how much BNB you want to invest and confirm.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num-badge">4</div>
+      <h3>Receive KENO</h3>
+      <p>After the presale ends, tokens are distributed automatically. Add KENO to MetaMask using the contract address below.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Presale Details ────────────────────────────────────────── -->
+<div class="section">
+  <h2 class="section-title">Presale Details</h2>
+  <p class="section-sub">All parameters are final and locked on DX Sale's smart contracts.</p>
+  <table class="details-table">
+    <tr>
+      <td>Token Name</td>
+      <td>KENO — The Sovereign Economy <span class="tag green">BEP-20</span></td>
+    </tr>
+    <tr>
+      <td>Token Contract</td>
+      <td class="mono" onclick="copyText('0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E')" style="cursor:pointer;" title="Click to copy">
+        0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E ✂
+      </td>
+    </tr>
+    <tr>
+      <td>Total Supply</td>
+      <td>1,000,000,000 KENO <span class="tag gold">Fixed — No Mint</span></td>
+    </tr>
+    <tr>
+      <td>Presale Allocation</td>
+      <td>300,000,000 KENO (30% of supply)</td>
+    </tr>
+    <tr>
+      <td>Presale Price</td>
+      <td>1 BNB = 200,000 KENO ($0.0005/KENO est.)</td>
+    </tr>
+    <tr>
+      <td>Listing Price</td>
+      <td>1 BNB = 160,000 KENO (25% listing premium)</td>
+    </tr>
+    <tr>
+      <td>Soft Cap</td>
+      <td>25 BNB (~$16,000)</td>
+    </tr>
+    <tr>
+      <td>Hard Cap</td>
+      <td>200 BNB (~$130,000)</td>
+    </tr>
+    <tr>
+      <td>Min / Max Buy</td>
+      <td>0.1 BNB / 5 BNB</td>
+    </tr>
+    <tr>
+      <td>Liquidity Lock</td>
+      <td>60% locked for 12 months via DX Sale</td>
+    </tr>
+    <tr>
+      <td>Platform</td>
+      <td><a href="https://www.dx.app/dxsale" target="_blank" style="color:var(--gold);">DX Sale (dx.app)</a></td>
+    </tr>
+    <tr>
+      <td>Network</td>
+      <td>BSC Mainnet (Chain ID: 56)</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── Tokenomics ─────────────────────────────────────────────── -->
+<div class="section">
+  <h2 class="section-title">Tokenomics</h2>
+  <p class="section-sub">1,000,000,000 KENO total supply — no mint function, ever.</p>
+  <div class="tokenomics-grid">
+    <div class="token-slice">
+      <div class="slice-dot" style="background:#f0b429;"></div>
+      <div class="slice-info">
+        <h4>Presale / ICO</h4>
+        <p>300,000,000 KENO</p>
+      </div>
+      <div class="slice-pct" style="color:#f0b429;">30%</div>
+    </div>
+    <div class="token-slice">
+      <div class="slice-dot" style="background:#6366f1;"></div>
+      <div class="slice-info">
+        <h4>Treasury / Ecosystem</h4>
+        <p>550,000,000 KENO</p>
+      </div>
+      <div class="slice-pct" style="color:#6366f1;">55%</div>
+    </div>
+    <div class="token-slice">
+      <div class="slice-dot" style="background:#10b981;"></div>
+      <div class="slice-info">
+        <h4>Liquidity Pool</h4>
+        <p>50,000,000 KENO</p>
+      </div>
+      <div class="slice-pct" style="color:#10b981;">5%</div>
+    </div>
+    <div class="token-slice">
+      <div class="slice-dot" style="background:#7c3aed;"></div>
+      <div class="slice-info">
+        <h4>Team (Locked Nov 2026)</h4>
+        <p>100,000,000 KENO</p>
+      </div>
+      <div class="slice-pct" style="color:#7c3aed;">10%</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Why KENO ───────────────────────────────────────────────── -->
+<div class="section">
+  <h2 class="section-title">Why KENO?</h2>
+  <p class="section-sub">Built on 7 Constitutional Laws — mathematical principles that compound value to every participant.</p>
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon">⚡</div>
+      <h3>KENO Arbitrage Revolution</h3>
+      <p>4 bots across BSC + Solana generate daily income. Bot profits compound into capital via the Kaprekar 60/25/15 split.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🛡️</div>
+      <h3>King's Shield Ecosystem</h3>
+      <p>Every SHIELD transfer generates 6.174% Aegis Tax. 1.174% bridges to BSC and burns KENO — reducing supply with every trade.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🏦</div>
+      <h3>UTL Protocol DeFi</h3>
+      <p>Staking yields, fee redistribution, and PancakeSwap v4 Hook integration. Passive income that grows with ecosystem volume.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">📚</div>
+      <h3>Education — Earn KENO</h3>
+      <p>21 courses. Complete a course, earn KENO. Proof-of-Residual-Value (PoRV) Mining Labs. Learn → Earn → Compound.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🌍</div>
+      <h3>Solar Bunker Hardware</h3>
+      <p>Solar-powered cryptographic hardware for the unbanked. Offline-first. Built for communities with no reliable grid.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🏛️</div>
+      <h3>Wyoming SPDI Charter</h3>
+      <p>Pursuing Wyoming SPDI charter — becoming real financial infrastructure, not just a token. Legally anchored.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer CTA ─────────────────────────────────────────────── -->
+<div class="footer-cta">
+  <h2>Ready to Join?</h2>
+  <p>The presale is live on DX Sale. Minimum buy is 0.1 BNB. Tokens distribute automatically at close.</p>
+  <a href="https://www.dx.app/dxsale" target="_blank" class="cta-primary" style="display:inline-flex;">
+    🚀 Buy KENO on DX Sale →
+  </a>
+  <div class="footer-links">
+    <a href="/ico.html">ICO Page</a>
+    <a href="/ico-dashboard.html">Investor Dashboard</a>
+    <a href="/dxsale-setup.html">Setup Guide</a>
+    <a href="/gempad-setup.html">GemPad Alternative</a>
+    <a href="https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">BSCScan</a>
+    <a href="https://pancakeswap.finance/swap?outputCurrency=0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E" target="_blank">PancakeSwap</a>
+  </div>
+</div>
+
+</div><!-- end .content -->
+
+<div id="copy-toast" style="
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:#065f46; color:#d1fae5; padding:8px 20px; border-radius:20px;
+  font-size:0.82rem; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:999;
+">Copied!</div>
+
+<script>
+// ── Starfield ──────────────────────────────────────────────────────────────
+(function() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.cssText = [
+      `left:${Math.random()*100}%`,
+      `top:${Math.random()*100}%`,
+      `animation-duration:${2 + Math.random()*4}s`,
+      `animation-delay:${Math.random()*4}s`,
+      `width:${Math.random() > 0.8 ? 3 : 2}px`,
+      `height:${Math.random() > 0.8 ? 3 : 2}px`,
+    ].join(';');
+    container.appendChild(star);
+  }
+})();
+
+// ── Progress bar (pulls live ICO stats) ───────────────────────────────────
+async function loadPresaleStats() {
+  try {
+    const res  = await fetch('/api/ico/investor-stats');
+    const data = await res.json();
+    const raised   = data.totalRaisedUSD || 0;
+    const hardCap  = 150000;
+    const softCap  = 25000;
+    const pct      = Math.min((raised / hardCap) * 100, 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('raised-pct').textContent = pct.toFixed(1) + '%';
+  } catch (e) {
+    // No presale data yet — show 0
+  }
+}
+loadPresaleStats();
+
+// ── Countdown (30 days from now — update with real DX Sale end time) ───────
+(function countdown() {
+  // Set this to your actual DX Sale end timestamp (Unix ms)
+  // Default: 30 days from page first load — UPDATE before going live
+  const stored = localStorage.getItem('keno_presale_end');
+  let endTime;
+  if (stored) {
+    endTime = parseInt(stored);
+  } else {
+    endTime = Date.now() + 30 * 24 * 60 * 60 * 1000;
+    localStorage.setItem('keno_presale_end', endTime);
+  }
+
+  function tick() {
+    const diff = endTime - Date.now();
+    if (diff <= 0) {
+      document.getElementById('countdown-label').textContent = 'Presale Ended';
+      ['cd-days','cd-hours','cd-mins','cd-secs'].forEach(id => {
+        document.getElementById(id).textContent = '00';
+      });
+      return;
+    }
+    const days  = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins  = Math.floor((diff % 3600000)  / 60000);
+    const secs  = Math.floor((diff % 60000)    / 1000);
+    const pad   = n => String(n).padStart(2, '0');
+    document.getElementById('cd-days').textContent  = pad(days);
+    document.getElementById('cd-hours').textContent = pad(hours);
+    document.getElementById('cd-mins').textContent  = pad(mins);
+    document.getElementById('cd-secs').textContent  = pad(secs);
+    setTimeout(tick, 1000);
+  }
+  tick();
+})();
+
+// ── Copy helper ───────────────────────────────────────────────────────────
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById('copy-toast');
+    t.style.opacity = '1';
+    setTimeout(() => t.style.opacity = '0', 1800);
+  });
+}
+</script>
+
+</body>
+</html>
