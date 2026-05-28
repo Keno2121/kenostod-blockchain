@@ -53,9 +53,9 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 // ── Constants — All numbers rooted in 6174 (Kaprekar's Constant) ──────────
 const TOKEN_NAME        = "King's Shield";
 const TOKEN_SYMBOL      = "SHIELD";
-const DECIMALS          = 9;
+const DECIMALS          = 6;                                       // PDF spec: 6 decimals (standard for Solana tokens)
 const TOTAL_SUPPLY      = 6_174_000_000n;                         // 6.174B SHIELD
-const TOTAL_SUPPLY_RAW  = TOTAL_SUPPLY * BigInt(10 ** DECIMALS);  // in base units
+const TOTAL_SUPPLY_RAW  = TOTAL_SUPPLY * BigInt(10 ** DECIMALS);  // = 6,174,000,000,000,000 base units
 
 // Aegis Tax: 6.174% = 617 basis points (Kaprekar's Constant), no cap
 // Breakdown: 3% Holder Yield + 2% Auto-Liquidity + 1.174% KENO Bridge/Burn
