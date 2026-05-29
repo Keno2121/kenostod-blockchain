@@ -1,0 +1,2 @@
+- [Bot wallets and key setup](bot-wallets.md) — BSC uses WALLET_PRIVATE_KEY; Solana bot .env in kings-shield/.env; Resi-Fi is a smart contract that auto-sweeps, never fund it
+- [Jupiter API endpoints](jupiter-api.md) — Use api.jup.ag/swap/v1/quote not quote-api.jup.ag/v6; SOLANA_NETWORK must be "mainnet" not "mainnet-beta"

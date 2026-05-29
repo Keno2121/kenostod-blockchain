@@ -78,8 +78,8 @@ USDC_MINT   = os.getenv("USDC_MINT", "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt
 USDT_MINT   = os.getenv("USDT_MINT", "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB")
 SHIELD_MINT = os.getenv("SHIELD_TOKEN_MINT", "")
 
-JUPITER_QUOTE_URL = "https://quote-api.jup.ag/v6/quote"
-JUPITER_PRICE_URL = "https://price.jup.ag/v4/price"
+JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote"
+JUPITER_PRICE_URL = "https://api.jup.ag/price/v2"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -132,7 +132,7 @@ def verify_founder_seal() -> bool:
 # ═══════════════════════════════════════════════════════════════════════════
 def get_rpc_url() -> str:
     network = os.getenv("SOLANA_NETWORK", "devnet")
-    if network == "mainnet-beta":
+    if network in ("mainnet-beta", "mainnet"):
         return os.getenv("SOLANA_RPC_MAINNET", "https://api.mainnet-beta.solana.com")
     return os.getenv("SOLANA_RPC_DEVNET", "https://api.devnet.solana.com")
 
