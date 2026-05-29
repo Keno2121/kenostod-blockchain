@@ -8784,7 +8784,7 @@ app.get('/api/live-arb/status', (req, res) => {
 app.get('/api/live-arb/wallet', async (req, res) => {
     try {
         if (!liveArbBot.wallet) {
-            return res.json({ address: process.env.NEW_WALLET_PRIVATE_KEY ? '(not connected)' : '(key not set)', bnb: '—', keno: '—' });
+            return res.json({ address: process.env.WALLET_PRIVATE_KEY ? '(not connected)' : '(key not set)', bnb: '—', keno: '—' });
         }
         const info = await liveArbBot.getWalletInfo();
         res.json(info);
@@ -8928,8 +8928,8 @@ app.get('/api/flash-orb/profits', (req, res) => {
 
     function getProvider() { return new ethers.JsonRpcProvider(BSC_RPC); }
     function getSigner() {
-        const pk = process.env.NEW_WALLET_PRIVATE_KEY;
-        if (!pk) throw new Error('NEW_WALLET_PRIVATE_KEY not set');
+        const pk = process.env.WALLET_PRIVATE_KEY;
+        if (!pk) throw new Error('WALLET_PRIVATE_KEY not set');
         return new ethers.Wallet(pk, getProvider());
     }
 
@@ -9216,7 +9216,7 @@ app.get('/api/flash-orb/profits', (req, res) => {
     // ── Main loop ─────────────────────────────────────────────────────────────
     async function checkAndExecute() {
         if (!autoEnabled || isRunning) return;
-        const pk = process.env.NEW_WALLET_PRIVATE_KEY;
+        const pk = process.env.WALLET_PRIVATE_KEY;
         if (!pk) return;
         if (Date.now() - lastExecAt < COOLDOWN_MS) return;
 

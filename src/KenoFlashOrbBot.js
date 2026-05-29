@@ -122,9 +122,9 @@ class KenoFlashOrbBot {
   //  Law VII — Founder's Seal: only founder's key starts the bot
   // ═══════════════════════════════════════════════════════════════════════
   async init() {
-    const key = process.env.NEW_WALLET_PRIVATE_KEY;
+    const key = process.env.WALLET_PRIVATE_KEY;
     if (!key) {
-      this.log('❌ Law VII: NEW_WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
+      this.log('❌ Law VII: WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
       return false;
     }
 
@@ -152,7 +152,7 @@ class KenoFlashOrbBot {
   async start() {
     if (this.running) return { ok: false, msg: 'Already running' };
     const ready = await this.init();
-    if (!ready)  return { ok: false, msg: 'Wallet/RPC init failed — check NEW_WALLET_PRIVATE_KEY' };
+    if (!ready)  return { ok: false, msg: 'Wallet/RPC init failed — check WALLET_PRIVATE_KEY' };
 
     this.running = true;
     this.log('🤖 KENO Flash Orb Bot STARTED — scanning BSC flash arb opportunities');

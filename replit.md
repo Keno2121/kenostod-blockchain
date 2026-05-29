@@ -51,7 +51,7 @@ This is the north star. Every feature, contract, bot, and product should be eval
 | $10,000 | $500/trade | ~$600–1,200/month | Milestone 3 |
 | $40,000 | $1,000/trade | ~$3,000/month | Financial Freedom |
 
-- Bot wallet: `0x391C30391C80Bdd100b78b740f89486569cC52f2` (needs 0.05 BNB gas + trading capital)
+- Bot wallet: `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2` (KENO Bot — MetaMask, clean EOA, key in WALLET_PRIVATE_KEY secret)
 - Kaprekar split on every bot profit: 60% reinvest → 25% your pocket → 15% KENOAutoBurn
 - Euler compounds the reinvested 60% continuously — capital grows to $1,482 by month 6 from $500 start
 
@@ -104,7 +104,7 @@ Design preferences: Professional, appealing, fun; market-ready for ROI growth an
 
 ## Gotchas
 - **KUTL Card vs. B.U.K. Security Banking:** These are distinct products. KUTL Card is confirmed with Rain.xyz; B.U.K. is proprietary and confidential. Do not confuse or discuss B.U.K. with partners unless explicitly instructed.
-- **Wallet Compromise:** The deployer wallet (0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf) was compromised. Ownership of existing contracts needs to be transferred to the new safe wallet (0x4AA73FadfFd71E6549867a37455EA957A52Cf849) once funded.
+- **Wallet Compromise:** The deployer wallet (0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf) was compromised. 0x4AA73...Cf849 (Resi-Fi) is a MetaMask smart contract account — do NOT send BNB there, funds get auto-swept. Use KENO Bot wallet 0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2 for all bot funding.
 - **UTL Revenue Model:** Currently USDC-only for fee capture until KENO staking integration.
 
 ## Pointers

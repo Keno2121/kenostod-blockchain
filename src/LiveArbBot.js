@@ -91,9 +91,9 @@ class LiveArbBot {
   }
 
   async init() {
-    const key = process.env.NEW_WALLET_PRIVATE_KEY;
+    const key = process.env.WALLET_PRIVATE_KEY;
     if (!key) {
-      this.log('❌ NEW_WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
+      this.log('❌ WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
       return false;
     }
     for (const rpc of BSC_RPC_ENDPOINTS) {
