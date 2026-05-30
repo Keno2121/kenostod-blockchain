@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENO Mint — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0a0f;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    background: #13131f;
+    border: 1px solid #2a2a3f;
+    border-radius: 16px;
+    padding: 36px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 0 40px rgba(0,200,150,0.08);
+  }
+  .logo { font-size: 2rem; margin-bottom: 8px; }
+  h1 { font-size: 1.4rem; color: #fff; margin-bottom: 4px; }
+  .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 28px; }
+
+  .info-row {
+    background: #0d0d1a;
+    border: 1px solid #1e1e30;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-size: 0.82rem;
+  }
+  .info-row label { color: #666; display: block; margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .info-row .val { color: #00c896; font-family: monospace; word-break: break-all; }
+  .info-row .val.white { color: #fff; }
+
+  .status-box {
+    background: #0d0d1a;
+    border: 1px solid #1e1e30;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 0.85rem;
+    min-height: 48px;
+  }
+  .status-box.error { border-color: #ff4444; color: #ff6666; }
+  .status-box.success { border-color: #00c896; color: #00c896; }
+  .status-box.warn { border-color: #f0a500; color: #f0c040; }
+
+  button {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  #btnConnect {
+    background: linear-gradient(135deg, #00c896, #0080ff);
+    color: #fff;
+  }
+  #btnConnect:hover { opacity: 0.9; transform: translateY(-1px); }
+  #btnMint {
+    background: linear-gradient(135deg, #f0a500, #e05000);
+    color: #fff;
+    display: none;
+  }
+  #btnMint:hover { opacity: 0.9; transform: translateY(-1px); }
+  #btnMint:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .divider { border: none; border-top: 1px solid #1e1e30; margin: 20px 0; }
+  .warning {
+    background: rgba(240,165,0,0.08);
+    border: 1px solid rgba(240,165,0,0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    color: #f0c040;
+    margin-bottom: 16px;
+  }
+  a { color: #00c896; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">⚔️</div>
+  <h1>KENO Mint — Admin Panel</h1>
+  <p class="subtitle">Mint KENO tokens to the bot wallet using the contract owner account</p>
+
+  <div class="info-row">
+    <label>KENO Contract (BSC)</label>
+    <div class="val">0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E</div>
+  </div>
+  <div class="info-row">
+    <label>Recipient — Bot Wallet</label>
+    <div class="val">0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2</div>
+  </div>
+  <div class="info-row">
+    <label>Amount to Mint</label>
+    <div class="val white">297,000,000 KENO</div>
+  </div>
+  <div class="info-row">
+    <label>Required Signer (Contract Owner)</label>
+    <div class="val">0x4AA73FadfFd71E6549867a37455EA957A52Cf849</div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="warning">
+    ⚠️ You MUST connect with the Resi-Fi account ending in <strong>...Cf849</strong> — only that account can mint KENO.
+  </div>
+
+  <div id="statusBox" class="status-box">Not connected — click Connect Wallet below</div>
+
+  <button id="btnConnect" onclick="connectWallet()">🦊 Connect MetaMask</button>
+  <button id="btnMint" onclick="mintKeno()" disabled>⚒️ Mint 297,000,000 KENO to Bot Wallet</button>
+
+  <div id="txResult" style="margin-top:16px; display:none;">
+    <div class="info-row">
+      <label>Transaction Hash</label>
+      <div class="val" id="txHash"></div>
+    </div>
+    <a id="txLink" href="#" target="_blank">View on BSCScan →</a>
+  </div>
+</div>
+
+<script>
+const KENO_CONTRACT  = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+const BOT_WALLET     = '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+const REQUIRED_OWNER = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849'.toLowerCase();
+const MINT_AMOUNT    = '297000000'; // will be parsed with decimals
+
+// Standard ERC-20 mint ABI — works for OpenZeppelin ERC20Mintable
+const ABI = [
+  'function mint(address to, uint256 amount)',
+  'function decimals() view returns (uint8)',
+  'function totalSupply() view returns (uint256)',
+  'function balanceOf(address) view returns (uint256)',
+  'function owner() view returns (address)',
+];
+
+const status  = (msg, type='') => {
+  const el = document.getElementById('statusBox');
+  el.textContent = msg;
+  el.className = 'status-box' + (type ? ' ' + type : '');
+};
+
+async function connectWallet() {
+  if (!window.ethereum) {
+    status('MetaMask not detected. Install MetaMask and try again.', 'error');
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const account = accounts[0];
+
+    // Check BSC network (chainId 56)
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (parseInt(chainId, 16) !== 56) {
+      status('Wrong network! Switch MetaMask to BNB Smart Chain (BSC mainnet, chain 56).', 'warn');
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x38' }],
+        });
+      } catch {}
+      return;
+    }
+
+    // Check if correct owner account
+    if (account.toLowerCase() !== REQUIRED_OWNER) {
+      status(`Wrong account! Connected: ${account.slice(0,6)}...${account.slice(-4)}. Switch to account ending in ...Cf849`, 'warn');
+      document.getElementById('btnMint').style.display = 'block';
+      document.getElementById('btnMint').disabled = true;
+      return;
+    }
+
+    status(`✅ Connected: ${account.slice(0,6)}...${account.slice(-4)} — Owner confirmed! Ready to mint.`, 'success');
+    document.getElementById('btnConnect').textContent = '✅ Connected';
+    document.getElementById('btnMint').style.display = 'block';
+    document.getElementById('btnMint').disabled = false;
+
+  } catch (err) {
+    status('Connection error: ' + err.message, 'error');
+  }
+}
+
+async function mintKeno() {
+  const btn = document.getElementById('btnMint');
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending transaction...';
+  status('Preparing mint transaction...', '');
+
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer   = await provider.getSigner();
+    const account  = await signer.getAddress();
+
+    if (account.toLowerCase() !== REQUIRED_OWNER) {
+      status('Wrong account connected. Switch to the Resi-Fi account (...Cf849) in MetaMask.', 'error');
+      btn.disabled = false;
+      btn.textContent = '⚒️ Mint 297,000,000 KENO to Bot Wallet';
+      return;
+    }
+
+    const contract = new ethers.Contract(KENO_CONTRACT, ABI, signer);
+
+    // Get decimals
+    let decimals = 18;
+    try { decimals = await contract.decimals(); } catch {}
+
+    const amount = ethers.parseUnits(MINT_AMOUNT, decimals);
+    status('Waiting for MetaMask confirmation...', '');
+
+    const tx = await contract.mint(BOT_WALLET, amount);
+    status(`Transaction sent! Hash: ${tx.hash.slice(0,10)}... Waiting for confirmation...`, '');
+
+    document.getElementById('txResult').style.display = 'block';
+    document.getElementById('txHash').textContent = tx.hash;
+    document.getElementById('txLink').href = `https://bscscan.com/tx/${tx.hash}`;
+
+    await tx.wait();
+    status(`✅ MINTED! 297,000,000 KENO sent to bot wallet. Transaction confirmed.`, 'success');
+    btn.textContent = '✅ Mint Complete';
+
+  } catch (err) {
+    let msg = err.message || 'Unknown error';
+    if (msg.includes('user rejected')) msg = 'Transaction rejected in MetaMask.';
+    if (msg.includes('execution reverted')) msg = 'Contract reverted — this account may not have mint permission, or the contract uses a different function name.';
+    status('Error: ' + msg, 'error');
+    btn.disabled = false;
+    btn.textContent = '⚒️ Mint 297,000,000 KENO to Bot Wallet';
+  }
+}
+
+// Auto-detect if already connected
+window.addEventListener('load', async () => {
+  if (window.ethereum) {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    if (accounts.length > 0) connectWallet();
+  }
+});
+</script>
+</body>
+</html>
