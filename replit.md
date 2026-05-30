@@ -108,6 +108,12 @@ Design preferences: Professional, appealing, fun; market-ready for ROI growth an
 - **UTL Revenue Model:** Currently USDC-only for fee capture until KENO staking integration.
 
 ## Pointers
+- **KENO Token (v2 — ACTIVE):**
+    - BSC Mainnet: `0x48bb049afe50b050b458624dc6233acd51024ab4` ([BSCScan](https://bscscan.com/token/0x48bb049afe50b050b458624dc6233acd51024ab4))
+    - Owner: `0x4AA73FadfFd71E6549867a37455EA957A52Cf849` (Resi-Fi)
+    - 1,000,000,000 KENO → bot wallet `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2`
+    - Source: `keno-v2/KenostodToken.sol`, deployment: `keno-v2/deployments/keno-v2-bsc.json`
+- **KENO Token (v1 — ABANDONED):** `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` — all wallets pointed to compromised deployer, no mint fn, locked until Nov 2026
 - **BSC Mainnet Contracts (v1.1 — ACTIVE):**
     - FeeCollector: `0xb9489B33Bd9bB835139369b1dD282fB44B2273d8`
     - Staking: `0x77C3946A9FD5F509584F94e81C43efb25120c837`
