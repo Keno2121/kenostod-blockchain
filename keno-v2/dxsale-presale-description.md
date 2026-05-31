@@ -1,5 +1,5 @@
-# KENO DxSale Presale — Project Description
-## Copy this into the DxSale description field (25,000 char max)
+# KENO Gempad Presale — Project Description
+## Copy this into the Gempad description field
 
 ---
 
@@ -23,7 +23,7 @@ Kenostod is a sovereign financial infrastructure built for the 2.4 billion unban
 
 **Tokenomics:**
 - Total Supply: 1,000,000,000 KENO
-- Presale: 200,000,000 KENO (20%)
+- Presale: 300,000,000 KENO (30%)
 - Liquidity: 60% of raised BNB locked on PancakeSwap
 - No team tokens dumping on you — liquidity is locked
 - KENOAutoBurn: A portion of every protocol revenue buys and burns KENO permanently
@@ -55,34 +55,48 @@ The Sovereign Economy — built for those left behind by traditional finance.
 ---
 
 # PRESALE PARAMETERS CHEATSHEET
-## (Have this open when filling DxSale form)
+## (Have this open when filling the Gempad form)
 
 | Field | Value |
 |-------|-------|
+| **Platform** | **Gempad (gempad.app)** |
+| **Wallet to connect** | **0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2 (Keno Bot — holds the KENO)** |
 | Token Contract | 0x48bb049afe50b050b458624dc6233acd51024ab4 |
-| Presale Rate | 10000000 (10M KENO per 1 BNB) |
-| Listing Rate | 8000000 (8M KENO per 1 BNB) |
-| Soft Cap | 2 BNB |
-| Hard Cap | 20 BNB |
+| Presale Rate | 6000000 (6M KENO per 1 BNB) |
+| Listing Rate | 4800000 (4.8M KENO per 1 BNB) |
+| Soft Cap | 8 BNB (~$5,700) |
+| Hard Cap | 50 BNB (~$35,000) |
 | Min Contribution | 0.05 BNB |
 | Max Contribution | 2 BNB |
 | Liquidity % | 60 |
 | DEX | PancakeSwap |
-| Start | [Set when you're ready to promote — give yourself 24-48hrs] |
+| Start | [Set when ready to promote — give yourself 24–48hrs] |
 | End | [Start + 14 days] |
 | Liquidity Unlock | [End + 30 days minimum] |
-| Logo | public/keno-logo.png (upload from device) |
-| Banner | public/keno-banner.png (upload from device) |
+| Logo | keno-logo.png (upload from device) |
 | Website | kings-shield.com |
-| Creation Fee | 0.2829 BNB |
+| Telegram | [your Telegram group link] |
 
 ## Token Math Check:
-- Hard cap 20 BNB × 10M rate = 200,000,000 KENO sold in presale ✅
-- 60% of 20 BNB = 12 BNB liquidity + 8 BNB to you ✅
-- Listing: 12 BNB paired with (12 BNB × 8M rate) = 96M KENO on PancakeSwap
-- Starting market cap: ~$720 at $60/BNB... actually ~$14,400 at current BNB price
+- Hard cap 50 BNB × 6M rate = 300,000,000 KENO sold in presale ✅
+- 30% of 1B supply allocated to presale ✅
+- 60% of 50 BNB = 30 BNB liquidity + 20 BNB to you (~$14,200) ✅
+- Listing: 30 BNB paired with (30 BNB × 4.8M rate) = 144M KENO on PancakeSwap
+- Presale buyers get 6M KENO/BNB vs listing 4.8M KENO/BNB = 25% discount ✅
+- Starting market cap at listing: ~$25,000 (reasonable for BSC launch) ✅
+
+## Approve tokens BEFORE connecting to Gempad:
+Gempad will ask you to approve 300,000,000 KENO from the bot wallet.
+Make sure MetaMask is on **BSC Mainnet** and connected as `0xC20b...8cf2`.
 
 ## After Presale Creates — DO THIS:
-1. DxSale gives you the presale contract address
-2. From Resi-Fi (owner wallet), call setPresaleContract(presale_address) on the KENO contract
-3. That's it — DxSale handles the rest automatically
+1. Gempad gives you the presale contract address
+2. From Resi-Fi wallet (KENO owner), call `setPresaleContract(presale_address)` on the KENO contract
+3. That's it — Gempad handles the rest automatically
+
+## Remaining supply after presale (700M KENO):
+- 200M — Staking rewards (UTL Protocol)
+- 150M — Ecosystem / partnerships
+- 150M — KENOAutoBurn reserve
+- 100M — Team (vested 12 months)
+- 100M — Treasury / DAO
