@@ -842,42 +842,88 @@
         }
 
         /* Responsive */
+        /* ── Hamburger button ── */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            flex-direction: column;
+            gap: 5px;
+            margin-right: 0.75rem;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--text-primary);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        /* ── Sidebar overlay ── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 199;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* ── Bottom mobile nav ── */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10,15,28,0.97);
+            border-top: 1px solid var(--border);
+            padding: 0.4rem 0 env(safe-area-inset-bottom, 0.4rem);
+            z-index: 150;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .mobile-bottom-nav .mnav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            transition: color 0.2s;
+            min-width: 52px;
+        }
+        .mobile-bottom-nav .mnav .micon { font-size: 1.3rem; line-height: 1; }
+        .mobile-bottom-nav .mnav.active,
+        .mobile-bottom-nav .mnav:hover { color: var(--accent); }
+
         @media (max-width: 1024px) {
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s;
+                z-index: 200;
             }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-group.full-width {
-                grid-column: span 1;
-            }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .menu-toggle { display: flex; }
+            .mobile-bottom-nav { display: flex; }
+            /* extra bottom padding so content doesn't hide behind bottom nav */
+            .main-content { padding-bottom: 5rem; }
         }
 
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .mobile-wallets {
-                flex-direction: column;
-            }
-
-            .wallet-btn {
-                width: 100%;
-                justify-content: center;
-            }
+            .stats-grid { grid-template-columns: 1fr; }
+            .mobile-wallets { flex-direction: column; }
+            .wallet-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -892,6 +938,9 @@
             <button class="login-btn" onclick="authenticate()">Access Backoffice</button>
         </div>
     </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
     <!-- Main Layout -->
     <div class="main-layout" id="mainLayout">
@@ -962,9 +1011,14 @@
         <main class="main-content">
             <!-- Top Bar -->
             <div class="top-bar">
-                <div class="page-title">
-                    <h2 id="pageTitle">Overview</h2>
-                    <p id="pageSubtitle">Welcome back, Founder</p>
+                <div style="display:flex;align-items:center;">
+                    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Open menu">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <div class="page-title">
+                        <h2 id="pageTitle">Overview</h2>
+                        <p id="pageSubtitle">Welcome back, Founder</p>
+                    </div>
                 </div>
                 <div class="wallet-pill" id="walletPill" style="display: none;">
                     <span class="address" id="walletAddress">Not Connected</span>
@@ -1639,6 +1693,11 @@
             // Show selected section
             document.getElementById(sectionName + '-section').classList.add('active');
 
+            // Sync bottom mobile nav
+            document.querySelectorAll('.mnav').forEach(n => n.classList.remove('active'));
+            const activeNav = document.querySelector(`.mnav[data-section="${sectionName}"]`);
+            if (activeNav) activeNav.classList.add('active');
+
             // Update page title
             const titles = {
                 'overview': { title: 'Overview', subtitle: 'Welcome back, Founder' },
@@ -2048,11 +2107,50 @@
             }
         });
 
+        // ==================== MOBILE SIDEBAR TOGGLE ====================
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        }
+
+        function closeSidebar() {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('visible');
+        }
+
+        // Close sidebar when a nav item is tapped on mobile
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) closeSidebar();
+            });
+        });
+
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            // Set demo balances initially
             updateDemoBalances();
         });
+
     </script>
+
+    <!-- Bottom mobile navigation -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav">
+        <div class="mnav active" data-section="overview" onclick="showSection('overview',null)">
+            <span class="micon">🏠</span>Home
+        </div>
+        <div class="mnav" data-section="revenue" onclick="showSection('revenue',null)">
+            <span class="micon">💰</span>Revenue
+        </div>
+        <div class="mnav" data-section="bots" onclick="showSection('bots',null)">
+            <span class="micon">🤖</span>Bots
+        </div>
+        <div class="mnav" data-section="students" onclick="showSection('students',null)">
+            <span class="micon">🎓</span>Students
+        </div>
+        <div class="mnav" onclick="toggleSidebar()">
+            <span class="micon">☰</span>More
+        </div>
+    </nav>
 </body>
 </html>
