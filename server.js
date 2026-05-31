@@ -133,7 +133,9 @@ const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
-const KenostodTelegramBot = require('./src/TelegramBot');
+const KenostodTelegramBot        = require('./src/TelegramBot');
+const AegisArbBotManager         = require('./src/AegisArbBotManager');
+const ConstitutionFlashBotManager = require('./src/ConstitutionFlashBotManager');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const LiveArbBot      = require('./src/LiveArbBot');
@@ -1258,8 +1260,11 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
-const liveArbBot      = new LiveArbBot();
-const flashOrbBot     = new KenoFlashOrbBot();
+const liveArbBot        = new LiveArbBot();
+const flashOrbBot       = new KenoFlashOrbBot();
+const aegisArbBot       = new AegisArbBotManager();
+const constitutionFlash = new ConstitutionFlashBotManager();
+let   telegramBotInstance = null;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
 // Function to log ICO purchases and save to file
@@ -8922,6 +8927,87 @@ app.get('/api/flash-orb/profits', (req, res) => {
 
 // ==================== END KENO FLASH ORB BOT API ENDPOINTS ====================
 
+// ==================== KINGS SHIELD BOTS API ENDPOINTS ====================
+app.use('/api/aegis-arb',         requireFounder);
+app.use('/api/constitution-flash', requireFounder);
+
+app.post('/api/aegis-arb/start',  (req, res) => res.json(aegisArbBot.start()));
+app.post('/api/aegis-arb/stop',   (req, res) => res.json(aegisArbBot.stop()));
+app.get('/api/aegis-arb/status',  (req, res) => res.json(aegisArbBot.getStatus()));
+
+app.post('/api/constitution-flash/start', (req, res) => res.json(constitutionFlash.start()));
+app.post('/api/constitution-flash/stop',  (req, res) => res.json(constitutionFlash.stop()));
+app.get('/api/constitution-flash/status', (req, res) => res.json(constitutionFlash.getStatus()));
+
+// ── Master bot status (all 5 bots in one call) ──
+app.get('/api/bots/status', requireFounder, (req, res) => {
+    const tgRunning = !!(telegramBotInstance);
+    res.json({
+        bots: [
+            {
+                id:          'kenostod-assistant',
+                name:        'Kenostod Assistant',
+                emoji:       '🤖',
+                chain:       'Telegram',
+                description: 'AI customer support — answers questions about KENO, UTL, Academy',
+                running:     tgRunning,
+                autoStart:   true,
+                handle:      '@KenostodBot',
+                controllable: false,
+            },
+            {
+                id:          'live-arb',
+                name:        'Live Arb Bot',
+                emoji:       '⚡',
+                chain:       'BSC',
+                description: 'KENO arbitrage on PancakeSwap — Kaprekar 60/25/15 split',
+                controllable: true,
+                startUrl:    '/api/live-arb/start',
+                stopUrl:     '/api/live-arb/stop',
+                statusUrl:   '/api/live-arb/status',
+                ...liveArbBot.getStatus(),
+            },
+            {
+                id:          'flash-orb',
+                name:        'Keno Flash Orb Bot',
+                emoji:       '🔮',
+                chain:       'BSC',
+                description: 'Flash loan arbitrage on BSC — 5 Kaprekar amounts',
+                controllable: true,
+                startUrl:    '/api/flash-orb/start',
+                stopUrl:     '/api/flash-orb/stop',
+                statusUrl:   '/api/flash-orb/status',
+                ...flashOrbBot.getStatus(),
+            },
+            {
+                id:          'aegis-arb',
+                name:        'Aegis Arb Bot',
+                emoji:       '⚔',
+                chain:       'Solana',
+                description: 'DEX arb — SOL/USDC & SHIELD/SOL via Jupiter (Meteora, Orca, Raydium) every 61.74s',
+                controllable: true,
+                startUrl:    '/api/aegis-arb/start',
+                stopUrl:     '/api/aegis-arb/stop',
+                statusUrl:   '/api/aegis-arb/status',
+                ...aegisArbBot.getStatus(),
+            },
+            {
+                id:          'constitution-flash',
+                name:        'Constitution Flash Bot',
+                emoji:       '📜',
+                chain:       'Solana',
+                description: 'Flash loan arb — 0.6174/1.234/6.174 SOL (Kaprekar) triangular routes',
+                controllable: true,
+                startUrl:    '/api/constitution-flash/start',
+                stopUrl:     '/api/constitution-flash/stop',
+                statusUrl:   '/api/constitution-flash/status',
+                ...constitutionFlash.getStatus(),
+            },
+        ]
+    });
+});
+// ==================== END KINGS SHIELD BOTS API ENDPOINTS ==================
+
 // ==================== REAL ON-CHAIN FLASH ARB LOAN (FAL) API ENDPOINTS ====================
 // FlashArbLoan contract: 0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e on BSC
 (function() {
@@ -11536,12 +11622,16 @@ app.listen(PORT, '0.0.0.0', () => {
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
 
-    // Start Telegram bot
+    // Start Telegram bot (Kenostod Assistant — auto-start)
     try {
-        new KenostodTelegramBot();
+        telegramBotInstance = new KenostodTelegramBot();
     } catch (err) {
         console.error('❌ Telegram bot init error:', err.message);
     }
+
+    // Kings Shield Bots — MANUAL START from Bots dashboard
+    console.log('⚔ Aegis Arb Bot ready — start from Bots dashboard (/api/aegis-arb/start)');
+    console.log('⚔ Constitution Flash Bot ready — start from Bots dashboard (/api/constitution-flash/start)');
 
     // Live Arb Bot — MANUAL START ONLY via dashboard (/api/live-arb/start)
     // Auto-start is DISABLED. You must explicitly enable it from the founder dashboard.
