@@ -575,6 +575,7 @@ app.use((req, res, next) => {
 const kingsShieldDir = path.join(__dirname, 'kings-shield', 'website');
 app.use((req, res, next) => {
     const host = (req.headers['x-forwarded-host'] || req.hostname || req.headers.host || '').toLowerCase();
+    console.log('[vhost] host:', host, '| x-forwarded-host:', req.headers['x-forwarded-host'], '| hostname:', req.hostname);
     if (host.includes('kings-shield')) {
         return express.static(kingsShieldDir, {
             setHeaders: (res, filePath) => {
