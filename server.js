@@ -574,7 +574,7 @@ app.use((req, res, next) => {
 // ── Virtual host: kings-shield.com → serve Kings Shield website ──────────────
 const kingsShieldDir = path.join(__dirname, 'kings-shield', 'website');
 app.use((req, res, next) => {
-    const host = (req.hostname || req.headers.host || '').toLowerCase();
+    const host = (req.headers['x-forwarded-host'] || req.hostname || req.headers.host || '').toLowerCase();
     if (host.includes('kings-shield')) {
         return express.static(kingsShieldDir, {
             setHeaders: (res, filePath) => {
