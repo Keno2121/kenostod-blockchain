@@ -1643,8 +1643,9 @@
             btn.disabled = true;
             
             try {
-                const res = await fetch('/api/auth/founder', {
+                const res = await fetch('/api/founder/login', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
@@ -1976,13 +1977,22 @@
 
         async function loadBots() {
             try {
-                const res  = await fetch('/api/bots/status');
-                if (!res.ok) return;
+                const res  = await fetch('/api/bots/status', { credentials: 'include' });
+                if (res.status === 401) {
+                    document.getElementById('bots-grid').innerHTML =
+                        '<div style="text-align:center;padding:2rem;color:var(--text-muted);">🔒 Session expired — please <a href="/founder-backoffice.html" style="color:var(--accent);">log in again</a>.</div>';
+                    return;
+                }
+                if (!res.ok) {
+                    document.getElementById('bots-grid').innerHTML =
+                        `<div style="text-align:center;padding:2rem;color:var(--danger);">Server error (${res.status}) — tap Refresh to retry.</div>`;
+                    return;
+                }
                 const data = await res.json();
                 renderBots(data.bots || []);
             } catch(e) {
                 document.getElementById('bots-grid').innerHTML =
-                    '<div style="color:var(--danger);padding:2rem;text-align:center;">Failed to load bot status. Make sure you are logged in.</div>';
+                    '<div style="color:var(--danger);padding:2rem;text-align:center;">Connection error — tap ↻ Refresh to retry.</div>';
             }
         }
 
@@ -2061,7 +2071,8 @@
 
         async function botAction(url, botId) {
             try {
-                const res  = await fetch(url, { method: 'POST' });
+                const res  = await fetch(url, { method: 'POST', credentials: 'include' });
+                if (res.status === 401) { showToast('Session expired — please log in again'); return; }
                 const data = await res.json();
                 showToast(data.msg || (data.ok ? 'Done!' : 'Error'));
                 setTimeout(loadBots, 800);
@@ -2072,7 +2083,7 @@
 
         async function viewBotLogs(statusUrl, botName) {
             try {
-                const res  = await fetch(statusUrl);
+                const res  = await fetch(statusUrl, { credentials: 'include' });
                 const data = await res.json();
                 const logs = data.recentLogs || [];
                 const panel = document.getElementById('bot-logs-panel');
