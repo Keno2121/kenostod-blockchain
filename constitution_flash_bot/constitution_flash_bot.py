@@ -326,7 +326,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Constitution Flash Bot — Kings Shield")
     parser.add_argument("--rpc",        default=os.environ.get("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"))
     parser.add_argument("--wallet-key", default=os.environ.get("SOLANA_WALLET_PRIVATE_KEY", ""))
-    parser.add_argument("--tg-token",   default=os.environ.get("TELEGRAM_BOT_TOKEN", ""))
+    parser.add_argument("--tg-token",   default=os.environ.get("KINGS_SHIELD_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN", ""))
     parser.add_argument("--tg-chat-id", default=os.environ.get("SHIELD_ALERT_CHAT_ID", os.environ.get("FAL_ALERT_CHAT_ID", "")))
     args = parser.parse_args()
 
