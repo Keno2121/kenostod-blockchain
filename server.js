@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 
 // Detect Replit-internal database URLs that won't work outside Replit
 if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !process.env.REPLIT_DOMAINS) {
@@ -566,6 +567,24 @@ app.use((req, res, next) => {
     const host = req.hostname || '';
     if (host.startsWith('utl.') && (req.path === '/' || req.path === '')) {
         return res.sendFile(__dirname + '/public/utl-protocol.html');
+    }
+    next();
+});
+
+// ── Virtual host: kings-shield.com → serve Kings Shield website ──────────────
+const kingsShieldDir = path.join(__dirname, 'kings-shield', 'website');
+app.use((req, res, next) => {
+    const host = (req.hostname || req.headers.host || '').toLowerCase();
+    if (host.includes('kings-shield')) {
+        return express.static(kingsShieldDir, {
+            setHeaders: (res, filePath) => {
+                if (filePath.endsWith('.html')) {
+                    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                }
+            }
+        })(req, res, () => {
+            res.sendFile(path.join(kingsShieldDir, 'index.html'));
+        });
     }
     next();
 });
