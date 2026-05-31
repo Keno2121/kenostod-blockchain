@@ -69,7 +69,7 @@ The Sovereign Economy — built for those left behind by traditional finance.
 | Min Contribution | 0.05 BNB |
 | Max Contribution | 2 BNB |
 | Liquidity % | 60 |
-| DEX | PancakeSwap |
+| DEX | PancakeSwap **V2** (V4 upgrade planned — see note below) |
 | Start | [Set when ready to promote — give yourself 24–48hrs] |
 | End | [Start + 14 days] |
 | Liquidity Unlock | [End + 30 days minimum] |
@@ -93,6 +93,14 @@ Make sure MetaMask is on **BSC Mainnet** and connected as `0xC20b...8cf2`.
 1. Gempad gives you the presale contract address
 2. From Resi-Fi wallet (KENO owner), call `setPresaleContract(presale_address)` on the KENO contract
 3. That's it — Gempad handles the rest automatically
+
+## 🔜 V4 Upgrade — Do This After Launch Is Stable
+When KENO has consistent trading volume on V2:
+1. Create a PancakeSwap V4 pool for KENO/BNB
+2. Attach the UTL Hook (`0xAF810a663995DCe98c5D7EdF5C970446A33bAA74`) to that pool
+3. Every V4 swap will then generate passive fee income redistributed to KENO stakers
+4. V2 and V4 run side by side — don't remove V2 liquidity, just add V4 on top
+Trigger: when monthly V2 volume consistently exceeds $50,000 (worth the gas and complexity).
 
 ## Remaining supply after presale (700M KENO):
 - 200M — Staking rewards (UTL Protocol)
