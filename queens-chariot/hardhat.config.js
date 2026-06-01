@@ -1,10 +1,17 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config({ path: "../.env" });
 
-// QCT deploys from KENO bot wallet — clean EOA on Base, no contract code
-const QCT_DEPLOYER_KEY = process.env.KENO_WALLET_PRIVATE_KEY ||
-  process.env.NEW_WALLET_PRIVATE_KEY ||
-  "0x0000000000000000000000000000000000000000000000000000000000000001";
+// QCT deploys from KENO bot wallet (0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2)
+// Priority: QCT_DEPLOYER_KEY (new) → KENO_WALLET_PRIVATE_KEY → NEW_WALLET_PRIVATE_KEY
+function normalizeKey(raw) {
+  if (!raw || raw.length < 32) return "0x" + "1".repeat(64); // dummy — deploy will abort
+  return raw.startsWith("0x") ? raw : "0x" + raw;
+}
+const QCT_DEPLOYER_KEY = normalizeKey(
+  process.env.QCT_DEPLOYER_KEY ||
+  process.env.KENO_WALLET_PRIVATE_KEY ||
+  process.env.NEW_WALLET_PRIVATE_KEY
+);
 
 module.exports = {
   solidity: {
