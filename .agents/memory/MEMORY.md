@@ -3,3 +3,4 @@
 - [KENO v2 deployment](keno-v2-deployment.md) — v2 live on BSC; old v1 wallets all pointed to compromised deployer; v2 fixes all that
 - [BSC deployment gotchas](bsc-deploy-gotchas.md) — BSC gas is ~0.05 gwei; DEPLOYER_PRIVATE_KEY = 0x074c wallet with BNB; ankr requires auth; ethers waitForDeployment hangs — use manual poll
 - [PancakeSwap V2 vs V4 plan](pancakeswap-v2-v4.md) — Presale lists on V2; upgrade to V4 + UTL Hook after volume hits $50k/month
+- [QCT Queens Chariot](qct-deployment.md) — Third Sovereign Trinity token; Base chain; 6 fee protocols + 7 Laws; deploy via queens-chariot/scripts/deploy.js
