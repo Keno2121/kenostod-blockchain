@@ -13,6 +13,7 @@
 const { spawn } = require('child_process');
 const https     = require('https');
 const path      = require('path');
+const fs        = require('fs');
 
 class ConstitutionFlashBotManager {
     constructor() {
@@ -27,6 +28,25 @@ class ConstitutionFlashBotManager {
         this.scanCount     = 0;
         this.currentBorrow = 0.6174;
         this.scriptPath    = path.join(__dirname, '..', 'constitution_flash_bot', 'constitution_flash_bot.py');
+    }
+
+    // ─── Load kings-shield/.env for bot credentials ──────────────────────────
+    _loadShieldEnv() {
+        try {
+            const envPath = path.join(__dirname, '..', 'kings-shield', '.env');
+            const lines   = fs.readFileSync(envPath, 'utf8').split('\n');
+            const env     = {};
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('#')) continue;
+                const idx = trimmed.indexOf('=');
+                if (idx < 0) continue;
+                env[trimmed.slice(0, idx).trim()] = trimmed.slice(idx + 1).trim();
+            }
+            return env;
+        } catch (_) {
+            return {};
+        }
     }
 
     // ─── Telegram ────────────────────────────────────────────────────────────
@@ -54,14 +74,15 @@ class ConstitutionFlashBotManager {
     start() {
         if (this.running) return { ok: false, msg: 'Constitution Flash Bot already running' };
 
+        const shield = this._loadShieldEnv();
         const env = {
             ...process.env,
-            SOLANA_RPC_URL:             process.env.SOLANA_RPC_URL            || 'https://api.mainnet-beta.solana.com',
-            SOLANA_WALLET_PRIVATE_KEY:  process.env.SOLANA_WALLET_PRIVATE_KEY || '',
-            TELEGRAM_BOT_TOKEN:         this._tgToken(),
-            SHIELD_ALERT_CHAT_ID:       this._tgChatId(),
-            KINGS_SHIELD_BOT_TOKEN:     process.env.KINGS_SHIELD_BOT_TOKEN    || '',
-            SHIELD_TOKEN_MINT:          process.env.SHIELD_TOKEN_MINT         || '',
+            SOLANA_RPC_URL:            process.env.SOLANA_RPC_URL            || shield.SOLANA_RPC_MAINNET || 'https://api.mainnet-beta.solana.com',
+            SOLANA_WALLET_PRIVATE_KEY: process.env.SOLANA_WALLET_PRIVATE_KEY || shield.SHIELD_BOT_PRIVATE_KEY || '',
+            SHIELD_TOKEN_MINT:         process.env.SHIELD_TOKEN_MINT         || shield.SHIELD_TOKEN_MINT  || '',
+            TELEGRAM_BOT_TOKEN:        this._tgToken(),
+            SHIELD_ALERT_CHAT_ID:      this._tgChatId(),
+            KINGS_SHIELD_BOT_TOKEN:    process.env.KINGS_SHIELD_BOT_TOKEN    || '',
         };
 
         try {
@@ -191,7 +212,7 @@ class ConstitutionFlashBotManager {
             lastTrade:        this.lastTrade,
             currentBorrow:    this.currentBorrow,
             telegramLinked:   !!(this._tgToken() && this._tgChatId()),
-            solanaConfigured: !!(process.env.SOLANA_RPC_URL && process.env.SOLANA_WALLET_PRIVATE_KEY),
+            solanaConfigured: !!(process.env.SOLANA_WALLET_PRIVATE_KEY || this._loadShieldEnv().SHIELD_BOT_PRIVATE_KEY),
             recentLogs:       this.logs.slice(0, 30),
         };
     }
