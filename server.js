@@ -138,6 +138,7 @@ const AegisArbBotManager              = require('./src/AegisArbBotManager');
 const ConstitutionFlashBotManager     = require('./src/ConstitutionFlashBotManager');
 const HyperliquidFundingBotManager    = require('./src/HyperliquidFundingBotManager');
 const DriftFundingBotManager          = require('./src/DriftFundingBotManager');
+const QueensChariotBotManager         = require('./src/QueensChariotBotManager');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const LiveArbBot      = require('./src/LiveArbBot');
@@ -1268,6 +1269,17 @@ const aegisArbBot       = new AegisArbBotManager();
 const constitutionFlash = new ConstitutionFlashBotManager();
 const hyperliquidFunding = new HyperliquidFundingBotManager();
 const driftFunding       = new DriftFundingBotManager();
+
+// Queens Chariot Bot — initialized AFTER all worker bots so it can reference them
+// The Queen receives the entire hive as her court
+const queensChariot = new QueensChariotBotManager([
+    { id: 'flash-orb',          name: 'KENO Flash Orb',       emoji: '🤖', chain: 'BSC',          manager: flashOrbBot },
+    { id: 'live-arb',           name: 'Live Arb',              emoji: '🤖', chain: 'BSC',          manager: liveArbBot },
+    { id: 'aegis-arb',          name: 'Aegis Arb',             emoji: '⚔',  chain: 'Solana',       manager: aegisArbBot },
+    { id: 'constitution-flash', name: 'Constitution Flash',    emoji: '📜', chain: 'Solana',       manager: constitutionFlash },
+    { id: 'hl-funding',         name: 'Hyperliquid Funding',   emoji: '💎', chain: 'Hyperliquid',  manager: hyperliquidFunding },
+    { id: 'drift-funding',      name: 'Drift Funding',         emoji: '💜', chain: 'Solana',       manager: driftFunding },
+]);
 let   telegramBotInstance = null;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
@@ -8953,6 +8965,15 @@ app.post('/api/drift-funding/start',  (req, res) => res.json(driftFunding.start(
 app.post('/api/drift-funding/stop',   (req, res) => res.json(driftFunding.stop()));
 app.get('/api/drift-funding/status',  (req, res) => res.json(driftFunding.getStatus()));
 
+// Queens Chariot Bot — Hive Orchestrator (all routes require founder auth)
+app.use('/api/qct-hive', requireFounder);
+app.post('/api/qct-hive/start',        (req, res) => res.json(queensChariot.start()));
+app.post('/api/qct-hive/stop',         (req, res) => res.json(queensChariot.stop()));
+app.get('/api/qct-hive/status',        (req, res) => res.json(queensChariot.getStatus()));
+app.get('/api/qct-hive/report',        (req, res) => res.json(queensChariot.getFullReport()));
+app.post('/api/qct-hive/rebalance',    (req, res) => res.json(queensChariot.rebalance()));
+app.post('/api/qct-hive/send-report',  (req, res) => res.json(queensChariot.sendReport()));
+
 // ── Master bot status (all 5 bots in one call) ──
 app.get('/api/bots/status', requireFounder, (req, res) => {
     const tgRunning = !!(telegramBotInstance);
@@ -9040,6 +9061,19 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 stopUrl:     '/api/drift-funding/stop',
                 statusUrl:   '/api/drift-funding/status',
                 ...driftFunding.getStatus(),
+            },
+            {
+                id:          'qct-hive',
+                name:        'Queens Chariot — Hive Orchestrator',
+                emoji:       '👑',
+                chain:       'All Chains',
+                description: 'The Queen Bee. Watches all 6 worker bots, applies 7 Constitutional Laws to collective earnings, routes profits via Kaprekar split, Nash-rebalances capital, projects Euler compound growth, and signals QCT buybacks.',
+                controllable: true,
+                startUrl:    '/api/qct-hive/start',
+                stopUrl:     '/api/qct-hive/stop',
+                statusUrl:   '/api/qct-hive/status',
+                isOrchestrator: true,
+                ...queensChariot.getStatus(),
             },
         ]
     });
@@ -11672,6 +11706,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('⚔ Constitution Flash Bot ready — start from Bots dashboard (/api/constitution-flash/start)');
     console.log('💎 Hyperliquid Funding Bot ready — start from Bots dashboard (/api/hl-funding/start)');
     console.log('💜 Drift Funding Bot ready — start from Bots dashboard (/api/drift-funding/start) [no geo-restriction]');
+    console.log('👑 Queens Chariot Hive Bot ready — orchestrates all 6 worker bots (/api/qct-hive/start)');
 
     // Live Arb Bot — MANUAL START ONLY via dashboard (/api/live-arb/start)
     // Auto-start is DISABLED. You must explicitly enable it from the founder dashboard.
