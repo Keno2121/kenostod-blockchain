@@ -137,6 +137,7 @@ const KenostodTelegramBot        = require('./src/TelegramBot');
 const AegisArbBotManager              = require('./src/AegisArbBotManager');
 const ConstitutionFlashBotManager     = require('./src/ConstitutionFlashBotManager');
 const HyperliquidFundingBotManager    = require('./src/HyperliquidFundingBotManager');
+const DriftFundingBotManager          = require('./src/DriftFundingBotManager');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const LiveArbBot      = require('./src/LiveArbBot');
@@ -1266,6 +1267,7 @@ const flashOrbBot       = new KenoFlashOrbBot();
 const aegisArbBot       = new AegisArbBotManager();
 const constitutionFlash = new ConstitutionFlashBotManager();
 const hyperliquidFunding = new HyperliquidFundingBotManager();
+const driftFunding       = new DriftFundingBotManager();
 let   telegramBotInstance = null;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
@@ -8933,6 +8935,7 @@ app.get('/api/flash-orb/profits', (req, res) => {
 app.use('/api/aegis-arb',         requireFounder);
 app.use('/api/constitution-flash', requireFounder);
 app.use('/api/hl-funding',         requireFounder);
+app.use('/api/drift-funding',      requireFounder);
 
 app.post('/api/aegis-arb/start',  (req, res) => res.json(aegisArbBot.start()));
 app.post('/api/aegis-arb/stop',   (req, res) => res.json(aegisArbBot.stop()));
@@ -8945,6 +8948,10 @@ app.get('/api/constitution-flash/status', (req, res) => res.json(constitutionFla
 app.post('/api/hl-funding/start',  (req, res) => res.json(hyperliquidFunding.start()));
 app.post('/api/hl-funding/stop',   (req, res) => res.json(hyperliquidFunding.stop()));
 app.get('/api/hl-funding/status',  (req, res) => res.json(hyperliquidFunding.getStatus()));
+
+app.post('/api/drift-funding/start',  (req, res) => res.json(driftFunding.start()));
+app.post('/api/drift-funding/stop',   (req, res) => res.json(driftFunding.stop()));
+app.get('/api/drift-funding/status',  (req, res) => res.json(driftFunding.getStatus()));
 
 // ── Master bot status (all 5 bots in one call) ──
 app.get('/api/bots/status', requireFounder, (req, res) => {
@@ -9021,6 +9028,18 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 stopUrl:     '/api/hl-funding/stop',
                 statusUrl:   '/api/hl-funding/status',
                 ...hyperliquidFunding.getStatus(),
+            },
+            {
+                id:          'drift-funding',
+                name:        'Drift Funding Bot',
+                emoji:       '💜',
+                chain:       'Solana',
+                description: 'Delta-neutral funding rate arb on Drift Protocol — 83 perp markets, global access (no geo-restriction), collect hourly USDC',
+                controllable: true,
+                startUrl:    '/api/drift-funding/start',
+                stopUrl:     '/api/drift-funding/stop',
+                statusUrl:   '/api/drift-funding/status',
+                ...driftFunding.getStatus(),
             },
         ]
     });
@@ -11652,6 +11671,7 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('⚔ Aegis Arb Bot ready — start from Bots dashboard (/api/aegis-arb/start)');
     console.log('⚔ Constitution Flash Bot ready — start from Bots dashboard (/api/constitution-flash/start)');
     console.log('💎 Hyperliquid Funding Bot ready — start from Bots dashboard (/api/hl-funding/start)');
+    console.log('💜 Drift Funding Bot ready — start from Bots dashboard (/api/drift-funding/start) [no geo-restriction]');
 
     // Live Arb Bot — MANUAL START ONLY via dashboard (/api/live-arb/start)
     // Auto-start is DISABLED. You must explicitly enable it from the founder dashboard.
