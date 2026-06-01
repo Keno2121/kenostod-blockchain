@@ -1,7 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config({ path: "../.env" });
 
-const NEW_WALLET_PRIVATE_KEY = process.env.NEW_WALLET_PRIVATE_KEY ||
+// QCT deploys from KENO bot wallet — clean EOA on Base, no contract code
+const QCT_DEPLOYER_KEY = process.env.KENO_WALLET_PRIVATE_KEY ||
+  process.env.NEW_WALLET_PRIVATE_KEY ||
   "0x0000000000000000000000000000000000000000000000000000000000000001";
 
 module.exports = {
@@ -20,14 +22,14 @@ module.exports = {
     base: {
       url: "https://mainnet.base.org",
       chainId: 8453,
-      accounts: [NEW_WALLET_PRIVATE_KEY],
+      accounts: [QCT_DEPLOYER_KEY],
       gasPrice: "auto",
     },
     // Base Sepolia Testnet — test before mainnet
     baseSepolia: {
       url: "https://sepolia.base.org",
       chainId: 84532,
-      accounts: [NEW_WALLET_PRIVATE_KEY],
+      accounts: [QCT_DEPLOYER_KEY],
     },
   },
   etherscan: {

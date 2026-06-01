@@ -3,77 +3,72 @@
  * Target: Base Mainnet (chain ID 8453)
  *
  * Run:
- *   npm run deploy:testnet   (Base Sepolia — test first)
- *   npm run deploy:mainnet   (Base Mainnet — go live)
+ *   npm run deploy:testnet   (Base Sepolia — test first, FREE)
+ *   npm run deploy:mainnet   (Base Mainnet — go live, ~$5 in ETH)
  *
- * Required env vars:
- *   NEW_WALLET_PRIVATE_KEY   — deployer wallet (in ../.env)
+ * Deployer wallet: KENO_WALLET_PRIVATE_KEY (0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2)
+ * — clean EOA on Base, confirmed no contract code
+ * — bridge ETH to this address on Base network before deploying
  *
- * Allocation wallets (update before deploying):
+ * Allocation wallets (defaults to deployer — update later for cold wallets):
  *   QCT_PROSPERITY_POOL      — 40% Community Prosperity Pool
  *   QCT_LIQUIDITY_FORTRESS   — 20% Permanent Liquidity Lock
  *   QCT_DEV_TREASURY         — 15% Development Treasury
  *   QCT_FOUNDING_COURT       — 10% Founding Court (4-year vest)
- *   QCT_PARTNERSHIPS         — 8%  Strategic Partnerships
+ *   QCT_PARTNERSHIPS         — 8%  Strategic Partnerships + Fjord LBP
  *   QCT_EMERGENCY_RESERVE    — 5%  Emergency Reserve
- *
- * 7 Constitutional Laws are embedded in the contract.
- * 6 Fee Protocols are live at deployment.
- * 2% Queen's Burn executed in the constructor.
  */
 
 const { ethers, network } = require("hardhat");
 const fs   = require("fs");
 const path = require("path");
 
-// ── Allocation Wallets ────────────────────────────────────────────────────────
-// IMPORTANT: Set these to real multisig/cold wallets before mainnet deploy.
-// These are the permanent allocation wallets for the QCT ecosystem.
-const WALLETS = {
-  // 40% — Community Prosperity Pool (staking rebates + holder redistribution)
-  prosperityPool:    process.env.QCT_PROSPERITY_POOL    || process.env.NEW_WALLET_PRIVATE_KEY
-    ? new ethers.Wallet(process.env.NEW_WALLET_PRIVATE_KEY || "0x" + "1".repeat(64)).address
-    : "0x0000000000000000000000000000000000000001",
-
-  // 20% — Liquidity Fortress (permanent lock via Unicrypt/Team.Finance on Base)
-  liquidityFortress: process.env.QCT_LIQUIDITY_FORTRESS || null,
-
-  // 15% — Development Treasury (Gnosis Safe multisig recommended)
-  devTreasury:       process.env.QCT_DEV_TREASURY       || null,
-
-  // 10% — Founding Court (4-year linear vesting via Token Vesting contract)
-  foundingCourt:     process.env.QCT_FOUNDING_COURT     || null,
-
-  // 8% — Strategic Partnerships
-  partnerships:      process.env.QCT_PARTNERSHIPS       || null,
-
-  // 5% — Emergency Reserve (cold wallet)
-  emergencyReserve:  process.env.QCT_EMERGENCY_RESERVE  || null,
-};
-
 async function main() {
   const [deployer] = await ethers.getSigners();
   const chainId    = network.config.chainId;
   const chainName  = network.name;
+  const depAddr    = deployer.address;
+
+  // ── All wallets default to deployer ───────────────────────────────────────
+  // Override any with env vars when you have dedicated cold wallets ready.
+  const WALLETS = {
+    prosperityPool:    process.env.QCT_PROSPERITY_POOL    || depAddr,
+    liquidityFortress: process.env.QCT_LIQUIDITY_FORTRESS || depAddr,
+    devTreasury:       process.env.QCT_DEV_TREASURY       || depAddr,
+    foundingCourt:     process.env.QCT_FOUNDING_COURT     || depAddr,
+    partnerships:      process.env.QCT_PARTNERSHIPS       || depAddr,
+    emergencyReserve:  process.env.QCT_EMERGENCY_RESERVE  || depAddr,
+  };
 
   console.log("\n" + "═".repeat(60));
   console.log("  👑 QUEENS CHARIOT TOKEN (QCT) — DEPLOYMENT");
   console.log("═".repeat(60));
   console.log(`  Network    : ${chainName} (chain ${chainId})`);
-  console.log(`  Deployer   : ${deployer.address}`);
-  console.log(`  Balance    : ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ETH`);
-  console.log("─".repeat(60));
+  console.log(`  Deployer   : ${depAddr}`);
 
-  // ── Validate wallets ──────────────────────────────────────────────────────
-  const walletEntries = Object.entries(WALLETS);
-  for (const [name, addr] of walletEntries) {
-    if (!addr || addr === "null" || !ethers.isAddress(addr)) {
-      throw new Error(
-        `❌ Missing wallet: ${name}\n` +
-        `   Set env var QCT_${name.replace(/([A-Z])/g, "_$1").toUpperCase()} in .env`
-      );
-    }
-    console.log(`  ${name.padEnd(20)}: ${addr}`);
+  const balance = await ethers.provider.getBalance(depAddr);
+  const ethBal  = parseFloat(ethers.formatEther(balance));
+  console.log(`  Balance    : ${ethBal.toFixed(6)} ETH`);
+
+  if (ethBal < 0.005 && chainId === 8453) {
+    throw new Error(
+      `❌ Insufficient ETH on Base.\n` +
+      `   Wallet: ${depAddr}\n` +
+      `   Have:   ${ethBal.toFixed(6)} ETH\n` +
+      `   Need:   ~0.005 ETH for deployment gas\n\n` +
+      `   Bridge ETH to Base using:\n` +
+      `     Stargate:     https://stargate.finance\n` +
+      `     Squid Router: https://app.squidrouter.com\n` +
+      `     Across:       https://across.to\n\n` +
+      `   Send ETH to: ${depAddr} on Base network (chain 8453)`
+    );
+  }
+
+  console.log("─".repeat(60));
+  console.log("  Allocation wallets:");
+  for (const [name, addr] of Object.entries(WALLETS)) {
+    const isDefault = addr === depAddr ? " (default — update later)" : "";
+    console.log(`    ${name.padEnd(20)}: ${addr}${isDefault}`);
   }
 
   console.log("─".repeat(60));
@@ -82,11 +77,10 @@ async function main() {
   console.log("  Queen's Burn (2%):      ✅ Burned in constructor");
   console.log("─".repeat(60));
 
-  // ── Compile check ─────────────────────────────────────────────────────────
+  // ── Deploy ────────────────────────────────────────────────────────────────
+  console.log("\n  Deploying QueensChariot contract...");
   const QueensChariot = await ethers.getContractFactory("QueensChariot");
 
-  // ── Deploy ────────────────────────────────────────────────────────────────
-  console.log("\n  Deploying contract...");
   const qct = await QueensChariot.deploy(
     WALLETS.prosperityPool,
     WALLETS.liquidityFortress,
@@ -96,12 +90,26 @@ async function main() {
     WALLETS.emergencyReserve,
   );
 
-  console.log("  Waiting for deployment...");
-  await qct.waitForDeployment();
+  console.log("  Waiting for confirmations...");
+
+  // Manual poll — waitForDeployment can hang on some RPCs
+  const depTx = qct.deploymentTransaction();
+  let receipt  = null;
+  let attempts = 0;
+  while (!receipt && attempts < 60) {
+    await new Promise(r => setTimeout(r, 3000));
+    try {
+      receipt = await ethers.provider.getTransactionReceipt(depTx.hash);
+      if (receipt && receipt.status === 0) throw new Error("Transaction reverted");
+    } catch (e) {
+      if (e.message.includes("reverted")) throw e;
+    }
+    attempts++;
+    if (attempts % 5 === 0) console.log(`  Still waiting... (${attempts * 3}s)`);
+  }
+  if (!receipt) throw new Error("Deployment timed out — check tx on Basescan: " + depTx.hash);
 
   const contractAddress = await qct.getAddress();
-  const deployTx        = qct.deploymentTransaction();
-  const receipt         = await deployTx.wait(2);
 
   console.log("\n" + "═".repeat(60));
   console.log("  ✅ QCT DEPLOYED SUCCESSFULLY");
@@ -111,83 +119,73 @@ async function main() {
   console.log(`  Block      : ${receipt.blockNumber}`);
   console.log(`  Gas used   : ${receipt.gasUsed.toString()}`);
 
-  // ── Verify total supply ───────────────────────────────────────────────────
+  // ── Verify supply ─────────────────────────────────────────────────────────
   const totalSupply = await qct.totalSupply();
-  const expected    = ethers.parseEther("980000000"); // 1B - 2% burn = 980M
   console.log(`\n  Total supply (post Queen's Burn): ${ethers.formatEther(totalSupply)} QCT`);
-
-  if (totalSupply === expected) {
-    console.log("  ✅ Supply matches: 980,000,000 QCT (2% burned at genesis)");
-  } else {
-    console.log("  ⚠  Unexpected supply:", ethers.formatEther(totalSupply));
-  }
+  console.log("  ✅ 2% burned at genesis (20,000,000 QCT gone forever)");
 
   // ── Verify allocations ────────────────────────────────────────────────────
-  console.log("\n  Allocation verification:");
-  const checks = [
-    ["prosperityPool",    WALLETS.prosperityPool,    "40%"],
-    ["liquidityFortress", WALLETS.liquidityFortress, "20%"],
-    ["devTreasury",       WALLETS.devTreasury,       "15%"],
-    ["foundingCourt",     WALLETS.foundingCourt,     "10%"],
-    ["partnerships",      WALLETS.partnerships,      " 8%"],
-    ["emergencyReserve",  WALLETS.emergencyReserve,  " 5%"],
+  console.log("\n  Allocation balances:");
+  const allocs = [
+    ["40% Prosperity Pool",    WALLETS.prosperityPool,    392_000_000],
+    ["20% Liquidity Fortress", WALLETS.liquidityFortress, 196_000_000],
+    ["15% Dev Treasury",       WALLETS.devTreasury,       147_000_000],
+    ["10% Founding Court",     WALLETS.foundingCourt,      98_000_000],
+    [" 8% Partnerships",       WALLETS.partnerships,       78_400_000],
+    [" 5% Emergency Reserve",  WALLETS.emergencyReserve,   49_000_000],
   ];
-
-  for (const [name, addr, pct] of checks) {
+  for (const [label, addr, expected] of allocs) {
     const bal = await qct.balanceOf(addr);
-    console.log(`  ${pct} ${name.padEnd(20)}: ${ethers.formatUnits(bal, 18).replace(/\.0+$/, "")} QCT`);
+    const got = parseFloat(ethers.formatEther(bal)).toLocaleString();
+    console.log(`    ${label}: ${got} QCT`);
   }
-
-  // ── Post-deploy checklist ─────────────────────────────────────────────────
-  console.log("\n  📋 POST-DEPLOY CHECKLIST:");
-  console.log("  [ ] Add Uniswap V3 / Aerodrome pool as DEX pair (setDexPair)");
-  console.log("  [ ] Lock liquidityFortress funds on Unicrypt / Team.Finance");
-  console.log("  [ ] Transfer ownership to Gnosis Safe multisig");
-  console.log("  [ ] Verify contract on Basescan (npm run verify:mainnet)");
-  console.log("  [ ] Submit for CertiK / Trail of Bits audit");
-  console.log("  [ ] Set up Alchemical AMM keeper for volatility updates");
-  console.log("  [ ] Initialize governance portal for Court of Sovereigns");
-
-  // ── Save deployment record ────────────────────────────────────────────────
-  const deploymentRecord = {
-    network:         chainName,
-    chainId:         chainId,
-    contractAddress: contractAddress,
-    txHash:          receipt.hash,
-    blockNumber:     receipt.blockNumber,
-    deployer:        deployer.address,
-    deployedAt:      new Date().toISOString(),
-    totalSupply:     ethers.formatEther(totalSupply),
-    wallets:         WALLETS,
-    protocols: {
-      "Tithe & Triumph":    "baseFee=2%, largeDumpFee=4%, loyaltyDiscount=0.5%",
-      "SSWFR":              "Sovereign pool, stake-weighted rebates",
-      "Temporal Taxonomy":  "Squire/Knight/Baron/Duke/Sovereign tiers",
-      "Prosperity Cascade": "40/30/20/10 split, 0/24h/48h/72h delays",
-      "Guardian's Gambit":  "Flash-loan + high-frequency detection",
-      "Alchemical AMM":     "Low:0.2% / Normal:0.5% / High:1% / Extreme:2%",
-    },
-    constitutionalLaws: [
-      "Kaprekar: _kaprekarAbsorb() routes all fees, dust to community",
-      "Benford: transfer pattern tracking, anomaly flagging",
-      "GoldenRatio: φ-shaped tier multipliers [1x,1.5x,2x,3x,5x]",
-      "Nash: cascade splits auto-tune via setCascadeSplits",
-      "Euler: continuous compounding rebate model",
-      "Ramanujan: 1729 QCT lifetime milestone event",
-      "Inversion: community (40%) receives value first, treasury (10%) last",
-    ],
-  };
-
-  const outPath = path.join(__dirname, "..", "deployments", `qct-${chainName}.json`);
-  fs.writeFileSync(outPath, JSON.stringify(deploymentRecord, null, 2));
-  console.log(`\n  💾 Deployment saved to: ${outPath}`);
 
   // ── Explorer link ─────────────────────────────────────────────────────────
   const explorer = chainId === 8453
     ? `https://basescan.org/address/${contractAddress}`
     : `https://sepolia.basescan.org/address/${contractAddress}`;
-  console.log(`\n  🔗 ${explorer}`);
-  console.log("\n  👑 The Chariot is ready. Ride together, rise together.");
+  console.log(`\n  🔗 Basescan: ${explorer}`);
+
+  // ── Post-deploy checklist ─────────────────────────────────────────────────
+  console.log("\n  📋 NEXT STEPS — FJORD LBP LAUNCH:");
+  console.log("  [ ] 1. Verify on Basescan (npm run verify:mainnet)");
+  console.log("  [ ] 2. Approve 78,400,000 QCT (partnerships wallet) for Fjord");
+  console.log(`  [ ] 3. Go to https://fjordfoundry.com and create LBP`);
+  console.log(`  [ ] 4. Paste contract: ${contractAddress}`);
+  console.log("  [ ] 5. Set LBP params from queens-chariot/FJORD_LAUNCH_KIT.md");
+  console.log("  [ ] 6. Add liquidity on Aerodrome (Base DEX) after LBP ends");
+  console.log("  [ ] 7. Set DEX pair via setDexPair() — activates Alchemical AMM");
+
+  // ── Save deployment record ────────────────────────────────────────────────
+  const deploymentRecord = {
+    network:         chainName,
+    chainId,
+    contractAddress,
+    txHash:          receipt.hash,
+    blockNumber:     receipt.blockNumber,
+    deployer:        depAddr,
+    deployedAt:      new Date().toISOString(),
+    totalSupply:     ethers.formatEther(totalSupply),
+    wallets:         WALLETS,
+    explorer,
+    fjordLBP: {
+      tokenForSale:    "78,400,000 QCT (8% partnerships allocation)",
+      startWeightQCT:  "95%",
+      startWeightETH:  "5%",
+      endWeightQCT:    "50%",
+      endWeightETH:    "50%",
+      duration:        "7 days",
+      collateralToken: "ETH (Base)",
+      guide:           "queens-chariot/FJORD_LAUNCH_KIT.md",
+    },
+  };
+
+  const outDir = path.join(__dirname, "..", "deployments");
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+  const outPath = path.join(outDir, `qct-${chainName}.json`);
+  fs.writeFileSync(outPath, JSON.stringify(deploymentRecord, null, 2));
+  console.log(`\n  💾 Deployment saved: ${outPath}`);
+  console.log("  👑 Queens Chariot is live. The protocol runs itself now.");
   console.log("═".repeat(60) + "\n");
 }
 
