@@ -1,5 +1,6 @@
 require('dotenv').config();
 const path = require('path');
+const fs   = require('fs');
 
 // Detect Replit-internal database URLs that won't work outside Replit
 if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !process.env.REPLIT_DOMAINS) {
@@ -625,6 +626,52 @@ app.get('/api/utl/config', (req, res) => {
         },
         network: { chainId: 56, name: 'BNB Smart Chain', rpc: 'https://bsc-dataseed1.binance.org/' }
     });
+});
+
+// ── Early Access / Waitlist ──────────────────────────────────────────────────
+const WAITLIST_FILE = path.join(__dirname, 'data', 'waitlist.json');
+
+function loadWaitlist() {
+    try {
+        if (fs.existsSync(WAITLIST_FILE)) return JSON.parse(fs.readFileSync(WAITLIST_FILE, 'utf8'));
+    } catch (e) { /* ignore */ }
+    return [];
+}
+
+function saveWaitlist(list) {
+    try {
+        const dir = path.join(__dirname, 'data');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(WAITLIST_FILE, JSON.stringify(list, null, 2));
+    } catch (e) { console.error('[Waitlist] Save error:', e.message); }
+}
+
+app.post('/api/join', (req, res) => {
+    const { email, wallet, interest, source } = req.body || {};
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: 'Valid email required' });
+    }
+    const list = loadWaitlist();
+    const existing = list.find(e => e.email.toLowerCase() === email.toLowerCase());
+    if (!existing) {
+        list.push({
+            email: email.toLowerCase().trim(),
+            wallet: (wallet || '').trim(),
+            interest: interest || 'general',
+            source: source || 'direct',
+            joinedAt: new Date().toISOString(),
+        });
+        saveWaitlist(list);
+        console.log(`[Waitlist] New signup: ${email} | interest: ${interest} | source: ${source}`);
+    }
+    res.json({ ok: true, position: list.length });
+});
+
+app.get('/api/join/list', (req, res) => {
+    const key = req.query.key || req.headers['x-admin-key'];
+    if (key !== process.env.ADMIN_KEY) return res.status(403).json({ error: 'Forbidden' });
+    const list = loadWaitlist();
+    res.json({ count: list.length, signups: list });
 });
 
 app.get('/api/subscription/verify', async (req, res) => {
