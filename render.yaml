@@ -1,4 +1,32 @@
 services:
+  # ── All bots in one free web service ───────────────────────────────────────
+  # UptimeRobot pings /health every 5 min → never sleeps → free 24/7 bots
+  # Add env vars in Render dashboard: QCT_DEPLOYER_KEY, WALLET_PRIVATE_KEY,
+  # KINGS_SHIELD_BOT_TOKEN, HL_VAULT_ADDRESS, HL_BUILDER_CODE
+  - type: web
+    name: sovereign-bots
+    runtime: node
+    plan: free
+    buildCommand: npm install --legacy-peer-deps
+    startCommand: node bot-server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: QCT_DEPLOYER_KEY
+        sync: false
+      - key: WALLET_PRIVATE_KEY
+        sync: false
+      - key: KINGS_SHIELD_BOT_TOKEN
+        sync: false
+      - key: HL_VAULT_ADDRESS
+        sync: false
+      - key: HL_BUILDER_CODE
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+
+  # ── Main website ────────────────────────────────────────────────────────────
   - type: web
     name: kenostod-sovereign-economy
     runtime: node
