@@ -16,7 +16,7 @@ const FLASH_ARB_ABI = [
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
 const BUSD = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
-const KENO = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — active
 
 const ROUTER_ABI = [
   'function getAmountsOut(uint amountIn, address[] calldata path) view returns (uint[] memory amounts)',
@@ -60,9 +60,9 @@ class LiveArbBot {
     this.paused   = false;
 
     this.config = {
-      autoExecute:       false,        // SAFETY: must be enabled manually via /api/live-arb/config before any real trade fires
-      minProfitUSD:     0.05,          // lowered — gas at 1 gwei is ~$0.16, needs $0.05 net above that
-      arbTradeAmountBNB: '0.08',       // increased from 0.05 → bigger gross profit per spread
+      autoExecute:       true,          // LIVE — executes when profitable spread found
+      minProfitUSD:     0.01,          // $0.01 minimum — catch any real spread, gas at 1 gwei is ~$0.03
+      arbTradeAmountBNB: '0.08',       // 0.08 BNB per trade — enough gross profit per spread
       kenoVolBNB:        '0.001',
       checkIntervalMs:   15_000,
       kenoVolIntervalMs: 3_600_000,
@@ -91,9 +91,9 @@ class LiveArbBot {
   }
 
   async init() {
-    const key = process.env.NEW_WALLET_PRIVATE_KEY;
+    const key = process.env.WALLET_PRIVATE_KEY;
     if (!key) {
-      this.log('❌ NEW_WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
+      this.log('❌ WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
       return false;
     }
     for (const rpc of BSC_RPC_ENDPOINTS) {
