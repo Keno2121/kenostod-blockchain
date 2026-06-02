@@ -107,26 +107,34 @@ function startBot(bot) {
   state[bot.id].pid    = proc.pid;
   state[bot.id].status = 'running';
 
+  let firstStderr = '';
+
   proc.stdout.on('data', (data) => {
     const line = data.toString().trim().split('\n').pop();
-    state[bot.id].lastLine = line;
+    if (line) state[bot.id].lastLine = line;
     console.log(`[${bot.id}] ${line}`);
   });
 
   proc.stderr.on('data', (data) => {
-    const line = data.toString().trim().split('\n').pop();
-    state[bot.id].lastLine = '⚠ ' + line;
-    console.error(`[${bot.id}] ERR: ${line}`);
+    const text = data.toString().trim();
+    const lines = text.split('\n').filter(l => l && !l.includes('ExperimentalWarning') && !l.startsWith('(node'));
+    if (lines.length > 0) {
+      if (!firstStderr) firstStderr = lines[0];
+      state[bot.id].lastLine = '⚠ ' + lines[0].slice(0, 80);
+      console.error(`[${bot.id}] ERR: ${lines[0]}`);
+    }
   });
 
   proc.on('close', (code) => {
     state[bot.id].status = 'restarting';
     state[bot.id].pid    = null;
     state[bot.id].restarts += 1;
-    console.log(`[BotServer] ${bot.name} exited (code ${code}). Restart #${state[bot.id].restarts} in 10s...`);
 
-    // Auto-restart after 10 seconds
-    setTimeout(() => startBot(bot), 10_000);
+    // Exponential backoff: cap at 5 min after 10 restarts
+    const delay = Math.min(10_000 * Math.pow(1.5, Math.min(state[bot.id].restarts, 10)), 300_000);
+    console.log(`[BotServer] ${bot.name} exited (code ${code}). Restart #${state[bot.id].restarts} in ${Math.round(delay/1000)}s... Last error: ${firstStderr || 'none'}`);
+    firstStderr = '';
+    setTimeout(() => startBot(bot), delay);
   });
 
   proc.on('error', (err) => {
