@@ -4,3 +4,5 @@
 - [BSC deployment gotchas](bsc-deploy-gotchas.md) — BSC gas is ~0.05 gwei; DEPLOYER_PRIVATE_KEY = 0x074c wallet with BNB; ankr requires auth; ethers waitForDeployment hangs — use manual poll
 - [PancakeSwap V2 vs V4 plan](pancakeswap-v2-v4.md) — Presale lists on V2; upgrade to V4 + UTL Hook after volume hits $50k/month
 - [QCT Queens Chariot](qct-deployment.md) — LIVE on Base `0x137a5Fc22a76Ec42490F2421a81935d124baE714`; use `QCT_DEPLOYER_KEY` secret for Base signing (KENO_WALLET_PRIVATE_KEY is the address not the key)
+- [Fjord LBP pivot](fjord-pivot.md) — QCT blocked by "Invalid asset value" (fee-on-transfer); KENO (BSC, no fee) is the new Fjord target; Fjord contract `0x53e6dd5164a07f98d296f05c5e139c2a5651a7b8` has QCT+WETH approvals still set
+- [QCT Hyperliquid integration](qct-hl-integration.md) — HIP-1 replaces Fjord for QCT; bot files in `queens-chariot/hyperliquid/`; uses QCT_DEPLOYER_KEY; HL_VAULT_ADDRESS + HL_BUILDER_CODE env vars needed
