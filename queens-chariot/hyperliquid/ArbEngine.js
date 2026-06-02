@@ -130,8 +130,8 @@ class ArbEngine {
 
   async _executeArb(opp, account) {
     const equity  = parseFloat(account?.marginSummary?.accountValue || '0');
-    const maxSize = Math.min(config.ARB.MAX_POSITION_USD, equity * 0.1);
-    if (maxSize < 10) return;
+    const maxSize = Math.min(config.ARB.MAX_POSITION_USD, equity * 0.15);
+    if (maxSize < 5) return; // needs $33+ equity to trade
 
     if (opp.type === 'SPREAD') {
       const sz = (maxSize / opp.perpMid).toFixed(4);
