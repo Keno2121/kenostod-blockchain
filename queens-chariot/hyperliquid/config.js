@@ -55,10 +55,10 @@ const config = {
 
   // ── Arb engine parameters ────────────────────────────────────────────────
   ARB: {
-    MIN_SPREAD_PCT:      0.15,   // minimum spread % to trigger arb
+    MIN_SPREAD_PCT:      0.10,   // 0.10% spread to trigger arb (was 0.15)
     MAX_POSITION_USD:    500,    // max single position (scales with capital)
     SCAN_INTERVAL_MS:    5000,   // check every 5 seconds
-    FUNDING_MIN_RATE:    0.01,   // minimum 8h funding rate to act on (1%)
+    FUNDING_MIN_RATE:    0.003,  // 0.3%/8h funding rate minimum (was 1%) — realistic HL rates
   },
 
   // ── Builder code (register at app.hyperliquid.xyz/referral) ─────────────
