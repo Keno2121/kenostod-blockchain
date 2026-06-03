@@ -1,156 +1,148 @@
 'use strict';
 
 /**
- * Sovereign Economy — Bot Server
+ * Sovereign Economy — Bot Server (in-process mode)
  *
- * Runs as a single Render free Web Service.
- * Starts all 6 bots as child processes with auto-restart.
- * Exposes /health for UptimeRobot pings (keeps the service awake 24/7 for free).
- * Exposes /status for a live dashboard of all bot states.
+ * MEMORY FIX: Previously spawned 6 child processes × ~80MB each = ~480MB
+ * → OOM killed on Render's free 512MB tier.
  *
- * Deploy on Render:
- *   - Type: Web Service (free tier)
- *   - Build: npm install
- *   - Start: node bot-server.js
- *   - Then add UptimeRobot to ping /health every 5 minutes → never sleeps
+ * Now all bots run inside THIS process via require() + start().
+ * Total RAM: ~100-150MB — well under the 512MB limit.
+ *
+ * Exposes /health (UptimeRobot) and /status (dashboard).
  */
 
-const http    = require('http');
-const { spawn } = require('child_process');
-
+const http = require('http');
 const PORT = process.env.PORT || 3099;
 
-// ── Bot definitions ────────────────────────────────────────────────────────
-// Each bot runs as an isolated child process.
-// Add / remove bots here. Set enabled: false to skip without deleting.
+// ── Catch all unhandled rejections so one bad bot can't kill the server ─────
+process.on('unhandledRejection', (err) => {
+  console.error('[BotServer] Unhandled rejection (server stays alive):', err && err.message);
+});
+
+// ── Bot definitions ──────────────────────────────────────────────────────────
 
 const BOTS = [
   {
-    id:       'qct-hive-hl',
-    name:     'QCT Hive — Hyperliquid Arb',
-    script:   'queens-chariot/hyperliquid/QCTHiveHL.js',
-    enabled:  !!process.env.QCT_DEPLOYER_KEY,
-    requires: ['QCT_DEPLOYER_KEY'],
-  },
-  {
-    id:       'keno-flash-orb',
-    name:     'KENO Flash Orb Bot',
-    script:   'src/KenoFlashOrbBot.js',
-    enabled:  !!process.env.WALLET_PRIVATE_KEY,
-    requires: ['WALLET_PRIVATE_KEY'],
-  },
-  {
-    id:       'live-arb',
-    name:     'Live Arb Bot',
-    script:   'src/LiveArbBot.js',
-    enabled:  !!process.env.WALLET_PRIVATE_KEY,
-    requires: ['WALLET_PRIVATE_KEY'],
-  },
-  {
-    id:       'aegis-arb',
-    name:     'Aegis Arb Bot Manager',
-    script:   'src/AegisArbBotManager.js',
-    enabled:  !!process.env.WALLET_PRIVATE_KEY,
-    requires: ['WALLET_PRIVATE_KEY'],
-  },
-  {
     id:       'shield-alert',
     name:     'Kings Shield Alert Bot',
-    script:   'src/KingsShieldAlertBot.js',
     enabled:  !!process.env.KINGS_SHIELD_BOT_TOKEN,
     requires: ['KINGS_SHIELD_BOT_TOKEN'],
+    load:     () => require('./src/KingsShieldAlertBot'),
   },
   {
     id:       'queens-chariot-manager',
     name:     'Queens Chariot Bot Manager',
-    script:   'src/QueensChariotBotManager.js',
     enabled:  !!process.env.WALLET_PRIVATE_KEY,
     requires: ['WALLET_PRIVATE_KEY'],
+    load:     () => require('./src/QueensChariotBotManager'),
+  },
+  {
+    id:       'live-arb',
+    name:     'Live Arb Bot',
+    enabled:  !!process.env.WALLET_PRIVATE_KEY,
+    requires: ['WALLET_PRIVATE_KEY'],
+    load:     () => require('./src/LiveArbBot'),
+  },
+  {
+    id:       'keno-flash-orb',
+    name:     'KENO Flash Orb Bot',
+    enabled:  !!process.env.WALLET_PRIVATE_KEY,
+    requires: ['WALLET_PRIVATE_KEY'],
+    load:     () => require('./src/KenoFlashOrbBot'),
+  },
+  {
+    id:       'aegis-arb',
+    name:     'Aegis Arb Bot Manager',
+    enabled:  !!process.env.WALLET_PRIVATE_KEY,
+    requires: ['WALLET_PRIVATE_KEY'],
+    load:     () => require('./src/AegisArbBotManager'),
+  },
+  {
+    id:       'qct-hive-hl',
+    name:     'QCT Hive — Hyperliquid Arb',
+    enabled:  !!(process.env.QCT_OWNER_KEY || process.env.QCT_DEPLOYER_KEY),
+    requires: ['QCT_OWNER_KEY'],
+    load:     () => require('./queens-chariot/hyperliquid/QCTHiveHL'),
   },
 ];
 
-// ── Bot state tracking ─────────────────────────────────────────────────────
+// ── State ────────────────────────────────────────────────────────────────────
 
 const state = {};
-
 for (const bot of BOTS) {
   state[bot.id] = {
-    name:       bot.name,
-    status:     'stopped',
-    pid:        null,
-    restarts:   0,
-    lastStart:  null,
-    lastLine:   '',
-    enabled:    bot.enabled,
-    requires:   bot.requires,
+    name:      bot.name,
+    status:    'stopped',
+    instance:  null,
+    restarts:  0,
+    lastStart: null,
+    lastLine:  '',
+    enabled:   bot.enabled,
+    requires:  bot.requires,
   };
 }
 
-// ── Start a bot process ────────────────────────────────────────────────────
+// ── In-process bot launcher ──────────────────────────────────────────────────
+
+function retryDelay(id) {
+  const r = state[id].restarts;
+  return Math.min(15_000 * Math.pow(1.5, Math.min(r, 8)), 300_000);
+}
 
 function startBot(bot) {
   if (!bot.enabled) {
-    console.log(`[BotServer] SKIP ${bot.name} — missing env: ${bot.requires.join(', ')}`);
+    console.log(`[BotServer] SKIP ${bot.name} — needs: ${bot.requires.join(', ')}`);
     state[bot.id].status = 'skipped';
     return;
   }
 
-  console.log(`[BotServer] Starting ${bot.name}...`);
-  state[bot.id].status  = 'starting';
+  state[bot.id].status    = 'starting';
   state[bot.id].lastStart = new Date().toISOString();
+  console.log(`[BotServer] Starting ${bot.name}...`);
 
-  const proc = spawn('node', [bot.script], {
-    env:   { ...process.env },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  async function tryStart() {
+    try {
+      const BotClass = bot.load();
+      const instance = new BotClass();
+      state[bot.id].instance = instance;
 
-  state[bot.id].pid    = proc.pid;
-  state[bot.id].status = 'running';
+      // await works on both sync and async start()
+      const result = await Promise.resolve(instance.start());
 
-  let firstStderr = '';
+      if (result && result.ok === false) {
+        state[bot.id].restarts += 1;
+        const delay = retryDelay(bot.id);
+        state[bot.id].status   = 'restarting';
+        state[bot.id].lastLine = `⚠ ${result.msg} — retry in ${Math.round(delay / 1000)}s`;
+        console.warn(`[${bot.id}] start() not-ok: ${result.msg} — retry in ${Math.round(delay / 1000)}s`);
+        setTimeout(tryStart, delay);
+        return;
+      }
 
-  proc.stdout.on('data', (data) => {
-    const line = data.toString().trim().split('\n').pop();
-    if (line) state[bot.id].lastLine = line;
-    console.log(`[${bot.id}] ${line}`);
-  });
+      state[bot.id].status   = 'running';
+      state[bot.id].lastLine = (result && result.msg) ? result.msg : 'Running';
+      console.log(`[BotServer] ✅ ${bot.name} running`);
 
-  proc.stderr.on('data', (data) => {
-    const text = data.toString().trim();
-    const lines = text.split('\n').filter(l => l && !l.includes('ExperimentalWarning') && !l.startsWith('(node'));
-    if (lines.length > 0) {
-      if (!firstStderr) firstStderr = lines[0];
-      state[bot.id].lastLine = '⚠ ' + lines[0].slice(0, 200);
-      console.error(`[${bot.id}] ERR: ${lines[0]}`);
+    } catch (err) {
+      state[bot.id].restarts += 1;
+      const delay = retryDelay(bot.id);
+      state[bot.id].status   = 'restarting';
+      state[bot.id].lastLine = `⚠ ${(err.message || String(err)).slice(0, 160)}`;
+      console.error(`[${bot.id}] threw: ${err.message} — retry in ${Math.round(delay / 1000)}s`);
+      setTimeout(tryStart, delay);
     }
-  });
+  }
 
-  proc.on('close', (code) => {
-    state[bot.id].status = 'restarting';
-    state[bot.id].pid    = null;
-    state[bot.id].restarts += 1;
-
-    // Exponential backoff: cap at 5 min after 10 restarts
-    const delay = Math.min(10_000 * Math.pow(1.5, Math.min(state[bot.id].restarts, 10)), 300_000);
-    console.log(`[BotServer] ${bot.name} exited (code ${code}). Restart #${state[bot.id].restarts} in ${Math.round(delay/1000)}s... Last error: ${firstStderr || 'none'}`);
-    firstStderr = '';
-    setTimeout(() => startBot(bot), delay);
-  });
-
-  proc.on('error', (err) => {
-    state[bot.id].status  = 'error';
-    state[bot.id].lastLine = err.message;
-    console.error(`[BotServer] Failed to start ${bot.name}:`, err.message);
-    setTimeout(() => startBot(bot), 30_000);
-  });
+  tryStart();
 }
 
-// ── HTTP server (keeps Render free tier alive + status dashboard) ──────────
+// ── HTTP server ──────────────────────────────────────────────────────────────
 
 const server = http.createServer((req, res) => {
   const url = req.url.split('?')[0];
 
-  // Health check — UptimeRobot pings this every 5 min
+  // Health — UptimeRobot pings this every 5 min
   if (url === '/health' || url === '/') {
     const running = Object.values(state).filter(s => s.status === 'running').length;
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -158,21 +150,38 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Status dashboard — human readable
+  // Status dashboard
   if (url === '/status') {
     const rows = Object.entries(state).map(([id, s]) => {
-      const icon = s.status === 'running' ? '🟢' : s.status === 'skipped' ? '⚪' : s.status === 'error' ? '🔴' : '🟡';
-      return `${icon} ${s.name.padEnd(35)} ${s.status.padEnd(12)} restarts: ${s.restarts}  ${s.lastLine.slice(0, 200)}`;
+      const icon = s.status === 'running' ? '🟢'
+                 : s.status === 'skipped' ? '⚪'
+                 : s.status === 'error'   ? '🔴'
+                 : '🟡';
+
+      // Show live log line from bot's getStatus() if available
+      let detail = s.lastLine.slice(0, 180);
+      if (s.instance && typeof s.instance.getStatus === 'function') {
+        try {
+          const st = s.instance.getStatus();
+          if (st && st.recentLogs && st.recentLogs[0]) {
+            detail = String(st.recentLogs[0].msg || '').slice(0, 180);
+          }
+        } catch (_) {}
+      }
+
+      return `${icon} ${s.name.padEnd(35)} ${s.status.padEnd(12)} restarts: ${s.restarts}  ${detail}`;
     }).join('\n');
 
     const uptime = Math.floor(process.uptime() / 60);
+    const memMB  = Math.round(process.memoryUsage().rss / 1024 / 1024);
     const html = `<pre style="font-family:monospace;background:#111;color:#0f0;padding:20px;font-size:14px">
-SOVEREIGN ECONOMY — BOT SERVER
-Uptime: ${uptime} minutes | ${new Date().toUTCString()}
-${'─'.repeat(80)}
+SOVEREIGN ECONOMY — BOT SERVER  [in-process · low RAM]
+Uptime: ${uptime} min | RAM: ${memMB} MB / 512 MB | ${new Date().toUTCString()}
+${'─'.repeat(90)}
 ${rows}
-${'─'.repeat(80)}
-Ping /health every 5min via UptimeRobot to keep this alive for free.
+${'─'.repeat(90)}
+All bots share one Node process — ~100 MB instead of ~480 MB.
+Ping /health every 5min via UptimeRobot to keep alive for free.
 </pre>`;
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(html);
@@ -183,19 +192,19 @@ Ping /health every 5min via UptimeRobot to keep this alive for free.
   res.end('Not found');
 });
 
-// ── Boot ───────────────────────────────────────────────────────────────────
+// ── Boot ─────────────────────────────────────────────────────────────────────
 
 server.listen(PORT, () => {
-  console.log(`\n╔══════════════════════════════════════╗`);
-  console.log(`║  Sovereign Economy — Bot Server       ║`);
-  console.log(`║  Health: http://localhost:${PORT}/health  ║`);
-  console.log(`║  Status: http://localhost:${PORT}/status  ║`);
-  console.log(`╚══════════════════════════════════════╝\n`);
+  const mem = Math.round(process.memoryUsage().rss / 1024 / 1024);
+  console.log(`\n╔═══════════════════════════════════════════╗`);
+  console.log(`║  Sovereign Economy — Bot Server            ║`);
+  console.log(`║  Mode: IN-PROCESS  (RAM at boot: ${mem} MB)   ║`);
+  console.log(`║  Health: http://localhost:${PORT}/health      ║`);
+  console.log(`║  Status: http://localhost:${PORT}/status      ║`);
+  console.log(`╚═══════════════════════════════════════════╝\n`);
 
-  // Stagger bot starts by 5 seconds each to avoid RPC hammering
-  BOTS.forEach((bot, i) => {
-    setTimeout(() => startBot(bot), i * 5_000);
-  });
+  // Stagger starts by 10s each — smooths RPC calls + memory allocation
+  BOTS.forEach((bot, i) => setTimeout(() => startBot(bot), i * 10_000));
 });
 
 server.on('error', (err) => {
@@ -203,6 +212,11 @@ server.on('error', (err) => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('[BotServer] SIGTERM — shutting down');
+  console.log('[BotServer] SIGTERM — stopping all bots');
+  for (const s of Object.values(state)) {
+    if (s.instance && typeof s.instance.stop === 'function') {
+      try { s.instance.stop(); } catch (_) {}
+    }
+  }
   server.close(() => process.exit(0));
 });
