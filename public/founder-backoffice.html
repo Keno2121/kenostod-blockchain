@@ -842,42 +842,88 @@
         }
 
         /* Responsive */
+        /* ── Hamburger button ── */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            flex-direction: column;
+            gap: 5px;
+            margin-right: 0.75rem;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--text-primary);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        /* ── Sidebar overlay ── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 199;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* ── Bottom mobile nav ── */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10,15,28,0.97);
+            border-top: 1px solid var(--border);
+            padding: 0.4rem 0 env(safe-area-inset-bottom, 0.4rem);
+            z-index: 150;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .mobile-bottom-nav .mnav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            transition: color 0.2s;
+            min-width: 52px;
+        }
+        .mobile-bottom-nav .mnav .micon { font-size: 1.3rem; line-height: 1; }
+        .mobile-bottom-nav .mnav.active,
+        .mobile-bottom-nav .mnav:hover { color: var(--accent); }
+
         @media (max-width: 1024px) {
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s;
+                z-index: 200;
             }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-group.full-width {
-                grid-column: span 1;
-            }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .menu-toggle { display: flex; }
+            .mobile-bottom-nav { display: flex; }
+            /* extra bottom padding so content doesn't hide behind bottom nav */
+            .main-content { padding-bottom: 5rem; }
         }
 
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .mobile-wallets {
-                flex-direction: column;
-            }
-
-            .wallet-btn {
-                width: 100%;
-                justify-content: center;
-            }
+            .stats-grid { grid-template-columns: 1fr; }
+            .mobile-wallets { flex-direction: column; }
+            .wallet-btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -892,6 +938,9 @@
             <button class="login-btn" onclick="authenticate()">Access Backoffice</button>
         </div>
     </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
     <!-- Main Layout -->
     <div class="main-layout" id="mainLayout">
@@ -948,15 +997,28 @@
                     <span>UTL Protocol</span>
                 </div>
             </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Bots</div>
+                <div class="nav-item" onclick="showSection('bots', this)">
+                    <span class="icon">🤖</span>
+                    <span>Bot Control Center</span>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
             <!-- Top Bar -->
             <div class="top-bar">
-                <div class="page-title">
-                    <h2 id="pageTitle">Overview</h2>
-                    <p id="pageSubtitle">Welcome back, Founder</p>
+                <div style="display:flex;align-items:center;">
+                    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Open menu">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <div class="page-title">
+                        <h2 id="pageTitle">Overview</h2>
+                        <p id="pageSubtitle">Welcome back, Founder</p>
+                    </div>
                 </div>
                 <div class="wallet-pill" id="walletPill" style="display: none;">
                     <span class="address" id="walletAddress">Not Connected</span>
@@ -1454,6 +1516,32 @@
                 </div>
             </div>
 
+            <!-- Bots Control Center -->
+            <div class="content-section" id="bots-section">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                    <div>
+                        <h3 style="font-size:1.25rem;font-weight:700;">Bot Control Center</h3>
+                        <p style="color:var(--text-muted);font-size:0.875rem;">All 5 bots — Kaprekar 6174 governs every distribution</p>
+                    </div>
+                    <button onclick="loadBots()" style="background:rgba(212,175,55,0.15);border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-size:0.875rem;">↻ Refresh</button>
+                </div>
+
+                <div id="bots-grid" style="display:grid;grid-template-columns:1fr;gap:1rem;">
+                    <div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading bots...</div>
+                </div>
+
+                <!-- Bot logs panel -->
+                <div id="bot-logs-panel" style="display:none;margin-top:1.5rem;">
+                    <div style="background:rgba(15,23,42,0.8);border:1px solid var(--border);border-radius:12px;padding:1.25rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                            <h4 id="bot-logs-title" style="color:var(--accent);font-size:0.9rem;font-weight:600;">Bot Logs</h4>
+                            <button onclick="document.getElementById('bot-logs-panel').style.display='none'" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem;">✕</button>
+                        </div>
+                        <div id="bot-logs-content" style="font-family:monospace;font-size:0.75rem;color:#94a3b8;max-height:300px;overflow-y:auto;line-height:1.6;"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- UTL Stats Section -->
             <div class="content-section" id="utl-stats-section">
                 <div class="stats-grid">
@@ -1555,8 +1643,9 @@
             btn.disabled = true;
             
             try {
-                const res = await fetch('/api/auth/founder', {
+                const res = await fetch('/api/founder/login', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
@@ -1605,6 +1694,11 @@
             // Show selected section
             document.getElementById(sectionName + '-section').classList.add('active');
 
+            // Sync bottom mobile nav
+            document.querySelectorAll('.mnav').forEach(n => n.classList.remove('active'));
+            const activeNav = document.querySelector(`.mnav[data-section="${sectionName}"]`);
+            if (activeNav) activeNav.classList.add('active');
+
             // Update page title
             const titles = {
                 'overview': { title: 'Overview', subtitle: 'Welcome back, Founder' },
@@ -1614,8 +1708,10 @@
                 'physical-card': { title: 'Physical Card', subtitle: 'Request your metal card' },
                 'students': { title: 'Students', subtitle: 'Student analytics and data' },
                 'transactions': { title: 'Transactions', subtitle: 'Your transaction history' },
-                'utl-stats': { title: 'UTL Protocol', subtitle: 'Protocol statistics and metrics' }
+                'utl-stats': { title: 'UTL Protocol', subtitle: 'Protocol statistics and metrics' },
+                'bots': { title: 'Bot Control Center', subtitle: '5 bots — Kaprekar 6174 governs every distribution' }
             };
+            if (sectionName === 'bots') loadBots();
 
             if (titles[sectionName]) {
                 document.getElementById('pageTitle').textContent = titles[sectionName].title;
@@ -1876,6 +1972,158 @@
             }, 3000);
         }
 
+        // ==================== BOTS ====================
+        let botsRefreshTimer = null;
+
+        async function loadBots() {
+            try {
+                const res  = await fetch('/api/bots/status', { credentials: 'include' });
+                if (res.status === 401) {
+                    document.getElementById('bots-grid').innerHTML =
+                        '<div style="text-align:center;padding:2rem;color:var(--text-muted);">🔒 Session expired — please <a href="/founder-backoffice.html" style="color:var(--accent);">log in again</a>.</div>';
+                    return;
+                }
+                if (!res.ok) {
+                    document.getElementById('bots-grid').innerHTML =
+                        `<div style="text-align:center;padding:2rem;color:var(--danger);">Server error (${res.status}) — tap Refresh to retry.</div>`;
+                    return;
+                }
+                const data = await res.json();
+                renderBots(data.bots || [], data.renderConnected);
+            } catch(e) {
+                document.getElementById('bots-grid').innerHTML =
+                    '<div style="color:var(--danger);padding:2rem;text-align:center;">Connection error — tap ↻ Refresh to retry.</div>';
+            }
+        }
+
+        function renderBots(bots, renderConnected) {
+            const CHAIN_COLORS = { BSC: '#f0b90b', Solana: '#9945ff', Telegram: '#229ed9', Hyperliquid: '#00d4aa', 'All Chains': '#d4af37' };
+            const grid = document.getElementById('bots-grid');
+
+            // Connection status banner
+            const banner = renderConnected
+                ? `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;margin-bottom:1rem;font-size:0.8rem;color:#10b981;">
+                     <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981"></span>
+                     <strong>LIVE</strong> — stats streaming from Render bot server in real time
+                   </div>`
+                : `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;margin-bottom:1rem;font-size:0.8rem;color:#f59e0b;">
+                     <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b"></span>
+                     ⚠ Render bot server unreachable — showing last known data. Bots still running 24/7 on Render.
+                   </div>`;
+
+            grid.innerHTML = banner + bots.map(bot => {
+                const running      = bot.running;
+                const statusColor  = running ? 'var(--success)' : 'var(--text-muted)';
+                const statusDot    = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${statusColor};margin-right:6px;${running ? 'box-shadow:0 0 6px var(--success)' : ''}"></span>`;
+                const chainColor   = CHAIN_COLORS[bot.chain] || '#94a3b8';
+                const profit       = bot.totalProfit != null ? `$${Number(bot.totalProfit).toFixed(2)}` : '—';
+                const trades       = bot.tradeCount  != null ? bot.tradeCount : '—';
+                const scans        = bot.scanCount   != null ? bot.scanCount  : '—';
+                const uptime       = bot.uptimeSeconds ? formatUptime(bot.uptimeSeconds) : '—';
+                const liveBadge    = bot.liveData
+                    ? `<span style="font-size:0.65rem;padding:1px 7px;border-radius:20px;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.35);">● LIVE</span>`
+                    : '';
+                const tgLinked     = bot.telegramLinked;
+                const tgBadge      = `<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:${tgLinked !== false ? 'rgba(34,158,217,0.15)' : 'rgba(148,163,184,0.1)'};color:${tgLinked !== false ? '#229ed9' : '#64748b'};border:1px solid ${tgLinked !== false ? 'rgba(34,158,217,0.3)' : 'rgba(100,116,139,0.2)'}">✈ Telegram ${tgLinked !== false ? 'linked' : 'pending chat ID'}</span>`;
+
+                let controls = '';
+                if (bot.controllable) {
+                    if (running) {
+                        controls = `<button onclick="botAction('${bot.stopUrl}','${bot.id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#ef4444;padding:0.5rem 1.25rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">⏹ Stop</button>`;
+                    } else {
+                        controls = `<button onclick="botAction('${bot.startUrl}','${bot.id}')" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#10b981;padding:0.5rem 1.25rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">▶ Start</button>`;
+                    }
+                    controls += ` <button onclick="viewBotLogs('${bot.statusUrl}','${bot.name}')" style="background:rgba(212,175,55,0.1);border:1px solid var(--border);color:var(--text-muted);padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-size:0.8rem;">📋 Logs</button>`;
+                } else {
+                    controls = `<span style="font-size:0.8rem;color:var(--text-muted);">Auto-managed${bot.handle ? ' · ' + bot.handle : ''}</span>`;
+                }
+
+                const solWarning = bot.chain === 'Solana' && !bot.solanaConfigured
+                    ? `<div style="margin-top:0.75rem;padding:0.6rem 0.9rem;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;font-size:0.75rem;color:#f59e0b;">⚠ Set SOLANA_RPC_URL + SOLANA_WALLET_PRIVATE_KEY to enable live trading</div>`
+                    : '';
+
+                return `
+                <div style="background:linear-gradient(135deg,rgba(15,23,42,0.9),rgba(6,78,59,0.1));border:1px solid var(--border);border-radius:14px;padding:1.25rem;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:200px;">
+                            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;flex-wrap:wrap;">
+                                <span style="font-size:1.3rem;">${bot.emoji}</span>
+                                <span style="font-weight:700;font-size:1rem;">${bot.name}</span>
+                                <span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:${chainColor}22;color:${chainColor};border:1px solid ${chainColor}44;">${bot.chain}</span>
+                                ${liveBadge}
+                                ${tgBadge}
+                            </div>
+                            <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.75rem;">${bot.description}</p>
+                            <div style="display:flex;gap:0.5rem;align-items:center;">
+                                ${statusDot}<span style="font-size:0.8rem;color:${statusColor};font-weight:600;">${running ? 'Running' : 'Stopped'}</span>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;min-width:180px;">
+                            <div style="text-align:center;padding:0.5rem;background:rgba(212,175,55,0.07);border-radius:8px;">
+                                <div style="font-size:1rem;font-weight:700;color:var(--accent);">${trades}</div>
+                                <div style="font-size:0.65rem;color:var(--text-muted);">Trades</div>
+                            </div>
+                            <div style="text-align:center;padding:0.5rem;background:rgba(16,185,129,0.07);border-radius:8px;">
+                                <div style="font-size:1rem;font-weight:700;color:var(--success);">${profit}</div>
+                                <div style="font-size:0.65rem;color:var(--text-muted);">Profit</div>
+                            </div>
+                            <div style="text-align:center;padding:0.5rem;background:rgba(99,102,241,0.07);border-radius:8px;">
+                                <div style="font-size:1rem;font-weight:700;color:var(--protocol-purple);">${scans}</div>
+                                <div style="font-size:0.65rem;color:var(--text-muted);">Scans</div>
+                            </div>
+                            <div style="text-align:center;padding:0.5rem;background:rgba(148,163,184,0.07);border-radius:8px;">
+                                <div style="font-size:1rem;font-weight:700;color:var(--text-muted);">${uptime}</div>
+                                <div style="font-size:0.65rem;color:var(--text-muted);">Uptime</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                        ${controls}
+                    </div>
+                    ${solWarning}
+                </div>`;
+            }).join('');
+        }
+
+        async function botAction(url, botId) {
+            try {
+                const res  = await fetch(url, { method: 'POST', credentials: 'include' });
+                if (res.status === 401) { showToast('Session expired — please log in again'); return; }
+                const data = await res.json();
+                showToast(data.msg || (data.ok ? 'Done!' : 'Error'));
+                setTimeout(loadBots, 800);
+            } catch(e) {
+                showToast('Request failed');
+            }
+        }
+
+        async function viewBotLogs(statusUrl, botName) {
+            try {
+                const res  = await fetch(statusUrl, { credentials: 'include' });
+                const data = await res.json();
+                const logs = data.recentLogs || [];
+                const panel = document.getElementById('bot-logs-panel');
+                document.getElementById('bot-logs-title').textContent = `${botName} — Logs`;
+                document.getElementById('bot-logs-content').innerHTML = logs.length
+                    ? logs.map(l => {
+                        const col = l.level === 'error' ? '#ef4444' : l.level === 'warn' ? '#f59e0b' : '#94a3b8';
+                        const time = l.time ? l.time.slice(11,19) : '';
+                        return `<div style="color:${col};margin-bottom:2px;">[${time}] ${l.msg}</div>`;
+                    }).join('')
+                    : '<div style="color:#64748b;">No logs yet.</div>';
+                panel.style.display = 'block';
+                panel.scrollIntoView({ behavior: 'smooth' });
+            } catch(e) {
+                showToast('Could not load logs');
+            }
+        }
+
+        function formatUptime(sec) {
+            if (sec < 60)   return `${sec}s`;
+            if (sec < 3600) return `${Math.floor(sec/60)}m`;
+            return `${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m`;
+        }
+
         // ==================== KEYBOARD SHORTCUTS ====================
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -1886,11 +2134,50 @@
             }
         });
 
+        // ==================== MOBILE SIDEBAR TOGGLE ====================
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        }
+
+        function closeSidebar() {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('visible');
+        }
+
+        // Close sidebar when a nav item is tapped on mobile
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) closeSidebar();
+            });
+        });
+
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            // Set demo balances initially
             updateDemoBalances();
         });
+
     </script>
+
+    <!-- Bottom mobile navigation -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav">
+        <div class="mnav active" data-section="overview" onclick="showSection('overview',null)">
+            <span class="micon">🏠</span>Home
+        </div>
+        <div class="mnav" data-section="revenue" onclick="showSection('revenue',null)">
+            <span class="micon">💰</span>Revenue
+        </div>
+        <div class="mnav" data-section="bots" onclick="showSection('bots',null)">
+            <span class="micon">🤖</span>Bots
+        </div>
+        <div class="mnav" data-section="students" onclick="showSection('students',null)">
+            <span class="micon">🎓</span>Students
+        </div>
+        <div class="mnav" onclick="toggleSidebar()">
+            <span class="micon">☰</span>More
+        </div>
+    </nav>
 </body>
 </html>
