@@ -67,12 +67,9 @@ const ERC20_ABI = [
 ];
 
 const BSC_RPC_ENDPOINTS = [
-  'https://bsc-dataseed1.binance.org',
-  'https://bsc-dataseed2.binance.org',
-  'https://bsc-dataseed3.binance.org',
-  'https://bsc-dataseed4.binance.org',
   'https://bsc-rpc.publicnode.com',
   'https://bsc.rpc.blxrbdn.com',
+  'https://rpc-bsc.48.club',
 ];
 
 // ── Profit log path (Law V) ───────────────────────────────────────────────
