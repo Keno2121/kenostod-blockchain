@@ -17,8 +17,8 @@ const config = {
   BASE_RPC:     'https://mainnet.base.org',
 
   // ── Wallet ───────────────────────────────────────────────────────────────
-  // Uses QCT_DEPLOYER_KEY — same EVM key works on HL (EVM address = HL address)
-  get WALLET_KEY() { return process.env.QCT_DEPLOYER_KEY; },
+  // Uses QCT_OWNER_KEY — same EVM key works on HL (EVM address = HL address)
+  get WALLET_KEY() { return process.env.QCT_OWNER_KEY || process.env.QCT_DEPLOYER_KEY; },
 
   // ── HL Coin names (as HL expects them) ───────────────────────────────────
   // Before QCT HIP-1 launches, bot trades correlated pairs to build capital
