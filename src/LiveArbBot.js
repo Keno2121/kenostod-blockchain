@@ -47,14 +47,12 @@ const FARM_ABI = [
 ];
 
 const BSC_RPC_ENDPOINTS = [
+  'https://bsc-dataseed1.binance.org',
+  'https://bsc-dataseed2.binance.org',
+  'https://bsc-dataseed3.binance.org',
+  'https://bsc-dataseed4.binance.org',
   'https://bsc-rpc.publicnode.com',
-  'https://bsc-dataseed1.defibit.io',
-  'https://bsc-dataseed1.ninicoin.io',
-  'https://bsc-dataseed2.defibit.io',
-  'https://bsc.meowrpc.com',
-  'https://bsc-dataseed1.binance.org/',
-  'https://bsc-dataseed2.binance.org/',
-  'https://bsc-dataseed3.binance.org/'
+  'https://bsc.rpc.blxrbdn.com',
 ];
 
 class LiveArbBot {
