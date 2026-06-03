@@ -65,6 +65,13 @@ const BOTS = [
     requires: ['QCT_OWNER_KEY'],
     load:     () => require('./queens-chariot/hyperliquid/QCTHiveHL'),
   },
+  {
+    id:       'drift-funding',
+    name:     'Drift Funding Bot (AUTO-EXECUTE)',
+    enabled:  !!process.env.DRIFT_PRIVATE_KEY,
+    requires: ['DRIFT_PRIVATE_KEY'],
+    load:     () => require('./src/DriftFundingBot'),
+  },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -137,6 +144,40 @@ function startBot(bot) {
   tryStart();
 }
 
+// ── Stat normalizer — handles each bot's unique field names ─────────────────
+
+function normalizeStats(st) {
+  if (!st) return { totalProfit: 0, tradeCount: 0, scanCount: 0, uptimeSeconds: 0 };
+
+  const totalProfit = Number(
+    st.totalProfit           != null ? st.totalProfit :
+    st.stats?.totalProfitUSD != null ? st.stats.totalProfitUSD :
+    st.stats?.profitUSD      != null ? st.stats.profitUSD :
+    (st.stats?.arbProfit || 0) + (st.stats?.vaultLeaderCut || 0) +
+    (st.stats?.builderFees  || 0) + (st.stats?.baseProfit || 0)
+  ) || 0;
+
+  const tradeCount = Number(
+    st.tradeCount             != null ? st.tradeCount :
+    st.stats?.tradesExecuted  != null ? st.stats.tradesExecuted :
+    st.stats?.tradesEntered   != null ? st.stats.tradesEntered :
+    0
+  ) || 0;
+
+  const scanCount = Number(
+    st.scanCount           != null ? st.scanCount :
+    st.stats?.scanCount    != null ? st.stats.scanCount :
+    0
+  ) || 0;
+
+  return {
+    totalProfit:    parseFloat(totalProfit.toFixed(4)),
+    tradeCount,
+    scanCount,
+    uptimeSeconds:  Number(st.uptimeSeconds || 0),
+  };
+}
+
 // ── HTTP server ──────────────────────────────────────────────────────────────
 
 const server = http.createServer((req, res) => {
@@ -147,6 +188,32 @@ const server = http.createServer((req, res) => {
     const running = Object.values(state).filter(s => s.status === 'running').length;
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ ok: true, running, total: BOTS.length, ts: Date.now() }));
+    return;
+  }
+
+  // JSON bot stats — fetched by main server.js to power the Founder's Office
+  if (url === '/api/bots') {
+    const botList = BOTS.map(bot => {
+      const s = state[bot.id];
+      let stats = { totalProfit: 0, tradeCount: 0, scanCount: 0, uptimeSeconds: 0 };
+      if (s.instance) {
+        try {
+          const st = s.instance.getStatus();
+          stats = normalizeStats(st);
+        } catch (_) {}
+      }
+      return {
+        id:          bot.id,
+        name:        bot.name,
+        status:      s.status,
+        running:     s.status === 'running',
+        restarts:    s.restarts,
+        lastStart:   s.lastStart,
+        ...stats,
+      };
+    });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ ok: true, bots: botList, ts: Date.now() }));
     return;
   }
 
