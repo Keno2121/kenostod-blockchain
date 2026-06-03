@@ -41,8 +41,8 @@ class ArbEngine {
     this.sessionProfit = 0;
     this.tradeHistory  = [];
     this.startCapital  = 0;
-    this.kaprekar      = new Kaprekar();
-    this.benford       = new Benford();
+    this.kaprekar      = Kaprekar;
+    this.benford       = Benford.monitor || Benford;
     this.scanTimer     = null;
   }
 

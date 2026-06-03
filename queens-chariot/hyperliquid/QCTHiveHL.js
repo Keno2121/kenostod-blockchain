@@ -57,8 +57,8 @@ class QCTHiveHL {
     this.qct          = null;
     this.running      = false;
 
-    this.kaprekar     = new Kaprekar();
-    this.benford      = new Benford();
+    this.kaprekar     = Kaprekar;
+    this.benford      = Benford.monitor || Benford;
 
     this.stats = {
       arbProfit:       0,
@@ -179,8 +179,8 @@ class QCTHiveHL {
         ? Euler.continuousEarnings(equity, 0.15, 1/12)
         : equity * 0.0125;
 
-      const ramanujan = Ramanujan && Ramanujan.check
-        ? Ramanujan.check(totalProfit)
+      const ramanujan = Ramanujan && Ramanujan.crossedMilestone
+        ? Ramanujan.crossedMilestone(totalProfit)
         : null;
 
       console.log('\n══════════ QCT HIVE REPORT ══════════');
@@ -220,12 +220,23 @@ class QCTHiveHL {
 
 // ── Entry point ────────────────────────────────────────────────────────────
 if (require.main === module) {
-  const hive = new QCTHiveHL();
-  hive.start().catch(err => {
-    console.error('Fatal:', err.message);
-    process.exit(1);
+  process.on('unhandledRejection', (err) => {
+    console.error('[QCTHive] Unhandled rejection (process stays alive):', err && err.message);
   });
-
+  const hive = new QCTHiveHL();
+  async function tryStart() {
+    try {
+      const result = await hive.start();
+      if (result && !result.ok) {
+        console.error('[QCTHive] Start not-ok, retrying in 90s:', result.msg);
+        setTimeout(tryStart, 90_000);
+      }
+    } catch (err) {
+      console.error('[QCTHive] Start failed, retrying in 90s:', err.message);
+      setTimeout(tryStart, 90_000);
+    }
+  }
+  tryStart();
   process.on('SIGTERM', () => { hive.arb?.stop(); hive.vault?.stop(); process.exit(0); });
   process.on('SIGINT',  () => { hive.arb?.stop(); hive.vault?.stop(); process.exit(0); });
 }

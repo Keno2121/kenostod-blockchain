@@ -48,7 +48,7 @@ class VaultManager {
     this.l3ReleaseAt    = 0;
     this.l4ReleaseAt    = 0;
     this.totalDistributed = 0;
-    this.kaprekar       = new Kaprekar();
+    this.kaprekar       = Kaprekar;
     this.releaseTimer   = null;
   }
 

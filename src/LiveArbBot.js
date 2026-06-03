@@ -47,6 +47,11 @@ const FARM_ABI = [
 ];
 
 const BSC_RPC_ENDPOINTS = [
+  'https://rpc.ankr.com/bsc',
+  'https://bsc-rpc.publicnode.com',
+  'https://binance.llamarpc.com',
+  'https://1rpc.io/bnb',
+  'https://bsc.meowrpc.com',
   'https://bsc-dataseed1.binance.org/',
   'https://bsc-dataseed2.binance.org/',
   'https://bsc-dataseed3.binance.org/'
@@ -625,3 +630,25 @@ class LiveArbBot {
 }
 
 module.exports = LiveArbBot;
+
+if (require.main === module) {
+  process.on('unhandledRejection', (err) => {
+    console.error('[LiveArbBot] Unhandled rejection (process stays alive):', err && err.message);
+  });
+  const bot = new LiveArbBot();
+  async function tryStart() {
+    try {
+      const result = await bot.start();
+      if (!result.ok) {
+        console.error('[LiveArbBot] Start failed, retrying in 90s:', result.msg);
+        setTimeout(tryStart, 90_000);
+      }
+    } catch (err) {
+      console.error('[LiveArbBot] Startup error, retrying in 90s:', err.message);
+      setTimeout(tryStart, 90_000);
+    }
+  }
+  tryStart();
+  process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
+  process.on('SIGINT',  () => { bot.stop(); process.exit(0); });
+}

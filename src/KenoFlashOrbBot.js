@@ -67,6 +67,11 @@ const ERC20_ABI = [
 ];
 
 const BSC_RPC_ENDPOINTS = [
+  'https://rpc.ankr.com/bsc',
+  'https://bsc-rpc.publicnode.com',
+  'https://binance.llamarpc.com',
+  'https://1rpc.io/bnb',
+  'https://bsc.meowrpc.com',
   'https://bsc-dataseed1.binance.org/',
   'https://bsc-dataseed2.binance.org/',
   'https://bsc-dataseed3.binance.org/',
@@ -531,3 +536,22 @@ class KenoFlashOrbBot {
 }
 
 module.exports = KenoFlashOrbBot;
+
+if (require.main === module) {
+  const bot = new KenoFlashOrbBot();
+  async function tryStart() {
+    try {
+      const result = await bot.start();
+      if (!result.ok) {
+        console.error('[FlashOrb] Start failed, retrying in 90s:', result.msg);
+        setTimeout(tryStart, 90_000);
+      }
+    } catch (err) {
+      console.error('[FlashOrb] Startup error, retrying in 90s:', err.message);
+      setTimeout(tryStart, 90_000);
+    }
+  }
+  tryStart();
+  process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
+  process.on('SIGINT',  () => { bot.stop(); process.exit(0); });
+}
