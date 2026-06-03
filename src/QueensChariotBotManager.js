@@ -931,3 +931,13 @@ class QueensChariotBotManager {
 }
 
 module.exports = QueensChariotBotManager;
+
+if (require.main === module) {
+  const bot = new QueensChariotBotManager();
+  bot.start().catch(err => {
+    console.error('[QueensChariot] Fatal startup error:', err.message);
+    process.exit(1);
+  });
+  process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
+  process.on('SIGINT',  () => { bot.stop(); process.exit(0); });
+}
