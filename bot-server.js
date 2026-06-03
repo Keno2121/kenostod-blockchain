@@ -162,7 +162,7 @@ const server = http.createServer((req, res) => {
   if (url === '/status') {
     const rows = Object.entries(state).map(([id, s]) => {
       const icon = s.status === 'running' ? '🟢' : s.status === 'skipped' ? '⚪' : s.status === 'error' ? '🔴' : '🟡';
-      return `${icon} ${s.name.padEnd(35)} ${s.status.padEnd(12)} restarts: ${s.restarts}  ${s.lastLine.slice(0, 60)}`;
+      return `${icon} ${s.name.padEnd(35)} ${s.status.padEnd(12)} restarts: ${s.restarts}  ${s.lastLine.slice(0, 200)}`;
     }).join('\n');
 
     const uptime = Math.floor(process.uptime() / 60);
