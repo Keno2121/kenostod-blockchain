@@ -52,7 +52,7 @@ const MIN_CONFIRM       = 3;     // Nash: N consecutive readings required before
 const MAX_POSITIONS     = 3;     // Max simultaneous open positions
 const SCAN_MS           = 60_000;  // Scan every 60 seconds
 const MIN_EQUITY_USD    = 5;     // Minimum account equity to trade
-const SOLANA_RPC        = 'https://api.mainnet-beta.solana.com';
+const SOLANA_RPC        = 'https://solana-mainnet.rpc.extrnode.com';
 
 // φ-based position size: 1/φ = 61.8% of equity per position (Law III)
 const POSITION_RATIO    = 1 / PHI;
