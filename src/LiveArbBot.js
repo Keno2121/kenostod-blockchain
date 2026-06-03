@@ -632,6 +632,9 @@ class LiveArbBot {
 module.exports = LiveArbBot;
 
 if (require.main === module) {
+  process.on('unhandledRejection', (err) => {
+    console.error('[LiveArbBot] Unhandled rejection (process stays alive):', err && err.message);
+  });
   const bot = new LiveArbBot();
   async function tryStart() {
     try {
