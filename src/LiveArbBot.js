@@ -47,14 +47,9 @@ const FARM_ABI = [
 ];
 
 const BSC_RPC_ENDPOINTS = [
-  'https://rpc.ankr.com/bsc',
   'https://bsc-rpc.publicnode.com',
-  'https://binance.llamarpc.com',
-  'https://1rpc.io/bnb',
-  'https://bsc.meowrpc.com',
-  'https://bsc-dataseed1.binance.org/',
-  'https://bsc-dataseed2.binance.org/',
-  'https://bsc-dataseed3.binance.org/'
+  'https://bsc.rpc.blxrbdn.com',
+  'https://rpc-bsc.48.club',
 ];
 
 class LiveArbBot {
