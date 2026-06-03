@@ -220,12 +220,23 @@ class QCTHiveHL {
 
 // ── Entry point ────────────────────────────────────────────────────────────
 if (require.main === module) {
-  const hive = new QCTHiveHL();
-  hive.start().catch(err => {
-    console.error('Fatal:', err.message);
-    process.exit(1);
+  process.on('unhandledRejection', (err) => {
+    console.error('[QCTHive] Unhandled rejection (process stays alive):', err && err.message);
   });
-
+  const hive = new QCTHiveHL();
+  async function tryStart() {
+    try {
+      const result = await hive.start();
+      if (result && !result.ok) {
+        console.error('[QCTHive] Start not-ok, retrying in 90s:', result.msg);
+        setTimeout(tryStart, 90_000);
+      }
+    } catch (err) {
+      console.error('[QCTHive] Start failed, retrying in 90s:', err.message);
+      setTimeout(tryStart, 90_000);
+    }
+  }
+  tryStart();
   process.on('SIGTERM', () => { hive.arb?.stop(); hive.vault?.stop(); process.exit(0); });
   process.on('SIGINT',  () => { hive.arb?.stop(); hive.vault?.stop(); process.exit(0); });
 }
