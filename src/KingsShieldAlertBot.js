@@ -173,3 +173,11 @@ class KingsShieldAlertBot {
 }
 
 module.exports = KingsShieldAlertBot;
+
+if (require.main === module) {
+  const bot = new KingsShieldAlertBot();
+  bot.start();
+  console.log('[KingsShieldAlertBot] Running — monitoring Kings Shield ecosystem.');
+  process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
+  process.on('SIGINT',  () => { bot.stop(); process.exit(0); });
+}
