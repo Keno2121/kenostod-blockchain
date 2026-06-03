@@ -9021,10 +9021,65 @@ app.get('/api/qct-hive/report',        (req, res) => res.json(queensChariot.getF
 app.post('/api/qct-hive/rebalance',    (req, res) => res.json(queensChariot.rebalance()));
 app.post('/api/qct-hive/send-report',  (req, res) => res.json(queensChariot.sendReport()));
 
-// ── Master bot status (all 5 bots in one call) ──
-app.get('/api/bots/status', requireFounder, (req, res) => {
+// ── Fetch live stats from the Render bot server ──────────────────────────────
+// Maps Render bot IDs → server.js bot IDs (some differ)
+const RENDER_BOT_ID_MAP = {
+    'live-arb':               'live-arb',
+    'keno-flash-orb':         'flash-orb',
+    'aegis-arb':              'aegis-arb',
+    'qct-hive-hl':            'qct-hive',
+    'drift-funding':          'drift-funding',
+    'queens-chariot-manager': null,
+    'shield-alert':           null,
+};
+
+async function fetchRenderBotStats() {
+    const url = (process.env.BOT_SERVER_URL || 'https://sovereign-bots.onrender.com') + '/api/bots';
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+        const data = await resp.json();
+        // Build a lookup map: server.js-bot-id → render stats
+        const statsMap = {};
+        for (const bot of (data.bots || [])) {
+            const localId = RENDER_BOT_ID_MAP[bot.id];
+            if (localId) statsMap[localId] = bot;
+        }
+        return { ok: true, statsMap };
+    } catch (_) {
+        return { ok: false, statsMap: {} };
+    }
+}
+
+// ── Master bot status (Founder's Office) ─────────────────────────────────────
+app.get('/api/bots/status', requireFounder, async (req, res) => {
     const tgRunning = !!(telegramBotInstance);
+
+    // Fetch real live stats from the Render bot server (non-blocking, 4s timeout)
+    const { ok: renderOk, statsMap } = await fetchRenderBotStats();
+
+    // Merge helper: overlays real running/profit/trade/scan data from Render
+    function withRenderStats(localId, localStatus) {
+        const r = statsMap[localId];
+        if (!r) return localStatus;
+        return {
+            ...localStatus,
+            running:      r.running,
+            // Show real profit/trade/scan from Render; fall back to local 0s
+            totalProfit:  r.totalProfit  ?? localStatus.totalProfit  ?? 0,
+            tradeCount:   r.tradeCount   ?? localStatus.tradeCount   ?? 0,
+            scanCount:    r.scanCount    ?? localStatus.scanCount     ?? 0,
+            uptimeSeconds: r.uptimeSeconds ?? 0,
+            renderStatus: r.status,
+            renderRestarts: r.restarts,
+            liveData:     true,
+        };
+    }
+
     res.json({
+        renderConnected: renderOk,
         bots: [
             {
                 id:          'kenostod-assistant',
@@ -9037,7 +9092,7 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 handle:      '@KenostodBot',
                 controllable: false,
             },
-            {
+            withRenderStats('live-arb', {
                 id:          'live-arb',
                 name:        'Live Arb Bot',
                 emoji:       '⚡',
@@ -9048,8 +9103,8 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 stopUrl:     '/api/live-arb/stop',
                 statusUrl:   '/api/live-arb/status',
                 ...liveArbBot.getStatus(),
-            },
-            {
+            }),
+            withRenderStats('flash-orb', {
                 id:          'flash-orb',
                 name:        'Keno Flash Orb Bot',
                 emoji:       '🔮',
@@ -9060,8 +9115,8 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 stopUrl:     '/api/flash-orb/stop',
                 statusUrl:   '/api/flash-orb/status',
                 ...flashOrbBot.getStatus(),
-            },
-            {
+            }),
+            withRenderStats('aegis-arb', {
                 id:          'aegis-arb',
                 name:        'Aegis Arb Bot',
                 emoji:       '⚔',
@@ -9072,7 +9127,7 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 stopUrl:     '/api/aegis-arb/stop',
                 statusUrl:   '/api/aegis-arb/status',
                 ...aegisArbBot.getStatus(),
-            },
+            }),
             {
                 id:          'constitution-flash',
                 name:        'Constitution Flash Bot',
@@ -9085,7 +9140,7 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 statusUrl:   '/api/constitution-flash/status',
                 ...constitutionFlash.getStatus(),
             },
-            {
+            withRenderStats('hl-funding', {
                 id:          'hl-funding',
                 name:        'Hyperliquid Funding Bot',
                 emoji:       '💎',
@@ -9096,8 +9151,8 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 stopUrl:     '/api/hl-funding/stop',
                 statusUrl:   '/api/hl-funding/status',
                 ...hyperliquidFunding.getStatus(),
-            },
-            {
+            }),
+            withRenderStats('drift-funding', {
                 id:          'drift-funding',
                 name:        'Drift Funding Bot',
                 emoji:       '💜',
@@ -9108,8 +9163,8 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 stopUrl:     '/api/drift-funding/stop',
                 statusUrl:   '/api/drift-funding/status',
                 ...driftFunding.getStatus(),
-            },
-            {
+            }),
+            withRenderStats('qct-hive', {
                 id:          'qct-hive',
                 name:        'Queens Chariot — Hive Orchestrator',
                 emoji:       '👑',
@@ -9121,7 +9176,7 @@ app.get('/api/bots/status', requireFounder, (req, res) => {
                 statusUrl:   '/api/qct-hive/status',
                 isOrchestrator: true,
                 ...queensChariot.getStatus(),
-            },
+            }),
         ]
     });
 });

@@ -1989,17 +1989,29 @@
                     return;
                 }
                 const data = await res.json();
-                renderBots(data.bots || []);
+                renderBots(data.bots || [], data.renderConnected);
             } catch(e) {
                 document.getElementById('bots-grid').innerHTML =
                     '<div style="color:var(--danger);padding:2rem;text-align:center;">Connection error — tap ↻ Refresh to retry.</div>';
             }
         }
 
-        function renderBots(bots) {
-            const CHAIN_COLORS = { BSC: '#f0b90b', Solana: '#9945ff', Telegram: '#229ed9' };
+        function renderBots(bots, renderConnected) {
+            const CHAIN_COLORS = { BSC: '#f0b90b', Solana: '#9945ff', Telegram: '#229ed9', Hyperliquid: '#00d4aa', 'All Chains': '#d4af37' };
             const grid = document.getElementById('bots-grid');
-            grid.innerHTML = bots.map(bot => {
+
+            // Connection status banner
+            const banner = renderConnected
+                ? `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;margin-bottom:1rem;font-size:0.8rem;color:#10b981;">
+                     <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981"></span>
+                     <strong>LIVE</strong> — stats streaming from Render bot server in real time
+                   </div>`
+                : `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;margin-bottom:1rem;font-size:0.8rem;color:#f59e0b;">
+                     <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b"></span>
+                     ⚠ Render bot server unreachable — showing last known data. Bots still running 24/7 on Render.
+                   </div>`;
+
+            grid.innerHTML = banner + bots.map(bot => {
                 const running      = bot.running;
                 const statusColor  = running ? 'var(--success)' : 'var(--text-muted)';
                 const statusDot    = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${statusColor};margin-right:6px;${running ? 'box-shadow:0 0 6px var(--success)' : ''}"></span>`;
@@ -2008,6 +2020,9 @@
                 const trades       = bot.tradeCount  != null ? bot.tradeCount : '—';
                 const scans        = bot.scanCount   != null ? bot.scanCount  : '—';
                 const uptime       = bot.uptimeSeconds ? formatUptime(bot.uptimeSeconds) : '—';
+                const liveBadge    = bot.liveData
+                    ? `<span style="font-size:0.65rem;padding:1px 7px;border-radius:20px;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.35);">● LIVE</span>`
+                    : '';
                 const tgLinked     = bot.telegramLinked;
                 const tgBadge      = `<span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:${tgLinked !== false ? 'rgba(34,158,217,0.15)' : 'rgba(148,163,184,0.1)'};color:${tgLinked !== false ? '#229ed9' : '#64748b'};border:1px solid ${tgLinked !== false ? 'rgba(34,158,217,0.3)' : 'rgba(100,116,139,0.2)'}">✈ Telegram ${tgLinked !== false ? 'linked' : 'pending chat ID'}</span>`;
 
@@ -2035,6 +2050,7 @@
                                 <span style="font-size:1.3rem;">${bot.emoji}</span>
                                 <span style="font-weight:700;font-size:1rem;">${bot.name}</span>
                                 <span style="font-size:0.7rem;padding:2px 8px;border-radius:20px;background:${chainColor}22;color:${chainColor};border:1px solid ${chainColor}44;">${bot.chain}</span>
+                                ${liveBadge}
                                 ${tgBadge}
                             </div>
                             <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.75rem;">${bot.description}</p>
