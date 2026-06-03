@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs   = require('fs');
 
 // Detect Replit-internal database URLs that won't work outside Replit
 if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('helium') && !process.env.REPLIT_DOMAINS) {
@@ -132,10 +134,16 @@ const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
 const AISupport = require('./src/AISupport');
-const KenostodTelegramBot = require('./src/TelegramBot');
+const KenostodTelegramBot        = require('./src/TelegramBot');
+const AegisArbBotManager              = require('./src/AegisArbBotManager');
+const ConstitutionFlashBotManager     = require('./src/ConstitutionFlashBotManager');
+const HyperliquidFundingBotManager    = require('./src/HyperliquidFundingBotManager');
+const DriftFundingBotManager          = require('./src/DriftFundingBotManager');
+const QueensChariotBotManager         = require('./src/QueensChariotBotManager');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
-const LiveArbBot = require('./src/LiveArbBot');
+const LiveArbBot      = require('./src/LiveArbBot');
+const KenoFlashOrbBot = require('./src/KenoFlashOrbBot');
 const UTLFeeCollector = require('./src/UTLFeeCollector');
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('./src/secp256k1-compat').ec;
@@ -569,6 +577,24 @@ app.use((req, res, next) => {
     next();
 });
 
+// ── Virtual host: kings-shield.com → serve Kings Shield website ──────────────
+const kingsShieldDir = path.join(__dirname, 'kings-shield', 'website');
+app.use((req, res, next) => {
+    const host = (req.headers['x-forwarded-host'] || req.hostname || req.headers.host || '').toLowerCase();
+    if (host.includes('kings-shield')) {
+        return express.static(kingsShieldDir, {
+            setHeaders: (res, filePath) => {
+                if (filePath.endsWith('.html')) {
+                    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                }
+            }
+        })(req, res, () => {
+            res.sendFile(path.join(kingsShieldDir, 'index.html'));
+        });
+    }
+    next();
+});
+
 app.use(express.static('public', {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html')) {
@@ -600,6 +626,52 @@ app.get('/api/utl/config', (req, res) => {
         },
         network: { chainId: 56, name: 'BNB Smart Chain', rpc: 'https://bsc-dataseed1.binance.org/' }
     });
+});
+
+// ── Early Access / Waitlist ──────────────────────────────────────────────────
+const WAITLIST_FILE = path.join(__dirname, 'data', 'waitlist.json');
+
+function loadWaitlist() {
+    try {
+        if (fs.existsSync(WAITLIST_FILE)) return JSON.parse(fs.readFileSync(WAITLIST_FILE, 'utf8'));
+    } catch (e) { /* ignore */ }
+    return [];
+}
+
+function saveWaitlist(list) {
+    try {
+        const dir = path.join(__dirname, 'data');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(WAITLIST_FILE, JSON.stringify(list, null, 2));
+    } catch (e) { console.error('[Waitlist] Save error:', e.message); }
+}
+
+app.post('/api/join', (req, res) => {
+    const { email, wallet, interest, source } = req.body || {};
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: 'Valid email required' });
+    }
+    const list = loadWaitlist();
+    const existing = list.find(e => e.email.toLowerCase() === email.toLowerCase());
+    if (!existing) {
+        list.push({
+            email: email.toLowerCase().trim(),
+            wallet: (wallet || '').trim(),
+            interest: interest || 'general',
+            source: source || 'direct',
+            joinedAt: new Date().toISOString(),
+        });
+        saveWaitlist(list);
+        console.log(`[Waitlist] New signup: ${email} | interest: ${interest} | source: ${source}`);
+    }
+    res.json({ ok: true, position: list.length });
+});
+
+app.get('/api/join/list', (req, res) => {
+    const key = req.query.key || req.headers['x-admin-key'];
+    if (key !== process.env.ADMIN_KEY) return res.status(403).json({ error: 'Forbidden' });
+    const list = loadWaitlist();
+    res.json({ count: list.length, signups: list });
 });
 
 app.get('/api/subscription/verify', async (req, res) => {
@@ -1096,6 +1168,37 @@ app.get('/api/utl/fee/audit', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── King's Shield × KENO Flywheel ────────────────────────────────────────
+app.get('/kings-shield-flywheel', (req, res) => {
+    res.sendFile(__dirname + '/public/kings-shield-flywheel.html');
+});
+
+app.get('/api/shield-flywheel/stats', async (req, res) => {
+    // Live stats — reads from KENOAutoBurn deployment record when available
+    const fs   = require('fs');
+    const path = require('path');
+    try {
+        const deployFile = path.join(__dirname, 'keno-bonding/deployments/bsc-autoburn.json');
+        const autoBurnAddress = fs.existsSync(deployFile)
+            ? JSON.parse(fs.readFileSync(deployFile, 'utf8')).address
+            : null;
+
+        // Placeholder stats until contract deployed
+        res.json({
+            autoBurnAddress,
+            totalKenoBurned: 0,
+            totalBnbUsed:    0,
+            burnCount:       0,
+            pendingBnb:      0,
+            shieldLpSizeSol: 0,
+            recentBurns:     [],
+            status:          autoBurnAddress ? 'contract_deployed' : 'awaiting_deploy'
+        });
+    } catch (e) {
+        res.json({ totalKenoBurned: 0, totalBnbUsed: 0, burnCount: 0, recentBurns: [] });
+    }
+});
+
 app.get('/snap-package/snap.manifest.json', (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="snap.manifest.json"');
     res.sendFile(__dirname + '/utl/metamask-snap/snap.manifest.json');
@@ -1207,7 +1310,24 @@ app.get('/KENO-CONTRACT-FOR-BSCSCAN-CLEAN.txt', (req, res) => {
 let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, stripeIntegration;
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
-const liveArbBot = new LiveArbBot();
+const liveArbBot        = new LiveArbBot();
+const flashOrbBot       = new KenoFlashOrbBot();
+const aegisArbBot       = new AegisArbBotManager();
+const constitutionFlash = new ConstitutionFlashBotManager();
+const hyperliquidFunding = new HyperliquidFundingBotManager();
+const driftFunding       = new DriftFundingBotManager();
+
+// Queens Chariot Bot — initialized AFTER all worker bots so it can reference them
+// The Queen receives the entire hive as her court
+const queensChariot = new QueensChariotBotManager([
+    { id: 'flash-orb',          name: 'KENO Flash Orb',       emoji: '🤖', chain: 'BSC',          manager: flashOrbBot },
+    { id: 'live-arb',           name: 'Live Arb',              emoji: '🤖', chain: 'BSC',          manager: liveArbBot },
+    { id: 'aegis-arb',          name: 'Aegis Arb',             emoji: '⚔',  chain: 'Solana',       manager: aegisArbBot },
+    { id: 'constitution-flash', name: 'Constitution Flash',    emoji: '📜', chain: 'Solana',       manager: constitutionFlash },
+    { id: 'hl-funding',         name: 'Hyperliquid Funding',   emoji: '💎', chain: 'Hyperliquid',  manager: hyperliquidFunding },
+    { id: 'drift-funding',      name: 'Drift Funding',         emoji: '💜', chain: 'Solana',       manager: driftFunding },
+]);
+let   telegramBotInstance = null;
 let icoPurchases = [], pendingPayPalOrders = new Map();
 
 // Function to log ICO purchases and save to file
@@ -8751,7 +8871,7 @@ app.get('/api/live-arb/status', (req, res) => {
 app.get('/api/live-arb/wallet', async (req, res) => {
     try {
         if (!liveArbBot.wallet) {
-            return res.json({ address: process.env.NEW_WALLET_PRIVATE_KEY ? '(not connected)' : '(key not set)', bnb: '—', keno: '—' });
+            return res.json({ address: process.env.WALLET_PRIVATE_KEY ? '(not connected)' : '(key not set)', bnb: '—', keno: '—' });
         }
         const info = await liveArbBot.getWalletInfo();
         res.json(info);
@@ -8810,6 +8930,258 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
 
 // ==================== END LIVE ARB BOT API ENDPOINTS ====================
 
+// ==================== KENO FLASH ORB BOT API ENDPOINTS ====================
+// Pure flash loan arbitrage — 5 Kaprekar amounts, 30s scan, 7 Constitutional Laws
+// All routes require founder session (same guard as LiveArbBot)
+
+app.use('/api/flash-orb', requireFounder);
+
+app.post('/api/flash-orb/start', async (req, res) => {
+    try {
+        const result = await flashOrbBot.start();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/flash-orb/stop', (req, res) => {
+    res.json(flashOrbBot.stop());
+});
+
+app.post('/api/flash-orb/pause', (req, res) => {
+    flashOrbBot.pause();
+    res.json({ ok: true });
+});
+
+app.post('/api/flash-orb/resume', (req, res) => {
+    flashOrbBot.resume();
+    res.json({ ok: true });
+});
+
+app.get('/api/flash-orb/status', (req, res) => {
+    res.json(flashOrbBot.getStatus());
+});
+
+app.get('/api/flash-orb/wallet', async (req, res) => {
+    try {
+        if (!flashOrbBot.wallet) {
+            const info = { address: '(bot not started)', bnb: '0', keno: '0', bnbUSD: '0' };
+            return res.json(info);
+        }
+        res.json(await flashOrbBot.getWalletInfo());
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/flash-orb/config', (req, res) => {
+    try {
+        const result = flashOrbBot.updateConfig(req.body);
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.get('/api/flash-orb/profits', (req, res) => {
+    res.json(flashOrbBot.getProfitLog());
+});
+
+// ==================== END KENO FLASH ORB BOT API ENDPOINTS ====================
+
+// ==================== KINGS SHIELD BOTS API ENDPOINTS ====================
+app.use('/api/aegis-arb',         requireFounder);
+app.use('/api/constitution-flash', requireFounder);
+app.use('/api/hl-funding',         requireFounder);
+app.use('/api/drift-funding',      requireFounder);
+
+app.post('/api/aegis-arb/start',  (req, res) => res.json(aegisArbBot.start()));
+app.post('/api/aegis-arb/stop',   (req, res) => res.json(aegisArbBot.stop()));
+app.get('/api/aegis-arb/status',  (req, res) => res.json(aegisArbBot.getStatus()));
+
+app.post('/api/constitution-flash/start', (req, res) => res.json(constitutionFlash.start()));
+app.post('/api/constitution-flash/stop',  (req, res) => res.json(constitutionFlash.stop()));
+app.get('/api/constitution-flash/status', (req, res) => res.json(constitutionFlash.getStatus()));
+
+app.post('/api/hl-funding/start',  (req, res) => res.json(hyperliquidFunding.start()));
+app.post('/api/hl-funding/stop',   (req, res) => res.json(hyperliquidFunding.stop()));
+app.get('/api/hl-funding/status',  (req, res) => res.json(hyperliquidFunding.getStatus()));
+
+app.post('/api/drift-funding/start',  (req, res) => res.json(driftFunding.start()));
+app.post('/api/drift-funding/stop',   (req, res) => res.json(driftFunding.stop()));
+app.get('/api/drift-funding/status',  (req, res) => res.json(driftFunding.getStatus()));
+
+// Queens Chariot Bot — Hive Orchestrator (all routes require founder auth)
+app.use('/api/qct-hive', requireFounder);
+app.post('/api/qct-hive/start',        (req, res) => res.json(queensChariot.start()));
+app.post('/api/qct-hive/stop',         (req, res) => res.json(queensChariot.stop()));
+app.get('/api/qct-hive/status',        (req, res) => res.json(queensChariot.getStatus()));
+app.get('/api/qct-hive/report',        (req, res) => res.json(queensChariot.getFullReport()));
+app.post('/api/qct-hive/rebalance',    (req, res) => res.json(queensChariot.rebalance()));
+app.post('/api/qct-hive/send-report',  (req, res) => res.json(queensChariot.sendReport()));
+
+// ── Fetch live stats from the Render bot server ──────────────────────────────
+// Maps Render bot IDs → server.js bot IDs (some differ)
+const RENDER_BOT_ID_MAP = {
+    'live-arb':               'live-arb',
+    'keno-flash-orb':         'flash-orb',
+    'aegis-arb':              'aegis-arb',
+    'qct-hive-hl':            'qct-hive',
+    'drift-funding':          'drift-funding',
+    'queens-chariot-manager': null,
+    'shield-alert':           null,
+};
+
+async function fetchRenderBotStats() {
+    const url = (process.env.BOT_SERVER_URL || 'https://sovereign-bots.onrender.com') + '/api/bots';
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+        const data = await resp.json();
+        // Build a lookup map: server.js-bot-id → render stats
+        const statsMap = {};
+        for (const bot of (data.bots || [])) {
+            const localId = RENDER_BOT_ID_MAP[bot.id];
+            if (localId) statsMap[localId] = bot;
+        }
+        return { ok: true, statsMap };
+    } catch (_) {
+        return { ok: false, statsMap: {} };
+    }
+}
+
+// ── Master bot status (Founder's Office) ─────────────────────────────────────
+app.get('/api/bots/status', requireFounder, async (req, res) => {
+    const tgRunning = !!(telegramBotInstance);
+
+    // Fetch real live stats from the Render bot server (non-blocking, 4s timeout)
+    const { ok: renderOk, statsMap } = await fetchRenderBotStats();
+
+    // Merge helper: overlays real running/profit/trade/scan data from Render
+    function withRenderStats(localId, localStatus) {
+        const r = statsMap[localId];
+        if (!r) return localStatus;
+        return {
+            ...localStatus,
+            running:      r.running,
+            // Show real profit/trade/scan from Render; fall back to local 0s
+            totalProfit:  r.totalProfit  ?? localStatus.totalProfit  ?? 0,
+            tradeCount:   r.tradeCount   ?? localStatus.tradeCount   ?? 0,
+            scanCount:    r.scanCount    ?? localStatus.scanCount     ?? 0,
+            uptimeSeconds: r.uptimeSeconds ?? 0,
+            renderStatus: r.status,
+            renderRestarts: r.restarts,
+            liveData:     true,
+        };
+    }
+
+    res.json({
+        renderConnected: renderOk,
+        bots: [
+            {
+                id:          'kenostod-assistant',
+                name:        'Kenostod Assistant',
+                emoji:       '🤖',
+                chain:       'Telegram',
+                description: 'AI customer support — answers questions about KENO, UTL, Academy',
+                running:     tgRunning,
+                autoStart:   true,
+                handle:      '@KenostodBot',
+                controllable: false,
+            },
+            withRenderStats('live-arb', {
+                id:          'live-arb',
+                name:        'Live Arb Bot',
+                emoji:       '⚡',
+                chain:       'BSC',
+                description: 'KENO arbitrage on PancakeSwap — Kaprekar 60/25/15 split',
+                controllable: true,
+                startUrl:    '/api/live-arb/start',
+                stopUrl:     '/api/live-arb/stop',
+                statusUrl:   '/api/live-arb/status',
+                ...liveArbBot.getStatus(),
+            }),
+            withRenderStats('flash-orb', {
+                id:          'flash-orb',
+                name:        'Keno Flash Orb Bot',
+                emoji:       '🔮',
+                chain:       'BSC',
+                description: 'Flash loan arbitrage on BSC — 5 Kaprekar amounts',
+                controllable: true,
+                startUrl:    '/api/flash-orb/start',
+                stopUrl:     '/api/flash-orb/stop',
+                statusUrl:   '/api/flash-orb/status',
+                ...flashOrbBot.getStatus(),
+            }),
+            withRenderStats('aegis-arb', {
+                id:          'aegis-arb',
+                name:        'Aegis Arb Bot',
+                emoji:       '⚔',
+                chain:       'Solana',
+                description: 'DEX arb — SOL/USDC & SHIELD/SOL via Jupiter (Meteora, Orca, Raydium) every 61.74s',
+                controllable: true,
+                startUrl:    '/api/aegis-arb/start',
+                stopUrl:     '/api/aegis-arb/stop',
+                statusUrl:   '/api/aegis-arb/status',
+                ...aegisArbBot.getStatus(),
+            }),
+            {
+                id:          'constitution-flash',
+                name:        'Constitution Flash Bot',
+                emoji:       '📜',
+                chain:       'Solana',
+                description: 'Flash loan arb — 0.6174/1.234/6.174 SOL (Kaprekar) triangular routes',
+                controllable: true,
+                startUrl:    '/api/constitution-flash/start',
+                stopUrl:     '/api/constitution-flash/stop',
+                statusUrl:   '/api/constitution-flash/status',
+                ...constitutionFlash.getStatus(),
+            },
+            withRenderStats('hl-funding', {
+                id:          'hl-funding',
+                name:        'Hyperliquid Funding Bot',
+                emoji:       '💎',
+                chain:       'Hyperliquid',
+                description: 'Delta-neutral funding rate arb — short perps when funding is positive, collect hourly USDC payments (10–40% APR)',
+                controllable: true,
+                startUrl:    '/api/hl-funding/start',
+                stopUrl:     '/api/hl-funding/stop',
+                statusUrl:   '/api/hl-funding/status',
+                ...hyperliquidFunding.getStatus(),
+            }),
+            withRenderStats('drift-funding', {
+                id:          'drift-funding',
+                name:        'Drift Funding Bot',
+                emoji:       '💜',
+                chain:       'Solana',
+                description: 'Delta-neutral funding rate arb on Drift Protocol — 83 perp markets, global access (no geo-restriction), collect hourly USDC',
+                controllable: true,
+                startUrl:    '/api/drift-funding/start',
+                stopUrl:     '/api/drift-funding/stop',
+                statusUrl:   '/api/drift-funding/status',
+                ...driftFunding.getStatus(),
+            }),
+            withRenderStats('qct-hive', {
+                id:          'qct-hive',
+                name:        'Queens Chariot — Hive Orchestrator',
+                emoji:       '👑',
+                chain:       'All Chains',
+                description: 'The Queen Bee. Watches all 6 worker bots, applies 7 Constitutional Laws to collective earnings, routes profits via Kaprekar split, Nash-rebalances capital, projects Euler compound growth, and signals QCT buybacks.',
+                controllable: true,
+                startUrl:    '/api/qct-hive/start',
+                stopUrl:     '/api/qct-hive/stop',
+                statusUrl:   '/api/qct-hive/status',
+                isOrchestrator: true,
+                ...queensChariot.getStatus(),
+            }),
+        ]
+    });
+});
+// ==================== END KINGS SHIELD BOTS API ENDPOINTS ==================
+
 // ==================== REAL ON-CHAIN FLASH ARB LOAN (FAL) API ENDPOINTS ====================
 // FlashArbLoan contract: 0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e on BSC
 (function() {
@@ -8835,8 +9207,8 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
 
     function getProvider() { return new ethers.JsonRpcProvider(BSC_RPC); }
     function getSigner() {
-        const pk = process.env.NEW_WALLET_PRIVATE_KEY;
-        if (!pk) throw new Error('NEW_WALLET_PRIVATE_KEY not set');
+        const pk = process.env.WALLET_PRIVATE_KEY;
+        if (!pk) throw new Error('WALLET_PRIVATE_KEY not set');
         return new ethers.Wallet(pk, getProvider());
     }
 
@@ -9123,7 +9495,7 @@ app.post('/api/live-arb/farm-unstake', async (req, res) => {
     // ── Main loop ─────────────────────────────────────────────────────────────
     async function checkAndExecute() {
         if (!autoEnabled || isRunning) return;
-        const pk = process.env.NEW_WALLET_PRIVATE_KEY;
+        const pk = process.env.WALLET_PRIVATE_KEY;
         if (!pk) return;
         if (Date.now() - lastExecAt < COOLDOWN_MS) return;
 
@@ -11424,23 +11796,23 @@ app.listen(PORT, '0.0.0.0', () => {
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
 
-    // Start Telegram bot
+    // Start Telegram bot (Kenostod Assistant — auto-start)
     try {
-        new KenostodTelegramBot();
+        telegramBotInstance = new KenostodTelegramBot();
     } catch (err) {
         console.error('❌ Telegram bot init error:', err.message);
     }
 
-    // AUTO-START Live Arb Bot (PancakeSwap ↔ BiSwap only — safe, deep pools)
-    setTimeout(async () => {
-        try {
-            console.log('🤖 Auto-starting Live Arb Bot...');
-            const result = await liveArbBot.start();
-            console.log('✅ Live Arb Bot auto-started:', result?.msg || 'running');
-        } catch (err) {
-            console.error('⚠️ Live Arb Bot auto-start error:', err.message);
-        }
-    }, 35000); // start 5s after FAL Multi (which starts at 30s)
+    // Kings Shield Bots — MANUAL START from Bots dashboard
+    console.log('⚔ Aegis Arb Bot ready — start from Bots dashboard (/api/aegis-arb/start)');
+    console.log('⚔ Constitution Flash Bot ready — start from Bots dashboard (/api/constitution-flash/start)');
+    console.log('💎 Hyperliquid Funding Bot ready — start from Bots dashboard (/api/hl-funding/start)');
+    console.log('💜 Drift Funding Bot ready — start from Bots dashboard (/api/drift-funding/start) [no geo-restriction]');
+    console.log('👑 Queens Chariot Hive Bot ready — orchestrates all 6 worker bots (/api/qct-hive/start)');
+
+    // Live Arb Bot — MANUAL START ONLY via dashboard (/api/live-arb/start)
+    // Auto-start is DISABLED. You must explicitly enable it from the founder dashboard.
+    console.log('🤖 Live Arb Bot ready — awaiting manual start from founder dashboard.');
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
