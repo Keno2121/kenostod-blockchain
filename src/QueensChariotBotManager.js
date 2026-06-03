@@ -933,11 +933,29 @@ class QueensChariotBotManager {
 module.exports = QueensChariotBotManager;
 
 if (require.main === module) {
-  const bot = new QueensChariotBotManager();
-  bot.start().catch(err => {
-    console.error('[QueensChariot] Fatal startup error:', err.message);
-    process.exit(1);
+  process.on('unhandledRejection', (err) => {
+    console.error('[QueensChariot] Unhandled rejection (process stays alive):', err && err.message);
   });
-  process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
-  process.on('SIGINT',  () => { bot.stop(); process.exit(0); });
+  const bot = new QueensChariotBotManager();
+  function tryStart() {
+    try {
+      const result = bot.start();
+      const p = result && typeof result.then === 'function' ? result : Promise.resolve(result);
+      p.catch(err => {
+        console.error('[QueensChariot] Start failed, retrying in 90s:', err && err.message);
+        setTimeout(tryStart, 90_000);
+      }).then(res => {
+        if (res && !res.ok) {
+          console.error('[QueensChariot] Start not-ok, retrying in 90s:', res.msg);
+          setTimeout(tryStart, 90_000);
+        }
+      });
+    } catch (err) {
+      console.error('[QueensChariot] Start threw, retrying in 90s:', err.message);
+      setTimeout(tryStart, 90_000);
+    }
+  }
+  tryStart();
+  process.on('SIGTERM', () => { try { bot.stop(); } catch(_) {} process.exit(0); });
+  process.on('SIGINT',  () => { try { bot.stop(); } catch(_) {} process.exit(0); });
 }
