@@ -212,11 +212,20 @@ class AegisArbBotManager {
 module.exports = AegisArbBotManager;
 
 if (require.main === module) {
-  const bot = new AegisArbBotManager();
-  bot.start().catch(err => {
-    console.error('[AegisArb] Fatal startup error:', err.message);
-    process.exit(1);
+  process.on('unhandledRejection', (err) => {
+    console.error('[AegisArb] Unhandled rejection (process stays alive):', err && err.message);
   });
-  process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
-  process.on('SIGINT',  () => { bot.stop(); process.exit(0); });
+  const bot = new AegisArbBotManager();
+  try {
+    const result = bot.start();
+    if (result && !result.ok) {
+      console.error('[AegisArb] Start returned not-ok:', result.msg);
+    }
+  } catch (err) {
+    console.error('[AegisArb] Start threw:', err.message);
+  }
+  console.log('[AegisArb] Process alive — waiting for Python child or restart.');
+  setInterval(() => {}, 60_000);
+  process.on('SIGTERM', () => { try { bot.stop(); } catch(_) {} process.exit(0); });
+  process.on('SIGINT',  () => { try { bot.stop(); } catch(_) {} process.exit(0); });
 }
