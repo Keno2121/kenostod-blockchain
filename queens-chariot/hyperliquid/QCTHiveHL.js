@@ -57,8 +57,8 @@ class QCTHiveHL {
     this.qct          = null;
     this.running      = false;
 
-    this.kaprekar     = new Kaprekar();
-    this.benford      = new Benford();
+    this.kaprekar     = Kaprekar;
+    this.benford      = Benford.monitor || Benford;
 
     this.stats = {
       arbProfit:       0,
@@ -179,8 +179,8 @@ class QCTHiveHL {
         ? Euler.continuousEarnings(equity, 0.15, 1/12)
         : equity * 0.0125;
 
-      const ramanujan = Ramanujan && Ramanujan.check
-        ? Ramanujan.check(totalProfit)
+      const ramanujan = Ramanujan && Ramanujan.crossedMilestone
+        ? Ramanujan.crossedMilestone(totalProfit)
         : null;
 
       console.log('\n══════════ QCT HIVE REPORT ══════════');
