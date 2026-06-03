@@ -531,3 +531,13 @@ class KenoFlashOrbBot {
 }
 
 module.exports = KenoFlashOrbBot;
+
+if (require.main === module) {
+  const bot = new KenoFlashOrbBot();
+  bot.start().catch(err => {
+    console.error('[FlashOrb] Fatal startup error:', err.message);
+    process.exit(1);
+  });
+  process.on('SIGTERM', () => { bot.stop(); process.exit(0); });
+  process.on('SIGINT',  () => { bot.stop(); process.exit(0); });
+}
