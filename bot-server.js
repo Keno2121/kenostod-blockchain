@@ -65,6 +65,13 @@ const BOTS = [
     requires: ['QCT_OWNER_KEY'],
     load:     () => require('./queens-chariot/hyperliquid/QCTHiveHL'),
   },
+  {
+    id:       'drift-funding',
+    name:     'Drift Funding Bot (AUTO-EXECUTE)',
+    enabled:  !!process.env.DRIFT_PRIVATE_KEY,
+    requires: ['DRIFT_PRIVATE_KEY'],
+    load:     () => require('./src/DriftFundingBot'),
+  },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
