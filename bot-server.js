@@ -120,7 +120,7 @@ function startBot(bot) {
     const lines = text.split('\n').filter(l => l && !l.includes('ExperimentalWarning') && !l.startsWith('(node'));
     if (lines.length > 0) {
       if (!firstStderr) firstStderr = lines[0];
-      state[bot.id].lastLine = '⚠ ' + lines[0].slice(0, 80);
+      state[bot.id].lastLine = '⚠ ' + lines[0].slice(0, 200);
       console.error(`[${bot.id}] ERR: ${lines[0]}`);
     }
   });
