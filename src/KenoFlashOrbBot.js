@@ -44,7 +44,7 @@ const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644';
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
 const BUSD = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
-const KENO = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — pool disabled for PinkSale, burn skipped until re-listed
 
 // ── Law VI: Kaprekar flash amounts (BNB) ──────────────────────────────────
 const FLASH_AMOUNTS_BNB = ['0.05', '0.1', '0.5', '1', '2'];
@@ -379,8 +379,26 @@ class KenoFlashOrbBot {
 
   // ═══════════════════════════════════════════════════════════════════════
   //  Law V — 15% KENOAutoBurn: buy KENO → send to 0x...dead
+  //  Skipped until KENO/WBNB pool is re-added post-PinkSale.
+  //  Profit accumulates in BNB in the meantime.
   // ═══════════════════════════════════════════════════════════════════════
   async _burnKeno(burnBNB) {
+    // Check if KENO/WBNB pair exists before attempting burn
+    try {
+      const FACTORY_ABI = ['function getPair(address,address) view returns (address)'];
+      const factory = new ethers.Contract(
+        '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73', FACTORY_ABI, this.provider
+      );
+      const pair = await factory.getPair(KENO, WBNB);
+      if (pair === '0x0000000000000000000000000000000000000000') {
+        this.log(`⏭ KENO burn skipped — pool not yet live (PinkSale pre-launch). 15% accumulates in BNB.`);
+        return;
+      }
+    } catch (_) {
+      this.log(`⏭ KENO burn skipped — pool check failed. 15% stays in BNB.`);
+      return;
+    }
+
     try {
       const DEAD = '0x000000000000000000000000000000000000dEaD';
       const router = new ethers.Contract(PANCAKE_ROUTER, ROUTER_ABI, this.wallet);
@@ -390,16 +408,13 @@ class KenoFlashOrbBot {
       const deadline = Math.floor(Date.now() / 1000) + 60;
 
       const tx = await router.swapExactETHForTokens(
-        minKeno,
-        [WBNB, KENO],
-        DEAD,
-        deadline,
+        minKeno, [WBNB, KENO], DEAD, deadline,
         { value: burnWei, gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitBurn }
       );
       const receipt = await tx.wait();
       const kenoAmt = parseFloat(ethers.formatEther(minKeno));
       this.stats.kenoBurned += kenoAmt;
-      this.log(`🔥 KENO burn: ${kenoAmt.toLocaleString()} KENO burned → 0x...dead (Tx: ${receipt.hash})`);
+      this.log(`🔥 KENO burn: ${kenoAmt.toLocaleString()} KENO → 0x...dead (Tx: ${receipt.hash})`);
     } catch (e) {
       this.log(`⚠️ KENO burn failed (non-critical): ${e.message}`, 'warn');
     }
