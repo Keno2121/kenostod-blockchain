@@ -34,9 +34,9 @@ USDT_MINT  = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
 SHIELD_MINT = os.environ.get("SHIELD_TOKEN_MINT", "")  # Set once deployed on Solana
 
 # Jupiter API v6
-JUPITER_QUOTE_URL = "https://quote-api.jup.ag/v6/quote"
-JUPITER_SWAP_URL  = "https://quote-api.jup.ag/v6/swap"
-SOL_PRICE_URL     = "https://price.jup.ag/v4/price?ids=SOL"
+JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote"
+JUPITER_SWAP_URL  = "https://api.jup.ag/swap/v1/swap"
+SOL_PRICE_URL     = "https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112"
 
 # ─────────────────────────── logging ─────────────────────────────
 logging.basicConfig(
@@ -64,7 +64,9 @@ def get_sol_price_usd() -> float:
     try:
         r = requests.get(SOL_PRICE_URL, timeout=8)
         data = r.json()
-        return float(data["data"]["SOL"]["price"])
+        # Jupiter price v2 format: {"data": {"<mint>": {"price": "..."}}}
+        sol_mint = "So11111111111111111111111111111111111111112"
+        return float(data["data"][sol_mint]["price"])
     except Exception:
         return 150.0  # fallback
 
