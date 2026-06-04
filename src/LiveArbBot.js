@@ -62,7 +62,7 @@ class LiveArbBot {
     this.config = {
       autoExecute:       true,          // LIVE — executes when profitable spread found
       minProfitUSD:     0.01,          // $0.01 minimum — catch any real spread, gas at 1 gwei is ~$0.03
-      arbTradeAmountBNB: '0.08',       // 0.08 BNB per trade — enough gross profit per spread
+      arbTradeAmountBNB: '0.10',       // 0.10 BNB per trade — lower break-even spread to 0.26%
       kenoVolBNB:        '0.001',
       checkIntervalMs:   15_000,
       kenoVolIntervalMs: 3_600_000,
