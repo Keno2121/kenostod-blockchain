@@ -29,6 +29,7 @@ const bs58                     = require('bs58');
 const https                    = require('https');
 const {
   DriftClient, Wallet, BN,
+  BulkAccountLoader,
   PositionDirection,
   PerpMarkets,
   BASE_PRECISION,
@@ -100,12 +101,13 @@ class DriftFundingBot {
       const wallet     = new Wallet(keypair);
       const rpcUrl     = process.env.DRIFT_RPC_URL || SOLANA_RPC;
       const connection = new Connection(rpcUrl, 'confirmed');
+      const accountLoader = new BulkAccountLoader(connection, 'confirmed', 30_000);
 
       this.client = new DriftClient({
         connection,
         wallet,
         env: 'mainnet-beta',
-        accountSubscription: { type: 'polling', frequency: 30_000 },
+        accountSubscription: { type: 'polling', accountLoader },
       });
 
       await this.client.subscribe();
