@@ -16,7 +16,21 @@ const FLASH_ARB_ABI = [
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
 const BUSD = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
-const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — active
+const ETH  = '0x2170Ed0880ac9A755fd29B2688956BD959F933F8'; // WETH on BSC
+const BTCB = '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c'; // BTCB on BSC
+const CAKE = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82'; // CAKE on BSC
+const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — added back post-PinkSale
+
+// ── Multi-pair scan list — all use BNB as capital, round-trip back to BNB ──
+// KENO commented out until pool is re-added post-PinkSale launch
+const ARB_PAIRS = [
+  { name: 'WBNB/USDT',  token: USDT,  bnbAmount: '0.10' },
+  { name: 'WBNB/BUSD',  token: BUSD,  bnbAmount: '0.10' },
+  { name: 'WBNB/ETH',   token: ETH,   bnbAmount: '0.10' },
+  { name: 'WBNB/BTCB',  token: BTCB,  bnbAmount: '0.10' },
+  { name: 'WBNB/CAKE',  token: CAKE,  bnbAmount: '0.10' },
+  // { name: 'WBNB/KENO', token: KENO,  bnbAmount: '0.10' }, // re-enable post-PinkSale
+];
 
 const ROUTER_ABI = [
   'function getAmountsOut(uint amountIn, address[] calldata path) view returns (uint[] memory amounts)',
@@ -73,21 +87,18 @@ class LiveArbBot {
     };
 
     this.stats = {
-      tradesExecuted:       0,
-      profitBNB:            0,
-      profitUSD:            0,
-      kenoSwapsExecuted:    0,
-      kenoVolumeUSD:        0,
-      lastCheck:            null,
-      lastOpportunity:      null,
-      lastTrade:            null,
-      uptime:               Date.now(),
+      tradesExecuted:   0,
+      profitBNB:        0,
+      profitUSD:        0,
+      lastCheck:        null,
+      lastOpportunity:  null,
+      lastTrade:        null,
+      uptime:           Date.now(),
     };
 
     this.logs = [];
     this.opportunities = [];
     this._priceTimer = null;
-    this._volTimer   = null;
   }
 
   async init() {
@@ -120,20 +131,18 @@ class LiveArbBot {
     if (!ready) return { ok: false, msg: 'Wallet/RPC init failed' };
 
     this.running = true;
-    this.log('🤖 Live Arb Bot STARTED — monitoring BSC DEX prices');
+    this.log(`🤖 Multi-Pair Arb Bot STARTED — scanning ${ARB_PAIRS.length} pairs on PancakeSwap ↔ BiSwap every 15s`);
+    this.log(`📊 Pairs: ${ARB_PAIRS.map(p => p.name).join(' | ')}`);
 
     this._priceTimer = setInterval(() => this._priceLoop(), this.config.checkIntervalMs);
-    this._volTimer   = setInterval(() => this._kenoVolLoop(), this.config.kenoVolIntervalMs);
-
     this._priceLoop();
-    return { ok: true, msg: 'Bot started' };
+    return { ok: true, msg: `Bot started — scanning ${ARB_PAIRS.length} pairs` };
   }
 
   stop() {
     this.running = false;
     clearInterval(this._priceTimer);
-    clearInterval(this._volTimer);
-    this.log('⏹ Live Arb Bot stopped');
+    this.log('⏹ Multi-Pair Arb Bot stopped');
     return { ok: true };
   }
 
@@ -152,31 +161,22 @@ class LiveArbBot {
         this.stats.lastOpportunity = opp;
 
         if (opp.netProfitUSD >= this.config.minProfitUSD) {
-          this.log(`⚡ Profitable opp: ${opp.spread}% spread → ~$${opp.netProfitUSD.toFixed(3)} net profit`);
+          this.log(`⚡ [${opp.pair}] Profitable: ${opp.spread}% spread → ~$${opp.netProfitUSD.toFixed(3)} net profit`);
           if (!this.config.autoExecute) {
-            this.log(`🔒 AUTO-EXECUTE DISABLED — opportunity logged but no trade fired. Enable via dashboard.`);
+            this.log(`🔒 AUTO-EXECUTE DISABLED — opportunity logged but no trade fired.`);
           } else if (opp.flash) {
             await this.executeFlashArb(opp);
           } else {
             await this.executeArb(opp);
           }
         } else {
-          this.log(`👀 Spread ${opp.spread}% detected — below min profit threshold ($${opp.netProfitUSD.toFixed(3)} < $${this.config.minProfitUSD})`);
+          this.log(`👀 [${opp.pair}] Spread ${opp.spread}% — below threshold ($${opp.netProfitUSD.toFixed(3)})`);
         }
       } else {
-        this.log(`🔍 No arb opportunity (check ${new Date().toLocaleTimeString()})`);
+        this.log(`🔍 Scanned ${ARB_PAIRS.length} pairs — no opportunity (${new Date().toLocaleTimeString()})`);
       }
     } catch (e) {
       this.log(`⚠️ Price loop error: ${e.message}`, 'warn');
-    }
-  }
-
-  async _kenoVolLoop() {
-    if (!this.running || this.paused) return;
-    try {
-      await this.generateKenoVolume();
-    } catch (e) {
-      this.log(`⚠️ KENO volume error: ${e.message}`, 'warn');
     }
   }
 
@@ -240,19 +240,18 @@ class LiveArbBot {
   async detectOpportunity() {
     const tradeAmountBNB = ethers.parseEther(this.config.arbTradeAmountBNB);
 
-    // ── Primary: FlashArbLoan2.quoteBest() — free view call, scans 4 DEXes × 4 pairs ──
+    // ── Primary: FlashArbLoan2.quoteBest() — scans 4 DEXes × 4 pairs for free ──
     if (this.flashArb) {
       try {
         const q = await this.flashArb.quoteBest(tradeAmountBNB);
         if (q.profitable) {
-          const grossBNB   = parseFloat(ethers.formatEther(q.grossProfitBNB));
-          const gasPriceGwei = 0.05;
-          const gasCostBNB   = (500_000 * gasPriceGwei) / 1e9;
-          const bnbPrice     = 600; // approximate — refined per actual market
+          const grossBNB     = parseFloat(ethers.formatEther(q.grossProfitBNB));
+          const gasCostBNB   = (500_000 * 0.05) / 1e9;
+          const bnbPrice     = 600;
           const netProfitUSD = (grossBNB - gasCostBNB) * bnbPrice;
           return {
             time: new Date().toISOString(),
-            pair: 'FLASH (4-DEX scan)',
+            pair: 'FLASH (4-DEX multi-pair)',
             flash: true,
             sellRouter:      q.sellRouter,
             buyRouter:       q.buyRouter,
@@ -269,15 +268,23 @@ class LiveArbBot {
       }
     }
 
-    // ── Fallback: manual 2-DEX scan ────────────────────────────────────────
-    const [usdtOpp, busdOpp] = await Promise.all([
-      this._checkPair(tradeAmountBNB, USDT, 'WBNB/USDT'),
-      this._checkPair(tradeAmountBNB, BUSD, 'WBNB/BUSD'),
-    ]);
-    if (!usdtOpp && !busdOpp) return null;
-    if (!usdtOpp) return busdOpp;
-    if (!busdOpp) return usdtOpp;
-    return usdtOpp.netProfitUSD >= busdOpp.netProfitUSD ? usdtOpp : busdOpp;
+    // ── Multi-pair manual scan — all 5 pairs in parallel ──────────────────
+    const results = await Promise.all(
+      ARB_PAIRS.map(p => this._checkPair(ethers.parseEther(p.bnbAmount), p.token, p.name))
+    );
+
+    const opps = results.filter(Boolean);
+    if (opps.length === 0) return null;
+
+    // Log all pairs with any spread for transparency
+    for (const o of opps) {
+      if (parseFloat(o.spread) >= 0.05) {
+        this.log(`📊 [${o.pair}] ${o.buyDex}→${o.sellDex}: ${o.spread}% spread | net $${o.netProfitUSD.toFixed(4)}`);
+      }
+    }
+
+    // Return the most profitable opportunity
+    return opps.reduce((best, o) => o.netProfitUSD > best.netProfitUSD ? o : best);
   }
 
   async executeFlashArb(opp) {
@@ -402,78 +409,22 @@ class LiveArbBot {
     }
   }
 
-  async generateKenoVolume() {
-    try {
-      const bnbBalance = await this.provider.getBalance(this.wallet.address);
-      const volWei = ethers.parseEther(this.config.kenoVolBNB);
-      const gasBuffer = ethers.parseEther('0.003');
-
-      if (bnbBalance < volWei + gasBuffer) {
-        this.log(`⚠️ Insufficient BNB for KENO volume trade`, 'warn');
-        return;
-      }
-
-      const deadline = Math.floor(Date.now() / 1000) + 120;
-      const router = new ethers.Contract(PANCAKE_ROUTER, ROUTER_ABI, this.wallet);
-
-      const amountsOut = await this.getAmountsOut(PANCAKE_ROUTER, volWei, [WBNB, KENO]);
-      const minKeno = amountsOut * 95n / 100n;
-
-      this.log(`📊 Generating KENO volume: ${this.config.kenoVolBNB} BNB → KENO`);
-      const buyTx = await router.swapExactETHForTokens(
-        minKeno,
-        [WBNB, KENO],
-        this.wallet.address,
-        deadline,
-        { value: volWei, gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitVol }
-      );
-      const buyReceipt = await buyTx.wait();
-      this.log(`✅ KENO buy tx: ${buyReceipt.hash}`);
-
-      const kenoContract = new ethers.Contract(KENO, ERC20_ABI, this.wallet);
-      const kenoBal = await kenoContract.balanceOf(this.wallet.address);
-
-      if (kenoBal > 0n) {
-        const currentAllowance = await kenoContract.allowance(this.wallet.address, PANCAKE_ROUTER);
-        if (currentAllowance < kenoBal) {
-          const approveTx = await kenoContract.approve(PANCAKE_ROUTER, ethers.MaxUint256, { gasPrice: this.config.gasPrice });
-          await approveTx.wait();
-        }
-
-        const minBNB = volWei * 90n / 100n;
-        const sellTx = await router.swapExactTokensForETH(
-          kenoBal,
-          minBNB,
-          [KENO, WBNB],
-          this.wallet.address,
-          deadline,
-          { gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitVol }
-        );
-        const sellReceipt = await sellTx.wait();
-        this.log(`✅ KENO sell tx: ${sellReceipt.hash}`);
-      }
-
-      const kenoUSD = parseFloat(this.config.kenoVolBNB) * 600;
-      this.stats.kenoSwapsExecuted++;
-      this.stats.kenoVolumeUSD += kenoUSD * 2;
-      this.log(`📈 KENO volume generated: ~$${(kenoUSD * 2).toFixed(2)} on DexScreener`);
-    } catch (e) {
-      this.log(`❌ KENO volume trade failed: ${e.message}`, 'error');
-    }
-  }
+  // KENO volume generation disabled — pool removed for PinkSale compliance.
+  // Will be re-enabled post-launch when KENO/WBNB pool is re-added to PancakeSwap.
+  // async generateKenoVolume() { ... }
 
   async getWalletInfo() {
     try {
       const bnbBal = await this.provider.getBalance(this.wallet.address);
-      const kenoContract = new ethers.Contract(KENO, ERC20_ABI, this.provider);
-      const kenoBalance  = await kenoContract.balanceOf(this.wallet.address);
+      const pairsScanning = ARB_PAIRS.map(p => p.name).join(', ');
       return {
-        address: this.wallet.address,
-        bnb: parseFloat(ethers.formatEther(bnbBal)).toFixed(5),
-        keno: parseFloat(ethers.formatEther(kenoBalance)).toLocaleString()
+        address:      this.wallet.address,
+        bnb:          parseFloat(ethers.formatEther(bnbBal)).toFixed(5),
+        pairsScanning,
+        pairCount:    ARB_PAIRS.length,
       };
     } catch (_) {
-      return { address: this.wallet?.address, bnb: '?', keno: '?' };
+      return { address: this.wallet?.address, bnb: '?', pairCount: ARB_PAIRS.length };
     }
   }
 
