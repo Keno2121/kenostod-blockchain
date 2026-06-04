@@ -99,13 +99,14 @@ class DriftFundingBot {
       const keypair    = Keypair.fromSecretKey(bs58.decode(privateKey.trim()));
       const wallet     = new Wallet(keypair);
       const rpcUrl     = process.env.DRIFT_RPC_URL || SOLANA_RPC;
-      const connection = new Connection(rpcUrl, 'confirmed');
+      const wsUrl = rpcUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+      const connection = new Connection(rpcUrl, { commitment: 'confirmed', wsEndpoint: wsUrl });
 
       this.client = new DriftClient({
         connection,
         wallet,
         env: 'mainnet-beta',
-        accountSubscription: { type: 'polling', frequency: 30_000 },
+        accountSubscription: { type: 'websocket' },
       });
 
       await this.client.subscribe();
