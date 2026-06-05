@@ -289,8 +289,21 @@ class LiveArbBot {
 
   async executeFlashArb(opp) {
     try {
-      this.log(`⚡ Executing flash arb via FlashArbLoan2...`);
+      this.log(`⚡ Pre-flight simulation for flash arb...`);
       const borrowAmt = ethers.parseEther(opp.borrowAmountBNB);
+
+      // ── Pre-flight: simulate before sending — zero gas wasted on reverts ──
+      try {
+        await this.flashArb.executeFlashArb.estimateGas(
+          opp.repayPair, opp.sellRouter, opp.buyRouter, USDT, borrowAmt
+        );
+      } catch (simErr) {
+        this.log(`⛔ Pre-flight failed — opportunity gone (front-run/price moved). No gas spent. ${simErr.message?.slice(0, 80)}`, 'warn');
+        this.stats.skippedPreflight = (this.stats.skippedPreflight || 0) + 1;
+        return;
+      }
+
+      this.log(`✅ Pre-flight passed — submitting flash arb`);
       const tx = await this.flashArb.executeFlashArb(
         opp.repayPair,
         opp.sellRouter,
