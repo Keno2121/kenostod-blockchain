@@ -89,9 +89,23 @@ const BOTS = [
   {
     id:       'utl-reversal-pool',
     name:     'UTL Reversal Pool (Float Yield Engine)',
-    enabled:  true,  // always on — needs no external keys to track escrow
+    enabled:  true,
     requires: [],
     load:     () => require('./src/UTLReversalPool'),
+  },
+  {
+    id:       'cross-exchange-arb',
+    name:     'Cross-Exchange Arb (PancakeSwap ↔ HL CLOB)',
+    enabled:  !!(process.env.WALLET_PRIVATE_KEY || process.env.QCT_DEPLOYER_KEY),
+    requires: ['WALLET_PRIVATE_KEY or QCT_DEPLOYER_KEY'],
+    load:     () => require('./src/CrossExchangeArbBot'),
+  },
+  {
+    id:       'hl-builder-registry',
+    name:     'HL Builder Registry (0.01% fee rebate on all volume)',
+    enabled:  !!(process.env.QCT_DEPLOYER_KEY || process.env.WALLET_PRIVATE_KEY),
+    requires: ['QCT_DEPLOYER_KEY or WALLET_PRIVATE_KEY'],
+    load:     () => require('./src/HLBuilderRegistry'),
   },
 ];
 
