@@ -53,6 +53,7 @@ const MAX_POSITIONS     = 3;     // Max simultaneous open positions
 const SCAN_MS           = 60_000;  // Scan every 60 seconds
 const MIN_EQUITY_USD    = 5;     // Minimum account equity to trade
 const SOLANA_RPC        = 'https://rpc.ankr.com/solana';
+const HEALTH_CHECK_MS   = 5 * 60 * 1000; // Re-check Drift every 5 min when down
 
 // φ-based position size: 1/φ = 61.8% of equity per position (Law III)
 const POSITION_RATIO    = 1 / PHI;
@@ -61,30 +62,53 @@ const POSITION_RATIO    = 1 / PHI;
 
 class DriftFundingBot {
   constructor() {
-    this.client     = null;
-    this.running    = false;
-    this.startedAt  = null;
-    this.scanTimer  = null;
+    this.client       = null;
+    this.running      = false;
+    this.startedAt    = null;
+    this.scanTimer    = null;
+    this.watchTimer   = null;   // health-check timer while Drift is down
+    this.driftStatus  = 'idle'; // 'idle' | 'maintenance' | 'connecting' | 'live'
+    this._keypair     = null;   // saved so we can auto-connect when Drift returns
+    this._wallet      = null;
+    this._connection  = null;
 
     // Per-market tracking
-    this.consecutive = {};      // marketIndex → consecutive high-funding readings
-    this.positions   = {};      // marketIndex → position metadata
+    this.consecutive = {};
+    this.positions   = {};
 
-    // Law IV — Nash equilibrium-adjusted thresholds (start at defaults)
+    // Law IV — Nash equilibrium-adjusted thresholds
     this.entryAPR = MIN_ENTRY_APR;
     this.exitAPR  = MIN_EXIT_APR;
 
-    // Stats
     this.stats = {
-      scanCount:     0,
-      tradesEntered: 0,
-      tradesClosed:  0,
+      scanCount:          0,
+      tradesEntered:      0,
+      tradesClosed:       0,
       totalFundingEarned: 0,
       totalProfitUSD:     0,
-      lastScanAt:    null,
+      lastScanAt:         null,
+      lastHealthCheck:    null,
+      driftDownSince:     null,
     };
 
     this.logs = [];
+  }
+
+  // ── Drift protocol health check ──────────────────────────────────────────────
+  // Tries a lightweight read of the Drift state account on Solana.
+  // Returns true if the program responds, false if maintenance/unreachable.
+  async _isDriftLive() {
+    try {
+      const { PublicKey } = require('@solana/web3.js');
+      const rpcUrl    = process.env.DRIFT_RPC_URL || SOLANA_RPC;
+      const conn      = new Connection(rpcUrl, { commitment: 'confirmed' });
+      // Drift State account — always exists when protocol is live
+      const STATE_KEY = new PublicKey('4z6xHN8D7oaLN2rGBuMxEnRpvUasQQfSxiMWKqDdLzXi');
+      const info      = await conn.getAccountInfo(STATE_KEY, { dataSlice: { offset: 0, length: 8 } });
+      return info !== null;
+    } catch (_) {
+      return false;
+    }
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
@@ -95,33 +119,80 @@ class DriftFundingBot {
     const privateKey = process.env.DRIFT_PRIVATE_KEY;
     if (!privateKey) return { ok: false, msg: 'DRIFT_PRIVATE_KEY not set — add to Render env vars' };
 
-    try {
-      const keypair    = Keypair.fromSecretKey(bs58.decode(privateKey.trim()));
-      const wallet     = new Wallet(keypair);
-      const rpcUrl     = process.env.DRIFT_RPC_URL || SOLANA_RPC;
-      const wsUrl = rpcUrl.replace('https://', 'wss://').replace('http://', 'ws://');
-      const connection = new Connection(rpcUrl, { commitment: 'confirmed', wsEndpoint: wsUrl });
+    // Save credentials so auto-reconnect can use them
+    this._keypair    = Keypair.fromSecretKey(bs58.decode(privateKey.trim()));
+    this._wallet     = new Wallet(this._keypair);
+    const rpcUrl     = process.env.DRIFT_RPC_URL || SOLANA_RPC;
+    const wsUrl      = rpcUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    this._connection = new Connection(rpcUrl, { commitment: 'confirmed', wsEndpoint: wsUrl });
 
+    // ── Health check before attempting full connection ──
+    this.driftStatus = 'connecting';
+    this.stats.lastHealthCheck = new Date().toISOString();
+    const live = await this._isDriftLive();
+
+    if (!live) {
+      this.driftStatus = 'maintenance';
+      if (!this.stats.driftDownSince) this.stats.driftDownSince = new Date().toISOString();
+      this._log('⏳ Drift Protocol is in maintenance — will auto-connect when it comes back online', 'warn');
+      this._log(`🔄 Checking every ${HEALTH_CHECK_MS / 60000} minutes until Drift is live...`);
+
+      // Start watch loop — auto-connects when Drift comes back
+      if (!this.watchTimer) {
+        this.watchTimer = setInterval(() => this._watchForDrift(), HEALTH_CHECK_MS);
+      }
+      // Return ok:true so bot-server doesn't keep retrying with backoff
+      return { ok: true, msg: '⏳ Drift in maintenance — watching for comeback, will auto-connect' };
+    }
+
+    return this._connect();
+  }
+
+  // ── Called by watch timer while Drift is down ────────────────────────────────
+  async _watchForDrift() {
+    this.stats.lastHealthCheck = new Date().toISOString();
+    const live = await this._isDriftLive();
+    if (!live) {
+      const downSince = this.stats.driftDownSince
+        ? `(down since ${new Date(this.stats.driftDownSince).toLocaleTimeString()})`
+        : '';
+      this._log(`⏳ Drift still in maintenance ${downSince} — next check in ${HEALTH_CHECK_MS / 60000} min`);
+      return;
+    }
+
+    // Drift is back!
+    this._log('🟢 Drift Protocol is BACK ONLINE — connecting now...');
+    clearInterval(this.watchTimer);
+    this.watchTimer = null;
+    this.driftStatus = 'connecting';
+    this.stats.driftDownSince = null;
+    await this._connect();
+  }
+
+  // ── Actually connect to Drift and start scanning ─────────────────────────────
+  async _connect() {
+    try {
       this.client = new DriftClient({
-        connection,
-        wallet,
-        env: 'mainnet-beta',
+        connection: this._connection,
+        wallet:     this._wallet,
+        env:        'mainnet-beta',
         accountSubscription: { type: 'websocket' },
       });
 
       await this.client.subscribe();
 
       const equity = await this._getEquityUSD();
+      this.driftStatus = 'live';
       this._log(`✅ Connected to Drift Protocol | Equity: $${equity.toFixed(2)}`);
 
       if (equity < MIN_EQUITY_USD) {
-        this._log(`⚠ Low equity ($${equity.toFixed(2)}) — monitoring only until > $${MIN_EQUITY_USD}`, 'warn');
+        this._log(`💡 Equity $${equity.toFixed(2)} — deposit USDC at app.drift.trade to start trading`, 'warn');
       }
 
       this.running   = true;
       this.startedAt = Date.now();
 
-      this._scan(); // immediate first scan
+      this._scan();
       this.scanTimer = setInterval(() => this._scan(), SCAN_MS);
 
       await this._telegram(
@@ -134,17 +205,23 @@ class DriftFundingBot {
         `<i>The bot earns while the founder sleeps.</i>`
       );
 
-      return { ok: true, msg: `Drift Funding Bot started — $${equity.toFixed(2)} equity` };
+      return { ok: true, msg: `Drift Funding Bot live — $${equity.toFixed(2)} equity` };
 
     } catch (err) {
-      this._log(`❌ Start failed: ${err.message}`, 'error');
+      this.driftStatus = 'maintenance';
+      this._log(`❌ Connection failed: ${err.message} — retrying in ${HEALTH_CHECK_MS / 60000} min`, 'error');
+      if (!this.watchTimer) {
+        this.watchTimer = setInterval(() => this._watchForDrift(), HEALTH_CHECK_MS);
+      }
       return { ok: false, msg: err.message };
     }
   }
 
   stop() {
     this.running = false;
-    if (this.scanTimer) { clearInterval(this.scanTimer); this.scanTimer = null; }
+    this.driftStatus = 'idle';
+    if (this.scanTimer)  { clearInterval(this.scanTimer);  this.scanTimer  = null; }
+    if (this.watchTimer) { clearInterval(this.watchTimer); this.watchTimer = null; }
     try { if (this.client) this.client.unsubscribe(); } catch (_) {}
     this._log('🛑 Drift Funding Bot stopped');
     return { ok: true, msg: 'stopped' };
@@ -424,8 +501,17 @@ class DriftFundingBot {
   }
 
   getStatus() {
+    const statusLabel = {
+      idle:        '⚪ Idle',
+      maintenance: '⏳ Drift in maintenance — auto-connecting when back',
+      connecting:  '🔄 Connecting to Drift...',
+      live:        '🟢 Live — scanning funding rates',
+    }[this.driftStatus] || this.driftStatus;
+
     return {
       running:            this.running,
+      driftStatus:        this.driftStatus,
+      driftStatusLabel:   statusLabel,
       startedAt:          this.startedAt,
       uptimeSeconds:      this.startedAt ? Math.floor((Date.now() - this.startedAt) / 1000) : 0,
       openPositions:      Object.keys(this.positions).length,
@@ -435,6 +521,8 @@ class DriftFundingBot {
       stats:              this.stats,
       recentLogs:         this.logs.slice(0, 20),
       telegramLinked:     !!(process.env.TELEGRAM_BOT_TOKEN || process.env.KINGS_SHIELD_BOT_TOKEN),
+      watcherActive:      !!this.watchTimer,
+      nextCheckIn:        this.watchTimer ? `${HEALTH_CHECK_MS / 60000} min` : null,
     };
   }
 }
