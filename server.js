@@ -144,7 +144,10 @@ const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const LiveArbBot      = require('./src/LiveArbBot');
 const KenoFlashOrbBot = require('./src/KenoFlashOrbBot');
-const UTLFeeCollector = require('./src/UTLFeeCollector');
+const UTLFeeCollector  = require('./src/UTLFeeCollector');
+const UTLReversalPool  = require('./src/UTLReversalPool');
+const utlReversalPool  = new UTLReversalPool();
+utlReversalPool.start();
 const BSCTokenTransfer = require('./src/BSCTokenTransfer');
 const EC = require('./src/secp256k1-compat').ec;
 const ec = new EC('secp256k1');
@@ -1166,6 +1169,50 @@ app.get('/api/utl/fee/audit', async (req, res) => {
             }
         });
     } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UTL REVERSAL POOL — 5-Minute Escrow & Float Yield Engine
+// ══════════════════════════════════════════════════════════════════════════════
+
+// POST: Register a transaction in the reversal pool
+// Body: { txHash, amount, userAddress, tier?, metadata? }
+app.post('/api/utl/reversal/register', (req, res) => {
+    const { txHash, amount, userAddress, tier = 'keno', metadata = {} } = req.body;
+    if (!txHash || !amount || !userAddress) {
+        return res.status(400).json({ error: 'txHash, amount, and userAddress are required' });
+    }
+    const result = utlReversalPool.register({
+        txHash,
+        amount: parseFloat(amount),
+        userAddress,
+        tier,
+        metadata,
+    });
+    res.status(result.ok ? 200 : 400).json(result);
+});
+
+// POST: Request reversal within the window
+// Body: { txHash, userAddress, reason? }
+app.post('/api/utl/reversal/reverse', (req, res) => {
+    const { txHash, userAddress, reason = '' } = req.body;
+    if (!txHash || !userAddress) {
+        return res.status(400).json({ error: 'txHash and userAddress are required' });
+    }
+    const result = utlReversalPool.reverse({ txHash, userAddress, reason });
+    res.status(result.ok ? 200 : 400).json(result);
+});
+
+// GET: Check status of a specific transaction
+app.get('/api/utl/reversal/status/:txHash', (req, res) => {
+    const tx = utlReversalPool.getTransaction(req.params.txHash);
+    if (!tx) return res.status(404).json({ error: 'Transaction not found in reversal pool' });
+    res.json({ ok: true, transaction: tx });
+});
+
+// GET: Full pool statistics, income breakdown, and volume projections
+app.get('/api/utl/reversal/pool', (req, res) => {
+    res.json({ ok: true, ...utlReversalPool.getPoolStats() });
 });
 
 // ── King's Shield × KENO Flywheel ────────────────────────────────────────

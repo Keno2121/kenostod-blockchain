@@ -86,6 +86,13 @@ const BOTS = [
     requires: ['QCT_DEPLOYER_KEY or WALLET_PRIVATE_KEY', 'SHIELD_ALERT_CHAT_ID'],
     load:     () => require('./src/HLFundingBot'),
   },
+  {
+    id:       'utl-reversal-pool',
+    name:     'UTL Reversal Pool (Float Yield Engine)',
+    enabled:  true,  // always on — needs no external keys to track escrow
+    requires: [],
+    load:     () => require('./src/UTLReversalPool'),
+  },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
