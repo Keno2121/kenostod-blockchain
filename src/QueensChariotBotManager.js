@@ -437,7 +437,12 @@ class QueensChariotBotManager {
     // Auto-trigger cascade releases when layers are ready
     async _autoReleaseCascade() {
         if (!this.qctContract || !this.qctSigner) return;
+
+        // ── Cooldown: only attempt once every 10 minutes to stop hammering ──
         const now = Date.now();
+        const COOLDOWN_MS = 10 * 60 * 1000;
+        if (this._lastCascadeAttempt && (now - this._lastCascadeAttempt) < COOLDOWN_MS) return;
+
         const needsRelease = (
             (this.chainState.cascadeL2Pending > 0 && now >= this.chainState.cascadeL2ReadyAt) ||
             (this.chainState.cascadeL3Pending > 0 && now >= this.chainState.cascadeL3ReadyAt) ||
@@ -445,14 +450,25 @@ class QueensChariotBotManager {
         );
         if (!needsRelease) return;
 
+        // ── Pre-flight: simulate before spending gas ──
         try {
             const contractWithSigner = this.qctContract.connect(this.qctSigner);
+            try {
+                await contractWithSigner.releaseCascade.estimateGas();
+            } catch (simErr) {
+                this._lastCascadeAttempt = now;
+                this._log(`⛔ Cascade pre-flight failed — nothing to release yet. No gas spent.`);
+                return;
+            }
+
+            this._lastCascadeAttempt = now;
             const tx = await contractWithSigner.releaseCascade();
             await tx.wait(1);
             this.protocol.cascadeReleases++;
             this._log(`🌊 Queen auto-released cascade layers — tx ${tx.hash}`);
             this._telegram(`🌊 <b>Cascade Released by Queen</b>\n\nThe Queen triggered a Prosperity Cascade release.\nTx: <code>${tx.hash}</code>`);
         } catch (err) {
+            this._lastCascadeAttempt = now;
             this._log(`⚠ Cascade release error: ${err.message}`);
         }
     }
