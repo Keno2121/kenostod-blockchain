@@ -79,6 +79,13 @@ const BOTS = [
     requires: ['TELEGRAM_BOT_TOKEN or KINGS_SHIELD_BOT_TOKEN', 'SHIELD_ALERT_CHAT_ID'],
     load:     () => require('./src/HLFundingAlert'),
   },
+  {
+    id:       'hl-funding-bot',
+    name:     'HL Funding Rate Bot (AUTO-EXECUTE)',
+    enabled:  !!(process.env.QCT_DEPLOYER_KEY || process.env.WALLET_PRIVATE_KEY),
+    requires: ['QCT_DEPLOYER_KEY or WALLET_PRIVATE_KEY', 'SHIELD_ALERT_CHAT_ID'],
+    load:     () => require('./src/HLFundingBot'),
+  },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
