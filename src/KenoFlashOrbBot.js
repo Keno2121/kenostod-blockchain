@@ -309,9 +309,22 @@ class KenoFlashOrbBot {
   // ═══════════════════════════════════════════════════════════════════════
   async _executeFlash(opp) {
     try {
-      this.log(`🚀 Executing flash arb: ${opp.flashAmountBNB} BNB | est. +$${opp.netProfitUSD.toFixed(3)}`);
+      this.log(`🚀 Pre-flight: ${opp.flashAmountBNB} BNB flash | est. +$${opp.netProfitUSD.toFixed(3)}`);
 
       const borrowAmt = ethers.parseEther(opp.flashAmountBNB);
+
+      // ── Pre-flight simulation — zero gas wasted if opportunity is gone ──
+      try {
+        await this.flashArb.executeFlashArb.estimateGas(
+          opp.repayPair, opp.sellRouter, opp.buyRouter, USDT, borrowAmt
+        );
+      } catch (simErr) {
+        this.log(`⛔ Pre-flight failed — opportunity gone (front-run/price moved). No gas spent.`, 'warn');
+        this.stats.skippedPreflight = (this.stats.skippedPreflight || 0) + 1;
+        return;
+      }
+
+      this.log(`✅ Pre-flight passed — submitting flash arb`);
       const tx = await this.flashArb.executeFlashArb(
         opp.repayPair,
         opp.sellRouter,
