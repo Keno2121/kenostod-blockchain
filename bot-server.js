@@ -72,6 +72,13 @@ const BOTS = [
     requires: ['DRIFT_PRIVATE_KEY'],
     load:     () => require('./src/DriftFundingBot'),
   },
+  {
+    id:       'hl-funding-alert',
+    name:     'HL Funding Rate Alert',
+    enabled:  !!(process.env.TELEGRAM_BOT_TOKEN || process.env.KINGS_SHIELD_BOT_TOKEN),
+    requires: ['TELEGRAM_BOT_TOKEN or KINGS_SHIELD_BOT_TOKEN', 'SHIELD_ALERT_CHAT_ID'],
+    load:     () => require('./src/HLFundingAlert'),
+  },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
