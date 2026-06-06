@@ -107,6 +107,20 @@ const BOTS = [
     requires: ['QCT_DEPLOYER_KEY or WALLET_PRIVATE_KEY'],
     load:     () => require('./src/HLBuilderRegistry'),
   },
+  {
+    id:       'aegis-hl-fee-oracle',
+    name:     'Aegis HL Fee Oracle (taker 20%→Security / maker→KENO burn)',
+    enabled:  !!(process.env.QCT_DEPLOYER_KEY || process.env.WALLET_PRIVATE_KEY),
+    requires: ['QCT_DEPLOYER_KEY or WALLET_PRIVATE_KEY'],
+    load:     () => require('./src/AegisHLFeeOracle'),
+  },
+  {
+    id:       'porv-compute-index',
+    name:     'PoRV CDI Oracle (Compute Demand Index — RVT-USDC perp feed)',
+    enabled:  true,
+    requires: [],
+    load:     () => require('./src/PoRVComputeIndex'),
+  },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
