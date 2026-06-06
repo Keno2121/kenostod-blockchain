@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIP-3: RVT-USDC Compute Perpetual — Hyperliquid Improvement Proposal</title>
+<style>
+  :root {
+    --blue:   #4c8cf5;
+    --blue2:  #7ab0ff;
+    --dark:   #0a0a0f;
+    --card:   #111118;
+    --border: #2a2a3a;
+    --text:   #d0d0e0;
+    --dim:    #8888aa;
+    --gold:   #c9a84c;
+    --gold2:  #f0c060;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.65;
+    padding: 2rem 1rem 4rem;
+  }
+  .container { max-width: 860px; margin: 0 auto; }
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #1a2a4a, #0d1830);
+    border: 1px solid #2a4a8a;
+    color: var(--blue2);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0.25rem 0.75rem;
+    border-radius: 999px; margin-bottom: 1.2rem;
+  }
+  .world-first {
+    display: inline-block;
+    background: linear-gradient(135deg, #3a1a0a, #2a1005);
+    border: 1px solid var(--gold);
+    color: var(--gold2);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 0.25rem 0.75rem;
+    border-radius: 999px; margin-left: 0.5rem;
+  }
+  h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    background: linear-gradient(135deg, var(--blue2), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 0.4rem; font-weight: 800;
+  }
+  .subtitle { color: var(--dim); font-size: 1rem; margin-bottom: 2.5rem; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem;
+    margin-bottom: 2.5rem; padding: 1rem 1.25rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    font-size: 0.85rem;
+  }
+  .meta span { color: var(--dim); }
+  .meta strong { color: var(--blue2); }
+  h2 {
+    font-size: 1.1rem; color: var(--blue2);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem; margin: 2rem 0 1rem;
+    font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+  }
+  p { margin-bottom: 1rem; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.25rem; margin: 1rem 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th {
+    text-align: left; padding: 0.5rem 0.75rem;
+    background: #0d0d16; color: var(--blue2);
+    font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  td { padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); }
+  tr:hover td { background: #14141e; }
+  .flow {
+    display: flex; flex-direction: column; gap: 0;
+    margin: 1rem 0;
+  }
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 0.75rem 0;
+    border-left: 2px solid var(--border);
+    margin-left: 1rem;
+    padding-left: 1.25rem;
+    position: relative;
+  }
+  .flow-step::before {
+    content: attr(data-n);
+    position: absolute; left: -1.1rem;
+    width: 2rem; height: 2rem;
+    background: var(--card); border: 2px solid var(--blue);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; color: var(--blue2);
+    line-height: 2rem; text-align: center;
+  }
+  .flow-step .fs-title { font-weight: 700; color: var(--text); }
+  .flow-step .fs-desc  { color: var(--dim); font-size: 0.9rem; }
+  .highlight-blue {
+    border-left: 3px solid var(--blue);
+    padding-left: 1rem; margin: 1rem 0;
+    background: #0d1020; border-radius: 0 8px 8px 0;
+    padding: 0.75rem 1rem; padding-left: 1.25rem;
+  }
+  .cdi-table td:first-child { color: var(--blue2); font-weight: 600; }
+  .tier {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0;
+  }
+  .tier-badge {
+    padding: 0.3rem 0.8rem; border-radius: 6px;
+    font-size: 0.82rem; font-weight: 700;
+  }
+  .t-bronze  { background: #3a2510; color: #cd7f32; border: 1px solid #cd7f32; }
+  .t-silver  { background: #1a1a2a; color: #c0c0c0; border: 1px solid #c0c0c0; }
+  .t-gold    { background: #2a1f08; color: var(--gold2); border: 1px solid var(--gold); }
+  .t-diamond { background: #0d1a2a; color: var(--blue2); border: 1px solid var(--blue); }
+  footer {
+    margin-top: 4rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--dim); font-size: 0.8rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="badge">Hyperliquid Improvement Proposal</div>
+  <span class="world-first">⚡ World First</span>
+  <h1>HIP-3: RVT-USDC Compute Perpetual</h1>
+  <p class="subtitle">The world's first decentralized compute commodity perpetual — powered by the PoRV Compute Demand Index (CDI)</p>
+
+  <div class="meta">
+    <div><span>Author: </span><strong>Kenostod Blockchain Academy LLC</strong></div>
+    <div><span>Product: </span><strong>RVT-USDC perpetual (compute futures)</strong></div>
+    <div><span>Oracle: </span><strong>PoRV CDI (Compute Demand Index)</strong></div>
+    <div><span>Prerequisite: </span><strong>HIP-1 (KENO spot listing)</strong></div>
+    <div><span>Status: </span><strong>🟡 Draft — Pending Submission</strong></div>
+  </div>
+
+  <h2>1. Abstract</h2>
+  <p>
+    This proposal requests the creation of a <strong>RVT-USDC perpetual contract</strong> on Hyperliquid,
+    where the underlying index is the <strong>Compute Demand Index (CDI)</strong> — a real-time oracle measuring
+    AI/ML compute demand across the Sovereign Economy's PoRV (Proof-of-Residual-Value) mining network.
+  </p>
+  <p>
+    RVT-USDC is not a token perpetual. It is a <strong>compute commodity perpetual</strong> — the first
+    of its kind on any blockchain. Traders speculate on AI compute demand. Miners hedge royalty risk.
+    The CDI provides the feed.
+  </p>
+
+  <h2>2. Background: PoRV &amp; RVTs</h2>
+  <p>
+    Proof-of-Residual-Value (PoRV) is the Sovereign Economy's consensus layer that converts useful
+    AI/ML compute work into economic value. The flow:
+  </p>
+  <div class="flow">
+    <div class="flow-step" data-n="1">
+      <div>
+        <div class="fs-title">Enterprise submits AI/ML job</div>
+        <div class="fs-desc">Any enterprise client submits a compute job (image recognition, LLM inference, data processing) to the PoRV network. They pay in USDC or KENO.</div>
+      </div>
+    </div>
+    <div class="flow-step" data-n="2">
+      <div>
+        <div class="fs-title">PoRV miner completes the job</div>
+        <div class="fs-desc">A verified miner solves the job. Completion is recorded on the Kenostod chain with cryptographic proof.</div>
+      </div>
+    </div>
+    <div class="flow-step" data-n="3">
+      <div>
+        <div class="fs-title">Miner receives RVT + upfront KENO</div>
+        <div class="fs-desc">The miner earns: (a) upfront KENO payment, and (b) a Residual Value Token (RVT) entitling them to a perpetual royalty on all future commercial use of the job output.</div>
+      </div>
+    </div>
+    <div class="flow-step" data-n="4">
+      <div>
+        <div class="fs-title">RVT is tradeable on HL as RVT-USDC perp</div>
+        <div class="fs-desc">The miner can hedge or monetize their royalty exposure by trading the RVT-USDC perpetual. Long = bet on more AI demand. Short = hedge against compute slowdown.</div>
+      </div>
+    </div>
+    <div class="flow-step" data-n="5">
+      <div>
+        <div class="fs-title">Enterprise use → royalty distribution</div>
+        <div class="fs-desc">Every time an enterprise commercializes an AI output, royalties flow automatically to RVT holders — forever. The RVT perp prices this future cashflow stream.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>3. RVT Tiers</h2>
+  <p>RVTs are issued in four tiers based on job complexity and miner performance:</p>
+  <div class="tier">
+    <div class="tier-badge t-bronze">🥉 Bronze — 5% royalty</div>
+    <div class="tier-badge t-silver">🥈 Silver — 10% royalty</div>
+    <div class="tier-badge t-gold">🥇 Gold — 15% royalty</div>
+    <div class="tier-badge t-diamond">💎 Diamond — 20% royalty</div>
+  </div>
+  <p>Higher-tier RVTs carry higher CDI weight — a Diamond RVT contributes 4× the CDI signal of a Bronze.</p>
+
+  <h2>4. Compute Demand Index (CDI) — The Oracle</h2>
+  <p>
+    The CDI is a composite index tracked by the <code>PoRVComputeIndex</code> oracle (already live on Kenostod's
+    server at <code>/api/cdi/current</code> and <code>/api/cdi/history</code>).
+  </p>
+  <div class="card">
+    <table class="cdi-table">
+      <thead><tr><th>Component</th><th>Weight</th><th>Baseline</th><th>Signal</th></tr></thead>
+      <tbody>
+        <tr><td>Job completion rate</td><td>30 pts</td><td>10 jobs/hr</td><td>Enterprise demand volume</td></tr>
+        <tr><td>RVT issuance velocity</td><td>25 pts</td><td>5 RVTs/hr</td><td>New royalty streams being created</td></tr>
+        <tr><td>Unique enterprise clients</td><td>20 pts</td><td>20 clients</td><td>Ecosystem adoption breadth</td></tr>
+        <tr><td>KENO rewards distributed</td><td>15 pts</td><td>500 KENO/hr</td><td>Miner compensation flow</td></tr>
+        <tr><td>Miner utilisation rate</td><td>10 pts</td><td>60% active</td><td>Network capacity pressure</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="highlight-blue">
+    <p><strong>CDI = 100 at baseline.</strong> Doubles (CDI 200) when all components are at 2× baseline.
+    Golden Ratio (φ) smoothing applied to prevent flash spikes from dominating the signal.</p>
+    <p style="margin:0">CDI is updated every 5 minutes. 30-day history maintained. API is public and auditable.</p>
+  </div>
+
+  <h2>5. Trading Mechanics</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Parameter</th><th>Proposed Value</th></tr></thead>
+      <tbody>
+        <tr><td>Contract name</td><td>RVT-USDC</td></tr>
+        <tr><td>Settlement</td><td>USDC perpetual (no expiry)</td></tr>
+        <tr><td>Underlying index</td><td>PoRV CDI (Kenostod oracle)</td></tr>
+        <tr><td>Min tick</td><td>0.001</td></tr>
+        <tr><td>Max leverage</td><td>10×</td></tr>
+        <tr><td>Funding interval</td><td>8 hours</td></tr>
+        <tr><td>Collateral</td><td>USDC (primary), KENO (secondary, via HIP-1)</td></tr>
+        <tr><td>Oracle update</td><td>Every 5 minutes</td></tr>
+        <tr><td>Builder fee</td><td>0.01% via Kenostod builder code</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>6. Use Cases</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Actor</th><th>Position</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>AI/ML trader</td><td>Long RVT before AI boom</td><td>Speculate on rising compute demand before a major AI product launch drives enterprise job volume up</td></tr>
+        <tr><td>PoRV miner</td><td>Short RVT perp</td><td>Hedge royalty risk — if AI demand drops, the short offset losses in royalty income</td></tr>
+        <tr><td>KENO holder</td><td>Long RVT + stake KENO</td><td>Dual exposure: perp gains + staking rewards when the ecosystem grows</td></tr>
+        <tr><td>Institutional hedger</td><td>Short RVT</td><td>Hedge exposure to AI compute cost inflation in their own operations</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>7. Revenue Routing (7 Laws)</h2>
+  <p>All trading fees from the RVT-USDC perp flow through the Sovereign Economy's Aegis fee routing layer:</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Fee type</th><th>Rate</th><th>Routing</th></tr></thead>
+      <tbody>
+        <tr><td>HL taker fee</td><td>0.045%</td><td>20% → Kings-Shield security fund | 80% tracked as gross income</td></tr>
+        <tr><td>HL maker rebate</td><td>−0.015%</td><td>100% → KENO KENOAutoBurn (buy + burn on BSC)</td></tr>
+        <tr><td>Builder code</td><td>0.01%</td><td>Kaprekar 60/25/15 split: reinvest / pocket / burn</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>8. New Product: CDI Perpetual</h2>
+  <p>
+    Once RVT-USDC volume establishes CDI as a trusted index, a second product can be listed:
+    the <strong>CDI perpetual</strong> — a pure macro bet on aggregate AI compute demand, not tied
+    to individual RVTs.
+  </p>
+  <div class="highlight-blue">
+    <p>The CDI perp is to AI compute what the VIX is to equities — a forward-looking fear/greed
+    index for the compute economy. Kenostod owns the oracle feed.</p>
+  </div>
+
+  <h2>9. Timeline &amp; Prerequisites</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Milestone</th><th>Target date</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>HIP-1 (KENO spot listing)</td><td>Post PinkSale (July 2026)</td><td>🟡 Pending</td></tr>
+        <tr><td>CDI oracle live on mainnet</td><td>Now</td><td>✅ Live</td></tr>
+        <tr><td>RVT-USDC perp submission (HIP-3)</td><td>August 2026</td><td>🟡 Pending HIP-1</td></tr>
+        <tr><td>CDI perp (HIP-3b)</td><td>Q4 2026</td><td>⚪ Future</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>10. Contact &amp; Oracle API</h2>
+  <div class="card">
+    <table>
+      <tbody>
+        <tr><td>CDI current</td><td><code>GET /api/cdi/current</code></td></tr>
+        <tr><td>CDI history</td><td><code>GET /api/cdi/history?limit=288</code></td></tr>
+        <tr><td>Project</td><td><a href="https://sovereign-bots.onrender.com" style="color:var(--blue2)">sovereign-bots.onrender.com</a></td></tr>
+        <tr><td>Related proposal</td><td>HIP-1 (KENO Spot) — see /hip1-keno-spot.html</td></tr>
+        <tr><td>GitHub</td><td><a href="https://github.com/Keno2121/kenostod-blockchain" style="color:var(--blue2)" target="_blank">Keno2121/kenostod-blockchain ↗</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    HIP-3 Draft • Kenostod Blockchain Academy LLC • The Sovereign Economy<br>
+    "PoRV becomes the first decentralized compute commodity traded on Hyperliquid."
+  </footer>
+</div>
+</body>
+</html>

@@ -3378,6 +3378,50 @@ app.get('/api/porv/status', (req, res) => {
     });
 });
 
+// ── CDI (Compute Demand Index) public endpoints ───────────────────────────────
+// Powers the future RVT-USDC perpetual on Hyperliquid via HIP-3
+
+app.get('/api/cdi/current', (req, res) => {
+    try {
+        // Pull live data from the PoRVComputeIndex bot instance via bot-server state
+        const botServerState = global._botServerState;
+        if (botServerState?.['porv-compute-index']?.instance) {
+            const oracle = botServerState['porv-compute-index'].instance;
+            return res.json({ success: true, ...oracle.getCurrent() });
+        }
+        // Fallback: compute a snapshot from raw PoRV data
+        const rvts    = Array.from(kenostodChain.residualValueTokens?.values?.() || []);
+        const jobs    = Array.from(kenostodChain.computeJobs?.values?.() || []);
+        const clients = Array.from(kenostodChain.enterpriseClients?.values?.() || []);
+        res.json({
+            success: true,
+            cdi:     100,
+            snapshot: true,
+            totalRVTs:    rvts.length,
+            totalJobs:    jobs.length,
+            totalClients: clients.length,
+            timestamp:    new Date().toISOString(),
+            message:      'CDI oracle bot not yet running — showing static snapshot',
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/cdi/history', (req, res) => {
+    try {
+        const limit = Math.min(parseInt(req.query.limit || 288), 8640);
+        const botServerState = global._botServerState;
+        if (botServerState?.['porv-compute-index']?.instance) {
+            const oracle = botServerState['porv-compute-index'].instance;
+            return res.json({ success: true, history: oracle.getHistory(limit), limit });
+        }
+        res.json({ success: true, history: [], limit, message: 'CDI oracle not running yet' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Mine PoRV block (with optional job)
 app.post('/api/porv/mine', (req, res) => {
     try {
