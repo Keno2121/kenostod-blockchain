@@ -6978,8 +6978,53 @@ app.post('/api/graduates/generate-id', async (req, res) => {
         };
         
         console.log(`🎓 New Graduate! ${graduateId} - Wallet: ${walletAddress.slice(0, 8)}...`);
+
+        // ── AUTO-TRIGGER: queue free graduation kit (pin + ID card) ──────────
+        setImmediate(async () => {
+            try {
+                await dbConnection.query(`
+                    INSERT INTO graduate_merchandise_orders 
+                    (order_id, graduate_id, wallet_address, user_email, items_requested, status, created_at)
+                    VALUES ($1, $2, $3, $4, $5, 'pending_address', NOW())
+                    ON CONFLICT (order_id) DO NOTHING
+                `, [
+                    `AUTO-${graduateId}`,
+                    graduateId,
+                    walletAddress,
+                    email || null,
+                    JSON.stringify([
+                        { itemType: 'pin',     quantity: 1, price: 0, isFree: true },
+                        { itemType: 'id-card', quantity: 1, price: 0, isFree: true }
+                    ])
+                ]);
+                console.log(`📦 Auto-queued free graduation kit for ${graduateId} — awaiting shipping address`);
+
+                // Telegram alert to admin
+                const tToken = process.env.TELEGRAM_BOT_TOKEN || process.env.KINGS_SHIELD_BOT_TOKEN;
+                const tChat  = process.env.SHIELD_ALERT_CHAT_ID;
+                if (tToken && tChat) {
+                    const payload = JSON.stringify({
+                        chat_id: tChat,
+                        text: `🎓 <b>New Graduate!</b>\n\nID: <code>${graduateId}</code>\nWallet: <code>${walletAddress.slice(0,10)}...</code>\nKENO earned: ${Math.round(kenoEarned)}\n\n📦 Free pin + ID card kit queued — awaiting their shipping address.\n<a href="https://kenostodblockchain.com/graduate-merchandise.html">Graduate Merchandise Portal</a>`,
+                        parse_mode: 'HTML',
+                        disable_web_page_preview: true
+                    });
+                    const https = require('https');
+                    const r = https.request({ hostname:'api.telegram.org', path:`/bot${tToken}/sendMessage`, method:'POST', headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(payload)}, timeout:8000 }, res2 => res2.resume());
+                    r.on('error', () => {}); r.write(payload); r.end();
+                }
+            } catch (autoErr) {
+                console.error('Auto-graduation trigger error:', autoErr.message);
+            }
+        });
         
-        res.json({ success: true, graduate, message: 'Welcome to the Kenostod Graduate Club!' });
+        res.json({ 
+            success: true, 
+            graduate, 
+            message: 'Welcome to the Kenostod Graduate Club!',
+            freeKitQueued: true,
+            nextStep: 'Visit /graduate-merchandise.html to submit your shipping address and receive your free pin + ID card.'
+        });
     } catch (error) {
         console.error('Error generating graduate ID:', error.message);
         res.status(500).json({ error: error.message });
@@ -7111,6 +7156,176 @@ app.get('/api/graduates/leaderboard', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching leaderboard:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ── G.I.F.T. EUREKA SYSTEM ───────────────────────────────────────────────────
+// Generational Identification Fabric Technology
+// Every first meeting between two Kenostodists is recorded once — forever.
+
+// Record a Eureka first meeting (once per unique pair, immutable)
+app.post('/api/gift/eureka', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'Database unavailable' });
+    try {
+        const { walletA, walletB, locationHint } = req.body;
+        if (!walletA || !walletB) return res.status(400).json({ error: 'Both wallet addresses required' });
+        if (walletA.toLowerCase() === walletB.toLowerCase()) return res.status(400).json({ error: 'Cannot meet yourself' });
+
+        // Ensure gift_eureka_meetings table exists
+        await dbConnection.query(`
+            CREATE TABLE IF NOT EXISTS gift_eureka_meetings (
+                id            SERIAL PRIMARY KEY,
+                pair_hash     VARCHAR(64) UNIQUE NOT NULL,
+                wallet_a      VARCHAR(42) NOT NULL,
+                wallet_b      VARCHAR(42) NOT NULL,
+                location_hint VARCHAR(200),
+                met_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                block_number  BIGINT,
+                tx_hash       VARCHAR(66)
+            )
+        `);
+
+        // pair_hash = sha256 of alphabetically sorted wallets — order-independent, unique per pair
+        const crypto = require('crypto');
+        const sorted = [walletA.toLowerCase(), walletB.toLowerCase()].sort();
+        const pairHash = crypto.createHash('sha256').update(sorted.join('::')).digest('hex');
+
+        // Check if already met
+        const existing = await dbConnection.query(
+            'SELECT id, met_at FROM gift_eureka_meetings WHERE pair_hash = $1', [pairHash]
+        );
+        if (existing.rows.length > 0) {
+            return res.json({
+                success: true,
+                isFirstMeeting: false,
+                alreadyMet: true,
+                metAt: existing.rows[0].met_at,
+                message: 'These two Kenostodists have already had their Eureka moment.'
+            });
+        }
+
+        // Verify both are graduates
+        const gradA = await dbConnection.query(
+            'SELECT graduate_id, keno_earned FROM kenostod_graduates WHERE LOWER(wallet_address)=LOWER($1)', [walletA]
+        );
+        const gradB = await dbConnection.query(
+            'SELECT graduate_id, keno_earned FROM kenostod_graduates WHERE LOWER(wallet_address)=LOWER($1)', [walletB]
+        );
+
+        // Record the Eureka moment
+        const result = await dbConnection.query(`
+            INSERT INTO gift_eureka_meetings (pair_hash, wallet_a, wallet_b, location_hint)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, met_at
+        `, [pairHash, walletA.toLowerCase(), walletB.toLowerCase(), locationHint || null]);
+
+        const meeting = result.rows[0];
+        const meetingId = meeting.id;
+        const metAt = meeting.met_at;
+
+        console.log(`✨ G.I.F.T. Eureka! Meeting #${meetingId} — ${walletA.slice(0,8)}... ↔ ${walletB.slice(0,8)}...`);
+
+        // Telegram alert
+        const tToken = process.env.TELEGRAM_BOT_TOKEN || process.env.KINGS_SHIELD_BOT_TOKEN;
+        const tChat  = process.env.SHIELD_ALERT_CHAT_ID;
+        if (tToken && tChat) {
+            const msg = JSON.stringify({
+                chat_id: tChat,
+                text: `✨ <b>G.I.F.T. Eureka Moment!</b>\n\nMeeting #${meetingId}\n${walletA.slice(0,10)}... ↔ ${walletB.slice(0,10)}...\n${locationHint ? `📍 ${locationHint}` : ''}\n\n<i>First greeting. Forever recorded.</i>`,
+                parse_mode: 'HTML'
+            });
+            const https = require('https');
+            const r = https.request({ hostname:'api.telegram.org', path:`/bot${tToken}/sendMessage`, method:'POST', headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(msg)}, timeout:8000 }, rr => rr.resume());
+            r.on('error',()=>{}); r.write(msg); r.end();
+        }
+
+        res.json({
+            success: true,
+            isFirstMeeting: true,
+            meetingId,
+            metAt,
+            pairHash,
+            graduateA: gradA.rows[0] || null,
+            graduateB: gradB.rows[0] || null,
+            message: '✨ Eureka! Your first meeting is now recorded forever on the blockchain.'
+        });
+    } catch (error) {
+        if (error.code === '23505') {
+            return res.json({ success: true, isFirstMeeting: false, alreadyMet: true, message: 'Already met.' });
+        }
+        console.error('G.I.F.T. Eureka error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all Eureka meetings for a wallet
+app.get('/api/gift/meetings/:walletAddress', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'Database unavailable' });
+    try {
+        const wallet = req.params.walletAddress.toLowerCase();
+        await dbConnection.query(`
+            CREATE TABLE IF NOT EXISTS gift_eureka_meetings (
+                id SERIAL PRIMARY KEY, pair_hash VARCHAR(64) UNIQUE NOT NULL,
+                wallet_a VARCHAR(42) NOT NULL, wallet_b VARCHAR(42) NOT NULL,
+                location_hint VARCHAR(200), met_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                block_number BIGINT, tx_hash VARCHAR(66)
+            )
+        `);
+        const result = await dbConnection.query(`
+            SELECT m.id, m.met_at, m.location_hint,
+                CASE WHEN LOWER(m.wallet_a)=LOWER($1) THEN m.wallet_b ELSE m.wallet_a END as other_wallet,
+                g.graduate_id as other_graduate_id, g.keno_earned as other_keno_earned, g.rvt_nft_tier as other_tier
+            FROM gift_eureka_meetings m
+            LEFT JOIN kenostod_graduates g ON LOWER(g.wallet_address) = CASE WHEN LOWER(m.wallet_a)=LOWER($1) THEN LOWER(m.wallet_b) ELSE LOWER(m.wallet_a) END
+            WHERE LOWER(m.wallet_a)=LOWER($1) OR LOWER(m.wallet_b)=LOWER($1)
+            ORDER BY m.met_at DESC
+        `, [wallet]);
+
+        res.json({
+            success: true,
+            totalMeetings: result.rows.length,
+            meetings: result.rows
+        });
+    } catch (error) {
+        console.error('G.I.F.T. meetings fetch error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// G.I.F.T. Meet landing page — dynamic route for garment proximity trigger
+app.get('/gift/meet/:graduateId', async (req, res) => {
+    res.sendFile('gift-meet.html', { root: 'public' });
+});
+
+// Graduate profile for meet page (public — only non-sensitive fields)
+app.get('/api/gift/profile/:graduateId', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'Database unavailable' });
+    try {
+        const result = await dbConnection.query(`
+            SELECT graduate_id, LEFT(wallet_address,10)||'...' as wallet_preview,
+                   wallet_address, completion_date, total_courses, keno_earned,
+                   rvt_nft_tier, graduate_name
+            FROM kenostod_graduates
+            WHERE graduate_id = $1
+        `, [req.params.graduateId]);
+        if (!result.rows.length) return res.status(404).json({ error: 'Graduate not found' });
+        const g = result.rows[0];
+        res.json({
+            success: true,
+            graduate: {
+                graduateId:     g.graduate_id,
+                walletPreview:  g.wallet_preview,
+                walletAddress:  g.wallet_address,
+                name:           g.graduate_name || 'Kenostodist',
+                completionDate: g.completion_date,
+                totalCourses:   g.total_courses,
+                kenoEarned:     g.keno_earned,
+                tier:           g.rvt_nft_tier,
+                meetUrl:        `/gift/meet/${g.graduate_id}`
+            }
+        });
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
