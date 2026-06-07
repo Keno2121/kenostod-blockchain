@@ -351,5 +351,5 @@ class HLBuilderRegistry {
   }
 }
 
-// Singleton export — shared across all bots that need to attach the builder code
-module.exports = new HLBuilderRegistry();
+// Export the class — bot-server.js instantiates with `new BotClass()`
+module.exports = HLBuilderRegistry;
