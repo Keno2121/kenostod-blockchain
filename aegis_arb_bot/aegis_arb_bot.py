@@ -84,21 +84,31 @@ def get_sol_price_usd() -> float:
 
 def get_jupiter_quote(input_mint: str, output_mint: str, amount_lamports: int,
                       slippage_bps: int = 50) -> dict | None:
-    """Get best swap quote from Jupiter across all 20+ Solana DEXs. Pure stdlib."""
-    try:
-        params = urllib.parse.urlencode({
-            "inputMint":       input_mint,
-            "outputMint":      output_mint,
-            "amount":          str(amount_lamports),
-            "slippageBps":     str(slippage_bps),
-            "onlyDirectRoutes":"false",
-        })
-        url  = f"{JUPITER_QUOTE_URL}?{params}"
-        resp = urllib.request.urlopen(url, timeout=10)
-        if resp.status == 200:
-            return json.loads(resp.read().decode())
-    except Exception as e:
-        log.warning(f"Jupiter quote error: {e}")
+    """Get best swap quote from Jupiter. Retries on 429 with backoff."""
+    params = urllib.parse.urlencode({
+        "inputMint":        input_mint,
+        "outputMint":       output_mint,
+        "amount":           str(amount_lamports),
+        "slippageBps":      str(slippage_bps),
+        "onlyDirectRoutes": "false",
+    })
+    url = f"{JUPITER_QUOTE_URL}?{params}"
+    for attempt in range(3):
+        try:
+            resp = urllib.request.urlopen(url, timeout=12)
+            if resp.status == 200:
+                return json.loads(resp.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                wait = 3 * (attempt + 1)   # 3s, 6s, 9s
+                log.warning(f"Jupiter 429 — waiting {wait}s before retry {attempt+1}/3")
+                time.sleep(wait)
+            else:
+                log.warning(f"Jupiter quote error: HTTP {e.code}")
+                break
+        except Exception as e:
+            log.warning(f"Jupiter quote error: {e}")
+            break
     return None
 
 def lamports_to_sol(lamports: int) -> float:
