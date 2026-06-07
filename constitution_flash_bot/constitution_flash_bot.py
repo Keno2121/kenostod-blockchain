@@ -17,6 +17,7 @@ Routes (two on-chain Jupiter swaps, confirmed sequentially):
 Minimum profit gate: $0.25 after all fees before any trade fires.
 """
 
+from __future__ import annotations
 import os, sys, time, json, logging, argparse, base64
 import requests
 from datetime import datetime, timezone
