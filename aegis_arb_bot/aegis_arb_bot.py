@@ -50,14 +50,14 @@ TOKEN_DECIMALS = {
     PYTH_MINT: 6,
 }
 
-# CoinGecko IDs (free API, no key required)
-COINGECKO_IDS = {
-    BONK_MINT: "bonk",
-    WIF_MINT:  "dogwifhat",
-    JTO_MINT:  "jito-governance-token",
-    PYTH_MINT: "pyth-network",
+# Hyperliquid coin names (perp market mid-prices — confirmed working from Render)
+HL_COIN_NAMES = {
+    BONK_MINT: "BONK",
+    WIF_MINT:  "WIF",
+    JTO_MINT:  "JTO",
+    PYTH_MINT: "PYTH",
 }
-COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
+HL_INFO_URL = "https://api.hyperliquid.xyz/info"
 
 # Jupiter API
 JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote"
@@ -89,29 +89,28 @@ def send_telegram(token: str, chat_id: str, text: str):
     except Exception as e:
         log.warning(f"Telegram alert failed: {e}")
 
-def get_coingecko_prices(mint_list: list[str]) -> dict[str, float]:
-    """Fetch market reference prices from CoinGecko (free, no API key). Returns {mint: price}."""
-    ids = [COINGECKO_IDS[m] for m in mint_list if m in COINGECKO_IDS]
-    if not ids:
-        return {}
+def get_reference_prices(mint_list: list[str]) -> dict[str, float]:
+    """
+    Fetch market reference prices from Hyperliquid allMids.
+    HL perp mid-prices are real-time and confirmed reachable from Render.
+    Returns {mint: price_usd}.
+    """
     try:
-        params = urllib.parse.urlencode({"ids": ",".join(ids), "vs_currencies": "usd"})
-        req    = urllib.request.Request(
-            f"{COINGECKO_URL}?{params}",
-            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+        payload = json.dumps({"type": "allMids"}).encode()
+        req     = urllib.request.Request(
+            HL_INFO_URL, data=payload,
+            headers={"Content-Type": "application/json"},
         )
-        resp   = urllib.request.urlopen(req, timeout=12)
-        data   = json.loads(resp.read().decode())
-        # Invert: CG_ID → mint
-        id_to_mint = {v: k for k, v in COINGECKO_IDS.items() if k in mint_list}
+        resp  = urllib.request.urlopen(req, timeout=12)
+        mids  = json.loads(resp.read().decode())   # {"BONK": "0.00000437", ...}
         result = {}
-        for cg_id, prices in data.items():
-            mint = id_to_mint.get(cg_id)
-            if mint:
-                result[mint] = float(prices.get("usd", 0))
+        for mint in mint_list:
+            coin = HL_COIN_NAMES.get(mint)
+            if coin and coin in mids:
+                result[mint] = float(mids[coin])
         return result
     except Exception as e:
-        log.warning(f"CoinGecko fetch error: {e}")
+        log.warning(f"HL price fetch error: {e}")
         return {}
 
 
@@ -344,22 +343,22 @@ class AegisArbBot:
             token_mints.append(SHIELD_MINT)
             labels[SHIELD_MINT] = "SHIELD"
 
-        # Fetch all CoinGecko prices in ONE call (rate-limit friendly)
-        cg_prices = get_coingecko_prices(token_mints)
-        if not cg_prices:
-            self._log("CoinGecko unavailable — skipping scan", "warn")
+        # Fetch all reference prices from Hyperliquid allMids in ONE call
+        ref_prices = get_reference_prices(token_mints)
+        if not ref_prices:
+            self._log("HL price feed unavailable — skipping scan", "warn")
             return
 
-        # Compare each token's market price vs Jupiter DEX price
+        # Compare each token's HL perp price vs Jupiter Solana DEX price
         for i, mint in enumerate(token_mints):
-            if mint not in cg_prices:
+            if mint not in ref_prices:
                 continue
             if i > 0:
                 time.sleep(2)   # 2s between Jupiter calls — respects free tier limit
-            label   = labels.get(mint, mint[:8])
-            cg_price = cg_prices[mint]
+            label     = labels.get(mint, mint[:8])
+            ref_price = ref_prices[mint]
             try:
-                net_usd = self._scan_pair(mint, label, cg_price, sol_usd)
+                net_usd = self._scan_pair(mint, label, ref_price, sol_usd)
                 if net_usd is not None:
                     self._log(f"🎯 OPPORTUNITY: {label} → ${net_usd:.4f} net profit", "info")
                     sol_lamports = int((TRADE_SIZE_USD / sol_usd) * 10 ** SOL_DECIMALS)
