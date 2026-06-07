@@ -1,6 +1,6 @@
 """
 Aegis Arb Bot — Kings Shield
-Solana price-deviation scanner: CoinGecko market price vs Jupiter DEX price.
+Solana price-deviation scanner: Hyperliquid perp reference price vs Jupiter DEX execution price.
 
 Strategy:
   When Jupiter DEX is offering a token cheaper than CoinGecko's aggregated
@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 KAPREKAR_CONSTANT   = 6174
 SCAN_INTERVAL_SEC   = 61.74          # Law VI — Euler
 AEGIS_TAX_BPS       = 617            # 6.17% (6174 basis = 6.174%)
-# Buy when DEX price is >0.3% below CoinGecko market price.
+# Buy when DEX price is >0.3% below Hyperliquid reference price.
 # 0.3% on a $50 trade = $0.15 gross profit opportunity.
 # After Aegis tax (6.174%) and gas ($0.001): net ~$0.14.
 MIN_DEV_PCT         = 0.30           # Minimum % below market price to trigger
@@ -39,7 +39,7 @@ USDC_MINT  = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 BONK_MINT  = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
 WIF_MINT   = "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm"
 JTO_MINT   = "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL"
-PYTH_MINT  = "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3"
+RAY_MINT   = "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R"
 SHIELD_MINT = os.environ.get("SHIELD_TOKEN_MINT", "")
 
 # Token decimals on Solana
@@ -47,7 +47,7 @@ TOKEN_DECIMALS = {
     BONK_MINT: 5,
     WIF_MINT:  6,
     JTO_MINT:  9,
-    PYTH_MINT: 6,
+    RAY_MINT:  6,
 }
 
 # Hyperliquid coin names (perp market mid-prices — confirmed working from Render)
@@ -55,7 +55,7 @@ HL_COIN_NAMES = {
     BONK_MINT: "BONK",
     WIF_MINT:  "WIF",
     JTO_MINT:  "JTO",
-    PYTH_MINT: "PYTH",
+    RAY_MINT:  "RAY",
 }
 HL_INFO_URL = "https://api.hyperliquid.xyz/info"
 
@@ -205,13 +205,13 @@ class AegisArbBot:
         print(json.dumps(event), flush=True)
 
     def _scan_pair(self, token_mint: str, label: str,
-                   cg_price: float, sol_usd: float) -> float | None:
+                   ref_price: float, sol_usd: float) -> float | None:
         """
-        Compare CoinGecko market reference price vs Jupiter DEX price.
-        When DEX price is > MIN_DEV_PCT below market = liquidity imbalance = buy signal.
+        Compare Hyperliquid reference price vs Jupiter DEX execution price.
+        When DEX price is > MIN_DEV_PCT below HL reference = liquidity imbalance = buy signal.
         Returns net profit estimate in USD, or None if no opportunity.
         """
-        if cg_price <= 0:
+        if ref_price <= 0:
             return None
 
         decimals      = TOKEN_DECIMALS.get(token_mint, 6)
@@ -227,25 +227,25 @@ class AegisArbBot:
         if out_amount == 0:
             return None
 
-        # Effective DEX price per token in USD
-        token_units  = out_amount / (10 ** decimals)
-        dex_price    = TRADE_SIZE_USD / token_units   # USD per token on DEX
+        # Effective DEX execution price per token in USD
+        token_units   = out_amount / (10 ** decimals)
+        dex_price     = TRADE_SIZE_USD / token_units   # USD per token on DEX
 
-        # Deviation: positive = DEX cheaper than market
-        deviation_pct = (cg_price - dex_price) / cg_price * 100
+        # Deviation: positive = DEX cheaper than HL reference (buy signal)
+        deviation_pct = (ref_price - dex_price) / ref_price * 100
 
         route_info = quote.get("routePlan", [{}])
         dex_used   = route_info[0].get("swapInfo", {}).get("label", "Jupiter") if route_info else "Jupiter"
 
         self._log(
-            f"[{label}] CoinGecko ${cg_price:.6f} | DEX ${dex_price:.6f} "
+            f"[{label}] HL ref ${ref_price:.6f} | DEX ${dex_price:.6f} "
             f"| dev {deviation_pct:+.3f}% | via {dex_used}"
         )
 
         if deviation_pct < MIN_DEV_PCT:
             return None
 
-        # Estimated profit: buy at DEX price, price reverts to CoinGecko
+        # Estimated profit: buy at DEX price, price reverts to HL reference
         gross_usd = (deviation_pct / 100) * TRADE_SIZE_USD
         net_usd   = apply_aegis_tax(gross_usd) - 0.002   # ~$0.002 gas for 2 Solana txns
 
@@ -336,9 +336,9 @@ class AegisArbBot:
                   f"Trades: {self.trade_count} | Profit: ${self.total_profit:.4f}")
 
         # Token list to scan
-        token_mints = [BONK_MINT, WIF_MINT, JTO_MINT, PYTH_MINT]
+        token_mints = [BONK_MINT, WIF_MINT, JTO_MINT, RAY_MINT]
         labels      = {BONK_MINT: "BONK", WIF_MINT: "WIF",
-                       JTO_MINT: "JTO",   PYTH_MINT: "PYTH"}
+                       JTO_MINT: "JTO",   RAY_MINT:  "RAY"}
         if SHIELD_MINT:
             token_mints.append(SHIELD_MINT)
             labels[SHIELD_MINT] = "SHIELD"
@@ -379,8 +379,8 @@ class AegisArbBot:
         send_telegram(
             self.tg_token, self.tg_chat_id,
             f"⚔ <b>Aegis Arb Bot ONLINE</b>\n"
-            f"Strategy: CoinGecko market price vs Jupiter DEX price\n"
-            f"Tokens: BONK | WIF | JTO | PYTH\n"
+            f"Strategy: Hyperliquid perp price vs Jupiter DEX price\n"
+            f"Tokens: BONK | WIF | JTO | RAY\n"
             f"Trigger: DEX >{MIN_DEV_PCT}% below market → BUY\n"
             f"Interval: {SCAN_INTERVAL_SEC}s | Min profit: ${MIN_PROFIT_USD}\n"
             f"Kaprekar {KAPREKAR_CONSTANT} — value flows to the participant."
