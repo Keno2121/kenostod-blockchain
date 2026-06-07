@@ -313,18 +313,55 @@ class AegisArbBot:
                     "total_profit": self.total_profit})
 
 # ─────────────────────────── entry point ─────────────────────────
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Aegis Arb Bot — Kings Shield")
-    parser.add_argument("--rpc",        default=os.environ.get("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"))
-    parser.add_argument("--wallet-key", default=os.environ.get("SOLANA_WALLET_PRIVATE_KEY", ""))
-    parser.add_argument("--tg-token",   default=os.environ.get("KINGS_SHIELD_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN", ""))
-    parser.add_argument("--tg-chat-id", default=os.environ.get("SHIELD_ALERT_CHAT_ID", os.environ.get("FAL_ALERT_CHAT_ID", "")))
-    args = parser.parse_args()
+def _tg_crash(token: str, chat_id: str, text: str):
+    """Send crash report to Telegram — last resort before exit."""
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={"chat_id": chat_id, "text": text[:4000], "parse_mode": "HTML"},
+            timeout=8
+        )
+    except Exception:
+        pass
 
-    bot = AegisArbBot(
-        wallet_private_key=args.wallet_key,
-        rpc_url=args.rpc,
-        tg_token=args.tg_token,
-        tg_chat_id=args.tg_chat_id,
-    )
-    bot.run()
+if __name__ == "__main__":
+    import traceback
+
+    # ── Startup diagnostics (visible in Render logs) ──────────────
+    print(f"[AegisArbBot] Python {sys.version.split()[0]}", flush=True)
+    _pkg_status = []
+    for _pkg in ("requests", "solders", "base58", "solana"):
+        try:
+            __import__(_pkg)
+            _pkg_status.append(f"{_pkg}=✓")
+        except ImportError:
+            _pkg_status.append(f"{_pkg}=MISSING")
+    print(f"[AegisArbBot] Packages: {' | '.join(_pkg_status)}", flush=True)
+
+    _tg_token  = os.environ.get("KINGS_SHIELD_BOT_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    _tg_chatid = os.environ.get("SHIELD_ALERT_CHAT_ID", os.environ.get("FAL_ALERT_CHAT_ID", ""))
+
+    try:
+        parser = argparse.ArgumentParser(description="Aegis Arb Bot — Kings Shield")
+        parser.add_argument("--rpc",        default=os.environ.get("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"))
+        parser.add_argument("--wallet-key", default=os.environ.get("SOLANA_WALLET_PRIVATE_KEY", ""))
+        parser.add_argument("--tg-token",   default=_tg_token)
+        parser.add_argument("--tg-chat-id", default=_tg_chatid)
+        args = parser.parse_args()
+
+        bot = AegisArbBot(
+            wallet_private_key=args.wallet_key,
+            rpc_url=args.rpc,
+            tg_token=args.tg_token,
+            tg_chat_id=args.tg_chat_id,
+        )
+        bot.run()
+
+    except SystemExit:
+        raise
+    except BaseException as e:
+        tb = traceback.format_exc()
+        err_summary = f"🆘 <b>Aegis Bot — FATAL CRASH</b>\n<code>{type(e).__name__}: {str(e)[:300]}</code>\n\n<pre>{tb[-600:]}</pre>"
+        print(f"[AegisArbBot] FATAL: {type(e).__name__}: {e}\n{tb}", file=sys.stderr, flush=True)
+        _tg_crash(_tg_token, _tg_chatid, err_summary)
+        sys.exit(1)
