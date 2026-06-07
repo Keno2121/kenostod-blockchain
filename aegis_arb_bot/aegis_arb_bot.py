@@ -3,8 +3,8 @@ Aegis Arb Bot — Kings Shield
 Solana price-deviation scanner: Hyperliquid perp reference price vs Jupiter DEX execution price.
 
 Strategy:
-  When Jupiter DEX is offering a token cheaper than CoinGecko's aggregated
-  market price, it signals a temporary liquidity imbalance on Solana DEXs.
+  When Jupiter DEX is offering a token cheaper than Hyperliquid's global
+  perp reference price, it signals a temporary liquidity imbalance on Solana.
   Buy the underpriced token on Jupiter; price reverts as market makers restore
   equilibrium. No roundtrip required — no guaranteed fee loss.
 
