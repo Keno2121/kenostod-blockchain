@@ -24,15 +24,23 @@ from datetime import datetime, timezone
 KAPREKAR_CONSTANT   = 6174
 SCAN_INTERVAL_SEC   = 61.74          # Law VI — Euler
 AEGIS_TAX_BPS       = 617            # 6.17% (6174 basis = 6.174%)
-MIN_PROFIT_USD      = 0.25           # only fire when net > $0.25
+# $0.005 minimum: covers Solana gas (~$0.001×2 txs) with 2.5× safety margin.
+# SOL/USDC spreads are only 0.004-0.007% — requires $0.25 threshold to need $6k+ trades.
+# Volatile pairs (BONK, WIF, JTO) have 0.05-0.5% spreads — profitable at $50 trade size.
+MIN_PROFIT_USD      = 0.005
 FLASH_LOAN_FEE_BPS  = 9              # 0.09% repayment fee
 SOL_DECIMALS        = 9
 USDC_DECIMALS       = 6
 
-# Solana tokens
+# Solana tokens — stables
 SOL_MINT   = "So11111111111111111111111111111111111111112"
 USDC_MINT  = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 USDT_MINT  = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+# Volatile meme/ecosystem tokens — wider DEX spreads = more arb opportunities
+BONK_MINT  = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+WIF_MINT   = "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm"
+JTO_MINT   = "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL"
+PYTH_MINT  = "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3"
 SHIELD_MINT = os.environ.get("SHIELD_TOKEN_MINT", "")  # Set once deployed on Solana
 
 # Jupiter API v6
@@ -267,10 +275,16 @@ class AegisArbBot:
         self._log(f"Scan #{self.scan_count} | SOL=${sol_usd:.2f} | "
                   f"Trades: {self.trade_count} | Profit: ${self.total_profit:.2f}")
 
-        # Amount to test: ~$50 equivalent in SOL
+        # Amount to test: ~$50 equivalent in SOL (safe size, low slippage across all DEXs)
         test_sol_lamports = int((50 / sol_usd) * 10**SOL_DECIMALS)
 
         pairs = [
+            # Volatile ecosystem tokens — 0.05-0.5% spreads across Raydium/Orca/Meteora
+            (SOL_MINT, BONK_MINT, test_sol_lamports, "SOL/BONK"),
+            (SOL_MINT, WIF_MINT,  test_sol_lamports, "SOL/WIF"),
+            (SOL_MINT, JTO_MINT,  test_sol_lamports, "SOL/JTO"),
+            (SOL_MINT, PYTH_MINT, test_sol_lamports, "SOL/PYTH"),
+            # Stables — efficient but included as baseline
             (SOL_MINT, USDC_MINT, test_sol_lamports, "SOL/USDC"),
             (SOL_MINT, USDT_MINT, test_sol_lamports, "SOL/USDT"),
         ]
