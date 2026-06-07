@@ -85,7 +85,7 @@ class KenoFlashOrbBot {
 
     // ── Law VI: Kaprekar scan interval = 30s (BSC) ─────────────────────
     this.config = {
-      autoExecute:    false,        // must be enabled via /api/flash-orb/config
+      autoExecute:    true,         // LIVE — contract-level quoteBest() reverts if not profitable
       minProfitUSD:   0.25,         // Law III — Sovereign Threshold
       checkIntervalMs: 30_000,      // Law VI — 30s BSC scan (61.74s on Solana)
       gasPrice:       ethers.parseUnits('1', 'gwei'),

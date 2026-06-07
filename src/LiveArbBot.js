@@ -74,7 +74,7 @@ class LiveArbBot {
     this.paused   = false;
 
     this.config = {
-      autoExecute:       false,         // SCAN ONLY — no transactions until private mempool is live
+      autoExecute:       true,          // LIVE — quoteBest() contract simulation guards every trade
       minProfitUSD:     0.25,          // $0.25 minimum — only log real opportunities
       arbTradeAmountBNB: '0.10',       // 0.10 BNB per trade — lower break-even spread to 0.26%
       kenoVolBNB:        '0.001',
