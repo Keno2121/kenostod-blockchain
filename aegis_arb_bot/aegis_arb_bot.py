@@ -15,17 +15,10 @@ Income: 2–8 trades/day at $0.25–$2.00 each
 """
 
 from __future__ import annotations
-import os, sys, time, json, logging, argparse, asyncio, urllib.request
+import os, sys, time, json, logging, argparse, asyncio, urllib.request, urllib.parse
 from datetime import datetime, timezone
 
-# ── Safe third-party import — crash reporter uses stdlib urllib so it works
-# ── even when pip didn't run. Bot falls back to scan-only if missing.
-try:
-    import requests as _requests
-    _HAS_REQUESTS = True
-except ImportError:
-    _requests = None          # type: ignore
-    _HAS_REQUESTS = False
+# No third-party HTTP library needed — all HTTP via stdlib urllib
 
 # ─────────────────────────── constants ───────────────────────────
 KAPREKAR_CONSTANT   = 6174
@@ -73,11 +66,9 @@ def send_telegram(token: str, chat_id: str, text: str):
         log.warning(f"Telegram alert failed: {e}")
 
 def get_sol_price_usd() -> float:
-    if not _HAS_REQUESTS:
-        return 150.0
     try:
-        r = _requests.get(SOL_PRICE_URL, timeout=8)
-        data = r.json()
+        resp = urllib.request.urlopen(SOL_PRICE_URL, timeout=8)
+        data = json.loads(resp.read().decode())
         sol_mint = "So11111111111111111111111111111111111111112"
         return float(data["data"][sol_mint]["price"])
     except Exception:
@@ -85,21 +76,19 @@ def get_sol_price_usd() -> float:
 
 def get_jupiter_quote(input_mint: str, output_mint: str, amount_lamports: int,
                       slippage_bps: int = 50) -> dict | None:
-    """Get best swap quote from Jupiter across all 20+ Solana DEXs."""
-    if not _HAS_REQUESTS:
-        log.warning("requests not installed — Jupiter quote unavailable")
-        return None
+    """Get best swap quote from Jupiter across all 20+ Solana DEXs. Pure stdlib."""
     try:
-        params = {
-            "inputMint": input_mint,
-            "outputMint": output_mint,
-            "amount": str(amount_lamports),
-            "slippageBps": slippage_bps,
-            "onlyDirectRoutes": False,
-        }
-        r = _requests.get(JUPITER_QUOTE_URL, params=params, timeout=10)
-        if r.status_code == 200:
-            return r.json()
+        params = urllib.parse.urlencode({
+            "inputMint":       input_mint,
+            "outputMint":      output_mint,
+            "amount":          str(amount_lamports),
+            "slippageBps":     str(slippage_bps),
+            "onlyDirectRoutes":"false",
+        })
+        url  = f"{JUPITER_QUOTE_URL}?{params}"
+        resp = urllib.request.urlopen(url, timeout=10)
+        if resp.status == 200:
+            return json.loads(resp.read().decode())
     except Exception as e:
         log.warning(f"Jupiter quote error: {e}")
     return None
@@ -219,15 +208,17 @@ class AegisArbBot:
                 "dynamicComputeUnitLimit": True,
                 "prioritizationFeeLamports": "auto",
             }
-            if not _HAS_REQUESTS:
-                self._log("requests not installed — swap skipped", "warn")
-                return
-            r = _requests.post(JUPITER_SWAP_URL, json=swap_body, timeout=15)
-            if r.status_code != 200:
-                self._log(f"Swap API error: {r.text}", "error")
+            swap_req  = urllib.request.Request(
+                JUPITER_SWAP_URL,
+                data=json.dumps(swap_body).encode(),
+                headers={"Content-Type": "application/json"},
+            )
+            swap_resp = urllib.request.urlopen(swap_req, timeout=15)
+            if swap_resp.status != 200:
+                self._log(f"Swap API error: {swap_resp.read().decode()}", "error")
                 return
 
-            swap_tx_b64 = r.json().get("swapTransaction", "")
+            swap_tx_b64 = json.loads(swap_resp.read().decode()).get("swapTransaction", "")
             if not swap_tx_b64:
                 return
 
