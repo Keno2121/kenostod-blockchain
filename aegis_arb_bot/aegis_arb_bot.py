@@ -15,9 +15,17 @@ Income: 2–8 trades/day at $0.25–$2.00 each
 """
 
 from __future__ import annotations
-import os, sys, time, json, logging, argparse, asyncio
-import requests
+import os, sys, time, json, logging, argparse, asyncio, urllib.request
 from datetime import datetime, timezone
+
+# ── Safe third-party import — crash reporter uses stdlib urllib so it works
+# ── even when pip didn't run. Bot falls back to scan-only if missing.
+try:
+    import requests as _requests
+    _HAS_REQUESTS = True
+except ImportError:
+    _requests = None          # type: ignore
+    _HAS_REQUESTS = False
 
 # ─────────────────────────── constants ───────────────────────────
 KAPREKAR_CONSTANT   = 6174
@@ -52,20 +60,24 @@ log = logging.getLogger("AegisArbBot")
 def send_telegram(token: str, chat_id: str, text: str):
     if not token or not chat_id:
         return
+    # Use stdlib urllib so this works even if requests isn't installed
     try:
-        requests.post(
+        data = json.dumps({"chat_id": chat_id, "text": text, "parse_mode": "HTML"}).encode()
+        req  = urllib.request.Request(
             f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
-            timeout=10
+            data=data,
+            headers={"Content-Type": "application/json"},
         )
+        urllib.request.urlopen(req, timeout=10)
     except Exception as e:
         log.warning(f"Telegram alert failed: {e}")
 
 def get_sol_price_usd() -> float:
+    if not _HAS_REQUESTS:
+        return 150.0
     try:
-        r = requests.get(SOL_PRICE_URL, timeout=8)
+        r = _requests.get(SOL_PRICE_URL, timeout=8)
         data = r.json()
-        # Jupiter price v2 format: {"data": {"<mint>": {"price": "..."}}}
         sol_mint = "So11111111111111111111111111111111111111112"
         return float(data["data"][sol_mint]["price"])
     except Exception:
@@ -74,6 +86,9 @@ def get_sol_price_usd() -> float:
 def get_jupiter_quote(input_mint: str, output_mint: str, amount_lamports: int,
                       slippage_bps: int = 50) -> dict | None:
     """Get best swap quote from Jupiter across all 20+ Solana DEXs."""
+    if not _HAS_REQUESTS:
+        log.warning("requests not installed — Jupiter quote unavailable")
+        return None
     try:
         params = {
             "inputMint": input_mint,
@@ -82,7 +97,7 @@ def get_jupiter_quote(input_mint: str, output_mint: str, amount_lamports: int,
             "slippageBps": slippage_bps,
             "onlyDirectRoutes": False,
         }
-        r = requests.get(JUPITER_QUOTE_URL, params=params, timeout=10)
+        r = _requests.get(JUPITER_QUOTE_URL, params=params, timeout=10)
         if r.status_code == 200:
             return r.json()
     except Exception as e:
@@ -204,7 +219,10 @@ class AegisArbBot:
                 "dynamicComputeUnitLimit": True,
                 "prioritizationFeeLamports": "auto",
             }
-            r = requests.post(JUPITER_SWAP_URL, json=swap_body, timeout=15)
+            if not _HAS_REQUESTS:
+                self._log("requests not installed — swap skipped", "warn")
+                return
+            r = _requests.post(JUPITER_SWAP_URL, json=swap_body, timeout=15)
             if r.status_code != 200:
                 self._log(f"Swap API error: {r.text}", "error")
                 return
@@ -315,13 +333,15 @@ class AegisArbBot:
 
 # ─────────────────────────── entry point ─────────────────────────
 def _tg_crash(token: str, chat_id: str, text: str):
-    """Send crash report to Telegram — last resort before exit."""
+    """Send crash report to Telegram using stdlib urllib — works even without requests."""
     try:
-        requests.post(
+        data = json.dumps({"chat_id": chat_id, "text": text[:4000], "parse_mode": "HTML"}).encode()
+        req  = urllib.request.Request(
             f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": text[:4000], "parse_mode": "HTML"},
-            timeout=8
+            data=data,
+            headers={"Content-Type": "application/json"},
         )
+        urllib.request.urlopen(req, timeout=8)
     except Exception:
         pass
 
