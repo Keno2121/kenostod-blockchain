@@ -14,6 +14,7 @@ Fires: when net profit > $0.25 after Aegis Tax (6.174%) + gas
 Income: 2–8 trades/day at $0.25–$2.00 each
 """
 
+from __future__ import annotations
 import os, sys, time, json, logging, argparse, asyncio
 import requests
 from datetime import datetime, timezone
