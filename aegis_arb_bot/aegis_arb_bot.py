@@ -1,17 +1,17 @@
 """
 Aegis Arb Bot — Kings Shield
-Live DEX arbitrage scanner on Solana.
+Solana price-deviation scanner: CoinGecko market price vs Jupiter DEX price.
+
+Strategy:
+  When Jupiter DEX is offering a token cheaper than CoinGecko's aggregated
+  market price, it signals a temporary liquidity imbalance on Solana DEXs.
+  Buy the underpriced token on Jupiter; price reverts as market makers restore
+  equilibrium. No roundtrip required — no guaranteed fee loss.
 
 Constitutional Laws baked in:
   Law I   (Kaprekar)  — all distributions route through absorb(); dust to participant
-  III     (Golden Ratio) — min profit threshold φ-scaled
+  III     (Golden Ratio) — position sizing φ-scaled with trade history
   VI      (Euler)     — scan interval 61.74s (continuous compounding metaphor)
-
-Scans: SOL/USDC and SHIELD/SOL across Meteora DLMM, Orca Whirlpool, Raydium
-Uses:  Jupiter aggregator (20+ Solana DEXs simultaneously)
-Fires: when net profit > $0.25 after Aegis Tax (6.174%) + gas
-
-Income: 2–8 trades/day at $0.25–$2.00 each
 """
 
 from __future__ import annotations
@@ -24,26 +24,42 @@ from datetime import datetime, timezone
 KAPREKAR_CONSTANT   = 6174
 SCAN_INTERVAL_SEC   = 61.74          # Law VI — Euler
 AEGIS_TAX_BPS       = 617            # 6.17% (6174 basis = 6.174%)
-# $0.005 minimum: covers Solana gas (~$0.001×2 txs) with 2.5× safety margin.
-# SOL/USDC spreads are only 0.004-0.007% — requires $0.25 threshold to need $6k+ trades.
-# Volatile pairs (BONK, WIF, JTO) have 0.05-0.5% spreads — profitable at $50 trade size.
-MIN_PROFIT_USD      = 0.005
-FLASH_LOAN_FEE_BPS  = 9              # 0.09% repayment fee
+# Buy when DEX price is >0.3% below CoinGecko market price.
+# 0.3% on a $50 trade = $0.15 gross profit opportunity.
+# After Aegis tax (6.174%) and gas ($0.001): net ~$0.14.
+MIN_DEV_PCT         = 0.30           # Minimum % below market price to trigger
+MIN_PROFIT_USD      = 0.05           # Minimum net profit to execute
+TRADE_SIZE_USD      = 50             # Size of each trade in USD
 SOL_DECIMALS        = 9
 USDC_DECIMALS       = 6
 
-# Solana tokens — stables
+# Solana token mints
 SOL_MINT   = "So11111111111111111111111111111111111111112"
 USDC_MINT  = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
-USDT_MINT  = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
-# Volatile meme/ecosystem tokens — wider DEX spreads = more arb opportunities
 BONK_MINT  = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
 WIF_MINT   = "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm"
 JTO_MINT   = "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL"
 PYTH_MINT  = "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3"
-SHIELD_MINT = os.environ.get("SHIELD_TOKEN_MINT", "")  # Set once deployed on Solana
+SHIELD_MINT = os.environ.get("SHIELD_TOKEN_MINT", "")
 
-# Jupiter API v6
+# Token decimals on Solana
+TOKEN_DECIMALS = {
+    BONK_MINT: 5,
+    WIF_MINT:  6,
+    JTO_MINT:  9,
+    PYTH_MINT: 6,
+}
+
+# CoinGecko IDs (free API, no key required)
+COINGECKO_IDS = {
+    BONK_MINT: "bonk",
+    WIF_MINT:  "dogwifhat",
+    JTO_MINT:  "jito-governance-token",
+    PYTH_MINT: "pyth-network",
+}
+COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
+
+# Jupiter API
 JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote"
 JUPITER_SWAP_URL  = "https://api.jup.ag/swap/v1/swap"
 SOL_PRICE_URL     = "https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112"
@@ -72,6 +88,28 @@ def send_telegram(token: str, chat_id: str, text: str):
         urllib.request.urlopen(req, timeout=10)
     except Exception as e:
         log.warning(f"Telegram alert failed: {e}")
+
+def get_coingecko_prices(mint_list: list[str]) -> dict[str, float]:
+    """Fetch market reference prices from CoinGecko (free, no API key). Returns {mint: price}."""
+    ids = [COINGECKO_IDS[m] for m in mint_list if m in COINGECKO_IDS]
+    if not ids:
+        return {}
+    try:
+        params = urllib.parse.urlencode({"ids": ",".join(ids), "vs_currencies": "usd"})
+        resp   = urllib.request.urlopen(f"{COINGECKO_URL}?{params}", timeout=10)
+        data   = json.loads(resp.read().decode())
+        # Invert: CG_ID → mint
+        id_to_mint = {v: k for k, v in COINGECKO_IDS.items() if k in mint_list}
+        result = {}
+        for cg_id, prices in data.items():
+            mint = id_to_mint.get(cg_id)
+            if mint:
+                result[mint] = float(prices.get("usd", 0))
+        return result
+    except Exception as e:
+        log.warning(f"CoinGecko fetch error: {e}")
+        return {}
+
 
 def get_sol_price_usd() -> float:
     try:
@@ -163,44 +201,50 @@ class AegisArbBot:
         """Emit structured JSON for Node.js manager to parse."""
         print(json.dumps(event), flush=True)
 
-    def _scan_pair(self, input_mint: str, output_mint: str,
-                   input_amount_native: int, label: str) -> float | None:
+    def _scan_pair(self, token_mint: str, label: str,
+                   cg_price: float, sol_usd: float) -> float | None:
         """
-        Scan one pair via Jupiter.
-        Returns net profit in USD or None if not profitable.
+        Compare CoinGecko market reference price vs Jupiter DEX price.
+        When DEX price is > MIN_DEV_PCT below market = liquidity imbalance = buy signal.
+        Returns net profit estimate in USD, or None if no opportunity.
         """
-        sol_usd = get_sol_price_usd()
-
-        # Forward quote: input → output
-        q_fwd = get_jupiter_quote(input_mint, output_mint, input_amount_native)
-        if not q_fwd:
+        if cg_price <= 0:
             return None
 
-        out_amount = int(q_fwd.get("outAmount", 0))
+        decimals      = TOKEN_DECIMALS.get(token_mint, 6)
+        # How many lamports of SOL to spend (TRADE_SIZE_USD worth)
+        sol_lamports  = int((TRADE_SIZE_USD / sol_usd) * 10 ** SOL_DECIMALS)
 
-        # Reverse quote: output → back to input
-        q_rev = get_jupiter_quote(output_mint, input_mint, out_amount)
-        if not q_rev:
+        # Jupiter quote: SOL → token (best DEX price available)
+        quote = get_jupiter_quote(SOL_MINT, token_mint, sol_lamports)
+        if not quote:
             return None
 
-        final_amount = int(q_rev.get("outAmount", 0))
-        gross_diff   = final_amount - input_amount_native
+        out_amount = int(quote.get("outAmount", 0))
+        if out_amount == 0:
+            return None
 
-        # Convert gross diff to USD
-        if input_mint == SOL_MINT:
-            gross_usd = lamports_to_sol(gross_diff) * sol_usd
-        else:
-            gross_usd = micro_to_usdc(gross_diff)
+        # Effective DEX price per token in USD
+        token_units  = out_amount / (10 ** decimals)
+        dex_price    = TRADE_SIZE_USD / token_units   # USD per token on DEX
 
-        # Deduct Aegis Tax + estimated gas ($0.001 on Solana)
-        net_usd = apply_aegis_tax(gross_usd) - 0.001
+        # Deviation: positive = DEX cheaper than market
+        deviation_pct = (cg_price - dex_price) / cg_price * 100
 
-        route_info = q_fwd.get("routePlan", [{}])
+        route_info = quote.get("routePlan", [{}])
         dex_used   = route_info[0].get("swapInfo", {}).get("label", "Jupiter") if route_info else "Jupiter"
 
         self._log(
-            f"[{label}] gross ${gross_usd:.4f} | net ${net_usd:.4f} | via {dex_used}"
+            f"[{label}] CoinGecko ${cg_price:.6f} | DEX ${dex_price:.6f} "
+            f"| dev {deviation_pct:+.3f}% | via {dex_used}"
         )
+
+        if deviation_pct < MIN_DEV_PCT:
+            return None
+
+        # Estimated profit: buy at DEX price, price reverts to CoinGecko
+        gross_usd = (deviation_pct / 100) * TRADE_SIZE_USD
+        net_usd   = apply_aegis_tax(gross_usd) - 0.002   # ~$0.002 gas for 2 Solana txns
 
         if net_usd >= MIN_PROFIT_USD:
             return net_usd
@@ -279,34 +323,43 @@ class AegisArbBot:
                     "simulated": simulated, "sig": sig})
 
     def _scan_all(self):
-        """Scan all configured pairs via Jupiter."""
+        """
+        Scan all tokens: fetch CoinGecko market prices first (one call),
+        then compare each against Jupiter DEX price.
+        """
         self.scan_count += 1
         sol_usd = get_sol_price_usd()
         self._log(f"Scan #{self.scan_count} | SOL=${sol_usd:.2f} | "
-                  f"Trades: {self.trade_count} | Profit: ${self.total_profit:.2f}")
+                  f"Trades: {self.trade_count} | Profit: ${self.total_profit:.4f}")
 
-        # Amount to test: ~$50 equivalent in SOL (safe size, low slippage across all DEXs)
-        test_sol_lamports = int((50 / sol_usd) * 10**SOL_DECIMALS)
-
-        # Volatile tokens only — wide spreads across Raydium/Orca/Meteora.
-        # Stables removed: SOL/USDC spreads are <0.01%, never profitable at $50 trade size.
-        pairs = [
-            (SOL_MINT, BONK_MINT, test_sol_lamports, "SOL/BONK"),
-            (SOL_MINT, WIF_MINT,  test_sol_lamports, "SOL/WIF"),
-            (SOL_MINT, JTO_MINT,  test_sol_lamports, "SOL/JTO"),
-            (SOL_MINT, PYTH_MINT, test_sol_lamports, "SOL/PYTH"),
-        ]
+        # Token list to scan
+        token_mints = [BONK_MINT, WIF_MINT, JTO_MINT, PYTH_MINT]
+        labels      = {BONK_MINT: "BONK", WIF_MINT: "WIF",
+                       JTO_MINT: "JTO",   PYTH_MINT: "PYTH"}
         if SHIELD_MINT:
-            pairs.append((SOL_MINT, SHIELD_MINT, test_sol_lamports, "SOL/SHIELD"))
+            token_mints.append(SHIELD_MINT)
+            labels[SHIELD_MINT] = "SHIELD"
 
-        for i, (inp, out, amt, label) in enumerate(pairs):
+        # Fetch all CoinGecko prices in ONE call (rate-limit friendly)
+        cg_prices = get_coingecko_prices(token_mints)
+        if not cg_prices:
+            self._log("CoinGecko unavailable — skipping scan", "warn")
+            return
+
+        # Compare each token's market price vs Jupiter DEX price
+        for i, mint in enumerate(token_mints):
+            if mint not in cg_prices:
+                continue
             if i > 0:
-                time.sleep(2)   # 2s between pairs — Jupiter free tier: ~3 req/s limit
+                time.sleep(2)   # 2s between Jupiter calls — respects free tier limit
+            label   = labels.get(mint, mint[:8])
+            cg_price = cg_prices[mint]
             try:
-                net_usd = self._scan_pair(inp, out, amt, label)
+                net_usd = self._scan_pair(mint, label, cg_price, sol_usd)
                 if net_usd is not None:
-                    self._log(f"🎯 OPPORTUNITY: {label} → ${net_usd:.4f} net", "info")
-                    self._execute_trade(inp, out, amt, label, net_usd)
+                    self._log(f"🎯 OPPORTUNITY: {label} → ${net_usd:.4f} net profit", "info")
+                    sol_lamports = int((TRADE_SIZE_USD / sol_usd) * 10 ** SOL_DECIMALS)
+                    self._execute_trade(SOL_MINT, mint, sol_lamports, label, net_usd)
                     break  # one trade per scan cycle
             except Exception as e:
                 self._log(f"Pair scan error [{label}]: {e}", "error")
@@ -323,9 +376,11 @@ class AegisArbBot:
         send_telegram(
             self.tg_token, self.tg_chat_id,
             f"⚔ <b>Aegis Arb Bot ONLINE</b>\n"
-            f"Scanning SOL/USDC, SOL/USDT, SOL/SHIELD\n"
-            f"Interval: {SCAN_INTERVAL_SEC}s | Min: ${MIN_PROFIT_USD}\n"
-            f"Kaprekar {KAPREKAR_CONSTANT} — all paths converge."
+            f"Strategy: CoinGecko market price vs Jupiter DEX price\n"
+            f"Tokens: BONK | WIF | JTO | PYTH\n"
+            f"Trigger: DEX >{MIN_DEV_PCT}% below market → BUY\n"
+            f"Interval: {SCAN_INTERVAL_SEC}s | Min profit: ${MIN_PROFIT_USD}\n"
+            f"Kaprekar {KAPREKAR_CONSTANT} — value flows to the participant."
         )
         self._emit({"event": "started", "interval_sec": SCAN_INTERVAL_SEC})
 
