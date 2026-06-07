@@ -481,17 +481,20 @@ class CrossExchangeArbBot {
       return this._getBNBPriceUSD();
     }
 
-    // Get token price in WBNB, then WBNB in USD
-    const [bnbPerToken] = await this.pancakeRouter.getAmountsOut(amountIn, [pair.bscToken, WBNB]);
-    const bnbUSD        = await this._getBNBPriceUSD();
-    const tokenInBNB    = parseFloat(ethers.formatEther(bnbPerToken));
+    // getAmountsOut returns [amountIn, ..., amountOut] — capture the LAST element (output)
+    const amounts    = await this.pancakeRouter.getAmountsOut(amountIn, [pair.bscToken, WBNB]);
+    const bnbOut     = amounts[amounts.length - 1];
+    const bnbUSD     = await this._getBNBPriceUSD();
+    const tokenInBNB = parseFloat(ethers.formatEther(bnbOut));
     return tokenInBNB * bnbUSD;
   }
 
   async _getBNBPriceUSD() {
     const amountIn = ethers.parseEther('1');
-    const [usdOut] = await this.pancakeRouter.getAmountsOut(amountIn, [WBNB, USDT]);
-    return parseFloat(ethers.formatUnits(usdOut, 18));
+    // getAmountsOut returns [amountIn, amountOut] — capture amounts[1] (USDT output)
+    const amounts  = await this.pancakeRouter.getAmountsOut(amountIn, [WBNB, USDT]);
+    const usdOut   = amounts[amounts.length - 1];
+    return parseFloat(ethers.formatUnits(usdOut, 18)); // BSC USDT = 18 decimals
   }
 
   // ── HL helpers ────────────────────────────────────────────────────────────
