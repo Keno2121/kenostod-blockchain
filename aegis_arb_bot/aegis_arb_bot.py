@@ -96,7 +96,11 @@ def get_coingecko_prices(mint_list: list[str]) -> dict[str, float]:
         return {}
     try:
         params = urllib.parse.urlencode({"ids": ",".join(ids), "vs_currencies": "usd"})
-        resp   = urllib.request.urlopen(f"{COINGECKO_URL}?{params}", timeout=10)
+        req    = urllib.request.Request(
+            f"{COINGECKO_URL}?{params}",
+            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+        )
+        resp   = urllib.request.urlopen(req, timeout=12)
         data   = json.loads(resp.read().decode())
         # Invert: CG_ID → mint
         id_to_mint = {v: k for k, v in COINGECKO_IDS.items() if k in mint_list}
