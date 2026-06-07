@@ -52,7 +52,7 @@ const MIN_CONFIRM       = 3;     // Nash: N consecutive readings required before
 const MAX_POSITIONS     = 3;     // Max simultaneous open positions
 const SCAN_MS           = 60_000;  // Scan every 60 seconds
 const MIN_EQUITY_USD    = 5;     // Minimum account equity to trade
-const SOLANA_RPC        = 'https://rpc.ankr.com/solana';
+const SOLANA_RPC        = process.env.SOLANA_RPC_URL || process.env.DRIFT_RPC_URL || 'https://rpc.ankr.com/solana';
 const HEALTH_CHECK_MS   = 5 * 60 * 1000; // Re-check Drift every 5 min when down
 
 // φ-based position size: 1/φ = 61.8% of equity per position (Law III)
