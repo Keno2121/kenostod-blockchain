@@ -84,21 +84,31 @@ def get_sol_price_usd() -> float:
 
 def get_jupiter_quote(input_mint: str, output_mint: str, amount_lamports: int,
                       slippage_bps: int = 50) -> dict | None:
-    """Get best swap quote from Jupiter across all 20+ Solana DEXs. Pure stdlib."""
-    try:
-        params = urllib.parse.urlencode({
-            "inputMint":       input_mint,
-            "outputMint":      output_mint,
-            "amount":          str(amount_lamports),
-            "slippageBps":     str(slippage_bps),
-            "onlyDirectRoutes":"false",
-        })
-        url  = f"{JUPITER_QUOTE_URL}?{params}"
-        resp = urllib.request.urlopen(url, timeout=10)
-        if resp.status == 200:
-            return json.loads(resp.read().decode())
-    except Exception as e:
-        log.warning(f"Jupiter quote error: {e}")
+    """Get best swap quote from Jupiter. Retries on 429 with backoff."""
+    params = urllib.parse.urlencode({
+        "inputMint":        input_mint,
+        "outputMint":       output_mint,
+        "amount":           str(amount_lamports),
+        "slippageBps":      str(slippage_bps),
+        "onlyDirectRoutes": "false",
+    })
+    url = f"{JUPITER_QUOTE_URL}?{params}"
+    for attempt in range(3):
+        try:
+            resp = urllib.request.urlopen(url, timeout=12)
+            if resp.status == 200:
+                return json.loads(resp.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                wait = 3 * (attempt + 1)   # 3s, 6s, 9s
+                log.warning(f"Jupiter 429 — waiting {wait}s before retry {attempt+1}/3")
+                time.sleep(wait)
+            else:
+                log.warning(f"Jupiter quote error: HTTP {e.code}")
+                break
+        except Exception as e:
+            log.warning(f"Jupiter quote error: {e}")
+            break
     return None
 
 def lamports_to_sol(lamports: int) -> float:
@@ -278,26 +288,24 @@ class AegisArbBot:
         # Amount to test: ~$50 equivalent in SOL (safe size, low slippage across all DEXs)
         test_sol_lamports = int((50 / sol_usd) * 10**SOL_DECIMALS)
 
+        # Volatile tokens only — wide spreads across Raydium/Orca/Meteora.
+        # Stables removed: SOL/USDC spreads are <0.01%, never profitable at $50 trade size.
         pairs = [
-            # Volatile ecosystem tokens — 0.05-0.5% spreads across Raydium/Orca/Meteora
             (SOL_MINT, BONK_MINT, test_sol_lamports, "SOL/BONK"),
             (SOL_MINT, WIF_MINT,  test_sol_lamports, "SOL/WIF"),
             (SOL_MINT, JTO_MINT,  test_sol_lamports, "SOL/JTO"),
             (SOL_MINT, PYTH_MINT, test_sol_lamports, "SOL/PYTH"),
-            # Stables — efficient but included as baseline
-            (SOL_MINT, USDC_MINT, test_sol_lamports, "SOL/USDC"),
-            (SOL_MINT, USDT_MINT, test_sol_lamports, "SOL/USDT"),
         ]
-
-        # Add SHIELD pair if mint is configured
         if SHIELD_MINT:
             pairs.append((SOL_MINT, SHIELD_MINT, test_sol_lamports, "SOL/SHIELD"))
 
-        for inp, out, amt, label in pairs:
+        for i, (inp, out, amt, label) in enumerate(pairs):
+            if i > 0:
+                time.sleep(2)   # 2s between pairs — Jupiter free tier: ~3 req/s limit
             try:
                 net_usd = self._scan_pair(inp, out, amt, label)
                 if net_usd is not None:
-                    self._log(f"🎯 OPPORTUNITY: {label} → ${net_usd:.2f} net", "info")
+                    self._log(f"🎯 OPPORTUNITY: {label} → ${net_usd:.4f} net", "info")
                     self._execute_trade(inp, out, amt, label, net_usd)
                     break  # one trade per scan cycle
             except Exception as e:
