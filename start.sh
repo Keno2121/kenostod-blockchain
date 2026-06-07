@@ -1,5 +1,9 @@
 #!/bin/bash
 echo "[Sovereign Bots] Installing Python dependencies..."
-pip3 install -r requirements.txt --quiet --no-warn-script-location 2>&1 || true
-echo "[Sovereign Bots] Python deps ready. Starting bot server..."
+# Use python3 -m pip (more reliable than bare pip3 on Render)
+python3 -m pip install requests base58 --quiet --no-warn-script-location 2>&1
+echo "[Sovereign Bots] Core Python deps done (requests, base58)"
+python3 -m pip install solana solders --quiet --no-warn-script-location 2>&1 || \
+  echo "[Sovereign Bots] solana/solders optional — scan-only mode if missing"
+echo "[Sovereign Bots] Starting bot server..."
 exec node bot-server.js
