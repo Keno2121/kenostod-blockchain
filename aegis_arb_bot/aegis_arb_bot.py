@@ -1,10 +1,10 @@
 """
 Aegis Arb Bot — Kings Shield
-Solana price-deviation scanner: CoinGecko market price vs Jupiter DEX price.
+Solana price-deviation scanner: Hyperliquid perp reference price vs Jupiter DEX execution price.
 
 Strategy:
-  When Jupiter DEX is offering a token cheaper than CoinGecko's aggregated
-  market price, it signals a temporary liquidity imbalance on Solana DEXs.
+  When Jupiter DEX is offering a token cheaper than Hyperliquid's global
+  perp reference price, it signals a temporary liquidity imbalance on Solana.
   Buy the underpriced token on Jupiter; price reverts as market makers restore
   equilibrium. No roundtrip required — no guaranteed fee loss.
 
@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 KAPREKAR_CONSTANT   = 6174
 SCAN_INTERVAL_SEC   = 61.74          # Law VI — Euler
 AEGIS_TAX_BPS       = 617            # 6.17% (6174 basis = 6.174%)
-# Buy when DEX price is >0.3% below CoinGecko market price.
+# Buy when DEX price is >0.3% below Hyperliquid reference price.
 # 0.3% on a $50 trade = $0.15 gross profit opportunity.
 # After Aegis tax (6.174%) and gas ($0.001): net ~$0.14.
 MIN_DEV_PCT         = 0.30           # Minimum % below market price to trigger
@@ -39,7 +39,7 @@ USDC_MINT  = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 BONK_MINT  = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
 WIF_MINT   = "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm"
 JTO_MINT   = "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL"
-PYTH_MINT  = "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3"
+RAY_MINT   = "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R"
 SHIELD_MINT = os.environ.get("SHIELD_TOKEN_MINT", "")
 
 # Token decimals on Solana
@@ -47,22 +47,30 @@ TOKEN_DECIMALS = {
     BONK_MINT: 5,
     WIF_MINT:  6,
     JTO_MINT:  9,
-    PYTH_MINT: 6,
+    RAY_MINT:  6,
 }
 
-# Hyperliquid coin names (perp market mid-prices — confirmed working from Render)
+# Hyperliquid coin names — confirmed reachable from Render
+# SOL + WIF + JTO are on HL perps; BONK and RAY are not, handled separately
 HL_COIN_NAMES = {
-    BONK_MINT: "BONK",
     WIF_MINT:  "WIF",
     JTO_MINT:  "JTO",
-    PYTH_MINT: "PYTH",
 }
 HL_INFO_URL = "https://api.hyperliquid.xyz/info"
+
+# CEX symbols for tokens not listed on HL (try OKX first, Gate.io fallback)
+OKX_SYMBOLS = {
+    BONK_MINT: "BONK-USDT",
+    RAY_MINT:  "RAY-USDT",
+}
+GATE_SYMBOLS = {
+    BONK_MINT: "BONK_USDT",
+    RAY_MINT:  "RAY_USDT",
+}
 
 # Jupiter API
 JUPITER_QUOTE_URL = "https://api.jup.ag/swap/v1/quote"
 JUPITER_SWAP_URL  = "https://api.jup.ag/swap/v1/swap"
-SOL_PRICE_URL     = "https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112"
 
 # ─────────────────────────── logging ─────────────────────────────
 logging.basicConfig(
@@ -89,11 +97,10 @@ def send_telegram(token: str, chat_id: str, text: str):
     except Exception as e:
         log.warning(f"Telegram alert failed: {e}")
 
-def get_reference_prices(mint_list: list[str]) -> dict[str, float]:
+def get_hl_data() -> dict:
     """
-    Fetch market reference prices from Hyperliquid allMids.
-    HL perp mid-prices are real-time and confirmed reachable from Render.
-    Returns {mint: price_usd}.
+    Single Hyperliquid allMids call — returns raw {coin: price_str} dict.
+    Confirmed reachable from Render. Used for SOL price + WIF/JTO reference prices.
     """
     try:
         payload = json.dumps({"type": "allMids"}).encode()
@@ -101,27 +108,84 @@ def get_reference_prices(mint_list: list[str]) -> dict[str, float]:
             HL_INFO_URL, data=payload,
             headers={"Content-Type": "application/json"},
         )
-        resp  = urllib.request.urlopen(req, timeout=12)
-        mids  = json.loads(resp.read().decode())   # {"BONK": "0.00000437", ...}
-        result = {}
-        for mint in mint_list:
-            coin = HL_COIN_NAMES.get(mint)
-            if coin and coin in mids:
-                result[mint] = float(mids[coin])
-        return result
+        resp = urllib.request.urlopen(req, timeout=12)
+        return json.loads(resp.read().decode())
     except Exception as e:
-        log.warning(f"HL price fetch error: {e}")
+        log.warning(f"HL allMids fetch error: {e}")
         return {}
 
 
-def get_sol_price_usd() -> float:
+def get_sol_price_usd(hl_mids: dict | None = None) -> float:
+    """
+    Get accurate SOL price from Hyperliquid allMids (consistent with token reference prices).
+    Jupiter's price v2 API returns stale/wrong SOL prices — do not use it.
+    """
+    if hl_mids and "SOL" in hl_mids:
+        return float(hl_mids["SOL"])
+    # Standalone fallback: call HL directly
+    mids = get_hl_data()
+    if mids and "SOL" in mids:
+        return float(mids["SOL"])
+    return 65.0   # conservative fallback (HL-consistent, not Jupiter's stale $150)
+
+
+def _get_cex_price(mint: str) -> float | None:
+    """
+    Fetch reference price for tokens not on HL (BONK, RAY).
+    Tries OKX first, Gate.io as fallback. Both are accessible from Render.
+    """
+    okx_sym  = OKX_SYMBOLS.get(mint)
+    gate_sym = GATE_SYMBOLS.get(mint)
+    if not okx_sym:
+        return None
+
+    # 1) OKX
     try:
-        resp = urllib.request.urlopen(SOL_PRICE_URL, timeout=8)
+        req = urllib.request.Request(
+            f"https://www.okx.com/api/v5/market/ticker?instId={okx_sym}",
+            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+        )
+        resp = urllib.request.urlopen(req, timeout=8)
         data = json.loads(resp.read().decode())
-        sol_mint = "So11111111111111111111111111111111111111112"
-        return float(data["data"][sol_mint]["price"])
+        return float(data["data"][0]["last"])
     except Exception:
-        return 150.0  # fallback
+        pass
+
+    # 2) Gate.io fallback
+    if gate_sym:
+        try:
+            req = urllib.request.Request(
+                f"https://api.gateio.ws/api/v4/spot/tickers?currency_pair={gate_sym}",
+                headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+            )
+            resp = urllib.request.urlopen(req, timeout=8)
+            data = json.loads(resp.read().decode())
+            return float(data[0]["last"])
+        except Exception:
+            pass
+
+    return None
+
+
+def get_reference_prices(mint_list: list[str], hl_mids: dict) -> dict[str, float]:
+    """
+    Build reference price dict for all target mints.
+    - WIF, JTO: from Hyperliquid allMids (same call used for SOL price → zero extra cost)
+    - BONK, RAY: from OKX → Gate.io fallback (not listed on HL)
+    Returns {mint: price_usd}. Mints with no price are omitted (bot skips them).
+    """
+    result = {}
+    for mint in mint_list:
+        # HL-listed tokens
+        coin = HL_COIN_NAMES.get(mint)
+        if coin and coin in hl_mids:
+            result[mint] = float(hl_mids[coin])
+            continue
+        # CEX fallback (BONK, RAY)
+        price = _get_cex_price(mint)
+        if price:
+            result[mint] = price
+    return result
 
 def get_jupiter_quote(input_mint: str, output_mint: str, amount_lamports: int,
                       slippage_bps: int = 50) -> dict | None:
@@ -205,13 +269,13 @@ class AegisArbBot:
         print(json.dumps(event), flush=True)
 
     def _scan_pair(self, token_mint: str, label: str,
-                   cg_price: float, sol_usd: float) -> float | None:
+                   ref_price: float, sol_usd: float) -> float | None:
         """
-        Compare CoinGecko market reference price vs Jupiter DEX price.
-        When DEX price is > MIN_DEV_PCT below market = liquidity imbalance = buy signal.
+        Compare Hyperliquid reference price vs Jupiter DEX execution price.
+        When DEX price is > MIN_DEV_PCT below HL reference = liquidity imbalance = buy signal.
         Returns net profit estimate in USD, or None if no opportunity.
         """
-        if cg_price <= 0:
+        if ref_price <= 0:
             return None
 
         decimals      = TOKEN_DECIMALS.get(token_mint, 6)
@@ -227,25 +291,25 @@ class AegisArbBot:
         if out_amount == 0:
             return None
 
-        # Effective DEX price per token in USD
-        token_units  = out_amount / (10 ** decimals)
-        dex_price    = TRADE_SIZE_USD / token_units   # USD per token on DEX
+        # Effective DEX execution price per token in USD
+        token_units   = out_amount / (10 ** decimals)
+        dex_price     = TRADE_SIZE_USD / token_units   # USD per token on DEX
 
-        # Deviation: positive = DEX cheaper than market
-        deviation_pct = (cg_price - dex_price) / cg_price * 100
+        # Deviation: positive = DEX cheaper than HL reference (buy signal)
+        deviation_pct = (ref_price - dex_price) / ref_price * 100
 
         route_info = quote.get("routePlan", [{}])
         dex_used   = route_info[0].get("swapInfo", {}).get("label", "Jupiter") if route_info else "Jupiter"
 
         self._log(
-            f"[{label}] CoinGecko ${cg_price:.6f} | DEX ${dex_price:.6f} "
+            f"[{label}] HL ref ${ref_price:.6f} | DEX ${dex_price:.6f} "
             f"| dev {deviation_pct:+.3f}% | via {dex_used}"
         )
 
         if deviation_pct < MIN_DEV_PCT:
             return None
 
-        # Estimated profit: buy at DEX price, price reverts to CoinGecko
+        # Estimated profit: buy at DEX price, price reverts to HL reference
         gross_usd = (deviation_pct / 100) * TRADE_SIZE_USD
         net_usd   = apply_aegis_tax(gross_usd) - 0.002   # ~$0.002 gas for 2 Solana txns
 
@@ -327,26 +391,33 @@ class AegisArbBot:
 
     def _scan_all(self):
         """
-        Scan all tokens: fetch CoinGecko market prices first (one call),
-        then compare each against Jupiter DEX price.
+        Scan all tokens: one HL allMids call feeds both the accurate SOL price
+        and WIF/JTO reference prices. BONK/RAY fetched from OKX/Gate.io.
         """
         self.scan_count += 1
-        sol_usd = get_sol_price_usd()
+
+        # Single HL call → SOL price (accurate) + WIF/JTO reference prices
+        hl_mids = get_hl_data()
+        if not hl_mids:
+            self._log("HL data unavailable — skipping scan", "warn")
+            return
+
+        sol_usd = get_sol_price_usd(hl_mids)
         self._log(f"Scan #{self.scan_count} | SOL=${sol_usd:.2f} | "
                   f"Trades: {self.trade_count} | Profit: ${self.total_profit:.4f}")
 
         # Token list to scan
-        token_mints = [BONK_MINT, WIF_MINT, JTO_MINT, PYTH_MINT]
+        token_mints = [BONK_MINT, WIF_MINT, JTO_MINT, RAY_MINT]
         labels      = {BONK_MINT: "BONK", WIF_MINT: "WIF",
-                       JTO_MINT: "JTO",   PYTH_MINT: "PYTH"}
+                       JTO_MINT: "JTO",   RAY_MINT:  "RAY"}
         if SHIELD_MINT:
             token_mints.append(SHIELD_MINT)
             labels[SHIELD_MINT] = "SHIELD"
 
-        # Fetch all reference prices from Hyperliquid allMids in ONE call
-        ref_prices = get_reference_prices(token_mints)
+        # Build reference prices: HL for WIF/JTO; OKX/Gate for BONK/RAY
+        ref_prices = get_reference_prices(token_mints, hl_mids)
         if not ref_prices:
-            self._log("HL price feed unavailable — skipping scan", "warn")
+            self._log("No reference prices available — skipping scan", "warn")
             return
 
         # Compare each token's HL perp price vs Jupiter Solana DEX price
@@ -379,8 +450,8 @@ class AegisArbBot:
         send_telegram(
             self.tg_token, self.tg_chat_id,
             f"⚔ <b>Aegis Arb Bot ONLINE</b>\n"
-            f"Strategy: CoinGecko market price vs Jupiter DEX price\n"
-            f"Tokens: BONK | WIF | JTO | PYTH\n"
+            f"Strategy: Hyperliquid perp price vs Jupiter DEX price\n"
+            f"Tokens: BONK | WIF | JTO | RAY\n"
             f"Trigger: DEX >{MIN_DEV_PCT}% below market → BUY\n"
             f"Interval: {SCAN_INTERVAL_SEC}s | Min profit: ${MIN_PROFIT_USD}\n"
             f"Kaprekar {KAPREKAR_CONSTANT} — value flows to the participant."
