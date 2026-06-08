@@ -430,7 +430,7 @@ class CrossExchangeArbBot {
     const action = {
       type: 'order',
       orders: [{
-        a: this._hlCoinIndex(coin),
+        a: await this._hlCoinIndex(coin),
         b: isBuy,
         p: '0',
         s: String(sz),
@@ -442,9 +442,13 @@ class CrossExchangeArbBot {
 
     const connectionId = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify({ action, nonce })));
     const phantomAgent = { source: 'a', connectionId };
-    const signature    = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, phantomAgent);
+    const agentSig     = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, phantomAgent);
 
-    const resp = await this._hlExchange({ action, nonce, signature });
+    const r = agentSig.slice(0, 66);
+    const s = '0x' + agentSig.slice(66, 130);
+    const v = parseInt(agentSig.slice(130, 132), 16);
+
+    const resp = await this._hlExchange({ action, nonce, signature: { r, s, v }, vaultAddress: null });
     return { ok: true, estimatedFill: usdSize * (1 - HL_TAKER_FEE_PCT / 100), response: resp };
   }
 
@@ -509,7 +513,10 @@ class CrossExchangeArbBot {
         timeout:  10000,
       }, (res) => {
         let d = ''; res.on('data', c => d += c);
-        res.on('end', () => { try { resolve(JSON.parse(d)); } catch (e) { reject(e); } });
+        res.on('end', () => {
+          try { resolve(JSON.parse(d)); }
+          catch (e) { resolve(null); }
+        });
       });
       req.on('error', reject); req.on('timeout', () => { req.destroy(); reject(new Error('HL timeout')); });
       req.write(body); req.end();
@@ -527,16 +534,30 @@ class CrossExchangeArbBot {
         timeout:  15000,
       }, (res) => {
         let d = ''; res.on('data', c => d += c);
-        res.on('end', () => { try { resolve(JSON.parse(d)); } catch (e) { reject(e); } });
+        res.on('end', () => {
+          try { resolve(JSON.parse(d)); }
+          catch (e) { resolve({ status: 'error', rawResponse: d.slice(0, 200) }); }
+        });
       });
       req.on('error', reject); req.on('timeout', () => { req.destroy(); reject(new Error('HL exchange timeout')); });
       req.write(body); req.end();
     });
   }
 
-  _hlCoinIndex(coin) {
-    const order = ['BTC','ETH','ATOM','LINK','MATIC','SOL','AVAX','BNB','APT','INJ','LTC','DOGE','OP','ARB','KENO'];
-    const idx = order.indexOf(coin);
+  // Fetch HL coin index dynamically from /info meta (cached 1h)
+  async _hlCoinIndex(coin) {
+    const now = Date.now();
+    if (!this._metaCache || now - this._metaCacheAt > 3_600_000) {
+      try {
+        const meta = await this._hlInfo({ type: 'meta' });
+        this._metaCache   = (meta?.universe || []).map(u => u.name);
+        this._metaCacheAt = now;
+      } catch (_) {
+        this._metaCache   = this._metaCache || [];
+        this._metaCacheAt = this._metaCacheAt || now;
+      }
+    }
+    const idx = this._metaCache.indexOf(coin);
     return idx === -1 ? 0 : idx;
   }
 
