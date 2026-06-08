@@ -377,15 +377,18 @@ class AegisArbBot:
             # Sign and send
             from solders.transaction import VersionedTransaction  # type: ignore
             from solana.rpc.api import Client                      # type: ignore
+            from solana.rpc.types import TxOpts                   # type: ignore
             import base64
 
             client   = Client(self.rpc_url)
             tx_bytes = base64.b64decode(swap_tx_b64)
             tx       = VersionedTransaction.from_bytes(tx_bytes)
-            signed   = self.keypair.sign_message(bytes(tx.message))
+            # Build properly signed VersionedTransaction
+            signed_tx = VersionedTransaction(tx.message, [self.keypair])
 
             result = client.send_raw_transaction(
-                bytes(tx), opts={"skipPreflight": False, "maxRetries": 3}
+                bytes(signed_tx),
+                opts=TxOpts(skip_preflight=False, max_retries=3),
             )
             sig = str(result.value)
             self._log(f"✅ Trade executed! Sig: {sig[:16]}... Net: ${net_usd:.2f}")
@@ -533,10 +536,15 @@ if __name__ == "__main__":
         parser.add_argument("--wallet-key", default=os.environ.get("SOLANA_WALLET_PRIVATE_KEY", ""))
         parser.add_argument("--tg-token",   default=_tg_token)
         parser.add_argument("--tg-chat-id", default=_tg_chatid)
+        parser.add_argument("--scan-only",  action="store_true", default=False,
+                            help="Disable execution — scan and alert only, never spend funds")
         args = parser.parse_args()
 
+        # If scan-only, clear wallet key so keypair never loads and trades never execute
+        wallet_key = "" if args.scan_only else args.wallet_key
+
         bot = AegisArbBot(
-            wallet_private_key=args.wallet_key,
+            wallet_private_key=wallet_key,
             rpc_url=args.rpc,
             tg_token=args.tg_token,
             tg_chat_id=args.tg_chat_id,
