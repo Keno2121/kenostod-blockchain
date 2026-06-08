@@ -270,9 +270,11 @@ class HLBuilderRegistry {
   // ── Signed payload builder ────────────────────────────────────────────────
 
   async _buildSignedPayload(action, nonce) {
-    const connectionId = ethers.keccak256(
-      ethers.toUtf8Bytes(JSON.stringify({ action, nonce }))
-    );
+    // L1 action signing: connectionId = keccak256(nonce_uint64_be + source_byte)
+    // Source byte: 0x00 = no vault (user account), 0x01 = vault
+    const nonceBytes   = ethers.getBytes(ethers.toBeHex(nonce, 8));   // uint64 big-endian
+    const sourceBytes  = new Uint8Array([0x00]);                       // no vault
+    const connectionId = ethers.keccak256(ethers.concat([nonceBytes, sourceBytes]));
     const phantomAgent = { source: 'a', connectionId };
     const agentSig     = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, phantomAgent);
 
