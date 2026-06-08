@@ -243,18 +243,41 @@ class AegisArbBot:
         self.logs         = []
 
         # Solana keypair (if wallet key provided)
+        # Handles: base58 64-byte full keypair, base58 32-byte seed, hex 32-byte seed
         self.keypair = None
         if wallet_private_key:
             try:
                 from solders.keypair import Keypair  # type: ignore
                 import base58
-                key_bytes = base58.b58decode(wallet_private_key)
-                self.keypair = Keypair.from_bytes(key_bytes)
-                log.info(f"Wallet loaded: {str(self.keypair.pubkey())[:8]}...")
+
+                kp = None
+                # Try base58 decode first (most common Solana export format)
+                try:
+                    key_bytes = base58.b58decode(wallet_private_key)
+                    if len(key_bytes) == 64:
+                        kp = Keypair.from_bytes(key_bytes)
+                    elif len(key_bytes) == 32:
+                        kp = Keypair.from_seed(key_bytes)
+                except Exception:
+                    pass
+
+                # Fallback: try raw hex (EVM-style 32-byte key)
+                if kp is None:
+                    try:
+                        hex_str = wallet_private_key.lstrip('0x')
+                        key_bytes = bytes.fromhex(hex_str)
+                        if len(key_bytes) == 32:
+                            kp = Keypair.from_seed(key_bytes)
+                    except Exception:
+                        pass
+
+                if kp is not None:
+                    self.keypair = kp
+                    log.info(f"Wallet loaded: {str(self.keypair.pubkey())[:8]}...")
+                else:
+                    log.error("Wallet load error: unrecognised key format (tried base58-64, base58-32, hex-32)")
             except ImportError:
                 log.warning("solders not installed — running in SCAN-ONLY mode")
-            except Exception as e:
-                log.error(f"Wallet load error: {e}")
 
     def _log(self, msg: str, level: str = "info"):
         entry = {"time": datetime.now(timezone.utc).isoformat(), "msg": msg, "level": level}
