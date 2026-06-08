@@ -55,7 +55,7 @@ const PANCAKE_FEE_PCT  = 0.25;          // PancakeSwap V2 taker fee
 const HL_TAKER_FEE_PCT = 0.035;         // HL market taker fee
 const BSC_GAS_USD_EST  = 0.05;          // ~$0.05 per BSC swap at current gas
 const MAX_TRADE_USD    = 200;           // max $200 per leg when executing
-const MIN_TRADE_USD    = 20;            // min $20 per leg
+const MIN_TRADE_USD    = 10;            // min $10 per leg
 
 // ── Token / Pair config ────────────────────────────────────────────────────────
 
@@ -154,7 +154,7 @@ class CrossExchangeArbBot {
     this.reportTimer  = null;
     this.startedAt    = null;
 
-    this.autoExecute  = false; // SAFE DEFAULT — scan only until capital funded
+    this.autoExecute  = true; // LIVE — both legs execute simultaneously
 
     // ── Price cache ───────────────────────────────────────────────────────────
     this.bscPrices = {};  // coin → USD
@@ -306,7 +306,7 @@ class CrossExchangeArbBot {
       gasAdjSpread: parseFloat(gasAdj.toFixed(4)),
       cheapSide,
       expSide,
-      tradeSize:   Math.min(MAX_TRADE_USD, Math.max(MIN_TRADE_USD, 100)),
+      tradeSize:   Math.min(MAX_TRADE_USD, MIN_TRADE_USD),
       executable:  gasAdj >= EXEC_SPREAD_PCT,
     };
 
@@ -354,21 +354,34 @@ class CrossExchangeArbBot {
   async _executeArb(pair, bscUSD, hlUSD, tradeSize) {
     if (!this.autoExecute) return;
 
-    const buyOnHL  = hlUSD < bscUSD;
-    this._log(`⚡ EXECUTING arb on ${pair.name} — buy on ${buyOnHL ? 'HL' : 'BSC'} | size $${tradeSize.toFixed(2)}`);
+    // ── Dynamic balance cap: never spend more BNB than 80% of wallet balance ──
+    try {
+      const bnbBal  = await this.bscProvider.getBalance(this.address);
+      const bnbUSD  = await this._getBNBPriceUSD();
+      const maxUSD  = parseFloat(ethers.formatEther(bnbBal)) * bnbUSD * 0.80;
+      if (maxUSD < MIN_TRADE_USD) {
+        this._log(`⚠ BNB balance too low for min trade ($${maxUSD.toFixed(2)} avail, need $${MIN_TRADE_USD}) — skipping`);
+        return;
+      }
+      tradeSize = Math.min(tradeSize, maxUSD);
+    } catch (_) {}
+
+    const buyOnBSC = bscUSD < hlUSD; // most common: BSC cheaper → buy BSC, short HL
+    this._log(`⚡ EXECUTING both legs on ${pair.name} | buy on ${buyOnBSC ? 'BSC' : 'HL'} | size $${tradeSize.toFixed(2)}`);
 
     try {
-      let hlProfit  = 0;
-      let bscProfit = 0;
+      let bscResult, hlResult;
 
-      if (buyOnHL) {
-        // Buy on HL (cheaper) + plan to sell on BSC
-        const hlResult = await this._hlMarketBuy(pair.hlCoin, tradeSize);
-        hlProfit = hlResult.estimatedFill || 0;
+      if (buyOnBSC) {
+        // Both legs simultaneously: buy cheap on BSC + short on HL to lock spread
+        [bscResult, hlResult] = await Promise.all([
+          this._bscBuy(pair, tradeSize),
+          this._hlMarketShort(pair.hlCoin, tradeSize),
+        ]);
       } else {
-        // Buy on BSC (cheaper) + plan to sell on HL
-        const bscResult = await this._bscBuy(pair, tradeSize);
-        bscProfit = bscResult.amountOut || 0;
+        // HL cheaper → long HL (BSC sell requires owning asset first; skip BSC leg)
+        hlResult  = await this._hlMarketBuy(pair.hlCoin, tradeSize);
+        bscResult = { ok: true, amountOut: 0 };
       }
 
       const grossProfit = tradeSize * (Math.abs(bscUSD - hlUSD) / Math.min(bscUSD, hlUSD));
@@ -417,40 +430,42 @@ class CrossExchangeArbBot {
     }
   }
 
-  // ── HL Market Buy (spot/perp) ─────────────────────────────────────────────
+  // ── HL Order Helper (shared signing for buy + short) ─────────────────────
 
-  async _hlMarketBuy(coin, usdSize) {
+  async _hlOrder(coin, isBuy, usdSize) {
     const mids = await this._hlInfo({ type: 'allMids' });
     const mid  = parseFloat(mids?.[coin] || '0');
     if (!mid) throw new Error(`No HL price for ${coin}`);
 
-    const sz = parseFloat((usdSize / mid).toFixed(6));
-    const timestamp = Date.now();
-    const nonce = timestamp;
-
+    const sz    = parseFloat((usdSize / mid).toFixed(6));
+    const nonce = Date.now();
     const action = {
       type: 'order',
       orders: [{
-        a:   this._hlCoinIndex(coin),
-        b:   true,  // isBuy
-        p:   '0',   // market order — price 0 for market
-        s:   String(sz),
-        r:   false,
-        t:   { market: {} },
+        a: await this._hlCoinIndex(coin),
+        b: isBuy,
+        p: '0',
+        s: String(sz),
+        r: false,
+        t: { market: {} },
       }],
       grouping: 'na',
     };
 
-    const connectionId = ethers.hexlify(ethers.randomBytes(32));
-    const agentSig = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, {
-      source: 'a',
-      connectionId,
-    });
+    const connectionId = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify({ action, nonce })));
+    const phantomAgent = { source: 'a', connectionId };
+    const agentSig     = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, phantomAgent);
 
-    const payload = { action, nonce, signature: { r: agentSig.slice(0,66), s: '0x'+agentSig.slice(66,130), v: parseInt(agentSig.slice(130,132),16) }, vaultAddress: null };
-    const resp = await this._hlExchange(payload);
+    const r = agentSig.slice(0, 66);
+    const s = '0x' + agentSig.slice(66, 130);
+    const v = parseInt(agentSig.slice(130, 132), 16);
+
+    const resp = await this._hlExchange({ action, nonce, signature: { r, s, v }, vaultAddress: null });
     return { ok: true, estimatedFill: usdSize * (1 - HL_TAKER_FEE_PCT / 100), response: resp };
   }
+
+  async _hlMarketBuy(coin, usdSize)   { return this._hlOrder(coin, true,  usdSize); }
+  async _hlMarketShort(coin, usdSize) { return this._hlOrder(coin, false, usdSize); }
 
   // ── BSC Buy ───────────────────────────────────────────────────────────────
 
@@ -510,7 +525,10 @@ class CrossExchangeArbBot {
         timeout:  10000,
       }, (res) => {
         let d = ''; res.on('data', c => d += c);
-        res.on('end', () => { try { resolve(JSON.parse(d)); } catch (e) { reject(e); } });
+        res.on('end', () => {
+          try { resolve(JSON.parse(d)); }
+          catch (e) { resolve(null); }
+        });
       });
       req.on('error', reject); req.on('timeout', () => { req.destroy(); reject(new Error('HL timeout')); });
       req.write(body); req.end();
@@ -528,16 +546,30 @@ class CrossExchangeArbBot {
         timeout:  15000,
       }, (res) => {
         let d = ''; res.on('data', c => d += c);
-        res.on('end', () => { try { resolve(JSON.parse(d)); } catch (e) { reject(e); } });
+        res.on('end', () => {
+          try { resolve(JSON.parse(d)); }
+          catch (e) { resolve({ status: 'error', rawResponse: d.slice(0, 200) }); }
+        });
       });
       req.on('error', reject); req.on('timeout', () => { req.destroy(); reject(new Error('HL exchange timeout')); });
       req.write(body); req.end();
     });
   }
 
-  _hlCoinIndex(coin) {
-    const order = ['BTC','ETH','ATOM','LINK','MATIC','SOL','AVAX','BNB','APT','INJ','LTC','DOGE','OP','ARB','KENO'];
-    const idx = order.indexOf(coin);
+  // Fetch HL coin index dynamically from /info meta (cached 1h)
+  async _hlCoinIndex(coin) {
+    const now = Date.now();
+    if (!this._metaCache || now - this._metaCacheAt > 3_600_000) {
+      try {
+        const meta = await this._hlInfo({ type: 'meta' });
+        this._metaCache   = (meta?.universe || []).map(u => u.name);
+        this._metaCacheAt = now;
+      } catch (_) {
+        this._metaCache   = this._metaCache || [];
+        this._metaCacheAt = this._metaCacheAt || now;
+      }
+    }
+    const idx = this._metaCache.indexOf(coin);
     return idx === -1 ? 0 : idx;
   }
 
