@@ -274,9 +274,13 @@ class HLBuilderRegistry {
       ethers.toUtf8Bytes(JSON.stringify({ action, nonce }))
     );
     const phantomAgent = { source: 'a', connectionId };
-    const signature    = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, phantomAgent);
+    const agentSig     = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, phantomAgent);
 
-    return { action, nonce, signature };
+    const r = agentSig.slice(0, 66);
+    const s = '0x' + agentSig.slice(66, 130);
+    const v = parseInt(agentSig.slice(130, 132), 16);
+
+    return { action, nonce, signature: { r, s, v }, vaultAddress: null };
   }
 
   // ── HTTP helpers ──────────────────────────────────────────────────────────
