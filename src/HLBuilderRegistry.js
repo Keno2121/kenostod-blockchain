@@ -129,14 +129,15 @@ class HLBuilderRegistry {
     try {
       this._log(`📋 Registering ${this.address} as Hyperliquid builder (${BUILDER_FEE_BPS} BPS)...`);
 
-      // approveBuilderFee — register our address as a builder with max fee rate
+      // approveBuilderFee — HL requires nonce inside the action object
+      const nonce  = Date.now();
       const action = {
         type:        'approveBuilderFee',
         builder:     this.address,
         maxFeeRate:  `${BUILDER_FEE_BPS / 100}%`,  // "0.01%"
+        nonce,
       };
 
-      const nonce   = Date.now();
       const payload = await this._buildSignedPayload(action, nonce);
       const resp    = await this._exchange(payload);
 
