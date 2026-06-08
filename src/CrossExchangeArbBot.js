@@ -51,6 +51,8 @@ const POLL_MS          = 30 * 1000;     // scan every 30s
 const REPORT_MS        = 8 * 60 * 60 * 1000; // 8-hour summary
 const MIN_SPREAD_PCT   = 0.50;          // 0.50% net spread minimum to flag
 const EXEC_SPREAD_PCT  = 0.80;          // 0.80% net spread to actually execute
+// NOTE: autoExecute is forced OFF — BSC-pegged tokens have permanent structural discount vs HL perps
+// These spreads don't converge. Cross-chain arb requires same asset on both sides.
 const PANCAKE_FEE_PCT  = 0.25;          // PancakeSwap V2 taker fee
 const HL_TAKER_FEE_PCT = 0.035;         // HL market taker fee
 const BSC_GAS_USD_EST  = 0.05;          // ~$0.05 per BSC swap at current gas
@@ -154,7 +156,7 @@ class CrossExchangeArbBot {
     this.reportTimer  = null;
     this.startedAt    = null;
 
-    this.autoExecute  = true; // LIVE — both legs execute simultaneously
+    this.autoExecute  = false; // DISABLED — BSC-pegged tokens have permanent spread vs HL perps, not real arb
 
     // ── Price cache ───────────────────────────────────────────────────────────
     this.bscPrices = {};  // coin → USD
