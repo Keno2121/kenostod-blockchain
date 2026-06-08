@@ -9120,7 +9120,10 @@ app.post('/api/founder/login', (req, res) => {
     if (!correct) return res.status(500).json({ ok: false, msg: 'Server not configured' });
     if (password === correct) {
         req.session.isFounder = true;
-        res.json({ ok: true });
+        req.session.save((err) => {
+            if (err) return res.status(500).json({ ok: false, msg: 'Session error' });
+            res.json({ ok: true });
+        });
     } else {
         res.status(401).json({ ok: false, msg: 'Wrong password' });
     }
