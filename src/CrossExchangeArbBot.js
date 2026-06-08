@@ -326,6 +326,28 @@ class CrossExchangeArbBot {
 
     this._log(`🎯 ${pair.name} | BSC $${bscUSD.toFixed(4)} vs HL $${hlUSD.toFixed(4)} | spread ${netSpread.toFixed(3)}% net | buy ${cheapSide} → sell ${expSide} | proj profit $${grossProfit.toFixed(4)}`);
 
+    // ── Check balance FIRST before alerting — no "EXECUTING NOW" if we can't trade ──
+    let canExecute = opp.executable && this.autoExecute;
+    let balanceNote = '';
+    if (canExecute) {
+      try {
+        const bnbBal = await this.bscProvider.getBalance(this.address);
+        const bnbUSD = await this._getBNBPriceUSD();
+        const maxUSD = parseFloat(ethers.formatEther(bnbBal)) * bnbUSD * 0.80;
+        if (maxUSD < MIN_TRADE_USD) {
+          canExecute  = false;
+          balanceNote = `\n⚠ Wallet low ($${maxUSD.toFixed(2)} avail) — skipping`;
+          this._log(`⚠ BNB balance too low for min trade ($${maxUSD.toFixed(2)} avail, need $${MIN_TRADE_USD}) — skipping`);
+        } else {
+          tradeSize = Math.min(tradeSize, maxUSD);
+        }
+      } catch (e) {
+        canExecute  = false;
+        balanceNote = `\n⚠ Balance check failed — skipping`;
+        this._log(`⚠ Balance check error: ${e.message}`);
+      }
+    }
+
     // Alert on good spreads
     if (netSpread >= MIN_SPREAD_PCT * 1.5 || opp.executable) {
       await this._telegram(
@@ -335,16 +357,18 @@ class CrossExchangeArbBot {
         `Net spread: <b>${netSpread.toFixed(3)}%</b>\n` +
         `Direction: Buy ${cheapSide} → Sell ${expSide}\n` +
         `Proj profit on $${tradeSize.toFixed(0)}: <b>$${grossProfit.toFixed(4)}</b>\n\n` +
-        (opp.executable && this.autoExecute
+        (canExecute
           ? `⚡ <b>EXECUTING NOW...</b>`
+          : opp.executable && this.autoExecute
+          ? `⏸ <b>Skipped</b>${balanceNote}`
           : opp.executable
           ? `🟡 Executable — fund bot to capture this automatically`
           : `👁 Flagged — below auto-execute threshold`)
       );
     }
 
-    // Execute if conditions met
-    if (opp.executable && this.autoExecute) {
+    // Execute only if balance confirmed sufficient
+    if (canExecute) {
       await this._executeArb(pair, bscUSD, hlUSD, tradeSize);
     }
   }
@@ -353,18 +377,6 @@ class CrossExchangeArbBot {
 
   async _executeArb(pair, bscUSD, hlUSD, tradeSize) {
     if (!this.autoExecute) return;
-
-    // ── Dynamic balance cap: never spend more BNB than 80% of wallet balance ──
-    try {
-      const bnbBal  = await this.bscProvider.getBalance(this.address);
-      const bnbUSD  = await this._getBNBPriceUSD();
-      const maxUSD  = parseFloat(ethers.formatEther(bnbBal)) * bnbUSD * 0.80;
-      if (maxUSD < MIN_TRADE_USD) {
-        this._log(`⚠ BNB balance too low for min trade ($${maxUSD.toFixed(2)} avail, need $${MIN_TRADE_USD}) — skipping`);
-        return;
-      }
-      tradeSize = Math.min(tradeSize, maxUSD);
-    } catch (_) {}
 
     const buyOnBSC = bscUSD < hlUSD; // most common: BSC cheaper → buy BSC, short HL
     this._log(`⚡ EXECUTING both legs on ${pair.name} | buy on ${buyOnBSC ? 'BSC' : 'HL'} | size $${tradeSize.toFixed(2)}`);
