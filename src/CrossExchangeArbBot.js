@@ -306,7 +306,7 @@ class CrossExchangeArbBot {
       gasAdjSpread: parseFloat(gasAdj.toFixed(4)),
       cheapSide,
       expSide,
-      tradeSize:   Math.min(MAX_TRADE_USD, Math.max(MIN_TRADE_USD, 100)),
+      tradeSize:   Math.min(MAX_TRADE_USD, MIN_TRADE_USD),
       executable:  gasAdj >= EXEC_SPREAD_PCT,
     };
 
