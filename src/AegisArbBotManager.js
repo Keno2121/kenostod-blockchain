@@ -75,7 +75,7 @@ class AegisArbBotManager {
         const env = {
             ...process.env,
             SOLANA_RPC_URL:            process.env.SOLANA_RPC_URL            || shield.SOLANA_RPC_MAINNET || 'https://api.mainnet-beta.solana.com',
-            SOLANA_WALLET_PRIVATE_KEY: process.env.SOLANA_WALLET_PRIVATE_KEY || shield.SHIELD_BOT_PRIVATE_KEY || '',
+            SOLANA_WALLET_PRIVATE_KEY: process.env.SOLANA_WALLET_PRIVATE_KEY || process.env.DRIFT_PRIVATE_KEY || shield.SHIELD_BOT_PRIVATE_KEY || '',
             SHIELD_TOKEN_MINT:         process.env.SHIELD_TOKEN_MINT         || shield.SHIELD_TOKEN_MINT  || '',
             TELEGRAM_BOT_TOKEN:        this._tgToken(),
             SHIELD_ALERT_CHAT_ID:      this._tgChatId(),

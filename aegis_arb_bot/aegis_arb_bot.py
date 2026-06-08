@@ -29,7 +29,7 @@ AEGIS_TAX_BPS       = 617            # 6.17% (6174 basis = 6.174%)
 # After Aegis tax (6.174%) and gas ($0.001): net ~$0.14.
 MIN_DEV_PCT         = 0.30           # Minimum % below market price to trigger
 MIN_PROFIT_USD      = 0.05           # Minimum net profit to execute
-TRADE_SIZE_USD      = 50             # Size of each trade in USD
+TRADE_SIZE_USD      = 30             # Size of each trade in USD
 SOL_DECIMALS        = 9
 USDC_DECIMALS       = 6
 
