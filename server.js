@@ -179,11 +179,11 @@ app.use(cors({
 
 // Session middleware for admin authentication
 app.use(session({
-    secret: process.env.ADMIN_PASSWORD || 'kenostod-session-secret',
+    secret: process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || 'kenostod-session-secret-6174',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false,
+        secure: process.env.NODE_ENV === 'production', // HTTPS-only in prod
         httpOnly: true,
         sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
@@ -9330,13 +9330,22 @@ app.post('/api/qct-hive/send-report',  (req, res) => res.json(queensChariot.send
 // ── Fetch live stats from the Render bot server ──────────────────────────────
 // Maps Render bot IDs → server.js bot IDs (some differ)
 const RENDER_BOT_ID_MAP = {
+    // ── Bots with local in-process instances ──────────────────────────────────
     'live-arb':               'live-arb',
     'keno-flash-orb':         'flash-orb',
     'aegis-arb':              'aegis-arb',
     'qct-hive-hl':            'qct-hive',
     'drift-funding':          'drift-funding',
-    'queens-chariot-manager': null,
-    'shield-alert':           null,
+    'hl-funding-bot':         'hl-funding',
+    // ── Render-only bots (no local instance — Render stats only) ──────────────
+    'shield-alert':           'shield-alert',
+    'queens-chariot-manager': 'qct-manager',
+    'hl-funding-alert':       'hl-alert',
+    'utl-reversal-pool':      'utl-reversal',
+    'cross-exchange-arb':     'cross-exchange',
+    'hl-builder-registry':    'hl-builder',
+    'aegis-hl-fee-oracle':    'aegis-hl-oracle',
+    'porv-compute-index':     'porv-oracle',
 };
 
 async function fetchRenderBotStats() {
@@ -9482,6 +9491,88 @@ app.get('/api/bots/status', requireFounder, async (req, res) => {
                 statusUrl:   '/api/qct-hive/status',
                 isOrchestrator: true,
                 ...queensChariot.getStatus(),
+            }),
+            // ── Render-only bots (stats from Render; no local in-process instance) ──────
+            withRenderStats('shield-alert', {
+                id:          'shield-alert',
+                name:        'Kings Shield Alert Bot',
+                emoji:       '🛡',
+                chain:       'Telegram',
+                description: 'Monitors the ecosystem — price alerts, wallet activity, contract events, and Telegram notifications for the sovereign community.',
+                controllable: false,
+                handle:      '@KenostodBot',
+                running:     false,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
+            }),
+            withRenderStats('qct-manager', {
+                id:          'qct-manager',
+                name:        'Queens Chariot Bot Manager',
+                emoji:       '👸',
+                chain:       'All Chains',
+                description: 'Coordinates QCT worker bots — routes capital, enforces Kaprekar splits on QCT earnings, and monitors Base mainnet contract activity.',
+                controllable: false,
+                running:     false,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
+            }),
+            withRenderStats('hl-alert', {
+                id:          'hl-alert',
+                name:        'HL Funding Rate Alert',
+                emoji:       '📡',
+                chain:       'Hyperliquid',
+                description: 'Watches all HL perp funding rates — fires Telegram alert when any rate exceeds 80% APR (DriftFundingBot entry signal).',
+                controllable: false,
+                running:     false,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
+            }),
+            withRenderStats('utl-reversal', {
+                id:          'utl-reversal',
+                name:        'UTL Reversal Pool',
+                emoji:       '⚖',
+                chain:       'BSC',
+                description: 'Float yield engine — captures fee spread between UTL deposits and reversals, applies Kaprekar dust recovery on every settlement.',
+                controllable: false,
+                running:     true,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
+            }),
+            withRenderStats('cross-exchange', {
+                id:          'cross-exchange',
+                name:        'Cross-Exchange Arb Monitor',
+                emoji:       '🔭',
+                chain:       'All Chains',
+                description: 'Compares Binance spot prices vs Hyperliquid — scan-only, fires alert when Binance↔HL spread exceeds 0.5% net. Execution disabled (structural reasons).',
+                controllable: false,
+                running:     false,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
+            }),
+            withRenderStats('hl-builder', {
+                id:          'hl-builder',
+                name:        'HL Builder Registry',
+                emoji:       '🏗',
+                chain:       'Hyperliquid',
+                description: 'Registers the Sovereign Economy as an HL builder — earns 0.01% fee rebate on all HL volume routed through the builder code.',
+                controllable: false,
+                running:     false,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
+            }),
+            withRenderStats('aegis-hl-oracle', {
+                id:          'aegis-hl-oracle',
+                name:        'Aegis HL Fee Oracle',
+                emoji:       '🔮',
+                chain:       'Hyperliquid',
+                description: 'Tracks HL taker/maker fees — routes 20% of taker fees to Security reserve, maker rebates to KENO burn. Kaprekar governs every split.',
+                controllable: false,
+                running:     false,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
+            }),
+            withRenderStats('porv-oracle', {
+                id:          'porv-oracle',
+                name:        'PoRV CDI Oracle',
+                emoji:       '📊',
+                chain:       'All Chains',
+                description: 'Compute Demand Index — tracks RVT-USDC perp feed and PoRV miner activity. Signals when compute demand justifies raising the PoRV mining reward.',
+                controllable: false,
+                running:     false,
+                totalProfit: 0, tradeCount: 0, scanCount: 0,
             }),
         ]
     });
