@@ -159,7 +159,7 @@ class CrossExchangeArbBot {
     this.autoExecute  = false; // DISABLED — BSC-pegged tokens have permanent spread vs HL perps, not real arb
 
     // ── Price cache ───────────────────────────────────────────────────────────
-    this.bscPrices = {};  // coin → USD
+    this.binancePrices = {}; // coin → USD (Binance spot — real global reference price)
     this.hlPrices  = {};  // coin → USD
 
     // ── Opportunity log ───────────────────────────────────────────────────────
@@ -241,25 +241,18 @@ class CrossExchangeArbBot {
       // Fetch all HL mid prices in one call
       const hlMids = await this._hlInfo({ type: 'allMids' });
 
-      // Fetch all BSC prices in parallel
+      // Fetch all Binance spot prices in one call (real global reference price)
       const activePairs = PAIRS.filter(p => p.active);
-      const bscPriceResults = await Promise.allSettled(
-        activePairs.map(p => this._getBSCPriceUSD(p))
-      );
+      const binancePrices = await this._fetchBinancePrices(activePairs);
 
-      for (let i = 0; i < activePairs.length; i++) {
-        const pair = activePairs[i];
-        const bscResult = bscPriceResults[i];
-
-        if (bscResult.status !== 'fulfilled' || !bscResult.value) continue;
-
-        const bscUSD = bscResult.value;
+      for (const pair of activePairs) {
+        const bscUSD = binancePrices[pair.name] || 0;
         const hlUSD  = parseFloat(hlMids?.[pair.hlCoin] || '0');
 
         if (!hlUSD || !bscUSD) continue;
 
-        this.bscPrices[pair.name] = bscUSD;
-        this.hlPrices[pair.name]  = hlUSD;
+        this.binancePrices[pair.name] = bscUSD;
+        this.hlPrices[pair.name]      = hlUSD;
 
         await this._evaluateSpread(pair, bscUSD, hlUSD);
       }
@@ -354,7 +347,7 @@ class CrossExchangeArbBot {
     if (netSpread >= MIN_SPREAD_PCT * 1.5 || opp.executable) {
       await this._telegram(
         `🎯 <b>Arb Opportunity — ${pair.name}</b>\n\n` +
-        `PancakeSwap: <b>$${bscUSD.toFixed(4)}</b>\n` +
+        `Binance spot: <b>$${bscUSD.toFixed(4)}</b>\n` +
         `Hyperliquid:  <b>$${hlUSD.toFixed(4)}</b>\n` +
         `Net spread: <b>${netSpread.toFixed(3)}%</b>\n` +
         `Direction: Buy ${cheapSide} → Sell ${expSide}\n` +
@@ -503,27 +496,40 @@ class CrossExchangeArbBot {
 
   // ── Price Fetchers ────────────────────────────────────────────────────────
 
-  async _getBSCPriceUSD(pair) {
-    const amountIn = ethers.parseEther('1');
-
-    if (pair.name === 'BNB') {
-      return this._getBNBPriceUSD();
-    }
-
-    // getAmountsOut returns [amountIn, ..., amountOut] — capture the LAST element (output)
-    const amounts    = await this.pancakeRouter.getAmountsOut(amountIn, [pair.bscToken, WBNB]);
-    const bnbOut     = amounts[amounts.length - 1];
-    const bnbUSD     = await this._getBNBPriceUSD();
-    const tokenInBNB = parseFloat(ethers.formatEther(bnbOut));
-    return tokenInBNB * bnbUSD;
+  // Binance public spot API — free, no auth, real global prices
+  async _fetchBinancePrices(pairs) {
+    const symbols = pairs.map(p => `"${p.name}USDT"`).join(',');
+    return new Promise((resolve) => {
+      const req = https.request({
+        hostname: 'api.binance.com',
+        path:     `/api/v3/ticker/price?symbols=[${symbols}]`,
+        method:   'GET',
+        headers:  { 'User-Agent': 'KenostodBot/1.0' },
+        timeout:  8000,
+      }, (res) => {
+        let d = '';
+        res.on('data', c => d += c);
+        res.on('end', () => {
+          try {
+            const data = JSON.parse(d);
+            const out  = {};
+            for (const item of (Array.isArray(data) ? data : [])) {
+              const coin = item.symbol.replace('USDT', '');
+              out[coin]  = parseFloat(item.price);
+            }
+            resolve(out);
+          } catch (_) { resolve({}); }
+        });
+      });
+      req.on('error', () => resolve({}));
+      req.on('timeout', () => { req.destroy(); resolve({}); });
+      req.end();
+    });
   }
 
+  // Fallback BNB price for balance checks (cached from last Binance fetch)
   async _getBNBPriceUSD() {
-    const amountIn = ethers.parseEther('1');
-    // getAmountsOut returns [amountIn, amountOut] — capture amounts[1] (USDT output)
-    const amounts  = await this.pancakeRouter.getAmountsOut(amountIn, [WBNB, USDT]);
-    const usdOut   = amounts[amounts.length - 1];
-    return parseFloat(ethers.formatUnits(usdOut, 18)); // BSC USDT = 18 decimals
+    return this.binancePrices['BNB'] || 600;
   }
 
   // ── HL helpers ────────────────────────────────────────────────────────────
@@ -607,10 +613,10 @@ class CrossExchangeArbBot {
 
   async _report() {
     const uptime    = ((Date.now() - this.startedAt) / 3_600_000).toFixed(1);
-    const pricesMsg = Object.entries(this.bscPrices).map(([name, bsc]) => {
+    const pricesMsg = Object.entries(this.binancePrices).map(([name, bsc]) => {
       const hl  = this.hlPrices[name] || 0;
       const spread = hl && bsc ? (Math.abs(bsc - hl) / Math.min(bsc, hl) * 100).toFixed(3) : 'N/A';
-      return `  ${name}: BSC $${bsc.toFixed(4)} | HL $${hl.toFixed(4)} | spread ${spread}%`;
+      return `  ${name}: Binance $${bsc.toFixed(4)} | HL $${hl.toFixed(4)} | spread ${spread}%`;
     }).join('\n');
 
     // ── Law IV: Nash — check equilibrium adjustment ────────────────────────────
@@ -662,7 +668,7 @@ class CrossExchangeArbBot {
       uptimeSeconds: this.startedAt ? Math.round((Date.now() - this.startedAt) / 1000) : 0,
       stats:         this.stats,
       livePrices: {
-        bsc: this.bscPrices,
+        binance: this.binancePrices,
         hl:  this.hlPrices,
       },
       recentOpportunities: this.opportunities.slice(0, 10),
