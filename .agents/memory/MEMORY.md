@@ -7,3 +7,4 @@
 - [Fjord LBP pivot](fjord-pivot.md) — QCT blocked by "Invalid asset value" (fee-on-transfer); KENO (BSC, no fee) is the new Fjord target; Fjord contract `0x53e6dd5164a07f98d296f05c5e139c2a5651a7b8` has QCT+WETH approvals still set
 - [QCT Hyperliquid integration](qct-hl-integration.md) — HIP-1 replaces Fjord for QCT; bot files in `queens-chariot/hyperliquid/`; uses QCT_DEPLOYER_KEY; HL_VAULT_ADDRESS + HL_BUILDER_CODE env vars needed
 - [MetaMask Snap submission](metamask-snap-status.md) — Issue #625 open since Feb 2026; CHECK WEEKLY; snap ID is npm:kenostod-utl-snap v2.3.0; correction comment posted June 7 2026
+- [Flash Arb & Solana Arb Strategy Findings](flash-arb-strategy.md) — FlashArbLoan2 live on BSC; Jupiter round-trip arb not viable; Aegis must stay scan-only; HL rates near-zero June 2026
