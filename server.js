@@ -179,11 +179,11 @@ app.use(cors({
 
 // Session middleware for admin authentication
 app.use(session({
-    secret: process.env.ADMIN_PASSWORD || 'kenostod-session-secret',
+    secret: process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || 'kenostod-session-secret-6174',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false,
+        secure: process.env.NODE_ENV === 'production', // HTTPS-only in prod
         httpOnly: true,
         sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
@@ -9120,7 +9120,10 @@ app.post('/api/founder/login', (req, res) => {
     if (!correct) return res.status(500).json({ ok: false, msg: 'Server not configured' });
     if (password === correct) {
         req.session.isFounder = true;
-        res.json({ ok: true });
+        req.session.save((err) => {
+            if (err) return res.status(500).json({ ok: false, msg: 'Session error' });
+            res.json({ ok: true });
+        });
     } else {
         res.status(401).json({ ok: false, msg: 'Wrong password' });
     }
