@@ -83,7 +83,8 @@ class AegisArbBotManager {
         };
 
         try {
-            this.process = spawn('python3', [this.scriptPath], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+            // --scan-only protects SOL — no trades execute until strategy is verified
+            this.process = spawn('python3', [this.scriptPath, '--scan-only'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
             this.running   = true;
             this.startedAt = Date.now();
             this._log('⚔ Aegis Arb Bot process started');
