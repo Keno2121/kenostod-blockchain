@@ -377,15 +377,18 @@ class AegisArbBot:
             # Sign and send
             from solders.transaction import VersionedTransaction  # type: ignore
             from solana.rpc.api import Client                      # type: ignore
+            from solana.rpc.types import TxOpts                   # type: ignore
             import base64
 
             client   = Client(self.rpc_url)
             tx_bytes = base64.b64decode(swap_tx_b64)
             tx       = VersionedTransaction.from_bytes(tx_bytes)
-            signed   = self.keypair.sign_message(bytes(tx.message))
+            # Build properly signed VersionedTransaction
+            signed_tx = VersionedTransaction(tx.message, [self.keypair])
 
             result = client.send_raw_transaction(
-                bytes(tx), opts={"skipPreflight": False, "maxRetries": 3}
+                bytes(signed_tx),
+                opts=TxOpts(skip_preflight=False, max_retries=3),
             )
             sig = str(result.value)
             self._log(f"✅ Trade executed! Sig: {sig[:16]}... Net: ${net_usd:.2f}")
