@@ -154,7 +154,7 @@ class CrossExchangeArbBot {
     this.reportTimer  = null;
     this.startedAt    = null;
 
-    this.autoExecute  = false; // SAFE DEFAULT — scan only until capital funded
+    this.autoExecute  = true; // LIVE — both legs execute simultaneously
 
     // ── Price cache ───────────────────────────────────────────────────────────
     this.bscPrices = {};  // coin → USD
@@ -354,21 +354,22 @@ class CrossExchangeArbBot {
   async _executeArb(pair, bscUSD, hlUSD, tradeSize) {
     if (!this.autoExecute) return;
 
-    const buyOnHL  = hlUSD < bscUSD;
-    this._log(`⚡ EXECUTING arb on ${pair.name} — buy on ${buyOnHL ? 'HL' : 'BSC'} | size $${tradeSize.toFixed(2)}`);
+    const buyOnBSC = bscUSD < hlUSD; // most common: BSC cheaper → buy BSC, short HL
+    this._log(`⚡ EXECUTING both legs on ${pair.name} | buy on ${buyOnBSC ? 'BSC' : 'HL'} | size $${tradeSize.toFixed(2)}`);
 
     try {
-      let hlProfit  = 0;
-      let bscProfit = 0;
+      let bscResult, hlResult;
 
-      if (buyOnHL) {
-        // Buy on HL (cheaper) + plan to sell on BSC
-        const hlResult = await this._hlMarketBuy(pair.hlCoin, tradeSize);
-        hlProfit = hlResult.estimatedFill || 0;
+      if (buyOnBSC) {
+        // Both legs simultaneously: buy cheap on BSC + short on HL to lock spread
+        [bscResult, hlResult] = await Promise.all([
+          this._bscBuy(pair, tradeSize),
+          this._hlMarketShort(pair.hlCoin, tradeSize),
+        ]);
       } else {
-        // Buy on BSC (cheaper) + plan to sell on HL
-        const bscResult = await this._bscBuy(pair, tradeSize);
-        bscProfit = bscResult.amountOut || 0;
+        // HL cheaper → long HL (BSC sell requires owning asset first; skip BSC leg)
+        hlResult  = await this._hlMarketBuy(pair.hlCoin, tradeSize);
+        bscResult = { ok: true, amountOut: 0 };
       }
 
       const grossProfit = tradeSize * (Math.abs(bscUSD - hlUSD) / Math.min(bscUSD, hlUSD));
@@ -417,40 +418,38 @@ class CrossExchangeArbBot {
     }
   }
 
-  // ── HL Market Buy (spot/perp) ─────────────────────────────────────────────
+  // ── HL Order Helper (shared signing for buy + short) ─────────────────────
 
-  async _hlMarketBuy(coin, usdSize) {
+  async _hlOrder(coin, isBuy, usdSize) {
     const mids = await this._hlInfo({ type: 'allMids' });
     const mid  = parseFloat(mids?.[coin] || '0');
     if (!mid) throw new Error(`No HL price for ${coin}`);
 
-    const sz = parseFloat((usdSize / mid).toFixed(6));
-    const timestamp = Date.now();
-    const nonce = timestamp;
-
+    const sz    = parseFloat((usdSize / mid).toFixed(6));
+    const nonce = Date.now();
     const action = {
       type: 'order',
       orders: [{
-        a:   this._hlCoinIndex(coin),
-        b:   true,  // isBuy
-        p:   '0',   // market order — price 0 for market
-        s:   String(sz),
-        r:   false,
-        t:   { market: {} },
+        a: this._hlCoinIndex(coin),
+        b: isBuy,
+        p: '0',
+        s: String(sz),
+        r: false,
+        t: { market: {} },
       }],
       grouping: 'na',
     };
 
-    const connectionId = ethers.hexlify(ethers.randomBytes(32));
-    const agentSig = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, {
-      source: 'a',
-      connectionId,
-    });
+    const connectionId = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify({ action, nonce })));
+    const phantomAgent = { source: 'a', connectionId };
+    const signature    = await this.wallet.signTypedData(HL_DOMAIN, HL_AGENT_TYPES, phantomAgent);
 
-    const payload = { action, nonce, signature: { r: agentSig.slice(0,66), s: '0x'+agentSig.slice(66,130), v: parseInt(agentSig.slice(130,132),16) }, vaultAddress: null };
-    const resp = await this._hlExchange(payload);
+    const resp = await this._hlExchange({ action, nonce, signature });
     return { ok: true, estimatedFill: usdSize * (1 - HL_TAKER_FEE_PCT / 100), response: resp };
   }
+
+  async _hlMarketBuy(coin, usdSize)   { return this._hlOrder(coin, true,  usdSize); }
+  async _hlMarketShort(coin, usdSize) { return this._hlOrder(coin, false, usdSize); }
 
   // ── BSC Buy ───────────────────────────────────────────────────────────────
 
