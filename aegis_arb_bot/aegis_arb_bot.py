@@ -536,10 +536,15 @@ if __name__ == "__main__":
         parser.add_argument("--wallet-key", default=os.environ.get("SOLANA_WALLET_PRIVATE_KEY", ""))
         parser.add_argument("--tg-token",   default=_tg_token)
         parser.add_argument("--tg-chat-id", default=_tg_chatid)
+        parser.add_argument("--scan-only",  action="store_true", default=False,
+                            help="Disable execution — scan and alert only, never spend funds")
         args = parser.parse_args()
 
+        # If scan-only, clear wallet key so keypair never loads and trades never execute
+        wallet_key = "" if args.scan_only else args.wallet_key
+
         bot = AegisArbBot(
-            wallet_private_key=args.wallet_key,
+            wallet_private_key=wallet_key,
             rpc_url=args.rpc,
             tg_token=args.tg_token,
             tg_chat_id=args.tg_chat_id,
