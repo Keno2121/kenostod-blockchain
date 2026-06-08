@@ -83,12 +83,12 @@ class KenoFlashOrbBot {
     this.running   = false;
     this.paused    = false;
 
-    // ── Law VI: Kaprekar scan interval = 30s (BSC) ─────────────────────
+    // ── Law VI: Kaprekar scan interval = 10s (BSC) ─────────────────────
     this.config = {
       autoExecute:    true,         // LIVE — contract-level quoteBest() reverts if not profitable
       minProfitUSD:   0.25,         // Law III — Sovereign Threshold
-      checkIntervalMs: 30_000,      // Law VI — 30s BSC scan (61.74s on Solana)
-      gasPrice:       ethers.parseUnits('1', 'gwei'),
+      checkIntervalMs: 10_000,      // 10s scan — catches brief AMM imbalances (view calls are free)
+      gasPrice:       null,         // null = dynamic from provider.getFeeData() + 20% buffer
       gasLimitFlash:  600_000,      // flash arb uses more gas (borrow + 2 swaps + repay)
       gasLimitBurn:   130_000,
       bnbPriceUSD:    600,          // updated dynamically from price check
@@ -325,13 +325,25 @@ class KenoFlashOrbBot {
       }
 
       this.log(`✅ Pre-flight passed — submitting flash arb`);
+      // Dynamic gas: read current network price + 20% buffer for fast confirmation
+      let gasPrice = this.config.gasPrice;
+      if (!gasPrice) {
+        try {
+          const fee = await this.provider.getFeeData();
+          const raw = fee.gasPrice || ethers.parseUnits('1', 'gwei');
+          gasPrice  = raw * 120n / 100n; // +20% priority buffer
+        } catch (_) {
+          gasPrice = ethers.parseUnits('1', 'gwei');
+        }
+      }
+
       const tx = await this.flashArb.executeFlashArb(
         opp.repayPair,
         opp.sellRouter,
         opp.buyRouter,
         USDT,
         borrowAmt,
-        { gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitFlash }
+        { gasPrice, gasLimit: this.config.gasLimitFlash }
       );
 
       this.log(`📤 Flash tx sent: ${tx.hash}`);
