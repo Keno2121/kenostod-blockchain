@@ -86,7 +86,8 @@ class ConstitutionFlashBotManager {
         };
 
         try {
-            this.process = spawn('python3', [this.scriptPath], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+            const pipCmd = `python3 -m pip install requests solana solders base58 --quiet --exists-action i 2>&1 | tail -1; python3 "${this.scriptPath}"`;
+            this.process = spawn('bash', ['-c', pipCmd], { env, stdio: ['ignore', 'pipe', 'pipe'] });
             this.running   = true;
             this.startedAt = Date.now();
             this._log('📜 Constitution Flash Bot process started');

@@ -84,7 +84,8 @@ class AegisArbBotManager {
 
         try {
             // --scan-only protects SOL — no trades execute until strategy is verified
-            this.process = spawn('python3', [this.scriptPath, '--scan-only'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+            const pipCmd = `python3 -m pip install requests solana solders base58 --quiet --exists-action i 2>&1 | tail -1; python3 "${this.scriptPath}" --scan-only`;
+            this.process = spawn('bash', ['-c', pipCmd], { env, stdio: ['ignore', 'pipe', 'pipe'] });
             this.running   = true;
             this.startedAt = Date.now();
             this._log('⚔ Aegis Arb Bot process started');
