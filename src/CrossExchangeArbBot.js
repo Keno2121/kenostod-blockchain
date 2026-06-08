@@ -55,7 +55,7 @@ const PANCAKE_FEE_PCT  = 0.25;          // PancakeSwap V2 taker fee
 const HL_TAKER_FEE_PCT = 0.035;         // HL market taker fee
 const BSC_GAS_USD_EST  = 0.05;          // ~$0.05 per BSC swap at current gas
 const MAX_TRADE_USD    = 200;           // max $200 per leg when executing
-const MIN_TRADE_USD    = 20;            // min $20 per leg
+const MIN_TRADE_USD    = 10;            // min $10 per leg
 
 // ── Token / Pair config ────────────────────────────────────────────────────────
 
@@ -353,6 +353,18 @@ class CrossExchangeArbBot {
 
   async _executeArb(pair, bscUSD, hlUSD, tradeSize) {
     if (!this.autoExecute) return;
+
+    // ── Dynamic balance cap: never spend more BNB than 80% of wallet balance ──
+    try {
+      const bnbBal  = await this.bscProvider.getBalance(this.address);
+      const bnbUSD  = await this._getBNBPriceUSD();
+      const maxUSD  = parseFloat(ethers.formatEther(bnbBal)) * bnbUSD * 0.80;
+      if (maxUSD < MIN_TRADE_USD) {
+        this._log(`⚠ BNB balance too low for min trade ($${maxUSD.toFixed(2)} avail, need $${MIN_TRADE_USD}) — skipping`);
+        return;
+      }
+      tradeSize = Math.min(tradeSize, maxUSD);
+    } catch (_) {}
 
     const buyOnBSC = bscUSD < hlUSD; // most common: BSC cheaper → buy BSC, short HL
     this._log(`⚡ EXECUTING both legs on ${pair.name} | buy on ${buyOnBSC ? 'BSC' : 'HL'} | size $${tradeSize.toFixed(2)}`);
