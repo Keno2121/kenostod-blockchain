@@ -124,25 +124,37 @@ class ConstitutionFlashBot:
         self.logs         = []
         self.consecutive_success = 0
 
-        self.keypair  = None
-        self.rpc      = None
+        self.keypair          = None   # created lazily in _jupiter_swap_and_send
+        self._wallet_key_str  = None   # base58 private key string
+        self._wallet_key_bytes= None   # 64-byte raw keypair bytes
+        self.wallet_address   = None   # base58 public key string
         self._try_init_wallet(wallet_private_key)
 
     def _try_init_wallet(self, wallet_private_key: str):
+        """
+        Store wallet credentials WITHOUT importing solders/solana at startup.
+        Native-code imports (solders) are deferred to _jupiter_swap_and_send
+        so a segfault in the Rust extension cannot crash the whole process.
+        """
         if not wallet_private_key:
             log.warning("No SOLANA_WALLET_PRIVATE_KEY — scan-only mode")
             return
         try:
-            from solders.keypair import Keypair  # type: ignore
-            from solana.rpc.api import Client    # type: ignore
-            import base58
-
+            import base58  # pure-Python, no native code
             raw = base58.b58decode(wallet_private_key)
-            self.keypair = Keypair.from_bytes(raw)
-            self.rpc     = Client(self.rpc_url)
-            log.info(f"Wallet loaded: {str(self.keypair.pubkey())[:12]}...")
-        except ImportError as e:
-            log.error(f"Missing package ({e}) — install solders solana base58")
+            if len(raw) not in (32, 64):
+                log.error(f"Unexpected key length {len(raw)}b — expected 32 or 64")
+                return
+            self._wallet_key_str   = wallet_private_key
+            self._wallet_key_bytes = raw
+            # Derive public key: Solana 64-byte keypair = seed(32) + pubkey(32)
+            pub_bytes = raw[32:] if len(raw) == 64 else raw
+            self.wallet_address = base58.b58encode(pub_bytes).decode()
+            # Mark keypair as "logically loaded" so mode check works
+            self.keypair = True  # replaced with real Keypair lazily on first sign
+            log.info(f"Wallet stored (deferred sign): {self.wallet_address[:12]}...")
+        except ImportError:
+            log.error("base58 not installed — run: pip install base58")
         except Exception as e:
             log.error(f"Wallet init failed: {e}")
 
@@ -158,13 +170,19 @@ class ConstitutionFlashBot:
     def _emit(self, event: dict):
         print(json.dumps(event), flush=True)
 
-    # ── SOL balance ───────────────────────────────────────────────
+    # ── SOL balance (pure HTTP — no solana package) ───────────────
     def _get_sol_balance(self) -> float:
-        if not self.rpc or not self.keypair:
+        if not self.wallet_address:
             return 0.0
         try:
-            resp = self.rpc.get_balance(self.keypair.pubkey())
-            return resp.value / 10 ** SOL_DECIMALS
+            resp = requests.post(self.rpc_url, json={
+                "jsonrpc": "2.0", "id": 1,
+                "method": "getBalance",
+                "params": [self.wallet_address, {"commitment": "confirmed"}],
+            }, timeout=8)
+            result = resp.json().get("result", {})
+            value  = result.get("value", 0) if isinstance(result, dict) else result
+            return float(value) / 10 ** SOL_DECIMALS
         except Exception as e:
             log.warning(f"Balance check failed: {e}")
             return 0.0
@@ -206,19 +224,82 @@ class ConstitutionFlashBot:
         return None, None, None
 
     # ── Jupiter swap transaction build + sign + send ──────────────
+    def _get_real_keypair(self):
+        """Lazily create real solders.Keypair from stored bytes. Returns None on error."""
+        if self._wallet_key_bytes is None:
+            return None
+        try:
+            from solders.keypair import Keypair as SoldersKeypair  # type: ignore
+            kp = SoldersKeypair.from_bytes(self._wallet_key_bytes)
+            self.keypair = kp   # cache the real keypair for next calls
+            return kp
+        except Exception as e:
+            self._log(f"Keypair create failed: {e}", "error")
+            return None
+
+    def _rpc_send_raw(self, tx_bytes: bytes) -> str | None:
+        """Send signed tx via JSON-RPC (no solana package needed)."""
+        try:
+            import base64 as _b64
+            encoded = _b64.b64encode(tx_bytes).decode()
+            resp = requests.post(self.rpc_url, json={
+                "jsonrpc": "2.0", "id": 1,
+                "method": "sendTransaction",
+                "params": [encoded, {"encoding": "base64",
+                                      "preflightCommitment": "confirmed",
+                                      "skipPreflight": False}],
+            }, timeout=20)
+            data = resp.json()
+            if "error" in data:
+                self._log(f"sendTransaction RPC error: {data['error']}", "error")
+                return None
+            return str(data.get("result"))
+        except Exception as e:
+            self._log(f"sendTransaction failed: {e}", "error")
+            return None
+
+    def _rpc_confirm(self, sig: str) -> bool:
+        """Poll for tx confirmation (up to 45s). Returns True if confirmed."""
+        for _ in range(15):
+            time.sleep(3)
+            try:
+                resp = requests.post(self.rpc_url, json={
+                    "jsonrpc": "2.0", "id": 1,
+                    "method": "getSignatureStatuses",
+                    "params": [[sig], {"searchTransactionHistory": True}],
+                }, timeout=8)
+                result = resp.json().get("result", {}).get("value", [None])
+                val = result[0] if result else None
+                if val:
+                    if val.get("err"):
+                        self._log(f"Tx failed on-chain: {val['err']}", "error")
+                        return False
+                    if val.get("confirmationStatus") in ("confirmed", "finalized"):
+                        self._log(f"Confirmed ✅ ({val['confirmationStatus']})")
+                        return True
+            except Exception:
+                pass
+        self._log("Tx confirmation timeout — may still confirm", "warn")
+        return True   # optimistic: return sig anyway
+
     def _jupiter_swap_and_send(self, quote: dict) -> str | None:
         """
         Posts quote to Jupiter /swap, signs the returned versioned transaction,
-        and sends it via RPC. Returns signature string or None on failure.
+        and sends it via JSON-RPC. Solders import is deferred here — never at startup.
+        Returns signature string or None on failure.
         """
         try:
             from solders.transaction import VersionedTransaction   # type: ignore
-            from solana.rpc.types import TxOpts                    # type: ignore
-            from solders.commitment_config import CommitmentLevel  # type: ignore
+
+            # Resolve real keypair lazily
+            kp = self._get_real_keypair()
+            if kp is None:
+                self._log("Keypair unavailable — cannot sign", "error")
+                return None
 
             resp = requests.post(JUPITER_SWAP_URL, json={
                 "quoteResponse":             quote,
-                "userPublicKey":             str(self.keypair.pubkey()),
+                "userPublicKey":             self.wallet_address,
                 "wrapAndUnwrapSol":          True,
                 "dynamicComputeUnitLimit":   True,
                 "prioritizationFeeLamports": PRIORITY_FEE_LAMPS,
@@ -234,30 +315,16 @@ class ConstitutionFlashBot:
                 self._log("Jupiter /swap returned no swapTransaction", "error")
                 return None
 
-            raw = base64.b64decode(swap_tx_b64)
-            tx  = VersionedTransaction.from_bytes(raw)
+            raw_tx = base64.b64decode(swap_tx_b64)
+            tx     = VersionedTransaction.from_bytes(raw_tx)
 
-            # Re-sign with our keypair (Jupiter pre-populates accounts/instructions)
-            signed_tx = VersionedTransaction([self.keypair], tx.message)
-
-            opts = TxOpts(skip_preflight=False, preflight_commitment="confirmed")
-            result = self.rpc.send_raw_transaction(bytes(signed_tx), opts)
-            sig = str(result.value)
+            # Re-sign with our keypair
+            signed_tx = VersionedTransaction([kp], tx.message)
+            sig = self._rpc_send_raw(bytes(signed_tx))
+            if not sig:
+                return None
             self._log(f"Tx sent: {sig}")
-
-            # Wait for confirmation (up to 45s)
-            for _ in range(15):
-                time.sleep(3)
-                status = self.rpc.get_signature_statuses([result.value])
-                val    = status.value[0]
-                if val and val.confirmation_status:
-                    if val.err:
-                        self._log(f"Tx failed on-chain: {val.err}", "error")
-                        return None
-                    self._log(f"Confirmed ✅ slot={val.slot}")
-                    return sig
-
-            self._log("Tx confirmation timeout — may still confirm", "warn")
+            self._rpc_confirm(sig)
             return sig
 
         except Exception as e:
@@ -325,8 +392,8 @@ class ConstitutionFlashBot:
     # ── Execute two-leg Jupiter arb ───────────────────────────────
     def _execute(self, label: str, q1: dict, q2: dict,
                  trade_sol: float, est_net_usd: float):
-        if not self.keypair:
-            self._log("Wallet not loaded — cannot execute", "warn")
+        if not self._wallet_key_str:
+            self._log("Wallet not loaded — cannot execute (scan-only)", "warn")
             self._record_trade(est_net_usd, label, trade_sol, simulated=True)
             return
 
