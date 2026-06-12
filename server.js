@@ -12203,9 +12203,21 @@ app.listen(PORT, '0.0.0.0', () => {
         console.error('❌ Telegram bot init error:', err.message);
     }
 
-    // Kings Shield Bots — MANUAL START from Bots dashboard
-    console.log('⚔ Aegis Arb Bot ready — start from Bots dashboard (/api/aegis-arb/start)');
-    console.log('⚔ Constitution Flash Bot ready — start from Bots dashboard (/api/constitution-flash/start)');
+    // Kings Shield Bots — AUTO-START on every server boot
+    setTimeout(() => {
+        try {
+            const aegisResult = aegisArbBot.start();
+            console.log('⚔ Aegis Arb Bot auto-started:', aegisResult.msg || aegisResult);
+        } catch (e) {
+            console.error('⚔ Aegis Arb Bot auto-start failed:', e.message);
+        }
+        try {
+            const cfResult = constitutionFlash.start();
+            console.log('📜 Constitution Flash Bot auto-started:', cfResult.msg || cfResult);
+        } catch (e) {
+            console.error('📜 Constitution Flash Bot auto-start failed:', e.message);
+        }
+    }, 10000); // 10s delay — let server fully init before spawning Python processes
     console.log('💎 Hyperliquid Funding Bot ready — start from Bots dashboard (/api/hl-funding/start)');
     console.log('💜 Drift Funding Bot ready — start from Bots dashboard (/api/drift-funding/start) [no geo-restriction]');
     console.log('👑 Queens Chariot Hive Bot ready — orchestrates all 6 worker bots (/api/qct-hive/start)');
