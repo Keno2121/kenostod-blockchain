@@ -176,38 +176,90 @@ class AegisArbBot:
         self._last_report_scan = 0
         self._REPORT_EVERY     = 58  # ~60 min
 
-        # Keypair — None when scan-only
-        self.keypair = None
+        # Wallet state — stored without importing native code at startup.
+        # solders is deferred to _get_real_keypair() called only when signing.
+        self.keypair          = None   # set to True when key stored; replaced by real Keypair on first sign
+        self._wallet_key_str  = None   # base58 private key string
+        self._wallet_key_bytes= None   # 64-byte raw bytes
+        self.wallet_address   = None   # base58 public key string
         if wallet_private_key:
             self._load_keypair(wallet_private_key)
 
-        mode = "SCAN-ONLY (simulation)" if not self.keypair else "LIVE"
+        mode = "SCAN-ONLY (simulation)" if not self._wallet_key_str else "LIVE"
         log.info(f"⚔ Aegis Arb Bot v2 | Mode: {mode}")
 
     def _load_keypair(self, key: str):
+        """
+        Store wallet key WITHOUT importing solders/solana (avoids segfault on Render).
+        Supports base58-encoded 64-byte keypair or 32-byte seed, and hex format.
+        The real Keypair is created lazily in _get_real_keypair() at signing time.
+        """
         try:
-            from solders.keypair import Keypair  # type: ignore
-            import base58
-            kp = None
+            import base58  # pure-Python, no native code
+            raw = None
             try:
                 raw = base58.b58decode(key)
-                kp = Keypair.from_bytes(raw) if len(raw) == 64 else Keypair.from_seed(raw)
             except Exception:
                 pass
-            if kp is None:
+            if raw is None:
                 try:
                     raw = bytes.fromhex(key.lstrip("0x"))
-                    if len(raw) == 32:
-                        kp = Keypair.from_seed(raw)
                 except Exception:
                     pass
-            if kp:
-                self.keypair = kp
-                log.info(f"Wallet loaded: {str(self.keypair.pubkey())[:8]}...")
-            else:
-                log.error("Unrecognised key format — running SCAN-ONLY")
+            if raw is None or len(raw) not in (32, 64):
+                log.error(f"Unrecognised key format (len={len(raw) if raw else '?'}) — SCAN-ONLY")
+                return
+            self._wallet_key_str   = key
+            self._wallet_key_bytes = raw
+            # Derive public key: 64-byte keypair → last 32 bytes = pubkey
+            pub_bytes = raw[32:] if len(raw) == 64 else raw
+            self.wallet_address = base58.b58encode(pub_bytes).decode()
+            self.keypair = True  # sentinel: replaced with real Keypair on first sign
+            log.info(f"Wallet stored (sign deferred): {self.wallet_address[:8]}...")
         except ImportError:
-            log.warning("solders not installed — running SCAN-ONLY")
+            log.warning("base58 not installed — pip install base58")
+        except Exception as e:
+            log.error(f"Wallet load error: {e}")
+
+    def _get_real_keypair(self):
+        """Lazily create real solders.Keypair. Returns None on failure."""
+        if self._wallet_key_bytes is None:
+            return None
+        if hasattr(self.keypair, 'pubkey'):
+            return self.keypair  # already a real Keypair
+        try:
+            from solders.keypair import Keypair as SK  # type: ignore
+            raw = self._wallet_key_bytes
+            kp = SK.from_bytes(raw) if len(raw) == 64 else SK.from_seed(raw)
+            self.keypair = kp
+            return kp
+        except Exception as e:
+            self._log(f"Real keypair creation failed: {e}", "error")
+            return None
+
+    def _rpc_send_raw(self, tx_bytes: bytes) -> str | None:
+        """Send signed transaction via JSON-RPC (no solana package)."""
+        import base64 as _b64
+        try:
+            encoded = _b64.b64encode(tx_bytes).decode()
+            data = json.dumps({
+                "jsonrpc": "2.0", "id": 1,
+                "method": "sendTransaction",
+                "params": [encoded, {"encoding": "base64",
+                                      "preflightCommitment": "confirmed",
+                                      "skipPreflight": False}],
+            }).encode()
+            req  = urllib.request.Request(self.rpc_url, data=data,
+                                          headers={"Content-Type": "application/json"})
+            resp = urllib.request.urlopen(req, timeout=20)
+            result = json.loads(resp.read().decode())
+            if "error" in result:
+                self._log(f"sendTransaction error: {result['error']}", "error")
+                return None
+            return str(result.get("result"))
+        except Exception as e:
+            self._log(f"_rpc_send_raw failed: {e}", "error")
+            return None
 
     def _log(self, msg: str, level: str = "info"):
         entry = {"time": datetime.now(timezone.utc).isoformat(), "msg": msg, "level": level}
@@ -288,9 +340,14 @@ class AegisArbBot:
             self._log(f"Fresh quote failed for {label}", "error")
             return None
 
+        kp = self._get_real_keypair()
+        if kp is None:
+            self._log(f"Keypair unavailable — cannot sign [{label}]", "error")
+            return None
+
         swap_body = {
             "quoteResponse":            quote,
-            "userPublicKey":            str(self.keypair.pubkey()),
+            "userPublicKey":            self.wallet_address,
             "wrapAndUnwrapSol":         True,
             "dynamicComputeUnitLimit":  True,
             "prioritizationFeeLamports": "auto",
@@ -301,25 +358,19 @@ class AegisArbBot:
                 data=json.dumps(swap_body).encode(),
                 headers={"Content-Type": "application/json"},
             )
-            resp = urllib.request.urlopen(req, timeout=15)
+            resp  = urllib.request.urlopen(req, timeout=15)
             tx_b64 = json.loads(resp.read().decode()).get("swapTransaction", "")
             if not tx_b64:
                 return None
 
             from solders.transaction import VersionedTransaction  # type: ignore
-            from solana.rpc.api import Client                     # type: ignore
-            from solana.rpc.types import TxOpts                  # type: ignore
             import base64
 
-            client    = Client(self.rpc_url)
             tx_bytes  = base64.b64decode(tx_b64)
             tx        = VersionedTransaction.from_bytes(tx_bytes)
-            signed_tx = VersionedTransaction(tx.message, [self.keypair])
-            result    = client.send_raw_transaction(
-                bytes(signed_tx),
-                opts=TxOpts(skip_preflight=False, max_retries=3),
-            )
-            return str(result.value)
+            signed_tx = VersionedTransaction([kp], tx.message)
+            sig = self._rpc_send_raw(bytes(signed_tx))
+            return sig
         except Exception as e:
             self._log(f"Swap execution error [{label}]: {e}", "error")
             return None
@@ -334,7 +385,7 @@ class AegisArbBot:
         label = TOKEN_LABELS.get(token_mint, token_mint[:6])
         token_decimals = TOKEN_DECIMALS.get(token_mint, 6)
 
-        if not self.keypair:
+        if not self._wallet_key_str:
             # SCAN-ONLY — record hypothetical
             self.sim_trades  += 1
             self.sim_profit  += net_usd
@@ -428,7 +479,7 @@ class AegisArbBot:
         per_day  = (self.sim_profit / uptime_h * 24) if uptime_h > 0 else 0
         per_mo   = per_day * 30
 
-        mode = "SCAN-ONLY" if not self.keypair else "LIVE"
+        mode = "SCAN-ONLY" if not self._wallet_key_str else "LIVE"
         send_telegram(
             self.tg_token, self.tg_chat_id,
             f"⚔ <b>Aegis Hourly Report [{mode}]</b>\n"
@@ -438,7 +489,7 @@ class AegisArbBot:
             + (
                 f"\n⚡ <b>Strategy is profitable in simulation.</b>\n"
                 f"Enable live execution to capture real income."
-                if self.sim_profit > 0 and not self.keypair else ""
+                if self.sim_profit > 0 and not self._wallet_key_str else ""
             )
         )
         self._emit({
@@ -458,7 +509,7 @@ class AegisArbBot:
             self._log("SOL price unavailable — skipping scan", "warn")
             return
 
-        mode_tag = "[SIM]" if not self.keypair else "[LIVE]"
+        mode_tag = "[SIM]" if not self._wallet_key_str else "[LIVE]"
         self._log(
             f"{mode_tag} Scan #{self.scan_count} | SOL=${sol_usd:.2f} | "
             f"Trades: {self.trade_count} | Profit: ${self.total_profit:.4f}"
@@ -502,7 +553,7 @@ class AegisArbBot:
     def run(self):
         self.running    = True
         self.started_at = datetime.now(timezone.utc).isoformat()
-        mode = "SCAN-ONLY (simulation)" if not self.keypair else "LIVE EXECUTION"
+        mode = "SCAN-ONLY (simulation)" if not self._wallet_key_str else "LIVE EXECUTION"
 
         self._log(f"⚔ Aegis Arb Bot v2 STARTED | Mode: {mode} | "
                   f"Interval: {SCAN_INTERVAL_SEC}s | Min profit: ${MIN_PROFIT_USD}")
