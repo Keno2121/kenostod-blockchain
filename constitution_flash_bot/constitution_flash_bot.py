@@ -382,8 +382,9 @@ class ConstitutionFlashBot:
 
         best_net, best_q1, best_q2, best_label = None, None, None, None
 
-        for (label, in_mint, mid_mint, out_mint, _final) in routes_to_check:
-            # skip route if we can't afford the trade + gas reserve
+        for (label, in_mint, mid_mint, _leg2_in, out_mint) in routes_to_check:
+            # out_mint = leg2_out (final output, e.g. SOL)
+            # _leg2_in is the same as mid_mint for standard routes — discard it
             if sol_bal < trade_sol + GAS_RESERVE_SOL:
                 self._log(
                     f"Low balance ({sol_bal:.4f} SOL) — need {trade_sol + GAS_RESERVE_SOL:.4f}. "
