@@ -181,15 +181,19 @@ def get_jupiter_quote_dex(input_mint: str, output_mint: str,
 
 
 # Cross-venue pairs to check every scan: (buy_dex, sell_dex, token_mint, label)
+# Jupiter labels — "Whirlpool" is Orca's CLMM (confirmed from round-trip route logs)
 CROSS_VENUE_PAIRS = [
-    ("Raydium",      "Orca",        USDC_MINT, "USDC"),
-    ("Orca",         "Raydium",     USDC_MINT, "USDC"),
-    ("Raydium CLMM", "Orca",        USDC_MINT, "USDC"),
-    ("Orca",         "Raydium CLMM",USDC_MINT, "USDC"),
-    ("Raydium",      "Meteora",     USDC_MINT, "USDC"),
-    ("Meteora",      "Raydium",     USDC_MINT, "USDC"),
-    ("Raydium",      "Orca",        RAY_MINT,  "RAY"),
-    ("Orca",         "Raydium",     RAY_MINT,  "RAY"),
+    ("Raydium",      "Whirlpool",    USDC_MINT, "USDC"),
+    ("Whirlpool",    "Raydium",      USDC_MINT, "USDC"),
+    ("Raydium CLMM", "Whirlpool",    USDC_MINT, "USDC"),
+    ("Whirlpool",    "Raydium CLMM", USDC_MINT, "USDC"),
+    ("Raydium",      "Meteora",      USDC_MINT, "USDC"),
+    ("Meteora",      "Raydium",      USDC_MINT, "USDC"),
+    ("Meteora DLMM", "Raydium",      USDC_MINT, "USDC"),
+    ("Raydium",      "Meteora DLMM", USDC_MINT, "USDC"),
+    ("Raydium",      "Whirlpool",    RAY_MINT,  "RAY"),
+    ("Whirlpool",    "Raydium",      RAY_MINT,  "RAY"),
+    ("Raydium CLMM", "Whirlpool",    RAY_MINT,  "RAY"),
 ]
 
 
