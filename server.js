@@ -144,6 +144,7 @@ const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const LiveArbBot      = require('./src/LiveArbBot');
 const KenoFlashOrbBot = require('./src/KenoFlashOrbBot');
+const SovereignBotOrchestrator = require('./src/SovereignBotOrchestrator');
 const UTLFeeCollector  = require('./src/UTLFeeCollector');
 const UTLReversalPool  = require('./src/UTLReversalPool');
 const utlReversalPool  = new UTLReversalPool();
@@ -1361,6 +1362,7 @@ const liveArbBot        = new LiveArbBot();
 const flashOrbBot       = new KenoFlashOrbBot();
 const aegisArbBot       = new AegisArbBotManager();
 const constitutionFlash = new ConstitutionFlashBotManager();
+const sovereignBots     = new SovereignBotOrchestrator();
 const hyperliquidFunding = new HyperliquidFundingBotManager();
 const driftFunding       = new DriftFundingBotManager();
 
@@ -9150,6 +9152,65 @@ function requireFounder(req, res, next) {
 }
 app.use('/api/live-arb', requireFounder);
 
+// ── Sovereign Bot Framework — 4 protocol-native bots ─────────────────────────
+app.get('/api/sovereign/status', (req, res) => {
+    res.json(sovereignBots.getStatus());
+});
+
+app.post('/api/sovereign/start', (req, res) => {
+    res.json(sovereignBots.startAll());
+});
+
+app.post('/api/sovereign/stop', (req, res) => {
+    res.json(sovereignBots.stopAll());
+});
+
+app.post('/api/sovereign/bot/:id/start', (req, res) => {
+    const id = parseInt(req.params.id);
+    res.json(sovereignBots.startBot(id));
+});
+
+app.post('/api/sovereign/bot/:id/stop', (req, res) => {
+    const id = parseInt(req.params.id);
+    res.json(sovereignBots.stopBot(id));
+});
+
+app.get('/api/sovereign/bot/:id/status', (req, res) => {
+    const id = parseInt(req.params.id);
+    const bots = [null, sovereignBots.harvester, sovereignBots.utlPulse, sovereignBots.bridgeWatch, sovereignBots.porvOpt];
+    const bot  = bots[id];
+    if (!bot) return res.status(404).json({ error: 'Invalid bot ID (1–4)' });
+    res.json(bot.getStatus());
+});
+
+app.post('/api/sovereign/bridge/mode', (req, res) => {
+    const { mode } = req.body;
+    res.json(sovereignBots.setBridgeMode(mode));
+});
+
+app.post('/api/sovereign/bridge/execute', async (req, res) => {
+    // Semi-auto: trigger bridge arb manually after alert
+    res.json(sovereignBots.bridgeWatch.setMode('FULL_AUTO'));
+});
+
+app.post('/api/sovereign/porv/compound', async (req, res) => {
+    try {
+        const result = await sovereignBots.triggerPoRVCompound();
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/sovereign/porv/auto-compound', (req, res) => {
+    res.json(sovereignBots.enablePoRVAutoCompound());
+});
+
+app.post('/api/sovereign/summary', (req, res) => {
+    res.json(sovereignBots.triggerDailySummary());
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 app.post('/api/live-arb/start', async (req, res) => {
     try {
         const result = await liveArbBot.start();
@@ -12231,6 +12292,16 @@ app.listen(PORT, '0.0.0.0', () => {
             console.error('🤖 Live Arb Bot auto-start failed:', e.message);
         }
     }, 20000); // 20s — after Aegis/Constitution (10s), stagger RPC init
+
+    // Sovereign Bot Framework — all 4 protocol-native bots (30s stagger — after all others)
+    setTimeout(() => {
+        try {
+            const result = sovereignBots.startAll();
+            console.log('🌟 Sovereign Bot Framework started:', JSON.stringify(result.results || result.msg || 'ok'));
+        } catch (e) {
+            console.error('🌟 Sovereign Bot Framework start failed:', e.message);
+        }
+    }, 30000);
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
