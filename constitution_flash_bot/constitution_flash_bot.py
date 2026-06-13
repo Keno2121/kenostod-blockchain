@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 
 # ─────────────────────────── constants ───────────────────────────
 KAPREKAR_CONSTANT  = 6174
-SCAN_INTERVAL_SEC  = 30
+SCAN_INTERVAL_SEC  = 45   # Staggered from Aegis 15s to reduce Jupiter 429 collisions
 MIN_PROFIT_USD     = 0.005          # Scaled for current wallet size; rises with balance
 AEGIS_TAX_BPS      = 617            # 6.174%
 SOL_DECIMALS       = 9
@@ -74,34 +74,61 @@ def send_telegram(token: str, chat_id: str, text: str):
     except Exception as e:
         log.warning(f"Telegram alert failed: {e}")
 
+SOL_PRICE_BACKUP_URLS = [
+    "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
+    "https://price.jup.ag/v6/price?ids=SOL",
+]
+
 def get_sol_price_usd() -> float:
+    # Primary: Jupiter price API
     try:
         r = requests.get(SOL_PRICE_URL, timeout=8)
-        data = r.json()
-        price = data["data"]["So11111111111111111111111111111111111111112"]["price"]
-        return float(price)
+        if r.status_code == 200:
+            data = r.json()
+            price = data["data"]["So11111111111111111111111111111111111111112"]["price"]
+            return float(price)
     except Exception:
-        return 150.0
+        pass
+    # Backup: CoinGecko
+    try:
+        r = requests.get(SOL_PRICE_BACKUP_URLS[0], timeout=8)
+        if r.status_code == 200:
+            return float(r.json()["solana"]["usd"])
+    except Exception:
+        pass
+    # Last resort: Binance
+    try:
+        r = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT", timeout=8)
+        if r.status_code == 200:
+            return float(r.json()["price"])
+    except Exception:
+        pass
+    log.warning("SOL price unavailable from all sources — using last known ~$67")
+    return 67.0
 
 def lamports(sol: float) -> int:
     return int(sol * 10 ** SOL_DECIMALS)
 
 def get_jupiter_quote(input_mint: str, output_mint: str,
                       amount: int, slippage_bps: int = 50) -> dict | None:
-    try:
-        r = requests.get(JUPITER_QUOTE_URL, params={
-            "inputMint":        input_mint,
-            "outputMint":       output_mint,
-            "amount":           str(amount),
-            "slippageBps":      slippage_bps,
-            "onlyDirectRoutes": False,
-            "asLegacyTransaction": False,
-        }, timeout=10)
-        if r.status_code == 200:
-            return r.json()
-        log.warning(f"Jupiter quote {r.status_code}: {r.text[:200]}")
-    except Exception as e:
-        log.warning(f"Jupiter quote error: {e}")
+    for attempt in range(2):
+        try:
+            r = requests.get(JUPITER_QUOTE_URL, params={
+                "inputMint":  input_mint,
+                "outputMint": output_mint,
+                "amount":     str(amount),
+                "slippageBps": slippage_bps,
+            }, timeout=10)
+            if r.status_code == 200:
+                return r.json()
+            if r.status_code == 429:
+                time.sleep(2 * (attempt + 1))
+                continue
+            log.warning(f"Jupiter quote {r.status_code}: {r.text[:200]}")
+            break
+        except Exception as e:
+            log.warning(f"Jupiter quote error: {e}")
+            break
     return None
 
 def apply_aegis_tax(profit_usd: float) -> float:
