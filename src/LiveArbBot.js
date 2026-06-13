@@ -165,10 +165,33 @@ class LiveArbBot {
     } catch { /* keep last cached price */ }
   }
 
+  // ── Wallet health check — auto-pause if BNB drops below safety floor ────────
+  async _checkWalletHealth() {
+    if (!this.wallet) return true;
+    try {
+      const bal = await this.provider.getBalance(this.wallet.address);
+      const bnb = parseFloat(ethers.formatEther(bal));
+      if (bnb < 0.05) {
+        this.log(`🛑 SAFETY PAUSE — BNB balance too low (${bnb.toFixed(4)} BNB < 0.05 floor). Bot paused to protect wallet.`);
+        this.pause();
+        return false;
+      }
+      if (bnb < 0.10) {
+        this.log(`⚠️ Low BNB warning: ${bnb.toFixed(4)} BNB — approaching safety floor`);
+      }
+    } catch (_) {}
+    return true;
+  }
+
   async _priceLoop() {
     if (!this.running || this.paused) return;
     this.stats.scanCount++;
     if (this.stats.scanCount % 20 === 1) await this._fetchBNBPrice(); // refresh every 5 min
+    // Safety floor check every 4 scans (~1 min)
+    if (this.stats.scanCount % 4 === 0) {
+      const healthy = await this._checkWalletHealth();
+      if (!healthy) { setTimeout(() => this._priceLoop(), this.config.checkIntervalMs); return; }
+    }
     try {
       const opp = await this.detectOpportunity();
       this.stats.lastCheck = new Date().toISOString();
