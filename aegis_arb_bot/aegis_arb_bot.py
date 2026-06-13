@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 
 # ─────────────────────────── constants ───────────────────────────
 KAPREKAR_CONSTANT   = 6174
-SCAN_INTERVAL_SEC   = 61.74        # Law V — Euler
+SCAN_INTERVAL_SEC   = 15           # Fast scan — cross-venue windows open/close in seconds
 AEGIS_TAX_BPS       = 617          # 6.174% on net profit (not trade size)
 MIN_PROFIT_USD      = 0.003        # Minimum net USD profit to log/execute
 TRADE_SIZE_USD      = 30           # Size per round-trip in USD
@@ -145,6 +145,52 @@ def get_jupiter_quote(input_mint: str, output_mint: str,
         except Exception:
             break
     return None
+
+
+def get_jupiter_quote_dex(input_mint: str, output_mint: str,
+                           amount: int, dexes: str,
+                           slippage_bps: int = 30) -> dict | None:
+    """Jupiter quote restricted to a specific DEX (e.g. 'Raydium' or 'Orca').
+    onlyDirectRoutes=true forces single-pool routing so the price reflects
+    that venue's actual pool state — not the aggregated best."""
+    params = urllib.parse.urlencode({
+        "inputMint":        input_mint,
+        "outputMint":       output_mint,
+        "amount":           str(amount),
+        "slippageBps":      str(slippage_bps),
+        "onlyDirectRoutes": "true",
+        "dexes":            dexes,
+    })
+    url = f"{JUPITER_QUOTE_URL}?{params}"
+    for attempt in range(2):
+        try:
+            resp = urllib.request.urlopen(
+                urllib.request.Request(url, headers={"Accept": "application/json"}),
+                timeout=10,
+            )
+            if resp.status == 200:
+                return json.loads(resp.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                time.sleep(2 * (attempt + 1))
+            else:
+                break
+        except Exception:
+            break
+    return None
+
+
+# Cross-venue pairs to check every scan: (buy_dex, sell_dex, token_mint, label)
+CROSS_VENUE_PAIRS = [
+    ("Raydium",      "Orca",        USDC_MINT, "USDC"),
+    ("Orca",         "Raydium",     USDC_MINT, "USDC"),
+    ("Raydium CLMM", "Orca",        USDC_MINT, "USDC"),
+    ("Orca",         "Raydium CLMM",USDC_MINT, "USDC"),
+    ("Raydium",      "Meteora",     USDC_MINT, "USDC"),
+    ("Meteora",      "Raydium",     USDC_MINT, "USDC"),
+    ("Raydium",      "Orca",        RAY_MINT,  "RAY"),
+    ("Orca",         "Raydium",     RAY_MINT,  "RAY"),
+]
 
 
 def apply_aegis_tax(profit_usd: float) -> float:
@@ -331,10 +377,177 @@ class AegisArbBot:
             return (net_usd_after_tax, net_sol)
         return None
 
+    # ── Cross-venue scanner (primary strategy) ────────────────────
+    def _scan_cross_venue(self, sol_usd: float, sol_lamports: int) -> tuple | None:
+        """
+        Real cross-venue arb: buy TOKEN on venue A, sell TOKEN on venue B.
+        Uses DEX-restricted Jupiter quotes so each leg reflects actual pool
+        prices — not the aggregated best that eliminates all spreads.
+
+        Returns (net_usd, net_sol, buy_dex, sell_dex, token_label, token_mint, q1, q2)
+        or None if nothing profitable found.
+        """
+        best = None
+
+        for i, (buy_dex, sell_dex, token_mint, token_label) in enumerate(CROSS_VENUE_PAIRS):
+            if i > 0:
+                time.sleep(0.3)
+            try:
+                # Leg 1: SOL → TOKEN on buy_dex (get as much TOKEN as possible)
+                q1 = get_jupiter_quote_dex(SOL_MINT, token_mint, sol_lamports, buy_dex)
+                if not q1:
+                    continue
+                token_out = int(q1.get("outAmount", 0))
+                if token_out == 0:
+                    continue
+
+                time.sleep(0.2)
+
+                # Leg 2: TOKEN → SOL on sell_dex (sell that TOKEN for max SOL)
+                q2 = get_jupiter_quote_dex(token_mint, SOL_MINT, token_out, sell_dex)
+                if not q2:
+                    continue
+                sol_out = int(q2.get("outAmount", 0))
+                if sol_out == 0:
+                    continue
+
+                gas_lamports  = 20_000   # two txns × 10k lamports
+                net_lamps     = sol_out - sol_lamports - gas_lamports
+                net_sol       = net_lamps / 10 ** SOL_DECIMALS
+                net_usd       = net_sol * sol_usd
+                net_usd_taxed = apply_aegis_tax(net_usd) if net_usd > 0 else net_usd
+                spread_pct    = (net_lamps / sol_lamports) * 100
+
+                self._log(
+                    f"[{buy_dex}→{sell_dex}] SOL→{token_label}→SOL | "
+                    f"spread={spread_pct:+.4f}% | net=${net_usd_taxed:+.4f}"
+                )
+
+                if net_usd_taxed >= MIN_PROFIT_USD:
+                    if best is None or net_usd_taxed > best[0]:
+                        best = (net_usd_taxed, net_sol, buy_dex, sell_dex,
+                                token_label, token_mint, q1, q2)
+            except Exception as e:
+                self._log(f"Cross-venue error [{buy_dex}→{sell_dex} {token_label}]: {e}", "warn")
+
+        return best
+
+    def _execute_cross_venue(self, buy_dex: str, sell_dex: str,
+                             token_label: str, token_mint: str,
+                             sol_lamports: int, net_usd: float,
+                             sol_usd: float) -> None:
+        """Execute a confirmed cross-venue opportunity with fresh quotes."""
+        if not self._wallet_key_str:
+            # Simulation
+            self.sim_trades  += 1
+            self.sim_profit  += net_usd
+            self.trade_count += 1
+            self.total_profit += net_usd
+            self.last_trade   = datetime.now(timezone.utc).isoformat()
+            self._log(f"[SIM] Cross-venue {buy_dex}→{sell_dex} SOL/{token_label} "
+                      f"${net_usd:.4f} net | cum sim: ${self.sim_profit:.4f}")
+            return
+
+        self._log(f"🔴 LIVE cross-venue: {buy_dex}→{sell_dex} SOL/{token_label} "
+                  f"| expected net: ${net_usd:.4f}")
+
+        # Fresh DEX-restricted quote for leg 1
+        q1_fresh = get_jupiter_quote_dex(SOL_MINT, token_mint, sol_lamports, buy_dex)
+        if not q1_fresh:
+            self._log("Fresh cross-venue Leg 1 quote failed — aborting", "error")
+            return
+
+        sig1 = self._execute_swap_with_quote(q1_fresh, f"SOL→{token_label} [{buy_dex}]")
+        if not sig1:
+            self._log("Leg 1 failed — aborting cross-venue arb", "error")
+            return
+        self._log(f"Leg 1 confirmed: {sig1[:20]}...")
+        time.sleep(3)
+
+        token_out_fresh = int(q1_fresh.get("outAmount", 0))
+        q2_fresh = get_jupiter_quote_dex(token_mint, SOL_MINT, token_out_fresh, sell_dex)
+        if not q2_fresh:
+            self._log(f"Leg 2 quote failed after Leg 1 — {token_label} tokens in wallet", "error")
+            send_telegram(self.tg_token, self.tg_chat_id,
+                          f"⚠️ <b>Aegis — HALF TRADE ({buy_dex}→{sell_dex})</b>\n"
+                          f"Leg 1 ✅ {sig1[:20]}...\nLeg 2 quote failed.\n"
+                          f"Check {token_label} balance — swap back to SOL manually.")
+            return
+
+        sig2 = self._execute_swap_with_quote(q2_fresh, f"{token_label}→SOL [{sell_dex}]")
+        if not sig2:
+            self._log(f"Leg 2 failed — {token_label} stuck in wallet", "error")
+            send_telegram(self.tg_token, self.tg_chat_id,
+                          f"⚠️ <b>Aegis — HALF TRADE ({buy_dex}→{sell_dex})</b>\n"
+                          f"Leg 1 ✅ {sig1[:20]}...\nLeg 2 ❌ FAILED.\n"
+                          f"Swap {token_label} back to SOL manually.")
+            return
+
+        self.trade_count  += 1
+        self.total_profit += net_usd
+        self.last_trade    = datetime.now(timezone.utc).isoformat()
+        self._log(f"✅ Cross-venue complete | ${net_usd:.4f} net | "
+                  f"Total: ${self.total_profit:.4f} ({self.trade_count} trades)")
+
+        if not self._ramanujan_triggered and self.total_profit >= 1.729:
+            self._ramanujan_triggered = True
+            send_telegram(self.tg_token, self.tg_chat_id,
+                          "🔢 <b>Ramanujan Milestone</b> — $1.729 cumulative. "
+                          "The compounding engine is working.")
+
+        send_telegram(
+            self.tg_token, self.tg_chat_id,
+            f"⚔ <b>Aegis — Trade #{self.trade_count}</b> ✅ LIVE\n"
+            f"Venue: <b>{buy_dex} → {sell_dex}</b>\n"
+            f"Pair: SOL/{token_label}\n"
+            f"Net: <b>${net_usd:.4f}</b>\n"
+            f"Total: ${self.total_profit:.4f}\n"
+            f"Sig1: <code>{sig1[:20]}...</code>\n"
+            f"Sig2: <code>{sig2[:20]}...</code>"
+        )
+        self._emit({
+            "event": "trade", "pair": f"SOL/{token_label}",
+            "net_usd": net_usd, "trade_count": self.trade_count,
+            "total_profit": self.total_profit, "sig1": sig1, "sig2": sig2,
+        })
+
     # ── Execution ─────────────────────────────────────────────────
+    def _execute_swap_with_quote(self, quote: dict, label: str) -> str | None:
+        """Sign and send a pre-built Jupiter quote. Returns tx signature or None."""
+        kp = self._get_real_keypair()
+        if kp is None:
+            self._log(f"Keypair unavailable — cannot sign [{label}]", "error")
+            return None
+        swap_body = {
+            "quoteResponse":            quote,
+            "userPublicKey":            self.wallet_address,
+            "wrapAndUnwrapSol":         True,
+            "dynamicComputeUnitLimit":  True,
+            "prioritizationFeeLamports": "auto",
+        }
+        try:
+            req  = urllib.request.Request(
+                JUPITER_SWAP_URL,
+                data=json.dumps(swap_body).encode(),
+                headers={"Content-Type": "application/json"},
+            )
+            resp   = urllib.request.urlopen(req, timeout=15)
+            tx_b64 = json.loads(resp.read().decode()).get("swapTransaction", "")
+            if not tx_b64:
+                return None
+            from solders.transaction import VersionedTransaction  # type: ignore
+            import base64
+            tx_bytes  = base64.b64decode(tx_b64)
+            tx        = VersionedTransaction.from_bytes(tx_bytes)
+            signed_tx = VersionedTransaction([kp], tx.message)
+            return self._rpc_send_raw(bytes(signed_tx))
+        except Exception as e:
+            self._log(f"_execute_swap_with_quote error [{label}]: {e}", "error")
+            return None
+
     def _execute_swap(self, input_mint: str, output_mint: str,
                       amount: int, label: str) -> str | None:
-        """Execute one Jupiter swap leg. Returns tx signature or None."""
+        """Execute one Jupiter swap leg (unrestricted route). Returns tx signature or None."""
         quote = get_jupiter_quote(input_mint, output_mint, amount)
         if not quote:
             self._log(f"Fresh quote failed for {label}", "error")
@@ -517,13 +730,30 @@ class AegisArbBot:
 
         sol_lamports = int((TRADE_SIZE_USD / sol_usd) * 10 ** SOL_DECIMALS)
 
-        best_net    = 0.0
-        best_mint   = None
-        best_sol    = 0.0
+        # ── Strategy 1: Cross-venue arb (Raydium vs Orca vs Meteora)
+        # This is the primary signal — real price discrepancies between pools.
+        cv_result = self._scan_cross_venue(sol_usd, sol_lamports)
+        if cv_result is not None:
+            net_usd, net_sol, buy_dex, sell_dex, token_label, token_mint, _q1, _q2 = cv_result
+            self._log(f"🎯 CROSS-VENUE HIT: {buy_dex}→{sell_dex} SOL/{token_label} "
+                      f"${net_usd:.4f} net — EXECUTING")
+            self._execute_cross_venue(buy_dex, sell_dex, token_label, token_mint,
+                                      sol_lamports, net_usd, sol_usd)
+            self._maybe_send_sim_report()
+            self._emit({
+                "event": "scan_complete", "scan_count": self.scan_count,
+                "sol_usd": sol_usd, "trade_count": self.trade_count,
+                "total_profit": self.total_profit, "sim_profit": self.sim_profit,
+            })
+            return
+
+        # ── Strategy 2: Same-venue round-trip fallback (rarely fires but keeps scanning)
+        best_net = 0.0
+        best_mint = None
 
         for i, mint in enumerate(ROUNDTRIP_PAIRS):
             if i > 0:
-                time.sleep(1)  # Rate limit Jupiter free tier
+                time.sleep(0.5)
             try:
                 result = self._scan_roundtrip(mint, sol_usd)
                 if result is not None:
@@ -531,13 +761,12 @@ class AegisArbBot:
                     if net_usd > best_net:
                         best_net  = net_usd
                         best_mint = mint
-                        best_sol  = net_sol
             except Exception as e:
                 self._log(f"Scan error [{TOKEN_LABELS.get(mint, mint[:6])}]: {e}", "error")
 
         if best_mint is not None:
             label = TOKEN_LABELS.get(best_mint, best_mint[:6])
-            self._log(f"🎯 BEST OPPORTUNITY: SOL→{label}→SOL | ${best_net:.4f} net profit")
+            self._log(f"🎯 ROUND-TRIP HIT: SOL→{label}→SOL | ${best_net:.4f} net — EXECUTING")
             self._execute_roundtrip(best_mint, sol_lamports, best_net, sol_usd)
 
         self._maybe_send_sim_report()
@@ -560,10 +789,10 @@ class AegisArbBot:
 
         send_telegram(
             self.tg_token, self.tg_chat_id,
-            f"⚔ <b>Aegis Arb Bot v2 ONLINE</b>\n"
-            f"Strategy: <b>True Round-Trip Arb</b> (SOL→TOKEN→SOL)\n"
+            f"⚔ <b>Aegis Arb Bot v3 ONLINE</b>\n"
+            f"Strategy: <b>Cross-Venue Arb</b> (Raydium vs Orca vs Meteora)\n"
             f"Mode: <b>{mode}</b>\n"
-            f"Pairs: USDC | RAY | BONK | JTO | WIF\n"
+            f"Pairs: USDC | RAY | 8 venue combinations\n"
             f"Trade size: ${TRADE_SIZE_USD} | Min profit: ${MIN_PROFIT_USD}\n"
             f"Interval: {SCAN_INTERVAL_SEC}s\n"
             f"Kaprekar {KAPREKAR_CONSTANT} — value flows to the participant."
