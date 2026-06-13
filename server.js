@@ -12222,9 +12222,15 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('💜 Drift Funding Bot ready — start from Bots dashboard (/api/drift-funding/start) [no geo-restriction]');
     console.log('👑 Queens Chariot Hive Bot ready — orchestrates all 6 worker bots (/api/qct-hive/start)');
 
-    // Live Arb Bot — MANUAL START ONLY via dashboard (/api/live-arb/start)
-    // Auto-start is DISABLED. You must explicitly enable it from the founder dashboard.
-    console.log('🤖 Live Arb Bot ready — awaiting manual start from founder dashboard.');
+    // Live Arb Bot — auto-start alongside Aegis and Constitution
+    setTimeout(async () => {
+        try {
+            const result = await liveArbBot.start();
+            console.log('🤖 Live Arb Bot auto-started:', result.msg || result);
+        } catch (e) {
+            console.error('🤖 Live Arb Bot auto-start failed:', e.message);
+        }
+    }, 20000); // 20s — after Aegis/Constitution (10s), stagger RPC init
     
     // Initialize Stripe MUCH later to ensure deployment health checks pass first
     // Payments work without Stripe init, so this is safe to delay
