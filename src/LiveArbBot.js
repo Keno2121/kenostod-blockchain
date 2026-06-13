@@ -22,14 +22,13 @@ const CAKE = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82'; // CAKE on BSC
 const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — added back post-PinkSale
 
 // ── Multi-pair scan list — all use BNB as capital, round-trip back to BNB ──
-// KENO commented out until pool is re-added post-PinkSale launch
 const ARB_PAIRS = [
   { name: 'WBNB/USDT',  token: USDT,  bnbAmount: '0.10' },
   { name: 'WBNB/BUSD',  token: BUSD,  bnbAmount: '0.10' },
   { name: 'WBNB/ETH',   token: ETH,   bnbAmount: '0.10' },
   { name: 'WBNB/BTCB',  token: BTCB,  bnbAmount: '0.10' },
   { name: 'WBNB/CAKE',  token: CAKE,  bnbAmount: '0.10' },
-  // { name: 'WBNB/KENO', token: KENO,  bnbAmount: '0.10' }, // re-enable post-PinkSale
+  { name: 'WBNB/KENO',  token: KENO,  bnbAmount: '0.10' },
 ];
 
 const ROUTER_ABI = [
@@ -75,19 +74,20 @@ class LiveArbBot {
 
     this.config = {
       autoExecute:       true,          // LIVE — quoteBest() contract simulation guards every trade
-      minProfitUSD:     0.25,          // $0.25 minimum — only log real opportunities
-      arbTradeAmountBNB: '0.10',       // 0.10 BNB per trade — lower break-even spread to 0.26%
+      minProfitUSD:      0.05,         // $0.05 — achievable at 0.054% spread on 0.10 BNB
+      arbTradeAmountBNB: '0.10',       // 0.10 BNB per trade
       kenoVolBNB:        '0.001',
       checkIntervalMs:   15_000,
       kenoVolIntervalMs: 3_600_000,
       maxSlippage:       0.02,
-      gasPrice:          ethers.parseUnits('1', 'gwei'),  // BSC accepts 1 gwei — cuts gas cost 5x
-      gasLimitArb:       130_000,      // realistic single-swap gas on BSC
+      gasPrice:          ethers.parseUnits('1', 'gwei'),  // BSC accepts 1 gwei
+      gasLimitArb:       130_000,
       gasLimitVol:       130_000,
     };
 
     this.stats = {
       tradesExecuted:   0,
+      scanCount:        0,
       profitBNB:        0,
       profitUSD:        0,
       lastCheck:        null,
@@ -95,6 +95,8 @@ class LiveArbBot {
       lastTrade:        null,
       uptime:           Date.now(),
     };
+
+    this._bnbPriceUSD = 620;  // cached live price, refreshed every 5 min
 
     this.logs = [];
     this.opportunities = [];
@@ -149,8 +151,24 @@ class LiveArbBot {
   pause()  { this.paused = true;  this.log('⏸ Bot paused'); }
   resume() { this.paused = false; this.log('▶️ Bot resumed'); }
 
+  async _fetchBNBPrice() {
+    try {
+      const url = 'https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT';
+      const p = await new Promise((resolve, reject) => {
+        https.get(url, res => {
+          let d = '';
+          res.on('data', c => d += c);
+          res.on('end', () => { try { resolve(JSON.parse(d)); } catch { reject(); } });
+        }).on('error', reject);
+      });
+      if (p && p.price) this._bnbPriceUSD = parseFloat(p.price);
+    } catch { /* keep last cached price */ }
+  }
+
   async _priceLoop() {
     if (!this.running || this.paused) return;
+    this.stats.scanCount++;
+    if (this.stats.scanCount % 20 === 1) await this._fetchBNBPrice(); // refresh every 5 min
     try {
       const opp = await this.detectOpportunity();
       this.stats.lastCheck = new Date().toISOString();
@@ -247,8 +265,7 @@ class LiveArbBot {
         if (q.profitable) {
           const grossBNB     = parseFloat(ethers.formatEther(q.grossProfitBNB));
           const gasCostBNB   = (500_000 * 0.05) / 1e9;
-          const bnbPrice     = 600;
-          const netProfitUSD = (grossBNB - gasCostBNB) * bnbPrice;
+          const netProfitUSD = (grossBNB - gasCostBNB) * this._bnbPriceUSD;
           return {
             time: new Date().toISOString(),
             pair: 'FLASH (4-DEX multi-pair)',
