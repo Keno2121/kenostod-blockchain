@@ -25,15 +25,15 @@ from datetime import datetime, timezone
 # ─────────────────────────── constants ───────────────────────────
 KAPREKAR_CONSTANT  = 6174
 SCAN_INTERVAL_SEC  = 30
-MIN_PROFIT_USD     = 0.25
+MIN_PROFIT_USD     = 0.005          # Scaled for current wallet size; rises with balance
 AEGIS_TAX_BPS      = 617            # 6.174%
 SOL_DECIMALS       = 9
 USDC_DECIMALS      = 6
 GAS_RESERVE_SOL    = 0.01           # keep back for fees
 PRIORITY_FEE_LAMPS = 10_000         # 0.00001 SOL priority fee
 
-# Kaprekar borrow amounts (Law I)
-TRADE_AMOUNTS_SOL = [0.6174, 1.234, 6.174]
+# Kaprekar borrow amounts (Law I) — scaled to current wallet; Law V (Euler) grows these over time
+TRADE_AMOUNTS_SOL = [0.04, 0.06174, 0.1234]
 
 # Token mints
 SOL_MINT    = "So11111111111111111111111111111111111111112"
