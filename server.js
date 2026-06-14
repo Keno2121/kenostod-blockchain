@@ -131,6 +131,7 @@ const DatabaseConnection = require('./src/DatabaseConnection');
 const OrganizationManager = require('./src/OrganizationManager');
 const WealthBuilderManager  = require('./src/WealthBuilderManager');
 const KenoVestingManager   = require('./src/KenoVestingManager');
+const { GraduateAcademyManager } = require('./src/GraduateAcademyManager');
 const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
@@ -1388,7 +1389,7 @@ function logICOPurchase(purchaseData) {
     }
     console.log(`📊 ICO purchase logged: ${purchaseData.tokens} KENO for $${purchaseData.amount}`);
 }
-let dbConnection, organizationManager, wealthBuilderManager, kenoVestingManager, securityMiddleware;
+let dbConnection, organizationManager, wealthBuilderManager, kenoVestingManager, graduateAcademyManager, securityMiddleware;
 let printfulIntegration, aiSupport, microMonetization, mercuryBankAPI;
 const MicroMonetization = require('./src/MicroMonetization');
 const MercuryBankAPI = require('./src/MercuryBankAPI');
@@ -1460,9 +1461,11 @@ async function initializeBlockchainSystems() {
             dbConnection = new DatabaseConnection();
             await dbConnection.initializeSchema();
             organizationManager  = new OrganizationManager(dbConnection);
-            kenoVestingManager   = new KenoVestingManager(dbConnection);
+            kenoVestingManager     = new KenoVestingManager(dbConnection);
             await kenoVestingManager.initTables();
-            wealthBuilderManager = new WealthBuilderManager(dbConnection, bscTokenTransfer);
+            graduateAcademyManager = new GraduateAcademyManager(dbConnection);
+            await graduateAcademyManager.initTables();
+            wealthBuilderManager   = new WealthBuilderManager(dbConnection, bscTokenTransfer);
             wealthBuilderManager.setVestingManager(kenoVestingManager);
             securityMiddleware = new SecurityMiddleware(dbConnection);
             console.log('✅ Database initialized');
@@ -6664,6 +6667,108 @@ app.post('/api/wallet/:wallet/fal-repay', async (req, res) => {
         return res.status(400).json({ ok: false, error: 'loanId is required' });
     }
     const result = await kenoVestingManager.repayFalLoan(wallet, parseInt(loanId));
+    res.json(result);
+});
+
+// ── Hyperliquid Higher Academy — Graduate-only advanced education ────────────
+// Unlocks after completing all 21 core courses. 4 modules → 4 vault tiers.
+
+// GET /api/graduate/academy/vault-tiers
+// Public — shows all vault tiers, APYs, and multipliers
+app.get('/api/graduate/academy/vault-tiers', (req, res) => {
+    const { VAULT_TIERS, HL_MODULES } = require('./src/GraduateAcademyManager');
+    const PHI = 1.6180339887;
+    res.json({
+        success: true,
+        tiers: Object.entries(VAULT_TIERS).map(([key, t], i) => ({
+            id:            key,
+            label:         t.label,
+            emoji:         t.color,
+            lockDays:      t.lockDays,
+            multiplier:    parseFloat(t.multiplier.toFixed(4)),
+            minDepositUSD: t.minDepositUSD,
+            effectiveAPY:  `${(0.15 * t.multiplier * 100).toFixed(2)}%`,
+            unlockedBy:    `HL Academy Module ${i + 1}: ${HL_MODULES[i].title}`,
+            monthlyPer1k:  `$${(1000 * 0.15 * t.multiplier / 12).toFixed(0)}/month per $1,000`
+        })),
+        modules: HL_MODULES.map(m => ({
+            id: m.id, title: m.title, unlocks: m.unlocks,
+            kenoBonus: m.kenoBonus, duration: m.duration
+        })),
+        progression: 'Graduate → Module 1 → Squire → Module 2 → Knight → Module 3 → Lord → Module 4 → Sovereign (φ)',
+        phiNote:     `Sovereign multiplier = φ = ${PHI} — the golden ratio. The highest tier earns the most sovereign return.`
+    });
+});
+
+// GET /api/graduate/academy/:wallet
+// Academy status: graduated?, enrolled?, modules completed, vault positions, projected income
+app.get('/api/graduate/academy/:wallet', async (req, res) => {
+    if (!graduateAcademyManager) {
+        return res.status(503).json({ ok: false, error: 'Graduate Academy not available' });
+    }
+    const wallet = req.params.wallet.toLowerCase();
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Invalid wallet address' });
+    }
+    const result = await graduateAcademyManager.getAcademyStatus(wallet);
+    res.json(result);
+});
+
+// POST /api/graduate/academy/enroll
+// Body: { wallet }
+// Activate HL Academy access — must be a verified graduate (21 courses done)
+app.post('/api/graduate/academy/enroll', async (req, res) => {
+    if (!graduateAcademyManager) {
+        return res.status(503).json({ ok: false, error: 'Graduate Academy not available' });
+    }
+    const wallet = (req.body.wallet || '').toLowerCase();
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Valid wallet address required' });
+    }
+    const result = await graduateAcademyManager.enroll(wallet);
+    res.json(result);
+});
+
+// POST /api/graduate/academy/module/complete
+// Body: { wallet, moduleId }
+// Complete an HL Academy module, earn KENO bonus, unlock next vault tier
+app.post('/api/graduate/academy/module/complete', async (req, res) => {
+    if (!graduateAcademyManager) {
+        return res.status(503).json({ ok: false, error: 'Graduate Academy not available' });
+    }
+    const wallet   = (req.body.wallet || '').toLowerCase();
+    const moduleId = req.body.moduleId;
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Valid wallet address required' });
+    }
+    if (!moduleId) {
+        return res.status(400).json({ ok: false, error: 'moduleId required (1–4)' });
+    }
+    const result = await graduateAcademyManager.completeModule(wallet, moduleId);
+    res.json(result);
+});
+
+// POST /api/graduate/academy/vault/deposit
+// Body: { wallet, tier, amountUSD }
+// Register a vault deposit at the unlocked tier (SQUIRE, KNIGHT, LORD, SOVEREIGN)
+app.post('/api/graduate/academy/vault/deposit', async (req, res) => {
+    if (!graduateAcademyManager) {
+        return res.status(503).json({ ok: false, error: 'Graduate Academy not available' });
+    }
+    const wallet    = (req.body.wallet || '').toLowerCase();
+    const tier      = (req.body.tier || '').toUpperCase();
+    const amountUSD = parseFloat(req.body.amountUSD);
+
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Valid wallet address required' });
+    }
+    if (!tier) {
+        return res.status(400).json({ ok: false, error: 'tier required: SQUIRE, KNIGHT, LORD, or SOVEREIGN' });
+    }
+    if (!amountUSD || amountUSD <= 0) {
+        return res.status(400).json({ ok: false, error: 'amountUSD must be a positive number' });
+    }
+    const result = await graduateAcademyManager.registerVaultDeposit(wallet, tier, amountUSD);
     res.json(result);
 });
 
