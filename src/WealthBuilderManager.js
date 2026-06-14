@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { crossedMilestone, milestoneBonus, signatureTag } = require('./Ramanujan');
 const { isFibonacci, nextFibMilestone } = require('./GoldenRatio');
+const { walletQualifies, getCourseRequirement } = require('./KenoCoursePricing');
 
 class WealthBuilderManager {
     constructor(db, bscTokenTransfer = null) {
@@ -60,6 +61,33 @@ class WealthBuilderManager {
                     error: `Course ${courseId} already completed. Cannot claim reward twice.`,
                     courseId: parsedCourseId 
                 };
+            }
+
+            // ── KENO Holding Requirement ────────────────────────────────────
+            // Wallet must hold ≥ $250 USD worth of KENO at current market price.
+            // The required KENO amount adjusts automatically as price moves —
+            // the $250 USD value stays fixed; only the token count changes.
+            try {
+                const access = await walletQualifies(walletAddress);
+                if (!access.qualified) {
+                    return {
+                        success: false,
+                        error: access.message,
+                        courseAccess: {
+                            qualified:      false,
+                            currentBalance: access.currentBalance,
+                            requiredKeno:   access.requiredKeno,
+                            shortfallKeno:  access.shortfallKeno,
+                            shortfallUSD:   access.shortfallUSD,
+                            kenoPriceUSD:   access.kenoPriceUSD,
+                            usdValueRequired: access.usdValue
+                        }
+                    };
+                }
+            } catch (priceErr) {
+                // Non-fatal: if price oracle is unreachable, log and continue
+                // so network outages don't block course completions
+                console.warn(`[WealthBuilder] Course pricing check skipped: ${priceErr.message}`);
             }
 
             // Attempt real on-chain BSC transfer if available

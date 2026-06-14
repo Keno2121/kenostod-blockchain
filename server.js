@@ -6560,6 +6560,35 @@ app.post('/api/wealth/rewards/course-complete',
     }
 );
 
+// ── Course Pricing Oracle ────────────────────────────────────────────────────
+// GET /api/courses/pricing
+// Returns the current KENO price and how many KENO = $250 USD right now.
+app.get('/api/courses/pricing', async (req, res) => {
+    try {
+        const { getCourseRequirement } = require('./src/KenoCoursePricing');
+        const data = await getCourseRequirement();
+        res.json({ ok: true, ...data });
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
+// GET /api/courses/check-access/:wallet
+// Check whether a specific wallet holds enough KENO to access courses.
+app.get('/api/courses/check-access/:wallet', async (req, res) => {
+    try {
+        const { walletQualifies } = require('./src/KenoCoursePricing');
+        const wallet = req.params.wallet;
+        if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+            return res.status(400).json({ ok: false, error: 'Invalid wallet address' });
+        }
+        const result = await walletQualifies(wallet);
+        res.json({ ok: true, ...result });
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
 // Get user's rewards
 app.get('/api/wealth/rewards/:walletAddress', async (req, res) => {
     if (!wealthBuilderManager) {
