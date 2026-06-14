@@ -601,6 +601,11 @@ app.use((req, res, next) => {
     next();
 });
 
+app.get('/phor-cloft-setup-guide.html', (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(__dirname + '/public/phor-cloft-setup-guide.html');
+});
+
 app.get('/buk-implementation-blueprint.html', (req, res) => {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.sendFile(__dirname + '/public/buk-implementation-blueprint.html');
