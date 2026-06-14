@@ -129,7 +129,8 @@ const RevenueTracker = require('./src/RevenueTracker');
 const DataPersistence = require('./src/DataPersistence');
 const DatabaseConnection = require('./src/DatabaseConnection');
 const OrganizationManager = require('./src/OrganizationManager');
-const WealthBuilderManager = require('./src/WealthBuilderManager');
+const WealthBuilderManager  = require('./src/WealthBuilderManager');
+const KenoVestingManager   = require('./src/KenoVestingManager');
 const SecurityMiddleware = require('./src/SecurityMiddleware');
 const EmailService = require('./src/EmailService');
 const PrintfulIntegration = require('./src/PrintfulIntegration');
@@ -1387,7 +1388,7 @@ function logICOPurchase(purchaseData) {
     }
     console.log(`📊 ICO purchase logged: ${purchaseData.tokens} KENO for $${purchaseData.amount}`);
 }
-let dbConnection, organizationManager, wealthBuilderManager, securityMiddleware;
+let dbConnection, organizationManager, wealthBuilderManager, kenoVestingManager, securityMiddleware;
 let printfulIntegration, aiSupport, microMonetization, mercuryBankAPI;
 const MicroMonetization = require('./src/MicroMonetization');
 const MercuryBankAPI = require('./src/MercuryBankAPI');
@@ -1458,8 +1459,11 @@ async function initializeBlockchainSystems() {
         try {
             dbConnection = new DatabaseConnection();
             await dbConnection.initializeSchema();
-            organizationManager = new OrganizationManager(dbConnection);
+            organizationManager  = new OrganizationManager(dbConnection);
+            kenoVestingManager   = new KenoVestingManager(dbConnection);
+            await kenoVestingManager.initTables();
             wealthBuilderManager = new WealthBuilderManager(dbConnection, bscTokenTransfer);
+            wealthBuilderManager.setVestingManager(kenoVestingManager);
             securityMiddleware = new SecurityMiddleware(dbConnection);
             console.log('✅ Database initialized');
             await initializeTestGraduate();
@@ -6587,6 +6591,80 @@ app.get('/api/courses/check-access/:wallet', async (req, res) => {
     } catch (e) {
         res.status(500).json({ ok: false, error: e.message });
     }
+});
+
+// ── KENO Vesting & FAL Collateral System ────────────────────────────────────
+// Three-layer pool protection: auto-stake → vesting → FAL borrow (not sell)
+
+// GET /api/wallet/:wallet/staking
+// Full staking dashboard: locked KENO, vesting schedule, claimable, FAL capacity
+app.get('/api/wallet/:wallet/staking', async (req, res) => {
+    if (!kenoVestingManager) {
+        return res.status(503).json({ ok: false, error: 'Vesting system not available' });
+    }
+    const wallet = req.params.wallet.toLowerCase();
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Invalid wallet address' });
+    }
+    const result = await kenoVestingManager.getStakingStatus(wallet);
+    res.json(result);
+});
+
+// POST /api/wallet/:wallet/vesting/claim
+// Body: { amount: <KENO to claim from vested balance> }
+// LAYER 2 — claim unlocked vested KENO after 90-day lock has passed
+app.post('/api/wallet/:wallet/vesting/claim', async (req, res) => {
+    if (!kenoVestingManager) {
+        return res.status(503).json({ ok: false, error: 'Vesting system not available' });
+    }
+    const wallet = req.params.wallet.toLowerCase();
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Invalid wallet address' });
+    }
+    const { amount } = req.body;
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        return res.status(400).json({ ok: false, error: 'amount must be a positive number' });
+    }
+    const result = await kenoVestingManager.claimVested(wallet, parseFloat(amount));
+    res.json(result);
+});
+
+// POST /api/wallet/:wallet/fal-borrow
+// Body: { amount: <KENO to borrow against staked position> }
+// LAYER 3 — borrow against staked KENO instead of selling (sovereign move)
+app.post('/api/wallet/:wallet/fal-borrow', async (req, res) => {
+    if (!kenoVestingManager) {
+        return res.status(503).json({ ok: false, error: 'Vesting system not available' });
+    }
+    const wallet = req.params.wallet.toLowerCase();
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Invalid wallet address' });
+    }
+    const { amount } = req.body;
+    if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        return res.status(400).json({ ok: false, error: 'amount must be a positive number' });
+    }
+    const result = await kenoVestingManager.borrowAgainstStake(wallet, parseFloat(amount));
+    res.json(result);
+});
+
+// POST /api/wallet/:wallet/fal-repay
+// Body: { loanId: <id of the active FAL loan> }
+// LAYER 3 — repay the FAL collateral loan, release collateral
+app.post('/api/wallet/:wallet/fal-repay', async (req, res) => {
+    if (!kenoVestingManager) {
+        return res.status(503).json({ ok: false, error: 'Vesting system not available' });
+    }
+    const wallet = req.params.wallet.toLowerCase();
+    if (!wallet.match(/^0x[a-fA-F0-9]{40}$/)) {
+        return res.status(400).json({ ok: false, error: 'Invalid wallet address' });
+    }
+    const { loanId } = req.body;
+    if (!loanId) {
+        return res.status(400).json({ ok: false, error: 'loanId is required' });
+    }
+    const result = await kenoVestingManager.repayFalLoan(wallet, parseInt(loanId));
+    res.json(result);
 });
 
 // Get user's rewards

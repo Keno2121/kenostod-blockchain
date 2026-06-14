@@ -4,13 +4,18 @@ const { isFibonacci, nextFibMilestone } = require('./GoldenRatio');
 const { getCourseRewardKeno } = require('./KenoCoursePricing');
 
 class WealthBuilderManager {
-    constructor(db, bscTokenTransfer = null) {
+    constructor(db, bscTokenTransfer = null, vestingManager = null) {
         this.db = db;
         this.bscTokenTransfer = bscTokenTransfer;
+        this.vestingManager = vestingManager;
     }
 
     setBscTokenTransfer(bscTokenTransfer) {
         this.bscTokenTransfer = bscTokenTransfer;
+    }
+
+    setVestingManager(vestingManager) {
+        this.vestingManager = vestingManager;
     }
 
     async awardCourseCompletion(walletAddress, email, courseName, courseId) {
@@ -115,7 +120,25 @@ class WealthBuilderManager {
             ]);
 
             await this.checkRVTEligibility(normalizedWallet, email);
-            
+
+            // ── LAYER 1: Auto-stake the earned KENO (90-day lock) ────────────
+            // Protects the pool from graduate sell pressure during early growth.
+            // KENO earns 15% APY while locked. Vesting begins after lock expires.
+            let vestingInfo = null;
+            if (this.vestingManager) {
+                try {
+                    const rewardRow = result.rows[0];
+                    vestingInfo = await this.vestingManager.autoStakeReward(
+                        normalizedWallet,
+                        rewardAmount,
+                        rewardRow.id,
+                        parsedCourseId
+                    );
+                } catch (vestErr) {
+                    console.warn('[WealthBuilder] Vesting auto-stake skipped:', vestErr.message);
+                }
+            }
+
             const priceNote = rewardMeta.isAdjusted
                 ? ` (adjusted from 250 KENO — KENO is now above $1.00)`
                 : ` (worth $250 at the $1.00 peg — your upside as KENO rises)`;
