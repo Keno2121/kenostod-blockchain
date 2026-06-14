@@ -138,6 +138,43 @@ async function getCourseRequirement() {
     };
 }
 
+// ── Dynamic course reward: always = $250 USD value ───────────────────────────
+// Two-tier design:
+//   • KENO ≤ $1.00  → student always earns 250 KENO (the base reward)
+//                      They get upside potential as KENO rises to the $1 peg
+//   • KENO > $1.00  → reward is reduced to floor($250 / price)
+//                      USD value stays fixed at $250; fewer tokens = same worth
+//
+// Investors who bought at presale discount benefit from the rising price.
+// Students who enrolled early own 250 KENO that appreciates with the market.
+const BASE_KENO_REWARD = 250;   // Standard reward at or below peg price
+const KENO_PEG_PRICE   = 1.00;  // Target launch price — $1.00 per KENO
+
+async function getCourseRewardKeno() {
+    const kenoPriceUSD = await getKenoPriceUSD();
+
+    let rewardKeno;
+    if (kenoPriceUSD <= KENO_PEG_PRICE) {
+        // At or below peg — always give the standard 250 KENO
+        rewardKeno = BASE_KENO_REWARD;
+    } else {
+        // Above peg — scale down so reward stays worth $250 USD
+        // floor() favours the protocol; student still receives full USD value
+        rewardKeno = Math.floor(COURSE_USD_VALUE / kenoPriceUSD);
+        rewardKeno = Math.max(1, rewardKeno); // safety floor: never zero
+    }
+
+    return {
+        rewardKeno,
+        kenoPriceUSD,
+        rewardUSD:   parseFloat((rewardKeno * kenoPriceUSD).toFixed(2)),
+        isAdjusted:  kenoPriceUSD > KENO_PEG_PRICE,
+        pegPrice:    KENO_PEG_PRICE,
+        baseReward:  BASE_KENO_REWARD,
+        updatedAt:   new Date().toISOString()
+    };
+}
+
 // ── Eligibility check for a given wallet ────────────────────────────────────
 async function walletQualifies(walletAddress) {
     const [req, balance] = await Promise.all([
@@ -167,9 +204,12 @@ async function walletQualifies(walletAddress) {
 
 module.exports = {
     COURSE_USD_VALUE,
+    BASE_KENO_REWARD,
+    KENO_PEG_PRICE,
     KENO_V2,
     getKenoPriceUSD,
     getKENOBalance,
     getCourseRequirement,
+    getCourseRewardKeno,
     walletQualifies
 };

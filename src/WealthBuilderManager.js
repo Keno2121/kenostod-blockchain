@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const { crossedMilestone, milestoneBonus, signatureTag } = require('./Ramanujan');
 const { isFibonacci, nextFibMilestone } = require('./GoldenRatio');
-const { walletQualifies, getCourseRequirement } = require('./KenoCoursePricing');
+const { walletQualifies, getCourseRewardKeno } = require('./KenoCoursePricing');
 
 class WealthBuilderManager {
     constructor(db, bscTokenTransfer = null) {
@@ -14,8 +14,18 @@ class WealthBuilderManager {
     }
 
     async awardCourseCompletion(walletAddress, email, courseName, courseId) {
-        const rewardAmount = 250.0;
-        
+        // Dynamic reward: 250 KENO when price ≤ $1.00 (students keep upside)
+        // Scales down to floor($250/price) when KENO > $1.00 (USD value locked at $250)
+        let rewardAmount = 250.0;
+        let rewardMeta   = { kenoPriceUSD: null, isAdjusted: false };
+        try {
+            const pricing  = await getCourseRewardKeno();
+            rewardAmount   = pricing.rewardKeno;
+            rewardMeta     = pricing;
+        } catch (e) {
+            console.warn('[WealthBuilder] Reward pricing fetch failed — using 250 KENO default:', e.message);
+        }
+
         try {
             // Validate wallet address
             if (!walletAddress || !walletAddress.startsWith('0x') || walletAddress.length !== 42) {
@@ -133,10 +143,21 @@ class WealthBuilderManager {
 
             await this.checkRVTEligibility(normalizedWallet, email);
             
+            const priceNote = rewardMeta.isAdjusted
+                ? ` (adjusted from 250 KENO — KENO is now above $1.00)`
+                : ` (worth $250 at the $1.00 peg — your upside as KENO rises)`;
+
             const response = {
                 success: true,
                 reward: result.rows[0],
-                message: `🎉 Congratulations! You earned ${rewardAmount} KENO for completing ${courseName}!`
+                message: `🎉 Congratulations! You earned ${rewardAmount} KENO for completing ${courseName}!${priceNote}`,
+                pricing: {
+                    rewardKeno:    rewardAmount,
+                    rewardUSD:     rewardMeta.rewardUSD || null,
+                    kenoPriceUSD:  rewardMeta.kenoPriceUSD || null,
+                    isAdjusted:    rewardMeta.isAdjusted,
+                    pegPrice:      1.00
+                }
             };
             
             if (bscTransferResult && bscTransferResult.success) {
