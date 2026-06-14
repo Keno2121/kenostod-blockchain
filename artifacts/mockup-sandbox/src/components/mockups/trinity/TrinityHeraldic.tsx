@@ -182,6 +182,23 @@ export default function TrinityHeraldic() {
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
 
+          {/* Heavy glow for TY centerpiece */}
+          <filter id="glow-ty" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="7" result="b" />
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          {/* Crisp glow for TY */}
+          <filter id="glow-ty-sm" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="2.5" result="b" />
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          {/* TY vertical gold gradient */}
+          <linearGradient id="ty-center-gold" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"   stopColor="#fff4a0" />
+            <stop offset="40%"  stopColor="#f0c040" />
+            <stop offset="100%" stopColor="#b8860b" />
+          </linearGradient>
+
           {/* Softer glow for icons */}
           <filter id="glow-icon" x="-40%" y="-40%" width="180%" height="180%">
             <feGaussianBlur stdDeviation="3.5" result="b" />
@@ -226,17 +243,44 @@ export default function TrinityHeraldic() {
           />
         ))}
 
-        {/* ── Center convergence — small gold triangle + star ── */}
-        <polygon
-          points={`${CX},${CY - 16} ${CX - 14},${CY + 8} ${CX + 14},${CY + 8}`}
-          fill={GOLD1}
-          fillOpacity="0.25"
-          stroke={GOLD1}
-          strokeWidth="1.5"
-          strokeOpacity="0.8"
-        />
-        <circle cx={CX} cy={CY} r={9} fill={GOLD1} filter="url(#glow-line)" />
-        <circle cx={CX} cy={CY} r={4} fill={CREAM} />
+        {/* ── TY Monogram — centerpiece where all three rings converge ── */}
+        {(() => {
+          // TY mark scaled to fit the center overlap zone (~52px tall)
+          const mx = CX, my = CY - 2;
+          const TOP_n = my - 25,  BOT_n = my + 27;
+          const JY_n  = my + 4;   // Y junction — slightly above center
+          const BAR_L = mx - 23,  BAR_R = mx + 23;   // T crossbar (wide)
+          const ARM_L = mx - 14,  ARM_R = mx + 14;   // Y arm endpoints on crossbar
+          const SW = 4;
+          return (
+            <g>
+              {/* Glow layer */}
+              <g filter="url(#glow-ty)" stroke="#f0c040" strokeWidth={SW + 7}
+                 strokeLinecap="round" strokeLinejoin="round" fill="none" strokeOpacity="0.6">
+                <line x1={BAR_L} y1={TOP_n} x2={BAR_R} y2={TOP_n} />
+                <line x1={mx}    y1={TOP_n} x2={mx}    y2={BOT_n} />
+                <line x1={ARM_L} y1={TOP_n} x2={mx}    y2={JY_n}  />
+                <line x1={ARM_R} y1={TOP_n} x2={mx}    y2={JY_n}  />
+              </g>
+              {/* Crisp gold strokes */}
+              <g filter="url(#glow-ty-sm)" stroke="url(#ty-center-gold)" strokeWidth={SW}
+                 strokeLinecap="round" strokeLinejoin="round" fill="none">
+                <line x1={BAR_L} y1={TOP_n} x2={BAR_R} y2={TOP_n} />
+                <line x1={mx}    y1={TOP_n} x2={mx}    y2={BOT_n} />
+                <line x1={ARM_L} y1={TOP_n} x2={mx}    y2={JY_n}  />
+                <line x1={ARM_R} y1={TOP_n} x2={mx}    y2={JY_n}  />
+              </g>
+              {/* Terminal cap dots */}
+              <circle cx={BAR_L} cy={TOP_n} r={SW / 2 + 1} fill="#fff4a0" filter="url(#glow-ty-sm)" />
+              <circle cx={BAR_R} cy={TOP_n} r={SW / 2 + 1} fill="#fff4a0" filter="url(#glow-ty-sm)" />
+              {/* Y junction */}
+              <circle cx={mx} cy={JY_n} r={3.5} fill="#fff4a0" filter="url(#glow-ty)" />
+              <circle cx={mx} cy={JY_n} r={1.8} fill="#ffffff" />
+              {/* Bottom cap */}
+              <circle cx={mx} cy={BOT_n} r={SW / 2} fill="#f0c040" filter="url(#glow-ty-sm)" />
+            </g>
+          );
+        })()}
 
         {/* ── Decorative outer ring ── */}
         <circle cx={CX} cy={CY} r={152} fill="none" stroke={GOLD2} strokeWidth="1" strokeOpacity="0.2" strokeDasharray="6 10" />
