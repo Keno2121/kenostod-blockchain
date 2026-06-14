@@ -601,6 +601,11 @@ app.use((req, res, next) => {
     next();
 });
 
+app.get('/buk-implementation-blueprint.html', (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(__dirname + '/public/buk-implementation-blueprint.html');
+});
+
 app.use(express.static('public', {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html')) {
