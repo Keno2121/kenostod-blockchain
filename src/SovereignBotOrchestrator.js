@@ -134,16 +134,6 @@ class SovereignBotOrchestrator {
         this._dailyTimer = setInterval(() => this._sendDailySummary(), 24 * 60 * 60 * 1000);
 
         this._log('🌟 Sovereign Bot Framework LIVE — all 4 bots starting');
-        this._alert(
-            `🌟 <b>Sovereign Bot Framework — ALL SYSTEMS LIVE</b>\n\n` +
-            `🛡️ Bot 1 — Sovereignty Harvester (SHIELD Aegis Tax flywheel)\n` +
-            `📡 Bot 2 — UTL Pulse Bot (FeeCollector USDC distribution)\n` +
-            `🌉 Bot 3 — wKENO Bridge Watcher (KENO/wKENO cross-chain)\n` +
-            `⛏ Bot 4 — PoRV Mining Optimizer (auto-compound staking)\n\n` +
-            `<b>Your lane. Your protocol. Your passive income.</b>\n` +
-            `No MEV. No competition. No external dependence.\n\n` +
-            `<i>7 Constitutional Laws embedded in every bot.</i>`
-        );
 
         return { success: true, results, startedAt: this.startedAt };
     }
