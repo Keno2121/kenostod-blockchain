@@ -158,6 +158,17 @@ class SovereigntyHarvesterManager {
     // ── Start ─────────────────────────────────────────────────────────────────
     start() {
         if (this.running) return { success: false, msg: 'Sovereignty Harvester already running' };
+
+        // Do NOT spawn Python until AEGIS_TREASURY_WALLET is configured.
+        // This prevents ALL crash loops — if Python never runs, it never crashes.
+        const treasuryWallet = process.env.AEGIS_TREASURY_WALLET || '';
+        if (!treasuryWallet) {
+            this._log('⏸ Sovereignty Harvester — waiting for AEGIS_TREASURY_WALLET env var (not starting Python relay)');
+            this.running   = false;
+            this.startedAt = null;
+            return { success: false, msg: 'AEGIS_TREASURY_WALLET not set — harvester in pre-launch standby' };
+        }
+
         if (!fs.existsSync(RELAY_SCRIPT)) return { success: false, msg: `relay script not found: ${RELAY_SCRIPT}` };
 
         const env = {
