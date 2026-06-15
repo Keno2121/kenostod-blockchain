@@ -41,6 +41,12 @@ const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644';
 
+// ── FALP contract (set FALP_CONTRACT_ADDRESS after deployment) ────────────
+const FALP_ABI = [
+  'function depositProfit() external payable',
+  'function getPoolInfo() external view returns (uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)',
+];
+
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
 const BUSD = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
@@ -91,12 +97,16 @@ class KenoFlashOrbBot {
       gasPrice:       null,         // null = dynamic from provider.getFeeData() + 20% buffer
       gasLimitFlash:  600_000,      // flash arb uses more gas (borrow + 2 swaps + repay)
       gasLimitBurn:   130_000,
+      gasLimitFalp:   80_000,       // depositProfit() gas limit
       bnbPriceUSD:    600,          // updated dynamically from price check
-      // Kaprekar profit split (Law V)
-      splitReinvest:  0.60,         // 60% → bot capital
+      // Kaprekar profit split (Law V) — 5% carved out for FALP investors
+      splitReinvest:  0.55,         // 55% → bot capital (was 60%, -5% for FALP)
       splitFounder:   0.25,         // 25% → your pocket
       splitBurn:      0.15,         // 15% → KENOAutoBurn
+      splitFalp:      0.05,         // 5%  → FALP pool (investors earn BNB on staked KENO)
     };
+
+    this.falpContract = null; // set in init() if FALP_CONTRACT_ADDRESS is configured
 
     this.stats = {
       scansRun:           0,
@@ -141,6 +151,16 @@ class KenoFlashOrbBot {
         this.log(`📐 Law VI — Flash amounts: ${FLASH_AMOUNTS_BNB.join(' / ')} BNB`);
         this.log(`📐 Law VI — Scan interval: ${this.config.checkIntervalMs / 1000}s`);
         this.log(`📐 Law III — Min profit: $${this.config.minProfitUSD}`);
+
+        // Wire FALP contract if deployed
+        const falpAddr = process.env.FALP_CONTRACT_ADDRESS;
+        if (falpAddr) {
+          this.falpContract = new ethers.Contract(falpAddr, FALP_ABI, this.wallet);
+          this.log(`🏊 FALP pool connected: ${falpAddr} (5% of profits auto-distributed to investors)`);
+        } else {
+          this.log(`ℹ️  FALP not deployed yet — set FALP_CONTRACT_ADDRESS after deploy:bsc`);
+        }
+
         return true;
       } catch (_) { continue; }
     }
@@ -356,17 +376,19 @@ class KenoFlashOrbBot {
 
       this.log(`✅ Flash arb confirmed: block ${receipt.blockNumber}`);
 
-      // Law V — Kaprekar split: 60% reinvest / 25% founder / 15% burn
+      // Law V — Kaprekar split: 55% reinvest / 25% founder / 15% burn / 5% FALP
       const profitBNB  = parseFloat(opp.netProfitBNB);
       const profitUSD  = opp.netProfitUSD;
       const founderUSD = profitUSD * this.config.splitFounder;
       const burnBNB    = profitBNB * this.config.splitBurn;
+      const falpBNB    = profitBNB * this.config.splitFalp;
 
       this.stats.tradesExecuted++;
       this.stats.profitBNB        += profitBNB;
       this.stats.profitUSD        += profitUSD;
       this.stats.founderPocketUSD += founderUSD;
       this.stats.reinvestedUSD    += profitUSD * this.config.splitReinvest;
+      this.stats.falpDistributedUSD = (this.stats.falpDistributedUSD || 0) + (profitUSD * this.config.splitFalp);
       this.stats.lastTrade = {
         time:      new Date().toISOString(),
         txHash:    receipt.hash,
@@ -381,15 +403,19 @@ class KenoFlashOrbBot {
       // Law V — 15% burn: buy KENO on PancakeSwap and send to dead address
       if (burnBNB > 0.0001) await this._burnKeno(burnBNB);
 
+      // Law V — 5% FALP: distribute to pool investors
+      if (falpBNB > 0.000001 && this.falpContract) await this._depositToFalp(falpBNB);
+
       this.sendTelegramAlert(
         `⚡ <b>Flash Orb Bot — Trade Executed!</b>\n\n` +
         `Amount: <b>${opp.flashAmountBNB} BNB</b> flash loan\n` +
         `Spread: <b>${opp.spread}%</b>\n` +
         `Net profit: <b>+$${profitUSD.toFixed(3)}</b>\n\n` +
         `📐 Kaprekar Split (Law V):\n` +
-        `  ♻️ Reinvest (60%): +$${(profitUSD * 0.6).toFixed(3)}\n` +
+        `  ♻️ Reinvest (55%): +$${(profitUSD * 0.55).toFixed(3)}\n` +
         `  💰 Your pocket (25%): +$${founderUSD.toFixed(3)}\n` +
-        `  🔥 KENO burn (15%): $${(profitUSD * 0.15).toFixed(3)}\n\n` +
+        `  🔥 KENO burn (15%): $${(profitUSD * 0.15).toFixed(3)}\n` +
+        `  🏊 FALP investors (5%): $${(profitUSD * 0.05).toFixed(3)}\n\n` +
         `<a href="https://bscscan.com/tx/${receipt.hash}">View on BSCScan</a>`
       );
 
@@ -442,6 +468,46 @@ class KenoFlashOrbBot {
       this.log(`🔥 KENO burn: ${kenoAmt.toLocaleString()} KENO → 0x...dead (Tx: ${receipt.hash})`);
     } catch (e) {
       this.log(`⚠️ KENO burn failed (non-critical): ${e.message}`, 'warn');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Law V — 5% FALP distribution: sends BNB to pool investors
+  //  Fires automatically after every successful flash arb trade.
+  //  Skipped gracefully if FALP not deployed or pool has no stakers yet.
+  // ═══════════════════════════════════════════════════════════════════════
+  async _depositToFalp(falpBNB) {
+    try {
+      const falpWei = ethers.parseEther(falpBNB.toFixed(18));
+
+      // Check pool has stakers before sending (avoids revert if no stakers yet)
+      const info = await this.falpContract.getPoolInfo();
+      const totalEffective = info[1]; // totalEffectiveStake
+      if (totalEffective === 0n) {
+        this.log(`⏭ FALP deposit skipped — no stakers yet. ${falpBNB.toFixed(6)} BNB stays in bot.`);
+        return;
+      }
+
+      let gasPrice = this.config.gasPrice;
+      if (!gasPrice) {
+        try {
+          const fee = await this.provider.getFeeData();
+          gasPrice  = (fee.gasPrice || ethers.parseUnits('1', 'gwei')) * 120n / 100n;
+        } catch (_) {
+          gasPrice = ethers.parseUnits('1', 'gwei');
+        }
+      }
+
+      const tx      = await this.falpContract.depositProfit({
+        value:    falpWei,
+        gasPrice,
+        gasLimit: this.config.gasLimitFalp,
+      });
+      const receipt = await tx.wait();
+
+      this.log(`🏊 FALP: ${falpBNB.toFixed(6)} BNB → pool investors (Tx: ${receipt.hash})`);
+    } catch (e) {
+      this.log(`⚠️ FALP deposit failed (non-critical, BNB stays in bot): ${e.message}`, 'warn');
     }
   }
 

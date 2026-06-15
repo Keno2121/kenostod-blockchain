@@ -9582,6 +9582,105 @@ app.get('/api/flash-orb/profits', (req, res) => {
 
 // ==================== END KENO FLASH ORB BOT API ENDPOINTS ====================
 
+// ==================== FALP (FLASH ARBITRAGE LOAN POOL) API ENDPOINTS ====================
+// Public pool info — no auth required so investors can check from the website
+app.get('/api/falp/info', async (req, res) => {
+    try {
+        const addr = process.env.FALP_CONTRACT_ADDRESS;
+        if (!addr) {
+            return res.json({
+                deployed: false,
+                message:  'FALPool not yet deployed — coming after PinkSale. Deploy with: cd falp && npm run deploy:bsc'
+            });
+        }
+        const { ethers } = require('ethers');
+        const FALP_ABI = [
+            'function getPoolInfo() external view returns (uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)',
+            'function getLockTierInfo() external view returns (uint256[4],uint256[4])',
+            'function arbBot() external view returns (address)',
+        ];
+        const provider = new ethers.JsonRpcProvider('https://bsc-rpc.publicnode.com');
+        const falp     = new ethers.Contract(addr, FALP_ABI, provider);
+        const [info, tiers] = await Promise.all([falp.getPoolInfo(), falp.getLockTierInfo()]);
+        res.json({
+            deployed:            true,
+            address:             addr,
+            bscscan:             `https://bscscan.com/address/${addr}`,
+            totalDepositedKeno:  ethers.formatEther(info[0]),
+            totalEffectiveStake: ethers.formatEther(info[1]),
+            totalProfitReceived: ethers.formatEther(info[2]),
+            totalProfitPaid:     ethers.formatEther(info[3]),
+            platformFees:        ethers.formatEther(info[4]),
+            contractBnbBalance:  ethers.formatEther(info[5]),
+            nashFeeBp:           info[6].toString(),
+            minDepositKeno:      ethers.formatEther(info[7]),
+            lockTiers: [
+                { tier: 0, days: tiers[1][0].toString(), multiplier: (Number(tiers[0][0]) / 1000).toFixed(3), label: 'Flexible' },
+                { tier: 1, days: tiers[1][1].toString(), multiplier: (Number(tiers[0][1]) / 1000).toFixed(3), label: '7 Days' },
+                { tier: 2, days: tiers[1][2].toString(), multiplier: (Number(tiers[0][2]) / 1000).toFixed(3), label: '30 Days' },
+                { tier: 3, days: tiers[1][3].toString(), multiplier: (Number(tiers[0][3]) / 1000).toFixed(3), label: '90 Days (φ)' },
+            ],
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Investor checks their pending rewards
+app.get('/api/falp/deposit-info/:address', async (req, res) => {
+    try {
+        const addr     = process.env.FALP_CONTRACT_ADDRESS;
+        const userAddr = req.params.address;
+        if (!addr) return res.json({ deployed: false });
+        const { ethers } = require('ethers');
+        const FALP_ABI = [
+            'function getDepositInfo(address user) external view returns (uint256,uint8,uint256,uint256,uint256,uint256,uint256,uint256,bool,uint256)',
+        ];
+        const provider = new ethers.JsonRpcProvider('https://bsc-rpc.publicnode.com');
+        const falp     = new ethers.Contract(addr, FALP_ABI, provider);
+        const d        = await falp.getDepositInfo(userAddr);
+        const lockLabels = ['Flexible', '7 Days', '30 Days', '90 Days (φ)'];
+        res.json({
+            address:              userAddr,
+            depositedKeno:        ethers.formatEther(d[0]),
+            lockTier:             Number(d[1]),
+            lockTierLabel:        lockLabels[Number(d[1])] || 'Unknown',
+            lockEnd:              Number(d[2]) > 0 ? new Date(Number(d[2]) * 1000).toISOString() : 'Flexible',
+            depositedAt:          new Date(Number(d[3]) * 1000).toISOString(),
+            effectiveStakeKeno:   ethers.formatEther(d[4]),
+            pendingRewardBnb:     ethers.formatEther(d[5]),
+            lifetimeDepositedKeno: ethers.formatEther(d[6]),
+            lifetimeBnbClaimed:   ethers.formatEther(d[7]),
+            ramanujanUnlocked:    d[8],
+            timeUntilUnlockSec:   Number(d[9]),
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Founder-only: manually trigger depositProfit (in case bot sends it manually)
+app.post('/api/falp/deposit-profit', requireFounder, async (req, res) => {
+    try {
+        const addr = process.env.FALP_CONTRACT_ADDRESS;
+        if (!addr) return res.status(400).json({ error: 'FALPool not deployed yet' });
+        const { ethers }  = require('ethers');
+        const key         = process.env.BOT_WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
+        if (!key) return res.status(400).json({ error: 'BOT_WALLET_PRIVATE_KEY not set' });
+        const provider    = new ethers.JsonRpcProvider('https://bsc-rpc.publicnode.com');
+        const wallet      = new ethers.Wallet(`0x${key}`, provider);
+        const FALP_ABI    = ['function depositProfit() external payable'];
+        const falp        = new ethers.Contract(addr, FALP_ABI, wallet);
+        const bnbAmount   = req.body.bnbAmount || '0.001';
+        const tx          = await falp.depositProfit({ value: ethers.parseEther(bnbAmount) });
+        const receipt     = await tx.wait();
+        res.json({ ok: true, txHash: receipt.hash, bnbDeposited: bnbAmount });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+// ==================== END FALP API ENDPOINTS ====================
+
 // ==================== KINGS SHIELD BOTS API ENDPOINTS ====================
 app.use('/api/aegis-arb',         requireFounder);
 app.use('/api/constitution-flash', requireFounder);
