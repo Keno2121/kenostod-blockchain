@@ -12617,6 +12617,56 @@ app.listen(PORT, '0.0.0.0', () => {
         }, 3600000);
         console.log('Governance proposal checker started (runs every hour)');
     }, 2000);
+
+    // ── Auto-start Flash Orb Bot when BNB lands in bot wallet ──────────────
+    // Polls every 60s. Once balance >= 0.01 BNB the bot self-starts and the
+    // watcher clears itself so it never double-starts.
+    (function startBnbWatcher() {
+        const { ethers: _e } = require('ethers');
+        const BOT_WALLET  = '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+        const MIN_BNB     = _e.parseEther('0.01');
+        const BSC_RPC     = 'https://bsc-rpc.publicnode.com';
+        const POLL_MS     = 60_000;
+
+        console.log(`⚡ BNB auto-start watcher active — polling ${BOT_WALLET} every 60s`);
+
+        const watcher = setInterval(async () => {
+            try {
+                if (flashOrbBot.running) {
+                    clearInterval(watcher);
+                    console.log('✅ BNB watcher: Flash Orb Bot already running — watcher cleared');
+                    return;
+                }
+                const provider = new _e.JsonRpcProvider(BSC_RPC);
+                const bal      = await provider.getBalance(BOT_WALLET);
+                const bnb      = parseFloat(_e.formatEther(bal)).toFixed(4);
+                console.log(`💰 BNB watcher: bot wallet balance = ${bnb} BNB`);
+
+                if (bal >= MIN_BNB) {
+                    console.log(`🚀 BNB watcher: ${bnb} BNB detected — auto-starting Flash Orb Bot!`);
+                    clearInterval(watcher);
+                    const result = await flashOrbBot.start();
+                    console.log(`⚡ Flash Orb Bot auto-start result: ${result.msg}`);
+                }
+            } catch (err) {
+                console.error('BNB watcher error (non-fatal):', err.message);
+            }
+        }, POLL_MS);
+
+        // Also attempt immediate start in case BNB is already there
+        setTimeout(async () => {
+            try {
+                const provider = new _e.JsonRpcProvider(BSC_RPC);
+                const bal      = await provider.getBalance(BOT_WALLET);
+                if (bal >= MIN_BNB && !flashOrbBot.running) {
+                    console.log(`🚀 BNB watcher (immediate): ${_e.formatEther(bal)} BNB found — starting bot NOW`);
+                    clearInterval(watcher);
+                    const result = await flashOrbBot.start();
+                    console.log(`⚡ Flash Orb Bot immediate-start result: ${result.msg}`);
+                }
+            } catch (_) {}
+        }, 5000);
+    })();
 });
 
 // ============================================================

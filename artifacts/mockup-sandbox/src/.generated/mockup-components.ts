@@ -12,11 +12,11 @@ export const modules: ModuleMap = {
   "./components/mockups/sagas/SagaV.tsx": () => import("../components/mockups/sagas/SagaV.tsx"),
   "./components/mockups/sagas/SagaVI.tsx": () => import("../components/mockups/sagas/SagaVI.tsx"),
   "./components/mockups/sagas/SagaVII.tsx": () => import("../components/mockups/sagas/SagaVII.tsx"),
-  "./components/mockups/utlhook/InvestorPitch.tsx": () => import("../components/mockups/utlhook/InvestorPitch.tsx"),
   "./components/mockups/trinity/TrinityBorromean.tsx": () => import("../components/mockups/trinity/TrinityBorromean.tsx"),
   "./components/mockups/trinity/TrinityCrown.tsx": () => import("../components/mockups/trinity/TrinityCrown.tsx"),
   "./components/mockups/trinity/TrinityHeraldic.tsx": () => import("../components/mockups/trinity/TrinityHeraldic.tsx"),
   "./components/mockups/trinity/TrinityMonogramTIY.tsx": () => import("../components/mockups/trinity/TrinityMonogramTIY.tsx"),
   "./components/mockups/trinity/TrinityMonogramTY.tsx": () => import("../components/mockups/trinity/TrinityMonogramTY.tsx"),
-  "./components/mockups/trinity/TrinityTriquetra.tsx": () => import("../components/mockups/trinity/TrinityTriquetra.tsx")
+  "./components/mockups/trinity/TrinityTriquetra.tsx": () => import("../components/mockups/trinity/TrinityTriquetra.tsx"),
+  "./components/mockups/utlhook/InvestorPitch.tsx": () => import("../components/mockups/utlhook/InvestorPitch.tsx")
 };

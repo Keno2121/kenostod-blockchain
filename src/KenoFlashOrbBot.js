@@ -122,9 +122,9 @@ class KenoFlashOrbBot {
   //  Law VII — Founder's Seal: only founder's key starts the bot
   // ═══════════════════════════════════════════════════════════════════════
   async init() {
-    const key = process.env.WALLET_PRIVATE_KEY;
+    const key = process.env.BOT_WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
     if (!key) {
-      this.log('❌ Law VII: WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
+      this.log('❌ Law VII: BOT_WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
       return false;
     }
 
