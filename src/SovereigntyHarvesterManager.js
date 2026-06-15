@@ -41,6 +41,11 @@ class SovereigntyHarvesterManager {
         this.startedAt  = null;
         this.logs       = [];
 
+        // Crash-loop protection
+        this._crashCount     = 0;
+        this._lastCrashAlert = 0;  // timestamp of last Telegram crash alert
+        this._restartDelay   = 30_000; // starts at 30s, doubles each crash (cap 10min)
+
         // Harvest stats
         this.stats = {
             taxEventsDetected: 0,
@@ -176,13 +181,35 @@ class SovereigntyHarvesterManager {
             this.running = false;
             this._log(`Aegis Relay exited (code ${code})`);
             if (code !== 0) {
-                this._alert(`⚠️ <b>Sovereignty Harvester stopped</b> (exit ${code})`);
-                setTimeout(() => { if (!this.running) this.start(); }, 30_000);
+                this._crashCount++;
+                // Only send Telegram on first crash, then every 10th — stops the flood
+                const now = Date.now();
+                const alertGap = 10 * 60 * 1000; // min 10 minutes between alerts
+                if (this._crashCount === 1 || (now - this._lastCrashAlert) >= alertGap) {
+                    this._lastCrashAlert = now;
+                    this._alert(`⚠️ <b>Sovereignty Harvester — standby</b>\nCrash #${this._crashCount} (exit ${code})\n<i>Relay needs: AEGIS_TREASURY_WALLET + KENO_AUTOBURN_CONTRACT\nWill retry silently every ${Math.round(this._restartDelay / 60000)} min</i>`);
+                }
+                // Stop auto-restart after 20 crashes — requires manual /api/sovereign/bot/1/start
+                if (this._crashCount >= 20) {
+                    this._log(`⛔ Sovereignty Harvester suspended after ${this._crashCount} crashes. Use /api/sovereign/bot/1/start to restart manually.`);
+                    this._alert(`⛔ <b>Sovereignty Harvester suspended</b>\n${this._crashCount} crash cycles detected.\nDeploy KENO_AUTOBURN_CONTRACT then restart manually.`);
+                    return;
+                }
+                // Exponential backoff: 30s → 60s → 120s → 300s → 600s (cap 10 min)
+                this._restartDelay = Math.min(this._restartDelay * 2, 600_000);
+                setTimeout(() => { if (!this.running) this.start(); }, this._restartDelay);
+            } else {
+                // Clean exit — reset crash counter
+                this._crashCount = 0;
+                this._restartDelay = 30_000;
             }
         });
 
         this._log('🛡️ Sovereignty Harvester started — Aegis Tax flywheel active');
-        this._alert(`🛡️ <b>Sovereignty Harvester LIVE</b>\nMonitoring SHIELD treasury on Solana\nBurn threshold: ${BURN_THRESHOLD_SOL} SOL\nFlywheel: SHIELD tax → SOL → KENO burn → price ↑`);
+        // Only send LIVE alert if this is the first start (not a crash-loop restart)
+        if (this._crashCount === 0) {
+            this._alert(`🛡️ <b>Sovereignty Harvester LIVE</b>\nMonitoring SHIELD treasury on Solana\nBurn threshold: ${BURN_THRESHOLD_SOL} SOL\nFlywheel: SHIELD tax → SOL → KENO burn → price ↑`);
+        }
         return { success: true, msg: 'Sovereignty Harvester started' };
     }
 

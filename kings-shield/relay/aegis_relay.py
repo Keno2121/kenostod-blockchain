@@ -154,114 +154,149 @@ def bridge_sol_to_bnb(sol_amount: float) -> bool:
     log.info(f"Bridge alert sent for {sol_amount:.4f} SOL")
     return True  # v2 will return actual bridge success
 
-# ── Main Loop ─────────────────────────────────────────────────────────────
-def main():
-    from web3 import Web3
-
-    if not AEGIS_TREASURY_SOL:
-        log.error("AEGIS_TREASURY_WALLET not set. Add it to your .env")
-        return
-    if not KENO_AUTOBURN_ADDR:
-        log.error("KENO_AUTOBURN_CONTRACT not set. Deploy contract first.")
-        return
-    if not RELAY_PRIVATE_KEY:
-        log.error("NEW_WALLET_PRIVATE_KEY not set.")
-        return
-
-    w3 = Web3(Web3.HTTPProvider(BSC_RPC))
-    if not w3.is_connected():
-        log.error("Cannot connect to BSC RPC")
-        return
-
-    relay_account = w3.eth.account.from_key(RELAY_PRIVATE_KEY)
-    contract = w3.eth.contract(
-        address=Web3.to_checksum_address(KENO_AUTOBURN_ADDR),
-        abi=AUTOBURN_ABI
-    )
-
-    log.info("═══════════════════════════════════════════")
-    log.info("  Aegis Cross-Chain Relay — Starting")
-    log.info(f"  Solana Treasury: {AEGIS_TREASURY_SOL}")
-    log.info(f"  KENOAutoBurn:    {KENO_AUTOBURN_ADDR}")
-    log.info(f"  Relay wallet:    {relay_account.address}")
-    log.info(f"  Burn threshold:  {BURN_THRESHOLD_SOL} SOL")
-    log.info(f"  Poll interval:   {POLL_INTERVAL}s")
-    log.info("═══════════════════════════════════════════")
-
-    tg(
-        f"🛡️ <b>Aegis Relay Started</b>\n"
-        f"Monitoring treasury: <code>{AEGIS_TREASURY_SOL[:8]}...{AEGIS_TREASURY_SOL[-4:]}</code>\n"
-        f"Burn threshold: {BURN_THRESHOLD_SOL} SOL\n"
-        f"<i>King's Shield → KENO Burn flywheel active</i>"
-    )
-
-    burn_session_count = 0
-    burn_session_keno  = 0.0
-
+# ── Standby loop: monitor Solana only, no BSC needed ─────────────────────
+def standby_loop(reason: str):
+    """
+    Run when KENO_AUTOBURN_CONTRACT or AEGIS_TREASURY_WALLET is not yet set.
+    Watches Solana treasury if possible and logs status every 5 minutes.
+    Exits cleanly (code 0) — no crash, no Telegram flood.
+    """
+    log.warning(f"Aegis Relay entering STANDBY — {reason}")
+    log.warning("Monitoring treasury only. Set KENO_AUTOBURN_CONTRACT to enable burns.")
+    scan = 0
     while True:
         try:
+            scan += 1
             now = datetime.now(timezone.utc).strftime("%H:%M UTC")
-
-            # 1. Check Solana treasury
-            sol_bal = get_sol_balance(AEGIS_TREASURY_SOL)
-            log.info(f"[{now}] Aegis treasury: {sol_bal:.4f} SOL")
-
-            if sol_bal >= BURN_THRESHOLD_SOL:
-                log.info(f"Threshold reached ({sol_bal:.4f} SOL ≥ {BURN_THRESHOLD_SOL})")
-
-                # 2. Bridge SOL → BNB (alert operator in v1, auto in v2)
-                bridge_sol_to_bnb(sol_bal)
-
-                # 3. Check if BNB is waiting in the AutoBurn contract
-                pending_bnb_wei = w3.eth.get_balance(
-                    Web3.to_checksum_address(KENO_AUTOBURN_ADDR)
-                )
-                pending_bnb = pending_bnb_wei / 1e18
-
-                if pending_bnb > 0.001:  # > 0.001 BNB (covers gas)
-                    log.info(f"  BNB ready in AutoBurn: {pending_bnb:.4f} BNB — executing burn...")
-                    result = trigger_keno_burn(w3, contract, relay_account)
-
-                    if result and result.get("status") == 1:
-                        keno_burned = result.get("quote_keno", 0)
-                        burn_session_count += 1
-                        burn_session_keno  += keno_burned
-
-                        log.info(f"  ✅ Burn SUCCESS — {keno_burned:.0f} KENO burned")
-                        tg(
-                            f"🔥 <b>KENO Auto-Burn Executed!</b>\n"
-                            f"━━━━━━━━━━━━━━━━━━\n"
-                            f"♻️ BNB In:      {pending_bnb:.4f} BNB\n"
-                            f"🔥 KENO Burned: {keno_burned:,.0f} KENO\n"
-                            f"📊 Session total: {burn_session_keno:,.0f} KENO burned\n"
-                            f"🔗 <a href='https://bscscan.com/tx/{result['tx_hash']}'>BscScan</a>\n\n"
-                            f"<i>KENO supply ↓ → Price ↑ → SHIELD narrative strengthens 🛡️</i>"
-                        )
-                    else:
-                        log.warning(f"  Burn failed or pending: {result}")
-                else:
-                    log.info(f"  Waiting for BNB in AutoBurn contract ({pending_bnb:.4f} BNB)")
-
-            # Get updated stats
-            try:
-                s = contract.functions.stats().call()
-                log.info(
-                    f"  AutoBurn stats: {s[2]} burns | "
-                    f"{s[0]/1e18:,.0f} KENO total burned | "
-                    f"{s[1]/1e18:.4f} BNB used"
-                )
-            except Exception:
-                pass
-
+            if AEGIS_TREASURY_SOL:
+                sol_bal = get_sol_balance(AEGIS_TREASURY_SOL)
+                log.info(f"[{now}] STANDBY scan #{scan} | Treasury: {sol_bal:.4f} SOL (burn contract not deployed)")
+            else:
+                log.info(f"[{now}] STANDBY scan #{scan} | Waiting for AEGIS_TREASURY_WALLET env var")
         except KeyboardInterrupt:
-            log.info("Relay stopped by user.")
-            tg(f"⏹️ Aegis Relay stopped. Session: {burn_session_keno:,.0f} KENO burned.")
+            log.info("Standby stopped.")
             break
         except Exception as e:
-            log.error(f"Loop error: {e}")
-            tg(f"🚨 <b>Aegis Relay Error</b>\n{str(e)[:200]}")
-
+            log.warning(f"Standby scan error: {e}")
         time.sleep(POLL_INTERVAL)
+
+
+# ── Main Loop ─────────────────────────────────────────────────────────────
+def main():
+    # Pre-flight checks — missing config goes to standby (exit 0), not crash (exit 1)
+    if not AEGIS_TREASURY_SOL:
+        standby_loop("AEGIS_TREASURY_WALLET not set")
+        return
+    if not KENO_AUTOBURN_ADDR:
+        standby_loop("KENO_AUTOBURN_CONTRACT not deployed yet")
+        return
+    if not RELAY_PRIVATE_KEY:
+        standby_loop("NEW_WALLET_PRIVATE_KEY not set")
+        return
+
+    # Wrap everything in try/except so unexpected errors exit 0, not 1
+    try:
+        from web3 import Web3
+
+        w3 = Web3(Web3.HTTPProvider(BSC_RPC))
+        if not w3.is_connected():
+            log.error("Cannot connect to BSC RPC — entering standby")
+            standby_loop("BSC RPC unreachable")
+            return
+
+        relay_account = w3.eth.account.from_key(RELAY_PRIVATE_KEY)
+        contract = w3.eth.contract(
+            address=Web3.to_checksum_address(KENO_AUTOBURN_ADDR),
+            abi=AUTOBURN_ABI
+        )
+
+        log.info("═══════════════════════════════════════════")
+        log.info("  Aegis Cross-Chain Relay — Starting")
+        log.info(f"  Solana Treasury: {AEGIS_TREASURY_SOL}")
+        log.info(f"  KENOAutoBurn:    {KENO_AUTOBURN_ADDR}")
+        log.info(f"  Relay wallet:    {relay_account.address}")
+        log.info(f"  Burn threshold:  {BURN_THRESHOLD_SOL} SOL")
+        log.info(f"  Poll interval:   {POLL_INTERVAL}s")
+        log.info("═══════════════════════════════════════════")
+
+        tg(
+            f"🛡️ <b>Aegis Relay Started</b>\n"
+            f"Monitoring treasury: <code>{AEGIS_TREASURY_SOL[:8]}...{AEGIS_TREASURY_SOL[-4:]}</code>\n"
+            f"Burn threshold: {BURN_THRESHOLD_SOL} SOL\n"
+            f"<i>King's Shield → KENO Burn flywheel active</i>"
+        )
+
+        burn_session_count = 0
+        burn_session_keno  = 0.0
+
+        while True:
+            try:
+                now = datetime.now(timezone.utc).strftime("%H:%M UTC")
+
+                # 1. Check Solana treasury
+                sol_bal = get_sol_balance(AEGIS_TREASURY_SOL)
+                log.info(f"[{now}] Aegis treasury: {sol_bal:.4f} SOL")
+
+                if sol_bal >= BURN_THRESHOLD_SOL:
+                    log.info(f"Threshold reached ({sol_bal:.4f} SOL ≥ {BURN_THRESHOLD_SOL})")
+
+                    # 2. Bridge SOL → BNB (alert operator in v1, auto in v2)
+                    bridge_sol_to_bnb(sol_bal)
+
+                    # 3. Check if BNB is waiting in the AutoBurn contract
+                    pending_bnb_wei = w3.eth.get_balance(
+                        Web3.to_checksum_address(KENO_AUTOBURN_ADDR)
+                    )
+                    pending_bnb = pending_bnb_wei / 1e18
+
+                    if pending_bnb > 0.001:
+                        log.info(f"  BNB ready in AutoBurn: {pending_bnb:.4f} BNB — executing burn...")
+                        result = trigger_keno_burn(w3, contract, relay_account)
+
+                        if result and result.get("status") == 1:
+                            keno_burned = result.get("quote_keno", 0)
+                            burn_session_count += 1
+                            burn_session_keno  += keno_burned
+
+                            log.info(f"  ✅ Burn SUCCESS — {keno_burned:.0f} KENO burned")
+                            tg(
+                                f"🔥 <b>KENO Auto-Burn Executed!</b>\n"
+                                f"━━━━━━━━━━━━━━━━━━\n"
+                                f"♻️ BNB In:      {pending_bnb:.4f} BNB\n"
+                                f"🔥 KENO Burned: {keno_burned:,.0f} KENO\n"
+                                f"📊 Session total: {burn_session_keno:,.0f} KENO burned\n"
+                                f"🔗 <a href='https://bscscan.com/tx/{result['tx_hash']}'>BscScan</a>\n\n"
+                                f"<i>KENO supply ↓ → Price ↑ → SHIELD narrative strengthens 🛡️</i>"
+                            )
+                        else:
+                            log.warning(f"  Burn failed or pending: {result}")
+                    else:
+                        log.info(f"  Waiting for BNB in AutoBurn contract ({pending_bnb:.4f} BNB)")
+
+                # Get updated stats
+                try:
+                    s = contract.functions.stats().call()
+                    log.info(
+                        f"  AutoBurn stats: {s[2]} burns | "
+                        f"{s[0]/1e18:,.0f} KENO total burned | "
+                        f"{s[1]/1e18:.4f} BNB used"
+                    )
+                except Exception:
+                    pass
+
+            except KeyboardInterrupt:
+                log.info("Relay stopped by user.")
+                tg(f"⏹️ Aegis Relay stopped. Session: {burn_session_keno:,.0f} KENO burned.")
+                return
+            except Exception as e:
+                log.error(f"Loop error: {e}")
+
+            time.sleep(POLL_INTERVAL)
+
+    except Exception as e:
+        # Catch-all: log the error and exit cleanly (code 0) so the JS manager stops crash-looping
+        log.error(f"Aegis Relay fatal error — entering standby: {e}")
+        standby_loop(f"Fatal startup error: {type(e).__name__}")
 
 
 if __name__ == "__main__":
