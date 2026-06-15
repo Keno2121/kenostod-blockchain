@@ -22,13 +22,13 @@ const CAKE = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82'; // CAKE on BSC
 const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — added back post-PinkSale
 
 // ── Multi-pair scan list — all use BNB as capital, round-trip back to BNB ──
+// NOTE: WBNB/KENO removed until KENO v2 liquidity pool is live post-PinkSale
 const ARB_PAIRS = [
   { name: 'WBNB/USDT',  token: USDT,  bnbAmount: '0.10' },
   { name: 'WBNB/BUSD',  token: BUSD,  bnbAmount: '0.10' },
   { name: 'WBNB/ETH',   token: ETH,   bnbAmount: '0.10' },
   { name: 'WBNB/BTCB',  token: BTCB,  bnbAmount: '0.10' },
   { name: 'WBNB/CAKE',  token: CAKE,  bnbAmount: '0.10' },
-  { name: 'WBNB/KENO',  token: KENO,  bnbAmount: '0.10' },
 ];
 
 const ROUTER_ABI = [
@@ -104,9 +104,9 @@ class LiveArbBot {
   }
 
   async init() {
-    const key = process.env.WALLET_PRIVATE_KEY;
+    const key = process.env.KENO_WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
     if (!key) {
-      this.log('❌ WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
+      this.log('❌ KENO_WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
       return false;
     }
     for (const rpc of BSC_RPC_ENDPOINTS) {
