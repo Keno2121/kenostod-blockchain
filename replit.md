@@ -51,7 +51,7 @@ This is the north star. Every feature, contract, bot, and product should be eval
 | $10,000 | $500/trade | ~$600–1,200/month | Milestone 3 |
 | $40,000 | $1,000/trade | ~$3,000/month | Financial Freedom |
 
-- Bot wallet: `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2` (KENO Bot — MetaMask, clean EOA, key in WALLET_PRIVATE_KEY secret)
+- Bot wallet: `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2` (KENO Bot — MetaMask, clean EOA, key in `BOT_WALLET_PRIVATE_KEY` secret)
 - Kaprekar split on every bot profit: 60% reinvest → 25% your pocket → 15% KENOAutoBurn
 - Euler compounds the reinvested 60% continuously — capital grows to $1,482 by month 6 from $500 start
 
@@ -116,7 +116,8 @@ Design preferences: Professional, appealing, fun; market-ready for ROI growth an
 - **KENO Token (v1 — ABANDONED):** `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` — all wallets pointed to compromised deployer, no mint fn, locked until Nov 2026
 - **BSC Mainnet Contracts (v1.1 — ACTIVE):**
     - FeeCollector: `0xb9489B33Bd9bB835139369b1dD282fB44B2273d8`
-    - Staking: `0x77C3946A9FD5F509584F94e81C43efb25120c837`
+    - Staking (v2, KENO v2): `0x5e4D6C40B9629C8A4C9bBbBDafE503e0C5D175a4` (deployed June 15 2026, 10M KENO staked by bot wallet)
+    - Staking (v1 — RETIRED, pointed to KENO v1): `0x77C3946A9FD5F509584F94e81C43efb25120c837`
     - Treasury: `0x54A01A5bf5096c351F166C15143eA9a9Af393C84`
     - Distribution: `0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167`
     - UTLFarm: `0x37D320A881CcF553F6cd757f0A33743ae01A2644`
