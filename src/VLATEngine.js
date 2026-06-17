@@ -161,6 +161,22 @@ class VLATEngine {
         return { ...REVENUE_PHASES[5], monthsElapsed };
     }
 
+    // Receive live market data from PlatformFeedService (called every 5 min)
+    updateLiveMetrics(platformKey, metrics) {
+        if (!this.platformScores[platformKey]) return false;
+        this.platformScores[platformKey].live = {
+            volume24h:    metrics.volume24h    || 0,
+            openInterest: metrics.openInterest || 0,
+            tvl:          metrics.tvl          || 0,
+            userCount:    metrics.userCount    || null,
+            assetCount:   metrics.assetCount   || null,
+            marketCount:  metrics.marketCount  || null,
+            feedStatus:   metrics.status       || 'unknown',
+            updatedAt:    metrics.fetchedAt    || new Date().toISOString()
+        };
+        return true;
+    }
+
     // Full dashboard snapshot — everything the dashboard needs in one call
     snapshot() {
         const activePlatformList = [...this.activePlatforms];

@@ -12932,6 +12932,17 @@ app.get('/api/bridge/liquidation_addresses', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
+// PLATFORM FEED SERVICE — Live market data, all 4 platforms
+// Free public APIs — no keys needed
+// ═══════════════════════════════════════════════════════════
+let platformFeed;
+try {
+    platformFeed = require('./src/PlatformFeedService');
+} catch (e) {
+    console.warn('⚠️  [PlatformFeed] Failed to load:', e.message);
+}
+
+// ═══════════════════════════════════════════════════════════
 // PROTOCOL HUB + VLAT DASHBOARD — FOUNDER'S OFFICE ONLY
 // Proprietary technology — not public. VLAT is confidential IP.
 // KENO · SHIELD · QCT — all 3 ecosystems, 13 protocols
@@ -12941,6 +12952,10 @@ try {
     protocolHub = require('./src/ProtocolHub');
     vlatEngine  = require('./src/VLATEngine');
     console.log('✅ [ProtocolHub] All 3 ecosystems registered — 13 protocols online');
+    // Start live platform feeds — inject VLAT engine so scores get enriched
+    if (platformFeed) {
+        platformFeed.start(vlatEngine.engine);
+    }
 } catch (e) {
     console.warn('⚠️  [ProtocolHub] Failed to load:', e.message);
 }
@@ -13008,6 +13023,27 @@ app.post('/api/protocols/aegis-tax', (req, res) => {
         if (!profitSol) return res.status(400).json({ error: 'profitSol required' });
         const event = protocolHub.dispatchAegisTax(parseFloat(profitSol), wallet);
         res.json({ success: true, event });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Live platform feed data — Hyperliquid, Aster, GMX, dYdX
+app.get('/api/vlat/feeds', (req, res) => {
+    try {
+        const feeds = platformFeed ? platformFeed.getFeeds() : {};
+        res.json({ ok: true, feeds, pollCount: feeds.pollCount || 0, lastPoll: feeds.lastPoll || null });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Manual feed refresh (founder can force a poll)
+app.post('/api/vlat/feeds/refresh', async (req, res) => {
+    try {
+        if (!platformFeed) return res.status(503).json({ error: 'PlatformFeed not loaded' });
+        const feeds = await platformFeed.pollAll();
+        res.json({ ok: true, feeds });
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

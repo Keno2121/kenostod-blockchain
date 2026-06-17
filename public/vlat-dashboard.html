@@ -91,6 +91,15 @@
   .vlat-bar-fill { height: 100%; border-radius: 99px; }
   .vlat-bar-val { font-size: 0.7rem; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0; }
   .platform-strength { font-size: 0.72rem; color: var(--muted); margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .live-metrics { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .live-metric-item { }
+  .live-metric-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .live-metric-value { font-size: 0.78rem; font-weight: 700; margin-top: 1px; }
+  .feed-status-live   { color: var(--green); }
+  .feed-status-static { color: var(--gold); }
+  .feed-status-error  { color: var(--red); }
+  .feed-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.62rem; margin-top: 6px; }
+  .feed-badge-dot { width: 5px; height: 5px; border-radius: 50%; }
 
   /* ── Protocol grid ── */
   .protocols-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
@@ -180,6 +189,7 @@
 </div>
 
 <div class="main">
+  <div id="feedStatusBar" style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;padding:6px 12px;background:#0f1520;border-radius:6px;border:1px solid var(--border)"><span style="color:var(--muted)">⬤</span> Connecting to live platform feeds...</div>
   <div class="error-bar" id="errorBar"></div>
 
   <!-- Revenue Hero -->
@@ -249,9 +259,48 @@ function fmtPct(n) { return Math.min(100, Math.max(0, parseFloat(n || 0))).toFix
 
 async function loadData() {
   try {
-    const res  = await fetch('/api/protocols/summary');
-    const data = await res.json();
+    // Fetch protocol summary + live platform feeds in parallel
+    const [summaryRes, feedRes] = await Promise.all([
+      fetch('/api/protocols/summary'),
+      fetch('/api/vlat/feeds').catch(() => null)
+    ]);
+    const data = await summaryRes.json();
     const vlat = data.vlat;
+
+    // Merge live feed metrics into platform objects before rendering
+    if (feedRes && feedRes.ok) {
+      try {
+        const feedData = await feedRes.json();
+        const feeds = feedData.feeds || {};
+        if (vlat && vlat.platforms) {
+          vlat.platforms = vlat.platforms.map(p => {
+            const feed = feeds[p.key];
+            if (feed && feed.status !== 'api_error') {
+              p.live = {
+                volume24h:    feed.volume24h    || 0,
+                openInterest: feed.openInterest || 0,
+                tvl:          feed.tvl          || 0,
+                userCount:    feed.userCount    || null,
+                assetCount:   feed.assetCount   || null,
+                marketCount:  feed.marketCount  || null,
+                feedStatus:   feed.status       || 'unknown',
+                updatedAt:    feed.fetchedAt    || null
+              };
+            } else if (feed) {
+              p.live = { feedStatus: 'api_error', updatedAt: feed.fetchedAt };
+            }
+            return p;
+          });
+        }
+        // Update feed status bar
+        const lastPoll = feedData.lastPoll;
+        const bar = document.getElementById('feedStatusBar');
+        if (bar && lastPoll) {
+          const ago = Math.floor((Date.now() - new Date(lastPoll)) / 60000);
+          bar.innerHTML = `<span style="color:var(--green)">⬤</span> Live feeds active · Last sync: ${ago < 1 ? 'just now' : ago + 'm ago'} · Poll #${feedData.pollCount || 0} &nbsp;<button onclick="refreshFeeds()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:0.7rem">↻ Force Refresh</button>`;
+        }
+      } catch (_) {}
+    }
 
     renderRevenue(vlat, data);
     renderPlatforms(vlat.platforms);
@@ -267,6 +316,13 @@ async function loadData() {
     bar.style.display = 'block';
     renderLaws();
   }
+}
+
+async function refreshFeeds() {
+  try {
+    await fetch('/api/vlat/feeds/refresh', { method: 'POST' });
+    await loadData();
+  } catch (e) { console.warn('Feed refresh failed:', e.message); }
 }
 
 function renderRevenue(vlat, data) {
@@ -309,6 +365,66 @@ function renderRevenue(vlat, data) {
     </div>`;
 }
 
+function fmtBig(n) {
+  if (!n || n === 0) return '—';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(1)   + 'M';
+  if (n >= 1e3)  return '$' + (n/1e3).toFixed(0)   + 'K';
+  return '$' + n;
+}
+function fmtUsers(n) {
+  if (!n) return '—';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(0) + 'K';
+  return n;
+}
+
+function renderLiveMetrics(p) {
+  const live = p.live;
+  if (!live) {
+    return `<div class="feed-badge"><div class="feed-badge-dot" style="background:var(--muted)"></div><span style="color:var(--muted)">Connecting to live feed...</span></div>`;
+  }
+  const isLive   = live.feedStatus === 'live';
+  const isStatic = live.feedStatus === 'verified_static';
+  const isError  = live.feedStatus === 'api_error';
+  const dotColor = isLive ? 'var(--green)' : isStatic ? 'var(--gold)' : 'var(--red)';
+  const label    = isLive ? 'Live Feed' : isStatic ? 'Verified Stats' : 'Feed Offline';
+  const cls      = isLive ? 'feed-status-live' : isStatic ? 'feed-status-static' : 'feed-status-error';
+
+  const metrics = [];
+  if (live.volume24h  > 0) metrics.push({ label: '24h Volume',   val: fmtBig(live.volume24h) });
+  if (live.openInterest > 0) metrics.push({ label: 'Open Interest', val: fmtBig(live.openInterest) });
+  if (live.tvl        > 0) metrics.push({ label: 'TVL',           val: fmtBig(live.tvl) });
+  if (live.userCount)      metrics.push({ label: 'Users',         val: fmtUsers(live.userCount) });
+  if (live.marketCount)    metrics.push({ label: 'Markets',       val: live.marketCount });
+  if (live.assetCount)     metrics.push({ label: 'Assets',        val: live.assetCount });
+
+  if (metrics.length === 0) {
+    return `<div class="feed-badge"><div class="feed-badge-dot" style="background:${dotColor}"></div><span class="${cls}">${label} — awaiting data</span></div>`;
+  }
+
+  const updatedAgo = live.updatedAt ? (() => {
+    const secs = Math.floor((Date.now() - new Date(live.updatedAt)) / 1000);
+    if (secs < 60) return secs + 's ago';
+    return Math.floor(secs/60) + 'm ago';
+  })() : '';
+
+  return `
+    <div class="live-metrics">
+      ${metrics.map(m => `
+        <div class="live-metric-item">
+          <div class="live-metric-label">${m.label}</div>
+          <div class="live-metric-value ${cls}">${m.val}</div>
+        </div>`).join('')}
+    </div>
+    <div class="feed-badge" style="margin-top:6px;">
+      <div class="feed-badge-dot" style="background:${dotColor};${isLive ? 'animation:pulse 2s infinite' : ''}"></div>
+      <span class="${cls}">${label}</span>
+      ${updatedAgo ? `<span style="color:var(--muted);margin-left:4px;">· ${updatedAgo}</span>` : ''}
+    </div>`;
+}
+
 function renderPlatforms(platforms) {
   if (!platforms || !platforms.length) {
     document.getElementById('platformsGrid').innerHTML = '<div class="loading">No platform data</div>';
@@ -340,6 +456,7 @@ function renderPlatforms(platforms) {
       <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">
         ${(p.integration||[]).map(i => `<span style="font-size:0.65rem;background:#1e2330;border-radius:4px;padding:2px 7px;color:var(--muted)">${i}</span>`).join('')}
       </div>
+      ${renderLiveMetrics(p)}
     </div>`).join('');
 }
 
