@@ -12932,8 +12932,9 @@ app.get('/api/bridge/liquidation_addresses', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// PROTOCOL HUB + VLAT DASHBOARD ROUTES
-// Unified Sovereign Economy — KENO · SHIELD · QCT
+// PROTOCOL HUB + VLAT DASHBOARD — FOUNDER'S OFFICE ONLY
+// Proprietary technology — not public. VLAT is confidential IP.
+// KENO · SHIELD · QCT — all 3 ecosystems, 13 protocols
 // ═══════════════════════════════════════════════════════════
 let protocolHub, vlatEngine;
 try {
@@ -12944,9 +12945,20 @@ try {
     console.warn('⚠️  [ProtocolHub] Failed to load:', e.message);
 }
 
-// Live VLAT dashboard
+// VLAT dashboard — founder session required, otherwise redirect to login
 app.get('/vlat', (req, res) => {
+    if (!req.session.isFounder) return res.redirect('/founder-login.html');
     res.sendFile(path.join(__dirname, 'public', 'vlat-dashboard.html'));
+});
+
+// Lock all /api/vlat/* and /api/protocols/* behind founder session
+app.use('/api/vlat', (req, res, next) => {
+    if (req.session.isFounder) return next();
+    res.status(401).json({ ok: false, msg: 'Unauthorized' });
+});
+app.use('/api/protocols', (req, res, next) => {
+    if (req.session.isFounder) return next();
+    res.status(401).json({ ok: false, msg: 'Unauthorized' });
 });
 
 // Full protocol + VLAT summary (used by dashboard)
@@ -12969,7 +12981,7 @@ app.get('/api/vlat/scores', (req, res) => {
     }
 });
 
-// Record a protocol revenue event (internal bots call this)
+// Record a protocol revenue event (internal bots call this with ADMIN_KEY)
 app.post('/api/protocols/event', (req, res) => {
     try {
         if (!protocolHub) return res.status(503).json({ error: 'ProtocolHub not loaded' });
@@ -12983,9 +12995,14 @@ app.post('/api/protocols/event', (req, res) => {
     }
 });
 
-// Record Aegis Tax from Kings Shield bots
+// Record Aegis Tax from Kings Shield bots (bots authenticate via ADMIN_KEY header)
 app.post('/api/protocols/aegis-tax', (req, res) => {
     try {
+        // Allow bots to post via ADMIN_KEY header even without a session
+        const botKey = req.headers['x-admin-key'];
+        if (!req.session.isFounder && botKey !== process.env.ADMIN_KEY) {
+            return res.status(401).json({ ok: false, msg: 'Unauthorized' });
+        }
         if (!protocolHub) return res.status(503).json({ error: 'ProtocolHub not loaded' });
         const { profitSol, wallet } = req.body;
         if (!profitSol) return res.status(400).json({ error: 'profitSol required' });
@@ -13010,7 +13027,7 @@ app.post('/api/vlat/activate', (req, res) => {
     }
 });
 
-// Record monthly revenue (founder manual update)
+// Record monthly revenue (founder manual entry)
 app.post('/api/vlat/revenue', (req, res) => {
     try {
         if (!vlatEngine) return res.status(503).json({ error: 'VLATEngine not loaded' });
