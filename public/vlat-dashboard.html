@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sovereign Economy — VLAT Protocol Dashboard</title>
+<style>
+  :root {
+    --bg:       #0a0c10;
+    --card:     #111318;
+    --border:   #1e2330;
+    --text:     #e8eaf0;
+    --muted:    #6b7280;
+    --keno:     #f59e0b;
+    --shield:   #3b82f6;
+    --qct:      #a855f7;
+    --hl:       #00d4ff;
+    --aster:    #9b59b6;
+    --gmx:      #2ecc71;
+    --dydx:     #e67e22;
+    --green:    #10b981;
+    --red:      #ef4444;
+    --gold:     #fbbf24;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #0d1117 0%, #111827 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-left h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header-left h1 span { background: linear-gradient(90deg, var(--gold), var(--hl)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header-left p { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .live-badge { display: flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; color: var(--green); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .refresh-btn { background: var(--border); border: 1px solid #2d3444; color: var(--muted); padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+  .refresh-btn:hover { border-color: var(--hl); color: var(--hl); }
+
+  /* ── Main grid ── */
+  .main { padding: 28px 32px; display: grid; gap: 24px; }
+
+  /* ── Section label ── */
+  .section-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+
+  /* ── Revenue hero ── */
+  .revenue-hero {
+    background: linear-gradient(135deg, #111827 0%, #1a1f2e 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; align-items: center;
+  }
+  .rev-stat h2 { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+  .rev-stat h2.green { color: var(--green); }
+  .rev-stat h2.gold { color: var(--gold); }
+  .rev-stat p { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
+  .progress-wrap { }
+  .progress-wrap .prog-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+  .progress-track { height: 12px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gold), var(--green)); transition: width 1s ease; min-width: 4px; }
+  .phase-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 10px; padding: 8px 16px; font-size: 0.85rem; color: var(--gold); margin-top: 12px; }
+
+  /* ── VLAT platform cards ── */
+  .platforms-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .platform-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .platform-card:hover { transform: translateY(-2px); }
+  .platform-card.active { border-color: rgba(16,185,129,0.4); }
+  .platform-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .platform-name { font-weight: 700; font-size: 1rem; }
+  .platform-score { font-size: 1.6rem; font-weight: 800; }
+  .platform-chain { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .status-pill { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+  .status-pill.active  { background: rgba(16,185,129,0.15); color: var(--green); }
+  .status-pill.phase1  { background: rgba(0,212,255,0.12); color: var(--hl); }
+  .status-pill.phase2  { background: rgba(155,89,182,0.15); color: var(--aster); }
+  .status-pill.phase3  { background: rgba(46,204,113,0.12); color: var(--gmx); }
+  .status-pill.phase4  { background: rgba(230,126,34,0.12); color: var(--dydx); }
+  .vlat-bars { display: grid; gap: 6px; }
+  .vlat-bar-row { display: flex; align-items: center; gap: 8px; }
+  .vlat-bar-label { font-size: 0.7rem; color: var(--muted); width: 14px; flex-shrink: 0; }
+  .vlat-bar-track { flex: 1; height: 5px; background: #1e2330; border-radius: 99px; overflow: hidden; }
+  .vlat-bar-fill { height: 100%; border-radius: 99px; }
+  .vlat-bar-val { font-size: 0.7rem; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0; }
+  .platform-strength { font-size: 0.72rem; color: var(--muted); margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+
+  /* ── Protocol grid ── */
+  .protocols-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .ecosystem-col { }
+  .eco-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .eco-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .eco-dot.keno   { background: var(--keno); }
+  .eco-dot.shield { background: var(--shield); }
+  .eco-dot.qct    { background: var(--qct); }
+  .eco-name { font-weight: 700; font-size: 0.95rem; }
+  .eco-chain { font-size: 0.72rem; color: var(--muted); margin-left: auto; }
+  .protocol-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 8px; transition: border-color 0.2s;
+  }
+  .protocol-item:hover { border-color: #2d3444; }
+  .protocol-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .protocol-item-name { font-weight: 600; font-size: 0.85rem; }
+  .protocol-item-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+  .protocol-item-law  { font-size: 0.68rem; color: #3b82f6; margin-top: 4px; opacity: 0.7; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.active           { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.building         { background: var(--gold); }
+  .status-dot.pending_funding  { background: var(--red); }
+
+  /* ── Constitutional Laws ── */
+  .laws-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+  .law-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; }
+  .law-num  { font-size: 1.2rem; font-weight: 800; color: var(--gold); }
+  .law-name { font-size: 0.72rem; font-weight: 600; margin-top: 4px; }
+  .law-role { font-size: 0.65rem; color: var(--muted); margin-top: 4px; line-height: 1.3; }
+  .law-check { font-size: 0.8rem; margin-top: 8px; color: var(--green); }
+
+  /* ── Timeline phases ── */
+  .timeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .phase-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: relative; }
+  .phase-card.current { border-color: rgba(251,191,36,0.5); background: rgba(251,191,36,0.05); }
+  .phase-card.future  { opacity: 0.55; }
+  .phase-num   { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
+  .phase-months { font-size: 0.75rem; color: var(--gold); font-weight: 700; margin-top: 2px; }
+  .phase-label  { font-size: 0.8rem; font-weight: 600; margin-top: 6px; }
+  .phase-range  { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .phase-current-tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+
+  /* ── Nash / Composite score row ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .stat-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+  .stat-value { font-size: 1.5rem; font-weight: 700; }
+  .stat-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── Loading ── */
+  .loading { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--muted); }
+
+  /* ── Error ── */
+  .error-bar { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; border-radius: 10px; padding: 12px 20px; font-size: 0.85rem; margin-bottom: 20px; display: none; }
+
+  @media (max-width: 1200px) {
+    .platforms-grid { grid-template-columns: repeat(2,1fr); }
+    .protocols-section { grid-template-columns: 1fr; }
+    .laws-grid { grid-template-columns: repeat(4,1fr); }
+    .timeline { grid-template-columns: repeat(3,1fr); }
+    .revenue-hero { grid-template-columns: 1fr; gap: 20px; }
+    .stats-row { grid-template-columns: repeat(2,1fr); }
+  }
+  @media (max-width: 700px) {
+    .main { padding: 16px; }
+    .header { padding: 16px; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .platforms-grid { grid-template-columns: 1fr; }
+    .laws-grid { grid-template-columns: repeat(2,1fr); }
+    .timeline { grid-template-columns: repeat(2,1fr); }
+    .stats-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>⚜️ <span>Sovereign Economy</span> — VLAT Protocol Dashboard</h1>
+    <p>Volume · Liquidity · Adoption · Time &nbsp;|&nbsp; KENO · SHIELD · QCT &nbsp;|&nbsp; 4 Platforms · 13 Protocols · 7 Constitutional Laws</p>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="error-bar" id="errorBar"></div>
+
+  <!-- Revenue Hero -->
+  <div>
+    <div class="section-label">Revenue Progress</div>
+    <div class="revenue-hero" id="revenueHero">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <!-- VLAT Platform Scores -->
+  <div>
+    <div class="section-label">VLAT Platform Scores</div>
+    <div class="platforms-grid" id="platformsGrid">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Composite Stats Row -->
+  <div class="stats-row" id="statsRow">
+    <div class="loading">Loading...</div>
+  </div>
+
+  <!-- Protocol Registry -->
+  <div>
+    <div class="section-label">Protocol Registry — All 3 Ecosystems</div>
+    <div class="protocols-section" id="protocolsSection">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Constitutional Laws -->
+  <div>
+    <div class="section-label">7 Constitutional Laws — Active Across All Protocols</div>
+    <div class="laws-grid" id="lawsGrid"></div>
+  </div>
+
+  <!-- Revenue Timeline -->
+  <div>
+    <div class="section-label">Revenue Timeline — Path to Financial Freedom</div>
+    <div class="timeline" id="timeline">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LAWS = [
+  { num: '1', name: 'Kaprekar',     role: 'Routes all splits. Dust flows to participant. Rooted in 6174.' },
+  { num: '2', name: 'Benford',      role: 'Silent fraud detection on every transaction stream.' },
+  { num: '3', name: 'Golden Ratio', role: 'φ multiplier — longer you stay, more you earn. Approaches 1.618×.' },
+  { num: '4', name: 'Nash',         role: 'Auto-tunes staker split 55–65%. Participation = dominant strategy.' },
+  { num: '5', name: 'Euler',        role: 'Continuous compounding. Interest accrues every second.' },
+  { num: '6', name: 'Ramanujan',    role: '1729 milestone — silent one-time bonus at crossing.' },
+  { num: '7', name: 'Inversion',    role: 'Value flows DOWN to participants. You are the participant.' }
+];
+
+const VLAT_COLORS = { V: '#00d4ff', L: '#2ecc71', A: '#a855f7', T: '#f59e0b' };
+
+function statusLabel(s) {
+  const map = { active: 'Active', phase1: 'Phase 1', phase2: 'Phase 2', phase3: 'Phase 3', phase4: 'Phase 4' };
+  return map[s] || s;
+}
+
+function fmt(n) { return n != null ? parseFloat(n).toFixed(2) : '0.00'; }
+function fmtPct(n) { return Math.min(100, Math.max(0, parseFloat(n || 0))).toFixed(1); }
+
+async function loadData() {
+  try {
+    const res  = await fetch('/api/protocols/summary');
+    const data = await res.json();
+    const vlat = data.vlat;
+
+    renderRevenue(vlat, data);
+    renderPlatforms(vlat.platforms);
+    renderStats(vlat, data);
+    renderProtocols(data.protocols);
+    renderLaws();
+    renderTimeline(vlat.phases, vlat.currentPhase);
+
+    document.getElementById('errorBar').style.display = 'none';
+  } catch (e) {
+    const bar = document.getElementById('errorBar');
+    bar.textContent = `Could not reach server: ${e.message}`;
+    bar.style.display = 'block';
+    renderLaws();
+  }
+}
+
+function renderRevenue(vlat, data) {
+  const monthly = vlat.monthlyRevenue || 0;
+  const pct = fmtPct(vlat.progressPct);
+  const phase = vlat.currentPhase;
+  document.getElementById('revenueHero').innerHTML = `
+    <div>
+      <div class="rev-stat">
+        <h2 class="green">$${fmt(monthly)}<span style="font-size:1rem;color:var(--muted)">/mo</span></h2>
+        <p>Current Monthly Revenue</p>
+      </div>
+      <div class="rev-stat" style="margin-top:12px;">
+        <h2 class="gold">$${fmt(data.totalLifetimeRevenue || 0)}</h2>
+        <p>Lifetime Protocol Revenue</p>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="prog-label"><span>Progress to $3,000/month</span><span>${pct}%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="margin-top:10px;display:flex;gap:24px;">
+        <div style="font-size:0.8rem;color:var(--muted)">Target: <span style="color:var(--gold);font-weight:700">$3,000/mo</span></div>
+        <div style="font-size:0.8rem;color:var(--muted)">Remaining: <span style="color:var(--text);font-weight:600">$${fmt(Math.max(0, 3000 - monthly))}/mo</span></div>
+      </div>
+      <div class="phase-badge">📍 ${phase ? phase.months + ' mo — ' + phase.label : 'Launching...'}</div>
+    </div>
+    <div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">Ecosystem Revenue</div>
+      ${['KENO','SHIELD','QCT'].map(eco => {
+        const rev = (data.byEcosystem || {})[eco] || 0;
+        const colors = { KENO: 'var(--keno)', SHIELD: 'var(--shield)', QCT: 'var(--qct)' };
+        return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${colors[eco]}"></div>
+            <span style="font-size:0.82rem;font-weight:600">${eco}</span>
+          </div>
+          <span style="font-size:0.82rem;color:var(--text)">$${fmt(rev)}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderPlatforms(platforms) {
+  if (!platforms || !platforms.length) {
+    document.getElementById('platformsGrid').innerHTML = '<div class="loading">No platform data</div>';
+    return;
+  }
+  document.getElementById('platformsGrid').innerHTML = platforms.map(p => `
+    <div class="platform-card ${p.status}">
+      <div class="platform-header">
+        <div>
+          <div class="platform-name" style="color:${p.color}">${p.name}</div>
+          <div class="platform-chain">${p.chain}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="platform-score" style="color:${p.color}">${p.total}</div>
+          <div class="status-pill ${p.status}">${statusLabel(p.status)}</div>
+        </div>
+      </div>
+      <div class="vlat-bars">
+        ${['V','L','A','T'].map(m => `
+          <div class="vlat-bar-row">
+            <div class="vlat-bar-label">${m}</div>
+            <div class="vlat-bar-track">
+              <div class="vlat-bar-fill" style="width:${p.scores[m]}%;background:${VLAT_COLORS[m]}"></div>
+            </div>
+            <div class="vlat-bar-val">${p.scores[m]}</div>
+          </div>`).join('')}
+      </div>
+      <div class="platform-strength">🎯 ${p.strength}</div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">
+        ${(p.integration||[]).map(i => `<span style="font-size:0.65rem;background:#1e2330;border-radius:4px;padding:2px 7px;color:var(--muted)">${i}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function renderStats(vlat, data) {
+  const nash = data.nashEquilibrium || {};
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Composite VLAT Score</div>
+      <div class="stat-value" style="color:var(--hl)">${fmt(vlat.compositeScore)}</div>
+      <div class="stat-sub">${vlat.activePlatformCount} platform${vlat.activePlatformCount===1?'':'s'} × ${vlat.crossPlatformMultiplier}× multiplier</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Nash Equilibrium Score</div>
+      <div class="stat-value" style="color:${nash.equilibriumReached?'var(--green)':'var(--gold)'}">
+        ${nash.nashScore != null ? (nash.nashScore * 100).toFixed(1) + '%' : '—'}
+      </div>
+      <div class="stat-sub">${nash.equilibriumReached ? '✅ Equilibrium reached' : '⚙️ Adjusting staker split'}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active Protocols</div>
+      <div class="stat-value" style="color:var(--green)">${data.counts ? data.counts.active : '—'}</div>
+      <div class="stat-sub">${data.counts ? data.counts.building + ' building · ' + data.counts.pending + ' pending' : ''} of ${data.counts ? data.counts.total : '—'} total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">φ Multiplier (Active Platforms)</div>
+      <div class="stat-value" style="color:var(--gold)">${vlat.phiMultiplier ? vlat.phiMultiplier.toFixed(4) : '1.0000'}×</div>
+      <div class="stat-sub">Approaches φ = 1.6180 as platforms grow</div>
+    </div>`;
+}
+
+function renderProtocols(protocols) {
+  if (!protocols || !protocols.length) {
+    document.getElementById('protocolsSection').innerHTML = '<div class="loading">No protocol data</div>';
+    return;
+  }
+  const byEco = { KENO: [], SHIELD: [], QCT: [] };
+  protocols.forEach(p => { if (byEco[p.ecosystem]) byEco[p.ecosystem].push(p); });
+  const chains = { KENO: 'BSC', SHIELD: 'Solana', QCT: 'Base' };
+  document.getElementById('protocolsSection').innerHTML = Object.entries(byEco).map(([eco, list]) => `
+    <div class="ecosystem-col">
+      <div class="eco-header">
+        <div class="eco-dot ${eco.toLowerCase()}"></div>
+        <div class="eco-name">${eco}</div>
+        <div class="eco-chain">${chains[eco]}</div>
+      </div>
+      ${list.map(p => `
+        <div class="protocol-item">
+          <div class="protocol-item-header">
+            <div class="protocol-item-name">${p.name}</div>
+            <div class="status-dot ${p.status}"></div>
+          </div>
+          <div class="protocol-item-desc">${p.description}</div>
+          <div class="protocol-item-law">⚖️ ${p.law}</div>
+          ${p.revenue && p.revenue.total > 0 ? `<div style="margin-top:6px;font-size:0.72rem;color:var(--green)">↑ $${fmt(p.revenue.total)} earned · ${p.revenue.events} events</div>` : ''}
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function renderLaws() {
+  document.getElementById('lawsGrid').innerHTML = LAWS.map(l => `
+    <div class="law-card">
+      <div class="law-num">${l.num}</div>
+      <div class="law-name">${l.name}</div>
+      <div class="law-role">${l.role}</div>
+      <div class="law-check">✅</div>
+    </div>`).join('');
+}
+
+function renderTimeline(phases, current) {
+  if (!phases) return;
+  const currentId = current ? current.id : 1;
+  document.getElementById('timeline').innerHTML = phases.map(p => {
+    const isCurrent = p.id === currentId;
+    const isPast    = p.id < currentId;
+    const cls = isCurrent ? 'current' : (!isPast ? 'future' : '');
+    const rangeStr = p.max === 0 ? '$0' : `$${p.min.toLocaleString()}–$${p.max.toLocaleString()}/mo`;
+    return `
+      <div class="phase-card ${cls}">
+        ${isCurrent ? '<div class="phase-current-tag">You are here</div>' : ''}
+        <div class="phase-num">Phase ${p.id}</div>
+        <div class="phase-months">${p.months} mo</div>
+        <div class="phase-label">${p.label}</div>
+        <div class="phase-range">${rangeStr}</div>
+      </div>`;
+  }).join('');
+}
+
+// Auto-refresh every 30 seconds
+loadData();
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>

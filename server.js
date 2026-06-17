@@ -12931,4 +12931,96 @@ app.get('/api/bridge/liquidation_addresses', async (req, res) => {
     }
 });
 
+// ═══════════════════════════════════════════════════════════
+// PROTOCOL HUB + VLAT DASHBOARD ROUTES
+// Unified Sovereign Economy — KENO · SHIELD · QCT
+// ═══════════════════════════════════════════════════════════
+let protocolHub, vlatEngine;
+try {
+    protocolHub = require('./src/ProtocolHub');
+    vlatEngine  = require('./src/VLATEngine');
+    console.log('✅ [ProtocolHub] All 3 ecosystems registered — 13 protocols online');
+} catch (e) {
+    console.warn('⚠️  [ProtocolHub] Failed to load:', e.message);
+}
+
+// Live VLAT dashboard
+app.get('/vlat', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'vlat-dashboard.html'));
+});
+
+// Full protocol + VLAT summary (used by dashboard)
+app.get('/api/protocols/summary', (req, res) => {
+    try {
+        if (!protocolHub) return res.status(503).json({ error: 'ProtocolHub not loaded' });
+        res.json(protocolHub.summary());
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// VLAT scores only (lightweight)
+app.get('/api/vlat/scores', (req, res) => {
+    try {
+        if (!vlatEngine) return res.status(503).json({ error: 'VLATEngine not loaded' });
+        res.json(vlatEngine.engine.snapshot());
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Record a protocol revenue event (internal bots call this)
+app.post('/api/protocols/event', (req, res) => {
+    try {
+        if (!protocolHub) return res.status(503).json({ error: 'ProtocolHub not loaded' });
+        const { protocol, amount, wallet } = req.body;
+        if (!protocol || !amount) return res.status(400).json({ error: 'protocol and amount required' });
+        const event = protocolHub.dispatch(protocol, parseFloat(amount), wallet);
+        if (!event) return res.status(400).json({ error: 'Invalid protocol or zero amount' });
+        res.json({ success: true, event });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Record Aegis Tax from Kings Shield bots
+app.post('/api/protocols/aegis-tax', (req, res) => {
+    try {
+        if (!protocolHub) return res.status(503).json({ error: 'ProtocolHub not loaded' });
+        const { profitSol, wallet } = req.body;
+        if (!profitSol) return res.status(400).json({ error: 'profitSol required' });
+        const event = protocolHub.dispatchAegisTax(parseFloat(profitSol), wallet);
+        res.json({ success: true, event });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Activate a VLAT platform when integration goes live
+app.post('/api/vlat/activate', (req, res) => {
+    try {
+        if (!vlatEngine) return res.status(503).json({ error: 'VLATEngine not loaded' });
+        const { platform } = req.body;
+        if (!platform) return res.status(400).json({ error: 'platform required' });
+        const ok = vlatEngine.engine.activatePlatform(platform);
+        if (!ok) return res.status(400).json({ error: 'Unknown platform key' });
+        res.json({ success: true, platform, snapshot: vlatEngine.engine.snapshot() });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Record monthly revenue (founder manual update)
+app.post('/api/vlat/revenue', (req, res) => {
+    try {
+        if (!vlatEngine) return res.status(503).json({ error: 'VLATEngine not loaded' });
+        const { amount } = req.body;
+        if (!amount) return res.status(400).json({ error: 'amount required' });
+        const entry = vlatEngine.engine.recordRevenue(parseFloat(amount));
+        res.json({ success: true, entry });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 module.exports = { app, kenostodChain, minerWallet, wallet1, wallet2 };
