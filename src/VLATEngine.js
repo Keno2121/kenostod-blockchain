@@ -60,14 +60,18 @@ const PLATFORMS = {
     }
 };
 
-// Revenue projection phases (conservative — Kimi VLAT analysis)
+// Revenue projection phases — VLAT Multi-Platform (4 DEXs) analysis
+// Single platform (HL only) = 12–18 months. VLAT 4-platform = 6–9 months.
+// Month 7 math (conservative): HL $1,125 + Aster $450 + GMX $338 + dYdX $225
+//   = $2,138 platform fees + $500 consulting + $200–400 HYPE/ASTER staking
+//   = $3,838–5,538/month → QUIT JOB by December 2026
 const REVENUE_PHASES = [
-    { id: 1, months: '1–3',   label: 'Build + Audit',          min: 0,    max: 0,    phase: 'build'     },
-    { id: 2, months: '4–6',   label: 'Testnet + Soft Launch',  min: 0,    max: 200,  phase: 'testnet'   },
-    { id: 3, months: '7–9',   label: 'Mainnet + Early Volume', min: 200,  max: 800,  phase: 'mainnet'   },
-    { id: 4, months: '10–12', label: 'Growing Volume',         min: 800,  max: 1500, phase: 'growing'   },
-    { id: 5, months: '13–15', label: 'Established',            min: 1500, max: 2500, phase: 'established'},
-    { id: 6, months: '16–18', label: 'Mature — QUIT JOB ✊',   min: 2500, max: 3500, phase: 'freedom'   }
+    { id: 1, months: '1',     label: 'Build + Audit',              min: 0,    max: 0,    phase: 'build',     target: 'Jun 2026',      note: 'PinkSale Jun 26 — fund bots, deploy HL' },
+    { id: 2, months: '2',     label: 'HL Live + Aster Deploy',     min: 0,    max: 200,  phase: 'hl_live',   target: 'Jul 2026',      note: 'Hyperliquid live, Aster integration begins' },
+    { id: 3, months: '3–4',   label: 'GMX + dYdX — All 4 Live',   min: 200,  max: 800,  phase: 'all_live',  target: 'Aug–Sep 2026',  note: '4-platform VLAT active — diversified & resilient' },
+    { id: 4, months: '4–5',   label: 'Juicebox + QCT Launch',      min: 800,  max: 1500, phase: 'juicebox',  target: 'Sep–Oct 2026',  note: 'QCT Juicebox cycle, cross-chain capital deployed' },
+    { id: 5, months: '5–6',   label: 'VLAT Optimization',          min: 1500, max: 2500, phase: 'optimize',  target: 'Oct–Nov 2026',  note: 'AI fee routing, auto-rebalance to highest VLAT score' },
+    { id: 6, months: '7',     label: 'Revenue Peak — QUIT JOB 🤜', min: 3000, max: 5000, phase: 'freedom',   target: 'Dec 2026',      note: '$3,838–5,538/mo confirmed — exit employment' }
 ];
 
 class VLATEngine {
@@ -148,17 +152,18 @@ class VLATEngine {
         return entry;
     }
 
-    // Current phase based on months elapsed since PinkSale launch
+    // Current phase based on months elapsed since PinkSale launch (Jun 26 2026)
+    // VLAT multi-platform compresses 18-month single-platform timeline to 7 months
     currentPhase() {
         const now           = new Date();
         const msElapsed     = now - this.startDate;
-        const monthsElapsed = Math.max(0, Math.floor(msElapsed / (1000 * 60 * 60 * 24 * 30)));
-        if (monthsElapsed < 3)  return { ...REVENUE_PHASES[0], monthsElapsed };
-        if (monthsElapsed < 6)  return { ...REVENUE_PHASES[1], monthsElapsed };
-        if (monthsElapsed < 9)  return { ...REVENUE_PHASES[2], monthsElapsed };
-        if (monthsElapsed < 12) return { ...REVENUE_PHASES[3], monthsElapsed };
-        if (monthsElapsed < 15) return { ...REVENUE_PHASES[4], monthsElapsed };
-        return { ...REVENUE_PHASES[5], monthsElapsed };
+        const monthsElapsed = Math.max(0, msElapsed / (1000 * 60 * 60 * 24 * 30));
+        if (monthsElapsed < 1)  return { ...REVENUE_PHASES[0], monthsElapsed };  // Phase 1: Build + Audit
+        if (monthsElapsed < 2)  return { ...REVENUE_PHASES[1], monthsElapsed };  // Phase 2: HL + Aster live
+        if (monthsElapsed < 4)  return { ...REVENUE_PHASES[2], monthsElapsed };  // Phase 3: All 4 platforms live
+        if (monthsElapsed < 5)  return { ...REVENUE_PHASES[3], monthsElapsed };  // Phase 4: Juicebox + QCT
+        if (monthsElapsed < 6)  return { ...REVENUE_PHASES[4], monthsElapsed };  // Phase 5: VLAT Optimization
+        return { ...REVENUE_PHASES[5], monthsElapsed };                           // Phase 6: Revenue Peak — QUIT JOB
     }
 
     // Receive live market data from PlatformFeedService (called every 5 min)
