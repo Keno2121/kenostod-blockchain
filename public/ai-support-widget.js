@@ -297,17 +297,17 @@ class AISupportWidget {
                         <p style="margin: 0; line-height: 1.6;">I'm here to help you with any questions about Kenostod Blockchain Academy, wallets, transactions, mining, or the ICO!</p>
                         
                         <div class="ai-quick-questions">
+                            <button class="ai-quick-question-btn" data-question="How do I join the KENO presale on June 26?">
+                                🔥 How do I join the KENO presale?
+                            </button>
+                            <button class="ai-quick-question-btn" data-question="What is The Sovereign Economy?">
+                                👑 What is The Sovereign Economy?
+                            </button>
                             <button class="ai-quick-question-btn" data-question="How do I create a wallet?">
                                 💼 How do I create a wallet?
                             </button>
-                            <button class="ai-quick-question-btn" data-question="How can I buy KENO tokens?">
-                                🪙 How can I buy KENO tokens?
-                            </button>
-                            <button class="ai-quick-question-btn" data-question="What is the ICO Private Sale?">
-                                🔥 What is the ICO Private Sale?
-                            </button>
-                            <button class="ai-quick-question-btn" data-question="How does transaction reversal work?">
-                                ↩️ How does transaction reversal work?
+                            <button class="ai-quick-question-btn" data-question="What is Kings Shield and the SHIELD token?">
+                                🛡️ What is Kings Shield?
                             </button>
                         </div>
                     </div>
