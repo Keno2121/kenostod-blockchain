@@ -1,6 +1,6 @@
 const BSC_CHAIN_ID = '0x38';
 const BSC_RPC_URL = 'https://bsc-dataseed.binance.org/';
-const KENO_TOKEN_ADDRESS = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+const KENO_TOKEN_ADDRESS = '0x48bb049afe50b050b458624dc6233acd51024ab4';
 const PRESALE_CONTRACT_ADDRESS = '0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0';
 
 let web3Provider = null;
