@@ -113,7 +113,8 @@ Where learning ends and earning begins — there is no line.
 👑 <b>QCT</b> — Queens Chariot multi-chain DEX
 
 📚 <b>The Academy has 21 FREE courses.</b>
-Graduate all 21 → earn <b>5,250 KENO</b> in rewards.
+You don't pay to learn. <b>Learning pays YOU.</b>
+Complete all 21 → earn <b>5,250 KENO</b> in rewards.
 
 👉 Start your first lesson free: ${WEBSITE}
 
@@ -149,10 +150,10 @@ bot.onText(/\/courses/, async (msg) => {
   const text =
 `📚 <b>The Sovereign Economy Academy</b>
 
-21 courses. All FREE right now.
-After presale, access requires KENO.
+21 courses. All FREE — always.
+You don't pay to learn. <b>Learning pays YOU.</b>
 
-🎓 Complete all 21 → earn <b>5,250 KENO</b>
+🎓 Complete all 21 → earn <b>5,250 KENO</b> in rewards
 
 <b>Today's spotlight — Course ${c.num}: ${c.title}</b>
 <i>${c.teaser}</i>
