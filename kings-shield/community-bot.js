@@ -14,7 +14,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 
 const TOKEN   = process.env.KINGS_SHIELD_BOT_TOKEN;
-const CHAT_ID = process.env.SHIELD_ALERT_CHAT_ID;
+const CHAT_ID = process.env.COMMUNITY_CHAT_ID;
 
 if (!TOKEN) {
   console.error('❌  KINGS_SHIELD_BOT_TOKEN not set. Bot cannot start.');
@@ -128,6 +128,14 @@ Type /courses · /presale · /liquidity · /about`;
 });
 
 // ─── Commands ──────────────────────────────────────────────────────────────
+bot.onText(/\/chatid/, async (msg) => {
+  try {
+    await send(msg.chat.id, `Chat ID: <code>${msg.chat.id}</code>\nAdd this as COMMUNITY_CHAT_ID in your environment secrets.`);
+  } catch (e) {
+    console.error('/chatid:', e.message);
+  }
+});
+
 bot.onText(/\/presale/, async (msg) => {
   const text =
 `🟡 <b>KENO Presale</b>
