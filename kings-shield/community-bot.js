@@ -128,11 +128,14 @@ Type /courses · /presale · /liquidity · /about`;
 });
 
 // ─── Commands ──────────────────────────────────────────────────────────────
-bot.onText(/\/chatid/, async (msg) => {
-  try {
-    await send(msg.chat.id, `Chat ID: <code>${msg.chat.id}</code>\nAdd this as COMMUNITY_CHAT_ID in your environment secrets.`);
-  } catch (e) {
-    console.error('/chatid:', e.message);
+bot.on('message', async (msg) => {
+  console.log(`📨 Message from chat: ${msg.chat.id} (${msg.chat.type}) "${msg.chat.title || msg.chat.username || 'private'}"`);
+  if (msg.text && msg.text.toLowerCase().includes('chatid')) {
+    try {
+      await send(msg.chat.id, `Chat ID: <code>${msg.chat.id}</code>\nTitle: ${msg.chat.title || 'private'}`);
+    } catch (e) {
+      console.error('chatid reply failed:', e.message);
+    }
   }
 });
 
