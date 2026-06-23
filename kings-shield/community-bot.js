@@ -319,7 +319,7 @@ function msUntilHourUTC(hourUTC) {
 
 function scheduleDailyPosts() {
   if (!CHAT_ID) {
-    console.log('⚠️  SHIELD_ALERT_CHAT_ID not set — daily posts disabled.');
+    console.log('⚠️  COMMUNITY_CHAT_ID not set — daily posts disabled.');
     return;
   }
 
