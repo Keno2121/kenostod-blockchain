@@ -332,10 +332,14 @@ function scheduleDailyPosts() {
   const missedEvening = nowUTC >= 18;
 
   if (missedMorning && !missedEvening) {
-    console.log('📢 Sending missed morning post now...');
-    send(CHAT_ID, buildMorningPost())
-      .then(() => console.log('✅ Missed morning post sent'))
-      .catch(e => console.error('Missed morning post failed:', e.message));
+    if (alreadySentToday('morning')) {
+      console.log('⏭  Morning post already sent today — skipping (restart guard)');
+    } else {
+      console.log('📢 Sending missed morning post now...');
+      send(CHAT_ID, buildMorningPost())
+        .then(() => { markSentToday('morning'); console.log('✅ Missed morning post sent'); })
+        .catch(e => console.error('Missed morning post failed:', e.message));
+    }
   }
 
   if (missedEvening) {
@@ -343,11 +347,12 @@ function scheduleDailyPosts() {
   }
 
   function scheduleLoop(hourUTC, buildFn, label) {
+    const flagKey = label.toLowerCase();
     const delay = msUntilHourUTC(hourUTC);
     console.log(`⏰  ${label} post in ${Math.round(delay / 60000)} min`);
     setTimeout(function tick() {
       send(CHAT_ID, buildFn())
-        .then(() => console.log(`📢 ${label} post sent`))
+        .then(() => { markSentToday(flagKey); console.log(`📢 ${label} post sent`); })
         .catch(e => console.error(`${label} post failed:`, e.message));
       setTimeout(tick, msUntilHourUTC(hourUTC));
     }, delay);
@@ -357,9 +362,35 @@ function scheduleDailyPosts() {
   scheduleLoop(18, buildEveningPost, 'Evening');
 }
 
+// ─── Dedup guard — one post per type per UTC day ───────────────────────────
+const fs = require('fs');
+const SENT_FLAG_FILE = '/tmp/ks-bot-sent-flags.json';
+
+function todayUTCKey() {
+  return new Date().toISOString().slice(0, 10); // "2026-06-24"
+}
+
+function alreadySentToday(key) {
+  try {
+    const flags = JSON.parse(fs.readFileSync(SENT_FLAG_FILE, 'utf8'));
+    return flags[key] === todayUTCKey();
+  } catch { return false; }
+}
+
+function markSentToday(key) {
+  let flags = {};
+  try { flags = JSON.parse(fs.readFileSync(SENT_FLAG_FILE, 'utf8')); } catch {}
+  flags[key] = todayUTCKey();
+  try { fs.writeFileSync(SENT_FLAG_FILE, JSON.stringify(flags)); } catch {}
+}
+
 // ─── Startup announcement ──────────────────────────────────────────────────
 async function sendStartupPost() {
   if (!CHAT_ID) return;
+  if (alreadySentToday('startup')) {
+    console.log('⏭  Startup post already sent today — skipping (restart guard)');
+    return;
+  }
   const c = todayCourse();
   const text =
 `👑 <b>Sovereign Economy — Daily Update</b>
@@ -379,6 +410,7 @@ Where Learning ends and Earning begins.</i>`;
 
   try {
     await send(CHAT_ID, text);
+    markSentToday('startup');
     console.log('✅ Startup post sent to group');
   } catch (e) {
     console.error('Startup post failed:', e.message);
