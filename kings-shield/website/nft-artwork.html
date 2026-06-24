@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NFT Artwork | Sovereign Trinity | The King's Shield</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/style.css"/>
+  <style>
+    .art-concept {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    .art-visual {
+      height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .art-visual-keno {
+      background: radial-gradient(ellipse at 30% 50%, rgba(200,146,10,0.3), transparent 60%),
+                  radial-gradient(ellipse at 70% 50%, rgba(100,200,10,0.1), transparent 60%),
+                  #080705;
+    }
+    .art-visual-chariot {
+      background: radial-gradient(ellipse at 40% 30%, rgba(120,60,220,0.3), transparent 60%),
+                  radial-gradient(ellipse at 60% 70%, rgba(200,146,10,0.2), transparent 60%),
+                  #080705;
+    }
+    .art-visual-aegis {
+      background: radial-gradient(ellipse at 50% 40%, rgba(0,200,150,0.2), transparent 60%),
+                  radial-gradient(ellipse at 50% 80%, rgba(200,100,0,0.2), transparent 50%),
+                  #080705;
+    }
+    .art-grid-overlay {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(200,146,10,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,146,10,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .art-main-icon {
+      font-size: 7rem;
+      position: relative; z-index: 2;
+      filter: drop-shadow(0 0 30px rgba(245,200,66,0.4));
+      animation: artFloat 3s ease-in-out infinite;
+    }
+    @keyframes artFloat {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    .art-math-overlay {
+      position: absolute; bottom: 16px; right: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: rgba(245,200,66,0.3);
+      text-align: right;
+      line-height: 1.6;
+      z-index: 2;
+    }
+    .art-body { padding: 32px; }
+    .art-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .art-name { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 700; color: var(--gold-light); margin-bottom: 4px; }
+    .art-type { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase; }
+    .art-supply { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--gold-light); text-align: right; }
+    .art-supply-label { font-size: 0.6rem; letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase; margin-top: 2px; }
+    .art-concept-text {
+      font-size: 0.88rem;
+      color: rgba(232,224,208,0.7);
+      line-height: 1.75;
+      margin-bottom: 24px;
+    }
+    .art-math-encoding {
+      background: rgba(200,146,10,0.05);
+      border-left: 3px solid var(--gold);
+      padding: 16px 20px;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 24px;
+    }
+    .art-math-encoding-title {
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .art-math-encoding-body {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      line-height: 1.65;
+    }
+    .prompt-box {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(245,200,66,0.15);
+      border-radius: 4px;
+      padding: 20px;
+    }
+    .prompt-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .prompt-text {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: rgba(232,224,208,0.6);
+      line-height: 1.7;
+    }
+    .copy-btn {
+      font-family: var(--font-serif);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      background: transparent;
+      border: 1px solid rgba(200,146,10,0.3);
+      border-radius: 2px;
+      padding: 4px 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: rgba(200,146,10,0.1); }
+
+    /* Style guide section */
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .style-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      text-align: center;
+    }
+    .style-swatch {
+      width: 48px; height: 48px; border-radius: 50%;
+      margin: 0 auto 12px;
+    }
+    .style-name {
+      font-family: var(--font-serif);
+      font-size: 0.75rem;
+      color: var(--gold-light);
+      margin-bottom: 4px;
+    }
+    .style-desc {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* Vote section */
+    .vote-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .vote-title {
+      font-family: var(--font-serif);
+      font-size: 0.9rem;
+      color: var(--gold-light);
+      margin-bottom: 4px;
+    }
+    .vote-sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 16px; }
+    .vote-options { display: flex; flex-direction: column; gap: 8px; }
+    .vote-option {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(200,146,10,0.04);
+      border: 1px solid rgba(200,146,10,0.12);
+      border-radius: 4px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .vote-option:hover { background: rgba(200,146,10,0.1); border-color: rgba(200,146,10,0.3); }
+    .vote-option.voted { background: rgba(200,146,10,0.15); border-color: rgba(245,200,66,0.4); }
+    .vote-bar-wrap { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+    .vote-bar { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.5s ease; }
+    .vote-pct { font-family: var(--font-mono); font-size: 0.72rem; color: var(--gold); min-width: 36px; text-align: right; }
+    .vote-label { font-size: 0.78rem; color: var(--text); min-width: 120px; }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<nav id="navbar" class="scrolled">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;">
+        <div class="shield-icon-small">⚔</div>
+        <span>KINGS SHIELD</span>
+      </a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/#story">THE STORY</a></li>
+      <li><a href="/#convergence">6174</a></li>
+      <li><a href="/trinity-mint.html" class="nav-trinity">TRINITY NFT</a></li>
+      <li><a href="/nft-artwork.html">NFT ART</a></li>
+      <li><a href="/sovereign-throne.html">7 HOUSES</a></li>
+      <li><a href="/chariot-gate.html" class="nav-chariot">🐎 GATE</a></li>
+      <li><a href="https://kenostodblockchain.com" target="_blank" rel="noopener" class="nav-keno">KENO SITE ↗</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="/">HOME</a>
+    <a href="/trinity-mint.html">🪙 TRINITY NFT</a>
+    <a href="/nft-artwork.html">🎨 NFT ARTWORK</a>
+    <a href="/sovereign-throne.html">👑 7 HOUSES</a>
+    <a href="/chariot-gate.html">🐎 CHARIOT GATE</a>
+    <a href="https://kenostodblockchain.com" target="_blank" rel="noopener">KENO SITE ↗</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-eyebrow">AI-Generated · Mathematical Art · DALL-E 3</div>
+  <h1 class="page-title">The Art of the<br/>Sovereign Trinity</h1>
+  <p class="page-sub">Each NFT's artwork is generated from the actual mathematical laws embedded in the code. Kaprekar spirals. Golden Ratio proportions. Ramanujan's taxi-cab geometry. The math IS the art.</p>
+  <div style="background:rgba(200,146,10,0.08);border:1px solid rgba(200,146,10,0.2);border-radius:4px;padding:12px 20px;display:inline-block;font-size:0.78rem;color:rgba(232,224,208,0.6);margin-top:8px;">
+    ✦ When OpenAI credits arrive: 10–20 variations per NFT generated → community votes on the final → mint begins. ~$0.04/image.
+  </div>
+</div>
+
+<!-- ART CONCEPTS -->
+<div class="ks-section" style="padding-top:0;">
+  <div class="ks-section-inner">
+
+    <!-- KENO Genesis Art -->
+    <div class="art-concept" data-reveal>
+      <div class="art-visual art-visual-keno">
+        <div class="art-grid-overlay"></div>
+        <div class="art-main-icon">🪙</div>
+        <div class="art-math-overlay">
+          φ = 1.618...<br/>6174<br/>e = 2.718...
+        </div>
+      </div>
+      <div class="art-body">
+        <div class="art-header">
+          <div>
+            <div class="art-name">KENO Genesis NFT</div>
+            <div class="art-type">Foundation Tier · BSC · Kaprekar's 6174</div>
+          </div>
+          <div>
+            <div class="art-supply">6,174</div>
+            <div class="art-supply-label">Supply</div>
+          </div>
+        </div>
+        <div class="art-concept-text">
+          A golden seed cracking open a bank vault — mathematical equations flowing out like luminous roots against obsidian black. The root system becomes financial circuitry: Kaprekar spirals branch outward, Golden Ratio arms extend in φ proportions, Euler curves trace compound growth. African earth tones blend with digital gold. The vault cracks from within — wealth flowing outward, not upward.
+        </div>
+        <div class="art-math-encoding">
+          <div class="art-math-encoding-title">Mathematical Encoding in the Art</div>
+          <div class="art-math-encoding-body">
+            • <strong style="color:var(--text);">Kaprekar spiral</strong> — the root system forms a convergence spiral rooted at 6174<br/>
+            • <strong style="color:var(--text);">Golden Ratio proportions</strong> — the vault dimensions, branch angles, and light rays all follow φ = 1.618...<br/>
+            • <strong style="color:var(--text);">Euler compound curves</strong> — the luminous roots trace e^(rt) growth from the seed<br/>
+            • <strong style="color:var(--text);">Benford distribution</strong> — the digit frequency of the root lengths follows Benford's Law
+          </div>
+        </div>
+        <div class="prompt-box">
+          <div class="prompt-label">
+            <span>DALL-E 3 Master Prompt</span>
+            <button class="copy-btn" onclick="copyPrompt('keno')">Copy</button>
+          </div>
+          <div class="prompt-text" id="prompt-keno">A golden seed cracking open an ancient bank vault, with glowing mathematical equations — Kaprekar's 6174 convergence spiral, Golden Ratio φ=1.618 branching arms, Euler's e compound curves — flowing out like luminous roots against obsidian black. The roots form an intricate root system becoming financial circuitry. African earth tones warm the gold. The vault is cracking from within — wealth exploding outward, not upward. Cinematic lighting from within. Ultra-detailed. 8K. Regal. Sovereign.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queens Chariot Art -->
+    <div class="art-concept" data-reveal>
+      <div class="art-visual art-visual-chariot">
+        <div class="art-grid-overlay"></div>
+        <div class="art-main-icon">🐎</div>
+        <div class="art-math-overlay">
+          1729<br/>1³+12³<br/>9³+10³
+        </div>
+      </div>
+      <div class="art-body">
+        <div class="art-header">
+          <div>
+            <div class="art-name">Queens Chariot Ascension NFT</div>
+            <div class="art-type">Movement Tier · Base Chain · Ramanujan's 1729</div>
+          </div>
+          <div>
+            <div class="art-supply">1,729</div>
+            <div class="art-supply-label">Supply</div>
+          </div>
+        </div>
+        <div class="art-concept-text">
+          A regal war chariot made entirely of golden circuit boards and glowing blockchain nodes, pulled by two spectral horses with manes of golden fire. The chariot rides across a bridge of blockchain transactions between two cities of light — one African-inspired with BSC golds, one futuristic with Base blues. The chariot door bears a wallet address in ancient script. Ramanujan's equation 1729 = 1³+12³ = 9³+10³ is encoded in the wheel spokes.
+        </div>
+        <div class="art-math-encoding">
+          <div class="art-math-encoding-title">Mathematical Encoding in the Art</div>
+          <div class="art-math-encoding-body">
+            • <strong style="color:var(--text);">Ramanujan's 1729</strong> — the wheel spokes encode 1³+12³ and 9³+10³ as geometric patterns<br/>
+            • <strong style="color:var(--text);">The two cubic decompositions</strong> — the two cities represent the two ways 1729 can be expressed<br/>
+            • <strong style="color:var(--text);">Bridge topology</strong> — the blockchain bridge follows Nash equilibrium path geometry<br/>
+            • <strong style="color:var(--text);">Golden circuit boards</strong> — trace paths follow Kaprekar convergence routes
+          </div>
+        </div>
+        <div class="prompt-box">
+          <div class="prompt-label">
+            <span>DALL-E 3 Master Prompt</span>
+            <button class="copy-btn" onclick="copyPrompt('chariot')">Copy</button>
+          </div>
+          <div class="prompt-text" id="prompt-chariot">A regal war chariot made entirely of golden circuit boards and glowing blockchain nodes, pulled by two spectral horses with manes of golden fire, riding across a luminous bridge of blockchain transaction data between two cities of light — one ancient African kingdom in gold, one futuristic blockchain city in electric blue. The chariot door crest bears a wallet address in ancient runes. The wheel spokes encode Ramanujan's equation 1³+12³=9³+10³=1729 as geometric star patterns. Epic scale. Cinematic. Cross-chain journey. 8K. Sovereign. Mathematical beauty.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kings Shield Aegis Art -->
+    <div class="art-concept" data-reveal>
+      <div class="art-visual art-visual-aegis">
+        <div class="art-grid-overlay"></div>
+        <div class="art-main-icon">⚔️</div>
+        <div class="art-math-overlay">
+          7 Laws<br/>6174<br/>617 NFTs
+        </div>
+      </div>
+      <div class="art-body">
+        <div class="art-header">
+          <div>
+            <div class="art-name">Kings Shield Aegis NFT</div>
+            <div class="art-type">Protection Tier · Solana · The 7 Laws</div>
+          </div>
+          <div>
+            <div class="art-supply">617</div>
+            <div class="art-supply-label">Supply · Rarest</div>
+          </div>
+        </div>
+        <div class="art-concept-text">
+          A blazing golden shield held by an armored figure standing at the exact boundary between shadow and light — shadow representing financial exclusion, poverty, the old system; light representing sovereignty, wealth, mathematical order. The 7 Constitutional Laws are etched into the shield face as glowing runes: Kaprekar's 6174, the Golden Ratio φ, Euler's e, Ramanujan's 1729, Nash equilibrium curves, Benford distribution, the Inversion Principle.
+        </div>
+        <div class="art-math-encoding">
+          <div class="art-math-encoding-title">Mathematical Encoding in the Art</div>
+          <div class="art-math-encoding-body">
+            • <strong style="color:var(--text);">7 runes on the shield face</strong> — each the visual representation of one Constitutional Law<br/>
+            • <strong style="color:var(--text);">Shield geometry</strong> — proportions built on Golden Ratio φ = 1.618...<br/>
+            • <strong style="color:var(--text);">The boundary line</strong> — Kaprekar convergence — shadow and light meet at the fixed point<br/>
+            • <strong style="color:var(--text);">Forcefield arc</strong> — follows Euler's e^(rt) expansion from the shield center outward
+          </div>
+        </div>
+        <div class="prompt-box">
+          <div class="prompt-label">
+            <span>DALL-E 3 Master Prompt</span>
+            <button class="copy-btn" onclick="copyPrompt('aegis')">Copy</button>
+          </div>
+          <div class="prompt-text" id="prompt-aegis">A blazing golden shield held by an armored figure standing at the boundary between shadow (poverty, exclusion, broken systems) and light (financial sovereignty, mathematical order). The 7 Constitutional Laws — Kaprekar's 6174, Golden Ratio φ, Euler's e, Ramanujan's 1729, Nash equilibrium, Benford's Law, Inversion Principle — are etched into the shield face as glowing ancient runes. A protective golden forcefield emanates from the shield. African regal aesthetic. Epic scale. The armored figure faces the shadow but stands unshaken. 8K. Cinematic. Sovereign.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COMMUNITY VOTE -->
+<div class="ks-section ks-section-dark">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:40px;">
+      <div class="ks-tag">Community Vote</div>
+      <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);">Vote on the <span class="gold">Art Direction</span></h2>
+      <p style="font-size:0.85rem;color:var(--text-dim);max-width:480px;margin:12px auto 0;">When credits arrive, we generate variations. You vote on the final. The community decides what goes on-chain forever.</p>
+    </div>
+    <div class="ks-grid-3">
+      <div class="vote-panel" data-reveal>
+        <div class="vote-title">🪙 KENO Genesis Style</div>
+        <div class="vote-sub">Which visual direction for the seed NFT?</div>
+        <div class="vote-options" id="vote-keno">
+          <div class="vote-option" onclick="vote('keno',0)">
+            <span class="vote-label">Organic golden roots</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:62%"></div></div>
+            <span class="vote-pct">62%</span>
+          </div>
+          <div class="vote-option" onclick="vote('keno',1)">
+            <span class="vote-label">Circuit board vault</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:24%"></div></div>
+            <span class="vote-pct">24%</span>
+          </div>
+          <div class="vote-option" onclick="vote('keno',2)">
+            <span class="vote-label">Abstract math spiral</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:14%"></div></div>
+            <span class="vote-pct">14%</span>
+          </div>
+        </div>
+      </div>
+      <div class="vote-panel" data-reveal>
+        <div class="vote-title">🐎 Queens Chariot Style</div>
+        <div class="vote-sub">Which visual direction for the chariot?</div>
+        <div class="vote-options" id="vote-chariot">
+          <div class="vote-option" onclick="vote('chariot',0)">
+            <span class="vote-label">Golden fire horses</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:55%"></div></div>
+            <span class="vote-pct">55%</span>
+          </div>
+          <div class="vote-option" onclick="vote('chariot',1)">
+            <span class="vote-label">Circuit board chariot</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:30%"></div></div>
+            <span class="vote-pct">30%</span>
+          </div>
+          <div class="vote-option" onclick="vote('chariot',2)">
+            <span class="vote-label">Ethereal ghost riders</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:15%"></div></div>
+            <span class="vote-pct">15%</span>
+          </div>
+        </div>
+      </div>
+      <div class="vote-panel" data-reveal>
+        <div class="vote-title">⚔️ Aegis Shield Style</div>
+        <div class="vote-sub">Which visual direction for the shield?</div>
+        <div class="vote-options" id="vote-aegis">
+          <div class="vote-option" onclick="vote('aegis',0)">
+            <span class="vote-label">Armored figure holding shield</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:70%"></div></div>
+            <span class="vote-pct">70%</span>
+          </div>
+          <div class="vote-option" onclick="vote('aegis',1)">
+            <span class="vote-label">Floating shield + runes</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:20%"></div></div>
+            <span class="vote-pct">20%</span>
+          </div>
+          <div class="vote-option" onclick="vote('aegis',2)">
+            <span class="vote-label">Abstract law geometry</span>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:10%"></div></div>
+            <span class="vote-pct">10%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ART STYLE GUIDE -->
+<div class="ks-section">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div class="ks-tag">Visual Language</div>
+      <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);">The <span class="gold">Art Style Guide</span></h2>
+      <p style="font-size:0.85rem;color:var(--text-dim);max-width:480px;margin:12px auto 0;">Consistent visual language across all 3 NFTs. The math is visible. The culture is present. The sovereignty is felt.</p>
+    </div>
+    <div class="style-grid">
+      <div class="style-card">
+        <div class="style-swatch" style="background:linear-gradient(135deg,#f5c842,#c8920a);"></div>
+        <div class="style-name">Sovereign Gold</div>
+        <div class="style-desc">Primary accent. Mathematical constants. Wealth flowing downward.</div>
+      </div>
+      <div class="style-card">
+        <div class="style-swatch" style="background:#080705;border:1px solid rgba(200,146,10,0.2);"></div>
+        <div class="style-name">Obsidian Black</div>
+        <div class="style-desc">Background. The void before sovereignty. The system that excluded.</div>
+      </div>
+      <div class="style-card">
+        <div class="style-swatch" style="background:linear-gradient(135deg,#8b3500,#e06000);"></div>
+        <div class="style-name">African Earth</div>
+        <div class="style-desc">Cultural roots. The people this was built for. Warm terracotta and burnt sienna.</div>
+      </div>
+      <div class="style-card">
+        <div class="style-swatch" style="background:linear-gradient(135deg,#00ff88,#00bfff);"></div>
+        <div class="style-name">Protocol Glow</div>
+        <div class="style-desc">On-chain activity. Blockchain nodes. Mathematical energy.</div>
+      </div>
+      <div class="style-card">
+        <div class="style-swatch" style="background:radial-gradient(ellipse,rgba(200,146,10,0.4),transparent);"></div>
+        <div class="style-name">Kaprekar Radiance</div>
+        <div class="style-desc">The 6174 convergence — concentric glows that all point to the center.</div>
+      </div>
+      <div class="style-card">
+        <div class="style-swatch" style="background:linear-gradient(135deg,#1a0a3e,#4a1a8a);"></div>
+        <div class="style-name">Ramanujan Violet</div>
+        <div class="style-desc">Queens Chariot accent. The self-taught genius. Mathematical mystery.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="ks-section ks-section-dark" style="text-align:center;">
+  <div class="ks-section-inner" style="max-width:600px;margin:0 auto;">
+    <div class="ks-tag">Next Step</div>
+    <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);margin-bottom:12px;">Ready to <span class="gold">Mint?</span></h2>
+    <p style="font-size:0.88rem;color:var(--text-dim);margin-bottom:32px;line-height:1.7;">When credits arrive the art gets generated, the community votes, and the mint goes live. Get notified first.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="/trinity-mint.html" class="ks-btn-primary">View Mint Page</a>
+      <a href="/sovereign-throne.html" class="ks-btn-ghost">See the 7 Houses</a>
+    </div>
+  </div>
+</div>
+
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-shield">⚔</div>
+      <div class="footer-name">THE KINGS SHIELD</div>
+      <div class="footer-sub">Sovereign Trinity NFT Art · DALL-E 3 · Mathematical</div>
+    </div>
+    <div class="footer-links">
+      <a href="/">Kings Shield Home</a>
+      <a href="/trinity-mint.html">Mint NFTs</a>
+      <a href="/sovereign-throne.html">7 Houses</a>
+      <a href="/chariot-gate.html">Chariot Gate</a>
+      <a href="https://kenostodblockchain.com" target="_blank" rel="noopener">Kenostod Academy</a>
+    </div>
+    <div class="footer-kaprekar">Kaprekar's Constant: 6174 · All paths converge · © 2026 Kenostod Blockchain Academy LLC</div>
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+<script>
+  const prompts = {
+    keno: document.getElementById('prompt-keno')?.textContent,
+    chariot: document.getElementById('prompt-chariot')?.textContent,
+    aegis: document.getElementById('prompt-aegis')?.textContent
+  };
+  function copyPrompt(id) {
+    const text = document.getElementById('prompt-' + id)?.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('✅ DALL-E prompt copied to clipboard!');
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      alert('✅ Prompt copied!');
+    });
+  }
+  const votes = { keno: [62,24,14], chariot: [55,30,15], aegis: [70,20,10] };
+  function vote(nft, optIdx) {
+    votes[nft][optIdx] += 1;
+    const total = votes[nft].reduce((a,b) => a+b, 0);
+    const container = document.getElementById('vote-' + nft);
+    const options = container.querySelectorAll('.vote-option');
+    options.forEach((opt, i) => {
+      const pct = Math.round((votes[nft][i] / total) * 100);
+      opt.querySelector('.vote-bar').style.width = pct + '%';
+      opt.querySelector('.vote-pct').textContent = pct + '%';
+      opt.classList.toggle('voted', i === optIdx);
+    });
+  }
+</script>
+</body>
+</html>

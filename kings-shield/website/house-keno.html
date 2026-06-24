@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>House of KENO | 7 Houses of Royals | The King's Shield</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/style.css"/>
+  <style>
+    .house-accent { --accent: #c8920a; --accent-light: #f5c842; --accent-glow: rgba(200,146,10,0.2); }
+    .house-hero { padding: 130px 24px 60px; text-align: center; position: relative; z-index: 2; }
+    .house-hero-icon { font-size: 5rem; margin-bottom: 20px; filter: drop-shadow(0 0 24px var(--accent-glow)); }
+    .house-breadcrumb { font-family: var(--font-serif); font-size: 0.6rem; letter-spacing: 0.25em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 16px; }
+    .house-breadcrumb a { color: var(--gold); text-decoration: none; }
+    .house-breadcrumb a:hover { text-decoration: underline; }
+    .house-title { font-family: 'Cinzel Decorative', serif; font-size: clamp(1.8rem,5vw,3rem); color: var(--gold-light); margin-bottom: 8px; text-shadow: 0 0 30px rgba(245,200,66,0.3); }
+    .house-type-label { font-family: var(--font-serif); font-size: 0.7rem; letter-spacing: 0.25em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 20px; }
+    .house-tagline { font-size: 1rem; color: rgba(232,224,208,0.6); max-width: 580px; margin: 0 auto; line-height: 1.75; }
+    .earn-bar {
+      max-width: 820px; margin: 0 auto 60px; padding: 0 24px;
+      position: relative; z-index: 2;
+    }
+    .earn-bar-inner {
+      background: linear-gradient(135deg, rgba(200,146,10,0.1), rgba(200,146,10,0.04));
+      border: 1px solid rgba(200,146,10,0.3); border-radius: 6px;
+      padding: 28px 36px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+    .earn-item { text-align: center; }
+    .earn-val { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; color: var(--gold-light); }
+    .earn-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+    .earn-sub { font-size: 0.72rem; color: rgba(232,224,208,0.4); margin-top: 2px; }
+    .stream-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 28px; }
+    .stream-icon { font-size: 2rem; margin-bottom: 12px; }
+    .stream-name { font-family: var(--font-serif); font-size: 0.9rem; color: var(--gold-light); margin-bottom: 6px; }
+    .stream-desc { font-size: 0.82rem; color: rgba(232,224,208,0.6); line-height: 1.65; }
+    .stream-rate { font-family: var(--font-mono); font-size: 0.85rem; color: var(--green); margin-top: 10px; }
+    .law-card { background: rgba(200,146,10,0.04); border: 1px solid rgba(200,146,10,0.15); border-radius: 4px; padding: 20px; }
+    .law-num { font-family: var(--font-mono); font-size: 0.65rem; color: var(--gold); margin-bottom: 6px; }
+    .law-name { font-family: var(--font-serif); font-size: 0.85rem; color: var(--text); margin-bottom: 6px; }
+    .law-effect { font-size: 0.78rem; color: var(--text-dim); line-height: 1.6; }
+    .milestone-row { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+    .milestone { flex: 1; min-width: 140px; padding: 20px 16px; text-align: center; border-right: 1px solid var(--border); }
+    .milestone:last-child { border-right: none; }
+    .milestone-capital { font-family: var(--font-mono); font-size: 1rem; color: var(--gold-light); font-weight: 700; }
+    .milestone-income { font-size: 0.75rem; color: var(--green); margin: 4px 0; }
+    .milestone-label { font-size: 0.62rem; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; }
+    .milestone.active { background: rgba(200,146,10,0.06); }
+    .milestone-arrow { width: 4px; background: rgba(200,146,10,0.15); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 0.7rem; }
+  </style>
+</head>
+<body class="house-accent">
+<canvas id="bg-canvas"></canvas>
+
+<nav id="navbar" class="scrolled">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;">
+        <div class="shield-icon-small">⚔</div>
+        <span>KINGS SHIELD</span>
+      </a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/#story">THE STORY</a></li>
+      <li><a href="/trinity-mint.html" class="nav-trinity">TRINITY NFT</a></li>
+      <li><a href="/nft-artwork.html">NFT ART</a></li>
+      <li><a href="/sovereign-throne.html">7 HOUSES</a></li>
+      <li><a href="/chariot-gate.html" class="nav-chariot">🐎 GATE</a></li>
+      <li><a href="https://kenostodblockchain.com" target="_blank" rel="noopener" class="nav-keno">KENO SITE ↗</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="/">HOME</a>
+    <a href="/trinity-mint.html">🪙 TRINITY NFT</a>
+    <a href="/sovereign-throne.html">👑 7 HOUSES</a>
+    <a href="/chariot-gate.html">🐎 CHARIOT GATE</a>
+    <a href="https://kenostodblockchain.com" target="_blank" rel="noopener">KENO SITE ↗</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="house-hero">
+  <div class="house-breadcrumb"><a href="/sovereign-throne.html">7 Houses of Royals</a> → House of KENO</div>
+  <div class="house-hero-icon">🪙</div>
+  <div class="ks-badge ks-badge-live" style="margin-bottom:16px;">LIVE ON BSC</div>
+  <h1 class="house-title">House of KENO</h1>
+  <div class="house-type-label">The Engine House · KENO Genesis NFT · BSC · 6,174 Supply</div>
+  <p class="house-tagline">The mathematical foundation of the Sovereign Economy. KENO arbitrage runs 24/7. Bonding curves compound every second. Kaprekar's 6174 governs every distribution. The engine never stops.</p>
+</div>
+
+<!-- EARN BAR -->
+<div class="earn-bar">
+  <div class="earn-bar-inner">
+    <div class="earn-item">
+      <div class="earn-val">~$30–60</div>
+      <div class="earn-label">Starting Income/Month</div>
+      <div class="earn-sub">From $500 bot capital</div>
+    </div>
+    <div class="earn-item">
+      <div class="earn-val">Continuous</div>
+      <div class="earn-label">Compounding Rate</div>
+      <div class="earn-sub">Euler's e^(rt) — every second</div>
+    </div>
+    <div class="earn-item">
+      <div class="earn-val">6,174</div>
+      <div class="earn-label">Max NFT Holders</div>
+      <div class="earn-sub">Rooted in Kaprekar's Constant</div>
+    </div>
+    <div class="earn-item">
+      <div class="earn-val">$3,000/mo</div>
+      <div class="earn-label">Freedom Target</div>
+      <div class="earn-sub">At $40k bot capital (Milestone 4)</div>
+    </div>
+  </div>
+</div>
+
+<!-- REVENUE STREAMS -->
+<div class="ks-section ks-section-dark">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div class="ks-tag">How You Earn</div>
+      <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);">House of KENO <span class="gold">Revenue Streams</span></h2>
+    </div>
+    <div class="ks-grid-3">
+      <div class="stream-card">
+        <div class="stream-icon">🤖</div>
+        <div class="stream-name">KENO Arbitrage Bot</div>
+        <div class="stream-desc">The bot runs KENO arb on BSC via PancakeSwap 24/7. Nash equilibrium auto-tunes the trade size. Kaprekar's 60/25/15 split: 60% reinvest → 25% your pocket → 15% KENOAutoBurn. The 25% is yours.</div>
+        <div class="stream-rate">Active · ~$30–$3,000/month (scales with capital)</div>
+      </div>
+      <div class="stream-card">
+        <div class="stream-icon">📈</div>
+        <div class="stream-name">Bonding Curve Spread</div>
+        <div class="stream-desc">Every KENO buy and sell on the bonding curve generates a spread. As volume grows, the spread compounds. Euler's continuous compounding means every second of volume is captured — not just at period close.</div>
+        <div class="stream-rate">Passive · Grows with KENO volume</div>
+      </div>
+      <div class="stream-card">
+        <div class="stream-icon">🔥</div>
+        <div class="stream-name">KENOAutoBurn Pressure</div>
+        <div class="stream-desc">15% of every arb profit buys and burns KENO. This creates constant buy pressure and reduces supply. Your KENO holdings appreciate. Ramanujan's 1729 milestone triggers a one-time bonus when you cross it.</div>
+        <div class="stream-rate">Passive · Supply deflation = price appreciation</div>
+      </div>
+      <div class="stream-card">
+        <div class="stream-icon">⚡</div>
+        <div class="stream-name">UTL Protocol Staking</div>
+        <div class="stream-desc">KENO staked in the UTL FeeCollector earns a share of every transaction fee in the UTL protocol. Currently 10M KENO staked by bot wallet. Nash equilibrium keeps the staker split at 55–65% forever.</div>
+        <div class="stream-rate">Active · USDC fees currently · KENO integration coming</div>
+      </div>
+      <div class="stream-card">
+        <div class="stream-icon">🌊</div>
+        <div class="stream-name">Flash Arbitrage Loans (FAL)</div>
+        <div class="stream-desc">FlashArbLoan2 live on BSC. Capital-free arb using Aave flash loans on pairs around KENO. Each profitable flash loan generates protocol fees. Benford monitoring keeps the pipeline clean.</div>
+        <div class="stream-rate">Active · Contract live on BSC mainnet</div>
+      </div>
+      <div class="stream-card">
+        <div class="stream-icon">🎓</div>
+        <div class="stream-name">Wealth Builder KENO Rewards</div>
+        <div class="stream-desc">Students earn KENO completing courses. Every student who earns KENO becomes a token holder — growing the network, increasing on-chain velocity, generating more volume, feeding more arb profit.</div>
+        <div class="stream-rate">Passive flywheel · More students = more volume = more arb profit</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOT MILESTONE LADDER -->
+<div class="ks-section">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div class="ks-tag">Capital Ladder</div>
+      <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);">The Bot <span class="gold">Milestone Ladder</span></h2>
+      <p style="font-size:0.85rem;color:var(--text-dim);max-width:520px;margin:12px auto 0;">Euler's continuous compounding grows the bot capital. Every arb profit: 60% reinvested, 25% pocket, 15% burn. Time is working.</p>
+    </div>
+    <div class="milestone-row">
+      <div class="milestone active">
+        <div class="milestone-capital">$500</div>
+        <div class="milestone-income">$30–60/mo</div>
+        <div class="milestone-label">Start Here ← Active</div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-capital">$2,000</div>
+        <div class="milestone-income">$120–240/mo</div>
+        <div class="milestone-label">Milestone 2</div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-capital">$10,000</div>
+        <div class="milestone-income">$600–1,200/mo</div>
+        <div class="milestone-label">Milestone 3</div>
+      </div>
+      <div class="milestone">
+        <div class="milestone-capital">$40,000</div>
+        <div class="milestone-income">~$3,000/mo</div>
+        <div class="milestone-label">Financial Freedom</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:0.78rem;color:var(--text-dim);margin-top:16px;">Euler premium: capital grows from $500 → $1,482 by month 6 with continuous 60% reinvestment compounding</p>
+  </div>
+</div>
+
+<!-- 7 LAWS IN KENO -->
+<div class="ks-section ks-section-dark">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div class="ks-tag">Mathematical Foundation</div>
+      <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);">The 7 Laws <span class="gold">Inside KENO</span></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+      <div class="law-card"><div class="law-num">LAW 1 · KAPREKAR</div><div class="law-name">6174 Distribution</div><div class="law-effect">Every arb profit split passes through Kaprekar.absorb(). Dust flows to the participant. No rounding loss ever.</div></div>
+      <div class="law-card"><div class="law-num">LAW 2 · BENFORD</div><div class="law-name">Silent Fraud Detection</div><div class="law-effect">Bot transaction pipeline monitored silently. If someone is front-running the arb, Benford flags it before humans notice.</div></div>
+      <div class="law-card"><div class="law-num">LAW 3 · GOLDEN RATIO</div><div class="law-name">φ Reward Multipliers</div><div class="law-effect">The longer you stake KENO, the closer your APY approaches φ = 1.618. Long-term holders earn 1.47× base rate.</div></div>
+      <div class="law-card"><div class="law-num">LAW 4 · NASH</div><div class="law-name">Equilibrium Auto-Tune</div><div class="law-effect">The protocol auto-tunes so participation is always the dominant strategy. Staker split stays at 55–65% forever.</div></div>
+      <div class="law-card"><div class="law-num">LAW 5 · EULER</div><div class="law-name">Continuous Compounding</div><div class="law-effect">Interest accrues every second via e^(rt). The bot capital reinvestment follows this curve. Time always works for you.</div></div>
+      <div class="law-card"><div class="law-num">LAW 6 · RAMANUJAN</div><div class="law-name">1729 Milestone Bonus</div><div class="law-effect">When your wallet crosses 1729 KENO earned, a silent one-time bonus triggers. Self-taught genius. From poverty. Rewrote everything.</div></div>
+      <div class="law-card"><div class="law-num">LAW 7 · INVERSION</div><div class="law-name">Value Flows Down</div><div class="law-effect">You ARE a participant. Every time the ecosystem grows, your holdings grow with it. You built the machine that pays you.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTRACTS -->
+<div class="ks-section">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div class="ks-tag">Live Contracts</div>
+      <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);">KENO <span class="gold">On-Chain</span></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;">
+      <div class="ks-card">
+        <div class="ks-tag">KENO Token v2 · BSC Mainnet</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);margin:8px 0;word-break:break-all;">0x48bb049afe50b050b458624dc6233acd51024ab4</div>
+        <a href="https://bscscan.com/token/0x48bb049afe50b050b458624dc6233acd51024ab4" target="_blank" rel="noopener" class="ks-btn-ghost" style="font-size:0.72rem;padding:8px 16px;">View on BSCScan ↗</a>
+      </div>
+      <div class="ks-card">
+        <div class="ks-tag">KENO Staking v2 · Active</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);margin:8px 0;word-break:break-all;">0x5e4D6C40B9629C8A4C9bBbBDafE503e0C5D175a4</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);">10M KENO staked · Deployed June 2026</div>
+      </div>
+      <div class="ks-card">
+        <div class="ks-tag">FeeCollector · UTL Protocol</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-dim);margin:8px 0;word-break:break-all;">0xb9489B33Bd9bB835139369b1dD282fB44B2273d8</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);">USDC fees accumulating</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 24px;position:relative;z-index:2;">
+  <a href="/sovereign-throne.html" class="ks-btn-ghost">← Back to 7 Houses</a>
+</div>
+
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><div class="footer-shield">⚔</div><div class="footer-name">THE KINGS SHIELD</div><div class="footer-sub">House of KENO · The Engine House · BSC</div></div>
+    <div class="footer-links">
+      <a href="/">Home</a><a href="/sovereign-throne.html">7 Houses</a><a href="/trinity-mint.html">Mint</a>
+      <a href="https://kenostodblockchain.com" target="_blank" rel="noopener">Kenostod Academy</a>
+    </div>
+    <div class="footer-kaprekar">Kaprekar's Constant: 6174 · © 2026 Kenostod Blockchain Academy LLC</div>
+  </div>
+</footer>
+<script src="/app.js"></script>
+</body>
+</html>
