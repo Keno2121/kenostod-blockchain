@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Sovereign Throne | 7 Houses of Royals</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #f5c842;
+      --gold-dim: #c9a227;
+      --gold-glow: rgba(245,200,66,0.35);
+      --dark: #05050a;
+      --dark2: #0d0d1a;
+      --dark3: #121225;
+    }
+
+    body {
+      background: var(--dark);
+      color: #f0ead6;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+
+    /* ── HEADER ── */
+    .throne-header {
+      position: relative; z-index: 10;
+      text-align: center;
+      padding: 60px 24px 40px;
+      border-bottom: 1px solid rgba(245,200,66,0.12);
+    }
+    .throne-eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.35em;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .throne-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow: 0 0 40px var(--gold-glow), 0 0 80px rgba(245,200,66,0.15);
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .throne-sub {
+      font-size: 0.9rem;
+      color: rgba(240,234,214,0.5);
+      letter-spacing: 0.05em;
+      margin-bottom: 24px;
+    }
+    .wallet-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      border: 1px solid rgba(245,200,66,0.3);
+      border-radius: 2px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--gold-dim);
+      background: rgba(245,200,66,0.05);
+    }
+    .wallet-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    /* ── FOUNDING COUNCIL BANNER ── */
+    .council-banner {
+      position: relative; z-index: 10;
+      margin: 32px auto;
+      max-width: 800px;
+      padding: 0 24px;
+    }
+    .council-inner {
+      background: linear-gradient(135deg, rgba(245,200,66,0.08), rgba(245,200,66,0.03));
+      border: 1px solid rgba(245,200,66,0.25);
+      border-radius: 4px;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .council-icon { font-size: 2.5rem; flex-shrink: 0; }
+    .council-text h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: var(--gold);
+      margin-bottom: 4px;
+      letter-spacing: 0.05em;
+    }
+    .council-text p {
+      font-size: 0.82rem;
+      color: rgba(240,234,214,0.55);
+      line-height: 1.6;
+    }
+    .council-status {
+      margin-left: auto;
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: #00ff88;
+      border: 1px solid rgba(0,255,136,0.3);
+      padding: 6px 14px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    /* ── HOUSES GRID ── */
+    .houses-section {
+      position: relative; z-index: 10;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    .houses-eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--gold-dim);
+      text-align: center;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .houses-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      color: #f0ead6;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .houses-title span { color: var(--gold); }
+    .houses-desc {
+      font-size: 0.85rem;
+      color: rgba(240,234,214,0.45);
+      text-align: center;
+      max-width: 500px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+    }
+
+    .houses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .house-card {
+      background: var(--dark2);
+      border: 1px solid rgba(245,200,66,0.12);
+      border-radius: 6px;
+      padding: 28px 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .house-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(245,200,66,0.03));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .house-card:hover {
+      border-color: rgba(245,200,66,0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 30px var(--gold-glow);
+    }
+    .house-card:hover::before { opacity: 1; }
+
+    .house-card.locked {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .house-card.locked:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: rgba(245,200,66,0.12);
+    }
+
+    .house-icon { font-size: 2.2rem; margin-bottom: 16px; }
+    .house-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 4px;
+      letter-spacing: 0.05em;
+    }
+    .house-type {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: rgba(240,234,214,0.35);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .house-desc {
+      font-size: 0.82rem;
+      color: rgba(240,234,214,0.6);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .house-earn {
+      background: rgba(245,200,66,0.06);
+      border: 1px solid rgba(245,200,66,0.15);
+      border-radius: 3px;
+      padding: 10px 14px;
+    }
+    .house-earn-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .house-earn-val {
+      font-size: 0.82rem;
+      color: #f0ead6;
+      line-height: 1.5;
+    }
+    .house-status {
+      position: absolute; top: 16px; right: 16px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      padding: 4px 10px;
+      border-radius: 2px;
+    }
+    .house-status.live {
+      color: #00ff88;
+      border: 1px solid rgba(0,255,136,0.3);
+      background: rgba(0,255,136,0.08);
+    }
+    .house-status.soon {
+      color: var(--gold-dim);
+      border: 1px solid rgba(245,200,66,0.2);
+      background: rgba(245,200,66,0.04);
+    }
+
+    /* ── TRINITY SUMMARY ── */
+    .trinity-summary {
+      position: relative; z-index: 10;
+      max-width: 800px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    .summary-inner {
+      border: 1px solid rgba(245,200,66,0.15);
+      border-radius: 6px;
+      padding: 40px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--dark2), var(--dark));
+    }
+    .summary-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.4rem;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .summary-sub {
+      font-size: 0.85rem;
+      color: rgba(240,234,214,0.5);
+      margin-bottom: 32px;
+      line-height: 1.7;
+    }
+    .nft-tier-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .nft-tier {
+      background: rgba(245,200,66,0.06);
+      border: 1px solid rgba(245,200,66,0.2);
+      border-radius: 4px;
+      padding: 16px 20px;
+      min-width: 160px;
+      text-align: center;
+    }
+    .nft-tier-icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .nft-tier-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .nft-tier-supply {
+      font-size: 0.68rem;
+      color: rgba(240,234,214,0.35);
+      letter-spacing: 0.1em;
+    }
+    .historic-claim {
+      font-family: 'Cinzel', serif;
+      font-size: 0.82rem;
+      color: rgba(240,234,214,0.55);
+      line-height: 1.8;
+      font-style: italic;
+      border-top: 1px solid rgba(245,200,66,0.1);
+      padding-top: 24px;
+    }
+    .historic-claim strong { color: var(--gold); font-style: normal; }
+
+    /* ── NAV ── */
+    .throne-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(5,5,10,0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(245,200,66,0.08);
+    }
+    .nav-brand {
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+    }
+    .nav-return {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: rgba(240,234,214,0.4);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-return:hover { color: var(--gold); }
+
+    /* ── CORNER ── */
+    .corner {
+      position: fixed; z-index: 5;
+      width: 50px; height: 50px;
+      opacity: 0.2;
+      pointer-events: none;
+    }
+    .corner-tl { top: 60px; left: 16px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+    .corner-tr { top: 60px; right: 16px; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+    .corner-bl { bottom: 16px; left: 16px; border-bottom: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+    .corner-br { bottom: 16px; right: 16px; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+
+    body { padding-top: 64px; }
+
+    @media (max-width: 600px) {
+      .council-inner { flex-direction: column; }
+      .council-status { margin-left: 0; }
+      .houses-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- Nav -->
+<nav class="throne-nav">
+  <div class="nav-brand">⚜ THE SOVEREIGN THRONE</div>
+  <a href="/" class="nav-return">← Return to the Kingdom</a>
+</nav>
+
+<!-- Header -->
+<div class="throne-header">
+  <div class="throne-eyebrow">Founding Council · Sovereign Trinity · Exclusive Access</div>
+  <h1 class="throne-title">Welcome, Royal.</h1>
+  <p class="throne-sub">You earned your way here. The kingdom is open.</p>
+  <div class="wallet-badge" id="walletBadge">
+    <div class="wallet-dot"></div>
+    <span id="walletDisplay">CONNECTED</span>
+  </div>
+</div>
+
+<!-- Founding Council Banner -->
+<div class="council-banner">
+  <div class="council-inner">
+    <div class="council-icon">👑</div>
+    <div class="council-text">
+      <h3>Founding Council Member</h3>
+      <p>You hold the Queens Chariot NFT — the access vehicle of the Sovereign Trinity. You are written into this protocol's history. Every House below generates income that flows to you.</p>
+    </div>
+    <div class="council-status">✓ ACTIVE</div>
+  </div>
+</div>
+
+<!-- 7 Houses Grid -->
+<div class="houses-section">
+  <div class="houses-eyebrow">Your Kingdom</div>
+  <h2 class="houses-title">The <span>7 Houses of Royals</span></h2>
+  <p class="houses-desc">Each house is a living, revenue-generating node inside the Sovereign Economy. Choose where your Chariot takes you.</p>
+
+  <div class="houses-grid">
+
+    <div class="house-card" onclick="enterHouse('keno')">
+      <div class="house-status live">LIVE</div>
+      <div class="house-icon">🪙</div>
+      <div class="house-name">House of KENO</div>
+      <div class="house-type">The Engine House</div>
+      <div class="house-desc">The mathematical foundation. Where arbitrage profits are generated, bonding curves operate, and the KENO engine runs 24/7 compounding value downward to participants.</div>
+      <div class="house-earn">
+        <div class="house-earn-label">You Earn</div>
+        <div class="house-earn-val">Arb bot profits · Bonding curve spread · UTL staking yields</div>
+      </div>
+    </div>
+
+    <div class="house-card" onclick="enterHouse('shield')">
+      <div class="house-status live">LIVE</div>
+      <div class="house-icon">⚔️</div>
+      <div class="house-name">House of SHIELD</div>
+      <div class="house-type">The Aegis House</div>
+      <div class="house-desc">Every SHIELD transfer anywhere on Solana generates the 6.174% Aegis Tax. As a Trinity holder, a portion of that tax is your sovereign yield — collected at the protocol level, forever.</div>
+      <div class="house-earn">
+        <div class="house-earn-label">You Earn</div>
+        <div class="house-earn-val">6.174% Aegis Tax on every SHIELD transfer · Forever</div>
+      </div>
+    </div>
+
+    <div class="house-card" onclick="enterHouse('chariot')">
+      <div class="house-status live">LIVE</div>
+      <div class="house-icon">🐎</div>
+      <div class="house-name">House of Queens Chariot</div>
+      <div class="house-type">The Bridge House</div>
+      <div class="house-desc">Every cross-chain movement in the Sovereign Economy passes through the Queens Chariot. Bridge fees from every QCT transaction flow back to holders of the Ascension NFT.</div>
+      <div class="house-earn">
+        <div class="house-earn-label">You Earn</div>
+        <div class="house-earn-val">Cross-chain bridge fees from every QCT transaction</div>
+      </div>
+    </div>
+
+    <div class="house-card" onclick="enterHouse('wyoming')">
+      <div class="house-status soon">COMING SOON</div>
+      <div class="house-icon">🏛️</div>
+      <div class="house-name">House of Wyoming</div>
+      <div class="house-type">The Banking House · The Crown Jewel</div>
+      <div class="house-desc">When Wyoming grants the SPDI charter, Kenostod becomes a legally recognized bank. As a SPDI NFT holder, you own fractional stake in that sovereign bank. Bank ownership — in NFT form — for the first time in history.</div>
+      <div class="house-earn">
+        <div class="house-earn-label">You Earn</div>
+        <div class="house-earn-val">Revenue when the bank processes deposits, card transactions &amp; wire transfers</div>
+      </div>
+    </div>
+
+    <div class="house-card" onclick="enterHouse('buk')">
+      <div class="house-status soon">COMING SOON</div>
+      <div class="house-icon">🔐</div>
+      <div class="house-name">House of B.U.K.</div>
+      <div class="house-type">The Security Banking House</div>
+      <div class="house-desc">The B.U.K. (Back Up Key) dual-chip security card — the most secure way to protect private keys. As a Trinity holder, every card sold and every subscription activated generates your revenue share.</div>
+      <div class="house-earn">
+        <div class="house-earn-label">You Earn</div>
+        <div class="house-earn-val">Revenue share from B.U.K. dual-chip card sales &amp; subscriptions</div>
+      </div>
+    </div>
+
+    <div class="house-card" onclick="enterHouse('solar')">
+      <div class="house-status soon">COMING SOON</div>
+      <div class="house-icon">☀️</div>
+      <div class="house-name">House of Solar Bunker</div>
+      <div class="house-type">The Resilience House</div>
+      <div class="house-desc">Solar-powered, ruggedized hardware deployed across South Africa and beyond — taking the Sovereign Economy offline-first to the 2.4 billion who need it most. Every deployment generates protocol fees.</div>
+      <div class="house-earn">
+        <div class="house-earn-label">You Earn</div>
+        <div class="house-earn-val">Revenue from hardware deployments + protocol fees</div>
+      </div>
+    </div>
+
+    <div class="house-card" onclick="enterHouse('utl')">
+      <div class="house-status live">LIVE</div>
+      <div class="house-icon">🔗</div>
+      <div class="house-name">House of UTL</div>
+      <div class="house-type">The Protocol House</div>
+      <div class="house-desc">The Universal Transaction Layer — a standalone, asset-agnostic fee redistribution system. Every wallet that uses the UTL protocol generates transaction fees. The MetaMask Snap is live. Volume grows every day.</div>
+      <div class="house-earn">
+        <div class="house-earn-label">You Earn</div>
+        <div class="house-earn-val">MetaMask Snap transaction fee revenue from every UTL transaction</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Trinity NFT Summary -->
+<div class="trinity-summary">
+  <div class="summary-inner">
+    <div class="summary-title">The Sovereign Trinity</div>
+    <p class="summary-sub">Three tokens. Three NFTs. One kingdom. Own all three — and your name is written into this protocol's history forever.</p>
+    <div class="nft-tier-row">
+      <div class="nft-tier">
+        <div class="nft-tier-icon">🪙</div>
+        <div class="nft-tier-name">KENO Genesis NFT</div>
+        <div class="nft-tier-supply">6,174 Supply · BSC</div>
+      </div>
+      <div class="nft-tier">
+        <div class="nft-tier-icon">🐎</div>
+        <div class="nft-tier-name">Queens Chariot NFT</div>
+        <div class="nft-tier-supply">1,729 Supply · Base</div>
+      </div>
+      <div class="nft-tier">
+        <div class="nft-tier-icon">🛡️</div>
+        <div class="nft-tier-name">Kings Shield Aegis NFT</div>
+        <div class="nft-tier-supply">617 Supply · Solana</div>
+      </div>
+    </div>
+    <p class="historic-claim">
+      <strong>"No one has built a gated sovereign economy behind a trinity of cross-chain NFTs where the access vehicle is itself a revenue-generating token.</strong><br/>
+      That's the first in history."
+    </p>
+  </div>
+</div>
+
+<script>
+  // ── PARTICLE BG ──────────────────────────────────────────────────────────
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  const particles = [];
+
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize); resize();
+
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(init) {
+      this.x = Math.random() * W;
+      this.y = init ? Math.random() * H : -10;
+      this.size = Math.random() * 1.5 + 0.3;
+      this.speed = Math.random() * 0.5 + 0.1;
+      this.opacity = Math.random() * 0.4 + 0.05;
+      this.gold = Math.random() > 0.8;
+    }
+    update() { this.y += this.speed; if (this.y > H) this.reset(false); }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.opacity;
+      ctx.fillStyle = this.gold ? '#f5c842' : '#ffffff';
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+  }
+  for (let i = 0; i < 120; i++) particles.push(new Particle());
+  function animateBg() {
+    ctx.fillStyle = 'rgba(5,5,10,0.12)'; ctx.fillRect(0,0,W,H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animateBg);
+  }
+  animateBg();
+
+  // ── WALLET DISPLAY ────────────────────────────────────────────────────────
+  window.addEventListener('load', async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          const addr = accounts[0];
+          document.getElementById('walletDisplay').textContent =
+            addr.slice(0,6).toUpperCase() + '...' + addr.slice(-4).toUpperCase() + ' · ROYAL';
+        }
+      } catch(e) {}
+    }
+  });
+
+  // ── HOUSE NAVIGATION ──────────────────────────────────────────────────────
+  const houseRoutes = {
+    keno:    '/sovereign-economy.html',
+    shield:  'https://kings-shield.com',
+    chariot: '/tokenomics.html',
+    wyoming: '/buk-banking.html',
+    buk:     '/buk-security-banking.html',
+    solar:   '/sovereign-economy.html',
+    utl:     '/utl-dashboard.html'
+  };
+
+  function enterHouse(id) {
+    const route = houseRoutes[id];
+    if (route) window.open(route, '_blank');
+  }
+</script>
+</body>
+</html>

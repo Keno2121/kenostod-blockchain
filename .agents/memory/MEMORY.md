@@ -9,4 +9,4 @@
 - [MetaMask Snap submission](metamask-snap-status.md) — Issue #625 open since Feb 2026; CHECK WEEKLY; snap ID is npm:kenostod-utl-snap v2.3.0; correction comment posted June 7 2026
 - [Flash Arb & Solana Arb Strategy Findings](flash-arb-strategy.md) — FlashArbLoan2 live on BSC; Jupiter round-trip arb not viable; Aegis must stay scan-only; HL rates near-zero June 2026
 - [Post-PinkSale action plan](post-pinksale-plan.md) — fund bots week 1, POL setup week 2 (if liquidity thin)
-- [Sovereign Trinity NFT Collection](sovereign-trinity-nft.md) — full story, 3 tiers (6174/1729/617 supply), Queens Chariot Bridge UX, DALL-E strategy
+- [Sovereign Trinity NFT Collection](sovereign-trinity-nft.md) — COMPLETE: 4 tiers + 7 Houses of Royals + Access Hierarchy + chariot-gate.html + sovereign-throne.html built and live
