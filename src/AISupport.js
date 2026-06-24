@@ -15,7 +15,7 @@ ABOUT KENOSTOD BLOCKCHAIN ACADEMY:
 - 21-course curriculum covering blockchain fundamentals to advanced concepts
 - KENO is a REAL BEP-20 token on Binance Smart Chain (contract: 0x48bb049afe50b050b458624dc6233acd51024ab4) — verified on BSCScan
 - Total supply: 1,000,000,000 KENO (1 billion) — fixed, no mint function
-- PRESALE: June 26, 2026 on PinkSale — 750,000 KENO per BNB ($0.000867/KENO at $650/BNB)
+- PRESALE: July 23, 2026 on PinkSale — 750,000 KENO per BNB ($0.000867/KENO at $650/BNB)
 - Soft cap: 30 BNB | Hard cap: 60 BNB
 - After presale: PancakeSwap listing
 
