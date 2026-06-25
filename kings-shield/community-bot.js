@@ -75,6 +75,13 @@ function daysUntil(date) {
   return diff <= 0 ? 0 : Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+function timeGreeting() {
+  const h = new Date().getUTCHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 function presaleStatus() {
   const now = new Date();
   if (now < PRESALE_OPEN)  return `opens in ${daysUntil(PRESALE_OPEN)} days (July 23)`;
@@ -103,7 +110,7 @@ bot.on('new_chat_members', async (msg) => {
   const text =
 `👑 <b>Welcome to The Sovereign Economy!</b>
 
-Gm <b>${names}</b> 🙌
+${timeGreeting()}, <b>${names}</b> 🙌
 
 You just joined the <b>Education-Fi (E-Fi)</b> movement.
 Where learning ends and earning begins — there is no line.
@@ -279,7 +286,7 @@ Start free at ${WEBSITE}`;
 // ─── Daily post content builders ───────────────────────────────────────────
 function buildMorningPost() {
   const c = todayCourse();
-  return `☀️ <b>Good morning, Sovereign Economy fam!</b>
+  return `☀️ <b>${timeGreeting()}, Sovereign Economy fam!</b>
 
 📅 Presale in <b>${daysUntil(PRESALE_OPEN)} days</b> — July 23, 2026
 
@@ -363,8 +370,9 @@ function scheduleDailyPosts() {
 }
 
 // ─── Dedup guard — one post per type per UTC day ───────────────────────────
-const fs = require('fs');
-const SENT_FLAG_FILE = '/tmp/ks-bot-sent-flags.json';
+const fs   = require('fs');
+const path = require('path');
+const SENT_FLAG_FILE = path.join(__dirname, '.sent-flags.json');
 
 function todayUTCKey() {
   return new Date().toISOString().slice(0, 10); // "2026-06-24"
@@ -392,7 +400,7 @@ async function sendStartupPost() {
     return;
   }
   const text =
-`👑 <b>Sovereign Economy — Good morning, Sovereigns!</b>
+`👑 <b>Sovereign Economy — ${timeGreeting()}, Sovereigns!</b>
 
 📅 Presale opens in <b>${daysUntil(PRESALE_OPEN)} days</b> — July 23, 2026
 ⚡ Rate: 750,000 KENO per BNB
