@@ -83,11 +83,11 @@ function presaleStatus() {
 }
 
 function todayCourse() {
-  return COURSE_TEASERS[new Date().getDate() % COURSE_TEASERS.length];
+  return COURSE_TEASERS[new Date().getUTCDate() % COURSE_TEASERS.length];
 }
 
 function todayTrivia() {
-  return TRIVIA[new Date().getDate() % TRIVIA.length];
+  return TRIVIA[new Date().getUTCDate() % TRIVIA.length];
 }
 
 function send(chatId, html) {
@@ -391,16 +391,14 @@ async function sendStartupPost() {
     console.log('⏭  Startup post already sent today — skipping (restart guard)');
     return;
   }
-  const c = todayCourse();
   const text =
-`👑 <b>Sovereign Economy — Daily Update</b>
+`👑 <b>Sovereign Economy — Good morning, Sovereigns!</b>
 
-📅 Presale countdown: <b>${daysUntil(PRESALE_OPEN)} days to go</b> (July 23, 2026)
+📅 Presale opens in <b>${daysUntil(PRESALE_OPEN)} days</b> — July 23, 2026
+⚡ Rate: 750,000 KENO per BNB
+🎯 Soft cap: 30 BNB | Hard cap: 60 BNB
 
-📚 <b>Course spotlight — Course ${c.num}: ${c.title}</b>
-<i>${c.teaser}</i>
-
-🎓 Complete all 21 courses → earn <b>5,250 KENO</b>
+🎓 <b>21 free courses → earn 5,250 KENO</b>
 Start free: ${WEBSITE}
 
 Type /courses · /presale · /liquidity · /trivia
