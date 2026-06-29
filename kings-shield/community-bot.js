@@ -158,6 +158,55 @@ Type /courses · /presale · /liquidity · /about`;
   processWelcomeQueue();
 });
 
+// ─── Promo solicitation filter ─────────────────────────────────────────────
+const PROMO_PATTERNS = [
+  /i (will|can) (post|promote|advertise|shill)/i,
+  /promotion on my (telegram|channel|group)/i,
+  /\b(pump your|pump this|pump the)\b/i,
+  /\b(promo|shilling|shill)\b.*\b(project|token|coin)\b/i,
+  /\b(investors|buyers)\b.*\b(channel|group|telegram)\b/i,
+  /\bpay (me|us)\b.*\b(post|promote|advertise)\b/i,
+  /\b(dm me|dm for|contact me)\b.*\b(promo|promotion|deal|collab)\b/i,
+  /i have (many|lots of|thousands of).*(investor|buyer|follower)/i,
+  /\bpost before payment\b/i,
+  /\bpaid (promo|promotion|shoutout)\b/i,
+];
+
+async function isPromoSolicitation(text) {
+  if (!text) return false;
+  return PROMO_PATTERNS.some(p => p.test(text));
+}
+
+bot.on('message', async (msg) => {
+  if (!msg.text || !msg.chat || msg.chat.type === 'private') return;
+
+  if (await isPromoSolicitation(msg.text)) {
+    const username = msg.from?.username
+      ? `@${msg.from.username}`
+      : (msg.from?.first_name || 'Friend');
+
+    console.log(`🚫 Promo solicitation detected from ${username}: "${msg.text.slice(0, 80)}"`);
+
+    try {
+      await bot.deleteMessage(msg.chat.id, msg.message_id);
+    } catch (e) {
+      console.error('Delete promo msg failed:', e.message);
+    }
+
+    try {
+      await send(msg.chat.id,
+        `⚔️ <b>Kings Shield Policy</b>\n\n` +
+        `${username} — we appreciate the offer, but we only partner with promoters who bring members to the community first.\n\n` +
+        `<b>Want to do business?</b> Bring 10+ real members to Kings Shield, then we'll talk. 👑\n\n` +
+        `<i>Unsolicited promo offers are removed automatically.</i>`
+      );
+    } catch (e) {
+      console.error('Promo filter reply failed:', e.message);
+    }
+    return;
+  }
+});
+
 // ─── Commands ──────────────────────────────────────────────────────────────
 bot.on('message', async (msg) => {
   console.log(`📨 Message from chat: ${msg.chat.id} (${msg.chat.type}) "${msg.chat.title || msg.chat.username || 'private'}"`);
