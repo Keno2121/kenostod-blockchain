@@ -64,10 +64,49 @@ export function Scene6() {
         </h2>
         <p
           className="font-display uppercase text-[#C9A84C] tracking-wider"
-          style={{ fontSize: '2vw' }}
+          style={{ fontSize: '2vw', marginBottom: '4vh' }}
         >
           Start Your Free Lesson Today
         </p>
+
+        {/* 6174 — Kaprekar constant signature, appears last */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={phase >= 2 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          transition={{ delay: 0.6, duration: 1, ease: 'easeOut' }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5vh' }}
+        >
+          {/* Divider line */}
+          <motion.div
+            style={{ width: '6vw', height: '1px', background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.5), transparent)' }}
+            initial={{ scaleX: 0 }}
+            animate={phase >= 2 ? { scaleX: 1 } : { scaleX: 0 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
+          />
+          <motion.span
+            className="font-display text-[#C9A84C]"
+            style={{
+              fontSize: '3.5vw',
+              letterSpacing: '0.25em',
+              filter: 'drop-shadow(0 0 12px rgba(201,168,76,0.6))',
+            }}
+            animate={{ opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            6174
+          </motion.span>
+          <span
+            style={{
+              fontSize: '0.9vw',
+              color: 'rgba(201,168,76,0.45)',
+              letterSpacing: '0.3em',
+              fontFamily: 'Inter, sans-serif',
+              textTransform: 'uppercase',
+            }}
+          >
+            The Kaprekar Constant
+          </span>
+        </motion.div>
       </motion.div>
     </motion.div>
   );

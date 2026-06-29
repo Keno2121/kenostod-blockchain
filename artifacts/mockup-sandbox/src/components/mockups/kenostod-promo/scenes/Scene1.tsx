@@ -27,6 +27,19 @@ export function Scene1() {
       exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
       transition={{ duration: 0.8 }}
     >
+      {/* 6174 — hidden in the chaos, flickers once at 1.5s then vanishes */}
+      <motion.div
+        className="absolute font-display text-[#C9A84C] pointer-events-none select-none"
+        style={{ fontSize: '18vw', opacity: 0, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', filter: 'blur(4px)' }}
+        animate={{
+          opacity: [0, 0.18, 0],
+          filter: ['blur(4px)', 'blur(1px)', 'blur(8px)'],
+        }}
+        transition={{ delay: 1.5, duration: 0.4, ease: 'easeInOut' }}
+      >
+        6174
+      </motion.div>
+
       {/* Scanline glitch */}
       <motion.div
         className="absolute inset-0 pointer-events-none"

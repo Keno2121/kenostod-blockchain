@@ -65,6 +65,25 @@ export function Scene2() {
         transition={{ duration: 1.5 }}
       />
 
+      {/* 6174 — appears first, shield descends on top of it like it's the foundation */}
+      <motion.div
+        className="absolute font-display text-[#C9A84C] pointer-events-none select-none"
+        style={{
+          fontSize: '22vw',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -52%)',
+          letterSpacing: '0.05em',
+        }}
+        initial={{ opacity: 0, scale: 0.6, filter: 'blur(20px)' }}
+        animate={phase >= 1
+          ? { opacity: [0, 0.9, 0.9, 0.15], scale: [0.6, 1.05, 1, 1], filter: ['blur(20px)', 'blur(0px)', 'blur(0px)', 'blur(6px)'] }
+          : { opacity: 0 }}
+        transition={{ duration: 2.5, times: [0, 0.2, 0.6, 1], ease: 'easeOut' }}
+      >
+        6174
+      </motion.div>
+
       {/* Shield logo */}
       <motion.div
         className="relative z-10 mb-[4vh]"
