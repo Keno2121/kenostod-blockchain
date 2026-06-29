@@ -101,11 +101,38 @@ function send(chatId, html) {
   return bot.sendMessage(chatId, html, { parse_mode: 'HTML' });
 }
 
+// ─── Welcome rate-limit queue ──────────────────────────────────────────────
+const welcomeQueue = [];
+let welcomeBusy = false;
+
+async function processWelcomeQueue() {
+  if (welcomeBusy || welcomeQueue.length === 0) return;
+  welcomeBusy = true;
+  const { chatId, text } = welcomeQueue.shift();
+  try {
+    await send(chatId, text);
+  } catch (e) {
+    if (e.message && e.message.includes('429')) {
+      const wait = 5000;
+      console.log(`Welcome rate-limited — retrying in ${wait}ms`);
+      welcomeQueue.unshift({ chatId, text });
+      await new Promise(r => setTimeout(r, wait));
+    } else {
+      console.error('Welcome failed:', e.message);
+    }
+  }
+  welcomeBusy = false;
+  if (welcomeQueue.length > 0) setTimeout(processWelcomeQueue, 1500);
+}
+
 // ─── Welcome new members ───────────────────────────────────────────────────
-bot.on('new_chat_members', async (msg) => {
+bot.on('new_chat_members', (msg) => {
   const names = msg.new_chat_members
+    .filter(u => !u.is_bot)
     .map(u => u.first_name || u.username || 'Sovereign')
     .join(', ');
+
+  if (!names) return;
 
   const text =
 `👑 <b>Welcome to The Sovereign Economy!</b>
@@ -127,11 +154,8 @@ Complete all 21 → earn <b>5,250 KENO</b> in rewards.
 
 Type /courses · /presale · /liquidity · /about`;
 
-  try {
-    await send(msg.chat.id, text);
-  } catch (e) {
-    console.error('Welcome failed:', e.message);
-  }
+  welcomeQueue.push({ chatId: msg.chat.id, text });
+  processWelcomeQueue();
 });
 
 // ─── Commands ──────────────────────────────────────────────────────────────
