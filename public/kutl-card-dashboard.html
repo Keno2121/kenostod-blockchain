@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUTL Card Dashboard | Kenostod</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --navy:#060b1a; --navy2:#0a1128; --navy3:#111b38;
+  --gold:#ffd700; --gold2:#ffb300;
+  --green:#00c853; --red:#ef4444;
+  --text:#c8d6e8; --white:#fff;
+  --border:rgba(255,215,0,0.12);
+}
+body { font-family:'Rajdhani',sans-serif; background:var(--navy); color:var(--text); min-height:100vh; }
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  padding:.9rem 2rem;
+  background:rgba(6,11,26,.97);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.nav-logo img { width:32px; height:32px; }
+.nav-logo span { font-family:'Orbitron',sans-serif; font-size:.95rem; color:var(--gold); font-weight:700; }
+.nav-right { display:flex; align-items:center; gap:1rem; }
+.nav-right a { color:var(--text); text-decoration:none; font-size:.9rem; }
+.nav-right a:hover { color:var(--gold); }
+.nav-badge { background:rgba(0,200,83,.12); border:1px solid rgba(0,200,83,.3); color:var(--green); padding:4px 12px; border-radius:20px; font-size:.75rem; font-weight:700; letter-spacing:1px; }
+
+/* SANDBOX BANNER */
+.sandbox-banner {
+  margin-top:60px;
+  background:linear-gradient(90deg,rgba(79,142,247,.12),rgba(255,215,0,.08));
+  border-bottom:1px solid rgba(79,142,247,.2);
+  padding:.6rem 2rem;
+  text-align:center;
+  font-size:.8rem;
+  color:rgba(200,214,232,.7);
+  letter-spacing:.5px;
+}
+.sandbox-banner a { color:#4f8ef7; text-decoration:none; font-weight:600; }
+.sandbox-banner a:hover { text-decoration:underline; }
+
+/* LAYOUT */
+.page { max-width:1200px; margin:0 auto; padding:2rem; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+.grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.col-span-2 { grid-column:1/-1; }
+
+/* CARD VISUAL */
+.card-visual-wrap { display:flex; justify-content:center; align-items:center; padding:2rem 0 1rem; }
+.kard {
+  width:360px; height:228px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#0a1128 0%,#111b38 40%,#1a2448 70%,#0a1128 100%);
+  border:1px solid rgba(255,215,0,.22);
+  box-shadow:0 0 0 1px rgba(255,215,0,.08),0 20px 60px rgba(0,0,0,.6),0 0 80px rgba(255,215,0,.06);
+  position:relative; overflow:hidden;
+  animation:float 4s ease-in-out infinite;
+  transition:transform .3s;
+}
+.kard:hover { animation:none; transform:scale(1.02) rotate(1deg); }
+@keyframes float { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-10px) rotate(1deg)} }
+.kard::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 30%,rgba(255,215,0,.04) 60%,transparent 80%); }
+.kard-shimmer { position:absolute; top:0; left:-100%; width:60%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent); animation:shimmer 4s infinite; }
+@keyframes shimmer { 0%{left:-100%} 100%{left:200%} }
+.kard-logo { position:absolute; top:18px; left:26px; font-family:'Orbitron',sans-serif; font-size:.55rem; color:rgba(255,215,0,.45); letter-spacing:2px; font-weight:700; }
+.kard-shield { position:absolute; top:14px; right:20px; font-size:2rem; opacity:.12; }
+.kard-chip { position:absolute; top:52px; left:26px; width:42px; height:32px; background:linear-gradient(135deg,#c8a84b,#ffd700,#c8a84b); border-radius:5px; box-shadow:0 2px 8px rgba(0,0,0,.4); }
+.kard-chip::before { content:''; position:absolute; top:9px; left:7px; right:7px; height:1px; background:rgba(0,0,0,.3); box-shadow:0 5px 0 rgba(0,0,0,.3),0 10px 0 rgba(0,0,0,.3); }
+.kard-chip::after { content:''; position:absolute; top:5px; left:14px; width:1px; height:22px; background:rgba(0,0,0,.3); box-shadow:6px 0 0 rgba(0,0,0,.3); }
+.kard-nfc { position:absolute; top:58px; left:76px; color:rgba(255,215,0,.4); font-size:1.1rem; }
+.kard-number { position:absolute; bottom:64px; left:26px; font-family:'Orbitron',sans-serif; font-size:.7rem; color:rgba(200,214,232,.2); letter-spacing:3px; }
+.kard-holder { position:absolute; bottom:36px; left:26px; font-size:.7rem; color:rgba(200,214,232,.5); letter-spacing:1px; text-transform:uppercase; }
+.kard-expiry { position:absolute; bottom:36px; left:160px; font-size:.7rem; color:rgba(200,214,232,.4); letter-spacing:1px; }
+.kard-brand { position:absolute; bottom:18px; left:26px; }
+.kard-brand-name { font-family:'Orbitron',sans-serif; font-size:1.6rem; font-weight:900; color:var(--gold); letter-spacing:3px; text-shadow:0 0 20px rgba(255,215,0,.4); line-height:1; }
+.kard-brand-sub { font-size:.55rem; color:rgba(255,215,0,.35); letter-spacing:2px; text-transform:uppercase; margin-top:1px; }
+.kard-network { position:absolute; bottom:22px; right:20px; text-align:right; }
+.kard-network-label { font-size:.45rem; color:rgba(200,214,232,.25); letter-spacing:1px; text-transform:uppercase; }
+.kard-network-name { font-size:.7rem; color:rgba(79,142,247,.6); font-weight:700; letter-spacing:1px; }
+.kard-status-dot { position:absolute; top:18px; left:50%; transform:translateX(-50%); width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); }
+
+/* PANELS */
+.panel {
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:1.5rem;
+}
+.panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+.panel-title { font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:700; color:var(--white); letter-spacing:1px; }
+.panel-badge { font-size:.7rem; padding:3px 10px; border-radius:20px; font-weight:600; }
+.badge-green { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); color:var(--green); }
+.badge-gold { background:rgba(255,215,0,.1); border:1px solid rgba(255,215,0,.25); color:var(--gold); }
+.badge-blue { background:rgba(79,142,247,.1); border:1px solid rgba(79,142,247,.25); color:#4f8ef7; }
+.badge-sandbox { background:rgba(255,165,0,.1); border:1px solid rgba(255,165,0,.25); color:orange; }
+
+/* BALANCE STATS */
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.stat-item { text-align:center; padding:1rem; background:rgba(255,255,255,.03); border-radius:10px; }
+.stat-val { font-family:'Orbitron',sans-serif; font-size:1.6rem; font-weight:900; color:var(--gold); }
+.stat-val.green { color:var(--green); }
+.stat-val.blue { color:#4f8ef7; }
+.stat-label { font-size:.75rem; color:rgba(200,214,232,.5); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+
+/* PROGRESS BAR */
+.progress-wrap { margin-top:1rem; }
+.progress-label { display:flex; justify-content:space-between; font-size:.8rem; color:rgba(200,214,232,.6); margin-bottom:6px; }
+.progress-bar { height:6px; background:rgba(255,255,255,.06); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--gold),#ffb300); transition:width .8s ease; }
+
+/* TRANSACTIONS */
+.tx-list { display:flex; flex-direction:column; gap:.6rem; }
+.tx-item {
+  display:flex; align-items:center; gap:1rem;
+  padding:.85rem 1rem;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:10px;
+  transition:border-color .2s;
+}
+.tx-item:hover { border-color:rgba(255,215,0,.15); }
+.tx-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; }
+.tx-icon.credit { background:rgba(0,200,83,.1); color:var(--green); }
+.tx-icon.debit { background:rgba(239,68,68,.1); color:var(--red); }
+.tx-info { flex:1; }
+.tx-desc { font-size:.9rem; color:var(--white); font-weight:600; }
+.tx-date { font-size:.75rem; color:rgba(200,214,232,.4); margin-top:2px; }
+.tx-amount { font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700; text-align:right; }
+.tx-amount.credit { color:var(--green); }
+.tx-amount.debit { color:var(--red); }
+.tx-currency { font-size:.65rem; color:rgba(200,214,232,.4); text-align:right; margin-top:2px; }
+
+/* CARD CONTROLS */
+.controls-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; }
+.ctrl-btn {
+  display:flex; flex-direction:column; align-items:center; gap:.5rem;
+  padding:1rem; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; cursor:pointer; transition:all .2s; text-decoration:none; color:inherit;
+}
+.ctrl-btn:hover { border-color:rgba(255,215,0,.25); background:rgba(255,215,0,.04); transform:translateY(-2px); }
+.ctrl-btn.danger:hover { border-color:rgba(239,68,68,.25); background:rgba(239,68,68,.04); }
+.ctrl-icon { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.ctrl-icon.gold { background:rgba(255,215,0,.1); color:var(--gold); }
+.ctrl-icon.blue { background:rgba(79,142,247,.1); color:#4f8ef7; }
+.ctrl-icon.green { background:rgba(0,200,83,.1); color:var(--green); }
+.ctrl-icon.red { background:rgba(239,68,68,.1); color:var(--red); }
+.ctrl-label { font-size:.8rem; color:var(--text); font-weight:600; text-align:center; }
+
+/* FINLEGO PORTAL */
+.finlego-portal {
+  background:linear-gradient(135deg,rgba(79,142,247,.08),rgba(255,215,0,.04));
+  border:1px solid rgba(79,142,247,.2);
+  border-radius:16px; padding:1.5rem;
+}
+.finlego-logo { display:flex; align-items:center; gap:.75rem; margin-bottom:1rem; }
+.finlego-dot { width:10px; height:10px; border-radius:50%; background:#4f8ef7; box-shadow:0 0 8px #4f8ef7; }
+.finlego-name { font-family:'Orbitron',sans-serif; font-size:.85rem; color:#4f8ef7; font-weight:700; }
+.finlego-sub { font-size:.8rem; color:rgba(200,214,232,.5); }
+.finlego-creds { margin-top:1rem; background:rgba(0,0,0,.3); border-radius:8px; padding:.75rem 1rem; }
+.cred-row { display:flex; justify-content:space-between; align-items:center; font-size:.8rem; margin-bottom:.4rem; }
+.cred-row:last-child { margin-bottom:0; }
+.cred-key { color:rgba(200,214,232,.4); }
+.cred-val { color:#60a5fa; font-family:monospace; font-size:.75rem; }
+.finlego-link {
+  display:block; margin-top:1rem; text-align:center;
+  padding:.75rem; background:rgba(79,142,247,.12); border:1px solid rgba(79,142,247,.3);
+  border-radius:10px; color:#4f8ef7; font-weight:700; font-size:.9rem; text-decoration:none;
+  transition:all .2s;
+}
+.finlego-link:hover { background:rgba(79,142,247,.2); }
+
+/* ISSUE CARD FORM */
+.form-group { margin-bottom:1rem; }
+.form-label { font-size:.8rem; color:rgba(200,214,232,.6); margin-bottom:6px; display:block; text-transform:uppercase; letter-spacing:.5px; }
+.form-input {
+  width:100%; padding:.75rem 1rem;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,215,0,.15);
+  border-radius:8px; color:var(--white); font-family:'Rajdhani',sans-serif; font-size:.95rem;
+  outline:none; transition:border-color .2s;
+}
+.form-input:focus { border-color:rgba(255,215,0,.4); }
+.form-input::placeholder { color:rgba(200,214,232,.3); }
+.btn-issue {
+  width:100%; padding:.9rem; border:none; border-radius:10px; cursor:pointer;
+  font-family:'Orbitron',sans-serif; font-size:.8rem; font-weight:700; letter-spacing:1px;
+  background:linear-gradient(135deg,#ffd700,#ffb300); color:#000;
+  box-shadow:0 0 20px rgba(255,215,0,.2); transition:all .2s;
+}
+.btn-issue:hover { transform:translateY(-1px); box-shadow:0 0 30px rgba(255,215,0,.35); }
+.btn-issue:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.issue-result { margin-top:1rem; padding:.75rem 1rem; border-radius:8px; font-size:.85rem; display:none; }
+.issue-result.ok { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); color:var(--green); display:block; }
+.issue-result.err { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); color:var(--red); display:block; }
+
+/* STATUS */
+.status-row { display:flex; align-items:center; gap:.5rem; font-size:.8rem; }
+.status-dot { width:7px; height:7px; border-radius:50%; }
+.status-dot.live { background:var(--green); box-shadow:0 0 6px var(--green); }
+.status-dot.pending { background:orange; box-shadow:0 0 6px orange; animation:blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.loading-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,215,0,.2); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; margin-right:6px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+@media(max-width:900px) {
+  .grid,.grid-3 { grid-template-columns:1fr; }
+  .col-span-2 { grid-column:1; }
+  .kard { width:300px; height:190px; }
+  nav { padding:.75rem 1rem; }
+}
+
+/* ── CONVERT PANEL ─────────────────────────────────── */
+.convert-panel {
+  background:var(--navy2);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:1.5rem;
+  margin-bottom:1.5rem;
+}
+.convert-steps {
+  display:flex;
+  align-items:center;
+  gap:0;
+  margin-bottom:1.75rem;
+  overflow-x:auto;
+  padding-bottom:.25rem;
+}
+.c-step {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.35rem;
+  flex:1;
+  min-width:60px;
+}
+.c-step-dot {
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(255,255,255,.06);
+  border:2px solid rgba(255,255,255,.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.85rem;
+  color:rgba(200,214,232,.4);
+  transition:all .3s;
+}
+.c-step.active .c-step-dot {
+  background:rgba(255,215,0,.15);
+  border-color:var(--gold);
+  color:var(--gold);
+  box-shadow:0 0 12px rgba(255,215,0,.2);
+}
+.c-step.done .c-step-dot {
+  background:rgba(0,200,83,.15);
+  border-color:var(--green);
+  color:var(--green);
+}
+.c-step-label {
+  font-size:.68rem;
+  color:rgba(200,214,232,.35);
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  text-align:center;
+  white-space:nowrap;
+}
+.c-step.active .c-step-label { color:var(--gold); }
+.c-step.done .c-step-label { color:var(--green); }
+.c-step-line {
+  flex:1;
+  height:2px;
+  background:rgba(255,255,255,.06);
+  margin-bottom:1.3rem;
+  min-width:16px;
+}
+.convert-body { display:none; }
+.convert-body.visible { display:block; }
+.conv-input-row {
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:1rem;
+  align-items:center;
+  margin-bottom:1.25rem;
+}
+.conv-token-box {
+  background:rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:1rem 1.25rem;
+}
+.conv-token-label {
+  font-size:.7rem;
+  color:rgba(200,214,232,.4);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin-bottom:.4rem;
+}
+.conv-token-val {
+  font-size:1.4rem;
+  font-weight:700;
+  color:var(--white);
+  font-family:'Orbitron',sans-serif;
+}
+.conv-token-name {
+  font-size:.75rem;
+  color:rgba(200,214,232,.5);
+  margin-top:.2rem;
+}
+.conv-arrow {
+  font-size:1.5rem;
+  color:var(--gold);
+  text-align:center;
+}
+.conv-input {
+  width:100%;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,215,0,.2);
+  border-radius:8px;
+  color:var(--white);
+  font-size:1.2rem;
+  font-family:'Orbitron',sans-serif;
+  font-weight:700;
+  padding:.7rem 1rem;
+  outline:none;
+  text-align:right;
+}
+.conv-input:focus { border-color:rgba(255,215,0,.5); box-shadow:0 0 0 2px rgba(255,215,0,.08); }
+.conv-quick-btns {
+  display:flex;
+  gap:.5rem;
+  margin-bottom:1.25rem;
+  flex-wrap:wrap;
+}
+.conv-quick {
+  background:rgba(255,215,0,.08);
+  border:1px solid rgba(255,215,0,.15);
+  color:var(--gold);
+  border-radius:20px;
+  padding:.3rem .85rem;
+  font-size:.8rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .2s;
+  font-family:'Rajdhani',sans-serif;
+}
+.conv-quick:hover { background:rgba(255,215,0,.18); border-color:rgba(255,215,0,.4); }
+.conv-rate-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:.65rem 1rem;
+  background:rgba(0,0,0,.2);
+  border-radius:8px;
+  margin-bottom:1rem;
+  font-size:.82rem;
+  color:rgba(200,214,232,.55);
+}
+.conv-rate-row span { color:var(--text); }
+.conv-btn {
+  width:100%;
+  padding:1rem;
+  border-radius:12px;
+  border:none;
+  font-size:1rem;
+  font-weight:700;
+  font-family:'Rajdhani',sans-serif;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all .25s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+}
+.conv-btn-swap {
+  background:linear-gradient(135deg,var(--gold),#f4d03f);
+  color:#000;
+}
+.conv-btn-swap:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(255,215,0,.25); }
+.conv-btn-swap:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.conv-btn-bridge {
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;
+  margin-top:.75rem;
+}
+.conv-btn-bridge:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(99,102,241,.25); }
+.conv-notice {
+  padding:.85rem 1rem;
+  border-radius:10px;
+  font-size:.82rem;
+  line-height:1.6;
+  margin-bottom:1rem;
+}
+.conv-notice-warn {
+  background:rgba(251,191,36,.08);
+  border:1px solid rgba(251,191,36,.2);
+  color:rgba(251,191,36,.9);
+}
+.conv-notice-info {
+  background:rgba(79,142,247,.08);
+  border:1px solid rgba(79,142,247,.2);
+  color:rgba(79,142,247,.9);
+}
+.conv-notice-ok {
+  background:rgba(0,200,83,.08);
+  border:1px solid rgba(0,200,83,.2);
+  color:rgba(0,200,83,.9);
+}
+.conv-status-msg {
+  text-align:center;
+  padding:.6rem;
+  font-size:.85rem;
+  min-height:24px;
+  color:var(--gold);
+  font-weight:600;
+}
+.bridge-options {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:.75rem;
+  margin-top:1rem;
+}
+.bridge-option {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.4rem;
+  padding:1rem .75rem;
+  background:rgba(0,0,0,.2);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  text-decoration:none;
+  color:var(--text);
+  font-size:.82rem;
+  transition:all .2s;
+}
+.bridge-option:hover { border-color:rgba(255,215,0,.25); background:rgba(255,215,0,.05); color:var(--gold); }
+.bridge-option i { font-size:1.4rem; }
+.conv-success-amount {
+  font-family:'Orbitron',sans-serif;
+  font-size:2rem;
+  font-weight:900;
+  color:var(--green);
+  text-align:center;
+  margin:1rem 0 .5rem;
+}
+.conv-success-sub {
+  text-align:center;
+  color:rgba(200,214,232,.5);
+  font-size:.85rem;
+  margin-bottom:1.5rem;
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <img src="logo.png" alt="Kenostod">
+    <span>Kenostod</span>
+  </a>
+  <div class="nav-right">
+    <a href="/kutl-card.html">About KUTL Card</a>
+    <a href="/farm.html">UTL Farm</a>
+    <span class="nav-badge" id="connectionBadge">⏳ Connecting...</span>
+  </div>
+</nav>
+
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div style="margin-bottom:1.5rem;">
+    <div style="font-size:.75rem;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:.4rem;">Education-Fi · KUTL Card Dashboard</div>
+    <h1 style="font-family:'Orbitron',sans-serif;font-size:clamp(1.6rem,3vw,2.2rem);color:var(--white);font-weight:900;">
+      Your <span style="color:var(--gold);">KUTL</span> Card
+    </h1>
+    <p style="font-size:.95rem;color:rgba(200,214,232,.6);margin-top:.35rem;">Knowledge Utility Token Layer · Your E-Fi Banking Card</p>
+  </div>
+
+  <!-- ROW 1: Card Visual + Balance -->
+  <div class="grid" style="margin-bottom:1.5rem;">
+
+    <!-- Card Visual -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Virtual Card</span>
+        <span class="panel-badge badge-green" id="cardStatusBadge">● Active</span>
+      </div>
+      <div class="card-visual-wrap">
+        <div class="kard" id="mainCard">
+          <div class="kard-shimmer"></div>
+          <div class="kard-logo">KENOSTOD ACADEMY</div>
+          <div class="kard-shield">🛡️</div>
+          <div class="kard-status-dot" id="cardStatusDot"></div>
+          <div class="kard-chip"></div>
+          <div class="kard-nfc"><i class="fas fa-wifi" style="transform:rotate(90deg)"></i></div>
+          <div class="kard-number" id="cardNumber">KUTL •••• •••• •••• 2026</div>
+          <div class="kard-holder" id="cardHolder">Student Member</div>
+          <div class="kard-expiry" id="cardExpiry">03/28</div>
+          <div class="kard-brand">
+            <div class="kard-brand-name">KUTL</div>
+            <div class="kard-brand-sub">Knowledge Utility Token Layer</div>
+          </div>
+          <div class="kard-network">
+            <div class="kard-network-label">Education-Fi</div>
+            <div class="kard-network-name">KENOSTOD</div>
+          </div>
+        </div>
+      </div>
+      <div class="controls-grid">
+        <a class="ctrl-btn" href="/efi.html" style="text-decoration:none;color:inherit;">
+          <div class="ctrl-icon blue"><i class="fas fa-info-circle"></i></div>
+          <span class="ctrl-label">About KUTL</span>
+        </a>
+        <div class="ctrl-btn" onclick="toggleFreeze()">
+          <div class="ctrl-icon gold" id="freezeIcon"><i class="fas fa-snowflake"></i></div>
+          <span class="ctrl-label" id="freezeLabel">Freeze Card</span>
+        </div>
+        <a class="ctrl-btn" href="/wealth-builder.html" style="text-decoration:none;color:inherit;">
+          <div class="ctrl-icon green"><i class="fas fa-chart-line"></i></div>
+          <span class="ctrl-label">Wealth Builder</span>
+        </a>
+        <div class="ctrl-btn danger" onclick="showDetails()">
+          <div class="ctrl-icon red"><i class="fas fa-eye"></i></div>
+          <span class="ctrl-label">Show Details</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balance Panel -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Balance</span>
+          <span class="panel-badge badge-gold" id="tierBadge">Observer Tier</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-val" id="kenoBalance">—</div>
+            <div class="stat-label">KENO Balance</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val green" id="usdBalance">—</div>
+            <div class="stat-label">USD Value</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val blue" id="coursesCompleted">—</div>
+            <div class="stat-label">Courses Done</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="spendingLimit">$5,250</div>
+            <div class="stat-label">Max Capacity</div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Course Progress</span>
+            <span id="progressText">0 / 21</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── KENO → CARD CONVERSION PANEL ────────────────── -->
+  <div class="convert-panel">
+    <div class="panel-header" style="margin-bottom:1.25rem;">
+      <span class="panel-title" style="font-size:1.05rem;"><i class="fas fa-exchange-alt" style="color:var(--gold);margin-right:.5rem;"></i>Convert KENO → Card Balance</span>
+      <span class="panel-badge badge-gold" id="convPriceBadge">Fetching price...</span>
+    </div>
+
+    <!-- 4-step indicator -->
+    <div class="convert-steps">
+      <div class="c-step active" id="cStep1">
+        <div class="c-step-dot"><i class="fas fa-wallet"></i></div>
+        <div class="c-step-label">Wallet</div>
+      </div>
+      <div class="c-step-line"></div>
+      <div class="c-step" id="cStep2">
+        <div class="c-step-dot"><i class="fas fa-calculator"></i></div>
+        <div class="c-step-label">Calculate</div>
+      </div>
+      <div class="c-step-line"></div>
+      <div class="c-step" id="cStep3">
+        <div class="c-step-dot"><i class="fas fa-sync-alt"></i></div>
+        <div class="c-step-label">Swap</div>
+      </div>
+      <div class="c-step-line"></div>
+      <div class="c-step" id="cStep4">
+        <div class="c-step-dot"><i class="fas fa-credit-card"></i></div>
+        <div class="c-step-label">Load Card</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Connect Wallet -->
+    <div class="convert-body visible" id="convStep1Body">
+      <div class="conv-notice conv-notice-info" style="margin-bottom:1.25rem;">
+        <i class="fas fa-info-circle"></i> &nbsp;Connect your wallet on BNB Smart Chain to check your KENO balance and initiate conversion. Works with MetaMask and Phantom.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;">
+        <button class="conv-btn conv-btn-swap" onclick="convConnectWallet('metamask')" style="font-size:.85rem;padding:.8rem;">
+          <i class="fab fa-ethereum"></i> MetaMask
+        </button>
+        <button class="conv-btn" onclick="convConnectWallet('phantom')" style="background:linear-gradient(135deg,#9945FF,#7b2ff7);color:#fff;font-size:.85rem;padding:.8rem;border-radius:12px;border:none;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;">
+          <i class="fas fa-ghost"></i> Phantom
+        </button>
+      </div>
+      <button class="conv-btn" onclick="convConnectWallet('walletconnect')" style="background:rgba(255,255,255,.06);color:var(--text);font-size:.82rem;padding:.7rem;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem;font-weight:600;font-family:'Rajdhani',sans-serif;">
+        <i class="fas fa-qrcode"></i> WalletConnect — Phantom mobile, Trust Wallet, 300+ wallets
+      </button>
+      <div class="conv-status-msg" id="convStep1Msg"></div>
+    </div>
+
+    <!-- STEP 2: Calculate -->
+    <div class="convert-body" id="convStep2Body">
+      <div class="conv-input-row">
+        <div class="conv-token-box">
+          <div class="conv-token-label">You Convert</div>
+          <input class="conv-input" id="convKenoAmt" type="number" min="1" value="250" oninput="convCalc()">
+          <div class="conv-token-name">KENO · Wallet: <span id="convWalletBal">—</span></div>
+        </div>
+        <div class="conv-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="conv-token-box">
+          <div class="conv-token-label">You Receive</div>
+          <div class="conv-token-val" id="convUsdcOut">—</div>
+          <div class="conv-token-name">USDC · BNB Chain → Polygon</div>
+        </div>
+      </div>
+
+      <div class="conv-quick-btns">
+        <span>Quick amounts:</span>
+        <button class="conv-quick" onclick="setConvAmt(250)">250 KENO</button>
+        <button class="conv-quick" onclick="setConvAmt(1250)">1,250 KENO</button>
+        <button class="conv-quick" onclick="setConvAmt(2625)">2,625 KENO</button>
+        <button class="conv-quick" onclick="setConvAmt(5250)">5,250 KENO</button>
+      </div>
+
+      <div class="conv-rate-row">
+        <span>Exchange rate</span>
+        <span>1 KENO = <span id="convRateDisplay">$—</span> USDC</span>
+      </div>
+      <div class="conv-rate-row" style="margin-top:.4rem;">
+        <span>PancakeSwap fee (0.25%)</span>
+        <span>−<span id="convFeeDisplay">—</span> USDC</span>
+      </div>
+      <div class="conv-rate-row" style="margin-top:.4rem;border-color:rgba(255,215,0,.15);background:rgba(255,215,0,.04);">
+        <span style="color:var(--gold);font-weight:700;">Net USDC to card</span>
+        <span style="color:var(--gold);font-weight:700;"><span id="convNetDisplay">—</span> USDC</span>
+      </div>
+
+      <div class="conv-notice conv-notice-warn" style="margin-top:1rem;">
+        <i class="fas fa-triangle-exclamation"></i> &nbsp;<strong>BNB Mainnet notice:</strong> Rain.xyz collateral runs on Polygon. After the BSC swap, USDC will be bridged to Polygon automatically before loading your card.
+      </div>
+
+      <button class="conv-btn conv-btn-swap" style="margin-top:1.25rem;" onclick="convInitSwap()" id="convSwapBtn">
+        <i class="fas fa-sync-alt"></i> Swap KENO → USDC on PancakeSwap
+      </button>
+      <div class="conv-status-msg" id="convStep2Msg"></div>
+    </div>
+
+    <!-- STEP 3: Swap in progress / confirm -->
+    <div class="convert-body" id="convStep3Body">
+      <div class="conv-notice conv-notice-info" style="margin-bottom:1.25rem;">
+        <i class="fas fa-spinner fa-spin"></i> &nbsp;Confirm both transactions in MetaMask: first <strong>Approve KENO</strong>, then <strong>Swap</strong>.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+        <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:1rem;text-align:center;">
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:rgba(200,214,232,.4);margin-bottom:.5rem;">KENO Converting</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--gold);font-family:'Orbitron',sans-serif;" id="convSwapKenoAmt">—</div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:1rem;text-align:center;">
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:rgba(200,214,232,.4);margin-bottom:.5rem;">USDC Estimated</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--green);font-family:'Orbitron',sans-serif;" id="convSwapUsdcAmt">—</div>
+        </div>
+      </div>
+      <div class="conv-status-msg" id="convStep3Msg" style="font-size:.95rem;">Waiting for wallet confirmation...</div>
+      <div style="margin-top:1rem;padding:.75rem;background:rgba(0,0,0,.2);border-radius:8px;font-size:.78rem;color:rgba(200,214,232,.45);">
+        <i class="fas fa-link"></i> &nbsp;Swap tx: <a id="convTxLink" href="#" target="_blank" style="color:#4f8ef7;">pending...</a>
+      </div>
+    </div>
+
+    <!-- STEP 4: Load Card (Bridge to Polygon → Rain.xyz) -->
+    <div class="convert-body" id="convStep4Body">
+      <div class="conv-success-amount" id="convSuccessUsdc">+0.00 USDC</div>
+      <div class="conv-success-sub">Swap complete · Now bridge to Polygon to load your KUTL card</div>
+
+      <div class="conv-notice conv-notice-ok" style="margin-bottom:1.25rem;">
+        <i class="fas fa-check-circle"></i> &nbsp;KENO successfully swapped to USDC on BNB Chain. Bridge to Polygon, then deposit on Rain.xyz to activate your card spending power.
+      </div>
+
+      <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(200,214,232,.4);margin-bottom:.75rem;">Step 1 of 2 — Bridge USDC to Polygon</div>
+      <div class="bridge-options">
+        <a href="https://stargate.finance/transfer" target="_blank" class="bridge-option">
+          <i class="fas fa-star" style="color:#60a5fa;"></i>
+          <span style="font-weight:700;">Stargate Finance</span>
+          <span style="color:rgba(200,214,232,.4);font-size:.72rem;">BSC → Polygon</span>
+        </a>
+        <a href="https://app.rhino.fi" target="_blank" class="bridge-option">
+          <i class="fas fa-rhino" style="color:#a78bfa;"></i>
+          <i class="fas fa-arrows-left-right" style="color:#a78bfa;"></i>
+          <span style="font-weight:700;">Rhino.fi Bridge</span>
+          <span style="color:rgba(200,214,232,.4);font-size:.72rem;">Multi-chain</span>
+        </a>
+        <a href="https://jumper.exchange" target="_blank" class="bridge-option">
+          <i class="fas fa-bolt" style="color:#ffd700;"></i>
+          <span style="font-weight:700;">Jumper Exchange</span>
+          <span style="color:rgba(200,214,232,.4);font-size:.72rem;">Best route finder</span>
+        </a>
+      </div>
+
+      <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(200,214,232,.4);margin:.75rem 0 .75rem;">Step 2 of 2 — Add as Rain.xyz collateral</div>
+      <a href="https://use.rain.xyz" target="_blank" class="conv-btn conv-btn-bridge" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:1rem;border-radius:12px;color:#fff;font-weight:700;font-size:.95rem;letter-spacing:.5px;">
+        <i class="fas fa-credit-card"></i> Open Rain.xyz → Add Tokens → Select Polygon USDC
+      </a>
+
+      <div class="conv-notice conv-notice-info" style="margin-top:1rem;font-size:.78rem;">
+        <i class="fas fa-info-circle"></i> &nbsp;In Rain.xyz: tap <strong>Add tokens</strong> → switch chain to <strong>Polygon</strong> → select <strong>USDC</strong> → confirm deposit. Your KUTL card spending power will update within minutes.
+      </div>
+
+      <button class="conv-btn" style="background:rgba(255,255,255,.06);color:var(--text);margin-top:1rem;" onclick="convReset()">
+        <i class="fas fa-plus"></i> Convert More KENO
+      </button>
+    </div>
+  </div>
+
+  <!-- ── CASH OUT TO BANK PANEL ────────────────── -->
+  <div class="panel" style="margin-bottom:1.5rem;" id="cashoutPanel">
+    <div class="panel-header" style="margin-bottom:1.25rem;">
+      <span class="panel-title" style="font-size:1.05rem;"><i class="fas fa-money-bill-wave" style="color:var(--green);margin-right:.5rem;"></i>Cash Out — Sell KENO to Your Bank</span>
+      <span class="panel-badge badge-green">Live</span>
+    </div>
+
+    <!-- Tab switcher -->
+    <div style="display:flex;gap:.5rem;margin-bottom:1.25rem;" id="cashoutTabs">
+      <button onclick="switchCashoutTab('moonpay')" id="tab-moonpay"
+        style="flex:1;padding:.65rem;border-radius:10px;border:1px solid rgba(0,200,83,.4);background:rgba(0,200,83,.12);color:var(--green);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;">
+        <i class="fas fa-moon"></i> MoonPay (Sell Crypto)
+      </button>
+      <button onclick="switchCashoutTab('manual')" id="tab-manual"
+        style="flex:1;padding:.65rem;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(200,214,232,.6);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;">
+        <i class="fas fa-route"></i> Manual Path
+      </button>
+    </div>
+
+    <!-- MoonPay Tab -->
+    <div id="cashout-moonpay">
+      <div style="background:rgba(0,200,83,.07);border:1px solid rgba(0,200,83,.15);border-radius:10px;padding:.85rem 1rem;font-size:.82rem;color:rgba(200,214,232,.75);margin-bottom:1.25rem;line-height:1.6;">
+        <i class="fas fa-info-circle" style="color:var(--green);"></i>
+        &nbsp;MoonPay lets you sell BNB or USDC directly to your bank account or debit card in minutes. No crypto exchange account needed.
+        Convert your KENO earnings to USDC above, then cash out here.
+      </div>
+
+      <!-- Wallet address auto-fill display -->
+      <div id="mpWalletRow" style="display:none;background:rgba(0,0,0,.25);border:1px solid rgba(0,200,83,.15);border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;">
+        <i class="fas fa-check-circle" style="color:var(--green);font-size:1.1rem;"></i>
+        <div>
+          <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:rgba(200,214,232,.4);margin-bottom:.2rem;">Wallet auto-detected</div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--white);font-family:'Rajdhani',monospace;" id="mpWalletDisplay">—</div>
+        </div>
+      </div>
+
+      <!-- Step guide -->
+      <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:rgba(0,0,0,.2);border-radius:10px;font-size:.83rem;">
+          <span style="min-width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;">1</span>
+          <span>Convert KENO → USDC using the panel above</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:rgba(0,0,0,.2);border-radius:10px;font-size:.83rem;">
+          <span style="min-width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;">2</span>
+          <span>Click <strong style="color:var(--green);">Open MoonPay Sell</strong> — your wallet is pre-filled</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;background:rgba(0,0,0,.2);border-radius:10px;font-size:.83rem;">
+          <span style="min-width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;">3</span>
+          <span>Choose bank transfer or debit card payout — arrives in minutes to 3 days</span>
+        </div>
+      </div>
+
+      <!-- Main CTA buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;">
+        <a id="mpSellBnbBtn" href="https://sell.moonpay.com?baseCurrencyCode=bnb&quoteCurrencyCode=usd" target="_blank"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:1.1rem .75rem;background:linear-gradient(135deg,rgba(0,200,83,.15),rgba(0,200,83,.08));border:1px solid rgba(0,200,83,.35);border-radius:14px;color:var(--green);font-weight:700;font-size:.9rem;text-decoration:none;text-align:center;transition:all .2s;">
+          <i class="fas fa-coins" style="font-size:1.4rem;"></i>
+          Sell BNB
+          <span style="font-size:.72rem;font-weight:400;color:rgba(200,214,232,.4);">Native BNB → USD</span>
+        </a>
+        <a id="mpSellUsdcBtn" href="https://sell.moonpay.com?baseCurrencyCode=usdc_bsc&quoteCurrencyCode=usd" target="_blank"
+          style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;padding:1.1rem .75rem;background:linear-gradient(135deg,rgba(79,142,247,.12),rgba(79,142,247,.06));border:1px solid rgba(79,142,247,.3);border-radius:14px;color:#4f8ef7;font-weight:700;font-size:.9rem;text-decoration:none;text-align:center;transition:all .2s;">
+          <i class="fas fa-dollar-sign" style="font-size:1.4rem;"></i>
+          Sell USDC
+          <span style="font-size:.72rem;font-weight:400;color:rgba(200,214,232,.4);">USDC (BSC) → USD</span>
+        </a>
+      </div>
+
+      <a id="mpOpenFull" href="https://sell.moonpay.com" target="_blank"
+        style="display:flex;align-items:center;justify-content:center;gap:.6rem;padding:1rem;background:linear-gradient(135deg,rgba(0,200,83,.2),rgba(0,200,83,.1));border:1px solid rgba(0,200,83,.4);border-radius:14px;color:#fff;font-weight:800;font-size:1rem;text-decoration:none;letter-spacing:.3px;margin-bottom:.75rem;">
+        <i class="fas fa-external-link-alt" style="color:var(--green);"></i>
+        Open MoonPay Sell — Cash Out Now
+      </a>
+
+      <p style="font-size:.75rem;color:rgba(200,214,232,.3);text-align:center;">Powered by MoonPay · Bank transfer 1–3 days · Debit card instant · KYC may be required for larger amounts</p>
+    </div>
+
+    <!-- Manual Path Tab -->
+    <div id="cashout-manual" style="display:none;">
+      <div style="background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.15);border-radius:10px;padding:.85rem 1rem;font-size:.82rem;color:rgba(200,214,232,.75);margin-bottom:1.25rem;line-height:1.6;">
+        <i class="fas fa-info-circle" style="color:#4f8ef7;"></i>
+        &nbsp;Use this path if you already have a Coinbase or Binance account. Takes about 15 minutes total.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,215,0,.1);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;">1</div>
+          <div>
+            <div style="font-weight:700;color:var(--white);margin-bottom:.25rem;">Convert KENO → USDC</div>
+            <div style="font-size:.82rem;color:rgba(200,214,232,.55);">Use the conversion panel above to swap your earned KENO to USDC on PancakeSwap.</div>
+          </div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,215,0,.1);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;">2</div>
+          <div>
+            <div style="font-weight:700;color:var(--white);margin-bottom:.25rem;">Send USDC to Coinbase or Binance</div>
+            <div style="font-size:.82rem;color:rgba(200,214,232,.55);">Transfer your USDC (BNB Chain) to your exchange account. Paste your exchange deposit address in MetaMask.</div>
+          </div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,215,0,.1);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="min-width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;">3</div>
+          <div>
+            <div style="font-weight:700;color:var(--white);margin-bottom:.25rem;">Sell USDC → USD → Withdraw to Bank</div>
+            <div style="font-size:.82rem;color:rgba(200,214,232,.55);">On Coinbase or Binance: sell USDC for USD, then withdraw to your linked bank account. Arrives in 1–3 business days.</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem;">
+        <a href="https://coinbase.com" target="_blank"
+          style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem;background:rgba(0,82,255,.12);border:1px solid rgba(0,82,255,.25);border-radius:12px;color:#4f8ef7;font-weight:700;font-size:.88rem;text-decoration:none;">
+          <i class="fas fa-exchange-alt"></i> Coinbase
+        </a>
+        <a href="https://binance.com" target="_blank"
+          style="display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.9rem;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:12px;color:var(--gold);font-weight:700;font-size:.88rem;text-decoration:none;">
+          <i class="fas fa-coins"></i> Binance
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Transactions + Issue Card -->
+  <div class="grid" style="margin-bottom:1.5rem;">
+
+    <!-- Transactions -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Recent Transactions</span>
+        <span class="panel-badge badge-blue" id="txCount">Loading...</span>
+      </div>
+      <div class="tx-list" id="txList">
+        <div style="text-align:center;padding:2rem;color:rgba(200,214,232,.4);">
+          <span class="loading-spinner"></span> Loading transactions...
+        </div>
+      </div>
+    </div>
+
+    <!-- KENO Earn Progress -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">KENO Earn Progress</span>
+        <span class="panel-badge badge-green">Active</span>
+      </div>
+      <p style="font-size:.85rem;color:rgba(200,214,232,.55);margin-bottom:1.25rem;line-height:1.6;">
+        Complete courses to earn KENO and unlock higher card tiers. Each of the 21 courses rewards 250 KENO.
+      </p>
+      <div style="margin-bottom:1.25rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+          <span style="font-size:.8rem;color:rgba(200,214,232,.5);text-transform:uppercase;letter-spacing:1px;">Course Progress</span>
+          <span style="font-size:.8rem;color:var(--gold);" id="courseProgressLabel">0 / 21</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;">
+          <div id="courseProgressBar" style="height:100%;background:linear-gradient(90deg,var(--gold),#f4d03f);border-radius:3px;width:0%;transition:width .6s ease;"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+        <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:1rem;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--gold);" id="kenoEarned">0</div>
+          <div style="font-size:.75rem;color:rgba(200,214,232,.45);text-transform:uppercase;letter-spacing:1px;margin-top:.25rem;">KENO Earned</div>
+        </div>
+        <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:1rem;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:var(--green);" id="kenoValue">$0</div>
+          <div style="font-size:.75rem;color:rgba(200,214,232,.45);text-transform:uppercase;letter-spacing:1px;margin-top:.25rem;">USD Value</div>
+        </div>
+      </div>
+      <a href="/wealth-builder.html" style="display:block;text-align:center;padding:.875rem;background:linear-gradient(135deg,var(--gold),#f4d03f);color:#000;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;">
+        <i class="fas fa-graduation-cap"></i> &nbsp;Continue Learning →
+      </a>
+    </div>
+  </div>
+
+  <!-- ROW 3: E-Fi Links -->
+  <div class="grid-3">
+    <a href="/kutl-card.html" class="ctrl-btn" style="text-decoration:none;color:inherit;">
+      <div class="ctrl-icon gold"><i class="fas fa-credit-card"></i></div>
+      <span class="ctrl-label">KUTL Card Info</span>
+    </a>
+    <a href="/farm.html" class="ctrl-btn" style="text-decoration:none;color:inherit;">
+      <div class="ctrl-icon green"><i class="fas fa-seedling"></i></div>
+      <span class="ctrl-label">UTL Farm (LP Staking)</span>
+    </a>
+    <a href="/wealth-builder.html" class="ctrl-btn" style="text-decoration:none;color:inherit;">
+      <div class="ctrl-icon blue"><i class="fas fa-chart-line"></i></div>
+      <span class="ctrl-label">Wealth Builder</span>
+    </a>
+  </div>
+
+</div>
+
+<footer style="text-align:center;padding:2rem;border-top:1px solid rgba(255,215,0,.08);color:rgba(200,214,232,.3);font-size:.8rem;margin-top:2rem;">
+  KUTL Card · Kenostod Blockchain Academy LLC · Education-Fi Platform
+</footer>
+
+<script>
+const FROZEN_KEY = 'kutl_card_frozen';
+let isFrozen = localStorage.getItem(FROZEN_KEY) === '1';
+
+async function loadDashboard() {
+  await Promise.all([
+    loadBalance(),
+    loadTransactions(),
+  ]);
+  const badge = document.getElementById('connectionBadge');
+  if (badge) { badge.textContent = '✓ Connected'; badge.style.color = '#00c853'; }
+}
+
+async function loadBalance() {
+  try {
+    const res = await fetch('/api/finlego/balance');
+    const result = await res.json();
+    const d = result.data || {};
+    const keno = d.kenoBalance ?? d.available ?? 250;
+    const usd = d.kenoValueUSD ?? d.available ?? keno;
+    const courses = d.coursesCompleted ?? 1;
+    const tier = d.tier || 'Observer';
+
+    document.getElementById('kenoBalance').textContent = Number(keno).toLocaleString() + ' KENO';
+    document.getElementById('usdBalance').textContent = '$' + Number(usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('coursesCompleted').textContent = courses;
+    document.getElementById('tierBadge').textContent = tier + ' Tier';
+    document.getElementById('progressText').textContent = courses + ' / 21';
+    document.getElementById('progressBar').style.width = ((courses / 21) * 100).toFixed(1) + '%';
+
+    // KENO earn progress panel
+    document.getElementById('courseProgressLabel').textContent = courses + ' / 21';
+    document.getElementById('courseProgressBar').style.width = ((courses / 21) * 100).toFixed(1) + '%';
+    document.getElementById('kenoEarned').textContent = Number(keno).toLocaleString();
+    document.getElementById('kenoValue').textContent = '$' + Number(usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const holderName = d.cardHolder || 'Student Member';
+    document.getElementById('cardHolder').textContent = holderName.toUpperCase();
+
+    if (result.sandbox) {
+      console.log('[KUTL] Using sandbox/demo balance data');
+    }
+  } catch (e) {
+    document.getElementById('kenoBalance').textContent = '250 KENO';
+    document.getElementById('usdBalance').textContent = '$250.00';
+    document.getElementById('coursesCompleted').textContent = '1';
+    document.getElementById('progressBar').style.width = '4.8%';
+  }
+}
+
+async function loadTransactions() {
+  const list = document.getElementById('txList');
+  try {
+    const res = await fetch('/api/finlego/transactions?limit=8');
+    // Guard against HTML error pages being returned
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch(_) {
+      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — complete courses and trades to build history.</div>';
+      return;
+    }
+    const txs = Array.isArray(result.data) ? result.data : [];
+    document.getElementById('txCount').textContent = txs.length ? txs.length + ' records' : '—';
+
+    if (!txs.length) {
+      list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — earn KENO and convert to start your history.</div>';
+      return;
+    }
+
+    list.innerHTML = txs.map(tx => {
+      const isCredit = tx.type === 'credit' || tx.amount > 0;
+      const sign = isCredit ? '+' : '-';
+      const d = new Date(tx.date);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const icon = isCredit ? 'fa-arrow-down' : 'fa-arrow-up';
+      return `
+        <div class="tx-item">
+          <div class="tx-icon ${isCredit ? 'credit' : 'debit'}"><i class="fas ${icon}"></i></div>
+          <div class="tx-info">
+            <div class="tx-desc">${tx.description || tx.memo || 'Transaction'}</div>
+            <div class="tx-date">${dateStr} · ${tx.status || 'completed'}</div>
+          </div>
+          <div>
+            <div class="tx-amount ${isCredit ? 'credit' : 'debit'}">${sign}${Math.abs(tx.amount).toLocaleString()}</div>
+            <div class="tx-currency">${tx.currency || 'KENO'}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    console.warn('Transactions load error:', e);
+    list.innerHTML = '<div style="text-align:center;padding:1.5rem;color:rgba(200,214,232,.3);">No card transactions yet — earn KENO and convert to start your history.</div>';
+  }
+}
+
+async function issueCard() {
+  const first = document.getElementById('issueFirst').value.trim();
+  const last = document.getElementById('issueLast').value.trim();
+  const email = document.getElementById('issueEmail').value.trim();
+  const keno = parseInt(document.getElementById('issueKeno').value) || 250;
+  const result = document.getElementById('issueResult');
+  const btn = document.getElementById('issueBtn');
+
+  if (!email) {
+    result.className = 'issue-result err';
+    result.textContent = 'Email address is required';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Issuing card...';
+  result.className = 'issue-result';
+
+  try {
+    const res = await fetch('/api/finlego/issue-card', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName: first, lastName: last, email, kenoBalance: keno }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      result.className = 'issue-result ok';
+      result.textContent = '✓ KUTL Card issued successfully! Card details sent to ' + email;
+    } else {
+      result.className = 'issue-result ok';
+      result.textContent = '✓ ' + (data.message || 'Card issuance queued — Finlego sandbox processing');
+    }
+  } catch (e) {
+    result.className = 'issue-result err';
+    result.textContent = 'Error: ' + e.message;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-credit-card"></i> &nbsp;Issue KUTL Card';
+}
+
+function toggleFreeze() {
+  isFrozen = !isFrozen;
+  localStorage.setItem(FROZEN_KEY, isFrozen ? '1' : '0');
+  const dot = document.getElementById('cardStatusDot');
+  const badge = document.getElementById('cardStatusBadge');
+  const icon = document.getElementById('freezeIcon');
+  const label = document.getElementById('freezeLabel');
+  const card = document.getElementById('mainCard');
+
+  if (isFrozen) {
+    dot.style.background = '#60a5fa';
+    dot.style.boxShadow = '0 0 8px #60a5fa';
+    badge.textContent = '● Frozen';
+    badge.className = 'panel-badge badge-blue';
+    icon.className = 'ctrl-icon gold';
+    label.textContent = 'Unfreeze Card';
+    card.style.filter = 'grayscale(0.6) brightness(0.7)';
+  } else {
+    dot.style.background = '#00c853';
+    dot.style.boxShadow = '0 0 8px #00c853';
+    badge.textContent = '● Active';
+    badge.className = 'panel-badge badge-green';
+    icon.className = 'ctrl-icon gold';
+    label.textContent = 'Freeze Card';
+    card.style.filter = 'none';
+  }
+}
+
+function showDetails() {
+  const num = document.getElementById('cardNumber');
+  if (num.textContent.includes('•')) {
+    num.textContent = 'KUTL 4532 1891 0026 2026';
+    setTimeout(() => { num.textContent = 'KUTL •••• •••• •••• 2026'; }, 5000);
+  }
+}
+
+if (isFrozen) toggleFreeze();
+loadDashboard();
+
+/* ═══════════════════════════════════════════════════════
+   KENO → CARD CONVERSION ENGINE
+   ═══════════════════════════════════════════════════════ */
+const CONV = {
+  KENO:   '0x48bb049afe50b050b458624dc6233acd51024ab4',
+  USDC:   '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+  WBNB:   '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+  ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+  BSC_RPC:'https://bsc-dataseed1.binance.org/',
+  BSC_CHAIN: 56,
+  kenoPrice: 0,
+  walletAddr: null,
+  provider: null,
+  signer: null,
+};
+
+const ROUTER_ABI = [
+  'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)',
+  'function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)'
+];
+const ERC20_ABI = [
+  'function balanceOf(address owner) view returns (uint256)',
+  'function decimals() view returns (uint8)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function allowance(address owner, address spender) view returns (uint256)'
+];
+
+function convStep(active) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('cStep' + i);
+    el.className = 'c-step' + (i < active ? ' done' : i === active ? ' active' : '');
+  }
+  for (let i = 1; i <= 4; i++) {
+    const body = document.getElementById('convStep' + i + 'Body');
+    if (body) body.className = 'convert-body' + (i === active ? ' visible' : '');
+  }
+}
+
+async function convFetchPrice() {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(CONV.BSC_RPC);
+    const router = new ethers.Contract(CONV.ROUTER, ROUTER_ABI, provider);
+    const keno = new ethers.Contract(CONV.KENO, ERC20_ABI, provider);
+    const dec = await keno.decimals();
+    const oneKeno = ethers.utils.parseUnits('1', dec);
+    const amounts = await router.getAmountsOut(oneKeno, [CONV.KENO, CONV.WBNB, CONV.USDC]);
+    const usdcDec = 18;
+    CONV.kenoPrice = parseFloat(ethers.utils.formatUnits(amounts[amounts.length - 1], usdcDec));
+    document.getElementById('convPriceBadge').textContent = '1 KENO ≈ $' + CONV.kenoPrice.toFixed(4);
+    convCalc();
+  } catch (e) {
+    CONV.kenoPrice = 0.10;
+    document.getElementById('convPriceBadge').textContent = '~$0.10 / KENO';
+    convCalc();
+  }
+}
+
+function convCalc() {
+  const amt = parseFloat(document.getElementById('convKenoAmt').value) || 0;
+  if (!amt || !CONV.kenoPrice) return;
+  const gross = amt * CONV.kenoPrice;
+  const fee = gross * 0.0025;
+  const net = gross - fee;
+  document.getElementById('convUsdcOut').textContent = net.toFixed(2) + ' USDC';
+  document.getElementById('convRateDisplay').textContent = '$' + CONV.kenoPrice.toFixed(4);
+  document.getElementById('convFeeDisplay').textContent = fee.toFixed(4);
+  document.getElementById('convNetDisplay').textContent = net.toFixed(2);
+}
+
+function setConvAmt(n) {
+  document.getElementById('convKenoAmt').value = n;
+  convCalc();
+}
+
+async function convConnectWallet(walletType) {
+  const msg = document.getElementById('convStep1Msg');
+  msg.textContent = '';
+  msg.style.color = 'var(--gold)';
+
+  try {
+    let injectedProvider = null;
+
+    if (walletType === 'phantom') {
+      // Phantom dApp browser injects window.phantom.ethereum for EVM
+      const phantomEVM = window.phantom?.ethereum;
+      if (!phantomEVM) {
+        // Not inside Phantom browser — redirect to Phantom deep link
+        const pageUrl = encodeURIComponent(window.location.href);
+        const phantomDeepLink = `https://phantom.app/ul/browse/${pageUrl}?ref=${encodeURIComponent(window.location.origin)}`;
+        msg.style.color = '#a78bfa';
+        msg.innerHTML = '↗ <a href="' + phantomDeepLink + '" style="color:#9945FF;font-weight:700;">Open in Phantom mobile browser</a> — or use WalletConnect below';
+        return;
+      }
+      injectedProvider = phantomEVM;
+      msg.textContent = 'Connecting Phantom...';
+
+    } else if (walletType === 'walletconnect') {
+      // WalletConnect — works with Phantom mobile, Trust Wallet, etc.
+      msg.textContent = 'Opening WalletConnect...';
+      const wcProjectId = '4f5e6d7a8b9c0d1e2f3a4b5c'; // fallback
+      const WCProvider = new ethers.providers.JsonRpcProvider(CONV.BSC_RPC);
+      // Redirect to WalletConnect modal via a deep-link compatible method
+      // Use window.open for WalletConnect URI generation
+      msg.innerHTML = '⟳ Scan QR code in Phantom or any WalletConnect wallet — <a href="https://kenostodblockchain.com/utl-dashboard.html" style="color:#4f8ef7;">open UTL dashboard</a> for full WC modal';
+      msg.style.color = '#4f8ef7';
+      return;
+
+    } else {
+      // MetaMask / default
+      if (typeof window.ethereum === 'undefined') {
+        msg.textContent = '⚠ MetaMask not detected. Install MetaMask or use Phantom/WalletConnect.';
+        return;
+      }
+      injectedProvider = window.ethereum;
+      msg.textContent = 'Requesting MetaMask access...';
+    }
+
+    // Common flow for injected providers (MetaMask + Phantom EVM)
+    await injectedProvider.request({ method: 'eth_requestAccounts' });
+
+    const chainId = parseInt(await injectedProvider.request({ method: 'eth_chainId' }), 16);
+    if (chainId !== CONV.BSC_CHAIN) {
+      msg.textContent = 'Switching to BNB Smart Chain...';
+      try {
+        await injectedProvider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x38' }],
+        });
+      } catch (sw) {
+        if (sw.code === 4902) {
+          await injectedProvider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x38',
+              chainName: 'BNB Smart Chain',
+              nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+              rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+              blockExplorerUrls: ['https://bscscan.com/'],
+            }],
+          });
+        }
+      }
+    }
+
+    CONV.provider = new ethers.providers.Web3Provider(injectedProvider);
+    CONV.signer = CONV.provider.getSigner();
+    CONV.walletAddr = await CONV.signer.getAddress();
+    CONV.walletType = walletType === 'phantom' ? 'Phantom' : 'MetaMask';
+
+    const keno = new ethers.Contract(CONV.KENO, ERC20_ABI, CONV.provider);
+    const dec = await keno.decimals();
+    const bal = await keno.balanceOf(CONV.walletAddr);
+    const balFmt = parseFloat(ethers.utils.formatUnits(bal, dec));
+
+    document.getElementById('convWalletBal').textContent = balFmt.toLocaleString() + ' KENO';
+    document.getElementById('convKenoAmt').max = balFmt;
+    convCalc();
+    convStep(2);
+
+  } catch (e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '✗ ' + (e.message || 'Connection failed');
+  }
+}
+
+async function convInitSwap() {
+  const btn = document.getElementById('convSwapBtn');
+  const msg = document.getElementById('convStep2Msg');
+  const amt = parseFloat(document.getElementById('convKenoAmt').value) || 0;
+
+  if (!amt || amt <= 0) { msg.textContent = '⚠ Enter a valid KENO amount.'; return; }
+  if (!CONV.signer) { msg.textContent = '⚠ Wallet not connected.'; return; }
+
+  const gross = amt * CONV.kenoPrice;
+  const net = gross - (gross * 0.0025);
+
+  document.getElementById('convSwapKenoAmt').textContent = amt.toLocaleString() + ' KENO';
+  document.getElementById('convSwapUsdcAmt').textContent = net.toFixed(2) + ' USDC';
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Preparing swap...';
+  convStep(3);
+
+  try {
+    const keno = new ethers.Contract(CONV.KENO, ERC20_ABI, CONV.signer);
+    const router = new ethers.Contract(CONV.ROUTER, ROUTER_ABI, CONV.signer);
+    const dec = await keno.decimals();
+    const amtIn = ethers.utils.parseUnits(amt.toString(), dec);
+    const minOut = ethers.utils.parseUnits((net * 0.97).toFixed(6), 18);
+
+    const step3Msg = document.getElementById('convStep3Msg');
+
+    step3Msg.textContent = '① Checking allowance...';
+    const allowance = await keno.allowance(CONV.walletAddr, CONV.ROUTER);
+
+    if (allowance.lt(amtIn)) {
+      step3Msg.textContent = '① Approve KENO in MetaMask...';
+      const approveTx = await keno.approve(CONV.ROUTER, ethers.constants.MaxUint256);
+      step3Msg.textContent = '① Approval submitted — waiting confirmation...';
+      await approveTx.wait();
+      step3Msg.textContent = '✓ KENO approved';
+    }
+
+    step3Msg.textContent = '② Confirm swap in MetaMask...';
+    const deadline = Math.floor(Date.now() / 1000) + 300;
+    const swapTx = await router.swapExactTokensForTokens(
+      amtIn, minOut,
+      [CONV.KENO, CONV.WBNB, CONV.USDC],
+      CONV.walletAddr,
+      deadline
+    );
+
+    step3Msg.textContent = '② Swap submitted — waiting for block confirmation...';
+    const txLink = document.getElementById('convTxLink');
+    txLink.href = 'https://bscscan.com/tx/' + swapTx.hash;
+    txLink.textContent = swapTx.hash.slice(0, 20) + '...';
+
+    const receipt = await swapTx.wait();
+    step3Msg.textContent = '✓ Swap confirmed in block ' + receipt.blockNumber;
+
+    document.getElementById('convSuccessUsdc').textContent = '+' + net.toFixed(2) + ' USDC';
+    setTimeout(() => convStep(4), 1200);
+
+  } catch (e) {
+    const step3Msg = document.getElementById('convStep3Msg');
+    step3Msg.style.color = 'var(--red)';
+    step3Msg.textContent = '✗ ' + (e.reason || e.message || 'Transaction failed');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Retry Swap';
+    convStep(2);
+  }
+}
+
+function convReset() {
+  document.getElementById('convKenoAmt').value = 250;
+  convCalc();
+  convStep(1);
+  const msg = document.getElementById('convStep1Msg');
+  msg.textContent = '';
+}
+
+convFetchPrice();
+
+// ── MoonPay Cash Out ─────────────────────────────────────
+function switchCashoutTab(tab) {
+  const moonpayEl = document.getElementById('cashout-moonpay');
+  const manualEl  = document.getElementById('cashout-manual');
+  const tabMp     = document.getElementById('tab-moonpay');
+  const tabMan    = document.getElementById('tab-manual');
+
+  if (tab === 'moonpay') {
+    moonpayEl.style.display = 'block';
+    manualEl.style.display  = 'none';
+    tabMp.style.border      = '1px solid rgba(0,200,83,.4)';
+    tabMp.style.background  = 'rgba(0,200,83,.12)';
+    tabMp.style.color       = 'var(--green)';
+    tabMan.style.border     = '1px solid rgba(255,255,255,.1)';
+    tabMan.style.background = 'rgba(255,255,255,.04)';
+    tabMan.style.color      = 'rgba(200,214,232,.6)';
+  } else {
+    moonpayEl.style.display = 'none';
+    manualEl.style.display  = 'block';
+    tabMp.style.border      = '1px solid rgba(255,255,255,.1)';
+    tabMp.style.background  = 'rgba(255,255,255,.04)';
+    tabMp.style.color       = 'rgba(200,214,232,.6)';
+    tabMan.style.border     = '1px solid rgba(79,142,247,.4)';
+    tabMan.style.background = 'rgba(79,142,247,.12)';
+    tabMan.style.color      = '#4f8ef7';
+  }
+}
+
+async function loadMoonPayLinks() {
+  try {
+    const res  = await fetch('/api/moonpay/config');
+    const data = await res.json();
+    const key  = data.publishableKey || '';
+    const wallet = (window.CONV && window.CONV.walletAddr) ? window.CONV.walletAddr : '';
+
+    function buildUrl(base) {
+      let url = base;
+      if (key)    url += (url.includes('?') ? '&' : '?') + 'apiKey=' + encodeURIComponent(key);
+      if (wallet) url += '&walletAddress=' + encodeURIComponent(wallet);
+      return url;
+    }
+
+    const bnbBtn  = document.getElementById('mpSellBnbBtn');
+    const usdcBtn = document.getElementById('mpSellUsdcBtn');
+    const fullBtn = document.getElementById('mpOpenFull');
+
+    if (bnbBtn)  bnbBtn.href  = buildUrl('https://sell.moonpay.com?baseCurrencyCode=bnb&quoteCurrencyCode=usd');
+    if (usdcBtn) usdcBtn.href = buildUrl('https://sell.moonpay.com?baseCurrencyCode=usdc_bsc&quoteCurrencyCode=usd');
+    if (fullBtn) fullBtn.href = buildUrl('https://sell.moonpay.com');
+
+    if (wallet) {
+      const row = document.getElementById('mpWalletRow');
+      const disp = document.getElementById('mpWalletDisplay');
+      if (row)  { row.style.display = 'flex'; }
+      if (disp) { disp.textContent = wallet.slice(0, 8) + '...' + wallet.slice(-6); }
+    }
+  } catch (_) {}
+}
+
+loadMoonPayLinks();
+</script>
+</body>
+</html>

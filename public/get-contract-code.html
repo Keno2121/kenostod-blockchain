@@ -1,0 +1,243 @@
+
+            margin-bottom: 10px;<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENO Contract Code - Copy for BscScan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0B6F44 0%, #1a1a1a 100%);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #FFD700;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #50C878;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .instructions {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h2 {
+            color: #10b981;
+            margin-bottom: 15px;
+        }
+
+        .instructions ol {
+            margin-left: 25px;
+            line-height: 2;
+        }
+
+        .instructions li {
+            color: #ddd;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .big-button {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #000;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .big-button:hover {
+            transform: scale(1.05);
+        }
+
+        .download-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .code-container {
+            background: #1a1a1a;
+            border: 2px solid #50C878;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .code-info {
+            color: #50C878;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            height: 500px;
+            background: #0a0a0a;
+            color: #50C878;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #10b981;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.5em;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #50C878;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 KENO Contract Source Code</h1>
+        <p class="subtitle">Copy this code and paste it into BscScan</p>
+
+        <div class="instructions">
+            <h2>📋 Instructions:</h2>
+            <ol>
+                <li><strong>Click "COPY ALL CODE"</strong> button below</li>
+                <li><strong>Go to BscScan verification page</strong></li>
+                <li><strong>Paste into "Enter the Solidity Contract Code below" field</strong></li>
+                <li><strong>Continue with the other verification steps</strong></li>
+            </ol>
+        </div>
+
+        <div class="button-group">
+            <button class="big-button" onclick="copyCode()">📋 COPY ALL CODE</button>
+            <button class="big-button download-button" onclick="downloadCode()">📥 DOWNLOAD FILE</button>
+            <a href="https://bscscan.com/verifyContract" target="_blank" class="big-button" style="text-decoration: none;">🔗 OPEN BSCSCAN</a>
+        </div>
+
+        <div class="code-container">
+            <div class="code-header">
+                <span class="code-info">📄 KENO-flattened.sol (1,030 lines)</span>
+                <span class="code-info">✅ Ready for BscScan</span>
+            </div>
+            <textarea id="contractCode" readonly></textarea>
+        </div>
+
+        <div class="back-link">
+            <a href="/bscscan-verification-guide.html">← Back to Verification Guide</a>
+        </div>
+    </div>
+
+    <div id="successMessage" class="success-message">✅ CODE COPIED!</div>
+
+    <script>
+        // Load the contract code
+        async function loadContract() {
+            try {
+                const response = await fetch('/KENO-flattened.sol');
+                const code = await response.text();
+                document.getElementById('contractCode').value = code;
+            } catch (error) {
+                console.error('Error loading contract:', error);
+                document.getElementById('contractCode').value = 'Error loading contract. Please download the file instead.';
+            }
+        }
+
+        function copyCode() {
+            const textarea = document.getElementById('contractCode');
+            textarea.select();
+            document.execCommand('copy');
+            
+            // Show success message
+            const message = document.getElementById('successMessage');
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 2000);
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('contractCode').value;
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'KENO-flattened.sol';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            // Show success message
+            const message = document.getElementById('successMessage');
+            message.textContent = '📥 DOWNLOADED!';
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+                message.textContent = '✅ CODE COPIED!';
+            }, 2000);
+        }
+
+        // Load contract when page loads
+        loadContract();C
+    </script>
+</body>
+</html>

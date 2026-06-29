@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 2: Transactions & Digital Signatures | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+        
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .header-content { max-width: 1000px; margin: 0 auto; }
+        
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .course-title .icon { font-size: 1.2em; }
+        
+        .premium-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+        
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .toc-list { list-style: none; }
+        
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+        
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        
+        .content-area { flex: 1; min-width: 0; }
+        
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-icon { font-size: 1em; }
+        
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+        
+        .step-list { counter-reset: step-counter; list-style: none; }
+        
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+        
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+        
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+        
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+        
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .practice-section {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05));
+            border: 2px solid var(--primary);
+        }
+        
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+        
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+        
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+        
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--success); background: var(--success); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+        
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+        
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+        
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+        
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+        
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+        
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+        
+        .tx-flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .tx-flow-step {
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 120px;
+            font-size: 0.9em;
+        }
+        
+        .tx-flow-arrow { font-size: 1.5em; color: var(--text-muted); }
+        
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+            .tx-flow-diagram { flex-direction: column; }
+            .tx-flow-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 2
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#128184;</span>
+                Course 2: Transactions &amp; Digital Signatures
+                <span class="premium-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Beginner-Intermediate</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('anatomy')"><span class="toc-number">2</span>Anatomy of a Transaction</li>
+                    <li class="toc-item" onclick="scrollToSection('utxo-vs-account')"><span class="toc-number">3</span>UTXO vs Account Model</li>
+                    <li class="toc-item" onclick="scrollToSection('signatures')"><span class="toc-number">4</span>Digital Signatures</li>
+                    <li class="toc-item" onclick="scrollToSection('lifecycle')"><span class="toc-number">5</span>Transaction Lifecycle</li>
+                    <li class="toc-item" onclick="scrollToSection('mempool')"><span class="toc-number">6</span>Mempool &amp; Ordering</li>
+                    <li class="toc-item" onclick="scrollToSection('fees')"><span class="toc-number">7</span>Gas Fees &amp; EIP-1559</li>
+                    <li class="toc-item" onclick="scrollToSection('double-spend')"><span class="toc-number">8</span>Double-Spending Prevention</li>
+                    <li class="toc-item" onclick="scrollToSection('finality')"><span class="toc-number">9</span>Finality &amp; Confirmations</li>
+                    <li class="toc-item" onclick="scrollToSection('advanced')"><span class="toc-number">10</span>Advanced Transactions</li>
+                    <li class="toc-item" onclick="scrollToSection('privacy')"><span class="toc-number">11</span>Transaction Privacy</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">12</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">13</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">14</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+        
+        <main class="content-area">
+
+            <!-- SECTION 1: LEARNING OBJECTIVES -->
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Describe the complete anatomy of a blockchain transaction and each of its components</div></li>
+                    <li class="step-item"><div class="step-title">Compare and contrast the UTXO model (Bitcoin/Kenostod) with the Account model (Ethereum)</div></li>
+                    <li class="step-item"><div class="step-title">Explain how digital signatures provide authentication, integrity, and non-repudiation</div></li>
+                    <li class="step-item"><div class="step-title">Trace the full lifecycle of a transaction from creation to final confirmation</div></li>
+                    <li class="step-item"><div class="step-title">Understand how the mempool works and how transaction ordering affects confirmation</div></li>
+                    <li class="step-item"><div class="step-title">Explain gas fees, fee markets, and the EIP-1559 mechanism</div></li>
+                    <li class="step-item"><div class="step-title">Describe how double-spending is prevented in blockchain networks</div></li>
+                    <li class="step-item"><div class="step-title">Understand transaction finality, confirmation depth, and probabilistic vs deterministic finality</div></li>
+                    <li class="step-item"><div class="step-title">Analyze smart contract transactions, cross-chain bridges, and privacy techniques</div></li>
+                    <li class="step-item"><div class="step-title">Apply transaction knowledge using Kenostod&rsquo;s UTXO-style model in the simulator</div></li>
+                </ul>
+                
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>approximately 2 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding of transactions is fundamental to everything in blockchain, and the 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <!-- SECTION 2: ANATOMY OF A TRANSACTION -->
+            <section id="anatomy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128300;</span>Anatomy of a Transaction</h2>
+                <div class="reading-content">
+                    <p>A <strong>blockchain transaction</strong> is a cryptographically signed instruction that transfers value from one address to another. It is the fundamental unit of activity on any blockchain network. Think of it as a digital check that gets permanently recorded in a public ledger that everyone can verify &mdash; but unlike a check, it cannot be forged, altered, or bounced.</p>
+                    
+                    <p>Every time you send cryptocurrency, interact with a smart contract, or even just approve a token transfer, you are creating a transaction. Understanding their structure is essential for anyone working with blockchain technology.</p>
+                    
+                    <h3>Core Components of a Transaction</h3>
+                    <p>While the exact fields vary between blockchains, every transaction includes these fundamental components:</p>
+                    
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Sender (From)</div>
+                            <div class="vocab-def">The wallet address initiating the transfer, derived from the sender's public key</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Recipient (To)</div>
+                            <div class="vocab-def">The destination wallet address receiving the value</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Amount / Value</div>
+                            <div class="vocab-def">The quantity of cryptocurrency being transferred</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Digital Signature</div>
+                            <div class="vocab-def">Cryptographic proof that the sender authorized this transaction using their private key</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Nonce</div>
+                            <div class="vocab-def">A sequential number that prevents replay attacks and ensures transaction uniqueness</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Transaction Fee</div>
+                            <div class="vocab-def">Payment to the network validators/miners for processing the transaction</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Transaction Hash (TxID)</div>
+                            <div class="vocab-def">A unique identifier (SHA-256 hash) of the entire transaction, used for tracking</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Timestamp</div>
+                            <div class="vocab-def">When the transaction was created and broadcast to the network</div>
+                        </div>
+                    </div>
+                    
+                    <h3>Transaction Data Structure Example</h3>
+                    <div class="code-example">
+<span class="code-comment">// A simplified Kenostod transaction object</span>
+{
+  <span class="code-string">"txId"</span>: <span class="code-string">"a1b2c3d4e5f6..."</span>,
+  <span class="code-string">"from"</span>: <span class="code-string">"0x7a3B...4f2E"</span>,
+  <span class="code-string">"to"</span>: <span class="code-string">"0x9c1D...8a3F"</span>,
+  <span class="code-string">"amount"</span>: <span class="code-number">50.0</span>,
+  <span class="code-string">"fee"</span>: <span class="code-number">0.05</span>,
+  <span class="code-string">"nonce"</span>: <span class="code-number">42</span>,
+  <span class="code-string">"timestamp"</span>: <span class="code-number">1707849600000</span>,
+  <span class="code-string">"inputs"</span>: [
+    { <span class="code-string">"txId"</span>: <span class="code-string">"prev_tx_hash"</span>, <span class="code-string">"outputIndex"</span>: <span class="code-number">0</span> }
+  ],
+  <span class="code-string">"outputs"</span>: [
+    { <span class="code-string">"address"</span>: <span class="code-string">"0x9c1D...8a3F"</span>, <span class="code-string">"amount"</span>: <span class="code-number">50.0</span> },
+    { <span class="code-string">"address"</span>: <span class="code-string">"0x7a3B...4f2E"</span>, <span class="code-string">"amount"</span>: <span class="code-number">49.95</span> }
+  ],
+  <span class="code-string">"signature"</span>: <span class="code-string">"3045022100..."</span>
+}
+                    </div>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Key Insight: Immutability</div>
+                        <p>Once a transaction is confirmed on the blockchain, it cannot be altered or deleted. This is what makes blockchain so secure and trustworthy &mdash; there's no "undo" button. However, Kenostod introduces an innovative <strong>5-minute reversal window</strong> before final confirmation, which you'll learn about in Course 3!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: UTXO VS ACCOUNT MODEL -->
+            <section id="utxo-vs-account" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128279;</span>UTXO vs Account Model</h2>
+                <div class="reading-content">
+                    <p>There are two fundamentally different ways blockchains track who owns what. Understanding this distinction is critical because it affects everything from transaction structure to privacy to smart contract design.</p>
+                    
+                    <h3>The UTXO Model (Bitcoin, Kenostod)</h3>
+                    <p><strong>UTXO</strong> stands for <strong>Unspent Transaction Output</strong>. In this model, your "balance" is not stored as a single number. Instead, it is the sum of all the unspent outputs from previous transactions that were sent to your address.</p>
+                    
+                    <p>Think of it like physical cash: you don't have a bank account with a number in it. Instead, you have a collection of bills and coins. When you pay for something, you hand over bills and receive change back.</p>
+                    
+                    <h4>How UTXO Works Step-by-Step</h4>
+                    <div class="code-example">
+<span class="code-comment">// You have 3 UTXOs in your wallet:</span>
+UTXO #1: 50 KENO  (from Alice's payment)
+UTXO #2: 30 KENO  (from mining reward)
+UTXO #3: 20 KENO  (from Bob's payment)
+<span class="code-comment">// Total balance: 100 KENO</span>
+
+<span class="code-comment">// You want to send 65 KENO to Charlie:</span>
+Transaction:
+  Inputs:
+    - UTXO #1 (50 KENO) [consumed]
+    - UTXO #2 (30 KENO) [consumed]
+  Outputs:
+    - 65 KENO &rarr; Charlie (new UTXO for Charlie)
+    - 14.9 KENO &rarr; You (change, new UTXO for you)
+    - 0.1 KENO &rarr; Fee (to miners)
+
+<span class="code-comment">// After transaction:</span>
+Your wallet: UTXO #3 (20 KENO) + new change UTXO (14.9 KENO)
+Total balance: 34.9 KENO
+                    </div>
+                    
+                    <h3>The Account Model (Ethereum)</h3>
+                    <p>The <strong>Account Model</strong> works like a traditional bank account. Each address has a balance that gets debited and credited directly. When you send 65 ETH from an account with 100 ETH, the balance is simply updated to 35 ETH (minus fees).</p>
+                    
+                    <h3>Comparison: UTXO vs Account Model</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>UTXO Model</th>
+                                <th>Account Model</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Used By</strong></td>
+                                <td>Bitcoin, Cardano, Kenostod</td>
+                                <td>Ethereum, Solana, BSC</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Balance Tracking</strong></td>
+                                <td>Sum of unspent outputs</td>
+                                <td>Single balance value per account</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Privacy</strong></td>
+                                <td>Higher &mdash; can use new change addresses</td>
+                                <td>Lower &mdash; single address shows full history</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Parallel Processing</strong></td>
+                                <td>Excellent &mdash; independent UTXOs can be validated simultaneously</td>
+                                <td>Limited &mdash; nonce must be sequential</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Smart Contracts</strong></td>
+                                <td>More complex to implement</td>
+                                <td>Native support, simple state management</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Double-Spend Protection</strong></td>
+                                <td>Inherent &mdash; UTXO can only be spent once</td>
+                                <td>Via nonce tracking</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Storage Efficiency</strong></td>
+                                <td>Only unspent outputs stored in active set</td>
+                                <td>All account states stored permanently</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Complexity</strong></td>
+                                <td>Harder to understand initially</td>
+                                <td>Intuitive for most users</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod&rsquo;s UTXO Advantage</div>
+                        <p>Kenostod uses a <strong>UTXO-style model</strong> for maximum privacy and parallel validation performance. Each time you receive change, a fresh UTXO is created, making it harder to link your transactions together. Combined with Kenostod&rsquo;s capped fee structure (max 10 KENO per transaction), this delivers a best-of-both-worlds approach.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: DIGITAL SIGNATURES -->
+            <section id="signatures" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Digital Signatures</h2>
+                <div class="reading-content">
+                    <p>A <strong>digital signature</strong> is cryptographic proof that you authorized a transaction. It is the single most important security mechanism in all of blockchain technology. Without digital signatures, anyone could spend your coins.</p>
+                    
+                    <p>Think of it like a handwritten signature on a check, but with three critical improvements: it's mathematically impossible to forge, it proves the check wasn't altered after signing, and the signer cannot deny having signed it.</p>
+                    
+                    <h3>The Three Properties of Digital Signatures</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Authentication</div>
+                            <p>Proves the transaction came from the owner of the private key. Only the holder of the private key could have produced this exact signature for this exact transaction.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Integrity</div>
+                            <p>Proves the transaction data was not modified after signing. Even changing a single bit (e.g., altering 50 KENO to 500 KENO) would invalidate the signature entirely.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Non-Repudiation</div>
+                            <p>The sender cannot deny having authorized the transaction. The mathematical proof is undeniable &mdash; if the signature verifies with your public key, you signed it.</p>
+                        </li>
+                    </ul>
+                    
+                    <h3>The Signing Process (ECDSA with secp256k1)</h3>
+                    <p>Blockchain transactions use <strong>Elliptic Curve Digital Signature Algorithm (ECDSA)</strong> on the <strong>secp256k1</strong> curve &mdash; the same algorithm used by Bitcoin and Ethereum.</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Step 1: Construct the transaction data</span>
+<span class="code-keyword">const</span> transaction = {
+    from: <span class="code-string">"0x7a3B...4f2E"</span>,
+    to: <span class="code-string">"0x9c1D...8a3F"</span>,
+    amount: <span class="code-number">50</span>,
+    nonce: <span class="code-number">42</span>,
+    timestamp: <span class="code-function">Date.now</span>()
+};
+
+<span class="code-comment">// Step 2: Serialize and hash the transaction</span>
+<span class="code-keyword">const</span> message = <span class="code-function">JSON.stringify</span>(transaction);
+<span class="code-keyword">const</span> messageHash = <span class="code-function">SHA256</span>(message);
+<span class="code-comment">// Result: "a7f3c2d8e1b4..."  (32-byte hash)</span>
+
+<span class="code-comment">// Step 3: Sign the hash with your private key</span>
+<span class="code-keyword">const</span> signature = <span class="code-function">secp256k1.sign</span>(messageHash, privateKey);
+<span class="code-comment">// Result: { r: "3a8f...", s: "7b2c...", v: 27 }</span>
+
+<span class="code-comment">// Step 4: Attach signature to transaction</span>
+transaction.signature = signature;
+
+<span class="code-comment">// Step 5: Broadcast to the network</span>
+<span class="code-function">network.broadcast</span>(transaction);
+                    </div>
+                    
+                    <h3>Verification Process</h3>
+                    <p>When a node receives a transaction, it performs verification in the reverse direction:</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Any node can verify without knowing the private key</span>
+<span class="code-keyword">const</span> txData = extractTransactionData(transaction);
+<span class="code-keyword">const</span> hash = <span class="code-function">SHA256</span>(txData);
+<span class="code-keyword">const</span> recoveredPublicKey = <span class="code-function">secp256k1.recover</span>(hash, signature);
+<span class="code-keyword">const</span> derivedAddress = <span class="code-function">toAddress</span>(recoveredPublicKey);
+
+<span class="code-comment">// If derivedAddress === transaction.from, the signature is valid!</span>
+<span class="code-keyword">const</span> isValid = (derivedAddress === transaction.from);
+                    </div>
+                    
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#9888;&#65039; Security Warning</div>
+                        <p>Your private key should <strong>NEVER</strong> leave your device. The signing process happens locally on your computer or hardware wallet. Only the signature (not your private key) is broadcast to the network. If someone obtains your private key, they can sign transactions as you and steal all your funds.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: TRANSACTION LIFECYCLE -->
+            <section id="lifecycle" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128260;</span>Transaction Lifecycle</h2>
+                <div class="reading-content">
+                    <p>A transaction goes through several distinct stages from the moment you click "Send" to the moment it becomes a permanent part of the blockchain. Understanding this lifecycle helps you troubleshoot stuck transactions and make informed decisions about fees.</p>
+                    
+                    <h3>The Seven Stages of a Transaction</h3>
+                    
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Stage 1: Creation</div>
+                            <p>Your wallet software constructs the transaction data structure with all required fields: sender, recipient, amount, fee, nonce, and input UTXOs.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Stage 2: Signing</div>
+                            <p>Your private key signs the transaction hash using ECDSA. This happens entirely on your local device &mdash; the private key never touches the network.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Stage 3: Broadcasting</div>
+                            <p>The signed transaction is sent to one or more network nodes. These nodes relay it to their peers using a gossip protocol, spreading it across the entire network within seconds.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Stage 4: Validation</div>
+                            <p>Each receiving node independently validates the transaction: signature check, balance check, double-spend check, format check, and fee verification.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Stage 5: Mempool Entry</div>
+                            <p>Valid transactions enter the <strong>mempool</strong> (memory pool) &mdash; a waiting area for unconfirmed transactions. Each node maintains its own mempool.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Stage 6: Block Inclusion</div>
+                            <p>A miner or validator selects transactions from the mempool (typically prioritizing higher fees) and includes them in a new block. The block is then proposed to the network.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Stage 7: Confirmation</div>
+                            <p>Once the block is accepted by the network and subsequent blocks are built on top of it, the transaction is considered confirmed. More blocks = stronger finality.</p>
+                        </li>
+                    </ul>
+                    
+                    <h3>Visual: Transaction Flow</h3>
+                    <div class="diagram-container">
+                        <div class="tx-flow-diagram">
+                            <div class="tx-flow-step" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">&#128221; Create</div>
+                            <div class="tx-flow-arrow">&rarr;</div>
+                            <div class="tx-flow-step" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000;">&#128274; Sign</div>
+                            <div class="tx-flow-arrow">&rarr;</div>
+                            <div class="tx-flow-step" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">&#128225; Broadcast</div>
+                            <div class="tx-flow-arrow">&rarr;</div>
+                            <div class="tx-flow-step" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white;">&#9989; Validate</div>
+                            <div class="tx-flow-arrow">&rarr;</div>
+                            <div class="tx-flow-step" style="background: linear-gradient(135deg, #ec4899, #db2777); color: white;">&#128230; Mempool</div>
+                            <div class="tx-flow-arrow">&rarr;</div>
+                            <div class="tx-flow-step" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">&#9989; Confirmed</div>
+                        </div>
+                    </div>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Transaction States</div>
+                        <p><strong>Pending:</strong> In the mempool, waiting to be included in a block. <strong>Confirmed:</strong> Included in a block and part of the blockchain. <strong>Failed:</strong> Rejected by validation (insufficient funds, bad signature, etc.). <strong>Dropped:</strong> Removed from the mempool after being stuck too long (usually due to too-low fees).</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: MEMPOOL & ORDERING -->
+            <section id="mempool" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128230;</span>Mempool &amp; Transaction Ordering</h2>
+                <div class="reading-content">
+                    <p>The <strong>mempool</strong> (short for memory pool) is one of the most important yet least understood components of a blockchain network. It is the waiting room for all unconfirmed transactions, and understanding it is key to getting your transactions confirmed quickly.</p>
+                    
+                    <h3>How the Mempool Works</h3>
+                    <p>Every full node on the network maintains its own mempool. When a transaction is broadcast, it propagates across the network via the gossip protocol. Each node that receives it:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 20px;">
+                        <li>Validates the transaction independently</li>
+                        <li>Adds it to its own mempool if valid</li>
+                        <li>Relays it to connected peers who haven't seen it yet</li>
+                    </ul>
+                    
+                    <p>Because each node maintains its own mempool, the mempools across the network are not perfectly synchronized. This is normal and expected behavior.</p>
+                    
+                    <h3>Transaction Ordering Strategies</h3>
+                    <p>When a miner or validator creates a new block, they must decide which transactions to include and in what order. Common strategies include:</p>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Strategy</th>
+                                <th>Description</th>
+                                <th>Used By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Fee Priority</strong></td>
+                                <td>Highest fee-per-byte transactions are included first</td>
+                                <td>Bitcoin, most PoW chains</td>
+                            </tr>
+                            <tr>
+                                <td><strong>First Come, First Served</strong></td>
+                                <td>Transactions ordered by arrival time</td>
+                                <td>Some private/permissioned chains</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MEV-Aware Ordering</strong></td>
+                                <td>Validators may reorder transactions to extract maximum value</td>
+                                <td>Ethereum (via Flashbots/MEV-Boost)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fair Ordering</strong></td>
+                                <td>Transactions ordered by a deterministic protocol to prevent manipulation</td>
+                                <td>Kenostod, some newer L2s</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Mempool Congestion</h3>
+                    <p>During periods of high network activity, the mempool can grow significantly. When Bitcoin's mempool swells, transactions with low fees can wait hours or even days. In extreme cases (like during NFT mint events on Ethereum), the mempool can contain 100,000+ pending transactions.</p>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; MEV: The Dark Side of Transaction Ordering</div>
+                        <p><strong>Maximal Extractable Value (MEV)</strong> refers to the profit that miners/validators can make by manipulating the order of transactions. Examples include front-running (inserting a transaction before yours to profit from the price change) and sandwich attacks (placing transactions before and after yours). Kenostod's fair ordering protocol is designed to mitigate these attacks.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: GAS FEES & EIP-1559 -->
+            <section id="fees" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9981;&#65039;</span>Gas Fees &amp; Fee Markets (EIP-1559)</h2>
+                <div class="reading-content">
+                    <p>Transaction fees are the economic engine that keeps blockchain networks running. They serve two critical purposes: preventing spam attacks and incentivizing validators to process transactions honestly.</p>
+                    
+                    <h3>Why Fees Exist</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 20px;">
+                        <li><strong>Spam Prevention:</strong> Without fees, an attacker could flood the network with millions of worthless transactions, grinding it to a halt</li>
+                        <li><strong>Validator Compensation:</strong> Miners and validators spend real resources (electricity, hardware, bandwidth) to process and secure transactions</li>
+                        <li><strong>Prioritization:</strong> During congestion, fees create a market-based system for allocating scarce block space</li>
+                    </ul>
+                    
+                    <h3>Fee Models Compared</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Fee Model</th>
+                                <th>How It Works</th>
+                                <th>Pros / Cons</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Bitcoin (Simple Auction)</strong></td>
+                                <td>Users bid fees (satoshis/byte). Miners pick highest-paying transactions.</td>
+                                <td>Simple but unpredictable. Fees spike during congestion.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ethereum EIP-1559</strong></td>
+                                <td>Base fee (burned) adjusts algorithmically + optional priority tip to validators.</td>
+                                <td>More predictable. Base fee is burned, reducing supply. Still has tip wars during congestion.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kenostod (Capped %)</strong></td>
+                                <td>0.1% of transaction value. Min 0.01 KENO, max 10 KENO per transaction.</td>
+                                <td>Highly predictable. No fee spikes. Affordable for all transaction sizes.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Deep Dive: Ethereum&rsquo;s EIP-1559</h3>
+                    <p>Ethereum's EIP-1559 (London Hard Fork, August 2021) revolutionized fee markets. Here's how it works:</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// EIP-1559 Fee Structure</span>
+Total Fee = Base Fee + Priority Fee (Tip)
+
+<span class="code-comment">// Base Fee: Set by the protocol</span>
+- Adjusts up/down by 12.5% per block based on utilization
+- Target: 50% block fullness
+- If block is >50% full &rarr; base fee increases
+- If block is <50% full &rarr; base fee decreases
+- Base fee is BURNED (removed from circulation)
+
+<span class="code-comment">// Priority Fee (Tip): Set by the user</span>
+- Goes directly to the validator
+- Higher tip = higher priority during congestion
+- During low traffic, even 1 gwei tip is sufficient
+
+<span class="code-comment">// Max Fee: Safety cap set by user</span>
+- maxFeePerGas = maximum you're willing to pay
+- Refund = maxFeePerGas - (baseFee + priorityFee)
+                    </div>
+                    
+                    <h3>Kenostod Fee Structure</h3>
+                    <p>Kenostod uses a simple, predictable fee system designed for accessibility:</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Kenostod Fee Calculation</span>
+Fee = max(0.01, min(amount * 0.001, 10))
+
+Examples:
+  Send 5 KENO     &rarr; Fee: 0.01 KENO (minimum)
+  Send 100 KENO   &rarr; Fee: 0.10 KENO
+  Send 1,000 KENO &rarr; Fee: 1.00 KENO
+  Send 50,000 KENO &rarr; Fee: 10.00 KENO (capped)
+                    </div>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Kenostod Advantage: Predictable Fees</div>
+                        <p>Unlike Ethereum where a simple token transfer can cost $5&ndash;$500+ depending on network congestion, Kenostod&rsquo;s capped fee structure ensures transactions remain affordable for everyone. A whale sending 100,000 KENO pays the same 10 KENO maximum fee as during quiet periods.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 8: DOUBLE-SPENDING PREVENTION -->
+            <section id="double-spend" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128722;</span>Double-Spending Prevention</h2>
+                <div class="reading-content">
+                    <p>The <strong>double-spending problem</strong> is the fundamental challenge that blockchain was invented to solve. In the digital world, data can be copied infinitely. How do you prevent someone from spending the same digital money twice?</p>
+                    
+                    <p>Before Bitcoin, this required a trusted intermediary (like a bank) to keep track of who owns what. Satoshi Nakamoto's breakthrough was solving double-spending in a decentralized way, without any central authority.</p>
+                    
+                    <h3>How Double-Spending is Prevented</h3>
+                    
+                    <h4>In the UTXO Model (Kenostod)</h4>
+                    <p>Each UTXO can only be referenced as an input once. When a transaction consumes a UTXO, it is permanently marked as spent. Any subsequent transaction attempting to use the same UTXO is immediately rejected by the network.</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Alice has UTXO worth 100 KENO</span>
+<span class="code-comment">// She tries to spend it twice:</span>
+
+Transaction A: Input = UTXO#1 &rarr; Send 100 to Bob     [VALID]
+Transaction B: Input = UTXO#1 &rarr; Send 100 to Charlie  [REJECTED]
+
+<span class="code-comment">// Both transactions reference the same UTXO</span>
+<span class="code-comment">// Only ONE can be included in the blockchain</span>
+<span class="code-comment">// Whichever gets confirmed first wins</span>
+<span class="code-comment">// The other is permanently invalid</span>
+                    </div>
+                    
+                    <h4>In the Account Model (Ethereum)</h4>
+                    <p>Each account has a nonce (sequential counter). Each transaction must use the next nonce in sequence. If two transactions share the same nonce, only one can be confirmed &mdash; the other is discarded.</p>
+                    
+                    <h3>Race Condition Attacks</h3>
+                    <p>A sophisticated attacker might try to broadcast two conflicting transactions simultaneously to different parts of the network. This is called a <strong>race attack</strong>. The blockchain's consensus mechanism (PoW, PoS, etc.) resolves this by eventually choosing one canonical chain, making the other transaction invalid.</p>
+                    
+                    <h3>The 51% Attack</h3>
+                    <p>The only theoretical way to double-spend on a mature blockchain is through a <strong>51% attack</strong> &mdash; where an entity controls more than half of the network's mining/staking power. This would allow them to secretly mine an alternative chain and reverse confirmed transactions. This is why confirmation depth matters (covered in the next section).</p>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Why This Matters for Merchants</div>
+                        <p>If you accept cryptocurrency payments, you should wait for sufficient confirmations before considering a payment final. For small purchases, 1&ndash;2 confirmations may suffice. For large purchases ($10,000+), waiting for 6+ confirmations (about 1 hour on Bitcoin) is recommended.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 9: FINALITY & CONFIRMATIONS -->
+            <section id="finality" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128274;</span>Transaction Finality &amp; Confirmation Depth</h2>
+                <div class="reading-content">
+                    <p><strong>Transaction finality</strong> is the guarantee that once a transaction is confirmed, it cannot be reversed, altered, or cancelled. Different blockchains offer different types of finality, and understanding this is critical for anyone receiving payments.</p>
+                    
+                    <h3>Probabilistic vs Deterministic Finality</h3>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Finality Type</th>
+                                <th>Description</th>
+                                <th>Examples</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Probabilistic</strong></td>
+                                <td>Transaction becomes exponentially harder to reverse with each new block. Never 100% "final" in theory, but practically irreversible after enough confirmations.</td>
+                                <td>Bitcoin (6 blocks &asymp; 1 hour), Kenostod PoW</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Deterministic</strong></td>
+                                <td>Transaction is mathematically guaranteed final once confirmed. No amount of computing power can reverse it.</td>
+                                <td>Cosmos (Tendermint BFT), Solana, Algorand</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Economic</strong></td>
+                                <td>Reversal is theoretically possible but economically irrational (would cost more than the attacker could gain).</td>
+                                <td>Ethereum PoS (after 2 epochs / 12.8 min)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Confirmation Depth Guidelines</h3>
+                    <div class="code-example">
+<span class="code-comment">// Recommended confirmations by network and amount:</span>
+
+Bitcoin (10-min blocks):
+  Small purchases (<$100):    1-2 confirmations (10-20 min)
+  Medium purchases ($100-$10k): 3-4 confirmations (30-40 min)
+  Large purchases (>$10k):    6+ confirmations (60+ min)
+  Exchange deposits:          3-6 confirmations
+
+Ethereum (12-sec blocks):
+  Standard:                   12-20 confirmations (2-4 min)
+  High value:                 32+ confirmations (6+ min)
+  Exchange deposits:          12-64 confirmations
+
+Kenostod:
+  Standard:                   3 confirmations
+  High value:                 6+ confirmations
+  5-minute reversal window:   Active during first 5 minutes
+                    </div>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Kenostod&rsquo;s Unique Approach</div>
+                        <p>Kenostod combines probabilistic finality with a user-friendly <strong>5-minute reversal window</strong>. During this window, the sender can reverse a transaction (useful for correcting mistakes). After the window closes and sufficient confirmations are reached, the transaction achieves practical finality. This innovative approach is covered in detail in Course 3.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 10: ADVANCED TRANSACTIONS -->
+            <section id="advanced" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128640;</span>Advanced Transaction Types</h2>
+                <div class="reading-content">
+                    <p>Beyond simple value transfers, blockchain networks support several sophisticated transaction types that power DeFi, NFTs, cross-chain interoperability, and more.</p>
+                    
+                    <h3>Smart Contract Transactions</h3>
+                    <p>A smart contract transaction interacts with code deployed on the blockchain. Instead of simply sending value, these transactions execute functions within a smart contract.</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Simple transfer transaction (value only):</span>
+{ to: <span class="code-string">"0xRecipient"</span>, value: <span class="code-number">1.0</span> }
+
+<span class="code-comment">// Smart contract transaction (function call):</span>
+{
+    to: <span class="code-string">"0xContractAddress"</span>,
+    value: <span class="code-number">0</span>,
+    data: <span class="code-string">"0xa9059cbb000000000000000000..."</span>
+    <span class="code-comment">// data encodes: transfer(recipient, amount)</span>
+}
+
+<span class="code-comment">// Contract creation transaction:</span>
+{
+    to: <span class="code-keyword">null</span>,  <span class="code-comment">// no recipient = deploy contract</span>
+    value: <span class="code-number">0</span>,
+    data: <span class="code-string">"0x608060405234..."</span>  <span class="code-comment">// contract bytecode</span>
+}
+                    </div>
+                    
+                    <h3>Cross-Chain Transactions &amp; Bridges</h3>
+                    <p>Cross-chain transactions move assets between different blockchain networks. This is achieved through <strong>bridges</strong> &mdash; protocols that lock assets on one chain and mint equivalent tokens on another.</p>
+                    
+                    <h4>How a Bridge Works:</h4>
+                    <ul style="margin-left: 25px; margin-bottom: 20px;">
+                        <li><strong>Lock:</strong> You send 100 KENO to a bridge contract on Chain A. The KENO is locked in the contract.</li>
+                        <li><strong>Verify:</strong> Bridge validators confirm the lock transaction occurred on Chain A.</li>
+                        <li><strong>Mint:</strong> The bridge mints 100 "wrapped KENO" on Chain B, credited to your address.</li>
+                        <li><strong>Unlock:</strong> When you want to return, you burn the wrapped tokens on Chain B, and the bridge releases your original KENO on Chain A.</li>
+                    </ul>
+                    
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#9888;&#65039; Bridge Security Risks</div>
+                        <p>Bridges are high-value targets for hackers because they hold large amounts of locked assets. The Ronin Bridge hack ($625M), Wormhole hack ($320M), and Nomad Bridge hack ($190M) are stark reminders. Always research a bridge's security model before using it.</p>
+                    </div>
+                    
+                    <h3>Batch Transactions &amp; Gas Optimization</h3>
+                    <p>Batch transactions combine multiple operations into a single transaction, saving gas fees significantly.</p>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Approach</th>
+                                <th>Gas Cost</th>
+                                <th>Savings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>10 separate ERC-20 transfers</td>
+                                <td>~650,000 gas total</td>
+                                <td>Baseline</td>
+                            </tr>
+                            <tr>
+                                <td>Batched via multicall contract</td>
+                                <td>~350,000 gas total</td>
+                                <td>~46% savings</td>
+                            </tr>
+                            <tr>
+                                <td>Kenostod batch transaction</td>
+                                <td>Single capped fee</td>
+                                <td>Up to 90% savings</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 11: TRANSACTION PRIVACY -->
+            <section id="privacy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128373;&#65039;</span>Transaction Privacy</h2>
+                <div class="reading-content">
+                    <p>Despite the common misconception, most blockchains are <strong>pseudonymous, not anonymous</strong>. Every transaction is publicly visible, and sophisticated analysis can often link transactions to real-world identities. Several techniques have been developed to enhance transaction privacy.</p>
+                    
+                    <h3>CoinJoin</h3>
+                    <p>CoinJoin combines multiple users' transactions into a single large transaction, making it difficult to determine which inputs correspond to which outputs.</p>
+                    
+                    <div class="code-example">
+<span class="code-comment">// Without CoinJoin (easily traceable):</span>
+Alice: 1 BTC &rarr; Bob
+Carol: 2 BTC &rarr; Dave
+
+<span class="code-comment">// With CoinJoin (mixed together):</span>
+Transaction:
+  Inputs: Alice (1 BTC), Carol (2 BTC)
+  Outputs: Bob (1 BTC), Dave (2 BTC)
+  <span class="code-comment">// Observer can't tell which input paid which output</span>
+                    </div>
+                    
+                    <h3>Stealth Addresses</h3>
+                    <p>Stealth addresses allow a sender to create a one-time address for each transaction on behalf of the recipient. The recipient can detect and spend from these addresses, but no one else can link them to the recipient's main address.</p>
+                    
+                    <h3>Zero-Knowledge Proofs (ZKPs)</h3>
+                    <p>ZKPs allow one party to prove they know something (e.g., they have sufficient balance) without revealing the actual information (the balance itself). Networks like Zcash use ZKPs (specifically zk-SNARKs) to enable fully private transactions.</p>
+                    
+                    <h3>Privacy Comparison</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Technique</th>
+                                <th>Privacy Level</th>
+                                <th>Trade-offs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>UTXO change addresses</strong></td>
+                                <td>Low-Medium</td>
+                                <td>Free, built-in to UTXO model. Only hides change flow.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>CoinJoin</strong></td>
+                                <td>Medium</td>
+                                <td>Requires coordination. Identifiable by chain analysis firms.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Stealth Addresses</strong></td>
+                                <td>Medium-High</td>
+                                <td>Unlinkable receiving. Requires scanning blockchain for deposits.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Zero-Knowledge Proofs</strong></td>
+                                <td>Very High</td>
+                                <td>Computationally expensive. Complex to implement and audit.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kenostod UTXO + change</strong></td>
+                                <td>Medium</td>
+                                <td>Automatic change addresses provide baseline privacy for all users.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Privacy vs Regulatory Compliance</div>
+                        <p>There is an ongoing tension between user privacy and regulatory requirements (KYC/AML). Most legitimate privacy tools are designed to protect ordinary users' financial privacy &mdash; similar to how a bank doesn't publish your account balance publicly. However, fully anonymous systems can be exploited for illicit purposes, leading to regulatory scrutiny.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 12: REAL-WORLD CASE STUDIES -->
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These real events demonstrate critical lessons about transaction mechanics, security, and the importance of understanding how transactions work:</p>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 1: The Bitcoin Pizza Transaction (2010)</h4>
+                        <p><strong>What happened:</strong> On May 22, 2010, programmer Laszlo Hanyecz paid 10,000 BTC for two Papa John's pizzas. This was the first known real-world transaction using Bitcoin. At today's prices, those pizzas would be worth over $400 million.</p>
+                        <p style="margin-top: 10px;"><strong>Transaction lesson:</strong> This demonstrates the fundamental property of blockchain transactions &mdash; immutability. The transaction is permanently recorded on the Bitcoin blockchain and can never be reversed. It also shows how transaction fees work: Laszlo's original transaction included a tiny fee that was worth fractions of a cent at the time.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> Every blockchain transaction is permanent. May 22nd is now celebrated annually as "Bitcoin Pizza Day."</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 2: The $500M Ethereum Fee Error (2021)</h4>
+                        <p><strong>What happened:</strong> In September 2021, a DeFi user accidentally set a transaction fee of 7,676 ETH (approximately $23 million at the time) for a simple $100,000 transaction. The mining pool that received the fee voluntarily returned most of it.</p>
+                        <p style="margin-top: 10px;"><strong>Transaction lesson:</strong> This highlights the critical importance of transaction review before signing. In Ethereum's account model, fees are set by the user (or their wallet software). A bug in the user's custom script set the gas price astronomically high.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> Always verify transaction details before confirming. Kenostod's capped fee model (max 10 KENO) prevents this kind of catastrophic error entirely.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 3: The DAO Hack &mdash; A Smart Contract Transaction Gone Wrong (2016)</h4>
+                        <p><strong>What happened:</strong> An attacker exploited a reentrancy vulnerability in The DAO smart contract, draining 3.6 million ETH ($60 million at the time). The attacker called the withdraw function recursively before the contract updated its balance, effectively withdrawing the same funds multiple times.</p>
+                        <p style="margin-top: 10px;"><strong>Transaction lesson:</strong> Smart contract transactions execute code, and bugs in that code can have devastating consequences. The reentrancy attack exploited the order of operations within a single transaction &mdash; the state update happened after the external call, allowing recursive draining.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> Smart contract transactions must be carefully audited. This incident led to the Ethereum hard fork, splitting the chain into ETH and ETC.</p>
+                    </div>
+                    
+                    <div class="case-study">
+                        <h4>Case Study 4: Bitcoin's Double-Spend Scare (January 2021)</h4>
+                        <p><strong>What happened:</strong> A stale block was mined on Bitcoin, briefly causing the same transaction to appear in two competing blocks. Media outlets incorrectly reported a "double spend" on Bitcoin, causing brief market panic.</p>
+                        <p style="margin-top: 10px;"><strong>Transaction lesson:</strong> This was actually normal blockchain behavior &mdash; a temporary fork resolved by the consensus mechanism. No actual double-spend occurred. It demonstrated why waiting for multiple confirmations matters. After just 1 additional block, the "competing" transaction was orphaned and discarded.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> Understanding confirmation depth and probabilistic finality prevents panic during normal blockchain events. This is exactly why merchants should wait for sufficient confirmations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 13: WRITTEN EXERCISES -->
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 1: UTXO Calculation</h4>
+                        <div class="exercise-question">
+                            <p>You have the following UTXOs in your Kenostod wallet: 25 KENO, 40 KENO, and 10 KENO. You want to send exactly 55 KENO to a friend. Describe which UTXOs would be consumed, what the outputs would be, and calculate the exact change you'd receive (remember: 0.1% fee, min 0.01 KENO).</p>
+                            <textarea id="ex1" placeholder="Show your calculation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 2: UTXO vs Account Model Comparison</h4>
+                        <div class="exercise-question">
+                            <p>A company needs to pay 50 employees their monthly salary in cryptocurrency. Compare how this would work using the UTXO model vs the Account model. Which would be more efficient and why? Consider transaction fees, privacy, and complexity.</p>
+                            <textarea id="ex2" placeholder="Write your comparison here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Double-Spend Scenario Analysis</h4>
+                        <div class="exercise-question">
+                            <p>You run an online store that accepts KENO payments. A customer sends you 500 KENO for a product. After you see the transaction in the mempool (0 confirmations), you ship the product immediately. The customer then broadcasts a competing transaction sending those same UTXOs to their own second wallet with a higher fee. What happens and how could you have prevented this?</p>
+                            <textarea id="ex3" placeholder="Analyze this scenario..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Fee Market Analysis</h4>
+                        <div class="exercise-question">
+                            <p>During an NFT mint event, Ethereum's base fee spikes to 500 gwei (normally ~20 gwei). Explain using EIP-1559 mechanics why this happens, how the base fee adjusts back to normal, and why Kenostod's fee model would handle this situation differently.</p>
+                            <textarea id="ex4" placeholder="Explain the fee dynamics..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Bridge Risk Assessment</h4>
+                        <div class="exercise-question">
+                            <p>You want to move 1,000 KENO from the Kenostod blockchain to Ethereum using a cross-chain bridge. List at least 3 specific security risks involved, explain the lock-and-mint mechanism, and describe what due diligence you would perform before using the bridge.</p>
+                            <textarea id="ex5" placeholder="Assess the risks..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 14: FINAL EXAM -->
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+                
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What does UTXO stand for?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Universal Transaction eXchange Output</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Unspent Transaction Output</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Unified Token eXchange Order</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>User Transaction eXecution Output</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. What three properties does a digital signature prove?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Speed, Security, Scalability</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Encryption, Decryption, Storage</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Authentication, Integrity, Non-repudiation</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Balance, Address, Timestamp</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. Where do valid transactions wait before being added to a block?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The mempool (memory pool)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The wallet's local storage</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The mining pool server</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The blockchain header</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. What are the two primary purposes of transaction fees?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Making the network expensive and funding developers</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Converting crypto to fiat and paying taxes</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Encrypting transactions and storing data</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Preventing spam and incentivizing validators/miners</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. In Ethereum's EIP-1559, what happens to the base fee?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It goes entirely to the miner/validator</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It is burned (permanently removed from circulation)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It is refunded to the sender after 24 hours</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It is split equally among all network participants</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="a">
+                    <div class="question-text">6. How does the UTXO model prevent double-spending?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Each UTXO can only be referenced as an input once; once spent, it is permanently consumed</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By requiring a password for each transaction</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By contacting a central server to verify balances</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By encrypting all transaction data so no one can copy it</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="c">
+                    <div class="question-text">7. What is the correct order of a transaction's lifecycle?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Sign &rarr; Create &rarr; Confirm &rarr; Broadcast &rarr; Validate</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Broadcast &rarr; Create &rarr; Sign &rarr; Mempool &rarr; Confirm</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Create &rarr; Sign &rarr; Broadcast &rarr; Validate &rarr; Mempool &rarr; Confirm</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Validate &rarr; Create &rarr; Sign &rarr; Broadcast &rarr; Confirm</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="b">
+                    <div class="question-text">8. What is the maximum transaction fee on the Kenostod network?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1% of the transaction amount with no cap</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10 KENO (capped regardless of transaction size)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Variable based on network congestion like Ethereum</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>There are no fees on Kenostod</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="d">
+                    <div class="question-text">9. What is MEV (Maximal Extractable Value)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The maximum amount of cryptocurrency in a wallet</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The total value of all transactions in a block</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The minimum fee required for a transaction to be processed</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Profit validators can extract by manipulating transaction ordering</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="a">
+                    <div class="question-text">10. What is CoinJoin used for?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Combining multiple users' transactions to enhance privacy by obscuring which inputs paid which outputs</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Joining two different cryptocurrencies into one token</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Connecting your wallet to a decentralized exchange</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Merging multiple UTXOs into a single larger UTXO</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="c">
+                    <div class="question-text">11. Which type of finality guarantees a transaction can NEVER be reversed?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Probabilistic finality</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Economic finality</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Deterministic finality</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Temporary finality</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="b">
+                    <div class="question-text">12. How does a cross-chain bridge move assets between blockchains?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It physically copies the asset data from one chain to another</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It locks assets on the source chain and mints equivalent wrapped tokens on the destination chain</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It converts the asset to Bitcoin first, then to the destination chain's currency</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It deletes the asset on one chain and creates a new one on the other</span></div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+                
+                <div id="quizResult" class="quiz-result">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h3 class="result-title" id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-1-wallet-basics.html" style="color: var(--primary);">&larr; Previous: Course 1</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Back to Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-3-reversal.html" style="color: var(--primary);">Next: Course 3 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+        
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+        
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+            
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+            
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            
+            const passingScore = 10;
+            
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '\uD83C\uDF89';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}! You've mastered Transactions & Digital Signatures.`;
+                nextCourseContainer.innerHTML = `
+                    <p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You've earned 250 KENO!</p>
+                    <a href="/courses/course-3-reversal.html" class="next-course-btn">Continue to Course 3: Transaction Reversal \u2192</a>
+                `;
+                localStorage.setItem('course2_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(2, 'Course 2: Transactions & Digital Signatures');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '\uD83D\uDCDA';
+                resultTitle.textContent = 'Keep Studying!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}. You need at least ${passingScore} correct (80%) to pass. Review the material and try again.`;
+                nextCourseContainer.innerHTML = `
+                    <button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>
+                `;
+            }
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+            
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+            
+            const hints = {
+                1: 'Good work! The correct solution: You would consume UTXO#1 (25 KENO) + UTXO#2 (40 KENO) = 65 KENO total input. Outputs: 55 KENO to your friend, and change back to you. Fee = max(0.01, min(65 * 0.001, 10)) = 0.065 KENO. Change = 65 - 55 - 0.065 = 9.935 KENO. UTXO#3 (10 KENO) remains untouched in your wallet.',
+                2: 'Key points to consider: In the Account model, the company sends 50 individual transactions (or uses a batch contract). In the UTXO model, the company could create a single transaction with 50 outputs from its UTXOs. The UTXO model requires more complex transaction construction but offers better parallelization. The Account model is simpler but requires sequential nonces. For batch payments, a smart contract on the Account model is often more gas-efficient.',
+                3: 'This is a classic race attack / zero-confirmation double-spend. The customer exploits the fact that you accepted an unconfirmed transaction. The higher-fee competing transaction is more likely to be included by miners. Prevention: NEVER ship goods based on unconfirmed transactions. Wait for at least 1-3 confirmations. For high-value items, wait for 6+ confirmations. Kenostod\'s 5-minute reversal window adds an additional layer of transparency to this process.',
+                4: 'During an NFT mint, many users flood the network simultaneously. Each block being >50% full causes the base fee to increase by up to 12.5% per block. Over many consecutive full blocks, this compounds exponentially (e.g., 20 gwei can become 500+ gwei in minutes). Once demand subsides and blocks are <50% full, the base fee decreases at the same rate. Kenostod avoids this entirely with its fixed percentage fee (0.1%) capped at 10 KENO, regardless of network activity.',
+                5: 'Bridge risks include: (1) Smart contract vulnerability in the bridge contract itself, (2) Validator/relayer compromise (if bridge relies on a small validator set), (3) Liquidity risk (bridge may not have enough wrapped tokens), (4) Oracle manipulation, (5) Regulatory risk. Due diligence: Check if the bridge has been audited by reputable firms, review its TVL and track record, check the validator set size and decentralization, look for insurance/coverage options, and start with a small test transaction.'
+            };
+            
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+        
+        function goToPractice() {
+            localStorage.setItem('course2_practice_started', 'true');
+        }
+        
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'anatomy', 'utxo-vs-account', 'signatures', 'lifecycle', 'mempool', 'fees', 'double-spend', 'finality', 'advanced', 'privacy', 'case-studies', 'exercises', 'quiz'];
+            let current = '';
+            
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+            
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('onclick')?.includes(current)) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>

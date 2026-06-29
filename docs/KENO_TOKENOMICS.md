@@ -1,0 +1,256 @@
+# KENO TOKENOMICS
+
+## Token Overview
+
+| Property | Value |
+|----------|-------|
+| Token Name | KENO - Knowledge Utility Token |
+| Symbol | KENO |
+| Blockchain | Binance Smart Chain (BEP-20) |
+| Contract | 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E |
+| Total Supply | 1,000,000,000 KENO |
+| Decimals | 18 |
+| Additional Minting | No (Fixed Supply) |
+
+---
+
+## Token Distribution
+
+| Allocation | Tokens | Percentage | Purpose |
+|------------|--------|------------|---------|
+| Education Rewards | 250,000,000 | 25.0% | Student course completion rewards (250 KENO x 21 courses) |
+| FAL Liquidity | 200,000,000 | 20.0% | Flash Arbitrage Loan ecosystem liquidity |
+| IEO (Public Sale) | 150,000,000 | 15.0% | Exchange initial offering |
+| Presale | 100,000,000 | 10.0% | Community presale round |
+| Scholarship Fund | 100,000,000 | 10.0% | Free access for underserved communities |
+| Team & Development | 75,000,000 | 7.5% | Long-term development incentives |
+| Marketing | 50,000,000 | 5.0% | Campaigns, partnerships, community |
+| Seed Sale | 40,000,000 | 4.0% | Early backer round |
+| Founder IP Protection | 25,000,000 | 2.5% | Patents, trademarks, legal protection |
+| DEX Liquidity | 10,000,000 | 1.0% | PancakeSwap initial liquidity |
+| **TOTAL** | **1,000,000,000** | **100%** | |
+
+---
+
+## Token Sale Structure
+
+### Phase 1: Seed Sale
+| Detail | Value |
+|--------|-------|
+| Price | $0.15 per KENO |
+| Tokens | 40,000,000 KENO |
+| Raise | $6,000,000 |
+| Vesting | 10% at TGE, 15% monthly for 6 months |
+
+### Phase 2: Presale
+| Detail | Value |
+|--------|-------|
+| Price | $0.25 per KENO |
+| Tokens | 100,000,000 KENO |
+| Raise | $25,000,000 |
+| Vesting | 25% at TGE, 25% monthly for 3 months |
+
+### Phase 3: IEO (Initial Exchange Offering)
+| Detail | Value |
+|--------|-------|
+| Price | $0.50 per KENO |
+| Tokens | 150,000,000 KENO |
+| Raise | $75,000,000 |
+| Soft Cap | $15,000,000 |
+| Hard Cap | $75,000,000 |
+| Vesting | 100% unlocked at TGE |
+| Payment | USDT |
+| Target Date | December 28, 2024 |
+
+### Phase 4: DEX Listing
+| Detail | Value |
+|--------|-------|
+| Exchange | PancakeSwap |
+| Listing Price | $1.00 per KENO |
+| Liquidity | 10,000,000 KENO paired with raised funds |
+| Lock | 12 months liquidity lock |
+
+---
+
+## Total Fundraising Summary
+
+| Phase | Tokens | Price | Raise |
+|-------|--------|-------|-------|
+| Seed | 40,000,000 | $0.15 | $6,000,000 |
+| Presale | 100,000,000 | $0.25 | $25,000,000 |
+| IEO | 150,000,000 | $0.50 | $75,000,000 |
+| **Total** | **290,000,000** | | **$106,000,000** |
+
+---
+
+## Vesting Schedule
+
+| Allocation | TGE Unlock | Vesting Period |
+|------------|------------|----------------|
+| Seed Sale | 10% | 15% monthly for 6 months |
+| Presale | 25% | 25% monthly for 3 months |
+| IEO | 100% | Fully unlocked |
+| Education Rewards | 0% | Released per course completion |
+| FAL Liquidity | 0% | Locked in smart contract |
+| Founder IP | 25% | 25% quarterly for 9 months |
+| Team & Development | 0% | 24-month linear vesting |
+| Scholarship Fund | 0% | Released for approved scholarships |
+| Marketing | 20% | 20% monthly for 4 months |
+| DEX Liquidity | 0% | Locked for 12 months |
+
+---
+
+## Token Utility
+
+### 1. Education Rewards
+Students earn 250 KENO per completed course. Full graduation (21 courses) = 5,250 KENO earned with zero capital investment.
+
+### 2. Flash Arbitrage Loans (FAL)
+Graduates access platform liquidity for cross-exchange arbitrage. Zero-collateral flash loans enable profit sharing from price differences.
+
+### 3. FALP Staking
+Users pool KENO tokens in Flash Arbitrage Loan Pools. Collective liquidity enables larger arbitrage opportunities. Profits distributed proportionally to contributors.
+
+### 4. Exchange Trading
+Trade KENO against major pairs:
+- KENO/USD
+- KENO/BTC
+- KENO/ETH
+
+### 5. Merchant Payments
+Use KENO for goods and services through integrated payment gateway with QR code support.
+
+### 6. Governance
+Vote on platform decisions, protocol upgrades, and fund allocations.
+
+### 7. Graduate Benefits
+Access exclusive merchandise, mentorship programs, and career services.
+
+### 8. Premium Features
+Unlock advanced AI support, priority arbitrage alerts, and premium content.
+
+---
+
+## Economic Model
+
+### Deflationary Mechanics
+- Platform fees partially burned
+- FAL usage fees contribute to buyback/burn
+- Exchange trading fees allocated to burn pool
+- Reduced circulating supply over time
+
+### Value Accrual
+1. **Education Demand** → More students → More platform activity
+2. **FAL Usage** → Graduate token utility → Platform fee revenue
+3. **Trading Volume** → Exchange activity → Fee capture
+4. **Merchant Adoption** → Payment processing → Gateway fees
+
+### Flywheel Effect
+```
+Education → Earning → Utility → Demand → Value → Attracts Students → Education
+```
+
+---
+
+## Supply Unlock Schedule
+
+### Year 1 Unlock (Approximate)
+
+| Month | Event | Tokens Unlocked |
+|-------|-------|-----------------|
+| TGE | Seed (10%), Presale (25%), IEO (100%), Founder (25%), Marketing (20%) | ~3,787,500 |
+| Month 1 | Seed (15%), Presale (25%), Marketing (20%) | ~570,000 |
+| Month 2 | Seed (15%), Presale (25%), Marketing (20%) | ~570,000 |
+| Month 3 | Seed (15%), Presale (25%), Marketing (20%), Founder (25%) | ~757,500 |
+| Month 4 | Seed (15%), Marketing (20%) | ~370,000 |
+| Month 5 | Seed (15%) | ~150,000 |
+| Month 6 | Seed (15%), Founder (25%) | ~337,500 |
+| Month 9 | Founder (25%) | ~187,500 |
+| Month 12 | DEX Liquidity unlocks | 650,000 |
+
+*Team tokens vest linearly over 24 months starting Month 1*
+*Education rewards released as courses completed*
+*Scholarship funds released per approval*
+
+---
+
+## Use of Funds
+
+| Category | Percentage | Amount | Purpose |
+|----------|------------|--------|---------|
+| Platform Development | 30% | $645,000 | Mobile apps, FAL v2.0, security audits, infrastructure |
+| Marketing & Acquisition | 25% | $537,500 | Global campaigns, influencers, community building |
+| Exchange Listings | 15% | $322,500 | CEX/DEX listings, market making, liquidity |
+| Team Expansion | 15% | $322,500 | Developers, educators, support, operations |
+| Legal & Compliance | 10% | $215,000 | Regulatory compliance, licensing, KYC/AML |
+| Reserve & Operations | 5% | $107,500 | Working capital, contingency |
+
+---
+
+## Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Fully Diluted Valuation (at IEO) | $10,500,000 |
+| Initial Market Cap (IEO tokens only) | $1,500,000 |
+| Circulating at TGE | ~18% of supply |
+| Max Earnable per Student | 5,250 KENO |
+| Phase 1 Graduates (Education Pool) | ~952 graduates |
+| Phase 2+ Graduates (Revenue-Funded) | Unlimited |
+| Target Graduates by 2027 | 100,000+ |
+
+---
+
+## Kenostod Blockchain Evolution
+
+### Phase 1: Academy on BSC (Current)
+- KENO as BEP-20 token on Binance Smart Chain
+- First 952 graduates earn from Education Pool
+- Platform revenue builds treasury
+
+### Phase 2: Revenue-Funded Rewards (2026)
+- Platform fees fund KENO buybacks
+- Purchased KENO rewards new students
+- Self-sustaining reward model
+
+### Phase 3: Kenostod Blockchain Launch (2027+)
+- Native Kenostod Blockchain with KENO as base currency
+- Migrate Academy graduates to native chain
+- All revolutionary features preserved (FAL, FALP, PoRV)
+- Unlimited scalability for new students
+- Academy graduates become early validators/stakers
+
+### Student Journey
+```
+Academy (Learn & Earn) → Graduate (5,250 KENO) → Kenostod Blockchain (Stake, Validate, Earn Forever)
+```
+
+---
+
+## Token Security
+
+- **Fixed Supply**: No minting function in contract
+- **Verified**: Contract verified on BscScan
+- **Standard**: OpenZeppelin BEP-20 implementation
+- **Audit**: Planned post-funding with reputable firm
+- **Liquidity Lock**: 12-month lock on DEX liquidity
+
+---
+
+## Contract Information
+
+**Contract Address:**
+```
+0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+```
+
+**BscScan:**
+```
+https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
+```
+
+---
+
+*Last Updated: December 2024*
+*Kenostod Blockchain Academy*
+*kenostodblockchain.com*

@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 13: Royalties System | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .premium-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+
+        .flow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            padding: 20px 25px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .flow-box.creator { background: linear-gradient(135deg, var(--purple), #7c3aed); }
+        .flow-box.blockchain { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .flow-box.buyer { background: linear-gradient(135deg, var(--secondary), #2563eb); }
+        .flow-box.royalty { background: linear-gradient(135deg, var(--gold), #d97706); color: #000; }
+
+        .flow-label { font-weight: 600; margin-bottom: 8px; }
+        .flow-icon { font-size: 2em; margin-bottom: 10px; }
+        .arrow { font-size: 2em; color: var(--text-muted); }
+
+        .term-definition {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .term { font-weight: 600; color: var(--primary); min-width: 150px; }
+        .definition { color: var(--text-muted); }
+
+        .step-list { counter-reset: step-counter; list-style: none; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question input[type="text"], .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+        }
+
+        .exercise-question textarea { min-height: 80px; resize: vertical; }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--primary); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--primary); background: var(--primary); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--primary); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .flow-diagram { flex-direction: column; }
+            .arrow { transform: rotate(90deg); }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 13
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#128176;</span>
+                Course 13: Royalties System
+                <span class="premium-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>12 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('what-are-royalties')"><span class="toc-number">2</span>What Are Royalties?</li>
+                    <li class="toc-item" onclick="scrollToSection('blockchain-royalties')"><span class="toc-number">3</span>Blockchain Royalties</li>
+                    <li class="toc-item" onclick="scrollToSection('eip2981')"><span class="toc-number">4</span>EIP-2981 Standard</li>
+                    <li class="toc-item" onclick="scrollToSection('creator-economy')"><span class="toc-number">5</span>Creator Economy &amp; NFTs</li>
+                    <li class="toc-item" onclick="scrollToSection('rvt-model')"><span class="toc-number">6</span>Kenostod RVT Model</li>
+                    <li class="toc-item" onclick="scrollToSection('smart-contracts')"><span class="toc-number">7</span>Smart Contract Royalties</li>
+                    <li class="toc-item" onclick="scrollToSection('enforcement')"><span class="toc-number">8</span>Enforcement Challenges</li>
+                    <li class="toc-item" onclick="scrollToSection('recurring-income')"><span class="toc-number">9</span>Token Rewards &amp; Growth</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">10</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">11</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">12</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Define royalties in both traditional and blockchain contexts and explain how they differ</div></li>
+                    <li class="step-item"><div class="step-title">Explain how blockchain technology enables perpetual, transparent, on-chain royalty payments</div></li>
+                    <li class="step-item"><div class="step-title">Describe the EIP-2981 royalty standard and its role in the NFT ecosystem</div></li>
+                    <li class="step-item"><div class="step-title">Analyze the creator economy and how NFT royalties have transformed artist compensation</div></li>
+                    <li class="step-item"><div class="step-title">Understand Kenostod&rsquo;s RVT perpetual royalty model and its distribution mechanics</div></li>
+                    <li class="step-item"><div class="step-title">Read and understand smart contract code that implements royalty logic</div></li>
+                    <li class="step-item"><div class="step-title">Identify royalty enforcement challenges including marketplace bypassing and propose solutions</div></li>
+                    <li class="step-item"><div class="step-title">Calculate compound royalty growth and design a earning strategy using royalties</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>~2 hours</strong> of reading, exercises, and practice. Take breaks between sections. True understanding takes time, and the 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <section id="what-are-royalties" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>What Are Royalties?</h2>
+                <div class="reading-content">
+                    <p>A <strong>royalty</strong> is a payment made to a creator, inventor, or rights holder each time their work is used, sold, or generates revenue. Royalties are the cornerstone of the creative economy &mdash; they ensure that creators continue to earn from their work long after the initial creation.</p>
+
+                    <p>Think of it this way: when a songwriter writes a hit song, they don&rsquo;t just get paid once. Every time that song plays on the radio, streams on Spotify, or is used in a commercial, a small royalty payment is triggered. This creates an ongoing income stream tied directly to the value of their creation.</p>
+
+                    <h3>Traditional Royalty Categories</h3>
+
+                    <div class="term-definition">
+                        <span class="term">Music Royalties</span>
+                        <span class="definition">Payments to songwriters, performers, and producers each time a song is played, streamed, or licensed. Typically managed by collecting societies like ASCAP, BMI, and PRS.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Book Royalties</span>
+                        <span class="definition">Authors typically earn 5-15% of each book sale. Publishers handle distribution, accounting, and payment &mdash; often with 6-12 month delays.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Patent Royalties</span>
+                        <span class="definition">Inventors license their patents to manufacturers, earning a percentage of each product sold. Common in pharmaceuticals, technology, and manufacturing.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Franchise Royalties</span>
+                        <span class="definition">Franchise owners pay ongoing royalties (4-12% of revenue) to the franchisor for using their brand, systems, and business model.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Mineral Royalties</span>
+                        <span class="definition">Landowners receive royalties when oil, gas, or minerals are extracted from their property. Typically 12.5-25% of production value.</span>
+                    </div>
+
+                    <h3>The Problems with Traditional Royalties</h3>
+                    <p>While the concept of royalties is straightforward, the traditional system is plagued by inefficiencies:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Problem</th>
+                                <th>Traditional System</th>
+                                <th>Impact on Creators</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Opaque Accounting</strong></td>
+                                <td>Labels, publishers, and intermediaries control the books</td>
+                                <td>Creators often don&rsquo;t know how much they&rsquo;re owed</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Delayed Payments</strong></td>
+                                <td>Royalty statements arrive quarterly or annually</td>
+                                <td>Cash flow problems; creators wait months to get paid</td>
+                            </tr>
+                            <tr>
+                                <td><strong>High Intermediary Fees</strong></td>
+                                <td>Labels, agents, and collecting societies take 50-85%</td>
+                                <td>Creators receive only a fraction of the total royalties</td>
+                            </tr>
+                            <tr>
+                                <td><strong>No Secondary Sales</strong></td>
+                                <td>When a painting is resold at auction, the artist gets nothing</td>
+                                <td>Creators miss out on value appreciation of their work</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Geographic Limitations</strong></td>
+                                <td>Cross-border royalty collection is extremely complex</td>
+                                <td>International creators lose significant royalty income</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Streaming Economy Problem</div>
+                        <p>On major streaming platforms, artists earn approximately <strong>$0.003 to $0.005 per stream</strong>. A song needs roughly 250,000 streams just to earn $1,000. Meanwhile, the platform takes 30% and the label takes another 50-80% of what remains. This broken model is exactly what blockchain royalties aim to fix.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="blockchain-royalties" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9939;&#65039;</span>How Blockchain Enables Perpetual Royalties</h2>
+                <div class="reading-content">
+                    <p>Blockchain technology fundamentally transforms the royalty landscape by making payments <strong>automatic, transparent, instant, and permanent</strong>. Instead of relying on intermediaries to track usage and distribute payments, smart contracts handle everything programmatically.</p>
+
+                    <h3>The Blockchain Royalty Advantage</h3>
+                    <p>When a digital asset with royalty logic is sold on a blockchain, the royalty payment happens in the same transaction as the sale. There is no delay, no intermediary, and no way to &ldquo;forget&rdquo; to pay the creator. The rules are encoded in immutable smart contract code.</p>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">How On-Chain Royalties Flow</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box creator">
+                                <div class="flow-icon">&#127912;</div>
+                                <div class="flow-label">Creator Mints</div>
+                                <div>Sets 10% royalty</div>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box blockchain">
+                                <div class="flow-icon">&#9939;&#65039;</div>
+                                <div class="flow-label">Smart Contract</div>
+                                <div>Enforces rules</div>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box buyer">
+                                <div class="flow-icon">&#128100;</div>
+                                <div class="flow-label">Buyer Pays</div>
+                                <div>Full sale price</div>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box royalty">
+                                <div class="flow-icon">&#128176;</div>
+                                <div class="flow-label">Auto-Split</div>
+                                <div>10% to creator</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Key Properties of On-Chain Royalties</h3>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Perpetual</div>
+                            <p>Unlike traditional contracts that expire, on-chain royalties last forever. As long as the blockchain exists, the royalty logic executes. A creator who mints an asset today could receive royalties from resales occurring decades in the future.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Transparent</div>
+                            <p>Every royalty payment is recorded on a public blockchain. Creators can independently verify every transaction, see exactly how much was paid, when, and by whom. No more &ldquo;trust us&rdquo; accounting from labels and publishers.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Instant Settlement</div>
+                            <p>Royalties are paid in the same transaction as the sale. No 30-day net terms, no quarterly statements, no waiting. The creator&rsquo;s wallet balance increases the moment the sale completes.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Programmable</div>
+                            <p>Royalty splits can be as complex as needed: 5% to the original artist, 2% to the producer, 1% to the charity, 2% burned. All executed automatically without human intervention.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Global by Default</div>
+                            <p>A creator in Nigeria receives royalties from a buyer in Japan just as easily as from a buyer next door. No cross-border complications, no currency conversion fees, no correspondent banking delays.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Traditional vs. Blockchain Royalties</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Traditional Royalties</th>
+                                <th>Blockchain Royalties</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Payment Speed</strong></td>
+                                <td>Quarterly or annually</td>
+                                <td>Instant (same transaction)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Transparency</strong></td>
+                                <td>Opaque; controlled by intermediaries</td>
+                                <td>Fully transparent on public ledger</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Intermediary Fees</strong></td>
+                                <td>50-85% taken by middlemen</td>
+                                <td>Only gas fees (usually &lt; 1%)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Secondary Sales</strong></td>
+                                <td>Creator gets nothing</td>
+                                <td>Creator earns on every resale</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Duration</strong></td>
+                                <td>Contract-dependent (often expires)</td>
+                                <td>Perpetual (forever on-chain)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Geographic Reach</strong></td>
+                                <td>Complex cross-border challenges</td>
+                                <td>Global by default; borderless</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Enforcement</strong></td>
+                                <td>Requires legal action</td>
+                                <td>Automated by smart contract code</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Music Industry Revolution</div>
+                        <p>In the traditional music industry, a songwriter might receive $0.003 per stream after label cuts. With blockchain royalties, that same songwriter could tokenize their music as NFTs and receive <strong>5-10% of every secondary sale</strong> directly to their wallet &mdash; no label, no collecting society, no delays. Artists like RAC, 3LAU, and Imogen Heap have pioneered this model.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="eip2981" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>EIP-2981: The NFT Royalty Standard</h2>
+                <div class="reading-content">
+                    <p><strong>EIP-2981</strong> (Ethereum Improvement Proposal 2981) is the standardized way to communicate royalty payment information for NFTs on Ethereum and EVM-compatible blockchains. It was finalized in September 2022 and has become the industry standard.</p>
+
+                    <h3>How EIP-2981 Works</h3>
+                    <p>EIP-2981 defines a single function that any NFT contract can implement: <code>royaltyInfo()</code>. When a marketplace wants to know how much royalty to pay and to whom, it calls this function with the token ID and sale price. The contract returns the royalty recipient address and the royalty amount.</p>
+
+                    <div class="code-example">
+<span class="code-comment">// EIP-2981 Interface</span>
+<span class="code-keyword">interface</span> <span class="code-function">IERC2981</span> {
+    <span class="code-comment">/// @notice Called by marketplaces to determine royalty info</span>
+    <span class="code-comment">/// @param tokenId - the NFT asset queried for royalty</span>
+    <span class="code-comment">/// @param salePrice - the sale price of the NFT</span>
+    <span class="code-comment">/// @return receiver - address to receive the royalty</span>
+    <span class="code-comment">/// @return royaltyAmount - how much royalty to pay</span>
+    <span class="code-keyword">function</span> <span class="code-function">royaltyInfo</span>(
+        <span class="code-keyword">uint256</span> tokenId,
+        <span class="code-keyword">uint256</span> salePrice
+    ) <span class="code-keyword">external view returns</span> (
+        <span class="code-keyword">address</span> receiver,
+        <span class="code-keyword">uint256</span> royaltyAmount
+    );
+}
+                    </div>
+
+                    <h3>Implementation Example</h3>
+                    <p>Here is a simplified implementation showing how a creator sets a 7.5% royalty on all their NFTs:</p>
+
+                    <div class="code-example">
+<span class="code-keyword">contract</span> <span class="code-function">MyNFT</span> <span class="code-keyword">is</span> ERC721, IERC2981 {
+    <span class="code-keyword">address</span> <span class="code-keyword">public</span> royaltyRecipient;
+    <span class="code-keyword">uint96</span> <span class="code-keyword">public</span> royaltyBps = <span class="code-number">750</span>; <span class="code-comment">// 7.5% in basis points</span>
+
+    <span class="code-keyword">function</span> <span class="code-function">royaltyInfo</span>(
+        <span class="code-keyword">uint256</span> tokenId,
+        <span class="code-keyword">uint256</span> salePrice
+    ) <span class="code-keyword">external view override returns</span> (
+        <span class="code-keyword">address</span>, <span class="code-keyword">uint256</span>
+    ) {
+        <span class="code-keyword">uint256</span> amount = (salePrice * royaltyBps) / <span class="code-number">10000</span>;
+        <span class="code-keyword">return</span> (royaltyRecipient, amount);
+    }
+}
+
+<span class="code-comment">// Example: NFT sells for 1 ETH</span>
+<span class="code-comment">// royaltyInfo(tokenId, 1 ETH)</span>
+<span class="code-comment">// Returns: (creatorAddress, 0.075 ETH)</span>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Important: EIP-2981 is Advisory, Not Enforcing</div>
+                        <p>A critical detail: EIP-2981 only <em>communicates</em> royalty information. It does not <em>enforce</em> payment. Marketplaces can query the royalty info and choose to honor it &mdash; or ignore it entirely. This advisory nature is both a strength (simplicity, compatibility) and a weakness (no guaranteed enforcement). We explore enforcement challenges in Section 8.</p>
+                    </div>
+
+                    <h3>Basis Points Explained</h3>
+                    <p>Royalties are typically expressed in <strong>basis points (bps)</strong> rather than percentages to avoid floating-point arithmetic issues in smart contracts. One basis point equals 0.01%, so:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Basis Points</th>
+                                <th>Percentage</th>
+                                <th>Royalty on $10,000 Sale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>250 bps</td><td>2.5%</td><td>$250</td></tr>
+                            <tr><td>500 bps</td><td>5.0%</td><td>$500</td></tr>
+                            <tr><td>750 bps</td><td>7.5%</td><td>$750</td></tr>
+                            <tr><td>1000 bps</td><td>10.0%</td><td>$1,000</td></tr>
+                            <tr><td>1500 bps</td><td>15.0%</td><td>$1,500</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="creator-economy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127912;</span>Creator Economy &amp; NFT Royalties</h2>
+                <div class="reading-content">
+                    <p>The emergence of NFT royalties has fundamentally changed the relationship between creators and their work. For the first time in history, artists can earn <strong>perpetual income from secondary sales</strong> &mdash; something never possible in the traditional art world.</p>
+
+                    <h3>The Traditional Art Problem</h3>
+                    <p>Consider this scenario: In 2004, an emerging artist sells a painting for $5,000. Over the next 20 years, as the artist becomes famous, that painting changes hands multiple times, eventually selling at auction for $2 million. The artist receives <strong>nothing</strong> from any of those secondary sales. Only the first $5,000.</p>
+
+                    <p>With NFT royalties, that same artist could encode a 10% royalty into the token. They would receive $200,000 from that $2 million sale &mdash; and every future sale after that.</p>
+
+                    <h3>Music Industry: Traditional vs. Blockchain Royalties</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>Traditional Music</th>
+                                <th>Blockchain Music</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Revenue Split</strong></td>
+                                <td>Artist gets 12-20% after label, distributor, collecting society cuts</td>
+                                <td>Artist keeps 80-100% of primary; 5-10% on all secondary</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Payment Timeline</strong></td>
+                                <td>6-18 months after streams occur</td>
+                                <td>Instant upon sale/stream</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Accounting</strong></td>
+                                <td>Black box; frequent lawsuits over unpaid royalties</td>
+                                <td>Every transaction verifiable on blockchain</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fan Ownership</strong></td>
+                                <td>Fans buy music with no ownership stake</td>
+                                <td>Fans own tradeable NFTs that can appreciate</td>
+                            </tr>
+                            <tr>
+                                <td><strong>International</strong></td>
+                                <td>Complex web of sub-publishers per territory</td>
+                                <td>One smart contract serves all countries</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Secondary Market Royalty Mechanics</h3>
+                    <p>Understanding how secondary market royalties work is essential. Here is the step-by-step flow:</p>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Creator Mints the NFT</div>
+                            <p>The creator deploys a smart contract with royalty logic built in (e.g., 10% royalty). They mint the NFT and list it for primary sale.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">First Sale (Primary Market)</div>
+                            <p>Buyer A purchases the NFT for 1 ETH. The creator receives the full 1 ETH (minus any marketplace fee). No royalty on primary sale.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Buyer A Resells (Secondary Market)</div>
+                            <p>Buyer A lists the NFT and Buyer B purchases it for 5 ETH. The marketplace queries <code>royaltyInfo()</code>. The creator receives 0.5 ETH (10%), and Buyer A receives 4.5 ETH.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Ongoing Resales</div>
+                            <p>Every subsequent resale triggers the same 10% royalty. If Buyer B sells for 20 ETH, the creator receives 2 ETH. This continues perpetually.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128161; The Alignment Effect</div>
+                        <p>NFT royalties create a powerful alignment of incentives. When a creator earns from secondary sales, they are motivated to continue building value for their community. The more valuable they make their brand and art, the more their existing works appreciate, generating more royalties. Collectors also benefit because the creator is invested in long-term value, not just the initial sale.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="rvt-model" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128142;</span>Kenostod&rsquo;s RVT Perpetual Royalty Model</h2>
+                <div class="reading-content">
+                    <p>Kenostod&rsquo;s <strong>Residual Value Token (RVT)</strong> system takes blockchain royalties to the next level. Unlike simple NFT royalties that trigger on resale, RVTs generate royalties based on <strong>ongoing usage</strong> of computational results. This means you earn every time an enterprise uses the work you contributed to &mdash; not just when someone buys or sells a token.</p>
+
+                    <h3>How the RVT Royalty System Works</h3>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">RVT Royalty Distribution Flow</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box buyer">
+                                <div class="flow-icon">&#127970;</div>
+                                <div class="flow-label">Enterprise Uses</div>
+                                <div>Computational results</div>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box blockchain">
+                                <div class="flow-icon">&#128176;</div>
+                                <div class="flow-label">Micro-Payment</div>
+                                <div>Auto-triggered</div>
+                            </div>
+                            <div class="arrow">&#8594;</div>
+                            <div class="flow-box royalty">
+                                <div class="flow-icon">&#128200;</div>
+                                <div class="flow-label">Distribution</div>
+                                <div>Split by formula</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Distribution Formula</h3>
+                    <p>Every time an enterprise uses a computational result tied to an RVT, a micro-payment is triggered and distributed as follows:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Allocation</th>
+                                <th>Percentage</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>RVT Holders</strong></td>
+                                <td>50%</td>
+                                <td>Distributed proportionally based on contribution level and RVT tier</td>
+                            </tr>
+                            <tr>
+                                <td><strong>KENO Burn</strong></td>
+                                <td>40%</td>
+                                <td>Permanently destroyed, reducing total supply and increasing scarcity</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Treasury</strong></td>
+                                <td>10%</td>
+                                <td>Funds ecosystem development, grants, and infrastructure</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>RVT Tier Multipliers</h3>
+                    <p>Not all RVTs earn equally. Higher-tier RVTs represent more valuable contributions and receive proportionally larger royalty shares:</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>RVT Tier</th>
+                                <th>Royalty Multiplier</th>
+                                <th>Example Monthly Income</th>
+                                <th>Typical Contribution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Bronze</strong></td>
+                                <td>1x</td>
+                                <td>$5-25</td>
+                                <td>Basic validation tasks</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Silver</strong></td>
+                                <td>2.5x</td>
+                                <td>$25-75</td>
+                                <td>Complex data processing</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Gold</strong></td>
+                                <td>5x</td>
+                                <td>$75-250</td>
+                                <td>AI model training contributions</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Platinum</strong></td>
+                                <td>10x</td>
+                                <td>$250-1,000+</td>
+                                <td>Critical enterprise-grade results</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>What Makes RVT Royalties Unique</h3>
+                    <p>The Kenostod RVT model differs from typical NFT royalties in several important ways:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Usage-Based</span>
+                        <span class="definition">Royalties trigger on <em>usage</em>, not just resale. Every time an enterprise queries or uses your computational result, you earn.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Deflationary</span>
+                        <span class="definition">40% of every payment is burned, continuously reducing KENO supply. This means your remaining KENO becomes more valuable over time.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Real-Time</span>
+                        <span class="definition">Royalties are credited to your wallet instantly. No batching, no minimum thresholds, no waiting periods.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Stackable</span>
+                        <span class="definition">You can hold multiple RVTs across different tasks and industries. Each one generates independent royalty streams that stack together.</span>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Royalty Tracking Dashboard</div>
+                        <p>Kenostod provides a comprehensive royalty tracking dashboard where you can monitor: total lifetime earnings, per-RVT breakdown, usage analytics showing how often your work is used, daily/weekly/monthly trend analysis, and complete payout history. Every micro-payment is logged transparently on-chain.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="smart-contracts" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128187;</span>Smart Contract Royalty Implementations</h2>
+                <div class="reading-content">
+                    <p>Understanding how royalties are implemented in smart contract code gives you deeper insight into how these systems actually work. Let&rsquo;s examine several implementation patterns used across the blockchain ecosystem.</p>
+
+                    <h3>Pattern 1: Simple Percentage Royalty</h3>
+                    <p>The most basic implementation &mdash; a fixed percentage applied to every sale:</p>
+
+                    <div class="code-example">
+<span class="code-keyword">contract</span> <span class="code-function">SimpleRoyalty</span> {
+    <span class="code-keyword">address</span> <span class="code-keyword">public</span> creator;
+    <span class="code-keyword">uint256</span> <span class="code-keyword">public</span> royaltyPercent = <span class="code-number">10</span>; <span class="code-comment">// 10%</span>
+
+    <span class="code-keyword">function</span> <span class="code-function">executeSale</span>(<span class="code-keyword">uint256</span> salePrice) <span class="code-keyword">external payable</span> {
+        <span class="code-keyword">uint256</span> royalty = (salePrice * royaltyPercent) / <span class="code-number">100</span>;
+        <span class="code-keyword">uint256</span> sellerProceeds = salePrice - royalty;
+
+        <span class="code-comment">// Pay royalty to creator</span>
+        payable(creator).<span class="code-function">transfer</span>(royalty);
+        <span class="code-comment">// Pay remaining to seller</span>
+        payable(seller).<span class="code-function">transfer</span>(sellerProceeds);
+    }
+}
+                    </div>
+
+                    <h3>Pattern 2: Multi-Recipient Split</h3>
+                    <p>More complex royalties that distribute to multiple recipients:</p>
+
+                    <div class="code-example">
+<span class="code-keyword">contract</span> <span class="code-function">SplitRoyalty</span> {
+    <span class="code-keyword">struct</span> Recipient {
+        <span class="code-keyword">address</span> wallet;
+        <span class="code-keyword">uint256</span> sharesBps; <span class="code-comment">// in basis points</span>
+    }
+
+    Recipient[] <span class="code-keyword">public</span> recipients;
+
+    <span class="code-comment">// Example: Artist 5%, Producer 2.5%, Charity 2.5%</span>
+    <span class="code-keyword">function</span> <span class="code-function">distributeRoyalty</span>(<span class="code-keyword">uint256</span> totalRoyalty) <span class="code-keyword">internal</span> {
+        <span class="code-keyword">for</span> (<span class="code-keyword">uint256</span> i = <span class="code-number">0</span>; i < recipients.length; i++) {
+            <span class="code-keyword">uint256</span> payment = (totalRoyalty * recipients[i].sharesBps) / <span class="code-number">10000</span>;
+            payable(recipients[i].wallet).<span class="code-function">transfer</span>(payment);
+        }
+    }
+}
+                    </div>
+
+                    <h3>Pattern 3: Kenostod RVT Royalty Logic</h3>
+                    <p>A simplified version of the Kenostod royalty distribution pattern, showing how usage-based royalties work:</p>
+
+                    <div class="code-example">
+<span class="code-keyword">contract</span> <span class="code-function">KenostodRoyalty</span> {
+    <span class="code-keyword">mapping</span>(<span class="code-keyword">uint256</span> => <span class="code-keyword">address</span>[]) <span class="code-keyword">public</span> rvtHolders;
+    <span class="code-keyword">address</span> <span class="code-keyword">public</span> treasury;
+
+    <span class="code-keyword">event</span> <span class="code-function">RoyaltyDistributed</span>(
+        <span class="code-keyword">uint256</span> taskId, <span class="code-keyword">uint256</span> totalAmount,
+        <span class="code-keyword">uint256</span> holdersShare, <span class="code-keyword">uint256</span> burned
+    );
+
+    <span class="code-keyword">function</span> <span class="code-function">onEnterpriseUsage</span>(<span class="code-keyword">uint256</span> taskId) <span class="code-keyword">external payable</span> {
+        <span class="code-keyword">uint256</span> payment = msg.value;
+
+        <span class="code-comment">// 50% to RVT holders</span>
+        <span class="code-keyword">uint256</span> holdersShare = (payment * <span class="code-number">50</span>) / <span class="code-number">100</span>;
+        <span class="code-comment">// 40% burned (sent to zero address)</span>
+        <span class="code-keyword">uint256</span> burnAmount = (payment * <span class="code-number">40</span>) / <span class="code-number">100</span>;
+        <span class="code-comment">// 10% to treasury</span>
+        <span class="code-keyword">uint256</span> treasuryShare = payment - holdersShare - burnAmount;
+
+        <span class="code-function">_distributeToHolders</span>(taskId, holdersShare);
+        payable(<span class="code-keyword">address</span>(<span class="code-number">0</span>)).<span class="code-function">transfer</span>(burnAmount);
+        payable(treasury).<span class="code-function">transfer</span>(treasuryShare);
+
+        <span class="code-keyword">emit</span> <span class="code-function">RoyaltyDistributed</span>(taskId, payment, holdersShare, burnAmount);
+    }
+}
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Reading Smart Contracts</div>
+                        <p>Even if you don&rsquo;t write Solidity code, being able to read and understand royalty smart contracts is a valuable skill. It allows you to verify that a project&rsquo;s royalty claims match what the code actually does. Always check: What percentage is set? Who receives the payment? Can the royalty be changed after deployment? Are there any admin override functions?</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="enforcement" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Royalty Enforcement Challenges</h2>
+                <div class="reading-content">
+                    <p>One of the most contentious issues in the NFT space is <strong>royalty enforcement</strong>. While the technology exists to define royalties, ensuring they are actually paid is a different challenge entirely.</p>
+
+                    <h3>The Marketplace Bypassing Problem</h3>
+                    <p>Because EIP-2981 is advisory (it tells marketplaces what royalties to pay, but doesn&rsquo;t force them), some marketplaces have chosen to make royalty payments optional or eliminate them entirely to attract traders with lower fees.</p>
+
+                    <h4>How Bypassing Works</h4>
+                    <p>When a marketplace facilitates a sale, it can simply choose not to call <code>royaltyInfo()</code> or ignore the returned values. The NFT transfer still succeeds because the royalty logic is separate from the token transfer logic. Additionally, users can perform &ldquo;wrapper&rdquo; trades &mdash; wrapping an NFT in a new contract and trading the wrapper, completely bypassing the original royalty.</p>
+
+                    <h3>Timeline of the Royalty Wars</h3>
+                    <p>The debate over royalty enforcement has been one of the most heated in the NFT space:</p>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">2021: The Golden Age</div>
+                            <p>OpenSea, the dominant marketplace, enforced creator royalties on all sales. Creators earned billions in royalties. The ecosystem appeared healthy.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">2022: Zero-Royalty Marketplaces Emerge</div>
+                            <p>Platforms like SudoSwap, X2Y2, and LooksRare began offering optional or zero-royalty trading, undercutting OpenSea on fees. Traders flocked to lower-cost alternatives.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">2023: OpenSea Responds</div>
+                            <p>OpenSea introduced the Operator Filter Registry, a blocklist that NFT creators could use to block sales on marketplaces that don&rsquo;t honor royalties. This was controversial but partially effective.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">2024+: New Solutions</div>
+                            <p>The industry is moving toward enforceable royalties through token-level enforcement, where the transfer function itself checks if royalties were paid. ERC-721C and similar standards embed royalty enforcement directly into the token.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Enforcement Solutions</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Solution</th>
+                                <th>How It Works</th>
+                                <th>Pros</th>
+                                <th>Cons</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Marketplace Honor System</strong></td>
+                                <td>Marketplaces voluntarily pay royalties</td>
+                                <td>Simple, no code changes needed</td>
+                                <td>Easily bypassed; race to the bottom</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Operator Filter (Blocklist)</strong></td>
+                                <td>Creators block non-royalty-paying marketplaces</td>
+                                <td>Gives creators control</td>
+                                <td>Reduces liquidity; whack-a-mole problem</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Token-Level Enforcement</strong></td>
+                                <td>Transfer function requires royalty payment</td>
+                                <td>Cannot be bypassed</td>
+                                <td>Limits composability; higher gas costs</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kenostod Model (Usage-Based)</strong></td>
+                                <td>Royalties trigger on usage, not transfer</td>
+                                <td>Cannot be bypassed; aligned incentives</td>
+                                <td>Requires enterprise adoption</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Why Kenostod&rsquo;s Model Avoids This Problem</div>
+                        <p>Kenostod&rsquo;s RVT royalties are fundamentally different because they are triggered by <strong>enterprise usage</strong>, not token transfers. An enterprise must call the smart contract to access computational results, and the royalty payment is embedded in that access function. There is no way to &ldquo;bypass&rdquo; the royalty because the data access itself triggers the payment. If you don&rsquo;t pay, you don&rsquo;t get the data.</p>
+                    </div>
+
+                    <h3>Legal Framework for Digital Royalties</h3>
+                    <p>The legal landscape around digital and blockchain royalties is still evolving. Key considerations include:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Smart Contract as Agreement</span>
+                        <span class="definition">Some jurisdictions are beginning to recognize smart contracts as legally binding agreements. However, most still require traditional legal contracts as a backstop.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Tax Treatment</span>
+                        <span class="definition">Royalty income from NFTs and digital assets is typically treated as ordinary income for tax purposes. In the US, it must be reported on Schedule C or Schedule E depending on the nature of the activity.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Copyright vs. Token Ownership</span>
+                        <span class="definition">Owning an NFT does not automatically grant copyright. The creator retains copyright unless explicitly transferred. Royalties are tied to the token&rsquo;s smart contract, not copyright law.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Cross-Border Enforcement</span>
+                        <span class="definition">Blockchain royalties operate globally, but legal enforcement is jurisdictional. A creator in France may have difficulty enforcing royalty claims against a marketplace in a different jurisdiction.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="passive-income" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>Token Rewards, Stacking &amp; Compound Growth</h2>
+                <div class="reading-content">
+                    <p>Royalties represent one of the most powerful forms of <strong>token rewards</strong> in the digital age. Once the initial work is done (creating an asset, contributing computation, building an audience), the income flows automatically with zero additional effort.</p>
+
+                    <h3>What Makes Royalties &ldquo;Passive&rdquo;</h3>
+                    <p>True token rewards means earning money without active, ongoing labor. Royalties qualify because:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 20px;">
+                        <li>The work is done once (creation, contribution, minting)</li>
+                        <li>Payments are automatic (smart contract handles distribution)</li>
+                        <li>Income is perpetual (continues as long as usage/trading occurs)</li>
+                        <li>No management required (no invoicing, chasing payments, or accounting)</li>
+                    </ul>
+
+                    <h3>Royalty Stacking</h3>
+                    <p><strong>Royalty stacking</strong> is the strategy of accumulating multiple royalty-generating assets to create diversified, compounding income streams. In Kenostod, this means earning RVTs across different industries, task types, and tier levels.</p>
+
+                    <h4>Example: Building a Royalty Stack</h4>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>RVT Asset</th>
+                                <th>Industry</th>
+                                <th>Tier</th>
+                                <th>Monthly Royalty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>RVT #1</td><td>Healthcare AI</td><td>Gold</td><td>$150</td></tr>
+                            <tr><td>RVT #2</td><td>Financial Modeling</td><td>Platinum</td><td>$450</td></tr>
+                            <tr><td>RVT #3</td><td>Supply Chain</td><td>Silver</td><td>$45</td></tr>
+                            <tr><td>RVT #4</td><td>Climate Data</td><td>Gold</td><td>$120</td></tr>
+                            <tr><td>RVT #5</td><td>Legal Analytics</td><td>Bronze</td><td>$15</td></tr>
+                            <tr><td colspan="3"><strong>Total Monthly Token Rewards</strong></td><td><strong>$780</strong></td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Compound Growth Strategy</h3>
+                    <p>The most powerful aspect of royalty income is the ability to <strong>reinvest earnings</strong> to acquire more royalty-generating assets. This creates a compound growth effect:</p>
+
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Month 1: Initial Earnings</div>
+                            <p>You hold 3 RVTs generating $200/month total. You reinvest those earnings to acquire more computing power for tasks.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Month 3: Growing Stack</div>
+                            <p>Your reinvestment has earned you 2 more RVTs. You now earn $350/month from 5 assets. The additional income accelerates further acquisition.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Month 6: Momentum Builds</div>
+                            <p>Your stack has grown to 8 RVTs across multiple industries. Monthly income reaches $600. The compound effect becomes increasingly powerful.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Month 12: Significant Income</div>
+                            <p>With 15+ RVTs and a diversified portfolio, your monthly token rewards could exceed $1,500. And you&rsquo;re still earning new RVTs.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128161; The Deflationary Bonus</div>
+                        <p>Remember that 40% of every royalty payment is burned. This means the KENO you hold and earn becomes <strong>more scarce over time</strong>. Even if your royalty payments stay the same in KENO terms, the USD value may increase as supply decreases. This adds another layer of compound growth on top of your stacking strategy.</p>
+                    </div>
+
+                    <h3>Optimization Strategies</h3>
+                    <div class="term-definition">
+                        <span class="term">Focus on High-Usage Industries</span>
+                        <span class="definition">Healthcare AI, financial modeling, and enterprise analytics see the heaviest repeated usage, generating the most consistent royalty income.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Quality Over Quantity</span>
+                        <span class="definition">One Platinum RVT (10x multiplier) generates more income than 10 Bronze RVTs (1x each). Invest time in higher-quality contributions.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Diversify Industries</span>
+                        <span class="definition">Don&rsquo;t put all your eggs in one basket. If one industry&rsquo;s usage declines, your other RVTs continue earning.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Monitor Trends</span>
+                        <span class="definition">Use the royalty dashboard to identify which industries are growing and shift your efforts toward emerging high-demand sectors.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These real-world examples illustrate the transformative power of blockchain royalties and the challenges the industry has faced:</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: Beeple&rsquo;s $69 Million NFT and the Royalty Question</h4>
+                        <p><strong>What happened:</strong> In March 2021, digital artist Beeple (Mike Winkelmann) sold &ldquo;Everydays: The First 5000 Days&rdquo; at Christie&rsquo;s for $69.3 million. The NFT included a 10% creator royalty on secondary sales.</p>
+                        <p style="margin-top: 10px;"><strong>The significance:</strong> This was the first major NFT sale to incorporate blockchain royalties at such a scale. If the buyer ever resells the work, Beeple would automatically receive $6.93 million (10% of $69.3M) &mdash; with no intermediary needed.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Blockchain royalties can generate life-changing income for creators on secondary sales. In the traditional art world, Beeple would receive nothing from any future resale of this artwork.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: Yuga Labs (Bored Ape Yacht Club) Royalty Revenue</h4>
+                        <p><strong>What happened:</strong> Yuga Labs, creators of the Bored Ape Yacht Club (BAYC), earned an estimated <strong>$150+ million in royalties</strong> from secondary sales in 2021-2022 alone. Their 2.5% royalty on over $3 billion in trading volume generated massive recurring income.</p>
+                        <p style="margin-top: 10px;"><strong>The significance:</strong> This demonstrated that royalties could be a sustainable business model &mdash; not just for individual artists, but for entire companies. The royalty income funded new projects, games, and the Otherside metaverse.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Even a modest royalty percentage (2.5%) can generate enormous revenue if the asset has significant trading volume. The key is creating lasting demand and community value.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: The SudoSwap Zero-Royalty Disruption</h4>
+                        <p><strong>What happened:</strong> In 2022, SudoSwap launched an AMM-style NFT marketplace that charged no royalties and minimal fees. This undercut OpenSea and attracted volume-traders. Other marketplaces followed suit, creating a &ldquo;race to the bottom&rdquo; on royalty payments.</p>
+                        <p style="margin-top: 10px;"><strong>The impact:</strong> Creator royalty income dropped dramatically. Some collections saw royalty revenue decrease by 80% as trading moved to zero-royalty platforms. This sparked intense debate about the sustainability of the NFT creator economy.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Advisory royalties (like EIP-2981) are only as reliable as the marketplaces that honor them. The industry needs enforceable royalty mechanisms &mdash; which is precisely what Kenostod&rsquo;s usage-based model provides.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: Royal.io &mdash; Tokenized Music Royalties</h4>
+                        <p><strong>What happened:</strong> Royal.io, co-founded by DJ 3LAU, enables musicians to sell fractional ownership of their streaming royalties as tokens. Fans who purchase these tokens receive a share of the song&rsquo;s streaming revenue, paid directly to their wallets.</p>
+                        <p style="margin-top: 10px;"><strong>The significance:</strong> This model demonstrates how blockchain can democratize royalty ownership. Fans aren&rsquo;t just consumers &mdash; they become stakeholders with real financial upside. Songs by artists like Nas, Diplo, and The Chainsmokers have been tokenized on the platform.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Blockchain royalties aren&rsquo;t limited to creator-to-creator flows. They can create entirely new asset classes where anyone can invest in and earn from creative works. This aligns with Kenostod&rsquo;s vision of democratizing access to perpetual income streams.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Traditional vs. Blockchain Comparison</h4>
+                        <div class="exercise-question">
+                            <p>A musician earns $0.004 per stream on Spotify and has a song with 1 million streams. Their label takes 80%. Compare this to minting the same song as an NFT that sells for $10,000 with a 10% secondary royalty and is subsequently resold 5 times (each at 2x the previous price). Calculate total earnings for each model.</p>
+                            <textarea id="ex1" placeholder="Show your calculations and analysis..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Royalty Enforcement Strategy</h4>
+                        <div class="exercise-question">
+                            <p>You are a digital artist who minted a popular NFT collection with 5% creator royalties. A new zero-royalty marketplace launches and 60% of your collection&rsquo;s trading volume migrates there. What strategies would you consider to protect your royalty income? Discuss at least three approaches, weighing pros and cons.</p>
+                            <textarea id="ex2" placeholder="Describe your enforcement strategy..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: RVT Portfolio Design</h4>
+                        <div class="exercise-question">
+                            <p>Design a diversified RVT portfolio strategy for someone who wants to reach $1,000/month in passive royalty income within 12 months. Specify which industries you would target, what RVT tiers you would aim for, and how you would reinvest early earnings. Show your reasoning with estimated numbers.</p>
+                            <textarea id="ex3" placeholder="Design your portfolio strategy..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Smart Contract Analysis</h4>
+                        <div class="exercise-question">
+                            <p>Review the Kenostod RVT Royalty Logic code example from Section 7. Explain in your own words: (a) What happens when an enterprise calls <code>onEnterpriseUsage()</code>? (b) Why is 40% sent to address(0)? (c) What is the purpose of the event emission at the end? (d) How would you modify this contract to support dynamic royalty percentages?</p>
+                            <textarea id="ex4" placeholder="Analyze the smart contract code..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Future of Royalties</h4>
+                        <div class="exercise-question">
+                            <p>Imagine it&rsquo;s 2030 and blockchain royalties are widely adopted. How might this technology transform industries beyond art and music? Describe at least two non-obvious industries that could benefit from on-chain royalties, and explain the specific mechanism that would work for each.</p>
+                            <textarea id="ex5" placeholder="Envision the future of royalties..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What percentage of enterprise payments goes to RVT holders in Kenostod&rsquo;s royalty model?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>40%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>60%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>100%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. What is the primary function defined by EIP-2981?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>transferFrom() &mdash; transfers tokens between addresses</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>approve() &mdash; approves spending allowance</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>royaltyInfo() &mdash; returns royalty recipient and amount</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>mint() &mdash; creates new tokens</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="d">
+                    <div class="question-text">3. What happens to 40% of enterprise payments in the Kenostod royalty system?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Paid to miners as transaction fees</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Stored in the treasury for ecosystem development</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Returned to the enterprise as a rebate</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Burned (permanently destroyed), reducing KENO supply</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="a">
+                    <div class="question-text">4. Which of the following is a key problem with traditional royalty systems?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Opaque accounting, delayed payments, and high intermediary fees</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Payments are too fast for creators to manage</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Royalty percentages are too high for consumers</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Too many intermediaries makes payments more transparent</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. What is &ldquo;royalty stacking&rdquo; in the context of Kenostod?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Increasing the royalty percentage on a single asset</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Accumulating multiple RVTs across industries for diversified income streams</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Stacking royalty payments to be paid in a lump sum</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Combining multiple NFT collections into one</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. Why is EIP-2981 considered &ldquo;advisory&rdquo; rather than &ldquo;enforcing&rdquo;?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It only works on the Ethereum mainnet, not other chains</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It requires a government license to enforce royalties</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Marketplaces can query the royalty info but choose to ignore it</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The royalty amounts are too small to enforce</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. How does Kenostod&rsquo;s RVT model avoid the marketplace bypassing problem?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Royalties are triggered by enterprise usage of data, not by token transfers</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Kenostod blocks all third-party marketplaces</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>RVTs cannot be transferred between wallets</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Kenostod charges a 100% fee on all transfers</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <div class="question-text">8. What is the royalty multiplier for a Platinum-tier RVT?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1x</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>2.5x</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5x</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10x</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="b">
+                    <div class="question-text">9. In the traditional music industry, what percentage of streaming revenue typically goes to the artist after label and distributor cuts?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50-70%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>12-20%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>80-100%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1-5%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="c">
+                    <div class="question-text">10. What does &ldquo;750 basis points&rdquo; mean as a royalty percentage?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>75%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>0.75%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>7.5%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>750%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. Which is the best compound growth strategy for maximizing royalty income?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Reinvest royalty earnings to acquire more computing power and earn more RVTs</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Withdraw all earnings immediately and hold cash</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only collect Bronze-tier RVTs since they are easier to earn</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Focus on a single industry for maximum specialization</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="d">
+                    <div class="question-text">12. When are royalties credited to your wallet in the Kenostod system?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Monthly, on the first business day</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Weekly, every Friday</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Quarterly, after an audit period</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Real-time, instantly as enterprise usage occurs</span></div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <div id="resultIcon" class="result-icon"></div>
+                    <div id="resultTitle" class="result-title"></div>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-12-enterprise.html" style="color: var(--primary);">&larr; Course 12</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-14-merchant.html" style="color: var(--primary);">Course 14 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            if (textarea.value.trim().length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                feedback.innerHTML = '<strong style="color: #ef4444;">&#9888; Too Short:</strong> Please write a more detailed response (at least a few sentences) to demonstrate your understanding.';
+            } else {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+                feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                var messages = [
+                    '<strong style="color: #10b981;">&#10003; Good effort!</strong> Your response shows engagement with the material. Consider also discussing the specific numerical comparison between the two models to strengthen your analysis.',
+                    '<strong style="color: #10b981;">&#10003; Thoughtful response!</strong> Strong enforcement strategies should balance creator protection with marketplace liquidity. Consider the trade-offs of each approach you mentioned.',
+                    '<strong style="color: #10b981;">&#10003; Well structured!</strong> A good portfolio strategy includes diversification across industries and tiers. Remember that reinvesting early earnings accelerates the compound growth effect.',
+                    '<strong style="color: #10b981;">&#10003; Great analysis!</strong> Understanding smart contract mechanics is key. Remember that events are used for off-chain indexing and the burn mechanism creates deflationary pressure.',
+                    '<strong style="color: #10b981;">&#10003; Creative thinking!</strong> The future of royalties extends far beyond art and music. Consider how on-chain royalties could apply to data, patents, educational content, and even scientific research.'
+                ];
+                feedback.innerHTML = messages[num - 1];
+            }
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) {
+                        opt.classList.add('correct');
+                    }
+                });
+
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) {
+                        correct++;
+                    } else {
+                        selectedOption.classList.add('incorrect');
+                    }
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+
+            const passThreshold = 10;
+
+            if (correct >= passThreshold) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\uD83C\uDF89';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = 'You got ' + correct + '/' + total + ' correct!';
+                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 +250 KENO!</p><a href="/courses/course-14-merchant.html" class="next-course-btn">Course 14 \u2192</a>';
+                localStorage.setItem('course13_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(13, 'Course 13: Royalties System');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\uD83D\uDCDA';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = correct + '/' + total + ' correct. You need at least ' + passThreshold + ' correct answers (80%) to pass. Review the material and try again!';
+                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.lesson-section');
+            const tocItems = document.querySelectorAll('.toc-item');
+            let currentSection = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.pageYOffset >= sectionTop) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            tocItems.forEach(item => {
+                item.classList.remove('active');
+                const onclickAttr = item.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes(currentSection)) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+<script src="/courses/course-common.js"></script>
+</body>
+</html>

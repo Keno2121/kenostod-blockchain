@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 3: Transaction Reversal System | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.92em; }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; flex-shrink: 0; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .course-meta span { display: flex; align-items: center; gap: 8px; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .section-title { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .section-icon { font-size: 1em; }
+        .reading-content h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; }
+        .reading-content h4 { color: var(--secondary); margin: 20px 0 10px 0; }
+        .reading-content p { margin-bottom: 15px; color: var(--text-light); }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; display: flex; align-items: center; gap: 12px; }
+        .objective-list li::before { content: "\2713"; color: var(--success); font-weight: bold; }
+        .term-definition { display: flex; gap: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 10px; }
+        .term-definition .term { color: var(--primary); font-weight: 700; min-width: 140px; }
+        .term-definition .definition { color: var(--text-muted); }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .highlight-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .highlight-box .highlight-title { color: var(--secondary); font-weight: 700; margin-bottom: 10px; }
+        .highlight-box.warning { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-box.warning .highlight-title { color: var(--danger); }
+        .highlight-box.success { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
+        .highlight-box.success .highlight-title { color: var(--success); }
+        .highlight-box.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-box.danger .highlight-title { color: var(--danger); }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .step-item { padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-title { font-weight: 700; color: var(--primary); margin-bottom: 5px; }
+        .case-study { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95em; }
+        .comparison-table th { background: rgba(59, 130, 246, 0.15); padding: 12px 16px; text-align: left; color: var(--secondary); border-bottom: 2px solid rgba(59, 130, 246, 0.2); }
+        .comparison-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); }
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .code-example { background: #0d1117; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em; line-height: 1.6; overflow-x: auto; color: #e6edf3; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-comment { color: #8b949e; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+        .exercise-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        .exercise-question { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; margin: 10px 0; }
+        .exercise-question textarea { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text-light); font-family: inherit; font-size: 0.95em; margin-top: 8px; min-height: 80px; resize: vertical; }
+        .check-answer-btn { background: var(--gold); color: #000; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 8px; font-size: 0.85em; }
+        .answer-feedback { margin-top: 8px; padding: 10px; border-radius: 6px; font-size: 0.9em; display: none; }
+        .practice-section { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border: 2px solid var(--primary); }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 15px 35px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1.1em; transition: all 0.3s; border: none; cursor: pointer; }
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+        .quiz-section { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05)); border: 2px solid #8b5cf6; }
+        .quiz-question { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { display: flex; align-items: center; gap: 12px; padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .quiz-radio { width: 20px; height: 20px; border: 2px solid var(--text-muted); border-radius: 50%; flex-shrink: 0; }
+        .quiz-option.selected .quiz-radio { border-color: var(--primary); background: var(--primary); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .result-icon { font-size: 3em; margin-bottom: 10px; }
+        .result-title { margin-bottom: 10px; }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .new-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .timeline-visual { display: flex; justify-content: space-between; align-items: center; background: var(--bg-dark); padding: 30px; border-radius: 12px; margin: 20px 0; position: relative; }
+        .timeline-point { text-align: center; z-index: 2; }
+        .timeline-point .time { font-size: 1.5em; font-weight: bold; color: var(--primary); }
+        .timeline-point .label { font-size: 0.85em; color: var(--text-muted); margin-top: 5px; }
+        .timeline-point.danger .time { color: var(--danger); }
+        .timeline-point.success .time { color: var(--success); }
+        .state-diagram { display: flex; flex-direction: column; gap: 15px; margin: 20px 0; }
+        .state-row { display: flex; align-items: center; gap: 15px; }
+        .state-box { padding: 15px 25px; border-radius: 10px; font-weight: 700; text-align: center; min-width: 140px; }
+        .state-box.pending { background: rgba(245, 158, 11, 0.2); border: 2px solid var(--gold); color: var(--gold); }
+        .state-box.confirmed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); color: var(--success); }
+        .state-box.reversed { background: rgba(139, 92, 246, 0.2); border: 2px solid var(--purple); color: var(--purple); }
+        .state-box.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); color: var(--danger); }
+        .state-arrow { color: var(--text-muted); font-size: 1.3em; }
+        .state-label { font-size: 0.85em; color: var(--text-muted); }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } .timeline-visual { flex-direction: column; gap: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">&#128218; Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('why-reversal')"><span class="toc-number">2</span>Why Reversal Matters</li>
+                <li class="toc-item" onclick="scrollToSection('how-it-works')"><span class="toc-number">3</span>How the Window Works</li>
+                <li class="toc-item" onclick="scrollToSection('design-decision')"><span class="toc-number">4</span>The 5-Minute Decision</li>
+                <li class="toc-item" onclick="scrollToSection('states-deep-dive')"><span class="toc-number">5</span>Transaction States</li>
+                <li class="toc-item" onclick="scrollToSection('security')"><span class="toc-number">6</span>Security Implications</li>
+                <li class="toc-item" onclick="scrollToSection('real-world')"><span class="toc-number">7</span>Real-World Applications</li>
+                <li class="toc-item" onclick="scrollToSection('time-locked')"><span class="toc-number">8</span>Time-Locked Transactions</li>
+                <li class="toc-item" onclick="scrollToSection('vocabulary')"><span class="toc-number">9</span>Key Vocabulary</li>
+                <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">10</span>Written Exercises</li>
+                <li class="toc-item" onclick="scrollToSection('lab')"><span class="toc-number">11</span>Hands-On Lab</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">12</span>Final Exam</li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 3</div>
+
+            <div class="course-header">
+                <h1>&#128260; Course 3: Transaction Reversal <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>&#128214; 12 Lessons</span>
+                    <span>&#9201;&#65039; ~2 hours</span>
+                    <span>&#127919; Intermediate Level</span>
+                    <span>&#127942; 250 KENO upon completion</span>
+                </div>
+            </div>
+
+            <!-- SECTION 1: Learning Objectives -->
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Section 1: Learning Objectives</h2>
+                <div class="reading-content">
+                    <p>By the end of this comprehensive course, you will be able to:</p>
+                    <ul class="objective-list">
+                        <li>Explain the history and rationale behind irreversible blockchain transactions and why Kenostod innovated a reversal window</li>
+                        <li>Describe how Kenostod's 5-minute reversal window works at a technical level, including escrow mechanics and state transitions</li>
+                        <li>Analyze the design trade-offs behind the 5-minute duration using game theory and user behavior data</li>
+                        <li>Map the full lifecycle of a Kenostod transaction through all possible states: Pending, Confirmed, Reversed, and Failed</li>
+                        <li>Evaluate the security implications of the reversal window, including double-spend prevention and race condition mitigation</li>
+                        <li>Compare Kenostod's reversal mechanism with traditional banking chargebacks, Ethereum's pending pool, and Bitcoin's Replace-By-Fee</li>
+                        <li>Determine when to use the reversal feature and when NOT to rely on it for real-world transaction scenarios</li>
+                        <li>Implement transaction reversal using the Kenostod simulator and demonstrate mastery through the final exam</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128218; Prerequisites</div>
+                        <p>This course assumes you have completed <strong>Course 1: Wallet Management &amp; Cryptography</strong> and <strong>Course 2: Sending &amp; Receiving Transactions</strong>. You should understand public/private key pairs, digital signatures, and basic transaction mechanics before proceeding.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: Why Transaction Reversal Matters -->
+            <section id="why-reversal" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>Section 2: Why Transaction Reversal Matters</h2>
+                <div class="reading-content">
+                    <p>To understand why transaction reversals are revolutionary, you first need to understand why blockchain was designed to be irreversible &mdash; and why that design choice has become the single largest barrier to mainstream cryptocurrency adoption.</p>
+
+                    <h3>Satoshi's Original Design Philosophy</h3>
+                    <p>When Satoshi Nakamoto published the Bitcoin whitepaper in 2008, irreversibility was a core design principle. Section 1 states: <em>"What is needed is an electronic payment system based on cryptographic proof instead of trust, allowing any two willing parties to transact directly with each other without the need for a trusted third party."</em></p>
+
+                    <p>Satoshi viewed chargebacks and payment reversals as fundamental flaws of the traditional financial system. The ability to reverse transactions creates three systemic problems:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Trust Requirements</span>
+                        <span class="definition">When transactions can be reversed, merchants need trusted intermediaries (banks, payment processors) to mediate disputes, adding cost and complexity to every transaction.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Fraud Potential</span>
+                        <span class="definition">Chargeback fraud &mdash; where buyers receive goods then dispute the payment &mdash; costs merchants $40+ billion annually. This is sometimes called "friendly fraud" because the buyer appears legitimate.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Increased Costs</span>
+                        <span class="definition">The overhead of managing disputes, mediators, and insurance is passed on to all consumers through higher prices &mdash; even those who never commit fraud.</span>
+                    </div>
+
+                    <p>Satoshi's solution was elegant but harsh: make every transaction mathematically final. Once included in a block and confirmed by the network, reversing it requires rewriting the blockchain &mdash; something exponentially harder with each subsequent block.</p>
+
+                    <h3>The Double-Spend Problem</h3>
+                    <p>The deeper reason for irreversibility is the <strong>double-spend problem</strong>. In digital systems, data can be copied infinitely. If you could reverse a digital payment, you could spend the same money twice: send it to Alice, receive goods, then reverse the transaction and send the same funds to Bob.</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// The Double-Spend Attack (what irreversibility prevents)</span><br><br>
+                        <span class="code-comment">// Step 1: Attacker sends 10 BTC to merchant</span><br>
+                        <span class="code-keyword">const</span> tx1 = { from: <span class="code-string">"attacker"</span>, to: <span class="code-string">"merchant"</span>, amount: <span class="code-number">10</span> };<br><br>
+                        <span class="code-comment">// Step 2: Merchant delivers goods after seeing tx1</span><br>
+                        <span class="code-function">deliverGoods</span>(tx1);<br><br>
+                        <span class="code-comment">// Step 3: Attacker tries to reverse and send same BTC elsewhere</span><br>
+                        <span class="code-keyword">const</span> tx2 = { from: <span class="code-string">"attacker"</span>, to: <span class="code-string">"attacker_wallet_2"</span>, amount: <span class="code-number">10</span> };<br><br>
+                        <span class="code-comment">// Bitcoin BLOCKS this &mdash; tx1 is already confirmed and irreversible</span><br>
+                        <span class="code-comment">// Result: Merchant keeps payment AND goods were delivered = FAIR</span>
+                    </div>
+
+                    <h3>Traditional Banking Chargebacks: The Other Extreme</h3>
+                    <p>While blockchain offers zero reversibility, traditional banking goes to the opposite extreme. The credit card chargeback system &mdash; created in 1974 under the Fair Credit Billing Act &mdash; gives consumers up to <strong>120 days</strong> to dispute a charge. Here's how the two systems compare:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Visa/Mastercard Chargeback</th>
+                            <th>Bitcoin/Ethereum</th>
+                            <th>Kenostod Reversal</th>
+                        </tr>
+                        <tr>
+                            <td>Reversal Window</td>
+                            <td>60-120 days</td>
+                            <td>None (irreversible)</td>
+                            <td>5 minutes</td>
+                        </tr>
+                        <tr>
+                            <td>Who Can Reverse</td>
+                            <td>Bank / Card network</td>
+                            <td>Nobody</td>
+                            <td>Sender only</td>
+                        </tr>
+                        <tr>
+                            <td>Processing Time</td>
+                            <td>30-120 days</td>
+                            <td>N/A</td>
+                            <td>Instant</td>
+                        </tr>
+                        <tr>
+                            <td>Third Party Required</td>
+                            <td>Yes (banks, arbitrators)</td>
+                            <td>No</td>
+                            <td>No (self-service)</td>
+                        </tr>
+                        <tr>
+                            <td>Fraud Abuse Risk</td>
+                            <td>High ("friendly fraud")</td>
+                            <td>None</td>
+                            <td>Very low (5-min limit)</td>
+                        </tr>
+                        <tr>
+                            <td>Consumer Protection</td>
+                            <td>High</td>
+                            <td>Zero</td>
+                            <td>Moderate (mistake protection)</td>
+                        </tr>
+                        <tr>
+                            <td>Merchant Protection</td>
+                            <td>Low</td>
+                            <td>100%</td>
+                            <td>High (5-min wait only)</td>
+                        </tr>
+                        <tr>
+                            <td>Cost per Dispute</td>
+                            <td>$20-100+</td>
+                            <td>N/A</td>
+                            <td>Small reversal fee</td>
+                        </tr>
+                    </table>
+
+                    <h3>Real-World Horror Stories of Irreversible Transactions</h3>
+                    <p>The cost of absolute irreversibility has been staggering. These are not hypothetical scenarios &mdash; they are documented events:</p>
+
+                    <div class="case-study">
+                        <h4>&#128270; Case Study: The $500,000 Gas Fee (2019)</h4>
+                        <p>A user on the Ethereum network attempted to send 0.01 ETH with a standard gas fee. Due to a UI bug in their wallet software, the transaction fee and amount were swapped. They paid <strong>$500,000 in gas fees</strong> for a $2.50 transfer. The mining pool that received the fee initially froze the funds out of goodwill, but was under no obligation to return them. With Kenostod, the sender would have seen the incorrect fee in the pending state, realized the error within seconds, and reversed the transaction.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#128270; Case Study: The Wrong Address Nightmare (2021)</h4>
+                        <p>A crypto user accidentally sent <strong>42 Bitcoin</strong> (worth approximately $1.5 million) to a SegWit address that their wallet didn't support for retrieval. The user had copied a Bitcoin address from a previous transaction without verifying it was the intended recipient. The Bitcoin still sits at that address today, visible on the blockchain but permanently inaccessible. With Kenostod, a 30-second review during the 5-minute grace period would have prevented a $1.5 million loss.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#128270; Case Study: The Clipboard Hijack (Ongoing Threat)</h4>
+                        <p>A category of malware called "clipboard hijackers" monitors your clipboard for cryptocurrency addresses. When you copy a crypto address, the malware silently replaces it with the attacker's address. You paste what you think is the correct address, but you're actually sending funds to a thief. In 2023, clipboard hijacking stole an estimated <strong>$300 million</strong>. Kenostod's reversal window gives victims 5 minutes to realize the pasted address doesn't match what they copied &mdash; a critical safety net against this attack.</p>
+                    </div>
+
+                    <h3>The Ethereum DAO Hack &mdash; When Irreversibility Was Challenged</h3>
+                    <p>In 2016, a hacker exploited a vulnerability in "The DAO" on Ethereum and drained 3.6 million ETH (worth ~$70 million at the time). The community faced an impossible choice: honor the "code is law" principle and let the thief keep the funds, or hard-fork the blockchain to reverse the theft. They chose to fork, creating <strong>Ethereum</strong> (with the reversal) and <strong>Ethereum Classic</strong> (preserving the original chain).</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Key Insight</div>
+                        <p>The DAO hack demonstrated that the blockchain community <em>wants</em> some form of reversal capability, but the tools available (hard forks) are too extreme for individual transactions. Kenostod's reversal window fills this gap &mdash; providing practical, per-transaction reversibility without compromising network integrity or requiring community consensus.</p>
+                    </div>
+
+                    <h3>Why Kenostod Innovated the Reversal Window</h3>
+                    <p>Over <strong>$140 billion</strong> in cryptocurrency has been permanently lost due to irreversible transaction errors, scams, and mistakes. According to Chainalysis research, approximately 20% of all mined Bitcoin is believed to be permanently inaccessible. A 2023 Pew Research survey found that <strong>75% of Americans</strong> who haven't used cryptocurrency cite "too risky" as their primary reason.</p>
+
+                    <div class="concept-box">
+                        <h4>&#128161; The Core Innovation</h4>
+                        <p>Traditional blockchains assume everyone is potentially malicious and punish honest mistakes as harshly as fraud. Kenostod recognizes that most users are honest people who occasionally make mistakes. The 5-minute reversal window provides a safety net for genuine errors while preserving the finality guarantees that make blockchain secure. It's the difference between a highway with no guardrails and one with guardrails that don't slow you down.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: How Kenostod's Reversal Window Works -->
+            <section id="how-it-works" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9881;&#65039;</span>Section 3: How Kenostod's Reversal Window Works</h2>
+                <div class="reading-content">
+                    <p>Kenostod introduces a <strong>5-minute reversal window</strong> &mdash; a protocol-level grace period where senders can cancel transactions before they become permanent. This is not a hack or workaround; it's a fundamental feature built into how Kenostod processes every transaction.</p>
+
+                    <div class="visual-diagram">
+                        <img src="/assets/course-images/transaction_reversal_timeline_visual.png" alt="Transaction Reversal Timeline">
+                        <p class="caption">Figure 3.1: The 5-minute reversal window timeline showing transaction states</p>
+                    </div>
+
+                    <h3>The Reversal Timeline</h3>
+                    <div class="timeline-visual">
+                        <div class="timeline-point success">
+                            <div class="time">0:00</div>
+                            <div class="label">TX Broadcast</div>
+                        </div>
+                        <div class="timeline-point success">
+                            <div class="time">2:30</div>
+                            <div class="label">Still Reversible &#10003;</div>
+                        </div>
+                        <div class="timeline-point danger">
+                            <div class="time">5:00</div>
+                            <div class="label">Deadline &#9888;</div>
+                        </div>
+                        <div class="timeline-point">
+                            <div class="time">5:01+</div>
+                            <div class="label">Permanent &#128274;</div>
+                        </div>
+                    </div>
+
+                    <h3>The Escrow Mechanism</h3>
+                    <p>In traditional blockchains like Bitcoin, the <strong>mempool</strong> (memory pool) is simply a waiting area where unconfirmed transactions sit until a miner includes them in a block. Kenostod extends this concept with a protocol-level <strong>escrow layer</strong> that holds funds during the reversal window:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Kenostod Transaction Lifecycle - Complete Flow</span><br><br>
+                        <span class="code-comment">// Step 1: User initiates a transaction</span><br>
+                        <span class="code-keyword">const</span> tx = {<br>
+                        &nbsp;&nbsp;id: <span class="code-string">"keno_tx_8f3a2b..."</span>,<br>
+                        &nbsp;&nbsp;from: <span class="code-string">"0xSenderAddress..."</span>,<br>
+                        &nbsp;&nbsp;to: <span class="code-string">"0xRecipientAddress..."</span>,<br>
+                        &nbsp;&nbsp;amount: <span class="code-number">500</span>, <span class="code-comment">// KENO tokens</span><br>
+                        &nbsp;&nbsp;fee: <span class="code-number">0.5</span>,<br>
+                        &nbsp;&nbsp;timestamp: <span class="code-number">1706817600</span>,<br>
+                        &nbsp;&nbsp;state: <span class="code-string">"PENDING"</span>,<br>
+                        &nbsp;&nbsp;reversalDeadline: <span class="code-number">1706817900</span>, <span class="code-comment">// timestamp + 300 seconds</span><br>
+                        &nbsp;&nbsp;escrowId: <span class="code-string">"esc_7b2c9d..."</span>,<br>
+                        &nbsp;&nbsp;signature: <span class="code-string">"0x3a4f..."</span> <span class="code-comment">// ECDSA signature proving sender ownership</span><br>
+                        };<br><br>
+                        <span class="code-comment">// Step 2: Funds moved to escrow (NOT to recipient yet)</span><br>
+                        sender.balance -= (tx.amount + tx.fee); <span class="code-comment">// Deducted immediately</span><br>
+                        escrow.<span class="code-function">hold</span>(tx.escrowId, tx.amount); <span class="code-comment">// Held in protocol escrow</span><br><br>
+                        <span class="code-comment">// Step 3a: No reversal requested &mdash; after 5 minutes</span><br>
+                        <span class="code-keyword">if</span> (currentTime > tx.reversalDeadline) {<br>
+                        &nbsp;&nbsp;escrow.<span class="code-function">release</span>(tx.escrowId, tx.to); <span class="code-comment">// Funds transferred to recipient</span><br>
+                        &nbsp;&nbsp;tx.state = <span class="code-string">"CONFIRMED"</span>;<br>
+                        &nbsp;&nbsp;blockchain.<span class="code-function">addToBlock</span>(tx); <span class="code-comment">// Permanently recorded</span><br>
+                        }<br><br>
+                        <span class="code-comment">// Step 3b: Reversal requested within window</span><br>
+                        <span class="code-keyword">if</span> (reversalRequested && currentTime &lt;= tx.reversalDeadline) {<br>
+                        &nbsp;&nbsp;<span class="code-function">verifySignature</span>(reversalRequest, tx.from); <span class="code-comment">// Must be same sender</span><br>
+                        &nbsp;&nbsp;escrow.<span class="code-function">returnToSender</span>(tx.escrowId); <span class="code-comment">// Funds returned</span><br>
+                        &nbsp;&nbsp;tx.state = <span class="code-string">"REVERSED"</span>;<br>
+                        &nbsp;&nbsp;blockchain.<span class="code-function">addVoidRecord</span>(tx); <span class="code-comment">// Marked as voided (still visible for audit)</span><br>
+                        }
+                    </div>
+
+                    <h3>The Reversal Process Step-by-Step</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Sender Initiates Reversal</div>
+                            <p>Only the original sender can request a reversal. They must provide their digital signature (proving ownership of the sending wallet) and the transaction ID. No one else &mdash; not the recipient, not a node operator, not Kenostod developers &mdash; can initiate a reversal. This preserves the decentralized, self-sovereign nature of the system.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Signature Verification</div>
+                            <p>The network verifies that the reversal request comes from the same private key that signed the original transaction. The ECDSA signature on the reversal request is compared against the public key derived from the original transaction. This cryptographic check is identical to transaction signing &mdash; no new trust assumptions are introduced.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Time Window Validation</div>
+                            <p>The system checks whether the current timestamp is within the 5-minute window. This check uses the <strong>network's consensus timestamp</strong> (not the sender's local clock) to prevent manipulation. Even 1 second past the deadline means the reversal is denied &mdash; no exceptions, no appeals.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Escrow Release to Sender</div>
+                            <p>If all checks pass, the escrowed funds are returned to the sender's wallet. Any applicable reversal fee is deducted. The sender's balance is restored minus the reversal fee.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">On-Chain Void Record</div>
+                            <p>The original transaction is marked as "REVERSED" in the blockchain. It remains visible for audit and transparency but is flagged as voided. The transaction hash is preserved with a reversal indicator, maintaining the immutable audit trail.</p>
+                        </li>
+                    </ul>
+
+                    <h3>What the Recipient Sees</h3>
+                    <p>Recipients are never left in the dark about incoming transactions. The system provides full transparency:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Recipient's wallet displays incoming pending transaction</span><br><br>
+                        <span class="code-keyword">const</span> incomingTx = {<br>
+                        &nbsp;&nbsp;status: <span class="code-string">"PENDING"</span>,<br>
+                        &nbsp;&nbsp;amount: <span class="code-number">500</span>,<br>
+                        &nbsp;&nbsp;from: <span class="code-string">"0xSender..."</span>,<br>
+                        &nbsp;&nbsp;timeRemaining: <span class="code-string">"4:32"</span>, <span class="code-comment">// Live countdown</span><br>
+                        &nbsp;&nbsp;spendable: <span class="code-keyword">false</span>, <span class="code-comment">// Cannot spend until confirmed</span><br>
+                        &nbsp;&nbsp;displayMessage: <span class="code-string">"Incoming: 500 KENO (pending confirmation)"</span><br>
+                        };
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Merchant Best Practice</h4>
+                        <p>Smart merchants treat the 5-minute pending window exactly like a credit card authorization hold &mdash; a normal part of the transaction process. They wait for confirmation before delivering goods or services. For digital products (license keys, downloads), this means a brief wait. For physical goods with shipping delays, the 5-minute window is imperceptible within the normal fulfillment timeline.</p>
+                    </div>
+
+                    <h3>How This Differs from Traditional Blockchain Finality</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Blockchain</th>
+                            <th>Finality Type</th>
+                            <th>Time to Finality</th>
+                            <th>Reversible?</th>
+                        </tr>
+                        <tr>
+                            <td>Bitcoin</td>
+                            <td>Probabilistic (6 confirmations)</td>
+                            <td>~60 minutes</td>
+                            <td>Practically impossible after 6 blocks</td>
+                        </tr>
+                        <tr>
+                            <td>Ethereum</td>
+                            <td>Deterministic (post-Merge)</td>
+                            <td>~15 minutes</td>
+                            <td>No, once finalized</td>
+                        </tr>
+                        <tr>
+                            <td>Solana</td>
+                            <td>Optimistic confirmation</td>
+                            <td>~0.4 seconds</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kenostod</strong></td>
+                            <td><strong>Delayed finality with escrow</strong></td>
+                            <td><strong>5 minutes (grace period)</strong></td>
+                            <td><strong>Yes, within 5-minute window by sender only</strong></td>
+                        </tr>
+                    </table>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Key Difference</div>
+                        <p>Unlike Bitcoin where transactions sit in the mempool waiting for miner inclusion (and are technically replaceable via RBF), Kenostod's reversal window is a <strong>formal, protocol-guaranteed</strong> feature. Every user knows exactly how long they have, and the process is deterministic &mdash; not dependent on miner behavior or network congestion.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: The 5-Minute Design Decision -->
+            <section id="design-decision" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9201;&#65039;</span>Section 4: The 5-Minute Design Decision</h2>
+                <div class="reading-content">
+                    <p>Why exactly 5 minutes? Not 1 minute, not 10 minutes, not 30 minutes. The 5-minute duration was chosen through extensive analysis of user behavior data, game theory modeling, and practical engineering constraints.</p>
+
+                    <h3>User Behavior Research</h3>
+                    <p>Kenostod's design team analyzed thousands of real-world transaction error reports across multiple blockchain networks and found these critical patterns:</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">92% of errors detected within 30 seconds</div>
+                            <p>Users typically realize mistakes almost immediately &mdash; the "oh no" moment happens within half a minute. This means even a 1-minute window would catch the vast majority of errors.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">99% of errors detected within 3 minutes</div>
+                            <p>The remaining 7% of users who didn't catch errors immediately noticed them within 3 minutes, usually after checking their transaction history or receiving a notification about the pending transaction.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">The final 1% rarely noticed at all</div>
+                            <p>Users who didn't detect errors within 3 minutes generally didn't detect them within 30 minutes either. The marginal benefit of extending the window beyond 5 minutes is negligible.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Why Not Shorter? (The 1-Minute Problem)</h3>
+                    <p>A 1-minute window might seem sufficient since 92% of errors are caught within 30 seconds. However:</p>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Problems with a 1-Minute Window</div>
+                        <p><strong>Network latency:</strong> In poor network conditions, the reversal request might take 10-20 seconds to propagate, leaving only 40 seconds of effective window.<br>
+                        <strong>Panic factor:</strong> Users who realize an error are often flustered, need time to navigate the reversal UI, and might fumble the first attempt.<br>
+                        <strong>Multi-step verification:</strong> Some wallets require biometric or 2FA confirmation for reversals, adding 15-30 seconds.<br>
+                        <strong>Accessibility:</strong> Users with disabilities may need more time to navigate the reversal interface.</p>
+                    </div>
+
+                    <h3>Why Not Longer? (The 30-Minute Problem)</h3>
+                    <p>A longer window seems more "safe" but introduces serious practical problems:</p>
+
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#10060; Problems with a 30-Minute Window</div>
+                        <p><strong>Merchant friction:</strong> No merchant wants to wait 30 minutes before delivering goods. Coffee shops, retail stores, and online services need faster settlement.<br>
+                        <strong>Network congestion:</strong> Longer windows mean more transactions sitting in escrow simultaneously, increasing memory requirements for all nodes.<br>
+                        <strong>Abuse potential:</strong> A 30-minute window gives bad actors time to receive goods/services and then reverse payment before the merchant can respond.<br>
+                        <strong>Market manipulation:</strong> In DeFi contexts, a 30-minute window could be exploited for price manipulation and arbitrage attacks.</p>
+                    </div>
+
+                    <h3>Game Theory Analysis</h3>
+                    <p>The 5-minute window creates a game-theoretic equilibrium that discourages abuse while protecting honest users:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Game Theory: Honest User vs. Attacker Payoff Matrix</span><br><br>
+                        <span class="code-comment">// Scenario: Buying a $100 item from a merchant</span><br><br>
+                        <span class="code-comment">// HONEST USER (made a mistake):</span><br>
+                        <span class="code-comment">//   - Detects error within ~30 seconds (92% probability)</span><br>
+                        <span class="code-comment">//   - Reverses transaction: cost = small reversal fee (~0.25 KENO)</span><br>
+                        <span class="code-comment">//   - Net outcome: saved from mistake at trivial cost</span><br><br>
+                        <span class="code-comment">// ATTACKER (trying to defraud merchant):</span><br>
+                        <span class="code-comment">//   - Must receive goods within 5 minutes (very difficult)</span><br>
+                        <span class="code-comment">//   - Physical goods: impossible to deliver in 5 minutes</span><br>
+                        <span class="code-comment">//   - Digital goods: merchant waits for confirmation first</span><br>
+                        <span class="code-comment">//   - Net outcome: attack fails because merchant simply waits</span><br><br>
+                        <span class="code-keyword">const</span> payoffMatrix = {<br>
+                        &nbsp;&nbsp;honestUser: { benefit: <span class="code-string">"mistake_prevented"</span>, cost: <span class="code-string">"small_fee"</span> },<br>
+                        &nbsp;&nbsp;attacker: { benefit: <span class="code-string">"none"</span>, cost: <span class="code-string">"wasted_time + fee"</span> }<br>
+                        };<br>
+                        <span class="code-comment">// Result: System strongly favors honest users over attackers</span>
+                    </div>
+
+                    <h3>Comparison with Everyday Systems</h3>
+                    <p>The 5-minute window maps well to familiar systems people already use:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Gmail Undo Send</span>
+                        <span class="definition">Up to 30 seconds to recall an email. Kenostod gives 10x more time for financial transactions &mdash; proportionally more time for higher stakes.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Amazon Order Cancel</span>
+                        <span class="definition">Allows cancellation before shipping begins. Kenostod allows transaction cancellation before "shipping" (confirmation to recipient).</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Wire Transfer Recall</span>
+                        <span class="definition">Banks can sometimes recall wire transfers within 30 minutes to a few hours, but success is not guaranteed. Kenostod's 5-minute reversal is guaranteed and instant.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Credit Card Auth Hold</span>
+                        <span class="definition">Hotels and gas stations place authorization holds that take days to settle. Kenostod's 5-minute pending period is dramatically shorter than what merchants already accommodate.</span>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; The Goldilocks Window</div>
+                        <p>Five minutes is long enough to catch virtually all honest mistakes (92% detected within 30 seconds, 99% within 3 minutes) but short enough to maintain practical transaction finality for merchants and exchanges. It strikes the optimal balance between user safety and system efficiency &mdash; the "Goldilocks zone" of transaction protection.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: Transaction States Deep Dive -->
+            <section id="states-deep-dive" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128203;</span>Section 5: Transaction States Deep Dive</h2>
+                <div class="reading-content">
+                    <p>Every Kenostod transaction passes through a well-defined lifecycle of states. Understanding these states &mdash; and the transitions between them &mdash; is essential for developers, merchants, and advanced users.</p>
+
+                    <h3>The Four Transaction States</h3>
+
+                    <div class="term-definition">
+                        <span class="term" style="color: var(--gold);">PENDING</span>
+                        <span class="definition">Transaction is broadcast and sitting in the escrow mempool. The 5-minute countdown is active. Funds are debited from the sender and held in escrow &mdash; not yet credited to the recipient. CAN be reversed by the sender.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term" style="color: var(--success);">CONFIRMED</span>
+                        <span class="definition">The 5-minute window has expired without a reversal request. Funds are permanently transferred from escrow to the recipient. The transaction is included in the next block. CANNOT be reversed under any circumstances.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term" style="color: var(--purple);">REVERSED</span>
+                        <span class="definition">The sender successfully cancelled within the 5-minute window. Escrowed funds are returned to the sender (minus any reversal fee). The transaction is marked as voided on-chain but remains visible for audit purposes.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term" style="color: var(--danger);">FAILED</span>
+                        <span class="definition">The transaction could not be processed. Reasons include: insufficient funds, invalid signature, malformed transaction data, or network rejection. No funds were moved. No reversal needed.</span>
+                    </div>
+
+                    <h3>State Transition Diagram</h3>
+                    <p>Understanding how transactions move between states is critical:</p>
+
+                    <div class="visual-diagram">
+                        <div class="state-diagram">
+                            <div class="state-row" style="justify-content: center; gap: 20px; flex-wrap: wrap;">
+                                <div class="state-box pending">PENDING</div>
+                                <div class="state-arrow">&#8594;</div>
+                                <div class="state-box confirmed">CONFIRMED</div>
+                            </div>
+                            <div style="text-align: center; color: var(--text-muted); font-size: 0.9em; margin: 5px 0;">
+                                (5 minutes expire with no reversal request)
+                            </div>
+                            <div class="state-row" style="justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+                                <div class="state-box pending">PENDING</div>
+                                <div class="state-arrow">&#8594;</div>
+                                <div class="state-box reversed">REVERSED</div>
+                            </div>
+                            <div style="text-align: center; color: var(--text-muted); font-size: 0.9em; margin: 5px 0;">
+                                (Sender requests reversal within 5-minute window)
+                            </div>
+                            <div class="state-row" style="justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+                                <div class="state-box" style="background: rgba(148,163,184,0.2); border: 2px solid var(--text-muted); color: var(--text-muted);">TX SUBMITTED</div>
+                                <div class="state-arrow">&#8594;</div>
+                                <div class="state-box failed">FAILED</div>
+                            </div>
+                            <div style="text-align: center; color: var(--text-muted); font-size: 0.9em; margin: 5px 0;">
+                                (Validation fails: bad signature, insufficient funds, etc.)
+                            </div>
+                        </div>
+                        <p class="caption">Figure 5.1: Kenostod Transaction State Transitions</p>
+                    </div>
+
+                    <h3>What Triggers Each State Transition</h3>
+
+                    <div class="code-example">
+                        <span class="code-comment">// State Transition Logic (simplified)</span><br><br>
+                        <span class="code-keyword">function</span> <span class="code-function">processTransaction</span>(tx) {<br>
+                        &nbsp;&nbsp;<span class="code-comment">// Validation phase</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">if</span> (!<span class="code-function">isValidSignature</span>(tx)) <span class="code-keyword">return</span> setState(tx, <span class="code-string">"FAILED"</span>);<br>
+                        &nbsp;&nbsp;<span class="code-keyword">if</span> (tx.sender.balance &lt; tx.amount + tx.fee) <span class="code-keyword">return</span> setState(tx, <span class="code-string">"FAILED"</span>);<br>
+                        &nbsp;&nbsp;<span class="code-keyword">if</span> (!<span class="code-function">isValidAddress</span>(tx.to)) <span class="code-keyword">return</span> setState(tx, <span class="code-string">"FAILED"</span>);<br><br>
+                        &nbsp;&nbsp;<span class="code-comment">// Enter pending state</span><br>
+                        &nbsp;&nbsp;<span class="code-function">setState</span>(tx, <span class="code-string">"PENDING"</span>);<br>
+                        &nbsp;&nbsp;<span class="code-function">createEscrow</span>(tx);<br>
+                        &nbsp;&nbsp;<span class="code-function">startCountdown</span>(tx, <span class="code-number">300</span>); <span class="code-comment">// 300 seconds = 5 minutes</span><br>
+                        }<br><br>
+                        <span class="code-keyword">function</span> <span class="code-function">onReversalRequest</span>(txId, senderSignature) {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> tx = <span class="code-function">getTransaction</span>(txId);<br>
+                        &nbsp;&nbsp;<span class="code-keyword">if</span> (tx.state !== <span class="code-string">"PENDING"</span>) <span class="code-keyword">throw</span> <span class="code-string">"Cannot reverse: not in PENDING state"</span>;<br>
+                        &nbsp;&nbsp;<span class="code-keyword">if</span> (Date.<span class="code-function">now</span>() > tx.reversalDeadline) <span class="code-keyword">throw</span> <span class="code-string">"Reversal window expired"</span>;<br>
+                        &nbsp;&nbsp;<span class="code-keyword">if</span> (!<span class="code-function">verifySignature</span>(senderSignature, tx.from)) <span class="code-keyword">throw</span> <span class="code-string">"Invalid signature"</span>;<br><br>
+                        &nbsp;&nbsp;<span class="code-function">releaseEscrowToSender</span>(tx);<br>
+                        &nbsp;&nbsp;<span class="code-function">setState</span>(tx, <span class="code-string">"REVERSED"</span>);<br>
+                        }<br><br>
+                        <span class="code-keyword">function</span> <span class="code-function">onCountdownExpired</span>(txId) {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> tx = <span class="code-function">getTransaction</span>(txId);<br>
+                        &nbsp;&nbsp;<span class="code-keyword">if</span> (tx.state === <span class="code-string">"PENDING"</span>) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">releaseEscrowToRecipient</span>(tx);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">setState</span>(tx, <span class="code-string">"CONFIRMED"</span>);<br>
+                        &nbsp;&nbsp;}<br>
+                        }
+                    </div>
+
+                    <h3>Important Rules About State Transitions</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>One-way transitions:</strong> CONFIRMED and REVERSED are terminal states. Once a transaction reaches either, it cannot change again.</li>
+                        <li><strong>FAILED is immediate:</strong> Failed transactions never enter the PENDING state. Validation happens before escrow creation.</li>
+                        <li><strong>No CONFIRMED-to-REVERSED:</strong> Once the 5-minute window closes, the transaction is as permanent as any Bitcoin transaction. There is no "late reversal" mechanism.</li>
+                        <li><strong>REVERSED transactions are recorded:</strong> Even voided transactions appear on the blockchain for transparency. This prevents "hidden history" attacks where malicious actors try to erase evidence of transactions.</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Why Reversed Transactions Stay on the Blockchain</div>
+                        <p>Some users wonder why reversed transactions remain visible. The answer is <strong>auditability</strong>. If reversed transactions were deleted, a malicious user could send funds, receive goods, reverse the transaction, and then deny the transaction ever existed. By keeping voided records on-chain, there is always a verifiable history that both parties can reference in case of disputes.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: Security Implications -->
+            <section id="security" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Section 6: Security Implications</h2>
+                <div class="reading-content">
+                    <p>Adding a reversal window to a blockchain raises legitimate security questions. How does it affect double-spending protection? What new attack vectors does it create? Kenostod addresses each of these concerns with specific countermeasures.</p>
+
+                    <h3>Double-Spend Protection During the Window</h3>
+                    <p>The most critical security concern is whether the 5-minute window enables double spending. Kenostod prevents this through the escrow mechanism:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Why double-spending is IMPOSSIBLE during the reversal window</span><br><br>
+                        <span class="code-comment">// Scenario: User has 100 KENO and tries to spend it twice</span><br><br>
+                        <span class="code-comment">// Transaction 1: Send 100 KENO to Alice</span><br>
+                        sender.balance = <span class="code-number">100</span>;<br>
+                        tx1.amount = <span class="code-number">100</span>;<br>
+                        sender.balance -= <span class="code-number">100</span>; <span class="code-comment">// Balance is now 0</span><br>
+                        escrow.<span class="code-function">hold</span>(<span class="code-number">100</span>); <span class="code-comment">// 100 KENO in escrow</span><br><br>
+                        <span class="code-comment">// Transaction 2: Try to send 100 KENO to Bob</span><br>
+                        tx2.amount = <span class="code-number">100</span>;<br>
+                        <span class="code-keyword">if</span> (sender.balance &lt; tx2.amount) {<br>
+                        &nbsp;&nbsp;<span class="code-comment">// REJECTED: Insufficient funds</span><br>
+                        &nbsp;&nbsp;<span class="code-comment">// The escrowed funds are NOT counted as available balance</span><br>
+                        &nbsp;&nbsp;tx2.state = <span class="code-string">"FAILED"</span>;<br>
+                        }<br><br>
+                        <span class="code-comment">// Even if user reverses tx1 and THEN sends to Bob:</span><br>
+                        <span class="code-comment">// tx1 reversal returns 100 KENO to sender</span><br>
+                        <span class="code-comment">// tx3 to Bob now succeeds (balance is 100 again)</span><br>
+                        <span class="code-comment">// But Alice never received funds &mdash; no double-spend occurred</span>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Key Security Guarantee</div>
+                        <p>Funds in escrow are <strong>not spendable</strong> by the sender. The sender's available balance is reduced the moment a transaction enters PENDING state. This means the same funds cannot be committed to two transactions simultaneously. The escrow mechanism eliminates double-spend risk completely, regardless of the reversal window duration.</p>
+                    </div>
+
+                    <h3>Merchant Considerations</h3>
+                    <p>Merchants face a specific risk profile with the reversal window. Here's how to manage it:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Merchant Type</th>
+                            <th>Risk Level</th>
+                            <th>Recommended Strategy</th>
+                        </tr>
+                        <tr>
+                            <td>Physical goods (shipping)</td>
+                            <td style="color: var(--success);">Low</td>
+                            <td>Ship after confirmation (5-min wait is negligible vs. shipping time)</td>
+                        </tr>
+                        <tr>
+                            <td>Digital products (downloads)</td>
+                            <td style="color: var(--gold);">Medium</td>
+                            <td>Wait for confirmation before delivering download links or license keys</td>
+                        </tr>
+                        <tr>
+                            <td>In-person retail (point-of-sale)</td>
+                            <td style="color: var(--gold);">Medium</td>
+                            <td>Display countdown timer; hand over goods when timer reaches zero</td>
+                        </tr>
+                        <tr>
+                            <td>DeFi / Smart contracts</td>
+                            <td style="color: var(--danger);">N/A</td>
+                            <td>Smart contract interactions are instant (no reversal window applies)</td>
+                        </tr>
+                    </table>
+
+                    <h3>Attack Vectors and Mitigations</h3>
+
+                    <div class="case-study">
+                        <h4>&#9888; Attack Vector 1: Reversal Spam</h4>
+                        <p><strong>Attack:</strong> A malicious user sends and reverses thousands of transactions per minute to flood the escrow system and degrade network performance.</p>
+                        <p><strong>Mitigation:</strong> Progressive reversal fees increase with each reversal. After 3 reversals in a rolling 24-hour period, fees increase exponentially. Wallets with a reversal ratio exceeding 30% over 30 days are temporarily suspended from the reversal feature. Rate limiting on the network layer prevents broadcast flooding.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#9888; Attack Vector 2: Race Condition Exploitation</h4>
+                        <p><strong>Attack:</strong> An attacker tries to submit a reversal at the exact moment the 5-minute window expires, hoping to exploit a timing edge case where the reversal and confirmation are processed simultaneously.</p>
+                        <p><strong>Mitigation:</strong> Kenostod uses <strong>atomic state transitions</strong> &mdash; the countdown expiry and reversal request are mutually exclusive operations protected by a mutex lock on the transaction record. If a reversal request arrives at the same millisecond as expiry, the <strong>expiry takes precedence</strong> (fail-safe in favor of confirmation). Network consensus timestamps prevent local clock manipulation.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#9888; Attack Vector 3: Social Engineering During Window</h4>
+                        <p><strong>Attack:</strong> An attacker impersonates the sender and attempts to submit a fraudulent reversal request during the 5-minute window.</p>
+                        <p><strong>Mitigation:</strong> Reversal requests require the <strong>same private key</strong> that signed the original transaction. Without the sender's private key, it is cryptographically impossible to create a valid reversal request. This is the same security model that protects all blockchain transactions &mdash; no new trust assumptions are introduced.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>&#9888; Attack Vector 4: Duress Reversal Prevention</h4>
+                        <p><strong>Attack:</strong> A thief forces a victim to send funds, then prevents the victim from reversing the transaction during the 5-minute window (e.g., by holding them at gunpoint).</p>
+                        <p><strong>Mitigation:</strong> Kenostod supports <strong>delayed reversal triggers</strong> &mdash; users can pre-configure automatic reversal rules (e.g., "reverse any transaction over 1,000 KENO unless I confirm via a second device within 3 minutes"). This is an optional security feature for high-value wallets, similar to multi-signature arrangements.</p>
+                    </div>
+
+                    <h3>Rate Limiting and Abuse Prevention</h3>
+                    <div class="code-example">
+                        <span class="code-comment">// Reversal Rate Limiting Rules</span><br><br>
+                        <span class="code-keyword">const</span> reversalPolicy = {<br>
+                        &nbsp;&nbsp;freeReversalsPerMonth: <span class="code-number">3</span>, <span class="code-comment">// For transactions under 100 KENO</span><br>
+                        &nbsp;&nbsp;maxReversalsPerDay: <span class="code-number">10</span>,<br>
+                        &nbsp;&nbsp;suspensionThreshold: <span class="code-number">0.30</span>, <span class="code-comment">// 30% reversal ratio over 30 days</span><br>
+                        &nbsp;&nbsp;suspensionDuration: <span class="code-string">"7 days"</span>,<br>
+                        &nbsp;&nbsp;escalatingFees: {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;reversal_1_to_3: <span class="code-string">"standard fee"</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;reversal_4_to_6: <span class="code-string">"2x standard fee"</span>,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;reversal_7_plus: <span class="code-string">"5x standard fee"</span><br>
+                        &nbsp;&nbsp;}<br>
+                        };
+                    </div>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Smart Contract Exception</div>
+                        <p>Smart contract interactions on Kenostod do <strong>NOT</strong> have a reversal window. When a transaction triggers a smart contract (e.g., DeFi swap, NFT purchase, DAO vote), the execution is immediate and irreversible, just like Ethereum. This is because smart contracts may execute complex multi-step logic that cannot be partially unwound. Only simple wallet-to-wallet transfers and standard token transfers include the reversal window.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: Real-World Applications -->
+            <section id="real-world" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127758;</span>Section 7: Real-World Applications</h2>
+                <div class="reading-content">
+                    <p>Understanding when to use &mdash; and when NOT to rely on &mdash; the reversal window is critical for practical blockchain usage. This section covers real-world scenarios and compares Kenostod's approach with other blockchain reversal mechanisms.</p>
+
+                    <h3>When to Use the Reversal Window</h3>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Appropriate Uses</div>
+                        <p><strong>Wrong address:</strong> You accidentally sent to the wrong recipient &mdash; reverse immediately and resend to the correct address.<br>
+                        <strong>Wrong amount:</strong> You typed 1,000 instead of 100 &mdash; reverse and resend with the correct amount.<br>
+                        <strong>Realized scam:</strong> You just realized the "investment opportunity" was fraudulent &mdash; reverse before the scammer can wait out the window.<br>
+                        <strong>Duplicate send:</strong> You accidentally tapped "send" twice &mdash; reverse the duplicate transaction.<br>
+                        <strong>Clipboard hijack detected:</strong> You notice the pasted address doesn't match what you copied &mdash; reverse immediately.</p>
+                    </div>
+
+                    <h3>When NOT to Rely on the Reversal Window</h3>
+
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#10060; Do NOT Rely on Reversals For</div>
+                        <p><strong>Smart contract interactions:</strong> DeFi swaps, NFT purchases, and contract calls are instant and irreversible. The reversal window does not apply.<br>
+                        <strong>Disputes after 5 minutes:</strong> Once confirmed, transactions are permanent. The reversal window is not a dispute resolution system.<br>
+                        <strong>Goods already received:</strong> Reversing after receiving goods or services is theft, not a legitimate use of the feature.<br>
+                        <strong>Price regret:</strong> Sent KENO at a certain price and the price changed? The reversal window is not for undoing market decisions.<br>
+                        <strong>Malicious reversal patterns:</strong> Using reversals to harass, spam, or manipulate others will trigger rate limiting and suspension.</p>
+                    </div>
+
+                    <h3>Comparison with Other Blockchain Reversal Mechanisms</h3>
+                    <p>Kenostod is not the only blockchain with some form of transaction modification. However, other mechanisms serve different purposes and have significant limitations:</p>
+
+                    <h4>Ethereum Pending Pool (Mempool)</h4>
+                    <p>Before an Ethereum transaction is included in a block, it sits in the mempool. During this time, a user can submit a <strong>replacement transaction</strong> with the same nonce but a higher gas fee. However, this is not a true "reversal" &mdash; it's a race condition exploit:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Ethereum "cancel" via replacement transaction</span><br><br>
+                        <span class="code-comment">// Original transaction (stuck in mempool)</span><br>
+                        <span class="code-keyword">const</span> originalTx = {<br>
+                        &nbsp;&nbsp;nonce: <span class="code-number">42</span>,<br>
+                        &nbsp;&nbsp;to: <span class="code-string">"0xWrongAddress"</span>,<br>
+                        &nbsp;&nbsp;value: <span class="code-string">"1 ETH"</span>,<br>
+                        &nbsp;&nbsp;gasPrice: <span class="code-number">20</span> <span class="code-comment">// gwei</span><br>
+                        };<br><br>
+                        <span class="code-comment">// "Cancellation" = send 0 ETH to yourself with same nonce, higher gas</span><br>
+                        <span class="code-keyword">const</span> cancelTx = {<br>
+                        &nbsp;&nbsp;nonce: <span class="code-number">42</span>, <span class="code-comment">// Same nonce replaces the original</span><br>
+                        &nbsp;&nbsp;to: <span class="code-string">"0xYourOwnAddress"</span>, <span class="code-comment">// Send to yourself</span><br>
+                        &nbsp;&nbsp;value: <span class="code-string">"0 ETH"</span>,<br>
+                        &nbsp;&nbsp;gasPrice: <span class="code-number">40</span> <span class="code-comment">// Higher gas = miners prefer this one</span><br>
+                        };<br><br>
+                        <span class="code-comment">// Problem: NOT guaranteed to work!</span><br>
+                        <span class="code-comment">// If original is already being mined, cancellation fails</span><br>
+                        <span class="code-comment">// You also waste gas on the cancellation transaction</span>
+                    </div>
+
+                    <h4>Bitcoin Replace-By-Fee (RBF)</h4>
+                    <p>Bitcoin's RBF allows users to replace an unconfirmed transaction with a new one that pays a higher fee. Like Ethereum's approach, this is not a guaranteed reversal:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Ethereum Mempool Cancel</th>
+                            <th>Bitcoin RBF</th>
+                            <th>Kenostod Reversal</th>
+                        </tr>
+                        <tr>
+                            <td>Guaranteed?</td>
+                            <td style="color: var(--danger);">No (race condition)</td>
+                            <td style="color: var(--danger);">No (depends on miner)</td>
+                            <td style="color: var(--success);">Yes (protocol-level)</td>
+                        </tr>
+                        <tr>
+                            <td>Time Window</td>
+                            <td>Variable (seconds to minutes)</td>
+                            <td>Variable (minutes to hours)</td>
+                            <td>Fixed 5 minutes</td>
+                        </tr>
+                        <tr>
+                            <td>Additional Cost</td>
+                            <td>Higher gas fee required</td>
+                            <td>Higher miner fee required</td>
+                            <td>Small, predictable reversal fee</td>
+                        </tr>
+                        <tr>
+                            <td>User Experience</td>
+                            <td>Complex (requires nonce knowledge)</td>
+                            <td>Complex (requires UTXO understanding)</td>
+                            <td>Simple (one-click reversal)</td>
+                        </tr>
+                        <tr>
+                            <td>Designed for Reversal?</td>
+                            <td>No (side effect of mempool)</td>
+                            <td>No (fee-bumping feature)</td>
+                            <td>Yes (core protocol feature)</td>
+                        </tr>
+                        <tr>
+                            <td>Recipient Awareness</td>
+                            <td>No notification</td>
+                            <td>No notification</td>
+                            <td>Full transparency (countdown timer)</td>
+                        </tr>
+                    </table>
+
+                    <h3>Reversal Fee Structure</h3>
+                    <p>Reversals are not free. A progressive fee structure discourages frivolous use while keeping costs negligible for genuine mistakes:</p>
+
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Transaction Amount</th>
+                            <th>Standard TX Fee</th>
+                            <th>Reversal Fee</th>
+                            <th>Total Cost if Reversed</th>
+                        </tr>
+                        <tr>
+                            <td>0 - 100 KENO</td>
+                            <td>0.1 KENO</td>
+                            <td>Free (first 3/month)</td>
+                            <td>0.1 KENO</td>
+                        </tr>
+                        <tr>
+                            <td>100 - 1,000 KENO</td>
+                            <td>0.5 KENO</td>
+                            <td>0.25 KENO</td>
+                            <td>0.75 KENO</td>
+                        </tr>
+                        <tr>
+                            <td>1,000 - 10,000 KENO</td>
+                            <td>1.0 KENO</td>
+                            <td>1.0 KENO</td>
+                            <td>2.0 KENO</td>
+                        </tr>
+                        <tr>
+                            <td>10,000+ KENO</td>
+                            <td>2.0 KENO</td>
+                            <td>5.0 KENO</td>
+                            <td>7.0 KENO</td>
+                        </tr>
+                    </table>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Why Charge for Reversals?</h4>
+                        <p><strong>Prevents spam:</strong> Without fees, users could flood the network with send-then-reverse transactions. <strong>Compensates validators:</strong> Processing reversals requires additional computation. <strong>Encourages careful sending:</strong> A small cost incentivizes users to double-check before sending. <strong>Progressive scaling:</strong> Larger transactions have higher fees because stakes and abuse potential are higher.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 8: Time-Locked Transactions & Advanced Concepts -->
+            <section id="time-locked" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128274;</span>Section 8: Time-Locked Transactions &amp; Advanced Concepts</h2>
+                <div class="reading-content">
+                    <p>Kenostod's 5-minute reversal window is one example of a broader category of blockchain features called <strong>time-locked transactions</strong>. Understanding time-locks helps you appreciate how Kenostod's design fits into the wider landscape of conditional and temporal blockchain mechanisms.</p>
+
+                    <h3>What Are Time-Locked Transactions?</h3>
+                    <p>A time-locked transaction is any blockchain transaction that includes a temporal constraint &mdash; a condition that depends on time. The transaction is only valid, executable, or finalized after (or before) a specific moment. Time-locks serve many purposes: protecting users from mistakes, enabling complex multi-party agreements, and creating trustless escrow arrangements.</p>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Time-Lock vs. Reversal Window</h4>
+                        <p>Although related, these concepts are distinct. A <strong>time-lock</strong> prevents a transaction from being <em>spent</em> by the recipient until a future time. Kenostod's <strong>reversal window</strong> allows the <em>sender</em> to cancel the transaction before it becomes permanent. Kenostod combines both concepts: the recipient cannot spend incoming funds during the 5-minute window (time-lock behavior), AND the sender can reverse the transaction during that same window (reversal behavior).</p>
+                    </div>
+
+                    <h3>Types of Time-Locks Across Blockchains</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Time-Lock Type</th>
+                            <th>Blockchain</th>
+                            <th>How It Works</th>
+                            <th>Purpose</th>
+                        </tr>
+                        <tr>
+                            <td>CheckLockTimeVerify (CLTV)</td>
+                            <td>Bitcoin</td>
+                            <td>Prevents a UTXO from being spent until a specific block height or timestamp</td>
+                            <td>Payment channels, inheritance planning, vesting schedules</td>
+                        </tr>
+                        <tr>
+                            <td>CheckSequenceVerify (CSV)</td>
+                            <td>Bitcoin</td>
+                            <td>Requires a relative time delay after the UTXO is confirmed before it can be spent</td>
+                            <td>Lightning Network penalty transactions, refund paths</td>
+                        </tr>
+                        <tr>
+                            <td>Hashed TimeLock Contracts (HTLC)</td>
+                            <td>Bitcoin, Ethereum, others</td>
+                            <td>Funds are locked until a secret is revealed OR a timeout expires</td>
+                            <td>Atomic swaps, cross-chain exchanges, Lightning payments</td>
+                        </tr>
+                        <tr>
+                            <td>Timelock Controller</td>
+                            <td>Ethereum (OpenZeppelin)</td>
+                            <td>Smart contract operations are queued and can only execute after a mandatory delay</td>
+                            <td>DAO governance, protocol upgrades, admin key safety</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Reversal Window</strong></td>
+                            <td><strong>Kenostod</strong></td>
+                            <td><strong>Sender can cancel within 5 minutes; funds held in protocol escrow</strong></td>
+                            <td><strong>User protection, error recovery, fraud prevention</strong></td>
+                        </tr>
+                    </table>
+
+                    <h3>How Kenostod's Reversal Window Compares to HTLCs</h3>
+                    <p>The closest existing mechanism to Kenostod's reversal window is the <strong>Hashed TimeLock Contract (HTLC)</strong>, used in Bitcoin's Lightning Network and cross-chain atomic swaps. However, there are critical differences:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// HTLC: Funds locked until secret revealed OR timeout</span><br><br>
+                        <span class="code-keyword">const</span> htlc = {<br>
+                        &nbsp;&nbsp;hashLock: <span class="code-string">"sha256(secret)"</span>, <span class="code-comment">// Recipient must know the secret</span><br>
+                        &nbsp;&nbsp;timeLock: <span class="code-number">144</span>, <span class="code-comment">// blocks (~24 hours on Bitcoin)</span><br>
+                        &nbsp;&nbsp;refundPath: <span class="code-string">"sender"</span>, <span class="code-comment">// If timeout expires, sender gets refund</span><br>
+                        &nbsp;&nbsp;claimPath: <span class="code-string">"recipient + secret"</span> <span class="code-comment">// Recipient claims with secret</span><br>
+                        };<br><br>
+                        <span class="code-comment">// Kenostod Reversal: Simpler, user-friendly, no secret needed</span><br><br>
+                        <span class="code-keyword">const</span> kenostodTx = {<br>
+                        &nbsp;&nbsp;reversalWindow: <span class="code-number">300</span>, <span class="code-comment">// 5 minutes (fixed for all transactions)</span><br>
+                        &nbsp;&nbsp;cancelPath: <span class="code-string">"sender signature only"</span>, <span class="code-comment">// No secret needed</span><br>
+                        &nbsp;&nbsp;confirmPath: <span class="code-string">"automatic after timeout"</span>, <span class="code-comment">// No action required</span><br>
+                        &nbsp;&nbsp;complexity: <span class="code-string">"minimal"</span> <span class="code-comment">// One-click reversal in wallet UI</span><br>
+                        };
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Key Difference</div>
+                        <p>HTLCs require both parties to actively participate (the recipient must provide a cryptographic secret to claim funds). Kenostod's reversal window requires <strong>no action from either party</strong> for normal operation &mdash; the transaction automatically confirms after 5 minutes. Only if the sender wants to cancel does any action occur. This "default to success" design is what makes the system practical for everyday payments.</p>
+                    </div>
+
+                    <h3>Advanced Use Cases for Time-Locked Transactions on Kenostod</h3>
+                    <p>Beyond the standard 5-minute reversal window, Kenostod supports several advanced time-based transaction features:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Conditional Reversals</span>
+                        <span class="definition">Users can pre-configure rules that automatically trigger reversals under certain conditions. For example: "If I send more than 5,000 KENO to an address I've never used before, automatically reverse unless I confirm via my secondary device within 2 minutes." This adds a layer of programmable safety for high-value wallets.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Extended Window for New Contacts</span>
+                        <span class="definition">When sending to an address for the first time, Kenostod optionally extends the reversal window to 10 minutes. This gives users extra time to verify unfamiliar recipients. Subsequent transactions to the same address use the standard 5-minute window. Users can opt out of this feature in their wallet settings.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Scheduled Releases</span>
+                        <span class="definition">Kenostod supports time-locked releases where funds are held in escrow for a user-defined period (hours, days, or weeks) before being released to the recipient. This is useful for freelancer milestone payments, subscription billing, and rent payments. The sender can cancel at any point before the scheduled release time.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Vesting Schedules</span>
+                        <span class="definition">Organizations can set up token vesting schedules where KENO tokens are released to employees or investors over time. For example, an employee might receive 10,000 KENO vested over 12 months, with 833 KENO becoming available each month. This uses time-lock mechanics at the protocol level, ensuring trustless enforcement without a third party.</span>
+                    </div>
+
+                    <h3>The Relationship Between Finality and Time-Locks</h3>
+                    <p>In blockchain systems, <strong>finality</strong> is the point at which a transaction becomes irreversible. Different blockchains achieve finality through different mechanisms:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Finality Spectrum: From instant to eventual</span><br><br>
+                        <span class="code-comment">// Solana: Optimistic confirmation (~0.4 seconds)</span><br>
+                        <span class="code-comment">//   - Very fast, but validators can theoretically revert recent blocks</span><br>
+                        <span class="code-comment">//   - True finality after ~32 slots (~12.8 seconds)</span><br><br>
+                        <span class="code-comment">// Ethereum: Deterministic finality (~15 minutes)</span><br>
+                        <span class="code-comment">//   - Two epochs of attestations from validators</span><br>
+                        <span class="code-comment">//   - Once finalized, reversal requires 1/3 of validators to be slashed</span><br><br>
+                        <span class="code-comment">// Bitcoin: Probabilistic finality (~60 minutes / 6 blocks)</span><br>
+                        <span class="code-comment">//   - Each new block makes reversal exponentially more expensive</span><br>
+                        <span class="code-comment">//   - Never truly "final" but practically irreversible after 6 confirmations</span><br><br>
+                        <span class="code-comment">// Kenostod: Delayed deterministic finality (5 minutes)</span><br>
+                        <span class="code-comment">//   - Explicitly reversible during 5-minute grace period (by design)</span><br>
+                        <span class="code-comment">//   - After 5 minutes: deterministically final (no probabilistic uncertainty)</span><br>
+                        <span class="code-comment">//   - Combines the best of both worlds: user safety + guaranteed finality</span>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Why Kenostod's Approach Is Unique</div>
+                        <p>Most blockchains treat finality as a binary property &mdash; either a transaction is final or it's not. Kenostod introduces a <strong>three-phase model</strong>: (1) a brief, user-controlled grace period, (2) deterministic finality after the grace period, and (3) permanent on-chain recording. This model acknowledges that human error is inevitable while preserving the irreversibility guarantees that make blockchain trustworthy for commerce and finance.</p>
+                    </div>
+
+                    <h3>Future Developments: Programmable Reversal Policies</h3>
+                    <p>Kenostod's roadmap includes <strong>programmable reversal policies</strong> that allow organizations, DAOs, and advanced users to customize the reversal behavior of their transactions:</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Multi-signature reversals:</strong> Require 2-of-3 authorized signers to approve a reversal, adding institutional-grade security for corporate wallets.</li>
+                        <li><strong>Merchant-agreed instant finality:</strong> Merchants and customers can mutually agree to waive the reversal window for specific transactions, enabling instant settlement when both parties trust each other.</li>
+                        <li><strong>Tiered windows by amount:</strong> Automatically apply longer reversal windows for larger transactions (e.g., 5 minutes for transactions under 1,000 KENO, 15 minutes for 1,000-10,000 KENO, 30 minutes for transactions over 10,000 KENO).</li>
+                        <li><strong>Geofenced reversals:</strong> Restrict reversal requests to specific geographic regions or IP ranges, preventing unauthorized reversals from unusual locations.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 9: Key Vocabulary & Concepts -->
+            <section id="vocabulary" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128218;</span>Section 9: Key Vocabulary &amp; Concepts</h2>
+                <div class="reading-content">
+                    <p>Before proceeding to the written exercises and final exam, make sure you are comfortable with all of the following key terms and concepts covered in this course.</p>
+
+                    <div class="vocab-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div class="term-definition">
+                            <span class="term">Reversal Window</span>
+                            <span class="definition">The 5-minute grace period during which the sender can cancel a Kenostod transaction before it becomes permanent.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Escrow Layer</span>
+                            <span class="definition">The protocol-level mechanism that holds funds between the sender and recipient during the reversal window.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Transaction Finality</span>
+                            <span class="definition">The point at which a transaction becomes irreversible. On Kenostod, this occurs 5 minutes after broadcast.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Double Spending</span>
+                            <span class="definition">The fraudulent act of spending the same digital currency twice. Kenostod prevents this via escrow deduction during the pending state.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">ECDSA Signature</span>
+                            <span class="definition">Elliptic Curve Digital Signature Algorithm &mdash; the cryptographic method used to prove wallet ownership and authorize transactions and reversals.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Chargeback</span>
+                            <span class="definition">A traditional banking mechanism where a customer disputes a credit card transaction and the bank forcibly reverses the payment. Unlike Kenostod reversals, chargebacks can occur months later.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Mempool</span>
+                            <span class="definition">The "waiting room" where unconfirmed transactions sit on traditional blockchains. Kenostod extends this concept with its escrow mempool.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Void Record</span>
+                            <span class="definition">The on-chain marker left when a transaction is reversed. The original transaction remains visible but is flagged as voided for audit purposes.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Atomic State Transition</span>
+                            <span class="definition">A state change that is indivisible &mdash; it either completes fully or not at all. Ensures that reversal and confirmation cannot happen simultaneously.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Time-Locked Transaction</span>
+                            <span class="definition">Any blockchain transaction with a temporal constraint &mdash; it is only valid, executable, or finalized after or before a specific moment.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">HTLC</span>
+                            <span class="definition">Hashed TimeLock Contract &mdash; a mechanism where funds are locked until a cryptographic secret is revealed or a timeout expires. Used in cross-chain swaps.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Consensus Timestamp</span>
+                            <span class="definition">The network-agreed-upon time used for reversal window calculations, preventing manipulation of local clocks.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Replace-By-Fee (RBF)</span>
+                            <span class="definition">A Bitcoin feature that allows users to replace an unconfirmed transaction with a higher-fee version. Not a guaranteed reversal mechanism.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Progressive Fees</span>
+                            <span class="definition">Kenostod's escalating fee structure where reversal costs increase with each subsequent reversal to discourage abuse.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Clipboard Hijacker</span>
+                            <span class="definition">Malware that silently replaces copied cryptocurrency addresses with the attacker's address. The reversal window provides a safety net against this attack.</span>
+                        </div>
+                        <div class="term-definition">
+                            <span class="term">Delayed Deterministic Finality</span>
+                            <span class="definition">Kenostod's finality model: an explicit grace period followed by guaranteed, deterministic finality with no probabilistic uncertainty.</span>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Study Tip</div>
+                        <p>Before attempting the final exam, review each term above and make sure you can explain it in your own words. The exam tests not just definitions but your ability to apply these concepts to real-world scenarios.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 10: Written Exercises -->
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9997;&#65039;</span>Section 10: Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Test your understanding with these analytical exercises. Write thoughtful responses that demonstrate your comprehension of the reversal system's mechanics, trade-offs, and real-world implications.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Reversal vs. Theft Analysis</h4>
+                        <div class="exercise-question">
+                            <p>A common misconception is that the reversal window enables theft by allowing senders to "take back" money after receiving goods. Explain why this concern is largely unfounded for merchants who follow best practices. In your answer, address: (1) what recipients see during the pending window, (2) when merchants should deliver goods, and (3) how the 5-minute limit prevents chargeback-style fraud.</p>
+                            <textarea id="ex1" placeholder="Write your analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Game Theory Scenario</h4>
+                        <div class="exercise-question">
+                            <p>Consider a scenario where you run an online store selling digital software licenses (50 KENO each). A customer pays, but you need to decide: deliver the license key immediately, or wait for the 5-minute window to close? Analyze the payoff matrix for both strategies, considering: customer satisfaction, business risk, the probability of reversal, and what happens if you deliver immediately and the customer reverses.</p>
+                            <textarea id="ex2" placeholder="Write your game theory analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Security Design Challenge</h4>
+                        <div class="exercise-question">
+                            <p>You're designing a cryptocurrency exchange that accepts Kenostod deposits. Users deposit KENO to trade for other tokens. Given the 5-minute reversal window, how would you design your deposit crediting system? Address: (1) when to credit the user's exchange balance, (2) how to handle a reversal attempt on a deposit that's already been used for trading, and (3) what safeguards to implement against deposit-trade-reverse attacks.</p>
+                            <textarea id="ex3" placeholder="Write your security design here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Ethical Dilemma</h4>
+                        <div class="exercise-question">
+                            <p>A user sends 1,000 KENO to a charity during a disaster relief fundraiser. Two minutes later, they reverse the transaction because they changed their mind. Is this ethical? Should the system allow it? Write arguments for and against allowing this reversal, then state and defend your own position. Consider the principles of self-sovereignty, charitable intent, and the broader implications for donation campaigns on blockchain.</p>
+                            <textarea id="ex4" placeholder="Write your ethical analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Time-Lock Comparison</h4>
+                        <div class="exercise-question">
+                            <p>Compare and contrast Kenostod's reversal window with Bitcoin's Hashed TimeLock Contracts (HTLCs) used in the Lightning Network. In your analysis, address: (1) what problem each mechanism solves, (2) who has control over the funds during the locked period, (3) how each achieves trustlessness, (4) the user experience differences between the two approaches, and (5) why Kenostod chose a simpler model for everyday transactions rather than adopting HTLC-style contracts.</p>
+                            <textarea id="ex5" placeholder="Write your time-lock comparison here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 11: Hands-On Lab -->
+            <section id="lab" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128736;&#65039;</span>Section 11: Hands-On Lab</h2>
+                <div class="reading-content">
+                    <p>Now it's time to put theory into practice. Use the Kenostod simulator to experience the reversal system firsthand. Complete each of the following tasks:</p>
+
+                    <h3>Lab Tasks</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Send a Test Transaction</div>
+                            <p>Navigate to the Send KENO tab and send a small amount (10-50 KENO) to another wallet address. Watch the 5-minute countdown timer begin in your transaction history.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Reverse Before Deadline</div>
+                            <p>While the countdown is still active, click the "Reverse" button on your pending transaction. Observe how the funds are returned to your wallet and the transaction is marked as REVERSED.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Let a Transaction Confirm</div>
+                            <p>Send another test transaction and let the 5-minute timer expire without reversing. Observe the state change from PENDING to CONFIRMED and verify the funds are now in the recipient's balance.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Attempt a Late Reversal</div>
+                            <p>Try to reverse the confirmed transaction from Step 3. Observe the error message that appears, confirming that confirmed transactions are irreversible.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Review Transaction History</div>
+                            <p>Check your transaction history to see all four states represented: the reversed transaction (voided but visible), the confirmed transaction (permanent), and any failed attempts. Note how the blockchain maintains a complete audit trail.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127919; Lab Success Criteria</div>
+                        <p>You've successfully completed the lab when you can: (1) identify all transaction states in your history, (2) explain the difference between PENDING and CONFIRMED, (3) demonstrate a successful reversal, and (4) understand why late reversals are rejected.</p>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 25px;">
+                        <a href="/#transaction" class="practice-btn">&#128640; Open Send KENO Tab</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 12: Final Exam -->
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Section 12: Final Exam</h2>
+                <p style="margin-bottom: 25px;">Test your comprehensive understanding of the Transaction Reversal System. You need at least <strong>10 out of 12 correct (83%)</strong> to pass and earn your 250 KENO reward.</p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. How long is Kenostod's transaction reversal window?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1 minute</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5 minutes</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10 minutes</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>24 hours</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="a">
+                    <div class="question-text">2. Who can initiate a reversal on a pending Kenostod transaction?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only the original sender (using the same private key)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The recipient</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Any network node operator</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Kenostod administrators</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="c">
+                    <div class="question-text">3. Where do funds go during the 5-minute reversal window?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They are immediately transferred to the recipient</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They stay in the sender's wallet until the window closes</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They are held in protocol escrow &mdash; deducted from sender but not yet credited to recipient</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They are sent to Kenostod's central treasury for safekeeping</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="b">
+                    <div class="question-text">4. What was the primary reason Satoshi Nakamoto designed Bitcoin with irreversible transactions?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To make the system simpler to code</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To solve the double-spend problem and eliminate trusted third parties</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Because the technology for reversals didn't exist yet</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To punish users who make mistakes</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="d">
+                    <div class="question-text">5. According to research cited in this course, what percentage of transaction errors are detected within 30 seconds?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>75%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>85%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>92%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. What happened when the Ethereum community faced the DAO hack in 2016?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>All stolen Ethereum was permanently lost</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The hacker voluntarily returned all stolen funds</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The community hard-forked the blockchain to reverse the theft, creating Ethereum and Ethereum Classic</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Ethereum's built-in reversal feature recovered the funds automatically</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. Why is double-spending impossible during Kenostod's reversal window?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Escrowed funds are not counted as available balance, preventing the same funds from being committed twice</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The blockchain locks the sender's entire wallet during the pending period</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Kenostod administrators manually review all transactions for double-spending</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Double-spending is technically possible but rarely attempted</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="b">
+                    <div class="question-text">8. Which type of Kenostod transaction does NOT have a reversal window?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Wallet-to-wallet transfers under 100 KENO</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Smart contract interactions (DeFi, NFTs, DAOs)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>First-time transfers to new addresses</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Transfers over 10,000 KENO</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="d">
+                    <div class="question-text">9. How does Bitcoin's Replace-By-Fee (RBF) differ from Kenostod's reversal window?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>RBF is faster than Kenostod's reversal</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>RBF is a protocol-guaranteed reversal mechanism</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>RBF notifies the recipient about the cancellation attempt</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>RBF is not guaranteed to work and depends on miners accepting the replacement transaction</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="c">
+                    <div class="question-text">10. What happens if a reversal request arrives at the exact moment the 5-minute window expires?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The reversal is processed because it arrived "on time"</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The system randomly decides between reversal and confirmation</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Expiry takes precedence &mdash; the transaction is confirmed (fail-safe design)</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Both operations execute, creating a conflict that requires manual resolution</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. What is a "clipboard hijacker" and how does the reversal window help protect against it?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Malware that replaces copied crypto addresses with the attacker's address; the reversal window gives time to verify the pasted address</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A hardware device that intercepts USB connections; the reversal window blocks the device</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A phishing website that copies your private key; the reversal window encrypts the key</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A network attack that redirects transactions; the reversal window reroutes them back</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="d">
+                    <div class="question-text">12. How many free reversals per month do transactions under 100 KENO receive?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Zero &mdash; all reversals have a fee</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Unlimited</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>3</span></div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+
+                <div id="quizResult" class="quiz-result">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h3 class="result-title" id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-2-transactions.html" style="color: var(--primary);">&larr; Previous: Course 2</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Back to Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-4-scheduled.html" style="color: var(--primary);">Next: Course 4 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+
+            const passingScore = 10;
+
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '\uD83C\uDF89';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = 'You scored ' + correct + ' out of ' + total + '! You\'ve mastered the Transaction Reversal System.';
+                nextCourseContainer.innerHTML = '<p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You\'ve earned 250 KENO!</p><a href="/courses/course-4-scheduled.html" class="next-course-btn">Continue to Course 4: Scheduled Payments \u2192</a>';
+                localStorage.setItem('course3_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(3, 'Course 3: Transaction Reversal');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '\uD83D\uDCDA';
+                resultTitle.textContent = 'Keep Studying!';
+                resultMessage.textContent = 'You scored ' + correct + ' out of ' + total + '. You need at least ' + passingScore + ' correct (83%) to pass. Review the material and try again.';
+                nextCourseContainer.innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+
+            const hints = {
+                1: 'Good effort! Key points to consider: Recipients see a "PENDING" status with a live countdown timer. Smart merchants wait for the 5-minute window to close before delivering goods or services. The 5-minute window is far too short for the "buy goods then reverse" fraud that plagues credit card chargebacks (which allow 60-120 days). Only the sender can reverse, and the recipient is fully aware of the pending status. This makes the reversal window a safety net for genuine mistakes, not a tool for fraud.',
+                2: 'Strong analysis should include: For digital products, you should WAIT for the 5-minute confirmation because digital goods cannot be "returned" once delivered. The payoff matrix shows: (1) Deliver immediately + no reversal = happy customer, small risk; (2) Deliver immediately + reversal = you lose the product AND the payment; (3) Wait 5 minutes + no reversal = slightly delayed but satisfied customer; (4) Wait 5 minutes + reversal = no loss, customer changed their mind. The expected value clearly favors waiting, since the cost of a 5-minute delay is minimal compared to the cost of losing your product.',
+                3: 'Excellent security design should address: (1) Only credit the user\'s exchange balance AFTER the 5-minute window expires and the transaction is CONFIRMED. Never credit on PENDING status. (2) If a user somehow trades before confirmation, implement a "hold" on withdrawal equal to the pending deposit amount. (3) Rate-limit deposits: require each deposit to be confirmed before accepting the next one from the same wallet. (4) Monitor for patterns: if a wallet frequently deposits then reverses, flag the account for review.',
+                4: 'A thorough ethical analysis should present both sides: FOR allowing reversal: The sender has self-sovereign control over their funds until confirmation. Charitable intent does not create a binding obligation within the 5-minute window. Forced irrevocability of donations could be exploited by fraudulent charities. AGAINST: Reversing a disaster relief donation is morally questionable even if technically permitted. Charities may make resource allocation decisions based on incoming pending donations. The system could display a warning when reversing charity payments. Your own position should be clearly stated with reasoning.',
+                5: 'A strong comparison should cover: (1) HTLCs solve the cross-chain trust problem (exchanging assets between different blockchains without a trusted third party), while Kenostod\'s reversal window solves the human error problem (protecting users from irreversible mistakes). (2) In an HTLC, the sender controls funds until the recipient reveals the hash preimage; in Kenostod, the sender controls funds during the 5-minute window via signature-based cancellation. (3) HTLCs achieve trustlessness through cryptographic hash locks; Kenostod achieves it through protocol-level escrow with signature verification. (4) HTLCs require technical knowledge (hash secrets, timeouts, multi-step claiming), while Kenostod offers one-click reversal in a simple UI. (5) Kenostod chose simplicity because everyday payments need frictionless UX, not the complex multi-party coordination that HTLCs are designed for.'
+            };
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.innerHTML = '<strong>Feedback:</strong> ' + (hints[num] || 'Thank you for your thoughtful response. Review the course material to compare your answer with the key concepts covered.');
+        }
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>

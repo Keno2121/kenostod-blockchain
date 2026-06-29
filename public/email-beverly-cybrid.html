@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUTL Card — Flow of Funds | Kenostod × Cybrid</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f0f4f8;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1a202c;
+    padding: 24px 16px;
+  }
+  .wrap {
+    max-width: 660px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,.10);
+  }
+
+  /* Header */
+  .hdr {
+    background: linear-gradient(135deg, #0a0f1e 0%, #0f1d3a 100%);
+    padding: 32px 40px 24px;
+    border-bottom: 3px solid #f5c842;
+  }
+  .hdr-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .k-badge {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #f5c842, #c9a227);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 1.4rem; color: #0a0f1e;
+  }
+  .hdr-name { font-size: 1.2rem; font-weight: 800; color: #fff; }
+  .hdr-name span { color: #f5c842; }
+  .hdr-sub { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; }
+  .hdr-title { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .hdr-title span { color: #f5c842; }
+  .hdr-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.5; }
+  .meeting-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 14px;
+    background: rgba(245,200,66,.12);
+    border: 1px solid rgba(245,200,66,.35);
+    color: #f5c842;
+    font-size: 0.78rem; font-weight: 600;
+    padding: 5px 14px; border-radius: 20px;
+  }
+
+  /* Body */
+  .body { padding: 36px 40px; }
+  .greeting { font-size: 1rem; color: #1a202c; line-height: 1.7; margin-bottom: 20px; }
+  .divider { height: 1px; background: #e2e8f0; margin: 28px 0; }
+  .sec-label {
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: #f5c842; margin-bottom: 6px;
+  }
+  .sec-title { font-size: 1.05rem; font-weight: 700; color: #1a202c; margin-bottom: 16px; }
+
+  /* ── Flow of Funds diagram ── */
+  .flow-chain { display: flex; flex-direction: column; gap: 0; margin-bottom: 28px; }
+
+  .flow-node {
+    position: relative;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    background: #f8fafc;
+  }
+  .flow-node.gold  { border-color: rgba(245,200,66,.5); background: rgba(245,200,66,.05); }
+  .flow-node.blue  { border-color: rgba(59,130,246,.4); background: rgba(59,130,246,.05); }
+  .flow-node.green { border-color: rgba(16,185,129,.4); background: rgba(16,185,129,.05); }
+  .flow-node.cyan  { border-color: rgba(31,199,212,.4); background: rgba(31,199,212,.05); }
+  .flow-node.purple{ border-color: rgba(139,92,246,.4); background: rgba(139,92,246,.05); }
+
+  .fn-row { display: flex; align-items: flex-start; gap: 14px; }
+  .fn-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #0a0f1e; color: #f5c842;
+    font-size: .8rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .fn-content { flex: 1; }
+  .fn-title { font-size: .92rem; font-weight: 700; color: #1a202c; margin-bottom: 3px; }
+  .fn-desc  { font-size: .8rem; color: #4a5568; line-height: 1.55; }
+  .fn-amount {
+    font-size: .75rem; font-weight: 600;
+    margin-top: 6px; display: inline-block;
+    padding: 2px 10px; border-radius: 10px;
+  }
+  .fn-amount.gold   { background: rgba(245,200,66,.15); color: #92700a; }
+  .fn-amount.green  { background: rgba(16,185,129,.12); color: #065f46; }
+  .fn-amount.blue   { background: rgba(59,130,246,.12); color: #1e40af; }
+  .fn-amount.purple { background: rgba(139,92,246,.12); color: #5b21b6; }
+  .fn-amount.cyan   { background: rgba(31,199,212,.12); color: #0e7490; }
+
+  .flow-arrow {
+    text-align: center; padding: 6px 0; color: #94a3b8;
+    font-size: 1.3rem; font-weight: 700; line-height: 1;
+  }
+
+  /* Entities table */
+  .entities { margin-bottom: 28px; }
+  .entity-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .entity-row:last-child { border-bottom: none; }
+  .entity-icon {
+    width: 38px; height: 38px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .entity-icon.gold   { background: rgba(245,200,66,.15); }
+  .entity-icon.green  { background: rgba(16,185,129,.12); }
+  .entity-icon.blue   { background: rgba(59,130,246,.12); }
+  .entity-icon.cyan   { background: rgba(31,199,212,.12); }
+  .entity-name  { font-size: .88rem; font-weight: 700; color: #1a202c; }
+  .entity-role  { font-size: .78rem; color: #718096; line-height: 1.4; margin-top: 2px; }
+
+  /* Fee split */
+  .fee-block {
+    background: #0a0f1e;
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 28px;
+    border: 1px solid rgba(245,200,66,.2);
+  }
+  .fee-block .fb-title { font-size: .88rem; font-weight: 700; color: #fff; margin-bottom: 14px; }
+  .fee-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.07);
+    font-size: .82rem;
+  }
+  .fee-row:last-child { border-bottom: none; }
+  .fee-row .fee-label { color: #94a3b8; }
+  .fee-row .fee-val   { font-weight: 700; color: #f5c842; }
+  .fee-row .fee-val.green { color: #10b981; }
+  .fee-row .fee-val.blue  { color: #60a5fa; }
+
+  /* Compliance note */
+  .compliance {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .compliance .comp-title { font-size: .85rem; font-weight: 700; color: #1e40af; margin-bottom: 6px; }
+  .compliance ul { padding-left: 16px; }
+  .compliance li { font-size: .8rem; color: #1e3a8a; line-height: 1.7; }
+
+  /* CTA */
+  .cta-wrap { text-align: center; margin-bottom: 28px; }
+  .cta-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #f5c842, #c9a227);
+    color: #0a0f1e; font-weight: 700; font-size: .9rem;
+    padding: 13px 32px; border-radius: 8px; text-decoration: none;
+  }
+
+  .closing { font-size: .9rem; color: #4a5568; line-height: 1.75; margin-bottom: 24px; }
+
+  /* Footer */
+  .ftr {
+    background: #0a0f1e;
+    padding: 22px 40px;
+    text-align: center;
+  }
+  .ftr .f-name  { font-size: .82rem; font-weight: 700; color: #f5c842; margin-bottom: 3px; }
+  .ftr .f-title { font-size: .72rem; color: #64748b; margin-bottom: 10px; }
+  .ftr-links    { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .ftr-links a  { color: #94a3b8; font-size: .72rem; text-decoration: none; }
+  .confidential { margin-top: 12px; font-size: .67rem; color: #475569; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="k-badge">K</div>
+      <div>
+        <div class="hdr-name">Kenostod <span>Academy</span></div>
+        <div class="hdr-sub">Education-Fi Platform · T.D.I.R. Foundation</div>
+      </div>
+    </div>
+    <div class="hdr-title">KUTL Card — <span>Flow of Funds</span></div>
+    <div class="hdr-desc">How money moves from member enrollment through card issuance and everyday spending — prepared for Cybrid review.</div>
+    <div class="meeting-tag">📅 April 22, 2026 · 1:00 – 1:30 PM EST · Beverly Weiner, Cybrid</div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+
+    <p class="greeting">
+      Hi Beverly,<br><br>
+      Thank you for following up. Below is our complete Flow of Funds document showing exactly how money enters our ecosystem, how it flows through the platform, and how it reaches the KUTL Card for real-world spending. This is designed to give your compliance and banking team everything needed ahead of April 22nd.
+    </p>
+
+    <div class="divider"></div>
+
+    <!-- Section 1: Parties -->
+    <div class="sec-label">Section 1</div>
+    <div class="sec-title">Parties Involved</div>
+    <div class="entities">
+      <div class="entity-row">
+        <div class="entity-icon gold">🏫</div>
+        <div>
+          <div class="entity-name">Kenostod Blockchain Academy LLC</div>
+          <div class="entity-role">Platform operator. Collects enrollment fees, issues KENO rewards, manages course completion verification, and operates the KUTL Card reward program. Under T.D.I.R. Foundation.</div>
+        </div>
+      </div>
+      <div class="entity-row">
+        <div class="entity-icon blue">👤</div>
+        <div>
+          <div class="entity-name">Academy Member (End User)</div>
+          <div class="entity-role">Pays enrollment fee, completes courses, earns KENO rewards, requests KUTL Card, and spends at merchants via Visa/Mastercard network.</div>
+        </div>
+      </div>
+      <div class="entity-row">
+        <div class="entity-icon cyan">🏦</div>
+        <div>
+          <div class="entity-name">Cybrid (BaaS Partner)</div>
+          <div class="entity-role">Banking-as-a-Service layer. Handles card issuance, KYC/AML verification, fiat account management, USD funding of card accounts, and Visa/Mastercard network settlement.</div>
+        </div>
+      </div>
+      <div class="entity-row">
+        <div class="entity-icon green">🛒</div>
+        <div>
+          <div class="entity-name">Merchants</div>
+          <div class="entity-role">Any Visa/Mastercard-accepting retailer or online merchant where the KUTL Card is used for purchases.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section 2: Flow of Funds -->
+    <div class="sec-label">Section 2</div>
+    <div class="sec-title">Step-by-Step Flow of Funds</div>
+
+    <div class="flow-chain">
+
+      <div class="flow-node gold">
+        <div class="fn-row">
+          <div class="fn-num">1</div>
+          <div class="fn-content">
+            <div class="fn-title">Member Enrollment — Fiat Payment to Kenostod</div>
+            <div class="fn-desc">Member pays the Academy enrollment fee via credit/debit card, ACH, or other accepted payment method. This fiat payment goes directly to Kenostod Blockchain Academy LLC's operating account. No crypto involved at this stage.</div>
+            <span class="fn-amount gold">💵 Fiat (USD) → Kenostod Operating Account</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓</div>
+
+      <div class="flow-node blue">
+        <div class="fn-row">
+          <div class="fn-num">2</div>
+          <div class="fn-content">
+            <div class="fn-title">Course Completion — KENO Reward Issuance</div>
+            <div class="fn-desc">Upon verified completion of each course, Kenostod issues 250 KENO tokens to the member's BSC wallet. Total potential: 5,250 KENO across all 21 courses. KENO is a utility token — not a currency or security. Issuance is a reward event, not a financial transaction.</div>
+            <span class="fn-amount blue">🎓 250 KENO per course · 5,250 KENO total potential</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓</div>
+
+      <div class="flow-node gold">
+        <div class="fn-row">
+          <div class="fn-num">3</div>
+          <div class="fn-content">
+            <div class="fn-title">Member Requests KUTL Card Load</div>
+            <div class="fn-desc">Member initiates a card load request through the Kenostod platform. Member specifies the USD amount they want loaded. Kenostod calculates the equivalent KENO at current market rate and deducts it from the member's platform balance. This triggers a redemption event.</div>
+            <span class="fn-amount gold">📲 Member requests: e.g. $100 load = X KENO redeemed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓</div>
+
+      <div class="flow-node cyan">
+        <div class="fn-row">
+          <div class="fn-num">4</div>
+          <div class="fn-content">
+            <div class="fn-title">Kenostod Funds the Card Account via Cybrid API</div>
+            <div class="fn-desc">Kenostod calls the Cybrid API to fund the member's card account in USD. Kenostod sends the corresponding USD from its treasury account to Cybrid. Cybrid credits the member's card account. KYC/AML has already been completed at onboarding. No fiat-to-crypto conversion occurs at Cybrid — Cybrid only receives and holds USD on behalf of the member.</div>
+            <span class="fn-amount cyan">🏦 Kenostod USD → Cybrid API → Member Card Account (USD)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓</div>
+
+      <div class="flow-node green">
+        <div class="fn-row">
+          <div class="fn-num">5</div>
+          <div class="fn-content">
+            <div class="fn-title">Member Spends at Merchant</div>
+            <div class="fn-desc">Member uses the KUTL Visa/Mastercard (physical or virtual) at any merchant. Transaction is processed through the standard card network. Cybrid settles with the merchant's acquiring bank via Visa/Mastercard interchange. Member's card balance decreases by the transaction amount.</div>
+            <span class="fn-amount green">💳 Card Swipe → Visa/Mastercard Network → Merchant Settlement</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">↓</div>
+
+      <div class="flow-node purple">
+        <div class="fn-row">
+          <div class="fn-num">6</div>
+          <div class="fn-content">
+            <div class="fn-title">Interchange & Fee Settlement</div>
+            <div class="fn-desc">Standard interchange fees flow back through the network. Cybrid retains its BaaS service fee as agreed in the partnership contract. Kenostod earns a share of interchange revenue. Remaining settlement completes to the merchant's bank. No KENO tokens are involved in this stage — all settlement is in USD.</div>
+            <span class="fn-amount purple">📊 Interchange → Cybrid Fee + Kenostod Revenue Share</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section 3: Fee Structure -->
+    <div class="sec-label">Section 3</div>
+    <div class="sec-title">Fee & Revenue Structure (Proposed)</div>
+    <div class="fee-block">
+      <div class="fb-title">Revenue flow at point of card spend</div>
+      <div class="fee-row">
+        <span class="fee-label">Card Network Interchange (gross)</span>
+        <span class="fee-val">~1.5 – 2.5% per transaction</span>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">Cybrid BaaS Service Fee</span>
+        <span class="fee-val blue">To be agreed — April 22 agenda</span>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">Kenostod Revenue Share</span>
+        <span class="fee-val green">Remainder after Cybrid fee</span>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">Card Load Fee (member-side)</span>
+        <span class="fee-val">0% (Kenostod absorbs — loyalty benefit)</span>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">FX / International Transaction</span>
+        <span class="fee-val">Standard network rates apply</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section 4: Compliance -->
+    <div class="sec-label">Section 4</div>
+    <div class="sec-title">Compliance & KYC/AML Notes</div>
+    <div class="compliance">
+      <div class="comp-title">🔒 Regulatory & Compliance Position</div>
+      <ul>
+        <li>All members complete KYC at enrollment — identity verified before any KENO is issued or card is activated.</li>
+        <li>KENO token is a <strong>utility/reward token</strong>, not a currency, security, or stablecoin. Issuance is a reward event for educational completion, not a financial transaction.</li>
+        <li>Kenostod holds USD in its operating account to back all card loads 1:1 — no fractional reserve, no leverage.</li>
+        <li>Cybrid only ever receives and disburses <strong>USD</strong> — no cryptocurrency touches the Cybrid infrastructure.</li>
+        <li>All card activity is subject to standard Visa/Mastercard AML monitoring and reporting requirements via Cybrid's existing compliance framework.</li>
+        <li>KENO redemption events are logged on-chain (BSC) and in Kenostod's platform database for audit trail.</li>
+      </ul>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+      <a href="https://kenostodblockchain.com" class="cta-btn">View Live Academy Platform →</a>
+    </div>
+
+    <p class="closing">
+      Beverly, I believe this structure is clean from a compliance standpoint — Cybrid is purely handling USD and card infrastructure, which sits entirely within your existing BaaS framework. The KENO layer is handled entirely on our side before any USD reaches Cybrid.
+      <br><br>
+      I look forward to walking through this live on April 22nd and answering any questions your compliance team has in advance. Please feel free to reply with any specific questions or documents you'd like me to prepare before the call.
+      <br><br>
+      Warm regards,<br>
+      <strong>Nickeo</strong><br>
+      Founder &amp; CEO, Kenostod Blockchain Academy LLC<br>
+      Under the T.D.I.R. Foundation
+    </p>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="ftr">
+    <div class="f-name">Kenostod Blockchain Academy LLC</div>
+    <div class="f-title">T.D.I.R. Foundation · Education-Fi · The Sovereign Economy</div>
+    <div class="ftr-links">
+      <a href="https://kenostodblockchain.com">kenostodblockchain.com</a>
+      <a href="https://kenostodblockchain.com/utl-dashboard.html">UTL Protocol</a>
+      <a href="https://kenostodblockchain.com/farm.html">KENO Farm</a>
+    </div>
+    <div class="confidential">Confidential — prepared for Beverly Weiner, Cybrid · April 22, 2026 · Do not distribute.</div>
+  </div>
+
+</div>
+</body>
+</html>

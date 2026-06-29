@@ -1,0 +1,12 @@
+- [Bot wallets and key setup](bot-wallets.md) — BSC bot key is BOT_WALLET_PRIVATE_KEY (64-char no 0x); KENO_WALLET_PRIVATE_KEY stores address not key; Resi-Fi auto-sweeps BNB
+- [Jupiter API endpoints](jupiter-api.md) — Use api.jup.ag/swap/v1/quote not quote-api.jup.ag/v6; SOLANA_NETWORK must be "mainnet" not "mainnet-beta"
+- [KENO v2 deployment](keno-v2-deployment.md) — v2 live on BSC; old v1 wallets all pointed to compromised deployer; v2 fixes all that
+- [BSC deployment gotchas](bsc-deploy-gotchas.md) — BSC gas is ~0.05 gwei; DEPLOYER_PRIVATE_KEY = 0x074c wallet with BNB; ankr requires auth; ethers waitForDeployment hangs — use manual poll
+- [PancakeSwap V2 vs V4 plan](pancakeswap-v2-v4.md) — Presale lists on V2; upgrade to V4 + UTL Hook after volume hits $50k/month
+- [QCT Queens Chariot](qct-deployment.md) — LIVE on Base `0x137a5Fc22a76Ec42490F2421a81935d124baE714`; use `QCT_DEPLOYER_KEY` secret for Base signing (KENO_WALLET_PRIVATE_KEY is the address not the key)
+- [Fjord LBP pivot](fjord-pivot.md) — QCT blocked by "Invalid asset value" (fee-on-transfer); KENO (BSC, no fee) is the new Fjord target; Fjord contract `0x53e6dd5164a07f98d296f05c5e139c2a5651a7b8` has QCT+WETH approvals still set
+- [QCT Hyperliquid integration](qct-hl-integration.md) — HIP-1 replaces Fjord for QCT; bot files in `queens-chariot/hyperliquid/`; uses QCT_DEPLOYER_KEY; HL_VAULT_ADDRESS + HL_BUILDER_CODE env vars needed
+- [MetaMask Snap submission](metamask-snap-status.md) — Issue #625 open since Feb 2026; CHECK WEEKLY; snap ID is npm:kenostod-utl-snap v2.3.0; correction comment posted June 7 2026
+- [Flash Arb & Solana Arb Strategy Findings](flash-arb-strategy.md) — FlashArbLoan2 live on BSC; Jupiter round-trip arb not viable; Aegis must stay scan-only; HL rates near-zero June 2026
+- [Post-PinkSale action plan](post-pinksale-plan.md) — fund bots week 1, POL setup week 2 (if liquidity thin)
+- [Sovereign Trinity NFT Collection](sovereign-trinity-nft.md) — COMPLETE: 4 tiers + 7 Houses of Royals + Access Hierarchy + chariot-gate.html + sovereign-throne.html built and live

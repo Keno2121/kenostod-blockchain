@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graduate Certificate | Kenostod Blockchain Academy</title>
+<style>
+  :root {
+    --gold: #f5c842;
+    --gold2: #e8a020;
+    --bg: #0a0e1a;
+    --card: #111827;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #6b7280;
+    --purple: #7c3aed;
+    --green: #00e676;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* SCREEN STYLES */
+  header {
+    background: linear-gradient(135deg, #0d1b2a, #1a0533 50%, #0a1628);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header .logo { font-size: 20px; font-weight: 800; color: var(--gold); }
+  header .sub  { font-size: 12px; color: var(--muted); }
+  header nav { margin-left: auto; display: flex; gap: 10px; }
+  header nav a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 6px; }
+  header nav a:hover { background: var(--border); color: var(--text); }
+
+  .lookup-section {
+    max-width: 600px; margin: 40px auto; padding: 0 24px;
+    text-align: center;
+  }
+  .lookup-section h1 { font-size: 28px; font-weight: 900; color: var(--gold); margin-bottom: 8px; }
+  .lookup-section p  { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .lookup-form { display: flex; gap: 10px; }
+  .lookup-form input {
+    flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 14px;
+  }
+  .lookup-form input:focus { outline: none; border-color: var(--gold); }
+  .btn {
+    padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 700;
+    border: none; cursor: pointer; transition: .2s;
+  }
+  .btn-gold  { background: var(--gold); color: #000; }
+  .btn-gold:hover { background: #ffd633; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--border); }
+  .btn-print { background: rgba(0,230,118,.12); border: 1px solid rgba(0,230,118,.3); color: var(--green); }
+  .btn-print:hover { background: rgba(0,230,118,.22); }
+
+  .error-msg { color: #ff5252; font-size: 14px; margin-top: 12px; }
+
+  /* CERTIFICATE PREVIEW (screen) */
+  .cert-preview {
+    max-width: 900px; margin: 32px auto; padding: 0 24px;
+    display: none;
+  }
+  .cert-preview.visible { display: block; }
+
+  .action-bar {
+    display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+
+  /* THE ACTUAL CERTIFICATE (print + screen) */
+  .certificate {
+    background: #fff;
+    border: 8px solid #c9a227;
+    border-radius: 4px;
+    padding: 60px 70px;
+    position: relative;
+    color: #1a1a1a;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    max-width: 860px;
+    margin: 0 auto 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .cert-corner {
+    position: absolute; width: 60px; height: 60px;
+    border-color: #c9a227; border-style: solid;
+  }
+  .cert-corner.tl { top: 12px; left: 12px; border-width: 3px 0 0 3px; }
+  .cert-corner.tr { top: 12px; right: 12px; border-width: 3px 3px 0 0; }
+  .cert-corner.bl { bottom: 12px; left: 12px; border-width: 0 0 3px 3px; }
+  .cert-corner.br { bottom: 12px; right: 12px; border-width: 0 3px 3px 0; }
+
+  .cert-header { text-align: center; margin-bottom: 32px; }
+  .cert-academy { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #7c6010; font-family: 'Segoe UI', sans-serif; margin-bottom: 6px; }
+  .cert-title   { font-size: 42px; color: #1a1a1a; font-weight: normal; margin-bottom: 4px; }
+  .cert-subtitle { font-size: 16px; color: #7c6010; letter-spacing: 1px; }
+  .cert-divider { border: none; border-top: 1px solid #c9a227; margin: 24px 0; }
+
+  .cert-body { text-align: center; }
+  .cert-presented { font-size: 15px; color: #555; margin-bottom: 8px; font-style: italic; }
+  .cert-name { font-size: 48px; color: #1a1a1a; margin-bottom: 4px; font-style: italic; letter-spacing: 1px; }
+  .cert-name-line { border-bottom: 2px solid #c9a227; width: 70%; margin: 0 auto 20px; }
+  .cert-desc { font-size: 15px; color: #444; line-height: 1.8; max-width: 600px; margin: 0 auto 28px; }
+  .cert-course-name { font-size: 22px; font-weight: bold; color: #1a1a1a; }
+
+  .cert-meta {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-top: 40px;
+  }
+  .cert-meta-item { text-align: center; flex: 1; }
+  .cert-meta-item .label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 4px; }
+  .cert-meta-item .value { font-size: 14px; color: #333; font-weight: bold; }
+  .cert-meta-item .sig-line { border-top: 1px solid #888; margin-top: 32px; padding-top: 6px; }
+
+  .cert-seal {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: radial-gradient(circle, #f5c842, #c9a227, #8a6800);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; font-size: 9px; font-weight: bold; letter-spacing: 1px;
+    text-transform: uppercase; text-align: center; line-height: 1.4;
+    border: 3px solid #8a6800; margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  }
+  .cert-seal .icon { font-size: 24px; margin-bottom: 2px; }
+
+  .cert-id { font-size: 10px; color: #aaa; text-align: center; margin-top: 20px; font-family: monospace; }
+
+  /* CREDENTIALS CARD */
+  .cred-card {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a0533 60%, #0a1628 100%);
+    border: 2px solid #f5c842;
+    border-radius: 16px;
+    padding: 32px;
+    color: #fff;
+    max-width: 520px;
+    margin: 0 auto 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .cred-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .cred-logo { width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, #f5c842, #c9a227); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .cred-title { font-size: 18px; font-weight: 800; color: #f5c842; }
+  .cred-sub   { font-size: 12px; color: rgba(255,255,255,.6); }
+  .cred-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,230,118,.12); border: 1px solid rgba(0,230,118,.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #00e676; margin-bottom: 20px; }
+  .cred-name { font-size: 28px; font-weight: 900; margin-bottom: 4px; }
+  .cred-id   { font-size: 12px; color: rgba(255,255,255,.5); font-family: monospace; margin-bottom: 20px; }
+  .cred-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .cred-item { background: rgba(255,255,255,.05); border-radius: 10px; padding: 12px; }
+  .cred-item .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.45); margin-bottom: 4px; }
+  .cred-item .val { font-size: 15px; font-weight: 700; color: #f5c842; }
+  .cred-hash { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 10px; color: rgba(255,255,255,.5); word-break: break-all; }
+  .cred-footer { margin-top: 16px; font-size: 11px; color: rgba(255,255,255,.4); text-align: center; }
+
+  /* PRINT STYLES */
+  @media print {
+    body { background: #fff !important; }
+    header, .lookup-section, .action-bar, .cred-card { display: none !important; }
+    .cert-preview { display: block !important; max-width: 100%; padding: 0; margin: 0; }
+    .certificate { box-shadow: none; border-width: 6px; page-break-after: always; }
+    .print-cert-only .cred-card { display: none !important; }
+  }
+  @media print {
+    .print-cred-only .certificate { display: none !important; }
+    .print-cred-only .cred-card { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">KENOSTOD</div>
+    <div class="sub">Blockchain Academy LLC</div>
+  </div>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/utl-dashboard.html">UTL Dashboard</a>
+    <a href="/keno-market.html">KENO Market</a>
+  </nav>
+</header>
+
+<!-- Lookup Form -->
+<div class="lookup-section">
+  <h1>Graduate Credentials</h1>
+  <p>Enter your Graduate ID, email address, or BSC wallet address to view and print your certificate</p>
+  <div class="lookup-form">
+    <input type="text" id="lookupInput" placeholder="KG-XXXXXX-XXXX, email, or 0x wallet..." value="KG-20250101-TEST" />
+    <button class="btn btn-gold" onclick="lookupGraduate()">Look Up</button>
+  </div>
+  <div class="error-msg" id="errorMsg" style="display:none"></div>
+</div>
+
+<!-- Certificate + Credentials Display -->
+<div class="cert-preview" id="certPreview">
+
+  <div class="action-bar">
+    <button class="btn btn-print" onclick="printCertificate()">🖨️ Print Certificate</button>
+    <button class="btn btn-print" onclick="printCredentials()">🪪 Print Credentials Card</button>
+    <button class="btn btn-outline" onclick="window.print()">Print All</button>
+    <button class="btn btn-outline" onclick="shareCredentials()">📤 Share Link</button>
+  </div>
+
+  <!-- THE CERTIFICATE -->
+  <div class="certificate" id="theCertificate">
+    <div class="cert-corner tl"></div>
+    <div class="cert-corner tr"></div>
+    <div class="cert-corner bl"></div>
+    <div class="cert-corner br"></div>
+
+    <div class="cert-header">
+      <div class="cert-academy">Kenostod Blockchain Academy LLC</div>
+      <div class="cert-title">Certificate of Completion</div>
+      <div class="cert-subtitle">Education-Fi (E-Fi) Protocol · Blockchain Studies</div>
+    </div>
+
+    <hr class="cert-divider">
+
+    <div class="cert-body">
+      <div class="cert-presented">This certifies that</div>
+      <div class="cert-name" id="certName">—</div>
+      <div class="cert-name-line"></div>
+      <div class="cert-desc">
+        has successfully completed the comprehensive<br>
+        <span class="cert-course-name" id="certCourse">21-Course Blockchain Curriculum</span><br>
+        demonstrating mastery of blockchain technology, DeFi protocols,<br>
+        smart contract development, and Web3 innovation.
+      </div>
+
+      <div class="cert-meta">
+        <div class="cert-meta-item">
+          <div class="label">Date of Completion</div>
+          <div class="value" id="certDate">—</div>
+          <div class="sig-line">
+            <div class="label">Completion Date</div>
+          </div>
+        </div>
+
+        <div class="cert-meta-item">
+          <div class="cert-seal">
+            <div class="icon">🎓</div>
+            <div>Kenostod</div>
+            <div>Verified</div>
+          </div>
+        </div>
+
+        <div class="cert-meta-item">
+          <div class="label">Nickeo Coleman</div>
+          <div class="value" style="font-style:italic">Founder & Lead Instructor</div>
+          <div class="sig-line">
+            <div class="label">Kenostod Blockchain Academy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cert-id">
+      Graduate ID: <span id="certId">—</span> &nbsp;|&nbsp;
+      NFT Tier: <span id="certTier">—</span> &nbsp;|&nbsp;
+      Certificate Hash: <span id="certHash">—</span> &nbsp;|&nbsp;
+      Verify: kenostod.com/verify
+    </div>
+  </div>
+
+  <!-- CREDENTIALS CARD -->
+  <div class="cred-card" id="theCredCard">
+    <div class="cred-header">
+      <div class="cred-logo">🎓</div>
+      <div>
+        <div class="cred-title">Kenostod Graduate</div>
+        <div class="cred-sub">Blockchain Academy LLC · BSC Verified</div>
+      </div>
+    </div>
+
+    <div class="cred-badge">✓ Verified on BNB Smart Chain</div>
+
+    <div class="cred-name" id="credName">—</div>
+    <div class="cred-id" id="credId">Graduate ID: —</div>
+
+    <div class="cred-grid">
+      <div class="cred-item">
+        <div class="lbl">Courses Completed</div>
+        <div class="val" id="credCourses">—</div>
+      </div>
+      <div class="cred-item">
+        <div class="lbl">NFT Tier</div>
+        <div class="val" id="credTier">—</div>
+      </div>
+      <div class="cred-item">
+        <div class="lbl">KENO Earned</div>
+        <div class="val" id="credKeno">—</div>
+      </div>
+      <div class="cred-item">
+        <div class="lbl">Completion Date</div>
+        <div class="val" id="credDate">—</div>
+      </div>
+    </div>
+
+    <div class="cred-hash" id="credHash">Certificate Hash: —</div>
+
+    <div class="cred-footer">
+      Credential verifiable by employers, DeFi protocols, and anyone you share it with<br>
+      <strong style="color:rgba(245,200,66,.7)">kenostod.com/verify</strong>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentGraduate = null;
+
+async function lookupGraduate() {
+  const id = document.getElementById('lookupInput').value.trim();
+  if (!id) return;
+
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('certPreview').classList.remove('visible');
+
+  try {
+    const res  = await fetch(`/api/graduates/verify/${encodeURIComponent(id)}`);
+    const data = await res.json();
+
+    if (!data.success || !data.isGraduate) {
+      document.getElementById('errorMsg').textContent = 'No graduate record found for: ' + id;
+      document.getElementById('errorMsg').style.display = 'block';
+      return;
+    }
+
+    currentGraduate = data.graduate;
+    populateCertificate(data.graduate);
+    document.getElementById('certPreview').classList.add('visible');
+    document.getElementById('certPreview').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(e) {
+    document.getElementById('errorMsg').textContent = 'Error looking up graduate: ' + e.message;
+    document.getElementById('errorMsg').style.display = 'block';
+  }
+}
+
+function populateCertificate(g) {
+  const name = g.graduate_name || 'Kenostod Graduate';
+  const date = g.completion_date ? new Date(g.completion_date).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '—';
+  const courses = g.total_courses || 21;
+  const tier    = g.rvt_nft_tier || 'Platinum';
+  const keno    = g.keno_earned ? Number(g.keno_earned).toLocaleString() + ' KENO' : '—';
+  const hash    = g.certificate_hash || '—';
+  const gid     = g.graduate_id || '—';
+
+  // Certificate
+  document.getElementById('certName').textContent   = name;
+  document.getElementById('certDate').textContent   = date;
+  document.getElementById('certId').textContent     = gid;
+  document.getElementById('certTier').textContent   = tier;
+  document.getElementById('certHash').textContent   = hash.length > 30 ? hash.slice(0,30) + '...' : hash;
+  document.getElementById('certCourse').textContent = courses + '-Course Blockchain Curriculum';
+
+  // Credentials card
+  document.getElementById('credName').textContent    = name;
+  document.getElementById('credId').textContent      = 'Graduate ID: ' + gid;
+  document.getElementById('credCourses').textContent = courses + ' / 21';
+  document.getElementById('credTier').textContent    = tier;
+  document.getElementById('credKeno').textContent    = keno;
+  document.getElementById('credDate').textContent    = date;
+  document.getElementById('credHash').textContent    = 'Cert Hash: ' + hash;
+}
+
+function printCertificate() {
+  document.body.classList.add('print-cert-only');
+  window.print();
+  setTimeout(() => document.body.classList.remove('print-cert-only'), 1000);
+}
+
+function printCredentials() {
+  document.body.classList.add('print-cred-only');
+  window.print();
+  setTimeout(() => document.body.classList.remove('print-cred-only'), 1000);
+}
+
+function shareCredentials() {
+  const id = currentGraduate?.graduate_id;
+  if (!id) return;
+  const url = window.location.origin + '/certificate.html?id=' + encodeURIComponent(id);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url);
+    alert('Certificate link copied to clipboard:\n' + url);
+  } else {
+    prompt('Share this link:', url);
+  }
+}
+
+// Auto-load from URL param
+const urlId = new URLSearchParams(window.location.search).get('id');
+if (urlId) {
+  document.getElementById('lookupInput').value = urlId;
+  lookupGraduate();
+} else {
+  // Auto-load test graduate
+  lookupGraduate();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trinity NFT Mint | The King's Shield</title>
+  <meta name="description" content="Mint the Sovereign Trinity NFT Collection — KENO Genesis (BSC), Queens Chariot Ascension (Base), Kings Shield Aegis (Solana). Own all 3 to unlock the 7 Houses of Royals."/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/style.css"/>
+  <style>
+    .nft-hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(200,146,10,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .nft-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.35s;
+      position: relative;
+    }
+    .nft-card:hover {
+      border-color: rgba(245,200,66,0.4);
+      transform: translateY(-6px);
+      box-shadow: 0 16px 60px rgba(0,0,0,0.6), 0 0 40px rgba(200,146,10,0.15);
+    }
+    .nft-art {
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .nft-art-keno {
+      background: radial-gradient(ellipse at center, rgba(200,146,10,0.25) 0%, rgba(8,7,5,0.9) 70%);
+    }
+    .nft-art-chariot {
+      background: radial-gradient(ellipse at center, rgba(100,60,200,0.25) 0%, rgba(8,7,5,0.9) 70%);
+    }
+    .nft-art-aegis {
+      background: radial-gradient(ellipse at center, rgba(0,200,150,0.2) 0%, rgba(8,7,5,0.9) 70%);
+    }
+    .nft-art-icon { font-size: 5rem; filter: drop-shadow(0 0 20px rgba(245,200,66,0.5)); }
+    .nft-art-grid {
+      position: absolute; inset: 0; opacity: 0.08;
+      background-image:
+        linear-gradient(rgba(200,146,10,0.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,146,10,0.5) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+    .nft-card-body { padding: 28px; }
+    .nft-chain-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .nft-name {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin-bottom: 4px;
+    }
+    .nft-type {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .nft-supply {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+    .nft-supply-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      margin-top: 2px;
+    }
+    .nft-supply-meaning {
+      font-size: 0.75rem;
+      color: var(--gold);
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    .nft-benefits {
+      background: rgba(200,146,10,0.05);
+      border: 1px solid rgba(200,146,10,0.15);
+      border-radius: 4px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+    }
+    .nft-benefits-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .nft-benefit-item {
+      font-size: 0.82rem;
+      color: var(--text);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(200,146,10,0.08);
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .nft-benefit-item:last-child { border-bottom: none; }
+    .nft-benefit-item::before { content: '→'; color: var(--gold); flex-shrink: 0; font-size: 0.7rem; padding-top: 2px; }
+    .mint-btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-mint-soon {
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 3px;
+      padding: 12px 24px;
+      cursor: not-allowed;
+      text-transform: uppercase;
+      flex: 1;
+      text-align: center;
+    }
+    .btn-mint-notify {
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      color: var(--gold-light);
+      background: transparent;
+      border: 1px solid rgba(245,200,66,0.3);
+      border-radius: 3px;
+      padding: 12px 20px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .btn-mint-notify:hover { background: rgba(245,200,66,0.08); }
+
+    /* Crown Jewel section */
+    .crown-jewel {
+      background: linear-gradient(135deg, rgba(200,146,10,0.08), rgba(200,146,10,0.03));
+      border: 1px solid rgba(200,146,10,0.25);
+      border-radius: 8px;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .crown-jewel::before {
+      content: '👑';
+      position: absolute; top: -20px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 5rem; opacity: 0.06;
+    }
+    .crown-jewel-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      color: var(--gold-light);
+      margin-bottom: 8px;
+    }
+    .crown-jewel-sub {
+      font-size: 0.85rem;
+      color: rgba(232,224,208,0.5);
+      margin-bottom: 24px;
+      line-height: 1.7;
+      max-width: 580px;
+      margin-left: auto; margin-right: auto;
+    }
+    .crown-stat-row {
+      display: flex; gap: 32px; justify-content: center;
+      flex-wrap: wrap; margin-top: 32px;
+    }
+    .crown-stat { text-align: center; }
+    .crown-stat-val {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gold-light);
+    }
+    .crown-stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Bundle section */
+    .bundle-card {
+      background: linear-gradient(135deg, #0d0a05, #150f02);
+      border: 2px solid rgba(245,200,66,0.3);
+      border-radius: 8px;
+      padding: 48px 40px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(200,146,10,0.08), inset 0 0 40px rgba(200,146,10,0.03);
+    }
+    .bundle-icons { font-size: 2.5rem; margin-bottom: 24px; letter-spacing: 8px; }
+    .bundle-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      color: var(--gold-light);
+      margin-bottom: 12px;
+    }
+    .bundle-perks {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 32px 0;
+      text-align: left;
+    }
+    .bundle-perk {
+      background: rgba(200,146,10,0.06);
+      border: 1px solid rgba(200,146,10,0.15);
+      border-radius: 4px;
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      color: var(--text);
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .bundle-perk-icon { flex-shrink: 0; font-size: 1rem; }
+
+    /* Access ladder */
+    .access-row {
+      display: flex; align-items: stretch; gap: 0;
+      border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden;
+    }
+    .access-level {
+      flex: 1;
+      padding: 24px 20px;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .access-level:last-child { border-right: none; }
+    .access-icon { font-size: 2rem; margin-bottom: 8px; }
+    .access-name {
+      font-family: var(--font-serif);
+      font-size: 0.75rem;
+      color: var(--gold-light);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .access-desc {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    @media (max-width: 600px) {
+      .access-row { flex-direction: column; }
+      .access-level { border-right: none; border-bottom: 1px solid var(--border); }
+      .access-level:last-child { border-bottom: none; }
+      .crown-jewel { padding: 32px 20px; }
+      .bundle-card { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar" class="scrolled">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;">
+        <div class="shield-icon-small">⚔</div>
+        <span>KINGS SHIELD</span>
+      </a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/#story">THE STORY</a></li>
+      <li><a href="/#convergence">6174</a></li>
+      <li><a href="/trinity-mint.html" class="nav-trinity">TRINITY NFT</a></li>
+      <li><a href="/nft-artwork.html">NFT ART</a></li>
+      <li><a href="/sovereign-throne.html">7 HOUSES</a></li>
+      <li><a href="/chariot-gate.html" class="nav-chariot">🐎 GATE</a></li>
+      <li><a href="https://kenostodblockchain.com" target="_blank" rel="noopener" class="nav-keno">KENO SITE ↗</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="/">HOME</a>
+    <a href="/trinity-mint.html">🪙 TRINITY NFT</a>
+    <a href="/nft-artwork.html">🎨 NFT ARTWORK</a>
+    <a href="/sovereign-throne.html">👑 7 HOUSES</a>
+    <a href="/chariot-gate.html">🐎 CHARIOT GATE</a>
+    <a href="https://kenostodblockchain.com" target="_blank" rel="noopener">KENO SITE ↗</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div style="position:relative;overflow:hidden;">
+  <div class="nft-hero-bg"></div>
+  <div class="page-hero">
+    <div class="page-eyebrow">Sovereign Trinity · NFT Collection · Cross-Chain</div>
+    <h1 class="page-title">Mint the Trinity.<br/>Enter the Kingdom.</h1>
+    <p class="page-sub">Three NFTs. Three chains. One sovereign kingdom. Own all three and you hold a living stake in every revenue stream the Sovereign Economy generates — forever.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="/chariot-gate.html" class="ks-btn-primary">Enter the Gate 🐎</a>
+      <a href="/nft-artwork.html" class="ks-btn-ghost">View NFT Artwork</a>
+    </div>
+  </div>
+</div>
+
+<!-- THE HISTORIC CLAIM -->
+<div class="ks-section">
+  <div class="ks-section-inner">
+    <div style="background:rgba(200,146,10,0.05);border:1px solid rgba(200,146,10,0.2);border-radius:6px;padding:32px 40px;text-align:center;max-width:780px;margin:0 auto;">
+      <div class="page-eyebrow" style="margin-bottom:12px;">First in History</div>
+      <p style="font-family:var(--font-serif);font-size:clamp(0.95rem,2.5vw,1.2rem);color:var(--text);line-height:1.8;font-style:italic;">
+        "No one has built a gated sovereign economy behind a trinity of cross-chain NFTs where the access vehicle is itself a revenue-generating token. <span class="gold">That's the first in history.</span>"
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- THE 3 NFT COLLECTIONS -->
+<div class="ks-section ks-section-dark">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div class="ks-tag">The Collections</div>
+      <h2 style="font-family:var(--font-serif);font-size:clamp(1.6rem,4vw,2.4rem);color:var(--text);margin-bottom:8px;">Three Tiers. <span class="gold">One Trinity.</span></h2>
+      <p style="font-size:0.88rem;color:var(--text-dim);max-width:500px;margin:0 auto;">Each NFT is rooted in a mathematical constant. Each one earns from a different protocol revenue stream. Together they form the Sovereign Trinity.</p>
+    </div>
+
+    <div class="ks-grid-3">
+
+      <!-- KENO Genesis -->
+      <div class="nft-card" data-reveal>
+        <div class="nft-art nft-art-keno">
+          <div class="nft-art-grid"></div>
+          <div style="text-align:center;position:relative;z-index:2;">
+            <div class="nft-art-icon">🪙</div>
+            <div style="font-family:var(--font-mono);font-size:0.7rem;color:rgba(245,200,66,0.5);letter-spacing:0.2em;margin-top:8px;">KAPREKAR · 6174</div>
+          </div>
+        </div>
+        <div class="nft-card-body">
+          <div class="nft-chain-row">
+            <span class="ks-badge ks-badge-chain">BSC</span>
+            <span class="ks-badge ks-badge-soon">Mint Opens July 23</span>
+          </div>
+          <div class="nft-name">KENO Genesis NFT</div>
+          <div class="nft-type">Foundation Tier · The Seed</div>
+          <div class="nft-supply">6,174</div>
+          <div class="nft-supply-label">Total Supply</div>
+          <div class="nft-supply-meaning">Rooted in Kaprekar's Constant — 6174. Every 4-digit number converges here in ≤7 steps. Your NFT is mathematically unique.</div>
+          <div class="nft-benefits">
+            <div class="nft-benefits-label">You Earn</div>
+            <div class="nft-benefit-item">% of KENO bonding curve revenue</div>
+            <div class="nft-benefit-item">Staking APY boost on the KENO protocol</div>
+            <div class="nft-benefit-item">Early access to all future KENO products</div>
+          </div>
+          <div class="mint-btn-row">
+            <div class="btn-mint-soon">Mint Opens July 23</div>
+            <button class="btn-mint-notify" onclick="notify('keno')">Notify Me</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Queens Chariot -->
+      <div class="nft-card" data-reveal>
+        <div class="nft-art nft-art-chariot">
+          <div class="nft-art-grid"></div>
+          <div style="text-align:center;position:relative;z-index:2;">
+            <div class="nft-art-icon">🐎</div>
+            <div style="font-family:var(--font-mono);font-size:0.7rem;color:rgba(200,150,255,0.5);letter-spacing:0.2em;margin-top:8px;">RAMANUJAN · 1729</div>
+          </div>
+        </div>
+        <div class="nft-card-body">
+          <div class="nft-chain-row">
+            <span class="ks-badge ks-badge-chain">BASE</span>
+            <span class="ks-badge ks-badge-soon">Coming Soon</span>
+          </div>
+          <div class="nft-name">Queens Chariot Ascension NFT</div>
+          <div class="nft-type">Movement Tier · The Vehicle</div>
+          <div class="nft-supply">1,729</div>
+          <div class="nft-supply-label">Total Supply</div>
+          <div class="nft-supply-meaning">Ramanujan's number — the smallest expressible as sum of two cubes in two ways. Found by a self-taught genius from poverty. Your NFT carries that story.</div>
+          <div class="nft-benefits">
+            <div class="nft-benefits-label">You Earn</div>
+            <div class="nft-benefit-item">QCT trading fee share on every transaction</div>
+            <div class="nft-benefit-item">Cross-chain bridge fees from every QCT move</div>
+            <div class="nft-benefit-item">Early access to Hyperliquid vault strategies</div>
+          </div>
+          <div class="mint-btn-row">
+            <div class="btn-mint-soon">Coming Soon</div>
+            <button class="btn-mint-notify" onclick="notify('chariot')">Notify Me</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kings Shield Aegis -->
+      <div class="nft-card" data-reveal>
+        <div class="nft-art nft-art-aegis">
+          <div class="nft-art-grid"></div>
+          <div style="text-align:center;position:relative;z-index:2;">
+            <div class="nft-art-icon">⚔️</div>
+            <div style="font-family:var(--font-mono);font-size:0.7rem;color:rgba(0,255,136,0.5);letter-spacing:0.2em;margin-top:8px;">KAPREKAR FRACTION · 617</div>
+          </div>
+        </div>
+        <div class="nft-card-body">
+          <div class="nft-chain-row">
+            <span class="ks-badge ks-badge-chain">SOLANA</span>
+            <span class="ks-badge ks-badge-soon">Coming Soon</span>
+          </div>
+          <div class="nft-name">Kings Shield Aegis NFT</div>
+          <div class="nft-type">Protection Tier · The Shield</div>
+          <div class="nft-supply">617</div>
+          <div class="nft-supply-label">Total Supply</div>
+          <div class="nft-supply-meaning">The rarest of the three. 617 — the fractional core of Kaprekar's constant. This is the inner circle of the sovereign kingdom. Only 617 exist. Ever.</div>
+          <div class="nft-benefits">
+            <div class="nft-benefits-label">You Earn</div>
+            <div class="nft-benefit-item">6.174% Aegis Tax revenue share — every SHIELD transfer, forever</div>
+            <div class="nft-benefit-item">Founding Council governance rights</div>
+            <div class="nft-benefit-item">Protocol-level revenue from all SHIELD volume</div>
+          </div>
+          <div class="mint-btn-row">
+            <div class="btn-mint-soon">Coming Soon</div>
+            <button class="btn-mint-notify" onclick="notify('aegis')">Notify Me</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- WYOMING CROWN JEWEL -->
+<div class="ks-section">
+  <div class="ks-section-inner">
+    <div class="crown-jewel">
+      <div class="ks-tag" style="margin-bottom:16px;">The Crown Jewel</div>
+      <div class="crown-jewel-title">Wyoming SPDI NFT</div>
+      <div class="crown-jewel-sub">
+        This one deserves special attention. When Wyoming grants the SPDI charter, Kenostod becomes a <strong style="color:var(--gold-light);">legally recognized bank.</strong> The Wyoming SPDI NFT means you hold a fractional stake in a sovereign bank. Bank ownership — tokenized, for the first time, for the 2.4 billion the banking system excluded.
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(245,200,66,0.2);padding:8px 20px;border-radius:3px;margin-bottom:24px;">
+        <span style="font-size:0.65rem;letter-spacing:0.2em;color:var(--gold);font-family:var(--font-serif);text-transform:uppercase;">SPDI Charter In Progress</span>
+      </div>
+      <div style="font-family:var(--font-serif);font-size:0.8rem;color:rgba(232,224,208,0.4);font-style:italic;max-width:480px;margin:0 auto;">
+        "This has literally never been done. Bank ownership has never been tokenized at this level for everyday people."
+      </div>
+      <div class="crown-stat-row">
+        <div class="crown-stat">
+          <div class="crown-stat-val">Wyoming</div>
+          <div class="crown-stat-label">SPDI Charter State</div>
+        </div>
+        <div class="crown-stat">
+          <div class="crown-stat-val">Fractional</div>
+          <div class="crown-stat-label">Bank Ownership Stake</div>
+        </div>
+        <div class="crown-stat">
+          <div class="crown-stat-val">2.4B</div>
+          <div class="crown-stat-label">People This Opens Banking To</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRINITY BUNDLE -->
+<div class="ks-section ks-section-dark">
+  <div class="ks-section-inner">
+    <div class="bundle-card">
+      <div class="bundle-icons">🪙 🐎 ⚔️</div>
+      <div class="bundle-title">The Sovereign Trinity Bundle</div>
+      <p style="font-size:0.9rem;color:rgba(232,224,208,0.55);max-width:520px;margin:0 auto 8px;line-height:1.7;">Own all three. Unlock everything.</p>
+      <div class="bundle-perks">
+        <div class="bundle-perk"><span class="bundle-perk-icon">👑</span><div><strong>Founding Council Status</strong><br/><span style="color:var(--text-dim);font-size:0.78rem;">Your name is written into the protocol's history</span></div></div>
+        <div class="bundle-perk"><span class="bundle-perk-icon">🏠</span><div><strong>All 7 Houses Access</strong><br/><span style="color:var(--text-dim);font-size:0.78rem;">Every revenue stream, every dashboard</span></div></div>
+        <div class="bundle-perk"><span class="bundle-perk-icon">🗳️</span><div><strong>DAO Governance Weight</strong><br/><span style="color:var(--text-dim);font-size:0.78rem;">Full voting rights on protocol decisions</span></div></div>
+        <div class="bundle-perk"><span class="bundle-perk-icon">🐎</span><div><strong>Chariot Gate Access</strong><br/><span style="color:var(--text-dim);font-size:0.78rem;">Cross-site transport between the Kingdom and Fortress</span></div></div>
+        <div class="bundle-perk"><span class="bundle-perk-icon">💰</span><div><strong>All Revenue Streams</strong><br/><span style="color:var(--text-dim);font-size:0.78rem;">Arb profits + Aegis Tax + bridge fees + staking yields</span></div></div>
+        <div class="bundle-perk"><span class="bundle-perk-icon">⚡</span><div><strong>Priority Mint Access</strong><br/><span style="color:var(--text-dim);font-size:0.78rem;">Early entry to all future Sovereign Economy NFTs</span></div></div>
+      </div>
+      <a href="/chariot-gate.html" class="ks-btn-primary">Ride to the Kingdom →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESS LADDER -->
+<div class="ks-section">
+  <div class="ks-section-inner">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div class="ks-tag">How Access Works</div>
+      <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text);">The <span class="gold">Access Hierarchy</span></h2>
+    </div>
+    <div class="access-row">
+      <div class="access-level">
+        <div class="access-icon">🌐</div>
+        <div class="access-name">Public</div>
+        <div class="access-desc">kings-shield.com visible to all. The story, the token, the mission.</div>
+      </div>
+      <div class="access-level" style="background:rgba(200,146,10,0.04);">
+        <div class="access-icon">🪙</div>
+        <div class="access-name">KENO Holder</div>
+        <div class="access-desc">Hold KENO. See the first door. The chariot begins to appear.</div>
+      </div>
+      <div class="access-level" style="background:rgba(200,146,10,0.06);">
+        <div class="access-icon">⚔️</div>
+        <div class="access-name">SHIELD Holder</div>
+        <div class="access-desc">Hold SHIELD. Complete two thirds of the Trinity.</div>
+      </div>
+      <div class="access-level" style="background:rgba(200,146,10,0.1);border:1px solid rgba(245,200,66,0.2);">
+        <div class="access-icon">🐎</div>
+        <div class="access-name">Trinity Complete</div>
+        <div class="access-desc">The Chariot arrives. You walk into the kingdom as a Royal. 7 Houses open.</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+      <p style="font-family:var(--font-serif);font-size:0.8rem;color:rgba(232,224,208,0.35);font-style:italic;">"The Chariot doesn't carry passengers. Only owners ride."</p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-shield">⚔</div>
+      <div class="footer-name">THE KINGS SHIELD</div>
+      <div class="footer-sub">Sovereign Trinity NFT Collection · 6174 · Cross-Chain</div>
+    </div>
+    <div class="footer-links">
+      <a href="/">Kings Shield Home</a>
+      <a href="/sovereign-throne.html">7 Houses</a>
+      <a href="/nft-artwork.html">NFT Artwork</a>
+      <a href="/chariot-gate.html">Chariot Gate</a>
+      <a href="https://kenostodblockchain.com" target="_blank" rel="noopener">Kenostod Academy</a>
+    </div>
+    <div class="footer-disclaimer">SHIELD and the Sovereign Trinity NFTs are utility tokens/NFTs. Not financial advice. DYOR.</div>
+    <div class="footer-kaprekar">Kaprekar's Constant: 6174 · All paths converge · © 2026 Kenostod Blockchain Academy LLC</div>
+  </div>
+</footer>
+
+<script src="/app.js"></script>
+<script>
+  const notifications = {};
+  function notify(nft) {
+    if (notifications[nft]) return;
+    notifications[nft] = true;
+    const names = { keno: 'KENO Genesis', chariot: 'Queens Chariot', aegis: 'Kings Shield Aegis' };
+    alert('✅ Noted! We\'ll announce the ' + names[nft] + ' NFT mint in the community. Join the Telegram: t.me/kenostodacademy');
+  }
+</script>
+</body>
+</html>

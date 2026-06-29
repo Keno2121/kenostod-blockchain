@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G.I.F.T. — First Meeting | Kenostod Graduate Club</title>
+<meta name="description" content="You just experienced a Kenostod G.I.F.T. Eureka moment. First meeting. Forever recorded.">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#060409;
+  font-family:'Segoe UI',Arial,sans-serif;
+  color:#e2d9f3;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Starfield ── */
+.stars { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+.star { position:absolute; border-radius:50%; background:#fff; animation:twinkle var(--d,3s) ease-in-out infinite; opacity:0; }
+@keyframes twinkle { 0%,100%{opacity:0;} 50%{opacity:var(--o,.6);} }
+
+/* ── Layout ── */
+.page { position:relative; z-index:1; max-width:480px; margin:0 auto; padding:32px 20px 60px; }
+
+/* ── Header ── */
+.brand { display:flex; align-items:center; gap:10px; margin-bottom:32px; }
+.brand-logo { font-size:1.6rem; }
+.brand-name { font-size:.9rem; font-weight:800; color:#a78bfa; letter-spacing:.5px; }
+.brand-sub  { font-size:.65rem; color:rgba(167,139,250,.4); text-transform:uppercase; letter-spacing:2px; }
+
+/* ── Shield proximity display ── */
+.shields-wrap {
+  display:flex; justify-content:center; align-items:center; gap:24px;
+  margin:0 auto 32px; padding:28px 20px;
+  background:rgba(124,58,237,.06); border:1px solid rgba(124,58,237,.18);
+  border-radius:20px;
+}
+.shield-block { text-align:center; }
+.shield {
+  width:80px; height:80px;
+  position:relative; display:flex; flex-direction:column;
+  gap:4px; padding:10px; border-radius:8px;
+  border:2px solid rgba(124,58,237,.3);
+  background:rgba(10,6,15,.8);
+  margin:0 auto 8px;
+}
+.shield-row { display:flex; gap:4px; justify-content:center; }
+.block {
+  width:16px; height:16px; border-radius:3px;
+  background:rgba(60,20,120,.3);
+  border:1px solid rgba(124,58,237,.15);
+  transition:background .3s, border-color .3s, box-shadow .5s;
+}
+.block.lit {
+  background:#7c3aed;
+  border-color:#a78bfa;
+  box-shadow:0 0 8px #7c3aed, 0 0 2px #a78bfa inset;
+}
+.block.eureka {
+  background:#fbbf24;
+  border-color:#fde68a;
+  box-shadow:0 0 12px #fbbf24, 0 0 4px #fde68a inset;
+  animation:pulse-gold .6s ease-in-out infinite alternate;
+}
+@keyframes pulse-gold { from{box-shadow:0 0 8px #fbbf24;} to{box-shadow:0 0 20px #fbbf24, 0 0 40px rgba(251,191,36,.3);} }
+
+.shield-label { font-size:.72rem; color:rgba(167,139,250,.6); font-weight:600; }
+.shield-name  { font-size:.85rem; color:#e2d9f3; font-weight:700; margin-top:2px; }
+
+.connector {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  color:rgba(167,139,250,.5); font-size:.7rem; text-transform:uppercase; letter-spacing:2px;
+}
+.connector-line {
+  width:2px; height:40px;
+  background:linear-gradient(to bottom, rgba(124,58,237,.1), rgba(251,191,36,.6), rgba(124,58,237,.1));
+  border-radius:2px;
+  transition:background .5s;
+}
+.connector-line.eureka {
+  background:linear-gradient(to bottom, #7c3aed, #fbbf24, #7c3aed);
+  animation:pulse-line 1s ease-in-out infinite;
+  box-shadow:0 0 8px rgba(251,191,36,.4);
+}
+@keyframes pulse-line { 0%,100%{opacity:.6;} 50%{opacity:1;} }
+
+/* ── Status messages ── */
+.status-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 18px; border-radius:30px;
+  font-size:.78rem; font-weight:700; letter-spacing:.5px;
+  margin-bottom:24px;
+}
+.status-scanning { background:rgba(251,191,36,.08); border:1px solid rgba(251,191,36,.3); color:#fbbf24; }
+.status-eureka   { background:rgba(251,191,36,.15); border:1px solid #fbbf24; color:#fbbf24; animation:pulse-glow 1.5s ease-in-out infinite; }
+.status-met      { background:rgba(124,58,237,.12); border:1px solid rgba(124,58,237,.4); color:#a78bfa; }
+.status-error    { background:rgba(239,68,68,.08);  border:1px solid rgba(239,68,68,.3);  color:#fca5a5; }
+@keyframes pulse-glow { 0%,100%{box-shadow:none;} 50%{box-shadow:0 0 20px rgba(251,191,36,.3);} }
+
+/* ── Graduate card ── */
+.grad-card {
+  background:rgba(124,58,237,.07); border:1px solid rgba(124,58,237,.2);
+  border-radius:16px; padding:20px; margin-bottom:20px;
+}
+.grad-card-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.grad-avatar {
+  width:48px; height:48px; border-radius:50%;
+  background:linear-gradient(135deg, #4c1d95, #7c3aed);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.4rem; font-weight:900; color:#e9d5ff;
+  border:2px solid rgba(167,139,250,.4);
+  flex-shrink:0;
+}
+.grad-info { flex:1; }
+.grad-name { font-size:1.05rem; font-weight:800; color:#e2d9f3; }
+.grad-id   { font-size:.72rem; color:rgba(167,139,250,.5); font-family:monospace; margin-top:2px; }
+.grad-tier { display:inline-block; padding:3px 10px; border-radius:12px; font-size:.68rem; font-weight:700; margin-top:4px; }
+.tier-platinum { background:rgba(226,232,240,.1); border:1px solid rgba(226,232,240,.3); color:#e2e8f0; }
+.tier-gold     { background:rgba(251,191,36,.1);  border:1px solid rgba(251,191,36,.3);  color:#fbbf24; }
+.tier-silver   { background:rgba(148,163,184,.1); border:1px solid rgba(148,163,184,.3); color:#94a3b8; }
+
+.grad-stats { display:flex; gap:12px; flex-wrap:wrap; }
+.stat { background:rgba(0,0,0,.2); border-radius:8px; padding:8px 14px; text-align:center; flex:1; min-width:80px; }
+.stat-val { font-size:1.1rem; font-weight:800; color:#a78bfa; }
+.stat-lbl { font-size:.63rem; color:rgba(167,139,250,.5); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+
+/* ── Eureka result ── */
+.eureka-box {
+  background:linear-gradient(135deg, rgba(251,191,36,.08), rgba(124,58,237,.12));
+  border:1px solid rgba(251,191,36,.35);
+  border-radius:16px; padding:24px; text-align:center; margin-bottom:20px;
+}
+.eureka-icon { font-size:2.8rem; margin-bottom:10px; display:block; }
+.eureka-title { font-size:1.4rem; font-weight:900; color:#fbbf24; margin-bottom:6px; }
+.eureka-sub   { font-size:.85rem; color:rgba(226,190,100,.7); margin-bottom:14px; }
+.eureka-hash  {
+  font-family:monospace; font-size:.65rem; color:rgba(167,139,250,.4);
+  background:rgba(0,0,0,.3); border-radius:6px; padding:8px 12px;
+  word-break:break-all; text-align:left; margin-top:10px;
+}
+
+.meeting-number {
+  display:inline-block; background:rgba(251,191,36,.15); border:1px solid rgba(251,191,36,.4);
+  border-radius:8px; padding:4px 14px; font-size:.8rem; font-weight:700; color:#fbbf24;
+  margin-top:8px;
+}
+
+/* ── Input form ── */
+.form-section { margin-bottom:20px; }
+.form-label { font-size:.78rem; color:rgba(167,139,250,.7); font-weight:600; margin-bottom:8px; display:block; }
+.form-input {
+  width:100%; background:rgba(124,58,237,.08); border:1px solid rgba(124,58,237,.25);
+  border-radius:10px; padding:13px 16px; color:#e2d9f3; font-size:.9rem;
+  outline:none; transition:border-color .2s;
+}
+.form-input:focus { border-color:rgba(167,139,250,.6); }
+.form-input::placeholder { color:rgba(167,139,250,.3); }
+
+/* ── Buttons ── */
+.btn {
+  width:100%; padding:15px; border-radius:12px; border:none; cursor:pointer;
+  font-size:.95rem; font-weight:700; letter-spacing:.5px; transition:all .2s;
+}
+.btn-primary {
+  background:linear-gradient(135deg, #7c3aed, #5b21b6);
+  color:#fff;
+}
+.btn-primary:hover { background:linear-gradient(135deg, #8b5cf6, #6d28d9); transform:translateY(-1px); }
+.btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+.btn-gold {
+  background:linear-gradient(135deg, #d97706, #b45309);
+  color:#fff; margin-top:10px;
+}
+.btn-ghost {
+  background:transparent; border:1px solid rgba(124,58,237,.3); color:#a78bfa;
+  margin-top:10px;
+}
+
+/* ── CTA ── */
+.cta-box {
+  background:rgba(124,58,237,.06); border:1px solid rgba(124,58,237,.2);
+  border-radius:14px; padding:20px; text-align:center; margin-top:20px;
+}
+.cta-box h3 { font-size:1rem; font-weight:800; color:#e2d9f3; margin-bottom:6px; }
+.cta-box p  { font-size:.8rem; color:rgba(167,139,250,.6); margin-bottom:14px; line-height:1.6; }
+
+/* ── Tagline ── */
+.tagline {
+  text-align:center; font-size:.75rem; font-style:italic;
+  color:rgba(167,139,250,.35); margin-top:32px; letter-spacing:.5px;
+}
+
+/* ── Chime animation ── */
+.chime {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:0; height:0; border-radius:50%;
+  background:rgba(251,191,36,.15);
+  pointer-events:none; z-index:999;
+  animation:chime-burst 1.2s ease-out forwards;
+}
+@keyframes chime-burst {
+  0%   { width:0; height:0; opacity:.8; }
+  100% { width:800px; height:800px; opacity:0; }
+}
+
+/* ── Already met ── */
+.already-met-box {
+  background:rgba(124,58,237,.07); border:1px solid rgba(124,58,237,.25);
+  border-radius:14px; padding:20px; text-align:center; margin-bottom:20px;
+}
+.met-date { font-size:.78rem; color:rgba(167,139,250,.5); margin-top:6px; }
+
+/* ── Loading ── */
+.loading { text-align:center; padding:40px 20px; }
+.spinner {
+  width:36px; height:36px; border:3px solid rgba(124,58,237,.2);
+  border-top-color:#7c3aed; border-radius:50%;
+  animation:spin .8s linear infinite; margin:0 auto 14px;
+}
+@keyframes spin { to{transform:rotate(360deg);} }
+
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- Starfield -->
+<div class="stars" id="stars"></div>
+
+<div class="page">
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-logo">🛡✨</div>
+    <div>
+      <div class="brand-name">G.I.F.T. — Kenostod</div>
+      <div class="brand-sub">Generational Identification Fabric Technology</div>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div id="loadingView" class="loading">
+    <div class="spinner"></div>
+    <p style="color:rgba(167,139,250,.5);font-size:.85rem;">Loading Kenostodist profile...</p>
+  </div>
+
+  <!-- Main content (hidden until profile loads) -->
+  <div id="mainView" class="hidden">
+
+    <!-- Shield proximity display -->
+    <div class="shields-wrap">
+      <div class="shield-block">
+        <div class="shield" id="shieldA">
+          <div class="shield-row"><div class="block" id="bA0"></div><div class="block" id="bA1"></div></div>
+          <div class="shield-row"><div class="block" id="bA2"></div><div class="block" id="bA3"></div></div>
+          <div class="shield-row"><div class="block" id="bA4"></div><div class="block" id="bA5"></div></div>
+        </div>
+        <div class="shield-label">THEM</div>
+        <div class="shield-name" id="nameA">—</div>
+      </div>
+
+      <div class="connector">
+        <div class="connector-line" id="connLine"></div>
+        <span id="connLabel">↔</span>
+      </div>
+
+      <div class="shield-block">
+        <div class="shield" id="shieldB">
+          <div class="shield-row"><div class="block" id="bB0"></div><div class="block" id="bB1"></div></div>
+          <div class="shield-row"><div class="block" id="bB2"></div><div class="block" id="bB3"></div></div>
+          <div class="shield-row"><div class="block" id="bB4"></div><div class="block" id="bB5"></div></div>
+        </div>
+        <div class="shield-label">YOU</div>
+        <div class="shield-name" id="nameB">—</div>
+      </div>
+    </div>
+
+    <!-- Status badge -->
+    <div style="text-align:center;margin-bottom:20px;">
+      <span class="status-badge status-scanning" id="statusBadge">
+        <span>⚡</span><span id="statusText">Detecting proximity...</span>
+      </span>
+    </div>
+
+    <!-- Graduate A card -->
+    <div class="grad-card" id="gradCard">
+      <div class="grad-card-header">
+        <div class="grad-avatar" id="gradAvatar">?</div>
+        <div class="grad-info">
+          <div class="grad-name" id="gradName">Kenostodist</div>
+          <div class="grad-id" id="gradId"></div>
+          <span class="grad-tier tier-platinum" id="gradTier">Platinum</span>
+        </div>
+      </div>
+      <div class="grad-stats">
+        <div class="stat"><div class="stat-val" id="statCourses">21</div><div class="stat-lbl">Courses</div></div>
+        <div class="stat"><div class="stat-val" id="statKeno">—</div><div class="stat-lbl">KENO earned</div></div>
+        <div class="stat"><div class="stat-val" id="statMeetings">—</div><div class="stat-lbl">Meetings</div></div>
+      </div>
+    </div>
+
+    <!-- Eureka result (hidden initially) -->
+    <div class="eureka-box hidden" id="eurekaBox">
+      <span class="eureka-icon">⚡</span>
+      <div class="eureka-title">EUREKA!</div>
+      <div class="eureka-sub">Your first meeting — forever recorded on the blockchain.</div>
+      <span class="meeting-number" id="meetingNum">Meeting #—</span>
+      <div class="eureka-hash" id="pairHashDisplay"></div>
+    </div>
+
+    <!-- Already met (hidden initially) -->
+    <div class="already-met-box hidden" id="alreadyMetBox">
+      <div style="font-size:1.6rem;margin-bottom:8px;">🤝</div>
+      <div style="font-weight:800;color:#a78bfa;margin-bottom:4px;">You've met before</div>
+      <div style="font-size:.82rem;color:rgba(167,139,250,.6);">Your Eureka moment with this Kenostodist is already recorded.</div>
+      <div class="met-date" id="metDate"></div>
+    </div>
+
+    <!-- Visitor wallet input (shown before recording) -->
+    <div id="inputSection" class="form-section">
+      <label class="form-label">Your wallet address — to record your side of this meeting</label>
+      <input class="form-input" type="text" id="visitorWallet"
+             placeholder="0x..." autocomplete="off" spellcheck="false">
+      <div style="margin-top:6px;font-size:.7rem;color:rgba(167,139,250,.35);">
+        Must be a verified Kenostod graduate for the Eureka recording.
+        Not a graduate yet? Join below — this moment stays in your memory either way.
+      </div>
+      <button class="btn btn-primary" id="recordBtn" style="margin-top:14px;" onclick="recordEureka()">
+        ⚡ Record This Eureka Moment
+      </button>
+    </div>
+
+    <!-- CTA for non-graduates -->
+    <div class="cta-box" id="ctaBox">
+      <h3>Don't have a G.I.F.T. garment?</h3>
+      <p>You just met a Kenostod graduate. Complete 21 courses, earn KENO, and receive your own G.I.F.T. apparel — with the same embedded technology.</p>
+      <button class="btn btn-gold" onclick="joinWithReferral()">🎓 Join the Academy</button>
+      <button class="btn btn-ghost" onclick="window.location.href='/graduate-merchandise.html'">See the G.I.F.T. garment</button>
+    </div>
+
+  </div><!-- /mainView -->
+
+  <div class="tagline">"The gift that keeps on connecting."</div>
+</div>
+
+<script>
+// ── Starfield ──────────────────────────────────────────────────────────────────
+(function() {
+  const c = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*2+1}px;height:${s.style.width};--d:${(Math.random()*4+2).toFixed(1)}s;--o:${(Math.random()*.7+.1).toFixed(2)};animation-delay:${(Math.random()*5).toFixed(1)}s`;
+    c.appendChild(s);
+  }
+})();
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let graduateId   = null;
+let graduateData = null;
+let animating    = false;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  const path = window.location.pathname; // /gift/meet/KG-20260605-XXXX
+  const parts = path.split('/');
+  graduateId = parts[parts.length - 1];
+
+  if (!graduateId || !graduateId.startsWith('KG-')) {
+    showError('Invalid graduate link.');
+    return;
+  }
+
+  try {
+    const resp = await fetch(`/api/gift/profile/${graduateId}`);
+    const data = await resp.json();
+    if (!data.success) { showError('Graduate not found.'); return; }
+
+    graduateData = data.graduate;
+    renderProfile(graduateData);
+
+    // Load their meeting count
+    const mResp = await fetch(`/api/gift/meetings/${graduateData.walletAddress}`);
+    const mData = await mResp.json();
+    document.getElementById('statMeetings').textContent = mData.totalMeetings ?? '0';
+
+    document.getElementById('loadingView').classList.add('hidden');
+    document.getElementById('mainView').classList.remove('hidden');
+
+    // Start progressive block animation
+    animateApproach();
+
+  } catch (err) {
+    showError('Could not load profile.');
+  }
+});
+
+function renderProfile(g) {
+  const initials = (g.name || 'K').slice(0,1).toUpperCase();
+  document.getElementById('gradAvatar').textContent = initials;
+  document.getElementById('gradName').textContent   = g.name || 'Kenostodist';
+  document.getElementById('gradId').textContent     = g.graduateId;
+  document.getElementById('statCourses').textContent = g.totalCourses ?? 21;
+  document.getElementById('statKeno').textContent   = g.kenoEarned ? g.kenoEarned.toLocaleString() : '—';
+  document.getElementById('nameA').textContent      = (g.name || 'Kenostodist').split(' ')[0];
+
+  const tier = (g.tier || 'Platinum').toLowerCase();
+  const tierEl = document.getElementById('gradTier');
+  tierEl.textContent = g.tier || 'Platinum';
+  tierEl.className = `grad-tier tier-${tier}`;
+
+  // Set referral link
+  window._referralUrl = `/wealth-builder.html?ref=${g.walletAddress}`;
+}
+
+// ── Progressive block lighting animation ──────────────────────────────────────
+function animateApproach() {
+  const blocksA = [0,1,2,3,4,5].map(i => document.getElementById(`bA${i}`));
+  const blocksB = [0,1,2,3,4,5].map(i => document.getElementById(`bB${i}`));
+
+  let step = 0;
+  const interval = setInterval(() => {
+    if (step < 6) {
+      blocksA[step].classList.add('lit');
+      blocksB[step].classList.add('lit');
+    }
+    step++;
+    if (step >= 6) clearInterval(interval);
+  }, 250);
+}
+
+// ── Record Eureka ─────────────────────────────────────────────────────────────
+async function recordEureka() {
+  const visitorWallet = document.getElementById('visitorWallet').value.trim();
+  if (!visitorWallet || !visitorWallet.startsWith('0x') || visitorWallet.length < 30) {
+    alert('Please enter a valid wallet address.');
+    return;
+  }
+  if (!graduateData) return;
+
+  const btn = document.getElementById('recordBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Recording...';
+
+  try {
+    const resp = await fetch('/api/gift/eureka', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        walletA: graduateData.walletAddress,
+        walletB: visitorWallet,
+        locationHint: getLocationHint()
+      })
+    });
+    const data = await resp.json();
+
+    if (data.isFirstMeeting) {
+      triggerEurekaEffect(data);
+    } else if (data.alreadyMet) {
+      showAlreadyMet(data);
+    } else {
+      showError(data.error || data.message || 'Something went wrong.');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '⚡ Record This Eureka Moment';
+    alert('Network error — please try again.');
+  }
+}
+
+function triggerEurekaEffect(data) {
+  // Hide input section
+  document.getElementById('inputSection').classList.add('hidden');
+
+  // All blocks go gold
+  for (let i = 0; i < 6; i++) {
+    const a = document.getElementById(`bA${i}`);
+    const b = document.getElementById(`bB${i}`);
+    setTimeout(() => {
+      a.classList.remove('lit'); a.classList.add('eureka');
+      b.classList.remove('lit'); b.classList.add('eureka');
+    }, i * 80);
+  }
+
+  // Connector becomes gold
+  setTimeout(() => {
+    document.getElementById('connLine').classList.add('eureka');
+    document.getElementById('connLabel').textContent = '⚡';
+  }, 500);
+
+  // Status badge
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'status-badge status-eureka';
+  document.getElementById('statusText').textContent = 'EUREKA!';
+
+  // Chime burst
+  const chime = document.createElement('div');
+  chime.className = 'chime';
+  document.body.appendChild(chime);
+  setTimeout(() => chime.remove(), 1300);
+
+  // Name update
+  document.getElementById('nameB').textContent = 'You';
+
+  // Show eureka box
+  setTimeout(() => {
+    const box = document.getElementById('eurekaBox');
+    box.classList.remove('hidden');
+    document.getElementById('meetingNum').textContent = `Meeting #${data.meetingId}`;
+    document.getElementById('pairHashDisplay').textContent = `Blockchain record: ${data.pairHash}`;
+    document.getElementById('statMeetings').textContent = parseInt(document.getElementById('statMeetings').textContent || '0') + 1;
+  }, 700);
+
+  // Sound effect (Eureka chime — Web Audio API)
+  playEurekaChime();
+}
+
+function showAlreadyMet(data) {
+  document.getElementById('inputSection').classList.add('hidden');
+  const box = document.getElementById('alreadyMetBox');
+  box.classList.remove('hidden');
+  if (data.metAt) {
+    const d = new Date(data.metAt);
+    document.getElementById('metDate').textContent = `First met: ${d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })}`;
+  }
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'status-badge status-met';
+  document.getElementById('statusText').textContent = 'Already connected';
+}
+
+function showError(msg) {
+  document.getElementById('loadingView').innerHTML = `
+    <div class="status-badge status-error" style="display:inline-flex;margin-bottom:16px;">⚠ ${msg}</div>
+    <br><a href="/" style="color:#a78bfa;font-size:.85rem;">← Back to Kenostod</a>`;
+}
+
+function getLocationHint() {
+  return null; // future: use geolocation API with user consent
+}
+
+function joinWithReferral() {
+  window.location.href = window._referralUrl || '/wealth-builder.html';
+}
+
+// ── Eureka chime (Web Audio API) ──────────────────────────────────────────────
+function playEurekaChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const start = ctx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.18, start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.9);
+      osc.start(start); osc.stop(start + 1.0);
+    });
+  } catch (_) {}
+}
+</script>
+</body>
+</html>

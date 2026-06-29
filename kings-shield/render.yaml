@@ -1,0 +1,60 @@
+# King's Shield — Render.com Deployment Config
+# Deploy BOTH bots as Background Workers (never web services).
+# Set environment variables in Render dashboard — NEVER in this file.
+
+services:
+  - type: worker
+    name: aegis-arb-bot
+    runtime: python
+    rootDir: kings-shield
+    buildCommand: pip install -r requirements.txt
+    startCommand: python aegis_arb_bot/aegis_arb_bot.py --run
+    envVars:
+      - key: SOLANA_NETWORK
+        value: mainnet-beta
+      - key: SHIELD_BOT_ADDRESS
+        sync: false            # Set in Render dashboard — never hardcode
+      - key: SHIELD_BOT_PRIVATE_KEY
+        sync: false
+      - key: FOUNDER_SEAL
+        sync: false
+      - key: SOLANA_RPC_MAINNET
+        sync: false
+      - key: SHIELD_TOKEN_MINT
+        sync: false
+      - key: MIN_PROFIT_USD
+        value: "0.25"
+      - key: MIN_WALLET_BALANCE_SOL
+        value: "0.05"
+      - key: SCAN_INTERVAL_SECONDS
+        value: "61.74"
+
+  - type: worker
+    name: constitution-flash-bot
+    runtime: python
+    rootDir: kings-shield
+    buildCommand: pip install -r requirements.txt
+    startCommand: python constitution_flash_bot/constitution_flash_bot.py --run
+    envVars:
+      - key: SOLANA_NETWORK
+        value: mainnet-beta
+      - key: SHIELD_BOT_ADDRESS
+        sync: false
+      - key: SHIELD_BOT_PRIVATE_KEY
+        sync: false
+      - key: FOUNDER_SEAL
+        sync: false
+      - key: SOLANA_RPC_MAINNET
+        sync: false
+      - key: SHIELD_TOKEN_MINT
+        sync: false
+      - key: MIN_PROFIT_USD
+        value: "0.25"
+      - key: FLASH_AMOUNT_SMALL
+        value: "0.6174"
+      - key: FLASH_AMOUNT_MEDIUM
+        value: "1.234"
+      - key: FLASH_AMOUNT_LARGE
+        value: "6.174"
+      - key: SCAN_INTERVAL_SECONDS
+        value: "61.74"

@@ -1,0 +1,2841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Back Office - Kenostod Blockchain Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .login-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .login-box h2 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .login-box p {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 20px;
+        }
+        
+        .login-input:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ffd700 0%, #f59e0b 100%);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.2s;
+        }
+        
+        .login-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .login-error {
+            color: #ef4444;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 260px;
+            background: rgba(0,0,0,0.3);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-logo {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-logo h2 {
+            color: #ffd700;
+            font-size: 1.3rem;
+        }
+        
+        .sidebar-logo span {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 8px;
+            color: #94a3b8;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,215,0,0.1);
+            color: #ffd700;
+        }
+        
+        .nav-item .icon {
+            font-size: 1.2rem;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 30px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            color: #fff;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,215,0,0.3);
+        }
+        
+        .stat-card .icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        
+        .stat-card .value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 4px;
+        }
+        
+        .stat-card .label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        .stat-card .change {
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+        
+        .stat-card .change.positive {
+            color: #10b981;
+        }
+        
+        .stat-card .change.negative {
+            color: #ef4444;
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(255,215,0,0.1);
+            color: #ffd700;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-badge.completed {
+            background: rgba(16,185,129,0.2);
+            color: #10b981;
+        }
+        
+        .status-badge.in-progress {
+            background: rgba(59,130,246,0.2);
+            color: #3b82f6;
+        }
+        
+        .status-badge.pending {
+            background: rgba(245,158,11,0.2);
+            color: #f59e0b;
+        }
+        
+        .status-badge.claimed {
+            background: rgba(139,92,246,0.2);
+            color: #8b5cf6;
+        }
+        
+        .wallet-address {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #60a5fa;
+        }
+        
+        .course-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .course-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,215,0,0.3);
+            border-radius: 50%;
+            border-top-color: #ffd700;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 8px;
+            padding: 20px 0;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            max-width: 60px;
+            background: linear-gradient(180deg, #ffd700 0%, #f59e0b 100%);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 0.5s ease-out;
+        }
+        
+        .chart-bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+        
+        .chart-bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            color: #ffd700;
+            font-weight: 600;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-tab {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .filter-tab:hover, .filter-tab.active {
+            background: rgba(255,215,0,0.1);
+            border-color: rgba(255,215,0,0.3);
+            color: #ffd700;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        
+        .search-input::placeholder {
+            color: #64748b;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        
+        .export-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .export-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 10px;
+            }
+            
+            .sidebar-logo h2, .sidebar-logo span, .nav-item span {
+                display: none;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                padding: 14px;
+            }
+            
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .mobile-nav {
+                display: flex !important;
+            }
+        }
+        
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-top: 1px solid rgba(255,215,0,0.3);
+            padding: 8px 0;
+            z-index: 1000;
+            overflow-x: auto;
+            gap: 4px;
+            justify-content: space-around;
+        }
+        
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            color: #94a3b8;
+            font-size: 0.65rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            min-width: 60px;
+        }
+        
+        .mobile-nav-item:hover, .mobile-nav-item.active {
+            background: rgba(255,215,0,0.1);
+            color: #ffd700;
+        }
+        
+        .mobile-nav-item .icon {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+        
+        .mobile-content-spacer {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-content-spacer {
+                display: block;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2>🔐 Admin Access</h2>
+            <p>Enter admin password to continue</p>
+            <input type="password" id="adminPassword" class="login-input" placeholder="Enter password..." onkeypress="if(event.key==='Enter')attemptLogin()">
+            <button class="login-btn" onclick="attemptLogin()">Login</button>
+            <p id="loginError" class="login-error">Invalid password. Try again.</p>
+        </div>
+    </div>
+    
+    <div class="admin-container" id="adminContainer" style="display: none;">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h2>KENOSTOD</h2>
+                <span>Admin Back Office</span>
+            </div>
+            
+            <nav>
+                <div class="nav-item active" onclick="showTab('dashboard')">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="showTab('students')">
+                    <span class="icon">👥</span>
+                    <span>Students</span>
+                </div>
+                <div class="nav-item" onclick="showTab('courses')">
+                    <span class="icon">📚</span>
+                    <span>Course Progress</span>
+                </div>
+                <div class="nav-item" onclick="showTab('courseEditor')">
+                    <span class="icon">✏️</span>
+                    <span>Course Editor</span>
+                </div>
+                <div class="nav-item" onclick="showTab('rewards')">
+                    <span class="icon">🎁</span>
+                    <span>Rewards</span>
+                </div>
+                <div class="nav-item" onclick="showTab('graduates')">
+                    <span class="icon">🎓</span>
+                    <span>Graduates</span>
+                </div>
+                <div class="nav-item" onclick="showTab('investors')">
+                    <span class="icon">💰</span>
+                    <span>ICO Investors</span>
+                </div>
+                <a href="/admin-grants.html" target="_blank" class="nav-item" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px;">
+                    <span class="icon">💎</span>
+                    <span>Mining Grants</span>
+                </a>
+                <div class="nav-item" onclick="showTab('claims')">
+                    <span class="icon">💰</span>
+                    <span>KENO Claims</span>
+                </div>
+                <div class="nav-item" onclick="showTab('referrals')">
+                    <span class="icon">🔗</span>
+                    <span>Referrals</span>
+                </div>
+                <div class="nav-item" onclick="showTab('scholarships')">
+                    <span class="icon">🎓</span>
+                    <span>Scholarships</span>
+                </div>
+                <div class="nav-item" onclick="showTab('falWithdrawals')">
+                    <span class="icon">💸</span>
+                    <span>FAL Withdrawals</span>
+                </div>
+                <div class="nav-item" onclick="showTab('usdWithdrawals')">
+                    <span class="icon">🏦</span>
+                    <span>USD Cashouts</span>
+                </div>
+                <div class="nav-item" onclick="showTab('reserve')">
+                    <span class="icon">💵</span>
+                    <span>Withdrawal Reserve</span>
+                </div>
+                <div class="nav-item" onclick="showTab('nodeWhitelist')">
+                    <span class="icon">🖥️</span>
+                    <span>Node Whitelist</span>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="main-content">
+            <div class="header">
+                <h1 id="pageTitle">Dashboard Overview</h1>
+                <div class="header-right">
+                    <span id="lastUpdate" style="color: #94a3b8; font-size: 0.9rem;">Last updated: --</span>
+                    <button class="refresh-btn" onclick="refreshAllData()">
+                        🔄 Refresh Data
+                    </button>
+                    <button class="export-btn" onclick="logout()" style="border-color: #ef4444; color: #ef4444;">
+                        🚪 Logout
+                    </button>
+                </div>
+            </div>
+            
+            <div id="dashboardTab" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="icon">👥</div>
+                        <div class="value" id="totalStudents">--</div>
+                        <div class="label">Total Students</div>
+                        <div class="change positive" id="studentsChange">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">📚</div>
+                        <div class="value" id="courseCompletions">--</div>
+                        <div class="label">Course Completions</div>
+                        <div class="change positive" id="completionsChange">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">🪙</div>
+                        <div class="value" id="kenoDistributed">--</div>
+                        <div class="label">KENO Distributed</div>
+                        <div class="change positive" id="kenoChange">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">🎓</div>
+                        <div class="value" id="totalGraduates">--</div>
+                        <div class="label">Graduates (21 courses)</div>
+                        <div class="change positive" id="graduatesChange">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">💰</div>
+                        <div class="value" id="icoRaised">--</div>
+                        <div class="label">ICO Raised (USD)</div>
+                        <div class="change positive" id="icoChange">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">🏆</div>
+                        <div class="value" id="rvtNftsIssued">--</div>
+                        <div class="label">RVT NFTs Issued</div>
+                        <div class="change positive" id="rvtChange">Loading...</div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">📈 Course Completions by Course</h2>
+                    </div>
+                    <div class="chart-container" id="courseChart">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p style="margin-top: 12px;">Loading chart...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">🕐 Recent Activity</h2>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Student</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentActivityTable">
+                            <tr>
+                                <td colspan="5" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="studentsTab" class="tab-content">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="studentSearch" placeholder="Search by wallet, name, or email..." oninput="filterStudents()">
+                    <button class="export-btn" onclick="exportStudents()">📥 Export CSV</button>
+                </div>
+                
+                <div class="section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Courses</th>
+                                <th>Total KENO</th>
+                                <th>Enrolled</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTable">
+                            <tr>
+                                <td colspan="7" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="coursesTab" class="tab-content">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterCourses('all')">All Courses</button>
+                    <button class="filter-tab" onclick="filterCourses('in-progress')">In Progress</button>
+                    <button class="filter-tab" onclick="filterCourses('completed')">Completed</button>
+                </div>
+                
+                <div class="section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Progress</th>
+                                <th>Quiz Score</th>
+                                <th>Time Spent</th>
+                                <th>Status</th>
+                                <th>Completed At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coursesTable">
+                            <tr>
+                                <td colspan="7" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="courseEditorTab" class="tab-content">
+                <div class="section">
+                    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; color: #e2e8f0;">Course Curriculum Editor</h2>
+                        <p style="margin: 0; color: #94a3b8;">Edit course metadata (duration, modules, level, description)</p>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Course Title</th>
+                                <th>Duration</th>
+                                <th>Modules</th>
+                                <th>Level</th>
+                                <th style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="courseEditorTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading courses...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="courseEditModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: #1e293b; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 id="editModalTitle" style="margin: 0; color: #ffd700;">Edit Course</h3>
+                            <button onclick="closeCourseEditModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                        </div>
+                        
+                        <input type="hidden" id="editCourseId">
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Course Title</label>
+                            <input type="text" id="editCourseTitle" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; font-size: 1rem;">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Duration</label>
+                                <input type="text" id="editCourseDuration" placeholder="e.g. 5 hours" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Modules</label>
+                                <input type="number" id="editCourseModules" min="1" max="20" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Level</label>
+                                <select id="editCourseLevel" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; color: #94a3b8; margin-bottom: 5px;">Course Overview</label>
+                            <textarea id="editCourseOverview" rows="4" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; resize: vertical;"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="closeCourseEditModal()" style="padding: 12px 24px; background: rgba(255,255,255,0.1); border: none; color: #94a3b8; border-radius: 8px; cursor: pointer;">Cancel</button>
+                            <button onclick="saveCourseChanges()" style="padding: 12px 24px; background: linear-gradient(135deg, #ffd700, #ff9500); border: none; color: #0a0a0a; border-radius: 8px; cursor: pointer; font-weight: 600;">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="courseContentModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto;">
+                    <div style="background: #1e293b; margin: 20px auto; border-radius: 16px; padding: 30px; max-width: 900px; width: 95%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: sticky; top: 0; background: #1e293b; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <h3 id="contentModalTitle" style="margin: 0; color: #ffd700; font-size: 1.5rem;"></h3>
+                            <button onclick="closeCourseContentModal()" style="background: none; border: none; color: #94a3b8; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+                        </div>
+                        
+                        <div id="courseContentBody" style="color: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="rewardsTab" class="tab-content">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterRewards('all')">All Rewards</button>
+                    <button class="filter-tab" onclick="filterRewards('course_completion')">Course Rewards</button>
+                    <button class="filter-tab" onclick="filterRewards('referral')">Referral Rewards</button>
+                    <button class="filter-tab" onclick="filterRewards('claimed')">Claimed</button>
+                    <button class="filter-tab" onclick="filterRewards('pending')">Pending</button>
+                </div>
+                
+                <div class="section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Reward Type</th>
+                                <th>Amount (KENO)</th>
+                                <th>Course</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rewardsTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="graduatesTab" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">🎓 Verified Graduates (All 21 Courses)</h2>
+                        <button class="export-btn" onclick="exportGraduates()">📥 Export CSV</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Email</th>
+                                <th>Total KENO</th>
+                                <th>RVT NFT Tier</th>
+                                <th>Graduated At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="graduatesTable">
+                            <tr>
+                                <td colspan="5" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="investorsTab" class="tab-content">
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <div class="icon">👤</div>
+                        <div class="value" id="totalInvestors">--</div>
+                        <div class="label">Total Investors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">💵</div>
+                        <div class="value" id="totalRaised">--</div>
+                        <div class="label">Total Raised (USD)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">🪙</div>
+                        <div class="value" id="tokensSold">--</div>
+                        <div class="label">KENO Tokens Sold</div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Email</th>
+                                <th>Amount (USD)</th>
+                                <th>KENO Received</th>
+                                <th>Payment Method</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="investorsTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="claimsTab" class="tab-content">
+                <div class="section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="color: #ffd700;">KENO Token Claims</h2>
+                        <button onclick="loadClaims()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                    </div>
+                    <div id="claimsList" style="display: grid; gap: 16px;">
+                        <p style="color: #94a3b8;">Loading claims...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="referralsTab" class="tab-content">
+                <div class="section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Referrer</th>
+                                <th>Referral Code</th>
+                                <th>Referred User</th>
+                                <th>Reward (KENO)</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="referralsTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="scholarshipsTab" class="tab-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Scholarship Applications</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="scholarshipFilter" onchange="loadScholarships()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Applications</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Email</th>
+                                <th>Country</th>
+                                <th>Income</th>
+                                <th>Education</th>
+                                <th>Status</th>
+                                <th>Applied</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scholarshipsTable">
+                            <tr>
+                                <td colspan="8" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="falWithdrawalsTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Trader Profit Breakdown</h2>
+                        <button onclick="loadTraderProfits()" style="padding: 8px 16px; background: #ffd700; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: #1a1a2e;">Refresh</button>
+                    </div>
+                    <div id="traderProfitSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #ffd700;" id="summaryTotalProfit">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Platform Profit</div>
+                        </div>
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="summaryTotalBonuses">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Bonuses Paid</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="summaryTotalTraders">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Active Traders</div>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #a855f7;" id="summaryTotalLoans">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Loans</div>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Wallet Address</th>
+                                <th>Arbitrage Profit</th>
+                                <th>Bonus Earned</th>
+                                <th>Available Balance</th>
+                                <th>Trades</th>
+                                <th>Reputation</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="traderProfitsTable">
+                            <tr>
+                                <td colspan="7" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">FAL Withdrawal Requests</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="falWithdrawalFilter" onchange="loadFALWithdrawals()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Simulator Wallet</th>
+                                <th>MetaMask Wallet</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="falWithdrawalsTable">
+                            <tr>
+                                <td colspan="7" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="usdWithdrawalsTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">USD Cashout Summary</h2>
+                        <button onclick="loadUSDWithdrawals()" style="padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white;">Refresh</button>
+                    </div>
+                    <div id="usdWithdrawalSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="usdPendingCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Pending Requests</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="usdApprovedCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Approved</div>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #a855f7;" id="usdCompletedCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Completed</div>
+                        </div>
+                        <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #ffd700;" id="usdTotalPaidOut">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Paid Out</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">USD Withdrawal Requests</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="usdWithdrawalFilter" onchange="loadUSDWithdrawals()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="completed">Completed</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Email</th>
+                                <th>KENO Amount</th>
+                                <th>USD Amount</th>
+                                <th>Bank</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usdWithdrawalsTable">
+                            <tr>
+                                <td colspan="8" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="reserveTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Withdrawal Reserve Status</h2>
+                        <button onclick="loadReserveData()" style="padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white;">Refresh</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="reserveBalance">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Current Balance</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="reserveAvailable">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Available for Withdrawals</div>
+                        </div>
+                        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #f59e0b;" id="reservePending">$--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Pending Withdrawals</div>
+                        </div>
+                        <div id="reserveHealthBox" style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700;" id="reserveHealth">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Reserve Health</div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <p style="color: #c4b5fd; margin: 0;"><strong>Revenue-First Model:</strong> Withdrawals are funded from platform revenue (courses, ICO, node sales, B2B licensing). The minimum reserve of <span id="reserveMinimum">$1,000</span> is always maintained.</p>
+                    </div>
+                </div>
+                
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Add Revenue to Reserve</h2>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Revenue Source</label>
+                            <select id="depositSource" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                                <option value="ico_sale">ICO Sale</option>
+                                <option value="course_sale">Course Sale</option>
+                                <option value="node_sale">Node Sale</option>
+                                <option value="b2b_licensing">B2B Licensing</option>
+                                <option value="trading_fees">Trading Fees</option>
+                                <option value="manual_deposit">Manual Deposit</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #94a3b8;">USD Amount</label>
+                            <input type="number" id="depositAmount" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Description (optional)</label>
+                            <input type="text" id="depositDescription" placeholder="Reference or notes..." style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0;">
+                        </div>
+                        <button onclick="addReserveDeposit()" style="padding: 12px 24px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; white-space: nowrap;">Add to Reserve</button>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Reserve Transactions</h2>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Source</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Balance After</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reserveTransactionsTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="nodeWhitelistTab" class="tab-content">
+                <div class="section" style="margin-bottom: 20px;">
+                    <div class="section-header">
+                        <h2 class="section-title">Node Whitelist Summary</h2>
+                        <button onclick="loadNodeWhitelist()" style="padding: 8px 16px; background: #10b981; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white;">Refresh</button>
+                    </div>
+                    <div id="nodeWhitelistSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;" id="nodeScholarCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Scholar Nodes ($299)</div>
+                        </div>
+                        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;" id="nodeEducatorCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Educator Nodes ($799)</div>
+                        </div>
+                        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #a855f7;" id="nodeAcademyCount">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Academy Nodes ($1,999)</div>
+                        </div>
+                        <div style="background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: 700; color: #ffd700;" id="nodeTotalRegistered">--</div>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">Total Registered</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Node Whitelist Registrations</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="nodeWhitelistFilter" onchange="loadNodeWhitelist()" style="padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #e2e8f0; cursor: pointer;">
+                                <option value="">All Tiers</option>
+                                <option value="scholar">Scholar</option>
+                                <option value="educator">Educator</option>
+                                <option value="academy">Academy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Whitelist ID</th>
+                                <th>Email</th>
+                                <th>Wallet</th>
+                                <th>Tier</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nodeWhitelistTable">
+                            <tr>
+                                <td colspan="6" class="loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="scholarshipModal" class="modal hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;">
+        <div style="background:#1a1a2e;border:2px solid #ffd700;border-radius:16px;padding:30px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;">
+            <h3 style="color:#ffd700;margin-bottom:20px;">📋 Application Details</h3>
+            <div id="scholarshipDetails"></div>
+            <div style="display:flex;gap:10px;margin-top:20px;">
+                <button onclick="approveScholarship()" style="flex:1;padding:12px;background:#10b981;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;">✅ Approve</button>
+                <button onclick="rejectScholarship()" style="flex:1;padding:12px;background:#ef4444;border:none;color:white;border-radius:8px;cursor:pointer;font-weight:600;">❌ Reject</button>
+                <button onclick="closeScholarshipModal()" style="flex:1;padding:12px;background:rgba(255,255,255,0.1);border:1px solid #555;color:#ccc;border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let adminPwd = sessionStorage.getItem('adminPwd') || '';
+        let currentScholarshipId = null;
+        
+        let allData = {
+            students: [],
+            courses: [],
+            rewards: [],
+            graduates: [],
+            investors: [],
+            referrals: [],
+            stats: {}
+        };
+        
+        async function attemptLogin() {
+            const password = document.getElementById('adminPassword').value.trim();
+            const errorEl = document.getElementById('loginError');
+            if (!password) return;
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                
+                if (response.ok) {
+                    adminPwd = password;
+                    sessionStorage.setItem('adminPwd', password);
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('adminContainer').style.display = 'flex';
+                    refreshAllData();
+                } else {
+                    errorEl.style.display = 'block';
+                    document.getElementById('adminPassword').value = '';
+                }
+            } catch (error) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = 'Connection error. Please try again.';
+            }
+        }
+        
+        async function checkExistingSession() {
+            if (!adminPwd) return;
+            
+            try {
+                const response = await fetch('/api/admin/dashboard', {
+                    headers: { 'x-admin-password': adminPwd }
+                });
+                if (response.ok) {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('adminContainer').style.display = 'flex';
+                    const data = await response.json();
+                    if (data && data.success) {
+                        allData = data.data;
+                        updateDashboard();
+                        updateStudentsTable();
+                        updateCoursesTable();
+                        updateRewardsTable();
+                        updateGraduatesTable();
+                        updateInvestorsTable();
+                        updateReferralsTable();
+                        document.getElementById('lastUpdate').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+                    }
+                } else {
+                    sessionStorage.removeItem('adminPwd');
+                    adminPwd = '';
+                }
+            } catch (e) {
+                // Error checking session
+            }
+        }
+        
+        function logout() {
+            sessionStorage.removeItem('adminPwd');
+            adminPwd = '';
+            location.reload();
+        }
+        
+        async function fetchAdminData() {
+            if (!adminPwd) return null;
+            
+            try {
+                const response = await fetch('/api/admin/dashboard', {
+                    headers: { 'x-admin-password': adminPwd }
+                });
+                
+                if (response.status === 401) {
+                    sessionStorage.removeItem('adminPwd');
+                    location.reload();
+                    return null;
+                }
+                
+                if (!response.ok) throw new Error('Failed to fetch data');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching admin data:', error);
+                return null;
+            }
+        }
+        
+        async function refreshAllData() {
+            document.getElementById('lastUpdate').textContent = 'Updating...';
+            
+            const data = await fetchAdminData();
+            if (data && data.success) {
+                allData = data.data;
+                updateDashboard();
+                updateStudentsTable();
+                updateCoursesTable();
+                updateRewardsTable();
+                updateGraduatesTable();
+                updateInvestorsTable();
+                updateReferralsTable();
+                loadFALWithdrawals();
+                
+                const now = new Date().toLocaleTimeString();
+                document.getElementById('lastUpdate').textContent = `Last updated: ${now}`;
+            } else {
+                document.getElementById('lastUpdate').textContent = 'Update failed';
+            }
+        }
+        
+        function updateDashboard() {
+            const stats = allData.stats || {};
+            
+            document.getElementById('totalStudents').textContent = stats.totalStudents || 0;
+            document.getElementById('courseCompletions').textContent = stats.courseCompletions || 0;
+            document.getElementById('kenoDistributed').textContent = formatNumber(stats.kenoDistributed || 0);
+            document.getElementById('totalGraduates').textContent = stats.totalGraduates || 0;
+            document.getElementById('icoRaised').textContent = '$' + formatNumber(stats.icoRaised || 0);
+            document.getElementById('rvtNftsIssued').textContent = stats.rvtNftsIssued || 0;
+            
+            document.getElementById('studentsChange').textContent = 'Active learners';
+            document.getElementById('completionsChange').textContent = 'All time';
+            document.getElementById('kenoChange').textContent = 'To students';
+            document.getElementById('graduatesChange').textContent = 'Completed all courses';
+            document.getElementById('icoChange').textContent = 'From investors';
+            document.getElementById('rvtChange').textContent = 'Royalty NFTs';
+            
+            updateCourseChart();
+            updateRecentActivity();
+        }
+        
+        function updateCourseChart() {
+            const courseStats = allData.courseStats || [];
+            const container = document.getElementById('courseChart');
+            
+            if (courseStats.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📊</div>
+                        <p>No course completion data yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const maxValue = Math.max(...courseStats.map(c => c.count), 1);
+            
+            let html = '';
+            courseStats.forEach((course, index) => {
+                const height = (course.count / maxValue) * 200 + 20;
+                html += `
+                    <div class="chart-bar" style="height: ${height}px;">
+                        <span class="chart-bar-value">${course.count}</span>
+                        <span class="chart-bar-label">C${course.course_id || index + 1}</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function updateRecentActivity() {
+            const activities = allData.recentActivity || [];
+            const tbody = document.getElementById('recentActivityTable');
+            
+            if (activities.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div class="icon">🕐</div>
+                            <p>No recent activity</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            activities.forEach(activity => {
+                html += `
+                    <tr>
+                        <td>${formatDate(activity.created_at)}</td>
+                        <td class="wallet-address">${truncateAddress(activity.user_wallet_address)}</td>
+                        <td>${activity.reward_type || 'Course Progress'}</td>
+                        <td>${activity.course_name || activity.description || '-'}</td>
+                        <td><span class="status-badge ${activity.status}">${activity.status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function updateStudentsTable() {
+            const students = allData.students || [];
+            const tbody = document.getElementById('studentsTable');
+            
+            if (students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="icon">👥</div>
+                            <p>No students yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            students.forEach(student => {
+                const enrolled = student.enrolled_at ? 'Yes' : 'Synced';
+                const enrolledClass = student.enrolled_at ? 'completed' : 'pending';
+                html += `
+                    <tr data-wallet="${student.wallet_address}">
+                        <td class="wallet-address" title="${student.wallet_address}">${truncateAddress(student.wallet_address)}</td>
+                        <td>${student.name || '<span style="color: #94a3b8;">-</span>'}</td>
+                        <td>${student.email || '<span style="color: #94a3b8;">-</span>'}</td>
+                        <td>${student.courses_completed || 0}/21</td>
+                        <td>${formatNumber(student.total_keno || 0)} KENO</td>
+                        <td><span class="status-badge ${enrolledClass}">${enrolled}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="editStudent('${student.wallet_address}', '${(student.name || '').replace(/'/g, "\\'")}', '${(student.email || '').replace(/'/g, "\\'")}')" title="Edit Student">✏️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function editStudent(wallet, currentName, currentEmail) {
+            const name = prompt('Enter student name:', currentName);
+            if (name === null) return;
+            
+            const email = prompt('Enter student email:', currentEmail);
+            if (email === null) return;
+            
+            fetch('/api/admin/students/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-key': adminKey
+                },
+                body: JSON.stringify({ walletAddress: wallet, name, email })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Student updated successfully', 'success');
+                    loadDashboardData();
+                } else {
+                    showNotification(data.error || 'Failed to update student', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error updating student:', err);
+                showNotification('Failed to update student', 'error');
+            });
+        }
+        
+        function updateCoursesTable() {
+            const courses = allData.courseProgress || [];
+            const tbody = document.getElementById('coursesTable');
+            
+            if (courses.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="icon">📚</div>
+                            <p>No course progress yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            courses.forEach(course => {
+                const progress = course.completion_verified ? 100 : (course.modules_completed || 0) * 20;
+                const status = course.completion_verified ? 'completed' : 'in-progress';
+                html += `
+                    <tr>
+                        <td class="wallet-address">${truncateAddress(course.user_wallet_address)}</td>
+                        <td>Course ${course.course_id}</td>
+                        <td>
+                            <div class="course-progress-bar">
+                                <div class="course-progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <span style="font-size: 0.8rem; color: #94a3b8;">${progress}%</span>
+                        </td>
+                        <td>${course.quiz_score || '-'}%</td>
+                        <td>${formatTime(course.time_spent_seconds)}</td>
+                        <td><span class="status-badge ${status}">${status}</span></td>
+                        <td>${course.verified_at ? formatDate(course.verified_at) : '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function updateRewardsTable() {
+            const rewards = allData.rewards || [];
+            const tbody = document.getElementById('rewardsTable');
+            
+            if (rewards.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="icon">🎁</div>
+                            <p>No rewards distributed yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            rewards.forEach(reward => {
+                html += `
+                    <tr>
+                        <td class="wallet-address">${truncateAddress(reward.user_wallet_address)}</td>
+                        <td>${reward.reward_type}</td>
+                        <td style="color: #10b981; font-weight: 600;">${formatNumber(reward.reward_amount)}</td>
+                        <td>${reward.course_name || '-'}</td>
+                        <td><span class="status-badge ${reward.status}">${reward.status}</span></td>
+                        <td>${formatDate(reward.created_at)}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function updateGraduatesTable() {
+            const graduates = allData.graduates || [];
+            const tbody = document.getElementById('graduatesTable');
+            
+            if (graduates.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div class="icon">🎓</div>
+                            <p>No graduates yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            graduates.forEach(grad => {
+                html += `
+                    <tr>
+                        <td class="wallet-address">${truncateAddress(grad.wallet_address)}</td>
+                        <td>${grad.email || '-'}</td>
+                        <td style="color: #ffd700; font-weight: 600;">${formatNumber(grad.total_keno)} KENO</td>
+                        <td>${grad.rvt_tier || 'Platinum'}</td>
+                        <td>${formatDate(grad.graduated_at)}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function updateInvestorsTable() {
+            const investors = allData.investors || [];
+            const tbody = document.getElementById('investorsTable');
+            
+            const totalInvestors = investors.length;
+            const totalRaised = investors.reduce((sum, i) => sum + (parseFloat(i.amount_usd) || 0), 0);
+            const tokensSold = investors.reduce((sum, i) => sum + (parseFloat(i.tokens_purchased) || 0), 0);
+            
+            document.getElementById('totalInvestors').textContent = totalInvestors;
+            document.getElementById('totalRaised').textContent = '$' + formatNumber(totalRaised);
+            document.getElementById('tokensSold').textContent = formatNumber(tokensSold);
+            
+            if (investors.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="icon">💰</div>
+                            <p>No investors yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            investors.forEach(investor => {
+                html += `
+                    <tr>
+                        <td class="wallet-address">${truncateAddress(investor.wallet_address)}</td>
+                        <td>${investor.email || '-'}</td>
+                        <td style="color: #10b981; font-weight: 600;">$${formatNumber(investor.amount_usd)}</td>
+                        <td>${formatNumber(investor.tokens_purchased)} KENO</td>
+                        <td>${investor.payment_method || 'PayPal'}</td>
+                        <td>${formatDate(investor.created_at)}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function updateReferralsTable() {
+            const referrals = allData.referrals || [];
+            const tbody = document.getElementById('referralsTable');
+            
+            if (referrals.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="icon">🔗</div>
+                            <p>No referrals yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            referrals.forEach(ref => {
+                const status = ref.reward_claimed ? 'claimed' : (ref.referred_joined ? 'pending' : 'pending');
+                html += `
+                    <tr>
+                        <td class="wallet-address">${truncateAddress(ref.referrer_wallet)}</td>
+                        <td style="font-family: monospace; color: #ffd700;">${ref.referral_code}</td>
+                        <td>${ref.referred_email || 'Not yet used'}</td>
+                        <td>${formatNumber(ref.reward_amount)} KENO</td>
+                        <td><span class="status-badge ${status}">${status}</span></td>
+                        <td>${formatDate(ref.created_at)}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            const titles = {
+                dashboard: 'Dashboard Overview',
+                students: 'Student Management',
+                courses: 'Course Progress',
+                courseEditor: 'Course Curriculum Editor',
+                rewards: 'Rewards Distribution',
+                graduates: 'Verified Graduates',
+                investors: 'ICO Investors',
+                claims: 'KENO Claims',
+                referrals: 'Referral Program',
+                scholarships: 'Scholarship Management',
+                falWithdrawals: 'FAL Withdrawal Requests',
+                usdWithdrawals: 'USD Cashout Management',
+                reserve: 'Withdrawal Reserve Management',
+                nodeWhitelist: 'Node Whitelist Management'
+            };
+            
+            if (tabName === 'claims') {
+                loadClaims();
+            }
+            if (tabName === 'scholarships') {
+                loadScholarships();
+            }
+            if (tabName === 'falWithdrawals') {
+                loadTraderProfits();
+                loadFALWithdrawals();
+            }
+            if (tabName === 'usdWithdrawals') {
+                loadUSDWithdrawals();
+            }
+            if (tabName === 'reserve') {
+                loadReserveData();
+            }
+            if (tabName === 'courseEditor') {
+                loadCourseEditor();
+            }
+            if (tabName === 'nodeWhitelist') {
+                loadNodeWhitelist();
+            }
+            document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
+        }
+        
+        function truncateAddress(address) {
+            if (!address) return '-';
+            if (address.length <= 16) return address;
+            return address.slice(0, 8) + '...' + address.slice(-6);
+        }
+        
+        function formatNumber(num) {
+            if (!num) return '0';
+            return parseFloat(num).toLocaleString();
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        function formatTime(seconds) {
+            if (!seconds) return '-';
+            const mins = Math.floor(seconds / 60);
+            const hrs = Math.floor(mins / 60);
+            if (hrs > 0) return hrs + 'h ' + (mins % 60) + 'm';
+            return mins + 'm';
+        }
+        
+        function filterStudents() {
+            const search = document.getElementById('studentSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#studentsTable tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        }
+        
+        function exportStudents() {
+            const csv = convertToCSV(allData.students || []);
+            downloadCSV(csv, 'students.csv');
+        }
+        
+        function exportGraduates() {
+            const csv = convertToCSV(allData.graduates || []);
+            downloadCSV(csv, 'graduates.csv');
+        }
+        
+        function convertToCSV(data) {
+            if (!data.length) return '';
+            const headers = Object.keys(data[0]).join(',');
+            const rows = data.map(obj => Object.values(obj).join(','));
+            return headers + '\n' + rows.join('\n');
+        }
+        
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+        }
+        
+        // KENO Claims Management Functions
+        async function loadClaims() {
+            const claimsList = document.getElementById('claimsList');
+            claimsList.innerHTML = '<p style="color: #94a3b8;">Loading claims...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/claims', {
+                    headers: { 'x-admin-password': adminPwd }
+                });
+                const data = await response.json();
+                
+                if (data.success && data.claims.length > 0) {
+                    let html = '';
+                    data.claims.forEach(claim => {
+                        const statusColors = {
+                            pending: '#f59e0b',
+                            completed: '#10b981',
+                            failed: '#ef4444',
+                            rejected: '#ef4444'
+                        };
+                        const isPending = claim.status === 'pending';
+                        html += `
+                            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                                    <div>
+                                        <div style="font-size: 1.5rem; font-weight: 700; color: #ffd700;">${claim.amount} KENO</div>
+                                        <div style="color: #94a3b8; margin-top: 8px;">Email: ${claim.email}</div>
+                                        <div style="color: #94a3b8; font-family: monospace; font-size: 0.9rem;">Wallet: ${claim.walletAddress}</div>
+                                        <div style="color: #64748b; font-size: 0.85rem; margin-top: 8px;">Requested: ${new Date(claim.requestedAt).toLocaleString()}</div>
+                                        ${claim.txHash ? `<a href="https://bscscan.com/tx/${claim.txHash}" target="_blank" style="color: #3b82f6; font-size: 0.9rem;">View TX on BscScan →</a>` : ''}
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="background: ${statusColors[claim.status]}33; color: ${statusColors[claim.status]}; padding: 8px 16px; border-radius: 20px; font-weight: 600;">
+                                            ${claim.status.toUpperCase()}
+                                        </span>
+                                        ${isPending ? `
+                                            <div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                                                <button onclick="approveClaim('${claim.id}')" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">✅ Approve & Send</button>
+                                                <button onclick="rejectClaim('${claim.id}')" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">❌ Reject</button>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    claimsList.innerHTML = html;
+                } else {
+                    claimsList.innerHTML = '<p style="color: #94a3b8;">No claims yet.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading claims:', error);
+                claimsList.innerHTML = '<p style="color: #ef4444;">Error loading claims</p>';
+            }
+        }
+        
+        async function approveClaim(claimId) {
+            if (!confirm('Approve this claim and send REAL KENO tokens to the student wallet?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/claims/approve', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': adminPwd 
+                    },
+                    body: JSON.stringify({ claimId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ Success! ${data.message}\n\nTX Hash: ${data.txHash}`);
+                    loadClaims();
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error approving claim:', error);
+                alert('Error approving claim: ' + error.message);
+            }
+        }
+        
+        async function rejectClaim(claimId) {
+            const reason = prompt('Enter rejection reason:');
+            if (reason === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/claims/reject', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': adminPwd 
+                    },
+                    body: JSON.stringify({ claimId, reason })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Claim rejected');
+                    loadClaims();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error rejecting claim:', error);
+                alert('Error rejecting claim: ' + error.message);
+            }
+        }
+        
+        let scholarshipData = [];
+        
+        async function loadScholarships() {
+            const table = document.getElementById('scholarshipsTable');
+            table.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('scholarshipFilter')?.value || '';
+                const url = filter ? `/api/wealth/scholarships?status=${filter}` : '/api/wealth/scholarships';
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success && data.applications && data.applications.length > 0) {
+                    scholarshipData = data.applications;
+                    let html = '';
+                    data.applications.forEach(app => {
+                        const statusColors = { pending: '#f59e0b', approved: '#10b981', rejected: '#ef4444' };
+                        const isPending = app.application_status === 'pending';
+                        html += `
+                            <tr>
+                                <td>${app.applicant_name || 'N/A'}</td>
+                                <td>${app.applicant_email}</td>
+                                <td>${app.country || 'N/A'}</td>
+                                <td>$${app.current_income_usd || 0}</td>
+                                <td>${app.education_level || 'N/A'}</td>
+                                <td><span style="background: ${statusColors[app.application_status]}33; color: ${statusColors[app.application_status]}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${app.application_status}</span></td>
+                                <td>${new Date(app.created_at).toLocaleDateString()}</td>
+                                <td>
+                                    <button onclick="viewScholarship(${app.id})" style="padding: 6px 12px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">View</button>
+                                    ${isPending ? `<button onclick="quickApprove(${app.id})" style="padding: 6px 12px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-left: 4px;">Approve</button>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    table.innerHTML = html;
+                } else {
+                    table.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 40px;">No scholarship applications found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading scholarships:', error);
+                table.innerHTML = '<tr><td colspan="8" style="color: #ef4444; text-align: center;">Error loading scholarships</td></tr>';
+            }
+        }
+        
+        function viewScholarship(id) {
+            const app = scholarshipData.find(a => a.id === id);
+            if (!app) return;
+            
+            currentScholarshipId = id;
+            const details = document.getElementById('scholarshipDetails');
+            details.innerHTML = `
+                <div style="display: grid; gap: 12px;">
+                    <div><strong style="color: #94a3b8;">Name:</strong> <span style="color: white;">${app.applicant_name || 'N/A'}</span></div>
+                    <div><strong style="color: #94a3b8;">Email:</strong> <span style="color: white;">${app.applicant_email}</span></div>
+                    <div><strong style="color: #94a3b8;">Country:</strong> <span style="color: white;">${app.country || 'N/A'}</span></div>
+                    <div><strong style="color: #94a3b8;">Age:</strong> <span style="color: white;">${app.age || 'N/A'}</span></div>
+                    <div><strong style="color: #94a3b8;">Monthly Income:</strong> <span style="color: white;">$${app.current_income_usd || 0}</span></div>
+                    <div><strong style="color: #94a3b8;">Education:</strong> <span style="color: white;">${app.education_level || 'N/A'}</span></div>
+                    <div style="margin-top: 10px;">
+                        <strong style="color: #94a3b8;">Motivation:</strong>
+                        <p style="color: #ccc; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 6px;">${app.motivation_statement || 'No statement provided'}</p>
+                    </div>
+                    <div>
+                        <strong style="color: #94a3b8;">Financial Need:</strong>
+                        <p style="color: #ccc; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 6px;">${app.financial_need_statement || 'No statement provided'}</p>
+                    </div>
+                    <div>
+                        <strong style="color: #94a3b8;">Career Goals:</strong>
+                        <p style="color: #ccc; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 6px;">${app.career_goals || 'No goals provided'}</p>
+                    </div>
+                    <div style="margin-top: 10px; padding: 12px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                        <strong style="color: #ffd700;">Status:</strong> <span style="color: ${app.application_status === 'approved' ? '#10b981' : app.application_status === 'rejected' ? '#ef4444' : '#f59e0b'};">${app.application_status.toUpperCase()}</span>
+                        ${app.reviewed_by ? `<br><strong style="color: #94a3b8;">Reviewed by:</strong> ${app.reviewed_by}` : ''}
+                        ${app.review_notes ? `<br><strong style="color: #94a3b8;">Notes:</strong> ${app.review_notes}` : ''}
+                    </div>
+                </div>
+            `;
+            document.getElementById('scholarshipModal').classList.remove('hidden');
+        }
+        
+        function closeScholarshipModal() {
+            document.getElementById('scholarshipModal').classList.add('hidden');
+            currentScholarshipId = null;
+        }
+        
+        async function approveScholarship() {
+            if (!currentScholarshipId) return;
+            const notes = prompt('Add approval notes (optional):') || 'Approved';
+            await reviewScholarship(currentScholarshipId, 'approved', notes);
+        }
+        
+        async function rejectScholarship() {
+            if (!currentScholarshipId) return;
+            const notes = prompt('Enter rejection reason:');
+            if (notes === null) return;
+            await reviewScholarship(currentScholarshipId, 'rejected', notes);
+        }
+        
+        async function quickApprove(id) {
+            if (!confirm('Approve this scholarship and grant full course access?')) return;
+            await reviewScholarship(id, 'approved', 'Quick approved by admin');
+        }
+        
+        async function reviewScholarship(id, status, notes) {
+            try {
+                const response = await fetch('/api/wealth/scholarships/review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        applicationId: id,
+                        status: status,
+                        reviewerName: 'Admin',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    closeScholarshipModal();
+                    loadScholarships();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error reviewing scholarship:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadTraderProfits() {
+            const table = document.getElementById('traderProfitsTable');
+            table.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+            
+            try {
+                const response = await fetch(`/api/admin/trader-profits?adminPassword=${encodeURIComponent(adminPwd)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('summaryTotalProfit').textContent = data.summary.totalProfitGenerated.toFixed(2) + ' KENO';
+                    document.getElementById('summaryTotalBonuses').textContent = data.summary.totalBonusesPaid.toFixed(2) + ' KENO';
+                    document.getElementById('summaryTotalTraders').textContent = data.summary.totalTraders;
+                    document.getElementById('summaryTotalLoans').textContent = data.summary.totalLoans;
+                    
+                    if (data.profiles && data.profiles.length > 0) {
+                        let html = '';
+                        data.profiles.forEach(p => {
+                            const wallet = p.walletAddress || '';
+                            const shortWallet = wallet.length > 20 ? wallet.substring(0, 12) + '...' + wallet.substring(wallet.length - 8) : wallet;
+                            html += `
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 0.75rem;" title="${wallet}">${shortWallet}</td>
+                                    <td style="color: #ffd700; font-weight: 600;">${p.totalProfit.toFixed(2)} KENO</td>
+                                    <td style="color: #10b981;">${p.totalBonusEarned.toFixed(2)} KENO</td>
+                                    <td style="color: #3b82f6; font-weight: 700;">${p.availableBalance.toFixed(2)} KENO</td>
+                                    <td>${p.tradesCompleted}</td>
+                                    <td>${p.reputation}</td>
+                                    <td>${p.joinedAt ? new Date(p.joinedAt).toLocaleDateString() : '-'}</td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px;">No trader profiles found</td></tr>';
+                    }
+                } else {
+                    table.innerHTML = '<tr><td colspan="7" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading trader profits:', error);
+                table.innerHTML = '<tr><td colspan="7" style="color: #ef4444; text-align: center;">Error loading trader profits</td></tr>';
+            }
+        }
+        
+        async function loadFALWithdrawals() {
+            const table = document.getElementById('falWithdrawalsTable');
+            table.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('falWithdrawalFilter')?.value || '';
+                let url = `/api/admin/fal-withdrawals?adminPassword=${encodeURIComponent(adminPwd)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success && data.withdrawals && data.withdrawals.length > 0) {
+                    let withdrawals = data.withdrawals;
+                    if (filter) {
+                        withdrawals = withdrawals.filter(w => w.status === filter);
+                    }
+                    
+                    if (withdrawals.length === 0) {
+                        table.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px;">No matching withdrawal requests</td></tr>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    withdrawals.forEach(w => {
+                        const statusColors = { pending: '#f59e0b', completed: '#10b981', rejected: '#ef4444' };
+                        const isPending = w.status === 'pending';
+                        const simWallet = w.simulator_wallet || '';
+                        const metaWallet = w.metamask_wallet || '';
+                        html += `
+                            <tr>
+                                <td style="font-family: monospace; font-size: 0.85rem;">${w.request_id}</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;">${simWallet.substring(0, 15)}...</td>
+                                <td style="font-family: monospace; font-size: 0.75rem;"><a href="https://bscscan.com/address/${metaWallet}" target="_blank" style="color: #3b82f6;">${metaWallet.substring(0, 10)}...${metaWallet.substring(38)}</a></td>
+                                <td style="color: #ffd700; font-weight: 600;">${parseFloat(w.amount).toFixed(2)} KENO</td>
+                                <td><span style="background: ${statusColors[w.status]}33; color: ${statusColors[w.status]}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${w.status}</span></td>
+                                <td>${new Date(w.requested_at).toLocaleDateString()}</td>
+                                <td>
+                                    ${isPending ? `
+                                        <button onclick="approveFALWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Approve</button>
+                                        <button onclick="rejectFALWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #ef4444; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-left: 4px;">Reject</button>
+                                    ` : (w.tx_hash ? `<a href="https://bscscan.com/tx/${w.tx_hash}" target="_blank" style="color: #10b981; font-size: 0.85rem;">View TX</a>` : '<span style="color: #94a3b8;">-</span>')}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    table.innerHTML = html;
+                } else {
+                    table.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 40px;">No FAL withdrawal requests found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading FAL withdrawals:', error);
+                table.innerHTML = '<tr><td colspan="7" style="color: #ef4444; text-align: center;">Error loading withdrawals</td></tr>';
+            }
+        }
+        
+        async function approveFALWithdrawal(requestId) {
+            if (!confirm('Approve this FAL withdrawal and send KENO tokens to MetaMask wallet?')) return;
+            const notes = prompt('Add notes (optional):') || 'Approved';
+            
+            try {
+                const response = await fetch('/api/admin/fal-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'approve',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Withdrawal approved!' + (data.txHash ? ` TX: ${data.txHash}` : ' Token transfer pending.'));
+                    loadFALWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error approving withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function rejectFALWithdrawal(requestId) {
+            const notes = prompt('Enter rejection reason:');
+            if (notes === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/fal-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'reject',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('Withdrawal rejected.');
+                    loadFALWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error rejecting withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadUSDWithdrawals() {
+            const table = document.getElementById('usdWithdrawalsTable');
+            table.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('usdWithdrawalFilter')?.value || '';
+                let url = `/api/admin/usd-withdrawals?adminPassword=${encodeURIComponent(adminPwd)}`;
+                if (filter) url += `&status=${filter}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('usdPendingCount').textContent = data.summary?.pending || 0;
+                    document.getElementById('usdApprovedCount').textContent = data.summary?.approved || 0;
+                    document.getElementById('usdCompletedCount').textContent = data.summary?.completed || 0;
+                    document.getElementById('usdTotalPaidOut').textContent = '$' + (data.summary?.totalPaidOut || 0).toFixed(2);
+                    
+                    if (data.withdrawals && data.withdrawals.length > 0) {
+                        let html = '';
+                        data.withdrawals.forEach(w => {
+                            const statusColors = { pending: '#f59e0b', approved: '#3b82f6', completed: '#10b981', rejected: '#ef4444' };
+                            const isPending = w.status === 'pending';
+                            const isApproved = w.status === 'approved';
+                            html += `
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 0.85rem;">${w.request_id}</td>
+                                    <td>${w.email}</td>
+                                    <td style="color: #ffd700; font-weight: 600;">${parseFloat(w.keno_amount).toFixed(2)} KENO</td>
+                                    <td style="color: #10b981; font-weight: 600;">$${parseFloat(w.usd_amount).toFixed(2)}</td>
+                                    <td style="font-size: 0.85rem;">${w.bank_name || 'N/A'}</td>
+                                    <td><span style="background: ${statusColors[w.status]}33; color: ${statusColors[w.status]}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${w.status}</span></td>
+                                    <td>${new Date(w.requested_at).toLocaleDateString()}</td>
+                                    <td>
+                                        ${isPending ? `
+                                            <button onclick="approveUSDWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Approve</button>
+                                            <button onclick="rejectUSDWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #ef4444; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-left: 4px;">Reject</button>
+                                        ` : isApproved ? `
+                                            <button onclick="completeUSDWithdrawal('${w.request_id}')" style="padding: 6px 12px; background: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Mark Complete</button>
+                                        ` : '<span style="color: #94a3b8;">-</span>'}
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 40px;">No USD withdrawal requests found</td></tr>';
+                    }
+                } else {
+                    table.innerHTML = '<tr><td colspan="8" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading USD withdrawals:', error);
+                table.innerHTML = '<tr><td colspan="8" style="color: #ef4444; text-align: center;">Error loading withdrawals</td></tr>';
+            }
+        }
+        
+        async function approveUSDWithdrawal(requestId) {
+            if (!confirm('Approve this USD withdrawal request? This marks it ready for bank transfer.')) return;
+            const notes = prompt('Add notes (optional):') || 'Approved for bank transfer';
+            
+            try {
+                const response = await fetch('/api/admin/usd-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'approve',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('USD withdrawal approved! Ready for bank transfer.');
+                    loadUSDWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error approving USD withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function completeUSDWithdrawal(requestId) {
+            const txRef = prompt('Enter bank transfer reference/confirmation number:');
+            if (txRef === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/usd-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'complete',
+                        txReference: txRef,
+                        notes: 'Bank transfer completed'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('USD withdrawal marked as completed!');
+                    loadUSDWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error completing USD withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function rejectUSDWithdrawal(requestId) {
+            const notes = prompt('Enter rejection reason:');
+            if (notes === null) return;
+            
+            try {
+                const response = await fetch('/api/admin/usd-withdrawal/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminPassword: adminPwd,
+                        requestId: requestId,
+                        action: 'reject',
+                        notes: notes
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('USD withdrawal rejected.');
+                    loadUSDWithdrawals();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error rejecting USD withdrawal:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function loadReserveData() {
+            try {
+                const response = await fetch('/api/admin/reserve', {
+                    headers: { 'x-admin-key': adminKey }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const r = data.reserve;
+                    const available = Math.max(0, parseFloat(r?.current_balance_usd || 0) - parseFloat(r?.minimum_reserve_usd || 1000));
+                    const isHealthy = parseFloat(r?.current_balance_usd || 0) >= parseFloat(r?.minimum_reserve_usd || 1000);
+                    
+                    document.getElementById('reserveBalance').textContent = '$' + parseFloat(r?.current_balance_usd || 0).toFixed(2);
+                    document.getElementById('reserveAvailable').textContent = '$' + available.toFixed(2);
+                    document.getElementById('reservePending').textContent = '$' + parseFloat(data.pendingWithdrawals?.totalUsd || 0).toFixed(2);
+                    document.getElementById('reserveMinimum').textContent = '$' + parseFloat(r?.minimum_reserve_usd || 1000).toFixed(2);
+                    
+                    const healthBox = document.getElementById('reserveHealthBox');
+                    const healthText = document.getElementById('reserveHealth');
+                    if (isHealthy) {
+                        healthText.textContent = 'Healthy';
+                        healthText.style.color = '#10b981';
+                        healthBox.style.background = 'rgba(16,185,129,0.1)';
+                        healthBox.style.borderColor = 'rgba(16,185,129,0.3)';
+                    } else {
+                        healthText.textContent = 'Low';
+                        healthText.style.color = '#ef4444';
+                        healthBox.style.background = 'rgba(239,68,68,0.1)';
+                        healthBox.style.borderColor = 'rgba(239,68,68,0.3)';
+                    }
+                    
+                    const table = document.getElementById('reserveTransactionsTable');
+                    if (data.transactions && data.transactions.length > 0) {
+                        let html = '';
+                        data.transactions.forEach(t => {
+                            const typeColor = t.transaction_type === 'deposit' ? '#10b981' : '#ef4444';
+                            const typeIcon = t.transaction_type === 'deposit' ? '+' : '-';
+                            html += `
+                                <tr>
+                                    <td><span style="background: ${typeColor}33; color: ${typeColor}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; text-transform: capitalize;">${t.transaction_type}</span></td>
+                                    <td style="text-transform: capitalize;">${t.source.replace(/_/g, ' ')}</td>
+                                    <td style="color: ${typeColor}; font-weight: 600;">${typeIcon}$${parseFloat(t.amount_usd).toFixed(2)}</td>
+                                    <td style="font-size: 0.9rem; color: #94a3b8;">${t.description || '-'}</td>
+                                    <td style="font-weight: 600;">$${parseFloat(t.balance_after_usd).toFixed(2)}</td>
+                                    <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">No reserve transactions yet. Add revenue to get started!</td></tr>';
+                    }
+                } else {
+                    console.error('Error loading reserve data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading reserve data:', error);
+            }
+        }
+        
+        async function addReserveDeposit() {
+            const source = document.getElementById('depositSource').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            const description = document.getElementById('depositDescription').value;
+            
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            if (!confirm(`Add $${amount.toFixed(2)} to reserve from ${source.replace(/_/g, ' ')}?`)) return;
+            
+            try {
+                const response = await fetch('/api/admin/reserve/deposit', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-key': adminKey
+                    },
+                    body: JSON.stringify({
+                        source: source,
+                        amountUsd: amount,
+                        description: description || `Revenue from ${source.replace(/_/g, ' ')}`
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification(`$${amount.toFixed(2)} added to reserve!`, 'success');
+                    document.getElementById('depositAmount').value = '';
+                    document.getElementById('depositDescription').value = '';
+                    loadReserveData();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error adding deposit:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        let allCourses = {};
+        
+        async function loadCourseEditor() {
+            const table = document.getElementById('courseEditorTable');
+            table.innerHTML = '<tr><td colspan="6" class="loading">Loading courses...</td></tr>';
+            
+            try {
+                const response = await fetch('/api/admin/courses', {
+                    headers: { 'x-admin-password': adminPwd }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    allCourses = data.courses;
+                    let html = '';
+                    const levelColors = { Beginner: '#10b981', Intermediate: '#3b82f6', Advanced: '#a855f7' };
+                    
+                    Object.keys(data.courses).sort((a, b) => parseInt(a) - parseInt(b)).forEach(id => {
+                        const c = data.courses[id];
+                        const levelColor = levelColors[c.level] || '#94a3b8';
+                        html += `
+                            <tr>
+                                <td style="text-align: center; font-weight: 600; color: #ffd700;">${id}</td>
+                                <td>${c.icon || ''} ${c.title}</td>
+                                <td>${c.duration}</td>
+                                <td style="text-align: center;">${c.modules}</td>
+                                <td><span style="background: ${levelColor}33; color: ${levelColor}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${c.level}</span></td>
+                                <td style="display: flex; gap: 8px;">
+                                    <button onclick="openCourseContentModal(${id})" style="padding: 6px 12px; background: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; font-weight: 500;">View</button>
+                                    <button onclick="openCourseEditModal(${id})" style="padding: 6px 12px; background: linear-gradient(135deg, #ffd700, #ff9500); border: none; color: #0a0a0a; border-radius: 6px; cursor: pointer; font-weight: 500;">Edit</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    table.innerHTML = html;
+                } else {
+                    table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error loading courses</td></tr>';
+            }
+        }
+        
+        function openCourseEditModal(courseId) {
+            const course = allCourses[courseId];
+            if (!course) return;
+            
+            document.getElementById('editCourseId').value = courseId;
+            document.getElementById('editCourseTitle').value = course.title || '';
+            document.getElementById('editCourseDuration').value = course.duration || '';
+            document.getElementById('editCourseModules').value = course.modules || 1;
+            document.getElementById('editCourseLevel').value = course.level || 'Beginner';
+            document.getElementById('editCourseOverview').value = course.overview || '';
+            document.getElementById('editModalTitle').textContent = `Edit Course ${courseId}`;
+            
+            document.getElementById('courseEditModal').style.display = 'flex';
+        }
+        
+        function closeCourseEditModal() {
+            document.getElementById('courseEditModal').style.display = 'none';
+        }
+        
+        async function saveCourseChanges() {
+            const courseId = document.getElementById('editCourseId').value;
+            const updates = {
+                title: document.getElementById('editCourseTitle').value,
+                duration: document.getElementById('editCourseDuration').value,
+                modules: parseInt(document.getElementById('editCourseModules').value),
+                level: document.getElementById('editCourseLevel').value,
+                overview: document.getElementById('editCourseOverview').value
+            };
+            
+            try {
+                const response = await fetch('/api/admin/courses/' + courseId, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': adminPwd
+                    },
+                    body: JSON.stringify(updates)
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showNotification('Course updated successfully!', 'success');
+                    closeCourseEditModal();
+                    loadCourseEditor();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error saving course:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        function openCourseContentModal(courseId) {
+            const course = typeof courses !== 'undefined' ? courses[courseId] : null;
+            if (!course) {
+                alert('Course content not loaded. Please refresh the page.');
+                return;
+            }
+            
+            document.getElementById('contentModalTitle').textContent = course.title;
+            
+            let html = '';
+            
+            html += `<div style="background: rgba(255,215,0,0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffd700;">
+                <p style="margin: 0; font-size: 1.1rem;"><strong>Duration:</strong> ${course.duration} | <strong>Modules:</strong> ${course.modules} | <strong>Level:</strong> ${course.level}</p>
+            </div>`;
+            
+            html += `<div style="margin-bottom: 25px;">
+                <h4 style="color: #ffd700; margin-bottom: 10px;">Overview</h4>
+                <p style="line-height: 1.6; color: #94a3b8;">${course.overview}</p>
+            </div>`;
+            
+            if (course.objectives && course.objectives.length) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Learning Objectives</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #94a3b8;">
+                        ${course.objectives.map(obj => `<li style="margin-bottom: 8px;">${obj}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+            
+            if (course.modules_content && course.modules_content.length) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 15px;">Course Modules & Lessons</h4>`;
+                
+                let totalLessons = 0;
+                course.modules_content.forEach((module, idx) => {
+                    const lessonCount = module.lessons ? module.lessons.length : 0;
+                    totalLessons += lessonCount;
+                    html += `<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <h5 style="color: #3b82f6; margin: 0 0 10px 0; font-size: 1.1rem;">Module ${idx + 1}: ${module.title}</h5>
+                        <ul style="margin: 0; padding-left: 20px; color: #e2e8f0;">
+                            ${module.lessons ? module.lessons.map(lesson => `<li style="margin-bottom: 6px;">${lesson}</li>`).join('') : '<li style="color: #ef4444;">No lessons defined</li>'}
+                        </ul>
+                    </div>`;
+                });
+                
+                html += `<p style="color: #10b981; font-weight: 600; margin-top: 15px;">Total: ${course.modules_content.length} modules, ${totalLessons} lessons</p>`;
+                html += `</div>`;
+            } else {
+                html += `<div style="background: rgba(239,68,68,0.2); padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444;">
+                    <p style="margin: 0; color: #ef4444;">No module content defined for this course.</p>
+                </div>`;
+            }
+            
+            if (course.quiz && course.quiz.length) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Quiz Questions (${course.quiz.length})</h4>
+                    ${course.quiz.map((q, idx) => `
+                        <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                            <p style="margin: 0 0 8px 0; color: #e2e8f0;"><strong>Q${idx + 1}:</strong> ${q.question}</p>
+                            <p style="margin: 0; color: #10b981; font-size: 0.9rem;"><strong>Answer:</strong> ${q.correct}</p>
+                        </div>
+                    `).join('')}
+                </div>`;
+            }
+            
+            if (course.hands_on) {
+                html += `<div style="margin-bottom: 25px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Hands-On Practice</h4>
+                    <p style="line-height: 1.6; color: #94a3b8;">${course.hands_on}</p>
+                </div>`;
+            }
+            
+            if (course.skills && course.skills.length) {
+                html += `<div style="margin-bottom: 15px;">
+                    <h4 style="color: #ffd700; margin-bottom: 10px;">Skills Acquired</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${course.skills.map(skill => `<span style="background: rgba(59,130,246,0.2); color: #3b82f6; padding: 4px 12px; border-radius: 15px; font-size: 0.9rem;">${skill}</span>`).join('')}
+                    </div>
+                </div>`;
+            }
+            
+            document.getElementById('courseContentBody').innerHTML = html;
+            document.getElementById('courseContentModal').style.display = 'block';
+        }
+        
+        function closeCourseContentModal() {
+            document.getElementById('courseContentModal').style.display = 'none';
+        }
+        
+        async function loadNodeWhitelist() {
+            const table = document.getElementById('nodeWhitelistTable');
+            table.innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
+            
+            try {
+                const filter = document.getElementById('nodeWhitelistFilter')?.value || '';
+                let url = `/api/admin/node-whitelist`;
+                if (filter) url += `?tier=${filter}`;
+                
+                const response = await fetch(url, {
+                    headers: { 'x-admin-password': adminPwd }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const whitelist = data.whitelist || [];
+                    const scholarCount = whitelist.filter(w => w.tier === 'scholar').length;
+                    const educatorCount = whitelist.filter(w => w.tier === 'educator').length;
+                    const academyCount = whitelist.filter(w => w.tier === 'academy').length;
+                    
+                    document.getElementById('nodeScholarCount').textContent = scholarCount;
+                    document.getElementById('nodeEducatorCount').textContent = educatorCount;
+                    document.getElementById('nodeAcademyCount').textContent = academyCount;
+                    document.getElementById('nodeTotalRegistered').textContent = whitelist.length;
+                    
+                    if (whitelist.length > 0) {
+                        let html = '';
+                        const filteredList = filter ? whitelist.filter(w => w.tier === filter) : whitelist;
+                        filteredList.forEach(w => {
+                            const tierColors = { scholar: '#10b981', educator: '#3b82f6', academy: '#a855f7' };
+                            const tierColor = tierColors[w.tier] || '#94a3b8';
+                            html += `
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 0.85rem;">${w.whitelist_id}</td>
+                                    <td>${w.email}</td>
+                                    <td style="font-family: monospace; font-size: 0.8rem;">${w.wallet ? w.wallet.substring(0, 10) + '...' : 'N/A'}</td>
+                                    <td><span style="background: ${tierColor}33; color: ${tierColor}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; text-transform: capitalize;">${w.tier}</span></td>
+                                    <td><span style="background: ${w.status === 'pending' ? '#f59e0b33' : '#10b98133'}; color: ${w.status === 'pending' ? '#f59e0b' : '#10b981'}; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">${w.status || 'pending'}</span></td>
+                                    <td>${new Date(w.registered_at).toLocaleDateString()}</td>
+                                </tr>
+                            `;
+                        });
+                        table.innerHTML = html;
+                    } else {
+                        table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">No node whitelist registrations yet. Share the /node-sale.html page to get registrations!</td></tr>';
+                    }
+                } else {
+                    table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error: ' + data.error + '</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading node whitelist:', error);
+                table.innerHTML = '<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error loading whitelist</td></tr>';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', checkExistingSession);
+        
+        setInterval(() => {
+            if (adminPwd) refreshAllData();
+        }, 60000);
+        
+        function showTabMobile(tabName) {
+            showTab(tabName);
+            document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.mobile-nav-item[data-tab="${tabName}"]`)?.classList.add('active');
+        }
+    </script>
+    
+    <script src="backoffice.js"></script>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-item active" data-tab="dashboard" onclick="showTabMobile('dashboard')">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="students" onclick="showTabMobile('students')">
+            <span class="icon">👨‍🎓</span>
+            <span>Students</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="claims" onclick="showTabMobile('claims')">
+            <span class="icon">💰</span>
+            <span>Claims</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="scholarships" onclick="showTabMobile('scholarships')">
+            <span class="icon">🎓</span>
+            <span>Scholarships</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="rewards" onclick="showTabMobile('rewards')">
+            <span class="icon">🏆</span>
+            <span>Rewards</span>
+        </div>
+        <div class="mobile-nav-item" data-tab="graduates" onclick="showTabMobile('graduates')">
+            <span class="icon">🎖️</span>
+            <span>Graduates</span>
+        </div>
+    </nav>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenostod Academy — Student Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --cyan: #00C8FF;
+            --bg: #070b14;
+            --card: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.07);
+            --text: #a8bcd4;
+            --white: #e8eef6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .print-bar {
+            background: rgba(0,0,0,0.6);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .print-bar-label { font-size: 0.75rem; color: rgba(255,215,0,0.5); font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+        .btn-pdf {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.25rem;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @media print {
+            .print-bar { display: none; }
+            body { background: #000; }
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(160deg, #0a1228, #040810);
+            border-bottom: 1px solid rgba(255,215,0,0.12);
+            padding: 2rem 1.5rem 1.75rem;
+            text-align: center;
+        }
+        .header-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            color: rgba(255,215,0,0.5);
+            letter-spacing: 3px;
+            margin-bottom: 0.75rem;
+        }
+        .header-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.6rem, 6vw, 2.4rem);
+            font-weight: 900;
+            color: var(--gold);
+            margin-bottom: 0.25rem;
+        }
+        .header-sub {
+            font-size: 0.9rem;
+            color: var(--text);
+            margin-bottom: 1.25rem;
+        }
+        .header-quote {
+            font-size: 0.88rem;
+            color: rgba(255,215,0,0.6);
+            font-style: italic;
+            border-left: 2px solid rgba(255,215,0,0.3);
+            padding-left: 0.85rem;
+            text-align: left;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* SECTION */
+        .section { padding: 1.75rem 1.5rem; border-bottom: 1px solid var(--border); }
+        .section:last-child { border-bottom: none; }
+        .eyebrow {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            color: rgba(255,215,0,0.4);
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+        }
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 0.85rem;
+        }
+        .section-title .gold { color: var(--gold); }
+        .section-title .cyan { color: var(--cyan); }
+        .body-text {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.75;
+            margin-bottom: 1rem;
+        }
+
+        /* PILL STATS */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .stat-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 0.75rem;
+            text-align: center;
+        }
+        .stat-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--gold);
+        }
+        .stat-label {
+            font-size: 0.72rem;
+            color: rgba(168,188,212,0.5);
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+
+        /* RVT SECTION — HERO */
+        .rvt-hero {
+            background: linear-gradient(135deg, rgba(255,215,0,0.05), rgba(0,200,255,0.04));
+            border: 1px solid rgba(255,215,0,0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .rvt-hero-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            color: rgba(255,215,0,0.5);
+            letter-spacing: 3px;
+            margin-bottom: 0.35rem;
+        }
+        .rvt-hero-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--gold);
+            margin-bottom: 0.6rem;
+        }
+        .rvt-hero-desc {
+            font-size: 0.88rem;
+            color: var(--text);
+            line-height: 1.75;
+        }
+        .rvt-hero-desc strong { color: var(--white); }
+
+        /* RVT TIERS */
+        .tier-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.65rem;
+            margin-bottom: 1.25rem;
+        }
+        .tier-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .tier-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+        .tier-card.bronze::before { background: linear-gradient(90deg, #cd7f32, #e9a96e); }
+        .tier-card.silver::before { background: linear-gradient(90deg, #9ea8b3, #d4dce6); }
+        .tier-card.gold::before { background: linear-gradient(90deg, #FFD700, #ffec6e); }
+        .tier-card.platinum::before { background: linear-gradient(90deg, #00C8FF, #a78bfa); }
+
+        .tier-icon { font-size: 1.4rem; margin-bottom: 0.35rem; }
+        .tier-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .tier-card.bronze .tier-name { color: #cd7f32; }
+        .tier-card.silver .tier-name { color: #c8d4de; }
+        .tier-card.gold .tier-name { color: var(--gold); }
+        .tier-card.platinum .tier-name { color: var(--cyan); }
+
+        .tier-courses { font-size: 0.78rem; color: var(--text); margin-bottom: 0.15rem; }
+        .tier-royalty {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+        .tier-desc { font-size: 0.72rem; color: rgba(168,188,212,0.45); margin-top: 0.2rem; line-height: 1.4; }
+
+        /* HOW IT WORKS FLOW */
+        .flow-list { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1rem; }
+        .flow-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+        }
+        .flow-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            color: var(--gold);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .flow-text { font-size: 0.87rem; color: var(--text); line-height: 1.6; }
+        .flow-text strong { color: var(--white); }
+
+        /* GRADUATION BOX */
+        .grad-box {
+            background: linear-gradient(135deg, rgba(0,200,255,0.05), rgba(139,92,246,0.05));
+            border: 1px solid rgba(0,200,255,0.2);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .grad-box-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--cyan);
+            margin-bottom: 0.85rem;
+            font-weight: 700;
+        }
+        .grad-rewards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .grad-reward {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.88rem;
+            color: var(--text);
+        }
+        .grad-reward .icon { font-size: 1.1rem; flex-shrink: 0; }
+        .grad-reward strong { color: var(--white); }
+
+        /* PATHS */
+        .paths-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .path-card {
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid;
+        }
+        .path-card.paid {
+            background: rgba(255,215,0,0.04);
+            border-color: rgba(255,215,0,0.2);
+        }
+        .path-card.scholar {
+            background: rgba(0,200,255,0.04);
+            border-color: rgba(0,200,255,0.15);
+        }
+        .path-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.35rem;
+        }
+        .path-card.paid .path-label { color: rgba(255,215,0,0.5); }
+        .path-card.scholar .path-label { color: rgba(0,200,255,0.5); }
+        .path-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+        .path-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            color: var(--text);
+            padding: 0.2rem 0;
+            line-height: 1.4;
+        }
+        .path-item::before {
+            content: '→';
+            flex-shrink: 0;
+        }
+        .path-card.paid .path-item::before { color: var(--gold); }
+        .path-card.scholar .path-item::before { color: var(--cyan); }
+
+        /* CTA */
+        .cta {
+            background: linear-gradient(160deg, #0a1228, #040810);
+            border-top: 1px solid rgba(255,215,0,0.1);
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+        .cta-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+        .cta-title .gold { color: var(--gold); }
+        .cta-sub {
+            font-size: 0.88rem;
+            color: var(--text);
+            line-height: 1.7;
+            margin-bottom: 1.25rem;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cta-link {
+            display: inline-block;
+            background: var(--gold);
+            color: #000;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+        .cta-domain {
+            margin-top: 0.85rem;
+            font-size: 0.78rem;
+            color: rgba(168,188,212,0.3);
+        }
+
+        footer {
+            padding: 1.25rem;
+            text-align: center;
+            font-size: 0.72rem;
+            color: rgba(168,188,212,0.2);
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="print-bar no-print">
+    <div class="print-bar-label">KENOSTOD ACADEMY — STUDENT OVERVIEW</div>
+    <button class="btn-pdf" onclick="window.print()">Save as PDF</button>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-tag">T.D.I.R. FOUNDATION — TURN DREAMS INTO REALITY</div>
+    <div class="header-logo">KENOSTOD ACADEMY</div>
+    <div class="header-sub">21-Course Blockchain Education · Learn-to-Earn · Perpetual Royalties</div>
+    <div class="header-quote">
+        "KENO is king, Kenostod is his kingdom — but <strong>everyone</strong> receives royalties, not just the king."
+    </div>
+</div>
+
+<!-- WHAT IT IS -->
+<div class="section">
+    <div class="eyebrow">WHAT IS KENOSTOD</div>
+    <div class="section-title">The World's First <span class="gold">Sovereign Education Economy</span></div>
+    <div class="body-text">
+        Kenostod Blockchain Academy is a 21-course curriculum where <strong>students earn real KENO tokens</strong> as they learn. Every course completed = 250 KENO. Graduate all 21 = 5,250 KENO + a financial infrastructure most people will never access anywhere else.
+    </div>
+
+    <div class="stat-row">
+        <div class="stat-box">
+            <div class="stat-num">21</div>
+            <div class="stat-label">Courses — Wallets to Arbitrage</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num">5,250</div>
+            <div class="stat-label">KENO Earned on Graduation</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num">2%</div>
+            <div class="stat-label">Perpetual Royalties for Graduates</div>
+        </div>
+    </div>
+</div>
+
+<!-- RVT NFT — THE MISSING PIECE -->
+<div class="section">
+    <div class="eyebrow">THE ENROLLMENT DRIVER MOST PEOPLE MISS</div>
+    <div class="section-title">💎 <span class="gold">RVT NFTs</span> — Residual Value Tokens</div>
+
+    <div class="rvt-hero">
+        <div class="rvt-hero-label">WHAT IS AN RVT</div>
+        <div class="rvt-hero-title">An NFT That Pays You Forever</div>
+        <div class="rvt-hero-desc">
+            An RVT (Residual Value Token) is an NFT you earn by completing courses at Kenostod Academy. It's not a profile picture. It's not a collectible. It's a <strong>perpetual royalty stake</strong> in the entire Kenostod ecosystem — platform fees, arbitrage earnings, enterprise computation, and more. The more courses you finish, the higher your royalty percentage. <strong>You don't buy it. You earn it by learning.</strong>
+        </div>
+    </div>
+
+    <div class="tier-grid">
+        <div class="tier-card bronze">
+            <div class="tier-icon">🥉</div>
+            <div class="tier-name">BRONZE RVT</div>
+            <div class="tier-courses">Complete 5 courses</div>
+            <div class="tier-royalty">0.25% Royalties</div>
+            <div class="tier-desc">Your first royalty stake — passive income starts here</div>
+        </div>
+        <div class="tier-card silver">
+            <div class="tier-icon">🥈</div>
+            <div class="tier-name">SILVER RVT</div>
+            <div class="tier-courses">Complete 10 courses</div>
+            <div class="tier-royalty">0.50% Royalties</div>
+            <div class="tier-desc">Royalties double as your knowledge doubles</div>
+        </div>
+        <div class="tier-card gold">
+            <div class="tier-icon">🥇</div>
+            <div class="tier-name">GOLD RVT</div>
+            <div class="tier-courses">Complete 16 courses</div>
+            <div class="tier-royalty">1.00% Royalties</div>
+            <div class="tier-desc">Full blockchain mastery tier unlocked</div>
+        </div>
+        <div class="tier-card platinum">
+            <div class="tier-icon">🏆</div>
+            <div class="tier-name">PLATINUM RVT</div>
+            <div class="tier-courses">Complete all 21 courses</div>
+            <div class="tier-royalty">2.00% Royalties</div>
+            <div class="tier-desc">Graduate Club access + full ecosystem share</div>
+        </div>
+    </div>
+
+    <div class="eyebrow" style="margin-bottom:0.65rem;">HOW THE RVT WORKS</div>
+    <div class="flow-list">
+        <div class="flow-item">
+            <div class="flow-num">01</div>
+            <div class="flow-text"><strong>Enroll in the Academy</strong> — choose the paid path (KUTL Card issued immediately) or apply for a Wealth Builder Scholarship (zero upfront cost)</div>
+        </div>
+        <div class="flow-item">
+            <div class="flow-num">02</div>
+            <div class="flow-text"><strong>Complete courses and hit milestones</strong> — RVT NFTs are automatically minted and sent to your BSC wallet at 5, 10, 16, and 21 courses. No manual claim. No waiting.</div>
+        </div>
+        <div class="flow-item">
+            <div class="flow-num">03</div>
+            <div class="flow-text"><strong>Your RVT earns passively</strong> — every time the Kenostod ecosystem generates revenue (platform fees, arbitrage, enterprise usage), your royalty percentage flows directly to your wallet</div>
+        </div>
+        <div class="flow-item">
+            <div class="flow-num">04</div>
+            <div class="flow-text"><strong>You own it forever</strong> — RVT NFTs are transferable on-chain. The royalty stream belongs to the token. If you ever sell it, the next holder earns in your place.</div>
+        </div>
+    </div>
+</div>
+
+<!-- GRADUATION STACK -->
+<div class="section">
+    <div class="eyebrow">WHEN YOU COMPLETE ALL 21 COURSES</div>
+    <div class="section-title">Graduation <span class="gold">Fires Everything at Once</span></div>
+    <div class="body-text">One completion event unlocks your entire reward stack simultaneously — no extra steps.</div>
+
+    <div class="grad-box">
+        <div class="grad-box-title">THE GRADUATION STACK</div>
+        <div class="grad-rewards">
+            <div class="grad-reward"><span class="icon">🪙</span><span><strong>5,250 KENO unlocked</strong> — 250 per course, all released at graduation (Scholarship path)</span></div>
+            <div class="grad-reward"><span class="icon">🏆</span><span><strong>Platinum RVT NFT minted</strong> — 2% perpetual royalties from the entire ecosystem, forever</span></div>
+            <div class="grad-reward"><span class="icon">💳</span><span><strong>KUTL Card activated</strong> — spend KENO and USDC in the real world, from day one</span></div>
+            <div class="grad-reward"><span class="icon">🪪</span><span><strong>Graduate ID issued</strong> — blockchain-verified credential, physical card mailed</span></div>
+            <div class="grad-reward"><span class="icon">👑</span><span><strong>Graduate Club unlocked</strong> — Flash Arbitrage Loan training, inner community access, governance voting</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- TWO PATHS -->
+<div class="section">
+    <div class="eyebrow">HOW TO GET IN</div>
+    <div class="section-title">Two Paths. <span class="cyan">Same Destination.</span></div>
+    <div class="body-text">Every student who graduates reaches the same outcome — RVT royalties, KENO, Graduate Club, and the KUTL Card. The only difference is how you start.</div>
+
+    <div class="paths-grid">
+        <div class="path-card paid">
+            <div class="path-label">PATH 01</div>
+            <div class="path-title">Enrolled Student</div>
+            <div class="path-item">Full enrollment payment</div>
+            <div class="path-item">KUTL Card issued immediately</div>
+            <div class="path-item">250 KENO per course, spendable in real time</div>
+            <div class="path-item">RVT NFTs auto-minted at each milestone</div>
+            <div class="path-item">Priority access to all programs</div>
+        </div>
+        <div class="path-card scholar">
+            <div class="path-label">PATH 02</div>
+            <div class="path-title">Wealth Builder Scholarship</div>
+            <div class="path-item">Zero upfront cost</div>
+            <div class="path-item">Apply and get accepted</div>
+            <div class="path-item">KENO locked until all 21 courses complete</div>
+            <div class="path-item">Same RVT NFT milestones apply</div>
+            <div class="path-item">All 5,250 KENO released at graduation</div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="cta">
+    <div class="cta-title">Your Education Should <span class="gold">Pay You Back</span></div>
+    <div class="cta-sub">
+        Most schools take your money and leave you with debt. Kenostod gives you knowledge, tokens, royalties, and a card — all from completing 21 courses. The RVT is the part no other academy has. That's the enrollment driver. That's why this is different.
+    </div>
+    <a href="https://kenostod-blockchain.onrender.com" class="cta-link">ENROLL NOW</a>
+    <div class="cta-domain">kenostodblockchain.com · Powered by T.D.I.R. Foundation</div>
+</div>
+
+<footer>
+    Kenostod Blockchain Academy LLC · T.D.I.R. Foundation · Confidential — For Community Distribution
+</footer>
+
+</body>
+</html>

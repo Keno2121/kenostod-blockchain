@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graduate Merchandise Request | Kenostod Graduate Club</title>
+    <meta name="description" content="Request your exclusive Kenostod Graduate merchandise. Free pins and ID cards for verified graduates.">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .merch-hero {
+            background: linear-gradient(135deg, #064e3b 0%, #10b981 50%, #064e3b 100%);
+            padding: 80px 20px 60px;
+            text-align: center;
+            color: white;
+        }
+
+        .merch-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .merch-hero .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .status-banner {
+            background: white;
+            border-left: 6px solid var(--primary-emerald);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 900px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .status-banner.error {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .status-banner.warning {
+            border-left-color: var(--accent-gold);
+            background: #fffbeb;
+        }
+
+        .merch-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .item-card {
+            background: white;
+            border: 3px solid var(--bg-gray);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .item-card:hover {
+            border-color: var(--primary-emerald);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .item-card.selected {
+            border-color: var(--primary-emerald);
+            background: #f0fdf4;
+        }
+
+        .item-card .icon {
+            font-size: 4rem;
+            margin-bottom: 12px;
+        }
+
+        .item-card h3 {
+            color: var(--text-dark);
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+
+        .item-card .price {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary-emerald);
+            margin: 12px 0;
+        }
+
+        .item-card .price.free {
+            color: var(--accent-gold);
+        }
+
+        .item-card .description {
+            font-size: 0.95rem;
+            color: var(--text-gray);
+            margin-bottom: 16px;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--primary-emerald);
+            background: white;
+            border-radius: 50%;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-emerald);
+            color: white;
+        }
+
+        .quantity-display {
+            font-size: 1.2rem;
+            font-weight: 700;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .shipping-form {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--bg-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-emerald);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .order-summary {
+            background: linear-gradient(135deg, #fef3c7 0%, #fff7ed 100%);
+            border: 4px solid var(--accent-gold);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .order-summary h3 {
+            color: var(--primary-emerald);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .summary-item.total {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary-emerald);
+            border-bottom: none;
+            margin-top: 12px;
+        }
+
+        .btn-submit {
+            background: var(--primary-emerald);
+            color: white;
+            padding: 18px 48px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-submit:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            border: 4px solid var(--bg-gray);
+            border-top: 4px solid var(--primary-emerald);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .merch-hero h1 {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .shipping-form {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="professional-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="/logo.png" alt="Kenostod Shield" style="width: 48px; height: 48px;">
+                <div class="logo-text">
+                    <div class="logo-title">Kenostod</div>
+                    <div class="logo-subtitle">Blockchain Education</div>
+                </div>
+            </a>
+            <button class="nav-cta btn-gold" onclick="window.location.href='/graduate-club.html'">Graduate Club</button>
+        </div>
+    </nav>
+
+    <div class="merch-hero">
+        <h1>🎁 Graduate Merchandise</h1>
+        <p class="subtitle">Exclusive items for verified Kenostod Graduates</p>
+    </div>
+
+    <div class="merch-container">
+        <div id="loadingStatus" class="loading">
+            <div class="spinner"></div>
+            <p>Verifying your graduate status...</p>
+        </div>
+
+        <div id="notEligible" style="display: none;">
+            <div class="status-banner warning">
+                <h3 style="margin: 0 0 12px 0; color: var(--text-dark);">⚠️ Not Eligible Yet</h3>
+                <p id="eligibilityMessage" style="margin: 0; color: var(--text-gray);"></p>
+                <p style="margin: 12px 0 0 0;">
+                    <a href="/" style="color: var(--primary-emerald); font-weight: 700;">Return to Platform →</a>
+                </p>
+            </div>
+        </div>
+
+        <div id="merchForm" style="display: none;">
+            <div class="status-banner">
+                <h3 style="margin: 0 0 8px 0; color: var(--primary-emerald);">✅ Verified Graduate</h3>
+                <p id="graduateInfo" style="margin: 0; color: var(--text-gray);"></p>
+            </div>
+
+            <h2 style="font-size: 2rem; color: var(--text-dark); margin: 40px 0 24px;">Select Your Items</h2>
+
+            <div class="items-grid">
+                <div class="item-card" data-item="pin" data-price="0">
+                    <div class="icon">📌</div>
+                    <h3>Graduate Pin</h3>
+                    <p class="description">Gold-plated shield pin with "21" engraving</p>
+                    <div class="price free">FREE</div>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="updateQuantity('pin', -1)">−</button>
+                        <span class="quantity-display" id="qty-pin">1</span>
+                        <button class="quantity-btn" onclick="updateQuantity('pin', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="item-card" data-item="id_card" data-price="0">
+                    <div class="icon">💳</div>
+                    <h3>Graduate ID Card</h3>
+                    <p class="description">Official ID with QR verification</p>
+                    <div class="price free">FREE</div>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="updateQuantity('id_card', -1)">−</button>
+                        <span class="quantity-display" id="qty-id_card">1</span>
+                        <button class="quantity-btn" onclick="updateQuantity('id_card', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="item-card" data-item="hoodie" data-price="45">
+                    <div class="icon">👕</div>
+                    <h3>Graduate Hoodie</h3>
+                    <p class="description">Embroidered shield logo, emerald green</p>
+                    <div class="price">$45</div>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">Regular: $65</p>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="updateQuantity('hoodie', -1)">−</button>
+                        <span class="quantity-display" id="qty-hoodie">0</span>
+                        <button class="quantity-btn" onclick="updateQuantity('hoodie', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="item-card" data-item="ring" data-price="69">
+                    <div class="icon">💍</div>
+                    <h3>Shield Ring</h3>
+                    <p class="description">Stainless steel with "21" engraving</p>
+                    <div class="price">$69</div>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">Regular: $89</p>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="updateQuantity('ring', -1)">−</button>
+                        <span class="quantity-display" id="qty-ring">0</span>
+                        <button class="quantity-btn" onclick="updateQuantity('ring', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="item-card" data-item="certificate" data-price="99">
+                    <div class="icon">📜</div>
+                    <h3>Framed Certificate</h3>
+                    <p class="description">Premium frame with gold matting</p>
+                    <div class="price">$99</div>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">Regular: $149</p>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="updateQuantity('certificate', -1)">−</button>
+                        <span class="quantity-display" id="qty-certificate">0</span>
+                        <button class="quantity-btn" onclick="updateQuantity('certificate', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="item-card" data-item="phone_case" data-price="25">
+                    <div class="icon">📱</div>
+                    <h3>Phone Case</h3>
+                    <p class="description">Shield design for iPhone/Android</p>
+                    <div class="price">$25</div>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">Regular: $35</p>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="updateQuantity('phone_case', -1)">−</button>
+                        <span class="quantity-display" id="qty-phone_case">0</span>
+                        <button class="quantity-btn" onclick="updateQuantity('phone_case', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-summary">
+                <h3>📋 Order Summary</h3>
+                <div id="orderItems"></div>
+                <div class="summary-item total">
+                    <span>Total:</span>
+                    <span id="orderTotal">$0.00</span>
+                </div>
+            </div>
+
+            <div class="shipping-form">
+                <h2 style="font-size: 2rem; color: var(--text-dark); margin: 0 0 24px;">Shipping Information</h2>
+
+                <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" required placeholder="John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="your@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="+1 (555) 123-4567">
+                </div>
+
+                <div class="form-group">
+                    <label for="address1">Address Line 1 *</label>
+                    <input type="text" id="address1" required placeholder="123 Main Street">
+                </div>
+
+                <div class="form-group">
+                    <label for="address2">Address Line 2</label>
+                    <input type="text" id="address2" placeholder="Apt 4B">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="city">City *</label>
+                        <input type="text" id="city" required placeholder="New York">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="state">State / Province</label>
+                        <input type="text" id="state" placeholder="NY">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="postalCode">Postal Code *</label>
+                        <input type="text" id="postalCode" required placeholder="10001">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Country *</label>
+                        <select id="country" required>
+                            <option value="">Select Country</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="GB">United Kingdom</option>
+                            <option value="AU">Australia</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="JP">Japan</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 40px;">
+                    <button class="btn-submit" id="submitBtn" onclick="submitOrder()">
+                        Submit Merchandise Request
+                    </button>
+                    <p style="margin-top: 16px; color: var(--text-gray); font-size: 0.95rem;">
+                        Free items ship within 5-7 business days. Paid items may take up to 2 weeks.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/cryptoLib.js"></script>
+    <script>
+        let userWallet = null;
+        let graduateData = null;
+        let quantities = {
+            pin: 1,
+            id_card: 1,
+            hoodie: 0,
+            ring: 0,
+            certificate: 0,
+            phone_case: 0
+        };
+
+        const itemPrices = {
+            pin: 0,
+            id_card: 0,
+            hoodie: 45,
+            ring: 69,
+            certificate: 99,
+            phone_case: 25
+        };
+
+        async function checkEligibility() {
+            const walletState = getWalletState();
+            const urlParams = new URLSearchParams(window.location.search);
+            const walletFromUrl = urlParams.get('wallet');
+            
+            if (walletFromUrl) {
+                userWallet = walletFromUrl;
+            } else if (walletState && walletState.publicKey) {
+                userWallet = walletState.publicKey;
+            } else {
+                document.getElementById('loadingStatus').innerHTML = `
+                    <div class="status-banner" style="background: white; padding: 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <h3 style="margin: 0 0 16px 0; color: var(--primary-emerald);">🔐 Enter Your Wallet Address</h3>
+                        <p style="margin: 0 0 20px 0; color: var(--text-gray);">Enter your BSC wallet address to verify graduate status.</p>
+                        <input type="text" id="manualWalletInput" placeholder="0x..." style="width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; margin-bottom: 16px;">
+                        <button onclick="verifyManualWallet()" class="btn-gold" style="width: 100%;">Verify Graduate Status</button>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/graduate/check-eligibility/${userWallet}`);
+                const data = await response.json();
+
+                if (data.eligible && data.isGraduate) {
+                    graduateData = data;
+                    showMerchandiseForm();
+                } else {
+                    showNotEligible(data);
+                }
+            } catch (error) {
+                console.error('Error checking eligibility:', error);
+                document.getElementById('loadingStatus').innerHTML = `
+                    <div class="status-banner error">
+                        <h3 style="margin: 0 0 12px 0; color: #dc2626;">❌ Error</h3>
+                        <p style="margin: 0;">Unable to verify graduate status. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function verifyManualWallet() {
+            const walletInput = document.getElementById('manualWalletInput').value.trim();
+            if (!walletInput || !walletInput.startsWith('0x')) {
+                alert('Please enter a valid wallet address starting with 0x');
+                return;
+            }
+            userWallet = walletInput;
+            setWalletState(walletInput);
+            
+            document.getElementById('loadingStatus').innerHTML = `
+                <div class="loader"></div>
+                <p>Verifying your graduate status...</p>
+                <p style="font-size: 0.9rem; color: #666;">...</p>
+            `;
+            
+            try {
+                const response = await fetch(`/api/graduate/check-eligibility/${userWallet}`);
+                const data = await response.json();
+
+                if (data.eligible && data.isGraduate) {
+                    graduateData = data;
+                    showMerchandiseForm();
+                } else {
+                    showNotEligible(data);
+                }
+            } catch (error) {
+                console.error('Error checking eligibility:', error);
+                document.getElementById('loadingStatus').innerHTML = `
+                    <div class="status-banner error">
+                        <h3 style="margin: 0 0 12px 0; color: #dc2626;">❌ Error</h3>
+                        <p style="margin: 0;">Unable to verify graduate status. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function showNotEligible(data) {
+            document.getElementById('loadingStatus').style.display = 'none';
+            document.getElementById('notEligible').style.display = 'block';
+            document.getElementById('eligibilityMessage').textContent = data.message || 'You are not yet eligible for graduate merchandise.';
+        }
+
+        function showMerchandiseForm() {
+            document.getElementById('loadingStatus').style.display = 'none';
+            document.getElementById('merchForm').style.display = 'block';
+            document.getElementById('graduateInfo').innerHTML = `
+                Graduate ID: <strong>${graduateData.graduateId}</strong> | 
+                Completed: ${new Date(graduateData.completionDate).toLocaleDateString()} | 
+                RVT NFT: <strong>${graduateData.rvtNFT}</strong>
+            `;
+            updateOrderSummary();
+        }
+
+        function updateQuantity(item, delta) {
+            quantities[item] = Math.max(0, quantities[item] + delta);
+            document.getElementById(`qty-${item}`).textContent = quantities[item];
+            
+            const card = document.querySelector(`[data-item="${item}"]`);
+            if (quantities[item] > 0) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+            
+            updateOrderSummary();
+        }
+
+        function updateOrderSummary() {
+            const orderItemsDiv = document.getElementById('orderItems');
+            let html = '';
+            let total = 0;
+
+            for (const [item, qty] of Object.entries(quantities)) {
+                if (qty > 0) {
+                    const price = itemPrices[item];
+                    const itemTotal = price * qty;
+                    total += itemTotal;
+
+                    const itemName = item.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const priceDisplay = price === 0 ? 'FREE' : `$${price}`;
+
+                    html += `
+                        <div class="summary-item">
+                            <span>${itemName} × ${qty}</span>
+                            <span>${price === 0 ? 'FREE' : `$${itemTotal}`}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            orderItemsDiv.innerHTML = html || '<p style="text-align: center; color: #666;">No items selected</p>';
+            document.getElementById('orderTotal').textContent = total === 0 ? 'FREE' : `$${total.toFixed(2)}`;
+        }
+
+        async function submitOrder() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address1 = document.getElementById('address1').value.trim();
+            const address2 = document.getElementById('address2').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const state = document.getElementById('state').value.trim();
+            const postalCode = document.getElementById('postalCode').value.trim();
+            const country = document.getElementById('country').value;
+
+            if (!fullName || !address1 || !city || !postalCode || !country) {
+                alert('Please fill in all required fields (marked with *)');
+                return;
+            }
+
+            const itemsRequested = [];
+            for (const [item, qty] of Object.entries(quantities)) {
+                if (qty > 0) {
+                    itemsRequested.push({
+                        itemType: item,
+                        quantity: qty,
+                        price: itemPrices[item]
+                    });
+                }
+            }
+
+            if (itemsRequested.length === 0) {
+                alert('Please select at least one item');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch('/api/graduate/merchandise/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userWalletAddress: userWallet,
+                        userEmail: email,
+                        graduateName: fullName,
+                        shippingAddress: {
+                            line1: address1,
+                            line2: address2,
+                            city: city,
+                            state: state,
+                            postalCode: postalCode,
+                            country: country
+                        },
+                        phoneNumber: phone,
+                        itemsRequested: itemsRequested
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('merchForm').innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 5rem; margin-bottom: 20px;">🎉</div>
+                            <h2 style="color: var(--primary-emerald); margin-bottom: 16px;">Order Submitted!</h2>
+                            <p style="font-size: 1.1rem; margin-bottom: 24px;">Your merchandise request has been placed successfully.</p>
+                            <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+                                <p style="margin: 0 0 8px 0; color: #666;">Order ID:</p>
+                                <p style="font-weight: 700; font-size: 1.1rem; color: var(--primary-emerald); margin: 0;">${result.order.order_id}</p>
+                            </div>
+                            <p style="color: #666; margin-bottom: 30px;">You will receive an email when your items ship.</p>
+                            <button onclick="window.location.href='/graduate-club.html'" class="btn-gold" style="font-size: 1.1rem; padding: 16px 40px;">
+                                Go to Graduate Club
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    if (typeof showCustomAlert === 'function') {
+                        showCustomAlert(`Error: ${result.error}`, '❌');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Merchandise Request';
+                }
+            } catch (error) {
+                console.error('Error submitting order:', error);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('Failed to submit order. Please try again.', '❌');
+                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Merchandise Request';
+            }
+        }
+
+        window.addEventListener('load', checkEligibility);
+    </script>
+    <script src="/custom-dialogs.js"></script>
+</body>
+</html>

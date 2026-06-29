@@ -1,0 +1,1649 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>The Universal Transaction Layer: A New Asset-Agnostic Residual Income Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Canela:wght@300;400;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #475569;
+            --accent: #3b82f6;
+            --muted: #64748b;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--primary);
+            line-height: 1.6;
+        }
+        
+        .canela {
+            font-family: 'Canela', serif;
+            font-weight: 300;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .toc-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            z-index: 40;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        
+        .toc-link {
+            display: block;
+            padding: 0.5rem 0;
+            color: var(--muted);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            padding-left: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .toc-link:hover, .toc-link.active {
+            color: var(--accent);
+            border-left-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .toc-link.sub {
+            padding-left: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .hero-content {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        
+        .insight-highlight {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .citation {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .citation:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 1024px) {
+            .toc-fixed {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .toc-fixed.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .hero-content h1 {
+                font-size: 2.25rem;
+                line-height: 2.5rem;
+            }
+
+            .hero-content p {
+                font-size: 1rem;
+            }
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
+            margin: 4rem 0;
+        }
+        
+        .chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+    </style>
+  </head>
+
+  <body>
+    <nav class="toc-fixed">
+      <div class="mb-8">
+        <h3 class="canela text-lg font-bold text-slate-900 mb-4">Contents</h3>
+        <div class="space-y-1">
+          <a href="#executive-summary" class="toc-link">Executive Summary</a>
+          <a href="#core-concept" class="toc-link">Core Concept</a>
+          <a href="#transaction-fee-model" class="toc-link sub">Transaction Fee Model</a>
+          <a href="#asset-agnostic" class="toc-link sub">Asset-Agnostic Implementation</a>
+          <a href="#fee-rewards" class="toc-link sub">Fee Participation Rewards</a>
+          <a href="#protocol-architecture" class="toc-link">Protocol Architecture</a>
+          <a href="#node-infrastructure" class="toc-link sub">Network Node Infrastructure</a>
+          <a href="#fee-market" class="toc-link sub">Fee Market Dynamics</a>
+          <a href="#economic-model" class="toc-link">Economic Model</a>
+          <a href="#initial-target" class="toc-link sub">Initial Target: $1,000 Weekly</a>
+          <a href="#growth-trajectory" class="toc-link sub">Growth Trajectory</a>
+          <a href="#comparative-analysis" class="toc-link">Comparative Analysis</a>
+          <a href="#technical-implementation" class="toc-link">Technical Implementation</a>
+          <a href="#risk-management" class="toc-link">Risk Management</a>
+          <a href="#user-onboarding" class="toc-link">User Onboarding</a>
+          <a href="#kenostod-ecosystem" class="toc-link">Kenostod Ecosystem</a>
+          <a href="#bridge-integration" class="toc-link sub">Bridge.xyz &amp; USDK</a>
+          <a href="#funding-model" class="toc-link sub">Self-Funding Model</a>
+        </div>
+      </div>
+    </nav>
+
+    <button class="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-lg border" onclick="toggleTOC()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <main class="main-content">
+      <section class="px-8 py-12 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div class="max-w-6xl mx-auto">
+          <div class="bento-grid">
+            <div class="hero-content rounded-2xl p-8">
+              <div class="mb-6">
+                <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                  Innovation Protocol
+                </span>
+                <h1 class="canela text-5xl font-bold mb-6 leading-tight">
+                  The <span class="hero-gradient">Universal Transaction Layer</span>:
+                  <br/>
+                  A New Asset-Agnostic Residual Income Protocol
+                </h1>
+                <p class="text-xl text-slate-600 leading-relaxed">
+                  Capturing transaction fees across all blockchains to generate sustainable fee rewards—without asset selection, validator management, or active trading.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                <div class="bg-white rounded-lg p-4 border border-blue-200">
+                  <div class="text-2xl font-bold text-blue-600">$1,000+</div>
+                  <div class="text-sm text-slate-600">Weekly Target Income</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-blue-200">
+                  <div class="text-2xl font-bold text-blue-600">0.1%</div>
+                  <div class="text-sm text-slate-600">Average Fee Rate</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-blue-200">
+                  <div class="text-2xl font-bold text-blue-600">100%</div>
+                  <div class="text-sm text-slate-600">Automated Operation</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 border border-slate-200">
+              <div style="width: 100%; height: 192px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <i class="fas fa-network-wired text-white text-6xl opacity-50"></i>
+              </div>
+              <h3 class="canela text-lg font-bold mb-3">Protocol Vision</h3>
+              <p class="text-sm text-slate-600">
+                A universal layer capturing value from every transaction across the crypto ecosystem, redistributed to participants as sustainable fee rewards.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="executive-summary" class="px-8 py-12">
+        <div class="max-w-4xl mx-auto">
+          <div class="insight-highlight rounded-xl p-6 mb-8">
+            <h2 class="canela text-2xl font-bold mb-4">
+              <i class="fas fa-lightbulb text-amber-600 mr-2"></i>
+              TL;DR: The $1,000 Weekly Fee Rewards Protocol
+            </h2>
+            <p class="text-lg leading-relaxed">
+              The Universal Transaction Layer (UTL) is a new crypto protocol that lets you earn <strong>$1,000+ weekly in fee participation rewards</strong> by capturing a share of transaction fees from users moving any asset across any blockchain—without managing validators, picking assets, or active trading. It works like a "gas fee layer" that sits above existing chains: every time someone transacts through UTL, you get paid, regardless of whether they're sending Bitcoin, Ethereum, or obscure altcoins. Setup is one-time; income accrues automatically and grows as network volume expands.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 class="canela text-xl font-bold mb-4">Key Innovation</h3>
+              <ul class="space-y-2 text-slate-700">
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                  Asset-agnostic fee collection across all blockchains
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                  Automated fee rewards with zero management overhead
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                  Income denominated in stable UTC, not volatile tokens
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                  Scales with network adoption and transaction volume
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="canela text-xl font-bold mb-4">Market Opportunity</h3>
+              <p class="text-slate-700 mb-4">
+                The protocol requires just <strong>2,857 daily transactions</strong> to achieve the $1,000 weekly target—representing only 0.001% of Ethereum's daily volume. With DeFi protocols processing billions daily, the addressable market provides substantial growth runway.
+              </p>
+              <div class="bg-slate-100 rounded-lg p-4">
+                <div class="text-sm text-slate-600">Required Daily Volume</div>
+                <div class="text-2xl font-bold text-slate-800">$1.43M</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="core-concept" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">Core Concept: The Transaction Fee Redistribution Model</h2>
+
+          <div id="transaction-fee-model" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Fundamental Design Philosophy</h3>
+
+            <div class="bg-white rounded-xl p-8 border border-slate-200 mb-8">
+              <h4 class="text-xl font-semibold mb-4">Gas Fee Parallel Structure</h4>
+              <p class="text-slate-700 leading-relaxed mb-4">
+                The UTL deliberately mirrors proven gas fee mechanisms while transforming their economic destination. Traditional systems like Ethereum distribute fees to validators or burn them. The UTL creates an independent protocol layer above existing infrastructure, capturing similar per-transaction fees but redirecting them broadly to protocol participants.
+              </p>
+
+              <div class="bg-blue-50 rounded-lg p-6">
+                <h5 class="font-semibold mb-3">Key Differentiation</h5>
+                <p class="text-sm text-slate-700">
+                  Users continue paying standard gas to Ethereum validators or Solana leaders, while the UTL fee represents an additional service charge for cross-chain optimization and unified experience. This separation complements rather than competes with underlying network security.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div id="asset-agnostic" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Asset-Agnostic Implementation</h3>
+
+            <p class="text-lg text-slate-700 leading-relaxed mb-6">
+              True asset agnosticism eliminates the concentration risk and operational complexity of traditional crypto income mechanisms. The UTL calculates fees based on transaction value or computational units, not asset identity.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Technical Components</h4>
+                <div class="space-y-4">
+                  <div class="flex items-start">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Universal Compute Units (UCUs)</strong>
+                      <p class="text-sm text-slate-600">Normalize transaction complexity across heterogeneous chains</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Real-time Price Oracles</strong>
+                      <p class="text-sm text-slate-600">Aggregate valuations for fair fee calculation</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <div class="w-3 h-3 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Automated Conversion</strong>
+                      <p class="text-sm text-slate-600">Route fees to UTC through optimal DEX paths</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Universal Transaction Credit (UTC)</h4>
+                <p class="text-slate-700 mb-4">
+                  The UTC is an algorithmically stabilized reference unit pegged to a basket of major stablecoins (USDC, USDT, DAI) with dynamic collateralization. This provides predictable purchasing power while accommodating diverse asset inflows.
+                </p>
+                <div class="bg-slate-50 rounded-lg p-4">
+                  <div class="text-sm text-slate-600 mb-2">Stablecoin Basket Composition</div>
+                  <div class="flex items-center space-x-4 text-sm">
+                    <span>USDC: 40%</span>
+                    <span>USDT: 35%</span>
+                    <span>DAI: 25%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="fee-rewards" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Fee Participation Rewards</h3>
+
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 border border-green-200">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                  <i class="fas fa-clock text-3xl text-green-600 mb-3"></i>
+                  <h4 class="font-semibold mb-2">One-Time Setup</h4>
+                  <p class="text-sm text-slate-700">Connect wallet, stake UTL tokens, select distribution preferences</p>
+                </div>
+                <div class="text-center">
+                  <i class="fas fa-robot text-3xl text-green-600 mb-3"></i>
+                  <h4 class="font-semibold mb-2">Automated Operations</h4>
+                  <p class="text-sm text-slate-700">Smart contracts handle fee collection, normalization, and distribution</p>
+                </div>
+                <div class="text-center">
+                  <i class="fas fa-chart-line text-3xl text-green-600 mb-3"></i>
+                  <h4 class="font-semibold mb-2">Continuous Growth</h4>
+                  <p class="text-sm text-slate-700">Income scales with network adoption and transaction volume</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 bg-white rounded-xl p-6 border border-slate-200">
+              <h4 class="font-semibold mb-4">Distribution Modes</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <strong class="text-blue-800">Instant Streaming</strong>
+                  <p class="text-sm text-slate-700 mt-2">Highest gas cost, immediate liquidity for active users</p>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4">
+                  <strong class="text-green-800">Periodic Batching</strong>
+                  <p class="text-sm text-slate-700 mt-2">Weekly or monthly claims with balanced efficiency</p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4">
+                  <strong class="text-purple-800">Auto-Compounding</strong>
+                  <p class="text-sm text-slate-700 mt-2">Automatic restaking for exponential growth without intervention</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="protocol-architecture" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">Protocol Architecture: The Universal Service Layer</h2>
+
+          <div id="node-infrastructure" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Network Node Infrastructure</h3>
+
+            <div class="bg-white rounded-xl p-8 border border-slate-200 mb-8">
+              <h4 class="text-xl font-semibold mb-4">Service Node Operator Role</h4>
+              <p class="text-slate-700 leading-relaxed mb-6">
+                Service Node Operators (SNOs) run specialized software monitoring multiple blockchain networks simultaneously, detecting transaction opportunities, and executing cryptographic operations for settlement. Unlike traditional validators who compete to produce blocks, SNOs <strong>cooperate to optimize routing, minimize costs, and maximize throughput</strong> across the integrated network.
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h5 class="font-semibold mb-3">Staking Requirements</h5>
+                  <ul class="space-y-2 text-sm text-slate-700">
+                    <li>• Minimum stake substantially below Ethereum's 32 ETH requirement</li>
+                    <li>• Economic security bond for transaction assignment eligibility</li>
+                    <li>• Recoverable slashing collateral for misbehavior</li>
+                    <li>• Natural token demand supporting price stability</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 class="font-semibold mb-3">Performance Metrics</h5>
+                  <ul class="space-y-2 text-sm text-slate-700">
+                    <li>• Uptime percentage targeting 99.9%</li>
+                    <li>• Transaction throughput successfully processed</li>
+                    <li>• Settlement finality speed optimization</li>
+                    <li>• Routing efficiency minimizing conversion slippage</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-xl p-8">
+              <h4 class="text-xl font-semibold mb-6">Node Incentive Structure</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-200">
+                      <th class="text-left py-3 font-semibold">Reward Component</th>
+                      <th class="text-left py-3 font-semibold">Source</th>
+                      <th class="text-left py-3 font-semibold">Characteristics</th>
+                      <th class="text-left py-3 font-semibold">Long-term Trajectory</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    <tr>
+                      <td class="py-3">Base rewards</td>
+                      <td class="py-3">Protocol inflation</td>
+                      <td class="py-3">Predictable, gradually decreasing</td>
+                      <td class="py-3">Minor share of total income</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3">Variable fee rewards</td>
+                      <td class="py-3">Transaction volume</td>
+                      <td class="py-3">Scales with network adoption</td>
+                      <td class="py-3">Dominant income source at maturity</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3">Performance multipliers</td>
+                      <td class="py-3">Quality metrics</td>
+                      <td class="py-3">Meritocratic, competitive</td>
+                      <td class="py-3">Differentiates operator returns</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3">Geographic bonuses</td>
+                      <td class="py-3">Regional distribution</td>
+                      <td class="py-3">Encourages global resilience</td>
+                      <td class="py-3">Stabilizes as coverage matures</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="fee-market" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Fee Market Dynamics</h3>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Base Fee Mechanism</h4>
+                <p class="text-slate-700 mb-4">
+                  Algorithmically adjusted minimum fee drawing from EIP-1559's proven adaptive pricing model, measuring congestion across all integrated networks.
+                </p>
+
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <h5 class="font-semibold text-sm mb-2">Parameters</h5>
+                  <div class="space-y-1 text-sm text-slate-700">
+                    <div>Target utilization: 50%</div>
+                    <div>Maximum adjustment: &plusmn;12.5% per epoch</div>
+                    <div>Burn rate: 50% of base fees</div>
+                    <div>Smoothing period: 10 epochs</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Priority Fee Component</h4>
+                <p class="text-slate-700 mb-4">
+                  Optional priority fee enables time-sensitive transactions to accelerate processing, with anti-volatility protections absent from traditional gas auctions.
+                </p>
+
+                <div class="bg-green-50 rounded-lg p-4">
+                  <h5 class="font-semibold text-sm mb-2">Benefits for Participants</h5>
+                  <p class="text-sm text-slate-700">
+                    Priority fees represent pure upside—increasing total fee volume without requiring additional stake or operational effort. During demand surges, priority fees can substantially exceed base fee contributions.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="insight-highlight rounded-xl p-6">
+              <h4 class="font-semibold mb-3">
+                <i class="fas fa-lightbulb text-amber-600 mr-2"></i>
+                Cross-Chain Fee Normalization Innovation
+              </h4>
+              <p class="text-slate-700">
+                Unified pricing across integrated blockchain networks eliminates cognitive burden and arbitrage opportunities. Ethereum mainnet fees might exceed $10 during congestion, while Solana costs fractions of a cent—yet UTL users experience consistent dollar-equivalent fees regardless of underlying chain.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="economic-model" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">Economic Model and Revenue Projections</h2>
+
+          <div id="initial-target" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Initial Target Achievement: $1,000 Weekly</h3>
+
+            <div class="bg-white rounded-xl p-8 border border-slate-200 mb-8">
+              <h4 class="text-xl font-semibold mb-6">Transaction Volume Requirements</h4>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                  <h5 class="font-semibold mb-4">Baseline Calculation</h5>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                      <span>Target weekly income:</span>
+                      <span class="font-semibold">$1,000</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Fee rate:</span>
+                      <span class="font-semibold">0.1%</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Required weekly fee revenue:</span>
+                      <span class="font-semibold">$100,000</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Required daily volume:</span>
+                      <span class="font-semibold">$1,428,571</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span>Average transaction size:</span>
+                      <span class="font-semibold">$500</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-2">
+                      <span>Required daily transactions:</span>
+                      <span class="font-bold text-blue-600">2,857</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h5 class="font-semibold mb-4">Market Context</h5>
+                  <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                    <div class="text-sm text-slate-600">Market Opportunity</div>
+                    <div class="text-lg font-bold text-slate-800">0.001% of Ethereum daily volume</div>
+                    <div class="text-xs text-slate-500">Extremely achievable target</div>
+                  </div>
+                  <p class="text-sm text-slate-700">
+                    For context, Uniswap processes billions in daily volume; capturing 0.05% of this flow would exceed requirements many times over.
+                  </p>
+                </div>
+              </div>
+
+              <div class="bg-blue-50 rounded-lg p-6">
+                <h5 class="font-semibold mb-3">Stake-Based Scaling</h5>
+                <p class="text-sm text-slate-700 mb-3">
+                  Individual participant returns scale with stake proportion. A participant with 1% of total protocol stake achieves $1,000 weekly at $100,000 weekly fee revenue; with 10% stake, the same volume generates $10,000 weekly.
+                </p>
+                <div class="flex items-center space-x-2 text-sm">
+                  <span class="bg-blue-200 px-2 py-1 rounded">1% stake &rarr; $1,000/week</span>
+                  <span class="text-slate-400">&times;10</span>
+                  <span class="bg-blue-200 px-2 py-1 rounded">10% stake &rarr; $10,000/week</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Alternative Fee Structures</h4>
+                <div class="space-y-4">
+                  <div class="border-l-4 border-blue-500 pl-4">
+                    <strong>Pure percentage (0.1%)</strong>
+                    <p class="text-sm text-slate-600">2,857 daily transactions for $1,000 weekly</p>
+                  </div>
+                  <div class="border-l-4 border-green-500 pl-4">
+                    <strong>Fixed fee ($0.35/tx)</strong>
+                    <p class="text-sm text-slate-600">4,082 daily transactions for $1,000 weekly</p>
+                  </div>
+                  <div class="border-l-4 border-purple-500 pl-4">
+                    <strong>Hybrid (0.05% + $0.15)</strong>
+                    <p class="text-sm text-slate-600">~3,200 daily transactions for $1,000 weekly</p>
+                  </div>
+                  <div class="border-l-4 border-amber-500 pl-4">
+                    <strong>Tiered (0.15%&rarr;0.05%)</strong>
+                    <p class="text-sm text-slate-600">1,333 daily large transactions for $1,000 weekly</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Participation Tiers</h4>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span>Observer (0 UTL)</span>
+                    <span class="bg-slate-100 px-2 py-1 rounded text-xs">0.1&times; multiplier</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span>Participant (1,000 UTL)</span>
+                    <span class="bg-blue-100 px-2 py-1 rounded text-xs">1.0&times; multiplier</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span>Advocate (10,000 UTL)</span>
+                    <span class="bg-green-100 px-2 py-1 rounded text-xs">1.2&times; multiplier</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span>Champion (100,000 UTL)</span>
+                    <span class="bg-purple-100 px-2 py-1 rounded text-xs">1.5&times; multiplier</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2">
+                    <span>Guardian (1,000,000 UTL)</span>
+                    <span class="bg-amber-100 px-2 py-1 rounded text-xs">2.0&times; multiplier</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="growth-trajectory" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Growth Trajectory and Scaling Mechanisms</h3>
+
+            <div class="bg-white rounded-xl p-8 border border-slate-200 mb-8">
+              <h4 class="text-xl font-semibold mb-6">Volume-Driven Expansion</h4>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-200">
+                      <th class="text-left py-3 font-semibold">Phase</th>
+                      <th class="text-left py-3 font-semibold">Timeline</th>
+                      <th class="text-left py-3 font-semibold">Daily Volume</th>
+                      <th class="text-left py-3 font-semibold">Annual Fee Revenue</th>
+                      <th class="text-left py-3 font-semibold">Participant Income (1% stake)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    <tr>
+                      <td class="py-3 font-medium">Bootstrap</td>
+                      <td class="py-3">Months 1-6</td>
+                      <td class="py-3">$1-5M</td>
+                      <td class="py-3">$365K-$1.8M</td>
+                      <td class="py-3">$3,650-$18,250 annually</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3 font-medium">Growth</td>
+                      <td class="py-3">Months 7-18</td>
+                      <td class="py-3">$10-50M</td>
+                      <td class="py-3">$3.65M-$18.25M</td>
+                      <td class="py-3">$36,500-$182,500 annually</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3 font-medium">Maturity</td>
+                      <td class="py-3">Months 19-36</td>
+                      <td class="py-3">$100-500M</td>
+                      <td class="py-3">$36.5M-$182.5M</td>
+                      <td class="py-3">$365,000-$1.825M annually</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3 font-medium">Scale</td>
+                      <td class="py-3">Year 3+</td>
+                      <td class="py-3">$1B+</td>
+                      <td class="py-3">$365M+</td>
+                      <td class="py-3">$3.65M+ annually</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Integration Partnerships</h4>
+                <div class="space-y-4">
+                  <div class="flex items-start">
+                    <i class="fas fa-wallet text-blue-500 mr-3 mt-1"></i>
+                    <div>
+                      <strong>Major Wallets</strong>
+                      <p class="text-sm text-slate-600">MetaMask, Phantom, Rainbow for one-click activation</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-exchange-alt text-green-500 mr-3 mt-1"></i>
+                    <div>
+                      <strong>DEX Aggregators</strong>
+                      <p class="text-sm text-slate-600">1inch, Jupiter for routing integration and volume capture</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-university text-purple-500 mr-3 mt-1"></i>
+                    <div>
+                      <strong>Lending Protocols</strong>
+                      <p class="text-sm text-slate-600">Aave, Compound for complex transaction capture</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4">Additional Revenue Streams</h4>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">Premium tiers (Institutional SLAs)</span>
+                    <span class="bg-blue-100 px-2 py-1 rounded text-xs">15-20%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">Data analytics (Anonymized intelligence)</span>
+                    <span class="bg-green-100 px-2 py-1 rounded text-xs">10-15%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">White-label licensing (Branded deployments)</span>
+                    <span class="bg-purple-100 px-2 py-1 rounded text-xs">20-25%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">Insurance products (Transaction protection)</span>
+                    <span class="bg-amber-100 px-2 py-1 rounded text-xs">5-10%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2">
+                    <span class="text-sm">MEV extraction (Order flow value)</span>
+                    <span class="bg-red-100 px-2 py-1 rounded text-xs">5-15%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="comparative-analysis" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">Comparative Analysis: Existing Models and Differentiation</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4 text-red-600">Traditional Staking</h3>
+              <div class="space-y-3">
+                <div class="flex items-start">
+                  <i class="fas fa-exclamation-triangle text-red-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Asset-Specific Limitations</strong>
+                    <p class="text-sm text-slate-600">Income tied to single native token performance</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <i class="fas fa-cog text-red-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Validator Management Complexity</strong>
+                    <p class="text-sm text-slate-600">Technical expertise and monitoring requirements</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <i class="fas fa-shield-alt text-red-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Slashing Risk Exposure</strong>
+                    <p class="text-sm text-slate-600">Asymmetric downside from validator misbehavior</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4 text-orange-600">DeFi Vaults</h3>
+              <div class="space-y-3">
+                <div class="flex items-start">
+                  <i class="fas fa-chart-line text-orange-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Strategy Risk and Impermanent Loss</strong>
+                    <p class="text-sm text-slate-600">Active management requirements and exploit vulnerabilities</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <i class="fas fa-link text-orange-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Asset Concentration Issues</strong>
+                    <p class="text-sm text-slate-600">Single-chain or protocol dependency creates systemic risk</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <i class="fas fa-clock text-orange-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Continuous Rebalancing Required</strong>
+                    <p class="text-sm text-slate-600">Optimal returns demand constant strategy adjustment</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4 text-blue-600">UTL Innovation</h3>
+              <div class="space-y-3">
+                <div class="flex items-start">
+                  <i class="fas fa-globe text-blue-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Cross-Chain, Asset-Agnostic</strong>
+                    <p class="text-sm text-slate-600">Income from all assets across all supported chains</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <i class="fas fa-user-check text-blue-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Automated Fee Rewards</strong>
+                    <p class="text-sm text-slate-600">Zero management overhead after initial setup</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <i class="fas fa-shield-alt text-blue-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>No Slashing Risk</strong>
+                    <p class="text-sm text-slate-600">Operational abstraction eliminates validator exposure</p>
+                  </div>
+                </div>
+                <div class="flex items-start">
+                  <i class="fas fa-coins text-blue-500 mr-2 mt-1"></i>
+                  <div>
+                    <strong>Stable Income Denomination</strong>
+                    <p class="text-sm text-slate-600">UTC pegged to stablecoin basket reduces volatility</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-200 mb-8">
+            <h3 class="canela text-2xl font-bold mb-6">Novel Precedents: Fee Tokenization</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h4 class="font-semibold mb-4">stkDAO Fee Token Model</h4>
+                <p class="text-slate-700 mb-4">
+                  Demonstrated market demand for direct claims on network fee revenue, with tokenized rights to Ethereum validator cash flows.
+                </p>
+                <div class="bg-white rounded-lg p-4">
+                  <h5 class="font-semibold text-sm mb-2">Limitations</h5>
+                  <ul class="text-xs text-slate-700 space-y-1">
+                    <li>• Single-network dependency (Ethereum-only)</li>
+                    <li>• Governance participation requirements</li>
+                    <li>• Continued slashing exposure</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Cold Wallet Cashback System</h4>
+                <p class="text-slate-700 mb-4">
+                  Launched in early 2025, validated gas fee redistribution mechanics across Ethereum, BSC, and Polygon.
+                </p>
+                <div class="bg-white rounded-lg p-4">
+                  <h5 class="font-semibold text-sm mb-2">Key Innovation</h5>
+                  <p class="text-xs text-slate-700 mb-2">
+                    Reframing fees as strategic tools rather than pure costs.
+                  </p>
+                  <h5 class="font-semibold text-sm mb-2">Critical Limitation</h5>
+                  <p class="text-xs text-slate-700">
+                    Income capped at personal spending—users cannot earn from others' transactions.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="insight-highlight rounded-xl p-6">
+            <h4 class="font-semibold mb-3">
+              <i class="fas fa-trophy text-amber-600 mr-2"></i>
+              UTL's Unique Positioning
+            </h4>
+            <p class="text-slate-700">
+              The UTL transcends existing limitations through <strong>genuine fee rewards from aggregate network activity</strong>—participants earn from fees paid by all users, not merely personal expenditure, with no asset selection, no validator monitoring, and no strategy adjustment required. The income source is transaction volume, a metric that has historically shown more stability and growth than any individual cryptocurrency price.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="technical-implementation" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">Technical Implementation Framework</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4">Smart Contract Infrastructure</h3>
+
+              <div class="space-y-4">
+                <div class="bg-slate-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Fee Collection and Aggregation</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Multi-signature treasury architecture with distributed control</li>
+                    <li>• 48-hour time delays for anomaly detection and response</li>
+                    <li>• Automated swap routing through optimized DEX aggregation</li>
+                    <li>• Real-time accounting and transparency dashboards</li>
+                  </ul>
+                </div>
+
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Distribution Logic</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Pro-rata allocation combining multiple participation metrics</li>
+                    <li>• Gas-efficient batching through merkle-tree claims</li>
+                    <li>• Optional auto-compounding for exponential growth</li>
+                    <li>• Duration-weighting for long-term commitment rewards</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4">Cross-Chain Integration</h3>
+
+              <div class="space-y-4">
+                <div class="bg-green-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Bridge and Messaging Protocols</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Leverages established interoperability solutions (LayerZero, Axelar, Wormhole)</li>
+                    <li>• Custom light client implementations for high-value paths</li>
+                    <li>• Unified transaction formats simplifying user experience</li>
+                    <li>• Benefits from specialized security investments</li>
+                  </ul>
+                </div>
+
+                <div class="bg-purple-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Settlement Finality Guarantees</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Cryptographic proof verification ensuring correct completion</li>
+                    <li>• Distributed arbitration for edge cases</li>
+                    <li>• Insurance fund protection against residual risks</li>
+                    <li>• User confidence without centralized trust assumptions</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-8 border border-slate-200">
+            <h3 class="canela text-2xl font-bold mb-6">Simulation and Optimization Tools</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h4 class="font-semibold mb-4">Agent-Based Economic Modeling</h4>
+                <p class="text-slate-700 mb-4">
+                  The RadCAD framework adaptation enables sophisticated simulation of protocol behavior under varied conditions—transaction flow under congestion scenarios, stakeholder behavior prediction, and incentive alignment testing.
+                </p>
+                <div class="bg-slate-50 rounded-lg p-4">
+                  <h5 class="font-semibold text-sm mb-2">Validation Benefits</h5>
+                  <ul class="text-xs text-slate-700 space-y-1">
+                    <li>• Parameter range validation before mainnet deployment</li>
+                    <li>• Potential failure mode identification</li>
+                    <li>• Economic stress testing under extreme conditions</li>
+                    <li>• Stakeholder behavior prediction modeling</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Machine Learning Integration</h4>
+                <div class="space-y-3">
+                  <div class="flex items-start">
+                    <i class="fas fa-brain text-blue-500 mr-2 mt-1"></i>
+                    <div class="text-sm">
+                      <strong>Fee Rate Optimization</strong>
+                      <p class="text-slate-600">Reinforcement learning for long-term revenue maximization</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-chart-area text-green-500 mr-2 mt-1"></i>
+                    <div class="text-sm">
+                      <strong>Demand Forecasting</strong>
+                      <p class="text-slate-600">NLP sentiment analysis for volume shift anticipation</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-shield-alt text-red-500 mr-2 mt-1"></i>
+                    <div class="text-sm">
+                      <strong>Fraud Prevention</strong>
+                      <p class="text-slate-600">Anomaly detection for manipulation attempts</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-route text-purple-500 mr-2 mt-1"></i>
+                    <div class="text-sm">
+                      <strong>Routing Optimization</strong>
+                      <p class="text-slate-600">Graph neural networks for cost minimization</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="risk-management" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">Risk Management and Sustainability</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4 text-red-600">Economic Security</h3>
+
+              <div class="space-y-4">
+                <div class="bg-red-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Sybil Attack Resistance</h4>
+                  <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Stake-weighted participation requirements</li>
+                    <li>• Progressive trust accumulation for new participants</li>
+                    <li>• Suspicious coordination pattern detection</li>
+                    <li>• Economic impracticality of identity creation attacks</li>
+                  </ul>
+                </div>
+
+                <div class="bg-orange-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Fee Evasion Mitigation</h4>
+                  <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Cryptographic enforcement at protocol level</li>
+                    <li>• Reputation systems with progressive penalties</li>
+                    <li>• Negative expected value for evasion attempts</li>
+                    <li>• Regular security audits and bug bounties</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4 text-blue-600">Regulatory Compliance</h3>
+
+              <div class="space-y-4">
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Jurisdiction-Agnostic Design</h4>
+                  <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Decentralized governance for community adaptation</li>
+                    <li>• Optional KYC/AML modules for regulated use cases</li>
+                    <li>• Transparent fee structure supporting tax compliance</li>
+                    <li>• Automated record-keeping and reporting tools</li>
+                  </ul>
+                </div>
+
+                <div class="bg-purple-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Securities Law Considerations</h4>
+                  <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Utility token classification through functional use emphasis</li>
+                    <li>• Clear distinction between fee rights and investment contracts</li>
+                    <li>• Geographic access restrictions where legally required</li>
+                    <li>• Active participation requirements for income eligibility</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4 text-green-600">Long-Term Viability</h3>
+
+              <div class="space-y-4">
+                <div class="bg-green-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Treasury Diversification</h4>
+                  <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Protocol-owned liquidity across multiple assets</li>
+                    <li>• Strategic reserves for 24+ months operations</li>
+                    <li>• Development grant funding with milestone accountability</li>
+                    <li>• Reduced concentration risk through asset diversification</li>
+                  </ul>
+                </div>
+
+                <div class="bg-emerald-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Governance Evolution</h4>
+                  <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Phased decentralization from core team to community</li>
+                    <li>• Emergency powers only in sustainability phase</li>
+                    <li>• Automated governance with human oversight</li>
+                    <li>• Parameter limits preventing governance attacks</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-8 border border-slate-200">
+            <h3 class="canela text-2xl font-bold mb-6">Governance Evolution Timeline</h3>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-slate-200">
+                    <th class="text-left py-3 font-semibold">Phase</th>
+                    <th class="text-left py-3 font-semibold">Control Structure</th>
+                    <th class="text-left py-3 font-semibold">Timeline</th>
+                    <th class="text-left py-3 font-semibold">Key Characteristics</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <tr>
+                    <td class="py-3 font-medium">Launch</td>
+                    <td class="py-3">Core team with advisory council</td>
+                    <td class="py-3">Months 0-6</td>
+                    <td class="py-3">Rapid iteration, operational stability</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 font-medium">Growth</td>
+                    <td class="py-3">Hybrid: team + delegated voting</td>
+                    <td class="py-3">Months 6-18</td>
+                    <td class="py-3">Expanded community input, parameter limits</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 font-medium">Maturity</td>
+                    <td class="py-3">Full token-holder governance</td>
+                    <td class="py-3">Months 18-36</td>
+                    <td class="py-3">Minimal team role, automated execution</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 font-medium">Sustainability</td>
+                    <td class="py-3">Automated governance with human oversight</td>
+                    <td class="py-3">Year 3+</td>
+                    <td class="py-3">Emergency powers only, full decentralization</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="user-onboarding" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">User Onboarding and Experience Design</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4">Minimal-Friction Participation</h3>
+
+              <div class="space-y-4">
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Wallet Integration</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• One-click staking through major wallet providers</li>
+                    <li>• MetaMask, WalletConnect, Phantom support</li>
+                    <li>• Gasless transaction options for fee claims</li>
+                    <li>• Meta-transactions and relayer subsidies</li>
+                  </ul>
+                </div>
+
+                <div class="bg-green-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Educational Resources</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Interactive simulation tools for return scenarios</li>
+                    <li>• Layered risk disclosure appropriate to user sophistication</li>
+                    <li>• Community support channels with multiple assistance paths</li>
+                    <li>• Video tutorials and step-by-step guides</li>
+                  </ul>
+                </div>
+
+                <div class="bg-purple-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Mobile-First Design</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Optimized interfaces for smartphone-primary users</li>
+                    <li>• Push notifications for income accrual updates</li>
+                    <li>• Intuitive visualizations and dashboard design</li>
+                    <li>• Biometric authentication support</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-slate-200">
+              <h3 class="canela text-xl font-bold mb-4">Institutional Participation Pathways</h3>
+
+              <div class="space-y-4">
+                <div class="bg-amber-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">Custody and Compliance Solutions</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Qualified custodian integrations (Fireblocks, Copper, Anchorage)</li>
+                    <li>• Institutional-grade reporting for fiduciary obligations</li>
+                    <li>• Customizable risk parameters for policy implementation</li>
+                    <li>• SOC 2 Type II and ISO 27001 compliance readiness</li>
+                  </ul>
+                </div>
+
+                <div class="bg-cyan-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">White-Label and Partnership Opportunities</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• Embedded fee layers for existing financial applications</li>
+                    <li>• Revenue sharing arrangements with transparent tracking</li>
+                    <li>• Comprehensive API access for custom integrations</li>
+                    <li>• Co-branded marketing and user acquisition support</li>
+                  </ul>
+                </div>
+
+                <div class="bg-indigo-50 rounded-lg p-4">
+                  <h4 class="font-semibold mb-3">API and Integration Capabilities</h4>
+                  <ul class="text-sm text-slate-700 space-y-2">
+                    <li>• RESTful and GraphQL APIs for data access</li>
+                    <li>• Webhook notifications for real-time events</li>
+                    <li>• SDKs for popular programming languages</li>
+                    <li>• Sandbox environment for testing and development</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 border border-green-200">
+            <h3 class="canela text-2xl font-bold mb-6">User Journey Optimization</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-play text-2xl text-green-600"></i>
+                </div>
+                <h4 class="font-semibold mb-2">Discovery</h4>
+                <p class="text-sm text-slate-700">Educational content and community engagement</p>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-wallet text-2xl text-blue-600"></i>
+                </div>
+                <h4 class="font-semibold mb-2">Onboarding</h4>
+                <p class="text-sm text-slate-700">One-click wallet connection and minimal setup</p>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-coins text-2xl text-purple-600"></i>
+                </div>
+                <h4 class="font-semibold mb-2">Activation</h4>
+                <p class="text-sm text-slate-700">Initial staking and distribution preference selection</p>
+              </div>
+              <div class="text-center">
+                <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i class="fas fa-chart-line text-2xl text-amber-600"></i>
+                </div>
+                <h4 class="font-semibold mb-2">Growth</h4>
+                <p class="text-sm text-slate-700">Fee reward accrual and network participation</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="kenostod-ecosystem" class="px-8 py-12">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="canela text-4xl font-bold mb-8">The Kenostod Ecosystem: Where Education Meets Infrastructure</h2>
+
+          <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 border border-indigo-200 mb-12">
+            <p class="text-lg text-slate-700 leading-relaxed">
+              The Universal Transaction Layer isn't a standalone protocol — it's the economic engine powering an entire ecosystem. Built by <strong>Kenostod Blockchain Academy</strong>, UTL transforms the platform from an education provider into a self-sustaining financial infrastructure company, where graduates don't just learn about blockchain — they participate in its revenue.
+            </p>
+          </div>
+
+          <div id="bridge-integration" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">Bridge.xyz Integration &amp; The Two-Token Model</h3>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <div class="flex items-center mb-4">
+                  <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                    <i class="fas fa-coins text-blue-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-lg">KENO — Knowledge Utility Token</h4>
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">BEP-20 on BSC</span>
+                  </div>
+                </div>
+                <ul class="text-sm text-slate-700 space-y-2">
+                  <li class="flex items-start">
+                    <i class="fas fa-graduation-cap text-blue-500 mr-2 mt-0.5"></i>
+                    <span><strong>Earned through education</strong> — 250 KENO per course, 5,250 total across 21 courses</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-vote-yea text-blue-500 mr-2 mt-0.5"></i>
+                    <span><strong>Governance &amp; access</strong> — Voting rights, FAL/FALP feature access, staking</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-exchange-alt text-blue-500 mr-2 mt-0.5"></i>
+                    <span><strong>UTL staking token</strong> — Stake KENO to earn UTL fee distributions</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-shield-alt text-blue-500 mr-2 mt-0.5"></i>
+                    <span><strong>Not a security</strong> — Utility token classification, earned not bought</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <div class="flex items-center mb-4">
+                  <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                    <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-lg">USDK — USD-Backed Stablecoin</h4>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Via Bridge.xyz Open Issuance</span>
+                  </div>
+                </div>
+                <ul class="text-sm text-slate-700 space-y-2">
+                  <li class="flex items-start">
+                    <i class="fas fa-lock text-green-500 mr-2 mt-0.5"></i>
+                    <span><strong>1:1 USD-backed</strong> — Full reserve backing through Bridge.xyz infrastructure</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-sync text-green-500 mr-2 mt-0.5"></i>
+                    <span><strong>Fiat on/off ramp</strong> — Seamless USD &harr; crypto conversion for all users</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-percentage text-green-500 mr-2 mt-0.5"></i>
+                    <span><strong>3-4% reserve revenue</strong> — Interest on reserves funds Kenostod operations</span>
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-hand-holding-usd text-green-500 mr-2 mt-0.5"></i>
+                    <span><strong>UTL settlement currency</strong> — Fee distributions paid in stable USDK</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 border border-slate-200">
+              <h4 class="font-semibold text-xl mb-6">How Bridge.xyz Powers the UTL</h4>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                  <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-layer-group text-xl text-indigo-600"></i>
+                  </div>
+                  <h5 class="font-semibold text-sm mb-1">UTL Collects Fees</h5>
+                  <p class="text-xs text-slate-600">Cross-chain transaction fees captured in native tokens</p>
+                </div>
+                <div class="text-center">
+                  <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-exchange-alt text-xl text-blue-600"></i>
+                  </div>
+                  <h5 class="font-semibold text-sm mb-1">Bridge Converts</h5>
+                  <p class="text-xs text-slate-600">Native tokens swapped to USDK via Bridge.xyz rails</p>
+                </div>
+                <div class="text-center">
+                  <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-users text-xl text-green-600"></i>
+                  </div>
+                  <h5 class="font-semibold text-sm mb-1">Participants Earn</h5>
+                  <p class="text-xs text-slate-600">USDK distributed pro-rata to KENO stakers</p>
+                </div>
+                <div class="text-center">
+                  <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-university text-xl text-amber-600"></i>
+                  </div>
+                  <h5 class="font-semibold text-sm mb-1">Kenostod Funded</h5>
+                  <p class="text-xs text-slate-600">Protocol share funds scholarships, development &amp; operations</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="funding-model" class="mb-12">
+            <h3 class="canela text-2xl font-bold mb-6">The Self-Funding Ecosystem</h3>
+
+            <div class="insight-highlight rounded-xl p-6 mb-8">
+              <h4 class="font-semibold mb-3">
+                <i class="fas fa-crown text-amber-600 mr-2"></i>
+                "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."
+              </h4>
+              <p class="text-slate-700">
+                The UTL creates a flywheel where education generates token holders, token holders generate network activity, network activity generates fee revenue, and fee revenue funds more education. No external fundraising required at maturity.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4 text-indigo-600">
+                  <i class="fas fa-graduation-cap mr-2"></i>Revenue Allocation
+                </h4>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">KENO staker distributions</span>
+                    <span class="bg-green-100 px-2 py-1 rounded text-xs font-semibold">60%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">Kenostod operations &amp; development</span>
+                    <span class="bg-blue-100 px-2 py-1 rounded text-xs font-semibold">15%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">Scholarship fund</span>
+                    <span class="bg-purple-100 px-2 py-1 rounded text-xs font-semibold">10%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm">T.D.I.R. Foundation treasury</span>
+                    <span class="bg-amber-100 px-2 py-1 rounded text-xs font-semibold">10%</span>
+                  </div>
+                  <div class="flex justify-between items-center py-2">
+                    <span class="text-sm">Insurance &amp; security reserve</span>
+                    <span class="bg-red-100 px-2 py-1 rounded text-xs font-semibold">5%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4 text-green-600">
+                  <i class="fas fa-sync-alt mr-2"></i>The Flywheel Effect
+                </h4>
+                <div class="space-y-4">
+                  <div class="flex items-start">
+                    <div class="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs mr-3 flex-shrink-0 mt-0.5">1</div>
+                    <p class="text-sm text-slate-700"><strong>Students complete 21 courses</strong>, earn 5,250 KENO each</p>
+                  </div>
+                  <div class="flex items-start">
+                    <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs mr-3 flex-shrink-0 mt-0.5">2</div>
+                    <p class="text-sm text-slate-700"><strong>Graduates stake KENO</strong> in UTL protocol for fee revenue</p>
+                  </div>
+                  <div class="flex items-start">
+                    <div class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs mr-3 flex-shrink-0 mt-0.5">3</div>
+                    <p class="text-sm text-slate-700"><strong>UTL captures fees</strong> from cross-chain transactions</p>
+                  </div>
+                  <div class="flex items-start">
+                    <div class="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs mr-3 flex-shrink-0 mt-0.5">4</div>
+                    <p class="text-sm text-slate-700"><strong>USDK distributed</strong> to stakers via Bridge.xyz settlement</p>
+                  </div>
+                  <div class="flex items-start">
+                    <div class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs mr-3 flex-shrink-0 mt-0.5">5</div>
+                    <p class="text-sm text-slate-700"><strong>Revenue funds scholarships</strong>, attracting new students</p>
+                  </div>
+                  <div class="flex items-start">
+                    <div class="w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center text-xs mr-3 flex-shrink-0 mt-0.5">6</div>
+                    <p class="text-sm text-slate-700"><strong>More graduates = more stakers</strong> = more network activity</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6 border border-slate-200">
+                <h4 class="font-semibold mb-4 text-amber-600">
+                  <i class="fas fa-building mr-2"></i>T.D.I.R. Foundation
+                </h4>
+                <p class="text-sm text-slate-700 mb-4">
+                  "Turn Dreams Into Reality" — The offshore umbrella foundation consolidating all Kenostod ventures into a unified structure.
+                </p>
+                <div class="space-y-3">
+                  <div class="bg-indigo-50 rounded-lg p-3">
+                    <strong class="text-xs text-indigo-800">Kenostod Blockchain Academy</strong>
+                    <p class="text-xs text-slate-600">Education &amp; KENO token ecosystem</p>
+                  </div>
+                  <div class="bg-blue-50 rounded-lg p-3">
+                    <strong class="text-xs text-blue-800">Universal Transaction Layer</strong>
+                    <p class="text-xs text-slate-600">Cross-chain fee redistribution protocol</p>
+                  </div>
+                  <div class="bg-green-50 rounded-lg p-3">
+                    <strong class="text-xs text-green-800">B.U.K Security Banking</strong>
+                    <p class="text-xs text-slate-600">Dual-chip security &amp; insurance smart contracts</p>
+                  </div>
+                  <div class="bg-amber-50 rounded-lg p-3">
+                    <strong class="text-xs text-amber-800">Solar Bunker</strong>
+                    <p class="text-xs text-slate-600">Real-world utility &amp; KENO holder discounts</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-8 border border-slate-200">
+              <h4 class="font-semibold text-xl mb-6">Revenue Impact Projections</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-200">
+                      <th class="text-left py-3 font-semibold">UTL Phase</th>
+                      <th class="text-left py-3 font-semibold">Annual Fee Revenue</th>
+                      <th class="text-left py-3 font-semibold">Kenostod Share (15%)</th>
+                      <th class="text-left py-3 font-semibold">Scholarship Fund (10%)</th>
+                      <th class="text-left py-3 font-semibold">USDK Reserve Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    <tr>
+                      <td class="py-3 font-medium">Bootstrap</td>
+                      <td class="py-3">$365K-$1.8M</td>
+                      <td class="py-3">$54K-$270K</td>
+                      <td class="py-3">$36K-$180K</td>
+                      <td class="py-3">+3-4% on reserves</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3 font-medium">Growth</td>
+                      <td class="py-3">$3.65M-$18.25M</td>
+                      <td class="py-3">$547K-$2.7M</td>
+                      <td class="py-3">$365K-$1.8M</td>
+                      <td class="py-3">+3-4% on reserves</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3 font-medium">Maturity</td>
+                      <td class="py-3">$36.5M-$182.5M</td>
+                      <td class="py-3">$5.5M-$27.4M</td>
+                      <td class="py-3">$3.65M-$18.25M</td>
+                      <td class="py-3">+3-4% on reserves</td>
+                    </tr>
+                    <tr class="bg-green-50">
+                      <td class="py-3 font-medium">Scale</td>
+                      <td class="py-3 font-bold">$365M+</td>
+                      <td class="py-3 font-bold">$54.75M+</td>
+                      <td class="py-3 font-bold">$36.5M+</td>
+                      <td class="py-3 font-bold">+3-4% on reserves</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="text-xs text-slate-500 mt-4">
+                * USDK reserve revenue is additional income from Bridge.xyz's interest on USD reserves backing the stablecoin, providing a separate revenue stream independent of UTL transaction volume.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="px-8 py-12 bg-slate-900 text-white">
+        <div class="max-w-6xl mx-auto">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <h3 class="canela text-xl font-bold mb-4">Universal Transaction Layer</h3>
+              <p class="text-slate-300 text-sm">
+                The future of fee rewards in cryptocurrency—earning from every transaction across all blockchains, without the complexity.
+              </p>
+            </div>
+            <div>
+              <h4 class="font-semibold mb-4">Key Benefits</h4>
+              <ul class="text-slate-300 text-sm space-y-1">
+                <li>• $1,000+ weekly fee rewards target</li>
+                <li>• Asset-agnostic fee collection</li>
+                <li>• True hands-off operation</li>
+                <li>• Cross-chain diversification</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold mb-4">Technical Innovation</h4>
+              <ul class="text-slate-300 text-sm space-y-1">
+                <li>• Universal Transaction Credit (UTC)</li>
+                <li>• Service Node Operator network</li>
+                <li>• Adaptive fee market mechanisms</li>
+                <li>• Machine learning optimization</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-700 pt-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+              <div class="text-slate-400 text-sm">
+                &copy; 2025 Universal Transaction Layer Protocol — A Kenostod Innovation. All rights reserved.
+              </div>
+              <div class="flex space-x-4 mt-4 md:mt-0">
+                <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                  <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                  <i class="fab fa-discord"></i>
+                </a>
+                <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                  <i class="fab fa-github"></i>
+                </a>
+                <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                  <i class="fas fa-book"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+        function toggleTOC() {
+            const toc = document.querySelector('.toc-fixed');
+            toc.classList.toggle('mobile-open');
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        const sections = document.querySelectorAll('section[id]');
+        const tocLinks = document.querySelectorAll('.toc-link');
+
+        function updateActiveTocLink() {
+            let currentSection = '';
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 100 && rect.bottom >= 100) {
+                    currentSection = section.id;
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', updateActiveTocLink);
+        updateActiveTocLink();
+
+        document.addEventListener('click', function(event) {
+            const toc = document.querySelector('.toc-fixed');
+            const toggleButton = document.querySelector('button[onclick="toggleTOC()"]');
+            
+            if (toc.classList.contains('mobile-open') && 
+                !toc.contains(event.target) && 
+                event.target !== toggleButton) {
+                toc.classList.remove('mobile-open');
+            }
+        });
+    </script>
+  
+
+</body></html>

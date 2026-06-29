@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 10: Proof-of-Residual-Value Mining | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--purple);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .revolutionary-badge {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 600;
+        }
+
+        .locked-badge {
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.revolutionary {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(20, 184, 166, 0.2));
+            border: 2px solid var(--purple);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .diagram-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .diagram-title { font-size: 1.1em; margin-bottom: 20px; color: var(--text-muted); }
+
+        .step-list { counter-reset: step-counter; list-style: none; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--success); background: var(--success); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .flow-box {
+            padding: 18px 22px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 140px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .flow-arrow { font-size: 1.8em; color: var(--text-muted); }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+            .flow-diagram { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 10
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#129504;</span>
+                Course 10: Proof-of-Residual-Value Mining
+                <span class="revolutionary-badge">REVOLUTIONARY</span>
+                <span class="locked-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Advanced Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('problem')"><span class="toc-number">2</span>The PoW Energy Problem</li>
+                    <li class="toc-item" onclick="scrollToSection('what-is-porv')"><span class="toc-number">3</span>What is PoRV?</li>
+                    <li class="toc-item" onclick="scrollToSection('why-kenostod')"><span class="toc-number">4</span>Why Kenostod Invented PoRV</li>
+                    <li class="toc-item" onclick="scrollToSection('technical')"><span class="toc-number">5</span>Technical Architecture</li>
+                    <li class="toc-item" onclick="scrollToSection('ai-ml')"><span class="toc-number">6</span>AI/ML Computation Mining</li>
+                    <li class="toc-item" onclick="scrollToSection('consensus-comparison')"><span class="toc-number">7</span>Consensus Comparison</li>
+                    <li class="toc-item" onclick="scrollToSection('useful-work')"><span class="toc-number">8</span>PoRV vs Proof of Useful Work</li>
+                    <li class="toc-item" onclick="scrollToSection('economics')"><span class="toc-number">9</span>Deflationary Economics</li>
+                    <li class="toc-item" onclick="scrollToSection('circular')"><span class="toc-number">10</span>Circular Economy</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">11</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">12</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">13</span>Hands-On Lab</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">14</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Explain why traditional Proof-of-Work is considered environmentally wasteful and economically inefficient</div></li>
+                    <li class="step-item"><div class="step-title">Define Proof-of-Residual-Value and articulate why Kenostod invented this consensus mechanism</div></li>
+                    <li class="step-item"><div class="step-title">Describe the technical architecture of PoRV including task submission, distribution, verification, and reward flows</div></li>
+                    <li class="step-item"><div class="step-title">Explain how PoRV generates real economic value through AI/ML computations and enterprise workloads</div></li>
+                    <li class="step-item"><div class="step-title">Compare and contrast PoW, PoS, DPoS, Proof of Useful Work, and PoRV consensus mechanisms</div></li>
+                    <li class="step-item"><div class="step-title">Understand the deflationary KENO tokenomics model and how enterprise fees drive token scarcity</div></li>
+                    <li class="step-item"><div class="step-title">Explain how Residual Value Tokens (RVTs) create perpetual passive royalty income for miners</div></li>
+                    <li class="step-item"><div class="step-title">Describe the circular economy that PoRV creates between enterprises, miners, and token holders</div></li>
+                    <li class="step-item"><div class="step-title">Analyze real-world case studies of useful computation mining projects</div></li>
+                    <li class="step-item"><div class="step-title">Envision future applications of PoRV-style computation mining</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for deep, thorough learning. Plan for approximately <strong>2 hours</strong> of reading, analysis, exercises, and practice. PoRV is Kenostod's most important innovation &mdash; take the time to truly understand it. The 250 KENO reward reflects that commitment.</p>
+                </div>
+            </section>
+
+            <section id="problem" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9889;</span>The Problem with Traditional Proof-of-Work</h2>
+                <div class="reading-content">
+                    <p>To understand why Proof-of-Residual-Value was created, you first need to understand the fundamental flaw at the heart of the world's most successful blockchain consensus mechanism: <strong>Proof-of-Work (PoW)</strong>.</p>
+
+                    <p>When Satoshi Nakamoto designed Bitcoin in 2008, Proof-of-Work was a brilliant solution to the Byzantine Generals Problem &mdash; how do you get untrusted parties to agree on a shared truth without a central authority? The answer: make it computationally expensive to lie. Miners compete to solve cryptographic hash puzzles, and the first to solve one earns the right to add the next block (and collect the reward).</p>
+
+                    <p>The problem is <em>what</em> those computations actually produce. The SHA-256 hash puzzles that Bitcoin miners solve have exactly <strong>one purpose</strong>: to prove that computational work was done. The actual output &mdash; the hash &mdash; has no value beyond that proof. Once the block is mined, the computation is discarded forever.</p>
+
+                    <h3>The Scale of the Waste</h3>
+                    <p>Consider these staggering statistics about Bitcoin's energy consumption:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Annual energy consumption:</strong> Approximately 150+ TWh per year &mdash; more than the entire country of Argentina or Norway</li>
+                        <li><strong>Single transaction energy:</strong> Each Bitcoin transaction consumes roughly 1,449 kWh &mdash; equivalent to powering an average U.S. household for nearly 50 days</li>
+                        <li><strong>Carbon footprint:</strong> Bitcoin mining produces an estimated 65+ megatons of CO2 annually, comparable to the emissions of Greece</li>
+                        <li><strong>Electronic waste:</strong> Specialized ASIC miners become obsolete every 1-2 years, generating over 30,000 metric tons of e-waste annually</li>
+                    </ul>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Core Criticism</div>
+                        <p>All of this energy, all of this hardware, all of this carbon &mdash; spent solving <strong>puzzles that produce nothing of value</strong>. It's as if you hired a million accountants to solve Sudoku puzzles 24/7 just to prove they showed up for work. The work itself is meaningless; only the proof matters.</p>
+                    </div>
+
+                    <h3>The Question That Started It All</h3>
+                    <p>For years, blockchain researchers and critics alike have asked the same question:</p>
+                    <p style="font-size: 1.15em; color: var(--gold); font-style: italic; padding: 15px 25px; border-left: 4px solid var(--gold);">"What if all that computational power could be directed toward something genuinely useful &mdash; while still securing the blockchain?"</p>
+                    <p>This question has been explored by academic papers, startup pitches, and thought experiments for over a decade. Several projects have attempted partial answers (Primecoin, Gridcoin, Golem). But none have created a complete, self-sustaining economic model that aligns the incentives of miners, enterprises, and token holders &mdash; until Kenostod's <strong>Proof-of-Residual-Value</strong>.</p>
+
+                    <h3>Why Proof-of-Stake Isn't the Full Answer</h3>
+                    <p>Ethereum's transition from PoW to Proof-of-Stake (PoS) in September 2022 ("The Merge") reduced its energy consumption by ~99.95%. This is a genuine achievement. However, PoS solves the <em>energy problem</em> but introduces its own tradeoffs:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>PoS tends toward <strong>plutocracy</strong> &mdash; the rich get richer because staking rewards are proportional to holdings</li>
+                        <li>Validators don't <strong>produce</strong> anything; they simply lock up capital</li>
+                        <li>The computational resources of validators sit largely idle, representing <strong>wasted potential</strong></li>
+                        <li>There is no <strong>external value creation</strong> &mdash; the system is economically closed</li>
+                    </ul>
+                    <p>Kenostod asked: what if we could have the energy efficiency of PoS <em>and</em> turn mining computation into something that generates real-world economic value?</p>
+                </div>
+            </section>
+
+            <section id="what-is-porv" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128640;</span>What is Proof-of-Residual-Value?</h2>
+                <div class="reading-content">
+                    <div class="highlight-box revolutionary">
+                        <div class="highlight-title">&#129504; The Kenostod Innovation</div>
+                        <p><strong>Proof-of-Residual-Value (PoRV)</strong> is a novel consensus mechanism that replaces meaningless cryptographic hash puzzles with <strong>real enterprise computational tasks</strong>. Instead of wasting energy to prove work was done, PoRV miners perform useful computations &mdash; AI model training, data analysis, scientific simulations, rendering, and more &mdash; that generate <strong>real economic value</strong> for paying enterprises.</p>
+                    </div>
+
+                    <p>The word "Residual" in PoRV is critical. It refers to the fact that the value created by mining <strong>persists long after the computation is complete</strong>. An AI model trained through PoRV mining continues to generate value for years. A scientific simulation informs research that leads to breakthroughs. A rendered 3D scene becomes part of a movie that earns revenue for decades.</p>
+
+                    <p>This "residual value" is what makes PoRV fundamentally different from every other consensus mechanism. The computation isn't just a proof of work &mdash; it's a <strong>creation of lasting value</strong>.</p>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">PoRV Mining Flow</div>
+                        <div class="flow-diagram">
+                            <div class="flow-box" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;">&#127970; Enterprise<br>Submits Task</div>
+                            <div class="flow-arrow">&#10145;&#65039;</div>
+                            <div class="flow-box" style="background: linear-gradient(135deg, var(--purple), #7c3aed); color: white;">&#128268; Network<br>Distributes</div>
+                            <div class="flow-arrow">&#10145;&#65039;</div>
+                            <div class="flow-box" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">&#9881;&#65039; Miners<br>Compute</div>
+                            <div class="flow-arrow">&#10145;&#65039;</div>
+                            <div class="flow-box" style="background: linear-gradient(135deg, var(--gold), #d97706); color: #000;">&#9989; Results<br>Verified</div>
+                            <div class="flow-arrow">&#10145;&#65039;</div>
+                            <div class="flow-box" style="background: linear-gradient(135deg, var(--success), #059669); color: white;">&#128176; Rewards<br>KENO + RVT</div>
+                        </div>
+                    </div>
+
+                    <h3>The Five Stages of PoRV Mining</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Enterprise Task Submission</div>
+                            <p>Companies submit computational workloads to the Kenostod network. These are real business tasks: training a machine learning model, analyzing genomic data, running financial simulations, rendering 3D assets, or processing natural language datasets. The enterprise pays in KENO tokens for this computational service.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task Distribution &amp; Sharding</div>
+                            <p>The PoRV Task Orchestrator breaks large tasks into smaller computational units (shards) and distributes them across qualified miners. Task assignment considers each miner's hardware capabilities, stake weight, reputation score, and geographic distribution for optimal performance.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Useful Computation</div>
+                            <p>Miners perform the actual computational work. Instead of brute-forcing SHA-256 hashes, they're training neural networks, running Monte Carlo simulations, processing data pipelines, or rendering complex scenes. This is real work that produces real, usable output.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Multi-Layer Verification</div>
+                            <p>Results are verified through a multi-layer process: deterministic spot-checking (re-computing random portions), cross-validation between miners working on overlapping shards, and statistical anomaly detection. This ensures computational integrity without requiring full re-computation.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Reward Distribution &amp; RVT Minting</div>
+                            <p>Verified miners receive dual rewards: <strong>KENO tokens</strong> as immediate payment, and <strong>Residual Value Tokens (RVTs)</strong> &mdash; royalty-bearing NFTs that generate ongoing token rewards whenever the enterprise commercially uses the computation results.</p>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="why-kenostod" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128161;</span>Why Kenostod Invented PoRV</h2>
+                <div class="reading-content">
+                    <p>Kenostod was founded with a radical thesis: <strong>blockchain mining should create value, not destroy it</strong>. The founding team observed three fundamental problems in the blockchain industry that PoRV was designed to solve simultaneously:</p>
+
+                    <h4>Problem 1: Environmental Destruction</h4>
+                    <p>PoW mining was turning blockchain technology into one of the world's fastest-growing sources of carbon emissions. This was creating regulatory backlash (China's mining ban, EU proposals to restrict PoW) and public perception problems that threatened the entire industry's future.</p>
+
+                    <h4>Problem 2: Economic Waste</h4>
+                    <p>Billions of dollars worth of computational hardware and electricity were being consumed to produce outputs with zero utility. Meanwhile, enterprises were spending billions more on cloud computing for AI/ML workloads, scientific computing, and data processing. These two pools of computation existed in parallel but never intersected.</p>
+
+                    <h4>Problem 3: Miner Vulnerability</h4>
+                    <p>Traditional miners are entirely dependent on block rewards and transaction fees. When Bitcoin halvings reduce block rewards, miners face devastating revenue cuts. Their only product &mdash; hash proofs &mdash; has no alternative market. If mining becomes unprofitable, they have no other use for their hardware.</p>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127775; The PoRV Solution</div>
+                        <p>PoRV solves all three problems simultaneously: it eliminates wasteful computation (solving energy concerns), redirects mining power toward paying enterprise workloads (creating real economic value), and gives miners diversified revenue streams through both immediate KENO rewards and perpetual RVT royalties (reducing miner vulnerability).</p>
+                    </div>
+
+                    <h3>The Residual Value Thesis</h3>
+                    <p>The key insight behind PoRV is the concept of <strong>residual value</strong> &mdash; the idea that computational work can create outputs whose value persists and compounds over time:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>An AI model trained through PoRV mining might be used by a hospital for 10+ years to diagnose diseases</li>
+                        <li>A financial simulation might inform trading strategies that generate returns for decades</li>
+                        <li>A rendered 3D animation might appear in films, advertisements, and media for a generation</li>
+                        <li>A scientific computation might contribute to a breakthrough that changes an entire industry</li>
+                    </ul>
+                    <p>Because this value persists, PoRV miners don't just earn a one-time fee &mdash; they earn <strong>ongoing royalties</strong> through Residual Value Tokens. This creates an entirely new asset class: <strong>tokenized computational royalties</strong>.</p>
+                </div>
+            </section>
+
+            <section id="technical" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9881;&#65039;</span>Technical Architecture of PoRV</h2>
+                <div class="reading-content">
+                    <p>Understanding PoRV's technical architecture is essential for grasping how the system achieves security, efficiency, and fairness simultaneously.</p>
+
+                    <h3>Stake Requirements &amp; Validator Selection</h3>
+                    <p>PoRV uses a <strong>hybrid Proof-of-Stake + Useful Work</strong> model for validator selection:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Minimum Stake:</strong> Validators must stake a minimum of 10,000 KENO to be eligible for task assignment. This prevents Sybil attacks and ensures validators have economic skin in the game.</li>
+                        <li><strong>Weighted Selection:</strong> Task assignment probability is weighted by: stake amount (40%), historical computation accuracy (30%), hardware benchmark score (20%), and uptime reliability (10%).</li>
+                        <li><strong>Slashing Conditions:</strong> Validators who submit incorrect results have a portion of their stake slashed. Repeated failures result in temporary or permanent disqualification.</li>
+                        <li><strong>Hardware Verification:</strong> Miners submit periodic hardware attestation proofs to ensure they actually have the computational resources they claim.</li>
+                    </ul>
+
+                    <h3>Task Orchestration Layer</h3>
+                    <p>The PoRV Task Orchestrator is the protocol's central coordination layer. It handles:</p>
+
+                    <div class="code-example"><span class="code-comment">// Simplified PoRV Task Orchestrator pseudocode</span>
+
+<span class="code-keyword">class</span> <span class="code-function">PoRVOrchestrator</span> {
+  <span class="code-function">submitTask</span>(enterprise, taskPayload, kenoPayment) {
+    <span class="code-comment">// 1. Validate enterprise credentials and payment</span>
+    <span class="code-keyword">require</span>(kenoPayment >= <span class="code-function">calculateMinFee</span>(taskPayload));
+    <span class="code-keyword">require</span>(enterprise.isVerified === <span class="code-keyword">true</span>);
+
+    <span class="code-comment">// 2. Shard the task into computational units</span>
+    <span class="code-keyword">const</span> shards = <span class="code-function">shardTask</span>(taskPayload, optimalShardSize);
+
+    <span class="code-comment">// 3. Select qualified miners based on weighted criteria</span>
+    <span class="code-keyword">const</span> miners = <span class="code-function">selectValidators</span>(shards.length, {
+      minStake: <span class="code-number">10000</span>,
+      requiredCapability: taskPayload.computeType,
+      weightFactors: { stake: <span class="code-number">0.4</span>, accuracy: <span class="code-number">0.3</span>, hardware: <span class="code-number">0.2</span>, uptime: <span class="code-number">0.1</span> }
+    });
+
+    <span class="code-comment">// 4. Distribute shards to miners with redundancy</span>
+    <span class="code-keyword">for</span> (<span class="code-keyword">const</span> shard <span class="code-keyword">of</span> shards) {
+      <span class="code-function">assignToMiners</span>(shard, miners, redundancyFactor: <span class="code-number">1.5</span>);
+    }
+
+    <span class="code-comment">// 5. Emit task assignment event</span>
+    <span class="code-function">emit</span>(<span class="code-string">'TaskDistributed'</span>, enterprise, shards.length, miners.length);
+  }
+
+  <span class="code-function">verifyAndReward</span>(taskId, results) {
+    <span class="code-comment">// Multi-layer verification: spot-check + cross-validation</span>
+    <span class="code-keyword">const</span> verified = <span class="code-function">multiLayerVerify</span>(results);
+
+    <span class="code-keyword">if</span> (verified) {
+      <span class="code-comment">// Distribute KENO rewards + mint RVTs</span>
+      <span class="code-function">distributeKENO</span>(taskId, results.miners);
+      <span class="code-function">mintRVTs</span>(taskId, results.miners, results.qualityScore);
+      <span class="code-function">burnKENO</span>(taskId, burnPercentage: <span class="code-number">0.40</span>);
+    }
+  }
+}</div>
+
+                    <h3>Verification Mechanism: Trust Without Re-Computation</h3>
+                    <p>One of the hardest technical challenges in useful computation mining is verification. How do you confirm that a miner actually performed the computation correctly without re-doing the entire computation yourself?</p>
+                    <p>PoRV uses three complementary verification strategies:</p>
+
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Spot-Check Verification</div>
+                            <div class="vocab-def">Random portions of the computation are independently re-computed by validator nodes. If results match within acceptable error margins, the full computation is accepted.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Cross-Miner Validation</div>
+                            <div class="vocab-def">Overlapping shards are assigned to multiple miners. Results are cross-compared to detect fraudulent or erroneous computation. Disagreements trigger full re-computation.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Statistical Anomaly Detection</div>
+                            <div class="vocab-def">ML models analyze computation outputs for statistical patterns consistent with genuine work vs. fabricated results. This catches sophisticated fraud attempts.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Economic Deterrence</div>
+                            <div class="vocab-def">The staking requirement means fraudulent validators lose more in slashed stake than they could gain from fake computation. Cheating is economically irrational.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="ai-ml" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#129302;</span>AI/ML Computation Mining</h2>
+                <div class="reading-content">
+                    <p>The primary category of PoRV workloads is <strong>artificial intelligence and machine learning computation</strong>. This is deliberate &mdash; AI/ML workloads are the fastest-growing segment of global computing demand, and they are uniquely well-suited to distributed computation.</p>
+
+                    <h3>Types of AI/ML Tasks Performed by PoRV Miners</h3>
+
+                    <h4>1. Neural Network Training</h4>
+                    <p>Training deep neural networks is the most computationally intensive task in modern AI. A single GPT-class model can require millions of GPU-hours to train. PoRV distributes this workload across the mining network, reducing costs for enterprises while rewarding miners.</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Image classification models for healthcare diagnostics</li>
+                        <li>Natural language processing models for customer service</li>
+                        <li>Recommendation engines for e-commerce platforms</li>
+                        <li>Fraud detection models for financial institutions</li>
+                    </ul>
+
+                    <h4>2. Data Processing &amp; Feature Engineering</h4>
+                    <p>Before ML models can be trained, raw data must be cleaned, transformed, and processed into features. This is labor-intensive computation that maps naturally to distributed execution.</p>
+
+                    <h4>3. Scientific Simulations</h4>
+                    <p>Research institutions submit scientific workloads including molecular dynamics simulations, climate modeling, protein folding analysis, and astronomical data processing.</p>
+
+                    <h4>4. Rendering &amp; Media Processing</h4>
+                    <p>Studios and creative agencies submit 3D rendering, video transcoding, and visual effects computation. Each frame of a high-quality CGI movie can take hours to render on a single machine but minutes when distributed across PoRV miners.</p>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128200; Market Opportunity</div>
+                        <p>The global cloud computing market is valued at over <strong>$600 billion annually</strong>, with AI/ML workloads being the fastest-growing segment. Even capturing a small fraction of this market creates enormous demand for PoRV mining &mdash; and enormous value for KENO and RVT holders.</p>
+                    </div>
+
+                    <h3>How Residual Value Creates Ongoing Income</h3>
+                    <p>Here's a concrete example of how PoRV creates residual value:</p>
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Real-World Scenario</div>
+                        <p>A healthcare company submits a task to train an AI model that detects early-stage lung cancer from CT scans. PoRV miners collectively train this model over 48 hours. The model achieves 97% accuracy and is deployed in 200 hospitals worldwide.</p>
+                        <p style="margin-top: 10px;">Every time a hospital uses that AI to analyze a patient scan, a micro-royalty (e.g., $0.001) is distributed to the RVT holders who helped train it. With 200 hospitals processing thousands of scans daily, those royalties compound into meaningful token rewards &mdash; <strong>for years</strong> after the initial mining work.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="consensus-comparison" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128202;</span>Consensus Mechanism Comparison</h2>
+                <div class="reading-content">
+                    <p>To fully appreciate PoRV, it helps to compare it against the major consensus mechanisms used in blockchain today. Each mechanism represents a different philosophy about how to achieve distributed agreement.</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>PoW (Bitcoin)</th>
+                                <th>PoS (Ethereum)</th>
+                                <th>DPoS (EOS)</th>
+                                <th>PoRV (Kenostod)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Energy Efficiency</strong></td>
+                                <td style="color: var(--danger);">Very Low</td>
+                                <td style="color: var(--success);">Very High</td>
+                                <td style="color: var(--success);">High</td>
+                                <td style="color: var(--success);">High</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Computation Output</strong></td>
+                                <td>Useless hashes</td>
+                                <td>None (capital locked)</td>
+                                <td>None (voting)</td>
+                                <td style="color: var(--primary);">Real economic value</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Decentralization</strong></td>
+                                <td>Medium (mining pools)</td>
+                                <td>Medium (whale stakers)</td>
+                                <td style="color: var(--danger);">Low (21 delegates)</td>
+                                <td>High (distributed compute)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Barrier to Entry</strong></td>
+                                <td>High (ASICs)</td>
+                                <td>High (32 ETH)</td>
+                                <td>Low (voting)</td>
+                                <td>Medium (stake + GPU)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Revenue Streams</strong></td>
+                                <td>Block rewards only</td>
+                                <td>Staking yield only</td>
+                                <td>Delegate rewards</td>
+                                <td style="color: var(--primary);">KENO + RVT royalties</td>
+                            </tr>
+                            <tr>
+                                <td><strong>External Value</strong></td>
+                                <td style="color: var(--danger);">None</td>
+                                <td style="color: var(--danger);">None</td>
+                                <td style="color: var(--danger);">None</td>
+                                <td style="color: var(--primary);">Enterprise compute fees</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Deflationary?</strong></td>
+                                <td>No (inflationary)</td>
+                                <td>Sometimes (EIP-1559)</td>
+                                <td>Varies</td>
+                                <td style="color: var(--primary);">Yes (40% burn rate)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hardware After Mining</strong></td>
+                                <td style="color: var(--danger);">E-waste (ASICs)</td>
+                                <td>Not applicable</td>
+                                <td>Not applicable</td>
+                                <td style="color: var(--primary);">Still useful (GPUs)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Key Takeaway</div>
+                        <p>PoRV is the only consensus mechanism that <strong>creates external economic value</strong>. In PoW, PoS, and DPoS, the economic system is closed &mdash; value circulates within the blockchain ecosystem but doesn't create new wealth. PoRV breaks this ceiling by importing real enterprise revenue into the token economy.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="useful-work" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128269;</span>PoRV vs. Proof of Useful Work</h2>
+                <div class="reading-content">
+                    <p>Several projects have attempted to make mining computation "useful." Understanding these predecessors helps clarify what makes PoRV fundamentally different.</p>
+
+                    <h3>Previous Attempts at Useful Mining</h3>
+
+                    <h4>Primecoin (2013)</h4>
+                    <p>Primecoin's mining algorithm searches for chains of prime numbers (Cunningham chains and bi-twin chains) instead of hash puzzles. While finding primes has some mathematical interest, the economic value is effectively zero. Primecoin proved the concept was <em>possible</em> but didn't create meaningful value.</p>
+
+                    <h4>Gridcoin (2013)</h4>
+                    <p>Gridcoin rewards users for contributing computational power to the BOINC (Berkeley Open Infrastructure for Network Computing) platform, which supports scientific research. However, Gridcoin operates as a reward overlay on top of BOINC &mdash; it doesn't integrate computation into its consensus mechanism. The blockchain and the computation are separate systems.</p>
+
+                    <h4>Golem Network (2016)</h4>
+                    <p>Golem created a decentralized marketplace for computing power. Users can rent out their hardware for tasks like CGI rendering. However, Golem is a compute marketplace, not a consensus mechanism. The computation doesn't secure the blockchain.</p>
+
+                    <h3>What Makes PoRV Different</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Primecoin</th>
+                                <th>Gridcoin</th>
+                                <th>Golem</th>
+                                <th>PoRV (Kenostod)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Computation secures blockchain?</strong></td>
+                                <td>Yes</td>
+                                <td>No (separate)</td>
+                                <td>No (marketplace)</td>
+                                <td style="color: var(--primary);">Yes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Creates real economic value?</strong></td>
+                                <td>Minimal</td>
+                                <td>Yes (science)</td>
+                                <td>Yes (rendering)</td>
+                                <td style="color: var(--primary);">Yes (enterprise)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Revenue flows to miners?</strong></td>
+                                <td>Block rewards</td>
+                                <td>Token rewards</td>
+                                <td>Marketplace fees</td>
+                                <td style="color: var(--primary);">KENO + perpetual RVT royalties</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Deflationary mechanism?</strong></td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td style="color: var(--primary);">Yes (40% burn)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ongoing income from past work?</strong></td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td style="color: var(--primary);">Yes (RVT royalties)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box revolutionary">
+                        <div class="highlight-title">&#129504; The PoRV Breakthrough</div>
+                        <p>PoRV's unique innovation is the <strong>Residual Value Token (RVT)</strong>. Previous projects paid miners once for their work and moved on. PoRV recognizes that useful computation creates <em>lasting</em> value, and miners deserve to share in that value for as long as it generates returns. This is what makes PoRV not just a consensus mechanism, but a <strong>new economic model for computational labor</strong>.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="economics" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>Deflationary Economics &amp; Token Mechanics</h2>
+                <div class="reading-content">
+                    <p>PoRV creates a unique <strong>deflationary tokenomics model</strong> that aligns the interests of every participant in the Kenostod ecosystem.</p>
+
+                    <h3>Enterprise Payment Distribution</h3>
+                    <p>When an enterprise pays KENO tokens for computational work, the payment is distributed according to a fixed protocol:</p>
+
+                    <div class="diagram-container">
+                        <div class="diagram-title">Enterprise Payment Split</div>
+                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0;">
+                            <div style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 25px; border-radius: 12px; text-align: center; min-width: 150px;">
+                                <div style="font-size: 2em; font-weight: 700;">50%</div>
+                                <div style="font-size: 0.9em; margin-top: 5px;">RVT Holders</div>
+                                <div style="font-size: 0.75em; color: rgba(255,255,255,0.7); margin-top: 3px;">Royalties to miners</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 25px; border-radius: 12px; text-align: center; min-width: 150px;">
+                                <div style="font-size: 2em; font-weight: 700;">40%</div>
+                                <div style="font-size: 0.9em; margin-top: 5px;">Burned</div>
+                                <div style="font-size: 0.75em; color: rgba(255,255,255,0.7); margin-top: 3px;">Permanently destroyed</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, var(--secondary), #2563eb); padding: 25px; border-radius: 12px; text-align: center; min-width: 150px;">
+                                <div style="font-size: 2em; font-weight: 700;">10%</div>
+                                <div style="font-size: 0.9em; margin-top: 5px;">Treasury</div>
+                                <div style="font-size: 0.75em; color: rgba(255,255,255,0.7); margin-top: 3px;">Development fund</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>The Deflationary Flywheel</h3>
+                    <p>PoRV creates a powerful deflationary flywheel effect:</p>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">More Enterprise Adoption = More KENO Burned</div>
+                            <p>As more enterprises use PoRV for computation, more KENO is spent on tasks, and 40% of every payment is permanently burned. The total supply of KENO continuously decreases.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Decreasing Supply = Increasing Scarcity</div>
+                            <p>With a fixed maximum supply and continuous burns, KENO becomes progressively more scarce. Basic supply-and-demand economics suggests this creates upward price pressure.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Higher KENO Value = Better Miner Rewards</div>
+                            <p>As KENO appreciates, the real-world value of miner rewards increases, attracting more miners and computational power to the network.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">More Computational Power = Better Service</div>
+                            <p>More miners means faster task completion, more competitive pricing, and higher quality results &mdash; attracting even more enterprise customers.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#128161; Contrast with Bitcoin</div>
+                        <p>Bitcoin's mining creates <em>inflation</em> &mdash; new BTC is minted with every block, increasing supply. The only deflationary pressure comes from lost coins and the fixed supply cap. PoRV flips this model: mining actively <em>reduces</em> the KENO supply through the 40% burn mechanism. The more useful work performed, the more scarce KENO becomes.</p>
+                    </div>
+
+                    <h3>Residual Value Tokens (RVTs) Deep Dive</h3>
+                    <p>RVTs are the crown jewel of the PoRV economic model. They are <strong>royalty-bearing NFTs</strong> minted to miners who contribute verified computation.</p>
+
+                    <h4>RVT Tiers</h4>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Tier</th>
+                                <th>Task Value</th>
+                                <th>Royalty Rate</th>
+                                <th>Characteristics</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong style="color: #cd7f32;">Bronze</strong></td>
+                                <td>&lt; 1,000 KENO</td>
+                                <td>0.5% of commercial use revenue</td>
+                                <td>Basic tasks, data processing, simple analysis</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #c0c0c0;">Silver</strong></td>
+                                <td>1,000 - 10,000 KENO</td>
+                                <td>1.0% of commercial use revenue</td>
+                                <td>ML model training, simulations, rendering jobs</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: var(--gold);">Gold</strong></td>
+                                <td>10,000 - 100,000 KENO</td>
+                                <td>2.0% of commercial use revenue</td>
+                                <td>Large-scale AI training, enterprise analytics</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #e5e4e2;">Platinum</strong></td>
+                                <td>&gt; 100,000 KENO</td>
+                                <td>3.5% of commercial use revenue</td>
+                                <td>Critical infrastructure AI, breakthrough research</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p>RVTs are freely tradeable on the Kenostod marketplace. This means miners can either hold their RVTs for ongoing royalty income or sell them to investors who want exposure to computational royalty streams.</p>
+                </div>
+            </section>
+
+            <section id="circular" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128260;</span>PoRV and the Circular Economy</h2>
+                <div class="reading-content">
+                    <p>One of PoRV's most elegant properties is how it creates a self-reinforcing <strong>circular economy</strong> with three key participant groups:</p>
+
+                    <h3>The Three Pillars</h3>
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">&#127970; Enterprises</div>
+                            <div class="vocab-def">Pay KENO for computational services. Get AI models, simulations, and analysis at lower cost than traditional cloud. Benefit from distributed, censorship-resistant computation.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">&#9874;&#65039; Miners / Validators</div>
+                            <div class="vocab-def">Stake KENO and contribute GPU/compute power. Earn KENO rewards for verified work. Receive RVTs that generate perpetual royalty income. Diversified revenue reduces halving risk.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">&#128176; Token Holders</div>
+                            <div class="vocab-def">Benefit from deflationary pressure as 40% of enterprise payments are burned. Can purchase RVTs on the marketplace for arbitrage access. Long-term value appreciation from growing enterprise adoption.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">&#127758; Society</div>
+                            <div class="vocab-def">Benefits from useful computation (medical AI, climate research, scientific breakthroughs) instead of environmental destruction. Blockchain security with purpose.</div>
+                        </div>
+                    </div>
+
+                    <h3>The Virtuous Cycle</h3>
+                    <p>Each participant's activity strengthens the system for all others:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Enterprise spending burns KENO, benefiting all token holders through scarcity</li>
+                        <li>Miner participation increases network capacity, attracting more enterprises</li>
+                        <li>Token appreciation attracts more miners and validators</li>
+                        <li>More miners means more computation power, lower prices, and better service for enterprises</li>
+                        <li>The cycle reinforces itself, creating a network effect that grows over time</li>
+                    </ul>
+
+                    <h3>Future Applications of Useful Computation Mining</h3>
+                    <p>The PoRV model opens the door to entirely new categories of distributed computation:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Drug Discovery:</strong> Distributed molecular docking simulations to identify drug candidates, reducing pharmaceutical R&amp;D costs by orders of magnitude</li>
+                        <li><strong>Climate Modeling:</strong> High-resolution climate simulations that require supercomputer-class resources, democratized through distributed mining</li>
+                        <li><strong>Autonomous Vehicle Training:</strong> Distributed training of self-driving AI models across millions of driving scenarios</li>
+                        <li><strong>Protein Structure Prediction:</strong> Following the breakthrough of AlphaFold, PoRV miners could contribute to mapping the entire protein universe</li>
+                        <li><strong>Space Exploration:</strong> Processing astronomical survey data to identify exoplanets, asteroids, and cosmic phenomena</li>
+                        <li><strong>Financial Risk Modeling:</strong> Monte Carlo simulations for portfolio risk assessment, insurance pricing, and market stress testing</li>
+                        <li><strong>Personalized Medicine:</strong> Genomic analysis and drug interaction modeling tailored to individual patient profiles</li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127775; The Vision</div>
+                        <p>PoRV's long-term vision is nothing less than the world's largest distributed supercomputer &mdash; one where securing the blockchain and advancing human knowledge are the same activity. Every block mined is a contribution to science, medicine, or enterprise efficiency. Mining becomes a <strong>force for good</strong>.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These case studies illustrate how useful computation mining concepts are already being validated in the real world, and how PoRV extends them further.</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: Folding@home &amp; COVID-19 (2020)</h4>
+                        <p><strong>What happened:</strong> When COVID-19 struck, the distributed computing project Folding@home mobilized millions of volunteers to simulate protein dynamics of the SARS-CoV-2 virus. At its peak, the network reached 2.4 exaFLOPS &mdash; making it more powerful than the world's top 500 supercomputers combined.</p>
+                        <p style="margin-top: 10px;"><strong>The result:</strong> Researchers identified druggable protein pockets and contributed to understanding viral mechanisms, accelerating vaccine and treatment development.</p>
+                        <p style="margin-top: 10px;"><strong>The PoRV connection:</strong> Folding@home proved that distributed computation can solve real scientific problems at scale. However, contributors received no financial reward for their GPU time and electricity. Under PoRV, these contributors would earn KENO tokens and RVTs &mdash; creating a sustainable, incentivized model for scientific computation rather than relying on volunteer goodwill.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: Bitcoin's Energy Crisis &amp; the Ethereum Merge (2022)</h4>
+                        <p><strong>What happened:</strong> China banned Bitcoin mining in 2021 due to energy consumption concerns, displacing over 50% of global hashrate overnight. The European Parliament nearly voted to ban PoW mining in the EU. Meanwhile, Ethereum successfully transitioned to PoS, reducing its energy consumption by 99.95%.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Regulators worldwide are increasingly hostile to energy-wasteful consensus mechanisms. PoW blockchains face existential regulatory risk. PoRV's useful computation model transforms this narrative: instead of defending energy waste, Kenostod can demonstrate that its mining produces tangible economic and social value.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: Render Network &amp; Decentralized GPU Computing (2023-2025)</h4>
+                        <p><strong>What happened:</strong> The Render Network created a decentralized GPU rendering marketplace, allowing users to submit 3D rendering jobs distributed across idle GPU nodes. Studios like Disney and various Hollywood visual effects companies began using the network for production rendering.</p>
+                        <p style="margin-top: 10px;"><strong>The PoRV connection:</strong> Render Network validates the market demand for decentralized GPU computation. However, Render doesn't integrate rendering with blockchain consensus &mdash; it's a separate marketplace. PoRV goes further by making the computation itself the consensus mechanism, creating a unified system where useful work and network security are inseparable.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: AI Model Training Costs (The Enterprise Pain Point)</h4>
+                        <p><strong>What happened:</strong> Training GPT-4 reportedly cost over $100 million in compute alone. Even smaller companies spend millions on AI/ML training using cloud providers like AWS, Google Cloud, and Azure. GPU shortages in 2023-2024 drove cloud computing costs even higher, with some enterprises waiting months for GPU allocation.</p>
+                        <p style="margin-top: 10px;"><strong>The opportunity:</strong> PoRV offers enterprises an alternative: a decentralized network of GPU miners competing to perform their computation at market rates. No vendor lock-in, no waitlists, no single point of failure. Enterprises pay in KENO, get their models trained, and the network becomes more secure with every task completed.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding of Proof-of-Residual-Value. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Explain the Core Innovation</h4>
+                        <div class="exercise-question">
+                            <p>A friend asks you: "Bitcoin mining wastes energy, but isn't Kenostod mining just the same thing?" Write a clear explanation of how PoRV is fundamentally different from PoW, focusing on what the computation actually produces and why it matters.</p>
+                            <textarea id="ex1" placeholder="Write your explanation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Economic Analysis</h4>
+                        <div class="exercise-question">
+                            <p>Imagine 1,000 enterprises each pay 10,000 KENO monthly for PoRV computation. Calculate: (a) How much KENO is burned monthly? (b) How much goes to RVT holders? (c) Why does this create deflationary pressure? Explain the long-term economic implications.</p>
+                            <textarea id="ex2" placeholder="Show your calculations and analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Verification Challenge</h4>
+                        <div class="exercise-question">
+                            <p>One of the hardest problems in useful computation mining is verification: how do you confirm a miner actually performed the computation correctly without re-doing the entire computation? Describe at least three verification strategies that PoRV uses and explain why each is necessary.</p>
+                            <textarea id="ex3" placeholder="Describe the verification strategies..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Future Application Design</h4>
+                        <div class="exercise-question">
+                            <p>Design a new PoRV application that doesn't exist yet. Describe: (1) What computation would miners perform? (2) Who would pay for it and why? (3) What residual value would the computation create? (4) How would RVT royalties work in this scenario?</p>
+                            <textarea id="ex4" placeholder="Design your PoRV application..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: Comparative Analysis</h4>
+                        <div class="exercise-question">
+                            <p>Compare PoRV to Proof-of-Stake. PoS solved the energy problem &mdash; so why does Kenostod argue that PoRV is still necessary? What specific advantages does PoRV have over PoS, and are there any tradeoffs? Be balanced and critical in your analysis.</p>
+                            <textarea id="ex5" placeholder="Write your comparative analysis..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128421;&#65039;</span>Hands-On Lab</h2>
+                <div class="reading-content">
+                    <p>Now it's time to experience PoRV mining firsthand in the Kenostod simulator. Complete these tasks to solidify your understanding.</p>
+
+                    <h3>Lab Tasks:</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Task 1: Browse Available Enterprise Tasks</div>
+                            <p>Navigate to the PoRV Mining tab and explore the list of available computational tasks submitted by enterprises. Note the different task types (AI training, data analysis, simulations) and their KENO reward amounts.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 2: Accept and Complete a Task</div>
+                            <p>Select an enterprise task and begin computation. Watch the progress as your simulated mining rig processes the workload. Notice how the task is broken into shards and verified upon completion.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 3: Receive Your First RVT</div>
+                            <p>After completing a verified task, check your wallet for your newly minted Residual Value Token. Note its tier (Bronze, Silver, Gold, or Platinum) and the royalty rate it carries.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 4: Track Royalty Earnings</div>
+                            <p>Visit the RVT Portfolio section to see your accumulated royalties. As enterprises use the computation you contributed to, micro-royalties will appear in your earnings log.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 5: Observe the Burn Mechanism</div>
+                            <p>Check the Blockchain Explorer to see KENO burn transactions. Note how enterprise payments automatically trigger burns, reducing the total KENO supply in real-time.</p>
+                        </li>
+                    </ul>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="/#porvMining" class="practice-btn">&#128640; Open PoRV Mining Tab</a>
+                        <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9em;">Opens in the main platform. Complete all 5 tasks, then return here for the Final Exam!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="c">
+                    <div class="question-text">1. What is the fundamental problem with Bitcoin's Proof-of-Work that PoRV solves?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bitcoin is too slow</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bitcoin uses too many servers</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mining computation produces no economic value beyond network security</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bitcoin doesn't have enough miners</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="b">
+                    <div class="question-text">2. What does the "Residual" in Proof-of-Residual-Value refer to?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Leftover tokens after mining</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The lasting economic value that persists after computation is complete</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The residual heat from mining hardware</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The remaining balance in a wallet</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="d">
+                    <div class="question-text">3. What types of computational work do PoRV miners perform?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only SHA-256 hash calculations</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only cryptocurrency trading</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only social media moderation</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>AI training, data analysis, scientific simulations, rendering, and other enterprise tasks</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="a">
+                    <div class="question-text">4. What percentage of enterprise payments is permanently burned (destroyed)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>40%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>0%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. What are Residual Value Tokens (RVTs)?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Regular voting tokens for governance</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Royalty-bearing NFTs that generate perpetual token rewards from enterprise usage</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Transaction fee receipts</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mining pool membership cards</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. What is the minimum KENO stake required for PoRV validators?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>100 KENO</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1,000 KENO</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10,000 KENO</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>No stake required</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="d">
+                    <div class="question-text">7. Which verification method does PoRV NOT use?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Spot-check verification (re-computing random portions)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Cross-miner validation</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Statistical anomaly detection</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Full re-computation of every task by every validator</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="a">
+                    <div class="question-text">8. What makes PoRV different from projects like Gridcoin or Golem?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV integrates useful computation into the consensus mechanism itself and provides perpetual royalties through RVTs</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV uses more electricity</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV only supports rendering tasks</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV doesn't verify computation results</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="c">
+                    <div class="question-text">9. In the PoRV circular economy, what happens when more enterprises adopt PoRV?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>KENO supply increases through inflation</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Mining becomes unnecessary</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>More KENO is burned, increasing scarcity and attracting more miners, creating a virtuous cycle</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Token price always stays the same</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="b">
+                    <div class="question-text">10. Which RVT tier carries the highest royalty rate?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Gold (2.0%)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Platinum (3.5%)</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Silver (1.0%)</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bronze (0.5%)</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="d">
+                    <div class="question-text">11. What is the primary advantage PoRV has over Proof-of-Stake that goes beyond energy efficiency?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV uses less memory</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV has fewer validators</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV doesn't need the internet</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoRV creates external economic value through enterprise computation instead of just locking capital</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="a">
+                    <div class="question-text">12. How did Folding@home during COVID-19 validate the PoRV concept?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It proved distributed computation can solve real scientific problems at supercomputer scale, but lacked financial incentives for contributors</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It showed that mining should always be voluntary</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It proved that only centralized systems can do useful computation</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It had nothing to do with PoRV concepts</span></div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <h3 id="resultIcon"></h3>
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-9-pow.html" style="color: var(--primary);">&larr; Course 9</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-11-rvt.html" style="color: var(--primary);">Course 11 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function checkExercise(exerciseNum) {
+            const textarea = document.getElementById('ex' + exerciseNum);
+            const feedback = document.getElementById('ex' + exerciseNum + '-feedback');
+            const text = textarea.value.trim();
+
+            if (text.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please provide a more detailed response (at least a few sentences).';
+                return;
+            }
+
+            const hints = {
+                1: 'Good effort! Key points to cover: PoW produces useless hashes, while PoRV produces real enterprise value (AI models, simulations, analysis). PoRV miners earn ongoing royalties through RVTs, making their computation investment continue to pay returns long after the work is done.',
+                2: 'Nice work! The math: 1,000 enterprises x 10,000 KENO = 10,000,000 KENO/month. Burned (40%): 4,000,000 KENO/month. To RVT holders (50%): 5,000,000 KENO/month. Treasury (10%): 1,000,000 KENO/month. This creates deflationary pressure because the supply permanently shrinks each month while demand grows with enterprise adoption.',
+                3: 'Great analysis! The three main strategies are: (1) Spot-check verification - re-computing random portions, (2) Cross-miner validation - overlapping shards compared between miners, (3) Statistical anomaly detection - ML models detect fabricated results. Economic deterrence (stake slashing) makes cheating irrational.',
+                4: 'Creative thinking! A strong PoRV application identifies a computation that: (a) is parallelizable, (b) creates lasting value, (c) has paying customers, and (d) generates ongoing commercial use that fuels RVT royalties. Examples: genomic analysis, climate modeling, or autonomous vehicle training.',
+                5: 'Thoughtful comparison! PoS solved energy waste but doesn\'t create external value - validators just lock capital. PoRV creates real economic output through enterprise computation. Tradeoffs: PoRV is more complex to implement and requires hardware investment, while PoS is simpler. Both are more efficient than PoW.'
+            };
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+            feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[exerciseNum] || 'Good response! Review the lesson material to ensure you covered all key points.';
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) {
+                        correct++;
+                    } else {
+                        selectedOption.classList.add('incorrect');
+                    }
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            const passThreshold = 10;
+
+            if (correct >= passThreshold) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\uD83C\uDF89';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = 'You got ' + correct + '/' + total + ' correct! You\'ve mastered Proof-of-Residual-Value!';
+                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--success);">\uD83C\uDF93 +250 KENO!</p><a href="/courses/course-11-rvt.html" class="next-course-btn">Course 11: RVT Portfolio \u2192</a>';
+                localStorage.setItem('course10_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(10, 'Course 10: Proof of Residual Value');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\uD83D\uDCDA';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = correct + '/' + total + ' correct. You need at least ' + passThreshold + ' correct (80%) to pass. Review the material and try again!';
+                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            document.getElementById('quizResult').classList.remove('show', 'passed', 'failed');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    document.querySelectorAll('.toc-item').forEach(item => {
+                        item.classList.remove('active');
+                        if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(id)) {
+                            item.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+
+        document.querySelectorAll('.lesson-section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+<script src="/courses/course-common.js"></script>
+</body>
+</html>

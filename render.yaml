@@ -1,0 +1,71 @@
+services:
+  # ── All bots in one free web service ───────────────────────────────────────
+  # UptimeRobot pings /health every 5 min → never sleeps → free 24/7 bots
+  # Add env vars in Render dashboard: QCT_DEPLOYER_KEY, WALLET_PRIVATE_KEY,
+  # KINGS_SHIELD_BOT_TOKEN, HL_VAULT_ADDRESS, HL_BUILDER_CODE
+  - type: web
+    name: sovereign-bots
+    runtime: node
+    plan: free
+    buildCommand: npm install --legacy-peer-deps
+    startCommand: bash start.sh
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: QCT_DEPLOYER_KEY
+        sync: false
+      - key: WALLET_PRIVATE_KEY
+        sync: false
+      - key: KINGS_SHIELD_BOT_TOKEN
+        sync: false
+      - key: HL_VAULT_ADDRESS
+        sync: false
+      - key: HL_BUILDER_CODE
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: SHIELD_ALERT_CHAT_ID
+        sync: false
+
+  # ── Main website ────────────────────────────────────────────────────────────
+  - type: web
+    name: kenostod-blockchain
+    runtime: node
+    plan: free
+    buildCommand: npm install --legacy-peer-deps
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: BANK_ENCRYPTION_KEY
+        sync: false
+      - key: BRIDGE_API_KEY
+        sync: false
+      - key: DEPLOYER_PRIVATE_KEY
+        sync: false
+      - key: KENO_WALLET_PRIVATE_KEY
+        sync: false
+      - key: MOONPAY_PUBLISHABLE_KEY
+        sync: false
+      - key: NEW_WALLET_PRIVATE_KEY
+        sync: false
+      - key: NPM_ACCESS_TOKEN
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: WALLETCONNECT_PROJECT_ID
+        sync: false
+      - key: FAL_ALERT_CHAT_ID
+        sync: false
+      - key: DATABASE_URL
+        sync: false

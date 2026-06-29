@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B.U.K. Security Banking — Implementation Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --navy: #04060d; --steel: #0d1626; --gold: #ffd700;
+    --cyan: #06b6d4; --blue: #1e3a8a; --green: #00c853;
+    --red: #ef4444; --alert: #ff6b35; --text: #a8bcd4; --white: #ffffff;
+  }
+  body { font-family: 'Rajdhani', sans-serif; background: var(--navy); color: var(--text); line-height: 1.7; }
+
+  @media print {
+    .no-print { display: none !important; }
+    body { background: #fff; color: #111; }
+    .cover, .track-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .track { break-inside: avoid; }
+  }
+
+  /* ACTION BAR */
+  .action-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    background: rgba(4,6,13,0.97); backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,215,0,0.12);
+    padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center;
+  }
+  .action-bar-left { font-family: 'Orbitron', sans-serif; font-size: 0.72rem; color: rgba(255,215,0,0.5); letter-spacing: 2px; }
+  .action-btns { display: flex; gap: 0.75rem; }
+  .abtn { padding: 7px 18px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
+  .abtn-outline { background: transparent; color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+  .abtn-gold { background: linear-gradient(135deg, #b8960c, #ffd700); color: #000; }
+
+  /* COVER */
+  .cover {
+    min-height: 100vh; background: linear-gradient(160deg, #020408 0%, #04060d 50%, #080c18 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 6rem 2rem 4rem; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(30,58,138,0.2) 0%, transparent 45%),
+                radial-gradient(circle at 80% 30%, rgba(6,182,212,0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 100%, rgba(255,215,0,0.06) 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .cover-badge {
+    display: inline-block; background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.3);
+    color: var(--alert); padding: 6px 20px; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    margin-bottom: 2.5rem; position: relative; z-index: 2;
+  }
+  .cover-logo {
+    font-family: 'Orbitron', sans-serif; font-size: clamp(4rem, 12vw, 8rem);
+    font-weight: 900; color: var(--gold); margin-bottom: 0.3rem;
+    text-shadow: 0 0 60px rgba(255,215,0,0.3); position: relative; z-index: 2;
+  }
+  .cover-acronym { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: rgba(255,215,0,0.35); letter-spacing: 8px; margin-bottom: 0.5rem; position: relative; z-index: 2; }
+  .cover-subtitle { font-family: 'Orbitron', sans-serif; font-size: clamp(1rem, 2.5vw, 1.6rem); color: var(--white); font-weight: 700; margin-bottom: 1rem; position: relative; z-index: 2; }
+  .cover-tagline { font-size: clamp(1rem, 2vw, 1.2rem); color: rgba(168,188,212,0.65); max-width: 600px; line-height: 1.8; margin-bottom: 2.5rem; position: relative; z-index: 2; }
+  .cover-divider { width: 120px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 0 auto 2.5rem; position: relative; z-index: 2; }
+  .cover-meta { display: flex; gap: 3rem; flex-wrap: wrap; justify-content: center; position: relative; z-index: 2; }
+  .cover-meta-item { text-align: center; }
+  .cover-meta-label { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(168,188,212,0.3); margin-bottom: 0.3rem; }
+  .cover-meta-value { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--gold); font-weight: 700; }
+
+  /* PHASE TIMELINE */
+  .timeline-section { padding: 5rem 2rem; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-eyebrow { font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.6rem; font-weight: 600; }
+  .section-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.6rem, 3vw, 2.4rem); color: var(--white); font-weight: 700; margin-bottom: 1rem; }
+  .section-title .gold { color: var(--gold); }
+  .section-title .cyan { color: var(--cyan); }
+  .section-desc { font-size: 1.05rem; color: rgba(168,188,212,0.6); max-width: 700px; line-height: 1.8; margin-bottom: 3rem; }
+
+  .phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden; }
+  .phase { padding: 2rem 1.5rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); }
+  .phase:last-child { border-right: none; }
+  .phase-num { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 700; }
+  .phase-num.p1 { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.35); color: var(--gold); }
+  .phase-num.p2 { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.35); color: var(--cyan); }
+  .phase-num.p3 { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.35); color: #f87171; }
+  .phase-num.p4 { background: rgba(0,200,83,0.08); border: 1px solid rgba(0,200,83,0.3); color: var(--green); }
+  .phase-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .phase-title { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--white); font-weight: 700; margin-bottom: 0.35rem; letter-spacing: 1px; }
+  .phase-timing { font-size: 0.72rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .p1 + .phase-timing, .phase.ph1 .phase-timing { color: rgba(255,215,0,0.7); }
+  .phase-desc { font-size: 0.82rem; color: var(--text); line-height: 1.5; }
+
+  /* TRACK SECTIONS */
+  .track-section { padding: 5rem 2rem; }
+  .track-section.alt { background: rgba(255,255,255,0.015); }
+
+  .track-header { border-radius: 16px 16px 0 0; padding: 2rem 2.5rem; margin-bottom: 0; }
+  .track-header.gold-hdr { background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.04)); border: 1px solid rgba(255,215,0,0.25); border-bottom: none; }
+  .track-header.cyan-hdr { background: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(30,58,138,0.06)); border: 1px solid rgba(6,182,212,0.25); border-bottom: none; }
+  .track-header.red-hdr { background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(239,68,68,0.04)); border: 1px solid rgba(255,107,53,0.25); border-bottom: none; }
+  .track-header.green-hdr { background: linear-gradient(135deg, rgba(0,200,83,0.06), rgba(30,58,138,0.04)); border: 1px solid rgba(0,200,83,0.2); border-bottom: none; }
+
+  .track-num { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; margin-bottom: 0.3rem; }
+  .gold-hdr .track-num { color: rgba(255,215,0,0.5); }
+  .cyan-hdr .track-num { color: rgba(6,182,212,0.5); }
+  .red-hdr .track-num { color: rgba(255,107,53,0.5); }
+  .green-hdr .track-num { color: rgba(0,200,83,0.5); }
+  .track-title { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; color: var(--white); font-weight: 700; margin-bottom: 0.5rem; }
+  .track-subtitle { font-size: 1rem; color: rgba(168,188,212,0.65); line-height: 1.7; }
+
+  .track-body { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 0 0 16px 16px; padding: 2.5rem; }
+  .gold-hdr ~ .track-body { border-color: rgba(255,215,0,0.15); }
+  .cyan-hdr ~ .track-body { border-color: rgba(6,182,212,0.15); }
+  .red-hdr ~ .track-body { border-color: rgba(255,107,53,0.15); }
+  .green-hdr ~ .track-body { border-color: rgba(0,200,83,0.12); }
+
+  /* COMPANY CARDS */
+  .company-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+  .company-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 1.75rem; transition: border-color 0.3s, transform 0.2s;
+  }
+  .company-card:hover { transform: translateY(-2px); }
+  .company-card.primary { border-color: rgba(255,215,0,0.25); background: rgba(255,215,0,0.03); }
+  .company-card.secondary { border-color: rgba(6,182,212,0.2); }
+  .company-rank { font-size: 0.58rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .primary .company-rank { color: rgba(255,215,0,0.5); }
+  .secondary .company-rank { color: rgba(6,182,212,0.45); }
+  .company-card .company-rank:not(.primary .company-rank):not(.secondary .company-rank) { color: rgba(168,188,212,0.35); }
+  .company-name { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: var(--white); font-weight: 700; margin-bottom: 0.3rem; }
+  .company-location { font-size: 0.75rem; color: rgba(168,188,212,0.4); margin-bottom: 0.75rem; letter-spacing: 0.5px; }
+  .company-why { font-size: 0.88rem; color: var(--text); line-height: 1.65; margin-bottom: 1rem; }
+  .company-angle { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 0.75rem 1rem; }
+  .company-angle-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(168,188,212,0.3); margin-bottom: 0.25rem; font-weight: 600; }
+  .company-angle-text { font-size: 0.85rem; color: var(--white); line-height: 1.6; }
+  .company-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.5rem; }
+  .badge-top { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3); color: var(--gold); }
+  .badge-alt { background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.25); color: var(--cyan); }
+  .badge-new { background: rgba(0,200,83,0.08); border: 1px solid rgba(0,200,83,0.2); color: var(--green); }
+
+  /* PITCH FRAMEWORK */
+  .pitch-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 2rem; margin-top: 2rem; }
+  .pitch-title { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--white); font-weight: 700; margin-bottom: 1.25rem; }
+  .pitch-points { display: flex; flex-direction: column; gap: 0.85rem; }
+  .pitch-point { display: flex; gap: 1rem; align-items: flex-start; }
+  .pitch-arrow { color: var(--gold); font-weight: 700; margin-top: 2px; flex-shrink: 0; }
+  .pitch-text { font-size: 0.92rem; color: var(--text); line-height: 1.6; }
+  .pitch-text strong { color: var(--white); }
+
+  /* CAPITAL TABLE */
+  .cap-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+  .cap-table th { background: rgba(255,215,0,0.06); border-bottom: 1px solid rgba(255,215,0,0.2); padding: 0.85rem 1.25rem; text-align: left; font-family: 'Orbitron', sans-serif; font-size: 0.62rem; color: rgba(255,215,0,0.6); letter-spacing: 2px; }
+  .cap-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.92rem; color: var(--text); }
+  .cap-table tr:last-child td { border-bottom: none; }
+  .cap-table .total td { border-top: 1px solid rgba(255,215,0,0.2); color: var(--white); font-weight: 700; background: rgba(255,215,0,0.04); }
+  .cap-table .highlight { color: var(--gold); font-weight: 700; }
+  .cap-table .green { color: var(--green); font-weight: 700; }
+  .cap-table .cyan { color: var(--cyan); font-weight: 700; }
+
+  /* FUNDING STACK */
+  .funding-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+  .funding-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 1.75rem; }
+  .funding-card.featured { border-color: rgba(255,215,0,0.25); background: rgba(255,215,0,0.03); }
+  .funding-phase { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 0.3rem; color: rgba(255,215,0,0.5); }
+  .funding-title { font-family: 'Orbitron', sans-serif; font-size: 0.88rem; color: var(--white); font-weight: 700; margin-bottom: 0.5rem; }
+  .funding-amount { font-family: 'Orbitron', sans-serif; font-size: 1.6rem; font-weight: 900; color: var(--gold); margin-bottom: 0.4rem; }
+  .funding-amount small { font-size: 0.65rem; color: rgba(168,188,212,0.4); font-family: 'Rajdhani', sans-serif; display: block; letter-spacing: 1px; font-weight: 400; }
+  .funding-sources { list-style: none; margin-top: 1rem; }
+  .funding-sources li { padding: 0.45rem 0; font-size: 0.88rem; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: flex-start; gap: 8px; }
+  .funding-sources li:last-child { border-bottom: none; }
+  .funding-sources li::before { content: '→'; color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+
+  /* ROADMAP */
+  .roadmap { display: flex; flex-direction: column; gap: 0; margin-top: 2rem; }
+  .roadmap-item { display: flex; gap: 2rem; align-items: flex-start; padding: 1.75rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-bottom: none; }
+  .roadmap-item:first-child { border-radius: 14px 14px 0 0; }
+  .roadmap-item:last-child { border-radius: 0 0 14px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .roadmap-item:only-child { border-radius: 14px; }
+  .roadmap-left { text-align: center; flex-shrink: 0; width: 80px; }
+  .roadmap-q { font-family: 'Orbitron', sans-serif; font-size: 0.72rem; color: var(--gold); font-weight: 700; margin-bottom: 0.2rem; }
+  .roadmap-status { font-size: 0.62rem; padding: 3px 8px; border-radius: 8px; font-weight: 700; letter-spacing: 1px; }
+  .status-now { background: rgba(255,107,53,0.15); color: var(--alert); border: 1px solid rgba(255,107,53,0.3); }
+  .status-next { background: rgba(255,215,0,0.1); color: var(--gold); border: 1px solid rgba(255,215,0,0.25); }
+  .status-mid { background: rgba(6,182,212,0.08); color: var(--cyan); border: 1px solid rgba(6,182,212,0.25); }
+  .status-long { background: rgba(0,200,83,0.07); color: var(--green); border: 1px solid rgba(0,200,83,0.2); }
+  .roadmap-content { flex: 1; }
+  .roadmap-milestone { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--white); font-weight: 700; margin-bottom: 0.5rem; }
+  .roadmap-tasks { list-style: none; }
+  .roadmap-tasks li { font-size: 0.9rem; color: var(--text); padding: 0.3rem 0; display: flex; align-items: flex-start; gap: 8px; }
+  .roadmap-tasks li::before { content: '✦'; flex-shrink: 0; font-size: 0.65rem; margin-top: 4px; }
+  .roadmap-item.r-now .roadmap-tasks li::before { color: var(--alert); }
+  .roadmap-item.r-next .roadmap-tasks li::before { color: var(--gold); }
+  .roadmap-item.r-mid .roadmap-tasks li::before { color: var(--cyan); }
+  .roadmap-item.r-long .roadmap-tasks li::before { color: var(--green); }
+
+  /* BLOCKER SECTION */
+  .blocker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
+  .blocker-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1.5rem; }
+  .blocker-card.resolved { border-color: rgba(0,200,83,0.2); background: rgba(0,200,83,0.03); }
+  .blocker-card.blocking { border-color: rgba(255,107,53,0.2); background: rgba(255,107,53,0.03); }
+  .blocker-card.dependent { border-color: rgba(255,215,0,0.2); background: rgba(255,215,0,0.03); }
+  .blocker-label { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem; }
+  .resolved .blocker-label { color: rgba(0,200,83,0.6); }
+  .blocking .blocker-label { color: rgba(255,107,53,0.6); }
+  .dependent .blocker-label { color: rgba(255,215,0,0.5); }
+  .blocker-title { font-weight: 700; color: var(--white); margin-bottom: 0.4rem; }
+  .blocker-desc { font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+
+  footer { padding: 2rem; text-align: center; border-top: 1px solid rgba(30,58,138,0.15); color: rgba(168,188,212,0.25); font-size: 0.82rem; }
+
+  @media (max-width: 900px) {
+    .company-grid, .funding-grid { grid-template-columns: 1fr; }
+    .phases { grid-template-columns: 1fr 1fr; }
+    .phase { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .phase:nth-child(2n) { border-right: none; }
+    .roadmap-item { flex-direction: column; gap: 1rem; }
+    .roadmap-left { width: auto; display: flex; gap: 1rem; align-items: center; }
+    .track-header, .track-body { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="action-bar no-print">
+  <div class="action-bar-left">B.U.K. — FROM CONCEPT TO REALITY</div>
+  <div class="action-btns">
+    <a href="/buk-banking.html" class="abtn abtn-outline">← B.U.K. Site</a>
+    <button class="abtn abtn-gold" onclick="window.print()">Save as PDF</button>
+  </div>
+</div>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="cover-badge">Internal Blueprint — Confidential</div>
+  <div class="cover-logo">B.U.K.</div>
+  <div class="cover-acronym">B · A · C · K &nbsp;&nbsp; U · P &nbsp;&nbsp; K · E · Y</div>
+  <div class="cover-subtitle">Security Banking — From Concept to Reality</div>
+  <div class="cover-tagline">Three tracks. One goal. Making the world's first dual-chip security banking card a real, operational product.</div>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><div class="cover-meta-label">Track 1</div><div class="cover-meta-value">Card Manufacturing</div></div>
+    <div class="cover-meta-item"><div class="cover-meta-label">Track 2</div><div class="cover-meta-value">Insurance Partner</div></div>
+    <div class="cover-meta-item"><div class="cover-meta-label">Track 3</div><div class="cover-meta-value">Banking Infrastructure</div></div>
+    <div class="cover-meta-item"><div class="cover-meta-label">Capital Target</div><div class="cover-meta-value">$3M–$15M</div></div>
+  </div>
+</section>
+
+<!-- PHASE TIMELINE -->
+<section class="timeline-section">
+  <div class="container">
+    <div class="section-eyebrow">Overview</div>
+    <h2 class="section-title">The <span class="gold">4-Phase</span> Build-Out</h2>
+    <p class="section-desc">Each phase unlocks the next. Phase 1 proves the concept and locks in partners. Phase 4 is full product launch. All three tracks run in parallel inside Phase 1.</p>
+    <div class="phases">
+      <div class="phase">
+        <div class="phase-num p1">01</div>
+        <div class="phase-icon">🤝</div>
+        <div class="phase-title">Secure Partners</div>
+        <div class="phase-timing" style="color: rgba(255,215,0,0.7);">Now → Month 3</div>
+        <div class="phase-desc">Identify card manufacturer, insurance partner, and BaaS provider. Sign LOIs. No capital required yet.</div>
+      </div>
+      <div class="phase">
+        <div class="phase-num p2">02</div>
+        <div class="phase-icon">🏗️</div>
+        <div class="phase-title">Prototype</div>
+        <div class="phase-timing" style="color: rgba(6,182,212,0.7);">Month 3–8</div>
+        <div class="phase-desc">Fund prototype card run (500–1,000 units). Build B.U.K. security app. Close seed funding.</div>
+      </div>
+      <div class="phase">
+        <div class="phase-num p3">03</div>
+        <div class="phase-icon">🧪</div>
+        <div class="phase-title">Pilot Program</div>
+        <div class="phase-timing" style="color: rgba(255,107,53,0.7);">Month 8–14</div>
+        <div class="phase-desc">500-member closed beta. Prove the alert system works. Collect insurance data. Wyoming SPDI application filed.</div>
+      </div>
+      <div class="phase">
+        <div class="phase-num p4">04</div>
+        <div class="phase-icon">🚀</div>
+        <div class="phase-title">Public Launch</div>
+        <div class="phase-timing" style="color: rgba(0,200,83,0.7);">Month 14+</div>
+        <div class="phase-desc">Full product launch. Banking charter or BaaS live. Insurance discounts active. Open enrollment.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACK 1: CARD MANUFACTURING -->
+<section class="track-section alt">
+  <div class="container">
+    <div class="section-eyebrow">Track 01 — Card Manufacturing</div>
+    <h2 class="section-title">Who Makes the <span class="gold">Dual-Chip Card</span></h2>
+    <p class="section-desc">The B.U.K. card needs two chips on one body: a standard EMV banking chip AND a proprietary NFC security chip. These companies already build multi-chip and custom smart cards at scale.</p>
+
+    <div class="track-header gold-hdr">
+      <div class="track-num">Primary Targets — Contact First</div>
+      <div class="track-title">Tier 1 Card Manufacturers</div>
+      <div class="track-subtitle">These companies already produce dual-interface and multi-chip cards for major banks worldwide. They have the tooling, the certifications, and the ability to do custom chip integration.</div>
+    </div>
+    <div class="track-body">
+      <div class="company-grid">
+
+        <div class="company-card primary">
+          <span class="company-badge badge-top">TOP PICK</span>
+          <div class="company-name">IDEMIA</div>
+          <div class="company-location">France — Global offices including USA, India, South Africa</div>
+          <div class="company-why">World's largest smart card manufacturer. They make EMV cards for Mastercard, Visa, and central banks globally. They already produce dual-interface cards (contact + contactless on one chip) and have a dedicated "Identity & Security" division. Custom NFC chip integration is within their existing capability stack.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Contact Angle</div>
+            <div class="company-angle-text">"We need a dual-chip card: standard EMV banking chip + proprietary NFC security chip on separate encrypted channels. We are targeting 500 prototype cards and scaling to 100,000+ annually." Contact their Innovation Partnership team. Website: idemia.com → Business Inquiries.</div>
+          </div>
+        </div>
+
+        <div class="company-card primary">
+          <span class="company-badge badge-top">TOP PICK</span>
+          <div class="company-name">Thales Group (formerly Gemalto)</div>
+          <div class="company-location">France — Offices in 50+ countries</div>
+          <div class="company-why">Thales acquired Gemalto in 2019 — Gemalto was THE standard for bank card manufacturing. They produce over 3 billion cards per year. They have a dedicated Fintech & Banking division with a startup partnership program called "Thales PayShield." They already produce biometric dual-chip cards.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Contact Angle</div>
+            <div class="company-angle-text">"We are building a dual-chip security banking card targeting underbanked populations globally, starting in the US and South Africa. We are looking for a manufacturing partner for a 500-unit prototype run." Contact: thalesgroup.com → Digital Security → Banking & Payment.</div>
+          </div>
+        </div>
+
+        <div class="company-card secondary">
+          <span class="company-badge badge-alt">STRONG ALT</span>
+          <div class="company-name">CPI Card Group</div>
+          <div class="company-location">USA — Headquartered in Littleton, CO</div>
+          <div class="company-why">US-based card manufacturer — strategic advantage for a Wyoming SPDI application. They produce cards for 3,000+ financial institutions and specifically work with startup banks and credit unions. More accessible than Thales for small initial runs. Already partners with BaaS providers like Unit and Synapse.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Contact Angle</div>
+            <div class="company-angle-text">"US-based fintech startup building a security banking card with dual-chip technology. We are connected to a Wyoming SPDI application and need a card manufacturing partner who can grow with us." cpicardgroup.com → Contact Sales.</div>
+          </div>
+        </div>
+
+        <div class="company-card secondary">
+          <span class="company-badge badge-alt">STRONG ALT</span>
+          <div class="company-name">Giesecke+Devrient (G+D)</div>
+          <div class="company-location">Germany — Global operations</div>
+          <div class="company-why">G+D makes currency for 100+ central banks and is a major smart card manufacturer. They have a startup accelerator called "Futurelab" specifically for fintech companies. They are already producing next-generation cards with embedded IoT features — their technology roadmap aligns with B.U.K.'s security chip vision.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Contact Angle</div>
+            <div class="company-angle-text">Apply to G+D Futurelab program first — free partnership pathway that does not require initial capital. gi-de.com/en → Innovation → Futurelab. Pitch B.U.K. as the "first security-integrated banking card."</div>
+          </div>
+        </div>
+
+        <div class="company-card">
+          <span class="company-badge badge-new">SECURITY CHIP</span>
+          <div class="company-name">HID Global (ASSA ABLOY Group)</div>
+          <div class="company-location">USA — Austin, TX</div>
+          <div class="company-why">HID Global is the world leader in NFC access control technology. Their chips are in millions of hotel key cards and corporate access badges. Partnering with HID for Chip 2 (the security/key chip) while using IDEMIA or CPI for Chip 1 (banking) is the most technically sound approach — two specialists, one card.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Contact Angle</div>
+            <div class="company-angle-text">"We are developing a consumer banking card that integrates NFC access control for residential and automotive applications. We want to embed HID's NFC technology as the security layer alongside an EMV banking chip." hidglobal.com → OEM Programs.</div>
+          </div>
+        </div>
+
+        <div class="company-card">
+          <span class="company-badge badge-new">SMART LOCK LAYER</span>
+          <div class="company-name">Allegion / Schlage</div>
+          <div class="company-location">USA — Indianapolis, IN</div>
+          <div class="company-why">Schlage is the dominant residential smart lock brand in the US. Their Encode Plus line supports NFC and Apple HomeKit. A partnership with Schlage means B.U.K. cardholders get compatible locks bundled or at a discount — the security chip becomes useful out of the box. Allegion also has a commercial division for multi-unit properties.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Contact Angle</div>
+            <div class="company-angle-text">"We are building a banking card that uses NFC to unlock Schlage-compatible locks. We want to be a certified Schlage integration partner and offer Schlage locks through our B.U.K. enrollment program." allegion.com → Partner Program.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pitch-box">
+        <div class="pitch-title">📋 What to Say in Every Card Manufacturer Outreach</div>
+        <div class="pitch-points">
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>Lead with the market:</strong> "We are targeting 2.4 billion underbanked people globally. B.U.K. replaces the need for a separate home security system, car key fob, and bank card — one card, three functions."</div></div>
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>Show the scale path:</strong> "We need 500 prototype units immediately, scaling to 50,000 in year 1 and 1M+ by year 3."</div></div>
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>Be specific on chip architecture:</strong> "Chip 1 = standard EMV (you likely already produce this). Chip 2 = NFC on an independent encrypted channel — must not share data with Chip 1."</div></div>
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>Ask for a prototype NDA first:</strong> Do not share the full B.U.K. concept without an NDA signed. Lead with the technical spec — "dual independent chip card" — not the full product vision.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACK 2: INSURANCE PARTNER -->
+<section class="track-section">
+  <div class="container">
+    <div class="section-eyebrow">Track 02 — Insurance Partnership</div>
+    <h2 class="section-title">The <span class="cyan">Insurance Angle</span></h2>
+    <p class="section-desc">B.U.K. is a dream product for insurers. Faster police response = smaller claims. Real-time monitoring = fewer incidents. Verified breach data = faster claims processing. You have something they need: data and risk reduction.</p>
+
+    <div class="track-header cyan-hdr">
+      <div class="track-num">Insurance Partners — Who is Open to This Vision</div>
+      <div class="track-title">Companies Actively Looking for This Partnership</div>
+      <div class="track-subtitle">Target tech-forward, API-driven insurers first. Traditional carriers move slow. These companies have built their entire model around data partnerships and are publicly seeking fintech integrations.</div>
+    </div>
+    <div class="track-body">
+      <div class="company-grid">
+
+        <div class="company-card primary">
+          <span class="company-badge badge-top">TOP PICK</span>
+          <div class="company-name">Lemonade Insurance</div>
+          <div class="company-location">USA — New York, NY (NYSE: LMND)</div>
+          <div class="company-why">Lemonade is built entirely on AI and API integrations. They already partner with other fintechs to offer embedded insurance. Their business model explicitly rewards risk reduction — lower claims = they keep more of the premium under their "Giveback" model. They are publicly seeking hardware integration partners to improve their loss ratios.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Pitch to Lemonade</div>
+            <div class="company-angle-text">"B.U.K. cardholders have verifiable police response in under 10 seconds and real-time breach logs. This data directly reduces your home and contents claims. We propose co-branded homeowner's discount for B.U.K. members — Lemonade earns lower loss ratios, B.U.K. earns referral commission." Contact: lemonade.com → Partner with Lemonade.</div>
+          </div>
+        </div>
+
+        <div class="company-card primary">
+          <span class="company-badge badge-top">TOP PICK</span>
+          <div class="company-name">Hippo Insurance</div>
+          <div class="company-location">USA — Palo Alto, CA (NYSE: HIPO)</div>
+          <div class="company-why">Hippo specifically markets around smart home technology reducing premiums. They already offer discounts for smart smoke detectors and water sensors. B.U.K. is a natural next step — a smart lock + real-time monitoring card is exactly what Hippo's underwriting model rewards. They have a published API partner program.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Pitch to Hippo</div>
+            <div class="company-angle-text">"B.U.K. is the smart home security device your underwriters have been waiting for — it's not a device, it's a card in their wallet. Every B.U.K. cardholder is a real-time monitored property. We can share anonymized breach data to reduce your claims." hippo.com → Partnerships.</div>
+          </div>
+        </div>
+
+        <div class="company-card secondary">
+          <span class="company-badge badge-alt">STRONG ALT</span>
+          <div class="company-name">Kin Insurance</div>
+          <div class="company-location">USA — Chicago, IL</div>
+          <div class="company-why">Kin is a direct-to-consumer home insurer that specifically targets underserved markets — their marketing focuses on people who couldn't get affordable insurance elsewhere. This aligns perfectly with B.U.K.'s mission and the Sovereign Economy's target demographic. They have a stated goal of technology-driven risk reduction.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Pitch to Kin</div>
+            <div class="company-angle-text">"Our cardholders are the underbanked and underinsured — exactly your target market. B.U.K. makes them better insurance risks by giving them real-time monitoring and police dispatch. We drive your enrollment while you reduce their premiums." kin.com → Contact → Partner Inquiry.</div>
+          </div>
+        </div>
+
+        <div class="company-card secondary">
+          <span class="company-badge badge-alt">SOUTH AFRICA</span>
+          <div class="company-name">OUTsurance / Discovery Insure</div>
+          <div class="company-location">South Africa — Centurion, Gauteng</div>
+          <div class="company-why">South Africa is the Solar Bunker Phase 1 launch market. Discovery Insure is the most technology-forward insurer in South Africa — they already reward safe driving behavior with Vitality Drive. OUTsurance is the largest direct insurer. Both would be natural B.U.K. partners for the South Africa launch specifically.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Your Pitch — South Africa Angle</div>
+            <div class="company-angle-text">"South Africa has one of the highest home break-in rates in the world. B.U.K. provides real-time monitoring and automatic police dispatch. We are launching here specifically and need an insurance partner who understands the local risk profile." discovery.co.za → Insure → Partner.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pitch-box">
+        <div class="pitch-title">📊 The Insurance Partnership Math — Why They Say Yes</div>
+        <div class="pitch-points">
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>Loss ratio math:</strong> Average home burglary claim = $2,661 (FBI data). Average response time with traditional alarm = 6–11 minutes. B.U.K. response = under 10 seconds. Earlier police arrival = higher recovery rate = lower claims. This directly improves their loss ratio.</div></div>
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>The deal structure:</strong> Insurer offers B.U.K. members 10–20% premium discount. B.U.K. earns $25–50 referral commission per enrolled member. Both sides win. The insurer only pays the discount if the member is already enrolled — so no risk to them.</div></div>
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>The data play:</strong> B.U.K. breach logs are anonymized incident data insurers can use to refine risk models for geographic areas. This has underwriting value independent of individual member discounts.</div></div>
+          <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>What you ask for:</strong> A Letter of Intent (LOI) stating they will offer a 15% homeowner's discount to verified B.U.K. cardholders and pay B.U.K. a referral fee per enrolled member. This LOI is what you show investors — it proves the revenue model works.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACK 3: BANKING INFRASTRUCTURE -->
+<section class="track-section alt">
+  <div class="container">
+    <div class="section-eyebrow">Track 03 — Banking Infrastructure</div>
+    <h2 class="section-title">Funding a <span class="gold">Digital Bank</span></h2>
+    <p class="section-desc">Two paths to banking: get a charter (you become the bank) or use a BaaS partner (you plug into someone else's banking license). The right path depends on your timeline and capital. Here is the full breakdown.</p>
+
+    <div class="track-header red-hdr">
+      <div class="track-num">Path A — Banking as a Service (BaaS) — Start Here</div>
+      <div class="track-title">Launch in Months, Not Years</div>
+      <div class="track-subtitle">BaaS means you plug your B.U.K. card into an existing bank's infrastructure. You get all the features of a bank account without needing a charter. This is how Chime, Current, and thousands of other fintechs operate. Use this to launch and prove the model while the charter application processes.</div>
+    </div>
+    <div class="track-body">
+      <div class="company-grid">
+
+        <div class="company-card primary">
+          <span class="company-badge badge-top">ALREADY IN ECOSYSTEM</span>
+          <div class="company-name">Cybrid</div>
+          <div class="company-location">Canada — Toronto, ON (US operations)</div>
+          <div class="company-why">Cybrid is already referenced in the B.U.K. documents as the BaaS layer for the KUTL Card. Using the same BaaS provider for both B.U.K. and KUTL Card means one unified account dashboard — exactly what the blueprint describes. Cybrid provides crypto-enabled banking, which means KENO token integration is native, not bolted on.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Why This is the First Call</div>
+            <div class="company-angle-text">You already have a relationship pathway here through KUTL Card. Expand the existing conversation: "We want to extend the Cybrid integration to include a second card program — the B.U.K. Security Banking card — with the same underlying account structure." cybrid.app → Contact Sales.</div>
+          </div>
+        </div>
+
+        <div class="company-card secondary">
+          <span class="company-badge badge-alt">STRONG ALT</span>
+          <div class="company-name">Unit</div>
+          <div class="company-location">USA — San Francisco, CA</div>
+          <div class="company-why">Unit is the fastest-growing embedded banking platform in the US. They power card programs for 200+ fintechs and specifically work with companies at the early stage. Their minimum is lower than legacy BaaS providers and they have a formal startup program. CPI Card Group (Track 1 target) already integrates with Unit — meaning card manufacturing and banking could be bundled.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Contact Angle</div>
+            <div class="company-angle-text">"We are building a dual-chip security banking card targeting underbanked populations. We need a BaaS provider who can support a custom card program with real-time balance updates and KENO crypto integration." unit.co → Get Started.</div>
+          </div>
+        </div>
+
+        <div class="company-card">
+          <span class="company-badge badge-new">BACKUP</span>
+          <div class="company-name">Column Bank</div>
+          <div class="company-location">USA — San Francisco, CA</div>
+          <div class="company-why">Column is an actual nationally chartered bank that offers API access — meaning you get the stability of a real bank charter without going through the 2-year charter process yourself. They are developer-first and work with fintechs building novel card programs. Their partner bank structure is ideal for B.U.K. if Cybrid does not cover all needed features.</div>
+          <div class="company-angle">
+            <div class="company-angle-label">Contact Angle</div>
+            <div class="company-angle-text">"We are building a fintech card product that needs national bank backing from day one. We want a partner bank that can grow with us from 500 users to 1M+." column.com → Developer Access.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <div class="track-header green-hdr">
+        <div class="track-num">Path B — Wyoming SPDI Charter — The Long Game</div>
+        <div class="track-title">Become the Bank — Full Control, Full Revenue</div>
+        <div class="track-subtitle">The Wyoming SPDI (Special Purpose Depository Institution) is already in your roadmap. It takes 18–24 months and $5–10M minimum capital but gives you a full banking license. This is the endgame — B.U.K. becomes its own chartered bank and keeps 100% of interchange and deposits.</div>
+      </div>
+      <div class="track-body">
+        <table class="cap-table">
+          <thead>
+            <tr>
+              <th>Requirement</th>
+              <th>Detail</th>
+              <th>Estimated Cost</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Minimum Capital</strong></td>
+              <td>Wyoming requires minimum $5M–$10M in capitalization before approval</td>
+              <td class="highlight">$5M–$10M</td>
+              <td class="cyan">Phase 3–4 Target</td>
+            </tr>
+            <tr>
+              <td><strong>Legal Counsel</strong></td>
+              <td>Wyoming banking law specialist + regulatory filing attorneys</td>
+              <td class="highlight">$150K–$300K</td>
+              <td class="cyan">Budget in Phase 2</td>
+            </tr>
+            <tr>
+              <td><strong>Application Filing</strong></td>
+              <td>Wyoming Division of Banking SPDI application + review process</td>
+              <td class="highlight">$50K–$100K</td>
+              <td class="cyan">Phase 2</td>
+            </tr>
+            <tr>
+              <td><strong>Compliance Officer</strong></td>
+              <td>Full-time BSA/AML compliance officer required for charter approval</td>
+              <td class="highlight">$120K–$180K/yr</td>
+              <td class="cyan">Phase 3 Hire</td>
+            </tr>
+            <tr>
+              <td><strong>Technology Infrastructure</strong></td>
+              <td>Core banking system, fraud monitoring, KYC/AML integration</td>
+              <td class="highlight">$500K–$1.5M</td>
+              <td class="cyan">Phase 3–4</td>
+            </tr>
+            <tr>
+              <td><strong>Timeline</strong></td>
+              <td>Application → review → conditional approval → full approval</td>
+              <td class="highlight">18–24 months</td>
+              <td class="cyan">Start Phase 2</td>
+            </tr>
+            <tr class="total">
+              <td><strong>TOTAL SPDI PATH</strong></td>
+              <td>Everything needed to operate as a Wyoming chartered bank</td>
+              <td class="highlight">~$7M–$12M</td>
+              <td class="green">Phase 3–4 Goal</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pitch-box" style="margin-top: 1.5rem;">
+          <div class="pitch-title">🏛️ Wyoming SPDI — Why Wyoming Specifically</div>
+          <div class="pitch-points">
+            <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>Crypto-native by law:</strong> Wyoming passed the SPDI Act specifically to allow crypto-friendly banks. A Wyoming SPDI can legally hold both USD deposits and digital assets — meaning B.U.K. can hold KENO balances alongside USD without needing separate crypto licensing.</div></div>
+            <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>No insurance requirement:</strong> SPDI institutions do not require FDIC insurance, which eliminates one of the most expensive requirements for new banks. Instead, they operate as custodial institutions with 100% reserve backing.</div></div>
+            <div class="pitch-point"><div class="pitch-arrow">→</div><div class="pitch-text"><strong>Precedents already set:</strong> Kraken Bank and Custodia Bank both received Wyoming SPDI charters. The regulatory pathway is proven — it is not experimental.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNDING STACK -->
+<section class="track-section">
+  <div class="container">
+    <div class="section-eyebrow">Capital Strategy</div>
+    <h2 class="section-title">The <span class="gold">Funding Stack</span> — Phase by Phase</h2>
+    <p class="section-desc">B.U.K. does not need $10M on day one. Capital is unlocked in phases as milestones are hit. The ecosystem itself generates the early funding. Here is how it stacks.</p>
+
+    <div class="funding-grid">
+      <div class="funding-card featured">
+        <div class="funding-phase">Phase 1 Funding</div>
+        <div class="funding-title">Prototype Capital</div>
+        <div class="funding-amount">$50K–$150K<small>seed for 500-unit prototype run + app build</small></div>
+        <ul class="funding-sources">
+          <li>KENO PinkSale presale hard cap revenue (30 BNB → ecosystem fund)</li>
+          <li>TDIR Foundation investor pitch — Series A conversation starter</li>
+          <li>Revenue from existing bot/protocol income</li>
+          <li>G+D Futurelab or similar accelerator grant (non-dilutive)</li>
+        </ul>
+      </div>
+      <div class="funding-card">
+        <div class="funding-phase">Phase 2 Funding</div>
+        <div class="funding-title">Pilot + App + BaaS Launch</div>
+        <div class="funding-amount">$500K–$2M<small>BaaS integration, 500-member beta, charter filing</small></div>
+        <ul class="funding-sources">
+          <li>Seed round — fintech angels + crypto-native VCs</li>
+          <li>Insurance partner LOI as proof for investors</li>
+          <li>Card manufacturer LOI as proof of product viability</li>
+          <li>UTL Protocol staking revenue compounding into treasury</li>
+        </ul>
+      </div>
+      <div class="funding-card">
+        <div class="funding-phase">Phase 3 Funding</div>
+        <div class="funding-title">Scale + Charter Application</div>
+        <div class="funding-amount">$3M–$5M<small>Series A — Wyoming SPDI capitalization begins</small></div>
+        <ul class="funding-sources">
+          <li>Pilot program proven — 500 users, incident data, insurance discount live</li>
+          <li>Series A fintech VC round (Andreessen a16z crypto, Ribbit Capital)</li>
+          <li>SHIELD Aegis Tax + UTL fee revenue funding operations</li>
+          <li>Insurance partner rev-share generating recurring income</li>
+        </ul>
+      </div>
+      <div class="funding-card">
+        <div class="funding-phase">Phase 4 Funding</div>
+        <div class="funding-title">Full Launch + SPDI Complete</div>
+        <div class="funding-amount">$7M–$12M<small>Series B — Full bank charter, open enrollment</small></div>
+        <ul class="funding-sources">
+          <li>Wyoming SPDI charter approved — bank becomes self-funding</li>
+          <li>Card issuance fees + monthly subscriptions = recurring revenue</li>
+          <li>Banking interchange compounds with every transaction</li>
+          <li>Institutional investors now see a regulated bank + crypto hybrid</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MASTER ROADMAP -->
+<section class="track-section alt">
+  <div class="container">
+    <div class="section-eyebrow">Sequenced Action Plan</div>
+    <h2 class="section-title">What Happens <span class="gold">In What Order</span></h2>
+    <p class="section-desc">Every action below is sequenced to unlock the next. Nothing is wasted. Nothing is premature.</p>
+
+    <div class="roadmap">
+      <div class="roadmap-item r-now">
+        <div class="roadmap-left"><div class="roadmap-q">NOW</div><div class="roadmap-status status-now">Active</div></div>
+        <div class="roadmap-content">
+          <div class="roadmap-milestone">Outreach — Sign NDAs — Secure LOIs</div>
+          <ul class="roadmap-tasks">
+            <li>Contact G+D Futurelab (free accelerator — no capital needed)</li>
+            <li>Contact IDEMIA and Thales with a technical one-pager (dual-chip spec only — not full B.U.K. concept until NDA is signed)</li>
+            <li>Contact HID Global about OEM NFC chip partnership for Chip 2</li>
+            <li>Contact Lemonade and Hippo Insurance with the loss-ratio pitch</li>
+            <li>Expand KUTL Card → Cybrid conversation to include B.U.K. card program</li>
+            <li>Consult Wyoming banking attorney — understand SPDI requirements and timeline</li>
+          </ul>
+        </div>
+      </div>
+      <div class="roadmap-item r-next">
+        <div class="roadmap-left"><div class="roadmap-q">Month 1–3</div><div class="roadmap-status status-next">Next Up</div></div>
+        <div class="roadmap-content">
+          <div class="roadmap-milestone">Lock In Partners — Build the Stack</div>
+          <ul class="roadmap-tasks">
+            <li>Sign NDA with at least one card manufacturer — get prototype pricing</li>
+            <li>Sign LOI with at least one insurance partner — "subject to launch"</li>
+            <li>Sign agreement with BaaS provider (Cybrid first, Unit as backup)</li>
+            <li>File Wyoming SPDI pre-application inquiry (letter of intent to apply)</li>
+            <li>Secure $50K–$150K prototype funding from ecosystem revenue or TDIR pitch</li>
+          </ul>
+        </div>
+      </div>
+      <div class="roadmap-item r-mid">
+        <div class="roadmap-left"><div class="roadmap-q">Month 3–8</div><div class="roadmap-status status-mid">Build Phase</div></div>
+        <div class="roadmap-content">
+          <div class="roadmap-milestone">Prototype Cards — B.U.K. App — 500-Member Beta</div>
+          <ul class="roadmap-tasks">
+            <li>First 500 B.U.K. prototype cards manufactured (dual-chip hardware)</li>
+            <li>B.U.K. security app built — property monitoring, remote lock/unlock, police alert integration</li>
+            <li>BaaS banking layer live — cardholders have real account numbers and balances</li>
+            <li>500-member closed beta launched — primarily Sovereign Economy Academy graduates</li>
+            <li>Insurance discount live for beta members — proof of concept for rev-share model</li>
+            <li>Wyoming SPDI application formally filed</li>
+          </ul>
+        </div>
+      </div>
+      <div class="roadmap-item r-long">
+        <div class="roadmap-left"><div class="roadmap-q">Month 8–14+</div><div class="roadmap-status status-long">Scale</div></div>
+        <div class="roadmap-content">
+          <div class="roadmap-milestone">Open Enrollment — Charter Approval — Full Launch</div>
+          <ul class="roadmap-tasks">
+            <li>Beta data in hand — breach log statistics, insurance claim reduction data — go to Series A investors</li>
+            <li>Open B.U.K. enrollment to all Sovereign Economy members</li>
+            <li>Wyoming SPDI conditional approval — begin transition from BaaS to own charter</li>
+            <li>Insurance partner expands from beta discount to full national program</li>
+            <li>South Africa launch — Discovery Insure or OUTsurance partnership live</li>
+            <li>Hyperliquid perp profits → B.U.K. banking chip integration (this is where HL conversation begins)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BLOCKERS / DEPENDENCIES -->
+<section class="track-section">
+  <div class="container">
+    <div class="section-eyebrow">Dependencies + Blockers</div>
+    <h2 class="section-title">What <span class="gold">Blocks What</span></h2>
+    <p class="section-desc">Understanding the sequence is everything. These are the dependencies that determine the order of operations.</p>
+    <div class="blocker-grid">
+      <div class="blocker-card resolved">
+        <div class="blocker-label">Already Exists</div>
+        <div class="blocker-title">✅ Cybrid BaaS Relationship</div>
+        <div class="blocker-desc">KUTL Card already uses Cybrid. B.U.K. banking chip can be added to the existing program relationship — not a new conversation from scratch.</div>
+      </div>
+      <div class="blocker-card resolved">
+        <div class="blocker-label">Already Exists</div>
+        <div class="blocker-title">✅ Wyoming SPDI in Roadmap</div>
+        <div class="blocker-desc">Already listed in the Sovereign Economy plan. This is not a new idea — it is an existing goal with a new urgency now that B.U.K. needs it.</div>
+      </div>
+      <div class="blocker-card blocking">
+        <div class="blocker-label">Must Happen First</div>
+        <div class="blocker-title">🔴 NDA with Card Manufacturer</div>
+        <div class="blocker-desc">Nothing about prototype pricing, chip architecture, or timelines can be confirmed without an NDA. This is the first action item — everything else waits on this conversation.</div>
+      </div>
+      <div class="blocker-card blocking">
+        <div class="blocker-label">Must Happen First</div>
+        <div class="blocker-title">🔴 Insurance LOI Signed</div>
+        <div class="blocker-desc">Investors need proof the revenue model works. An LOI from an insurer saying "we will offer a 15% discount to B.U.K. members and pay a referral fee" is the single most powerful document for the Series A raise.</div>
+      </div>
+      <div class="blocker-card dependent">
+        <div class="blocker-label">Depends On Charter</div>
+        <div class="blocker-title">🟡 Full Banking Chip Independence</div>
+        <div class="blocker-desc">The banking chip can launch through BaaS on day one. Full independence from the BaaS provider (keeping 100% of interchange) only happens once the Wyoming SPDI charter is approved.</div>
+      </div>
+      <div class="blocker-card dependent">
+        <div class="blocker-label">Depends On Beta Data</div>
+        <div class="blocker-title">🟡 Hyperliquid Integration</div>
+        <div class="blocker-desc">HL perp profits → B.U.K. banking chip is a powerful feature but it requires the banking infrastructure to be live first. This is a Month 8+ conversation, not a Month 1 conversation.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <strong style="color: rgba(255,215,0,0.4);">B.U.K. Security Banking — Back Up Key — T.D.I.R. Foundation</strong><br>
+  Internal Blueprint · Confidential · Not for public distribution<br>
+  The Sovereign Economy · kenostodblockchain.com
+</footer>
+
+</body>
+</html>

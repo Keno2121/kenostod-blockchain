@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 5: Social Recovery System | Kenostod Academy</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --secondary: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.7; }
+        .course-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .sidebar { background: var(--bg-card); padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-title { color: var(--primary); font-size: 1.1em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .toc-list { list-style: none; }
+        .toc-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 0.92em; }
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+        .toc-number { width: 28px; height: 28px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 600; flex-shrink: 0; }
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+        .main-content { padding: 40px 60px; max-width: 900px; }
+        .breadcrumb { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .course-header { margin-bottom: 40px; }
+        .course-header h1 { font-size: 2.2em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .course-meta { display: flex; gap: 25px; color: var(--text-muted); flex-wrap: wrap; }
+        .course-meta span { display: flex; align-items: center; gap: 8px; }
+        .lesson-section { background: var(--bg-card); border-radius: 16px; padding: 35px; margin-bottom: 30px; }
+        .section-title { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .section-icon { font-size: 1em; }
+        .reading-content h3 { color: var(--gold); font-size: 1.2em; margin: 25px 0 15px 0; }
+        .reading-content h4 { color: var(--secondary); margin: 20px 0 10px 0; }
+        .reading-content p { margin-bottom: 15px; color: var(--text-light); }
+        .objective-list { list-style: none; margin: 20px 0; }
+        .objective-list li { padding: 15px 20px; background: rgba(20, 184, 166, 0.1); border-left: 4px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; display: flex; align-items: center; gap: 12px; }
+        .objective-list li::before { content: "\2713"; color: var(--success); font-weight: bold; }
+        .term-definition { display: flex; gap: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 10px; }
+        .term-definition .term { color: var(--primary); font-weight: 700; min-width: 140px; }
+        .term-definition .definition { color: var(--text-muted); }
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .highlight-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .highlight-box .highlight-title { color: var(--secondary); font-weight: 700; margin-bottom: 10px; }
+        .highlight-box.warning { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-box.warning .highlight-title { color: var(--danger); }
+        .highlight-box.success { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
+        .highlight-box.success .highlight-title { color: var(--success); }
+        .highlight-box.danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+        .highlight-box.danger .highlight-title { color: var(--danger); }
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .case-study { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95em; }
+        .comparison-table th { background: rgba(59, 130, 246, 0.15); padding: 12px 16px; text-align: left; color: var(--secondary); border-bottom: 2px solid rgba(59, 130, 246, 0.2); }
+        .comparison-table td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); }
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .code-example { background: #0d1117; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em; line-height: 1.6; overflow-x: auto; color: #e6edf3; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-comment { color: #8b949e; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+        .exercise-box { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05)); border: 2px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+        .exercise-question { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; margin: 10px 0; }
+        .exercise-question textarea { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: var(--text-light); font-family: inherit; font-size: 0.95em; margin-top: 8px; min-height: 80px; resize: vertical; }
+        .check-answer-btn { background: var(--gold); color: #000; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 8px; font-size: 0.85em; }
+        .answer-feedback { margin-top: 8px; padding: 10px; border-radius: 6px; font-size: 0.9em; display: none; }
+        .practice-section { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border: 2px solid var(--primary); }
+        .practice-btn { display: inline-block; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 15px 35px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1.1em; transition: all 0.3s; border: none; cursor: pointer; }
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); }
+        .quiz-section { background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05)); border: 2px solid #8b5cf6; }
+        .quiz-question { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-option { display: flex; align-items: center; gap: 12px; padding: 15px 20px; background: var(--bg-card); border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: var(--primary); }
+        .quiz-option.selected { border-color: var(--primary); background: rgba(20, 184, 166, 0.15); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .quiz-radio { width: 20px; height: 20px; border: 2px solid var(--text-muted); border-radius: 50%; flex-shrink: 0; }
+        .quiz-option.selected .quiz-radio { border-color: var(--primary); background: var(--primary); }
+        .submit-quiz-btn { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .quiz-result { display: none; padding: 25px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--danger); }
+        .result-icon { font-size: 3em; margin-bottom: 10px; }
+        .result-title { margin-bottom: 10px; }
+        .next-course-btn { display: inline-block; background: linear-gradient(135deg, var(--success) 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .locked-badge { background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .new-badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; }
+        .guardian-visual { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 30px; background: var(--bg-dark); border-radius: 12px; margin: 20px 0; }
+        .guardian-icon { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; }
+        .guardian-icon.center { width: 100px; height: 100px; background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%); font-size: 2.5em; }
+        .timeline-item { position: relative; padding-left: 30px; padding-bottom: 20px; border-left: 2px solid rgba(59, 130, 246, 0.3); }
+        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 5px; width: 10px; height: 10px; background: var(--secondary); border-radius: 50%; }
+        .timeline-item:last-child { border-left: none; }
+        .timeline-item h5 { color: var(--secondary); margin-bottom: 5px; }
+        .timeline-item p { color: var(--text-muted); font-size: 0.9em; }
+        @media (max-width: 900px) { .course-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="course-layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">&#128218; Lesson Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                <li class="toc-item" onclick="scrollToSection('history')"><span class="toc-number">2</span>History of Lost Crypto</li>
+                <li class="toc-item" onclick="scrollToSection('problem')"><span class="toc-number">3</span>The Lost Key Problem</li>
+                <li class="toc-item" onclick="scrollToSection('recovery-methods')"><span class="toc-number">4</span>Recovery Methods</li>
+                <li class="toc-item" onclick="scrollToSection('vitalik')"><span class="toc-number">5</span>Vitalik's Proposal</li>
+                <li class="toc-item" onclick="scrollToSection('argent')"><span class="toc-number">6</span>Argent &amp; Implementations</li>
+                <li class="toc-item" onclick="scrollToSection('guardians')"><span class="toc-number">7</span>Guardian System</li>
+                <li class="toc-item" onclick="scrollToSection('recovery')"><span class="toc-number">8</span>Recovery Process</li>
+                <li class="toc-item" onclick="scrollToSection('kenostod')"><span class="toc-number">9</span>Kenostod's System</li>
+                <li class="toc-item" onclick="scrollToSection('guardian-selection')"><span class="toc-number">10</span>Guardian Best Practices</li>
+                <li class="toc-item" onclick="scrollToSection('inheritance')"><span class="toc-number">11</span>Inheritance Planning</li>
+                <li class="toc-item" onclick="scrollToSection('attacks')"><span class="toc-number">12</span>Attack Vectors</li>
+                <li class="toc-item" onclick="scrollToSection('erc4337')"><span class="toc-number">13</span>Account Abstraction</li>
+                <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">14</span>Case Studies</li>
+                <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">15</span>Written Exercises</li>
+                <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">16</span>Hands-On Practice</li>
+                <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">17</span>Final Exam</li>
+            </ul>
+        </aside>
+        
+        <main class="main-content">
+            <div class="breadcrumb"><a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 5</div>
+            
+            <div class="course-header">
+                <h1>&#128272; Course 5: Social Recovery System <span class="new-badge">NEW</span> <span class="locked-badge">PREMIUM</span></h1>
+                <div class="course-meta">
+                    <span>&#128214; 17 Lessons</span>
+                    <span>&#9201;&#65039; ~2 hours</span>
+                    <span>&#127919; Intermediate Level</span>
+                    <span>&#127942; 250 KENO upon completion</span>
+                </div>
+            </div>
+            
+            <!-- SECTION 1: LEARNING OBJECTIVES -->
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p>By the end of this comprehensive course, you will be able to:</p>
+                <ul class="objective-list">
+                    <li>Understand the scale of cryptocurrency lost due to key management failures</li>
+                    <li>Compare traditional recovery methods with blockchain-specific challenges</li>
+                    <li>Explain how social recovery works using guardian networks and threshold signatures</li>
+                    <li>Describe Vitalik Buterin's proposal for social recovery wallets</li>
+                    <li>Analyze how Argent wallet implements social recovery in production</li>
+                    <li>Design an optimal guardian selection strategy</li>
+                    <li>Identify and defend against attack vectors targeting recovery systems</li>
+                    <li>Compare social recovery with seed phrases, custodial services, and Shamir's Secret Sharing</li>
+                    <li>Set up guardians for your Kenostod wallet and complete a recovery process</li>
+                    <li>Design an inheritance plan using social recovery guardians</li>
+                    <li>Evaluate real-world case studies of successful and failed recoveries</li>
+                    <li>Understand how ERC-4337 account abstraction will shape the future of wallet recovery</li>
+                </ul>
+            </section>
+
+            <!-- SECTION 2: HISTORY OF LOST CRYPTO -->
+            <section id="history" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>The Graveyard of Lost Cryptocurrency</h2>
+                <div class="reading-content">
+                    <p>Before we dive into solutions, it's essential to understand the <strong>staggering scale</strong> of the problem that social recovery addresses. The history of cryptocurrency is littered with stories of lost fortunes, each one representing a human tragedy that could have been prevented.</p>
+
+                    <h3>The Numbers Are Staggering</h3>
+                    <p>According to blockchain analytics firm Chainalysis, approximately <strong>3.7 million Bitcoin</strong> &mdash; roughly 20% of all Bitcoin ever mined &mdash; are believed to be permanently lost. At Bitcoin's peak price, this represents over <strong>$250 billion</strong> in inaccessible wealth. This isn't theoretical value; these are real coins sitting in real wallets that no one can ever access again.</p>
+
+                    <p>The situation extends beyond Bitcoin:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Ethereum:</strong> An estimated 500,000+ ETH (worth billions) is locked in contracts or wallets with lost keys</li>
+                        <li><strong>Hardware wallet failures:</strong> Thousands of users have lost access due to broken devices without proper seed backups</li>
+                        <li><strong>Exchange collapses:</strong> Mt. Gox (2014), QuadrigaCX (2019), FTX (2022) &mdash; billions lost because a single person or entity controlled the keys</li>
+                        <li><strong>Death without succession:</strong> An unknown amount of cryptocurrency dies with its owners, as families have no way to access inherited crypto</li>
+                        <li><strong>Accidental disposal:</strong> Hard drives, USB sticks, and paper wallets thrown away containing millions in cryptocurrency</li>
+                    </ul>
+
+                    <h3>The Landfill Bitcoin</h3>
+                    <p>Perhaps the most famous lost cryptocurrency story belongs to James Howells, a Welsh IT worker who accidentally threw away a hard drive containing <strong>8,000 Bitcoin</strong> in 2013. At the time, the Bitcoin was worth about $4 million. By 2024, the hard drive &mdash; now buried under tons of garbage in a Newport, Wales landfill &mdash; contains Bitcoin worth over <strong>$500 million</strong>. Howells has been fighting the local council for years to excavate the landfill, offering to share the proceeds, but has been repeatedly denied permission due to environmental concerns.</p>
+
+                    <p>Howells has even proposed a plan involving robotic dogs, AI sorting systems, and a dedicated team of excavation workers, estimated to cost $11 million. The council's response remains unchanged: no excavation permitted. The Bitcoin sits there still, a monument to the impermanence of human memory.</p>
+
+                    <h3>The Cryptographic Inheritance Problem</h3>
+                    <p>When Gerald Cotten, CEO of Canadian exchange QuadrigaCX, died unexpectedly in December 2018 while traveling in India, he reportedly took the <strong>only copies of the cold wallet private keys</strong> with him. Over <strong>$190 million</strong> in customer cryptocurrency became permanently inaccessible. An investigation by Ernst & Young later revealed the situation was more complex &mdash; Cotten had actually been misusing customer funds for years &mdash; but the case highlighted a very real and fundamental problem: cryptocurrency has no built-in mechanism for inheritance or succession.</p>
+
+                    <h3>A Timeline of Major Losses</h3>
+                    <div class="timeline-item">
+                        <h5>2010 &mdash; Early Bitcoin Deletions</h5>
+                        <p>Hundreds of early miners casually deleted wallets containing thousands of BTC, worth pennies at the time but now worth fortunes. One Reddit user famously deleted a wallet with 8,999 BTC (worth over $600 million today).</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>2013 &mdash; James Howells' Landfill</h5>
+                        <p>8,000 BTC thrown in the trash. The hard drive remains buried in a Welsh landfill to this day.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>2014 &mdash; Mt. Gox Collapse</h5>
+                        <p>850,000 BTC (approximately $450 million at the time) stolen or lost from the world's largest Bitcoin exchange. Creditors waited over a decade for partial recovery.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>2017 &mdash; Parity Wallet Bug</h5>
+                        <p>A bug in the Parity multi-sig wallet library locked 513,774 ETH (about $150 million at the time) permanently. The funds remain frozen in the smart contract to this day because no recovery mechanism existed.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>2019 &mdash; QuadrigaCX</h5>
+                        <p>$190 million in customer crypto became inaccessible when the CEO died with the only copies of the private keys.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h5>2022 &mdash; FTX Collapse</h5>
+                        <p>Over $8 billion in customer funds lost due to mismanagement and fraud at one of the world's largest exchanges. A stark reminder that custodial solutions carry enormous counterparty risk.</p>
+                    </div>
+
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#128680; The Fundamental Paradox</div>
+                        <p>Cryptocurrency was created to give people <strong>sovereign control</strong> over their money &mdash; no bank, no government, no third party can seize your funds. But this same property means that if you lose your key, <strong>no one can help you</strong>. You are simultaneously the most secure and the most vulnerable custodian of your own wealth. Social recovery resolves this paradox by creating a middle ground: you maintain sovereignty under normal conditions, but have a safety net when things go wrong.</p>
+                    </div>
+
+                    <h3>Why Traditional Backup Methods Fail</h3>
+                    <p>Users have tried many approaches to safeguard their keys, and each has fundamental flaws:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Written on Paper</span>
+                        <span class="definition">Vulnerable to fire, flood, fading ink, and physical theft. A single piece of paper holds potentially millions of dollars with no authentication required to use it.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Stored Digitally</span>
+                        <span class="definition">Files on computers can be hacked, accidentally deleted, or corrupted. Cloud storage adds third-party risk. Screenshots can be accessed by malware.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Metal Plate Engravings</span>
+                        <span class="definition">Fire and water resistant, but still a single point of failure. Can be physically stolen. Requires secure storage location. Multiple copies multiply theft risk.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Safety Deposit Box</span>
+                        <span class="definition">Secure against theft, but adds bank dependency (the very thing crypto was designed to avoid). Access can be delayed or denied. Contents can be seized by government order.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Memorization</span>
+                        <span class="definition">Brain wallets (memorized seeds) seem clever but are vulnerable to forgetting, brain injuries, illness, and death. Humans are not reliable long-term storage devices for 24 random words.</span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SECTION 3: THE LOST KEY PROBLEM -->
+            <section id="problem" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128273;</span>The Lost Key Problem in Depth</h2>
+                <div class="reading-content">
+                    <p>In traditional cryptocurrency, losing your private key or seed phrase means <strong>losing access to your funds forever</strong>. There is no "forgot password" link, no customer support number, and no court order that can restore access. The cryptography is absolute &mdash; even the combined computing power of every computer on Earth working for billions of years cannot crack a single private key.</p>
+                    
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Harsh Reality</div>
+                        <p>"Not your keys, not your coins" is a common crypto mantra. But the flip side is equally true: <strong>"Lose your keys, lose your coins."</strong> This creates an impossible choice between security and recoverability. Store your keys with a third party (exchange) and risk losing everything if they're hacked or go bankrupt. Store them yourself and risk losing everything if you make a human error.</p>
+                    </div>
+
+                    <h3>The Traditional Finance Safety Net</h3>
+                    <p>In traditional banking, account recovery is straightforward. Forgot your password? Reset it. Lost your debit card? Order a new one. Bank goes under? FDIC insurance covers up to $250,000. Someone steals your identity? The bank reverses fraudulent charges. Every step of the way, there's a human institution that can intervene.</p>
+
+                    <p>Cryptocurrency deliberately removed these intermediaries. That was the entire point &mdash; no one can freeze your account, reverse your transactions, or inflate away your savings. But this also means no one can <em>help</em> you when things go wrong. Social recovery aims to restore the safety net without restoring the intermediary.</p>
+
+                    <h3>Problems with Seed Phrases</h3>
+                    <p>The current standard for key backup &mdash; the 12 or 24-word seed phrase &mdash; has several critical weaknesses:</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Easy to Lose</div>
+                            <p>Paper gets damaged by water, fire, or simple aging. Digital copies can be accidentally deleted, corrupted, or lost in hardware failures. The average person moves 11 times in their lifetime &mdash; plenty of opportunities to misplace a piece of paper. Studies show that 29% of crypto users have misplaced their backup at least once.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Easy to Steal</div>
+                            <p>Anyone who finds your seed phrase owns your funds &mdash; no password, no 2FA, no verification required. A house cleaner, a repair technician, a curious family member, or a burglar who knows to look for it can drain your entire wallet in seconds. The seed phrase is a bearer instrument &mdash; possession equals ownership.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">No Partial Recovery</div>
+                            <p>Unlike a password (which can be partially remembered and brute-forced), a seed phrase requires ALL words in the EXACT order. Missing even one word makes recovery computationally infeasible (2,048 possible words per position, yielding 2,048 combinations to check for one missing word, but exponentially more for multiple missing words). There's no "close enough" in cryptography.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Inheritance is Nearly Impossible</div>
+                            <p>How do you pass crypto to your heirs? If you include the seed phrase in your will, it becomes a public document upon probate &mdash; anyone at the courthouse can see it. If you give it to your lawyer, you're trusting a third party with full access. If you don't tell anyone, the funds die with you. There's no elegant solution within the seed phrase model.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">User Error is the #1 Threat</div>
+                            <p>The most common causes of seed phrase loss are remarkably mundane: accidentally throwing away the paper, forgetting where it was stored, misreading handwriting (was that a 'g' or 'q'?), resetting devices without backing up first, and confusing the order of words. These aren't exotic attacks &mdash; they're everyday human mistakes that have cost people their life savings.</p>
+                        </li>
+                    </ul>
+
+                    <div class="concept-box">
+                        <h4>&#128161; The Key Insight</h4>
+                        <p>The seed phrase model asks humans to behave like computers: store arbitrary information perfectly, indefinitely, and securely. But humans are not computers. We forget things, we make mistakes, and we die. Any security system built on the assumption that humans are perfectly reliable is fundamentally broken. Social recovery acknowledges human fallibility and designs around it.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: RECOVERY METHODS COMPARED -->
+            <section id="recovery-methods" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128295;</span>Recovery Methods Compared</h2>
+                <div class="reading-content">
+                    <p>Before diving into social recovery specifically, let's survey the landscape of key recovery approaches and understand the tradeoffs each makes.</p>
+
+                    <h3>Shamir's Secret Sharing (SSS)</h3>
+                    <p><strong>Shamir's Secret Sharing</strong>, invented by cryptographer Adi Shamir in 1979, splits a secret (like a private key) into N parts, where any K parts can reconstruct the original (K-of-N threshold). For example, split your key into 5 shares, give one to each of 5 trusted people, and any 3 shares can reconstruct the key.</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Shamir's Secret Sharing Concept</span><br><br>
+                        <span class="code-keyword">const</span> privateKey = <span class="code-string">"0x4f3c..."</span>; <span class="code-comment">// The secret to protect</span><br><br>
+                        <span class="code-comment">// Split into 5 shares, 3 needed to reconstruct</span><br>
+                        <span class="code-keyword">const</span> shares = <span class="code-function">shamirSplit</span>(privateKey, {<br>
+                        &nbsp;&nbsp;totalShares: <span class="code-number">5</span>,<br>
+                        &nbsp;&nbsp;threshold: <span class="code-number">3</span><br>
+                        });<br><br>
+                        <span class="code-comment">// Result: 5 share fragments</span><br>
+                        <span class="code-comment">// share1: "801a3f..."  &rarr; give to Alice</span><br>
+                        <span class="code-comment">// share2: "802b4e..."  &rarr; give to Bob</span><br>
+                        <span class="code-comment">// share3: "803c5d..."  &rarr; give to Charlie</span><br>
+                        <span class="code-comment">// share4: "804d6c..."  &rarr; store in safe deposit box</span><br>
+                        <span class="code-comment">// share5: "805e7b..."  &rarr; give to lawyer</span><br><br>
+                        <span class="code-comment">// To recover: ANY 3 shares reconstruct the key</span><br>
+                        <span class="code-keyword">const</span> recovered = <span class="code-function">shamirCombine</span>([shares[0], shares[2], shares[4]]);<br>
+                        <span class="code-comment">// recovered === privateKey &mdash; full access restored!</span>
+                    </div>
+
+                    <p><strong>Pros:</strong> Mathematically elegant, no single point of failure, information-theoretically secure (fewer than K shares reveal zero information about the secret).</p>
+                    <p><strong>Cons:</strong> Requires an offline ceremony to split and distribute shares. Shares are static &mdash; if you want to change guardians, you must generate entirely new shares and redistribute them all. The reconstructed key exists in memory during recovery, creating a brief vulnerability window. Shareholders must coordinate to recover, which is difficult if the key owner is incapacitated.</p>
+
+                    <h3>Multi-Signature Wallets (Multisig)</h3>
+                    <p>Multisig wallets require multiple private keys to authorize transactions. Unlike SSS, the keys are never combined &mdash; each signer independently signs, and the smart contract validates that enough signatures are present.</p>
+                    <p><strong>Pros:</strong> No single key can steal funds, no key combination ceremony needed, widely supported on Ethereum and Bitcoin.</p>
+                    <p><strong>Cons:</strong> All signers must actively participate in every transaction (not just recovery). Higher gas costs on Ethereum. Not user-friendly for everyday use. If used for personal wallets, requires carrying multiple devices.</p>
+
+                    <h3>Custodial Recovery (Exchanges/Banks)</h3>
+                    <p>The simplest approach: let a trusted institution hold your keys. If you lose access, they verify your identity and restore it &mdash; just like a bank reissuing a debit card.</p>
+                    <p><strong>Pros:</strong> Familiar UX, password resets work, customer support available, regulatory protections (in some jurisdictions).</p>
+                    <p><strong>Cons:</strong> Completely defeats the purpose of self-sovereign cryptocurrency. Your funds can be frozen, seized, or lost if the custodian goes bankrupt (Mt. Gox, FTX). You're trusting a single entity with total control. "Not your keys, not your coins."</p>
+
+                    <h3>Social Recovery (The Smart Wallet Approach)</h3>
+                    <p>Designate trusted guardians who can collectively authorize a key replacement &mdash; without ever having access to your funds under normal conditions.</p>
+                    <p><strong>Pros:</strong> No single point of failure, guardians don't have fund access during normal operation, dynamic (add/remove guardians anytime without ceremony), time-lock protection against unauthorized recovery, combines self-sovereignty with safety net. A new key is generated rather than recovering the old one.</p>
+                    <p><strong>Cons:</strong> Requires maintaining social relationships with guardians, guardians could theoretically collude, introduces social engineering attack surface, requires smart contract wallet (not just an EOA).</p>
+
+                    <h3>Comprehensive Comparison Table</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Seed Phrase Only</th>
+                            <th>Shamir's SSS</th>
+                            <th>Multisig</th>
+                            <th>Custodial</th>
+                            <th>Social Recovery</th>
+                        </tr>
+                        <tr>
+                            <td>Single Point of Failure</td>
+                            <td>Yes (the paper)</td>
+                            <td>No</td>
+                            <td>No</td>
+                            <td>Yes (the custodian)</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td>Self-Sovereign</td>
+                            <td>Yes</td>
+                            <td>Yes</td>
+                            <td>Partially</td>
+                            <td>No</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Dynamic Guardians</td>
+                            <td>N/A</td>
+                            <td>No (regenerate shares)</td>
+                            <td>Difficult</td>
+                            <td>N/A</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td>Time-Lock Protection</td>
+                            <td>No</td>
+                            <td>No</td>
+                            <td>Optional</td>
+                            <td>Sometimes</td>
+                            <td>Yes (48 hours)</td>
+                        </tr>
+                        <tr>
+                            <td>Key Exposure During Recovery</td>
+                            <td>Yes (full key)</td>
+                            <td>Yes (briefly)</td>
+                            <td>No</td>
+                            <td>No</td>
+                            <td>No (new key generated)</td>
+                        </tr>
+                        <tr>
+                            <td>Everyday Usability</td>
+                            <td>Good</td>
+                            <td>Poor</td>
+                            <td>Poor</td>
+                            <td>Excellent</td>
+                            <td>Good</td>
+                        </tr>
+                        <tr>
+                            <td>Complexity</td>
+                            <td>Low</td>
+                            <td>High</td>
+                            <td>High</td>
+                            <td>Low</td>
+                            <td>Medium</td>
+                        </tr>
+                        <tr>
+                            <td>Inheritance Support</td>
+                            <td>Poor</td>
+                            <td>Moderate</td>
+                            <td>Moderate</td>
+                            <td>Good</td>
+                            <td>Excellent</td>
+                        </tr>
+                        <tr>
+                            <td>Cost</td>
+                            <td>Free</td>
+                            <td>Free</td>
+                            <td>Higher gas fees</td>
+                            <td>Exchange fees</td>
+                            <td>Minimal gas</td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 5: VITALIK'S VISION -->
+            <section id="vitalik" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128161;</span>Vitalik Buterin's Social Recovery Vision</h2>
+                <div class="reading-content">
+                    <p>In January 2021, Ethereum co-founder <strong>Vitalik Buterin</strong> published a landmark blog post titled <em>"Why we need wide adoption of social recovery wallets"</em>. This essay laid out the intellectual foundation for social recovery as the future of wallet security and directly influenced Kenostod's design philosophy.</p>
+
+                    <h3>Vitalik's Core Argument</h3>
+                    <p>Buterin argued that the crypto community faces a false dilemma between two bad options:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Option A:</strong> Use a centralized exchange (easy to use, but not your keys &mdash; not your coins)</li>
+                        <li><strong>Option B:</strong> Self-custody with seed phrase (your keys, but one mistake and you lose everything)</li>
+                    </ul>
+                    <p>His thesis: Social recovery wallets offer <strong>Option C</strong> &mdash; the security and sovereignty of self-custody combined with the recoverability of custodial solutions. He called them <em>"the clear winner"</em> for long-term wallet design.</p>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#128172; Vitalik's Own Words</div>
+                        <p><em>"My argument is simple: we need to move to a world where smart contract wallets are widely adopted, and the primary security model is social recovery... Social recovery wallets provide a high level of security and much better usability than any existing alternative."</em> &mdash; Vitalik Buterin, January 2021</p>
+                    </div>
+
+                    <h3>The Smart Contract Wallet Model</h3>
+                    <p>Vitalik proposed that wallets themselves should be smart contracts (not just keypairs). This is a fundamental paradigm shift. A traditional wallet is just a private key that signs transactions. A smart contract wallet is a programmable entity that can enforce complex rules &mdash; including recovery logic:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Simplified Social Recovery Wallet Contract (Solidity)</span><br><br>
+                        <span class="code-keyword">contract</span> SocialRecoveryWallet {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">address</span> <span class="code-keyword">public</span> owner;<br>
+                        &nbsp;&nbsp;<span class="code-keyword">address</span>[] <span class="code-keyword">public</span> guardians;<br>
+                        &nbsp;&nbsp;<span class="code-keyword">uint</span> <span class="code-keyword">public</span> threshold; <span class="code-comment">// e.g., 3 of 5</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">uint</span> <span class="code-keyword">constant</span> RECOVERY_DELAY = <span class="code-number">48</span> hours;<br><br>
+                        &nbsp;&nbsp;<span class="code-keyword">struct</span> Recovery {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">address</span> newOwner;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">uint</span> approvals;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">uint</span> executeAfter;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">bool</span> active;<br>
+                        &nbsp;&nbsp;}<br><br>
+                        &nbsp;&nbsp;Recovery <span class="code-keyword">public</span> pendingRecovery;<br><br>
+                        &nbsp;&nbsp;<span class="code-comment">// Normal operation: only owner can transact</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">function</span> <span class="code-function">execute</span>(<span class="code-keyword">address</span> to, <span class="code-keyword">uint</span> amount, <span class="code-keyword">bytes</span> data) <span class="code-keyword">external</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">require</span>(msg.sender == owner, <span class="code-string">"Only owner"</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">require</span>(!pendingRecovery.active, <span class="code-string">"Wallet frozen"</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// Execute transaction normally</span><br>
+                        &nbsp;&nbsp;}<br><br>
+                        &nbsp;&nbsp;<span class="code-comment">// Recovery: guardians vote for new owner</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">function</span> <span class="code-function">approveRecovery</span>(<span class="code-keyword">address</span> newOwner) <span class="code-keyword">external</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">require</span>(<span class="code-function">isGuardian</span>(msg.sender), <span class="code-string">"Not guardian"</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;pendingRecovery.approvals++;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (pendingRecovery.approvals >= threshold) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pendingRecovery.executeAfter = block.timestamp + RECOVERY_DELAY;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pendingRecovery.active = <span class="code-keyword">true</span>;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                        &nbsp;&nbsp;}<br><br>
+                        &nbsp;&nbsp;<span class="code-comment">// Owner can cancel fraudulent recovery</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">function</span> <span class="code-function">cancelRecovery</span>() <span class="code-keyword">external</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">require</span>(msg.sender == owner, <span class="code-string">"Only owner"</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">delete</span> pendingRecovery;<br>
+                        &nbsp;&nbsp;}<br><br>
+                        &nbsp;&nbsp;<span class="code-comment">// After delay, finalize recovery</span><br>
+                        &nbsp;&nbsp;<span class="code-keyword">function</span> <span class="code-function">finalizeRecovery</span>() <span class="code-keyword">external</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">require</span>(pendingRecovery.active, <span class="code-string">"No active recovery"</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">require</span>(block.timestamp >= pendingRecovery.executeAfter, <span class="code-string">"Delay not passed"</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;owner = pendingRecovery.newOwner;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">delete</span> pendingRecovery;<br>
+                        &nbsp;&nbsp;}<br>
+                        }
+                    </div>
+
+                    <h3>Key Design Principles from Vitalik</h3>
+                    <div class="term-definition">
+                        <span class="term">Guardian Privacy</span>
+                        <span class="definition">Guardians should ideally not know who the other guardians are. This prevents collusion and reduces social engineering attack surface. On-chain, guardian addresses can be stored as hashes to preserve privacy.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Diverse Guardian Types</span>
+                        <span class="definition">Mix individuals and institutions. A good set might include: 2 close friends, 1 family member, 1 hardware wallet company's guardian service, and 1 institutional guardian. Diversity prevents common-mode failures.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Low Guardian Burden</span>
+                        <span class="definition">Being a guardian should require minimal effort. Guardians only act during recovery events, which should be rare. The guardian experience should be as simple as "click approve." If it's too complex, guardians won't do it.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Signing Key Separation</span>
+                        <span class="definition">The signing key (used daily) should be separate from recovery logic. Losing the signing key triggers social recovery; the smart contract wallet persists regardless of which signing key controls it.</span>
+                    </div>
+
+                    <h3>Why Vitalik Called It "The Clear Winner"</h3>
+                    <p>Buterin evaluated all existing wallet designs and concluded that social recovery wallets uniquely solve the full set of challenges:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>No single point of failure:</strong> Unlike seed phrases, losing one thing doesn't lose everything</li>
+                        <li><strong>Low mental overhead:</strong> No need to memorize or securely store 24 words</li>
+                        <li><strong>Recoverable:</strong> Unlike pure self-custody, you can recover from human error</li>
+                        <li><strong>Self-sovereign:</strong> Unlike exchanges, no one controls your funds but you</li>
+                        <li><strong>Future-proof:</strong> Compatible with account abstraction and evolving standards</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 6: ARGENT & REAL-WORLD IMPLEMENTATIONS -->
+            <section id="argent" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128241;</span>Argent Wallet &amp; Real-World Implementations</h2>
+                <div class="reading-content">
+                    <p>While Vitalik provided the theoretical framework, <strong>Argent</strong> built the first widely-used production implementation of social recovery on Ethereum. Understanding Argent's approach provides critical real-world insight into how social recovery works at scale.</p>
+
+                    <h3>How Argent Works</h3>
+                    <p>Argent is a mobile-first smart contract wallet launched in 2020. Every Argent wallet is a smart contract on Ethereum (not just a keypair), which enables programmable recovery logic. Here's how their system operates:</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Smart Contract Wallet Creation</div>
+                            <p>When you create an Argent wallet, a smart contract is deployed to Ethereum. This contract holds your funds and enforces access rules. Your phone holds a signing key, but the contract is the true "wallet." If your phone is lost, the contract &mdash; and your funds &mdash; remain on the blockchain.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Guardian Assignment</div>
+                            <p>You designate guardians who can collectively change the signing key. Argent offers three types of guardians: (1) other Argent users, (2) hardware wallets like Ledger or Trezor, and (3) Argent's own institutional guardian service (called "Argent Guard"). Most users set up 2-3 guardians.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Daily Use Remains Simple</div>
+                            <p>Under normal conditions, you use your wallet exactly like any other mobile wallet. Sign transactions with your phone's biometrics (fingerprint or Face ID). Guardians are invisible &mdash; they never see your transactions, balance, or activity.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Recovery When Needed</div>
+                            <p>If you lose your phone, install Argent on a new device and initiate recovery. Guardians receive push notifications to approve. Once the threshold is met, a 36-hour security period begins. After the delay, your new device becomes the controller.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Argent's Guardian Types</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Guardian Type</th>
+                            <th>How It Works</th>
+                            <th>Pros</th>
+                            <th>Cons</th>
+                        </tr>
+                        <tr>
+                            <td>Argent Guard (Institutional)</td>
+                            <td>Argent's own service verifies via email/phone OTP</td>
+                            <td>Always available, automated</td>
+                            <td>Trusts Argent as a company</td>
+                        </tr>
+                        <tr>
+                            <td>Another Argent User</td>
+                            <td>Friend/family with their own Argent wallet</td>
+                            <td>Personal verification, free</td>
+                            <td>Must also use Argent</td>
+                        </tr>
+                        <tr>
+                            <td>Hardware Wallet</td>
+                            <td>A Ledger or Trezor device you own</td>
+                            <td>Self-sovereign, offline</td>
+                            <td>If you lose the HW wallet too, useless</td>
+                        </tr>
+                    </table>
+
+                    <h3>Argent's Success in Numbers</h3>
+                    <p>Since launch, Argent has demonstrated that social recovery works at scale:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Over <strong>500,000 wallets</strong> created with social recovery enabled</li>
+                        <li>Thousands of successful recoveries completed, with <strong>zero reported fund losses</strong> due to the recovery mechanism itself</li>
+                        <li>Average recovery time: <strong>under 4 hours</strong> (including guardian coordination + security delay)</li>
+                        <li>The most common recovery scenario: lost or stolen phone (not hack attempts)</li>
+                    </ul>
+
+                    <h3>Other Implementations</h3>
+                    <p>Argent is not alone. Several other projects have implemented social recovery or similar guardian-based systems:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Loopring Wallet</span>
+                        <span class="definition">An L2-native smart contract wallet on Loopring that supports guardian-based recovery with lower gas costs than L1 Ethereum. Uses the same threshold approval model as Argent.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Gnosis Safe (now Safe)</span>
+                        <span class="definition">The most widely used multi-signature wallet on Ethereum, securing over $100 billion. While primarily multi-sig, it supports recovery modules that function similarly to social recovery.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Soul Wallet</span>
+                        <span class="definition">An ERC-4337 native wallet that implements social recovery using account abstraction, representing the next generation of recovery-enabled wallets.</span>
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Lesson from Argent</h4>
+                        <p>Argent proved that social recovery is not just a theoretical concept &mdash; it works in production with real users and real money. Their key insight: the best recovery system is one that's set up by default, not one that users must opt into. Kenostod follows this same philosophy, making guardian setup part of the initial wallet creation flow.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SECTION 7: GUARDIAN SYSTEM -->
+            <section id="guardians" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128101;</span>The Guardian System</h2>
+                <div class="reading-content">
+                    <p>The guardian system is the core innovation of social recovery. It creates a network of trusted entities who can collectively restore your access without having any individual power over your funds.</p>
+                    
+                    <div class="visual-diagram">
+                        <img src="/assets/course-images/social_recovery_guardian_system.png" alt="Social Recovery Guardian System">
+                        <p class="caption">Figure: Guardian network protecting your wallet &mdash; 3 of 5 guardians required for recovery</p>
+                    </div>
+                    
+                    <h3>How Guardians Work</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Designate Guardians (3-7 people/entities)</div>
+                            <p>You choose between 3 and 7 trusted parties to serve as your guardians. Each guardian is identified by their Kenostod wallet address. They don't need to install any special software &mdash; they just need a Kenostod wallet. The on-chain record stores guardian addresses as hashed values for privacy.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Set the Threshold (M of N)</div>
+                            <p>You decide how many guardians must approve a recovery. Common setups include 2-of-3, 3-of-5, or 4-of-7. The threshold should be high enough to prevent collusion but low enough that you can actually reach enough guardians in an emergency. As a rule of thumb, set the threshold to just over half your total guardians.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Guardians Cannot Access Your Funds</div>
+                            <p>This is the critical innovation: guardians have <strong>ZERO ability</strong> to view your balance, initiate transactions, or access your wallet in any way during normal operation. Their only power is to approve key replacement requests during a formal recovery process. This is fundamentally different from giving someone a copy of your key.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Recovery-Only Activation</div>
+                            <p>Guardian powers are dormant until a recovery process is formally initiated on-chain. Even then, they can only vote to approve a new key &mdash; they cannot choose which key, access funds during the process, or override the time lock. Think of them as notaries, not co-owners.</p>
+                        </li>
+                    </ul>
+                    
+                    <div class="concept-box">
+                        <h4>&#128161; Threshold Cryptography: The Mathematics of Trust</h4>
+                        <p>Using "M of N" thresholds (like 3 of 5), the system achieves a mathematical property: no combination of fewer than M guardians reveals any information about your key or has any power to initiate recovery. This is based on <strong>threshold signature schemes</strong>, a branch of cryptography that allows a group to collectively perform an operation without any individual member having enough information to perform it alone. It's similar to how nuclear launch codes require two separate officers to turn their keys simultaneously &mdash; neither key alone does anything.</p>
+                    </div>
+
+                    <h3>Guardian Roles and Responsibilities</h3>
+                    <p>As a guardian, your responsibilities are minimal but important:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Stay reachable:</strong> Keep your contact information up to date with the wallet owner</li>
+                        <li><strong>Verify identity:</strong> If a recovery request arrives, personally verify the requester's identity before approving</li>
+                        <li><strong>Act promptly:</strong> When contacted for a legitimate recovery, respond within 24 hours</li>
+                        <li><strong>Never share:</strong> Don't tell others that you are a guardian for a specific wallet</li>
+                        <li><strong>Be skeptical:</strong> If something feels wrong about a recovery request, don't approve. Ask more questions.</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- SECTION 8: RECOVERY PROCESS -->
+            <section id="recovery" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128260;</span>The Recovery Process: Step by Step</h2>
+                <div class="reading-content">
+                    <p>When you lose access to your wallet &mdash; whether due to a lost device, forgotten credentials, or hardware failure &mdash; here's exactly what happens during recovery:</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Initiate Recovery Request</div>
+                            <p>You (from a new device or wallet) or someone acting on your behalf initiates a recovery request on the Kenostod network. This request specifies the wallet to be recovered and a new public key that should become the new owner. The request is broadcast to the network and to all designated guardians. Anyone can initiate a recovery request for any wallet, but it requires guardian approval to proceed.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Guardian Notification</div>
+                            <p>All guardians receive a notification (push notification, email, or in-app alert depending on their settings) that a recovery request has been filed for your wallet. The notification includes the wallet address being recovered, the requested new owner address, and a timestamp.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Guardian Identity Verification</div>
+                            <p>Each guardian independently verifies that the recovery request is legitimate. This happens <strong>off-chain</strong> through whatever method the guardian prefers: a phone call, a video call, an in-person meeting, or a pre-arranged verification protocol (such as a secret code word). The guardian must be personally satisfied that the request is genuine before approving.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Guardian Approval (On-Chain)</div>
+                            <p>Once satisfied, each guardian submits an approval transaction to the network, signed with their own private key. The network tracks how many approvals have been received. When the threshold is met (e.g., 3 of 5 guardians approve), the recovery moves to the next phase.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">48-Hour Time Lock Begins</div>
+                            <p>Even after threshold approval, the recovery doesn't execute immediately. A <strong>48-hour mandatory waiting period</strong> begins. During this time, the wallet is frozen &mdash; no one can move funds. If you (the original owner) still have access to the old key, you can cancel the recovery. This protects against social engineering attacks where someone tricks your guardians.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Key Rotation Completes</div>
+                            <p>After 48 hours with no cancellation, the wallet's controlling key is rotated to the new public key. The old key is permanently invalidated. All funds, scheduled payments, and wallet settings transfer to the new key's control. You regain full access to your wallet from your new device.</p>
+                        </li>
+                    </ul>
+                    
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; Critical Safety Feature: Time Lock Protection</div>
+                        <p>The 48-hour delay between guardian approval and actual recovery is your last line of defense. If an attacker somehow convinces your guardians to approve a fraudulent recovery (through impersonation, social engineering, or coercion), you have 48 hours to notice the notification and cancel the recovery using your existing key. This window has prevented numerous unauthorized recovery attempts in testing and real-world deployments.</p>
+                    </div>
+
+                    <h3>What Happens to Your Wallet During Recovery?</h3>
+                    <p>During the recovery process (from initiation through the 48-hour time lock):</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Funds are frozen:</strong> No one (not you, not the attacker, not anyone) can move funds until the recovery completes or is cancelled</li>
+                        <li><strong>Scheduled payments pause:</strong> Any active scheduled payments are temporarily paused to prevent unauthorized execution</li>
+                        <li><strong>Full audit trail:</strong> Every action during the recovery process is logged on-chain for transparency</li>
+                        <li><strong>Guardian approvals are visible:</strong> Anyone can see which guardians have approved, maintaining accountability</li>
+                        <li><strong>Notifications sent:</strong> The original wallet address receives push and email notifications about the recovery attempt</li>
+                    </ul>
+
+                    <h3>Recovery Flow Diagram</h3>
+                    <div class="code-example">
+                        <span class="code-comment">// Recovery Timeline</span><br><br>
+                        <span class="code-string">T+0h</span>  &rarr; Recovery initiated by new device<br>
+                        <span class="code-string">T+1h</span>  &rarr; Guardian 1 verifies identity, approves<br>
+                        <span class="code-string">T+3h</span>  &rarr; Guardian 2 verifies identity, approves<br>
+                        <span class="code-string">T+6h</span>  &rarr; Guardian 3 verifies identity, approves<br>
+                        <span class="code-string">T+6h</span>  &rarr; Threshold met (3/5) &mdash; 48h clock starts<br>
+                        <span class="code-string">T+6h to T+54h</span>  &rarr; Wallet FROZEN &mdash; cancellation window<br>
+                        <span class="code-string">T+54h</span> &rarr; Recovery finalizes &mdash; new key active<br>
+                        <span class="code-string">T+54h</span> &rarr; Old key permanently invalidated<br>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 9: KENOSTOD'S SOCIAL RECOVERY SYSTEM -->
+            <section id="kenostod" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128171;</span>Kenostod's Social Recovery System</h2>
+                <div class="reading-content">
+                    <p>Kenostod implements social recovery as a <strong>protocol-level feature</strong>, meaning every wallet has built-in social recovery capability without needing to deploy individual smart contracts. This approach offers several advantages over contract-level implementations like Argent.</p>
+
+                    <h3>Protocol-Level vs. Contract-Level Recovery</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Contract-Level (Argent)</th>
+                            <th>Protocol-Level (Kenostod)</th>
+                        </tr>
+                        <tr>
+                            <td>Deployment Cost</td>
+                            <td>Gas fee per wallet (~$20-50)</td>
+                            <td>No extra cost &mdash; built in</td>
+                        </tr>
+                        <tr>
+                            <td>Universal Availability</td>
+                            <td>Only wallets that deploy the contract</td>
+                            <td>Every Kenostod wallet</td>
+                        </tr>
+                        <tr>
+                            <td>Upgrade Path</td>
+                            <td>Requires contract migration</td>
+                            <td>Protocol updates apply to all</td>
+                        </tr>
+                        <tr>
+                            <td>Gas Cost for Recovery</td>
+                            <td>Multiple on-chain transactions</td>
+                            <td>Single protocol-level operation</td>
+                        </tr>
+                        <tr>
+                            <td>Complexity</td>
+                            <td>Users must understand smart contracts</td>
+                            <td>Abstracted &mdash; simple UI</td>
+                        </tr>
+                    </table>
+
+                    <h3>Kenostod-Specific Features</h3>
+                    <div class="term-definition">
+                        <span class="term">Integrated Setup</span>
+                        <span class="definition">Guardian setup is part of the wallet creation flow. Users are prompted to add guardians during onboarding, not as an afterthought. This dramatically increases adoption &mdash; Argent found that users who set up guardians during creation were 10x more likely to have active guardians than those prompted later.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Guardian Discovery</span>
+                        <span class="definition">Kenostod allows you to find potential guardians from your contacts who already have Kenostod wallets. This reduces the friction of guardian setup &mdash; no need to convince someone to install special software.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Configurable Time Locks</span>
+                        <span class="definition">While the default recovery delay is 48 hours, high-value wallets can configure longer delays (up to 7 days) for additional security. The delay is set by the wallet owner and can be changed at any time (changes take effect after the current delay period).</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Recovery Rate Limiting</span>
+                        <span class="definition">Only one recovery attempt can be active at a time. After a failed or cancelled recovery, a 7-day cooldown period applies before a new attempt can begin. This prevents denial-of-service attacks through repeated recovery attempts.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Guardian Incentives</span>
+                        <span class="definition">Guardians who participate in successful recoveries earn a small KENO reward, incentivizing prompt and reliable participation. This is optional and can be configured by the wallet owner.</span>
+                    </div>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#127891; Why Protocol-Level Matters</div>
+                        <p>By building recovery into the protocol itself, Kenostod ensures that <strong>every single user</strong> benefits from social recovery &mdash; not just technically sophisticated users who know to deploy a smart contract wallet. This is the difference between optional safety features and mandatory seatbelts. Kenostod's approach means that social recovery "just works" for everyone.</p>
+                    </div>
+
+                    <h3>Setting Up Guardians in Kenostod</h3>
+                    <div class="code-example">
+                        <span class="code-comment">// Kenostod Guardian Setup (JavaScript SDK)</span><br><br>
+                        <span class="code-keyword">const</span> wallet = <span class="code-keyword">await</span> kenostod.<span class="code-function">getWallet</span>();<br><br>
+                        <span class="code-comment">// Add guardians by their wallet addresses</span><br>
+                        <span class="code-keyword">await</span> wallet.<span class="code-function">addGuardian</span>(<span class="code-string">"0xAlice...address"</span>);<br>
+                        <span class="code-keyword">await</span> wallet.<span class="code-function">addGuardian</span>(<span class="code-string">"0xBob...address"</span>);<br>
+                        <span class="code-keyword">await</span> wallet.<span class="code-function">addGuardian</span>(<span class="code-string">"0xCharlie...address"</span>);<br>
+                        <span class="code-keyword">await</span> wallet.<span class="code-function">addGuardian</span>(<span class="code-string">"0xDiana...address"</span>);<br>
+                        <span class="code-keyword">await</span> wallet.<span class="code-function">addGuardian</span>(<span class="code-string">"0xInstitutional...address"</span>);<br><br>
+                        <span class="code-comment">// Set threshold: 3 of 5 required for recovery</span><br>
+                        <span class="code-keyword">await</span> wallet.<span class="code-function">setRecoveryThreshold</span>(<span class="code-number">3</span>);<br><br>
+                        <span class="code-comment">// Optionally configure custom time lock</span><br>
+                        <span class="code-keyword">await</span> wallet.<span class="code-function">setRecoveryDelay</span>(<span class="code-number">72</span> * <span class="code-number">60</span> * <span class="code-number">60</span>); <span class="code-comment">// 72 hours</span><br><br>
+                        <span class="code-comment">// Verify setup</span><br>
+                        <span class="code-keyword">const</span> config = <span class="code-keyword">await</span> wallet.<span class="code-function">getRecoveryConfig</span>();<br>
+                        console.<span class="code-function">log</span>(config);<br>
+                        <span class="code-comment">// { guardians: 5, threshold: 3, delay: 259200 }</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 10: GUARDIAN SELECTION BEST PRACTICES -->
+            <section id="guardian-selection" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Guardian Selection Best Practices</h2>
+                <div class="reading-content">
+                    <p>Choosing the right guardians is the most important decision in setting up social recovery. A poorly chosen guardian set can be worse than no recovery at all.</p>
+
+                    <h3>The Golden Rules of Guardian Selection</h3>
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Choose Guardians Who Don't Know Each Other</div>
+                            <p>If your guardians know each other, they could potentially collude to initiate a fraudulent recovery. Ideally, each guardian exists in a separate social circle. Your college friend, your cousin, and your work colleague are better choices than three people from the same friend group. This creates independent verification points that are difficult for an attacker to compromise simultaneously.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Geographic Distribution</div>
+                            <p>Spread your guardians across different locations, ideally different cities or countries. This protects against localized disasters (natural disasters, political unrest) and makes it harder for a physical attacker to reach multiple guardians. It also helps with timezone diversity &mdash; at least one guardian is likely to be awake at any given time.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Mix Individual and Institutional Guardians</div>
+                            <p>Combine personal contacts (friends, family) with institutional guardians (a lawyer, a guardian service, a hardware wallet company's recovery service). Institutions provide stability (they won't move, change phone numbers, or have falling-outs with you), while individuals provide personal verification (they can verify your identity through personal knowledge).</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Choose Reliable, Not Wealthy, People</div>
+                            <p>Your guardian doesn't need to be rich or tech-savvy, but they need to be <strong>reliable and reachable</strong>. Someone who always answers their phone and responds to messages within 24 hours is a better guardian than a wealthy friend who's constantly traveling and unreachable.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Consider Long-Term Relationships</div>
+                            <p>Guardians should be people you expect to maintain contact with for years. Close friends from school, family members, and long-term professional contacts are ideal. Avoid choosing romantic partners (relationships end), new acquaintances (you don't know them well enough), or very elderly relatives (they may become unable to help).</p>
+                        </li>
+                    </ul>
+
+                    <h3>Recommended Guardian Configurations</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Wallet Value</th>
+                            <th>Recommended Setup</th>
+                            <th>Example Guardian Mix</th>
+                        </tr>
+                        <tr>
+                            <td>Under 1,000 KENO</td>
+                            <td>2-of-3</td>
+                            <td>2 friends + 1 family member</td>
+                        </tr>
+                        <tr>
+                            <td>1,000 - 10,000 KENO</td>
+                            <td>3-of-5</td>
+                            <td>2 friends + 1 family + 1 institutional + 1 colleague</td>
+                        </tr>
+                        <tr>
+                            <td>10,000 - 100,000 KENO</td>
+                            <td>4-of-7</td>
+                            <td>2 friends + 2 family + 2 institutional + 1 lawyer</td>
+                        </tr>
+                        <tr>
+                            <td>Over 100,000 KENO</td>
+                            <td>5-of-9</td>
+                            <td>3 friends + 2 family + 2 institutional + 1 lawyer + 1 accountant</td>
+                        </tr>
+                    </table>
+
+                    <h3>Pre-Arranged Verification Protocols</h3>
+                    <p>Establish verification methods with each guardian <em>before</em> you need them. Examples of strong verification protocols:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Secret question:</strong> "What's the name of my first dog?" &mdash; only you and this guardian know the answer</li>
+                        <li><strong>Code word:</strong> A pre-agreed word or phrase that must be mentioned during the recovery request</li>
+                        <li><strong>Video call requirement:</strong> Never approve a recovery without a live video call</li>
+                        <li><strong>In-person meeting:</strong> For high-value wallets, require at least one guardian to meet you face-to-face</li>
+                        <li><strong>Multi-channel verification:</strong> Contact via both phone AND email &mdash; compromising both is much harder</li>
+                    </ul>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#128680; Guardian Don'ts</div>
+                        <p><strong>Never</strong> choose all guardians from the same family (they could collude or all be affected by the same event). <strong>Never</strong> choose someone who has a financial incentive to steal your funds. <strong>Never</strong> tell guardians who the other guardians are. <strong>Never</strong> use fake identities as guardians. <strong>Never</strong> skip the guardian setup "because you'll do it later" &mdash; that's when disasters happen.</p>
+                    </div>
+
+                    <h3>Maintaining Your Guardian Network</h3>
+                    <p>Setting up guardians is not a one-time event. You should:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Annual review:</strong> Confirm each guardian is still reachable and willing to serve</li>
+                        <li><strong>Life event updates:</strong> Replace guardians after divorces, falling-outs, moves, or deaths</li>
+                        <li><strong>Test recoveries:</strong> Periodically initiate and cancel test recovery requests to verify your guardians respond</li>
+                        <li><strong>Rotation:</strong> Replace 1-2 guardians every 2-3 years to maintain freshness of relationships</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 11: INHERITANCE PLANNING -->
+            <section id="inheritance" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>Inheritance Planning with Social Recovery</h2>
+                <div class="reading-content">
+                    <p>One of the most powerful applications of social recovery is solving the <strong>crypto inheritance problem</strong> &mdash; ensuring your digital assets can be passed to your heirs without compromising security during your lifetime.</p>
+
+                    <h3>The Crypto Inheritance Crisis</h3>
+                    <p>Traditional assets have well-established inheritance mechanisms: bank accounts have beneficiary designations, real estate transfers through probate, and stock portfolios can be managed by executors. Cryptocurrency has none of these. Without explicit planning, crypto dies with its owner.</p>
+
+                    <p>A 2023 survey by Cremation Institute estimated that <strong>89% of crypto holders</strong> have no inheritance plan for their digital assets. Given that the average crypto holder is young and healthy, many assume they have time to figure it out. But accidents, sudden illness, and unexpected death are, by definition, unexpected.</p>
+
+                    <h3>Why Seed Phrases Fail for Inheritance</h3>
+                    <div class="term-definition">
+                        <span class="term">The Will Problem</span>
+                        <span class="definition">Wills become public documents during probate. Including a seed phrase in a will exposes it to anyone who accesses probate records. A complete stranger could drain the wallet before the heir even knows.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">The Lawyer Problem</span>
+                        <span class="definition">Giving a seed phrase to a lawyer for safekeeping means trusting them completely. The lawyer (or anyone at their firm with access to the file) could steal the funds. You've introduced a custodial relationship with none of the protections of a regulated financial institution.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">The Knowledge Problem</span>
+                        <span class="definition">Even if heirs receive the seed phrase, they may not know what it is, how to use it, or what wallet software to import it into. Many older family members would be completely lost trying to recover funds from a seed phrase.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">The Timing Problem</span>
+                        <span class="definition">If you give heirs access to your seed phrase while you're alive, they can steal your funds. If you don't give them access, they can't get the funds when you die. There's no mechanism for "access only after death."</span>
+                    </div>
+
+                    <h3>Social Recovery as an Inheritance Solution</h3>
+                    <p>Social recovery elegantly solves all of these problems. Here's a recommended inheritance planning strategy:</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <div class="step-title">Include Heirs as Guardians (Not Sole Guardians)</div>
+                            <p>Make your intended heirs (children, spouse, etc.) some of your guardians. In a 3-of-5 setup, you might include your spouse and two adult children as 3 of your 5 guardians. They can't individually access your funds, but collectively they can initiate recovery after your death.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Include a Professional Guardian</div>
+                            <p>Add your estate lawyer or accountant as a guardian. They serve as a neutral party who can verify the legitimacy of an inheritance claim and ensure proper legal processes are followed. Their participation prevents unauthorized recoveries during your lifetime.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Document the Process (Not the Keys)</div>
+                            <p>Store written instructions with your estate documents explaining: (1) that you hold cryptocurrency, (2) that it is protected by social recovery, (3) who the guardians are, and (4) step-by-step instructions for initiating recovery. Crucially, these instructions contain <strong>no keys or secrets</strong> &mdash; they're safe to store in a will or with a lawyer.</p>
+                        </li>
+                        <li>
+                            <div class="step-title">Practice While Alive</div>
+                            <p>Have your heirs practice the recovery process while you're alive and can supervise. Initiate a recovery, let them experience the guardian notification and approval flow, then cancel it before it completes. This ensures they understand the process and can execute it when needed.</p>
+                        </li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <div class="highlight-title">&#9989; The Elegance of the Solution</div>
+                        <p>During your lifetime, your heirs are guardians but <strong>cannot access your funds</strong> (even if they collude, the 48-hour time lock gives you time to cancel). After your death, they can collectively initiate and approve a recovery, transferring the wallet to a designated heir. The time lock still applies (protecting against fraud), but since the original owner can no longer cancel, the recovery will complete. No seed phrases to find, no passwords to crack, no trust in a single third party.</p>
+                    </div>
+
+                    <h3>Example Inheritance Configuration</h3>
+                    <div class="code-example">
+                        <span class="code-comment">// Inheritance-Optimized Guardian Setup (5-of-7)</span><br><br>
+                        <span class="code-comment">// Family Guardians (3)</span><br>
+                        Guardian 1: Spouse<br>
+                        Guardian 2: Adult Child #1<br>
+                        Guardian 3: Adult Child #2<br><br>
+                        <span class="code-comment">// Professional Guardians (2)</span><br>
+                        Guardian 4: Estate Lawyer<br>
+                        Guardian 5: Financial Advisor/Accountant<br><br>
+                        <span class="code-comment">// Independent Guardians (2)</span><br>
+                        Guardian 6: Trusted Long-Term Friend<br>
+                        Guardian 7: Sibling or Extended Family<br><br>
+                        <span class="code-comment">// Threshold: 5 of 7 required</span><br>
+                        <span class="code-comment">// For inheritance: Spouse + 2 children + lawyer + 1 other = 5</span><br>
+                        <span class="code-comment">// During lifetime: Even if all 3 family members collude,</span><br>
+                        <span class="code-comment">// they need 2 more (lawyer + friend) &mdash; much harder</span><br>
+                        <span class="code-comment">// Plus you can cancel within 48 hours</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 12: ATTACK VECTORS -->
+            <section id="attacks" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128737;&#65039;</span>Attack Vectors &amp; Security Considerations</h2>
+                <div class="reading-content">
+                    <p>No security system is perfect. Understanding potential attack vectors helps you defend against them. Social recovery introduces its own unique attack surface that differs from traditional key management threats.</p>
+
+                    <h3>Guardian Collusion Attack</h3>
+                    <div class="term-definition">
+                        <span class="term">The Attack</span>
+                        <span class="definition">Enough guardians secretly conspire to initiate a fraudulent recovery, transferring the wallet to an address they control. For example, in a 3-of-5 setup, three guardians who know each other could agree to steal the wallet owner's funds.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Defense</span>
+                        <span class="definition">Choose guardians who don't know each other. The 48-hour time lock gives you time to notice and cancel. Use a high threshold (e.g., 4 of 7 rather than 2 of 3 for high-value wallets). Mix individual and institutional guardians &mdash; an institutional guardian (like a law firm) is unlikely to risk their reputation and license for theft.</span>
+                    </div>
+
+                    <h3>Social Engineering Attack</h3>
+                    <div class="term-definition">
+                        <span class="term">The Attack</span>
+                        <span class="definition">An attacker impersonates you (or creates a convincing emergency story) to trick guardians into approving a recovery they control. "Hi, it's me, I lost my phone and need to recover my wallet urgently!" Sophisticated attackers may use deepfake audio or spoofed phone numbers.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Defense</span>
+                        <span class="definition">Establish pre-arranged verification protocols with each guardian. For example: "If I ever request recovery, I'll tell you the name of our high school physics teacher." Video calls are strongly recommended before approving any recovery. Never approve under time pressure &mdash; the system has a built-in delay for exactly this reason.</span>
+                    </div>
+
+                    <h3>Guardian Unavailability</h3>
+                    <div class="term-definition">
+                        <span class="term">The Attack</span>
+                        <span class="definition">Not malicious, but equally dangerous: what if enough guardians are unreachable when you need them? Moved countries, changed phone numbers, died, or simply don't check their wallet app. This is the most common "failure mode" of social recovery.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Defense</span>
+                        <span class="definition">Have more guardians than you need (5 when you only need 3). Include at least one institutional guardian (always available). Conduct annual guardian check-ins. Set up backup communication channels (email, phone, messaging app). Replace unresponsive guardians promptly.</span>
+                    </div>
+
+                    <h3>Denial-of-Service (Nuisance) Attack</h3>
+                    <div class="term-definition">
+                        <span class="term">The Attack</span>
+                        <span class="definition">An attacker repeatedly initiates fake recovery requests, causing your wallet to keep freezing (48-hour lock each time) and annoying your guardians into removing themselves. The goal isn't theft &mdash; it's disruption and eventually weakening your guardian network.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Defense</span>
+                        <span class="definition">Kenostod rate-limits recovery requests: only one can be active at a time, and a 7-day cooldown applies between requests. Multiple failed requests trigger additional security measures including extended time locks. Guardians are educated that nuisance requests should be ignored, not cause them to resign.</span>
+                    </div>
+
+                    <h3>The $5 Wrench Attack</h3>
+                    <div class="term-definition">
+                        <span class="term">The Attack</span>
+                        <span class="definition">Physical coercion: an attacker threatens violence against you or your guardians unless the recovery is approved. Named after the famous XKCD comic about beating someone with a $5 wrench being more effective than breaking encryption.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Defense</span>
+                        <span class="definition">Geographic distribution of guardians (attacker can't reach all of them). Anonymous institutional guardians (attacker doesn't know who they are). Duress codes that secretly alert authorities while appearing to approve. The 48-hour time lock gives law enforcement time to respond.</span>
+                    </div>
+
+                    <h3>Bribery Attack</h3>
+                    <div class="term-definition">
+                        <span class="term">The Attack</span>
+                        <span class="definition">An attacker identifies your guardians and offers them money to approve a fraudulent recovery. This is more subtle than coercion and harder to detect. If the bribe is less than their share of your wallet's value divided by the threshold, it's economically rational for them to accept.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Defense</span>
+                        <span class="definition">Keep guardian identities private (store as hashes on-chain). Choose guardians with strong ethical character and existing wealth (less susceptible to bribes). Use institutional guardians who would face legal consequences. The time lock gives you a chance to notice and cancel even if guardians are bribed.</span>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Defense in Depth</div>
+                        <p>No single defense is sufficient. Security best practice is <strong>defense in depth</strong> &mdash; layering multiple protections so that an attacker must overcome several independent barriers. In social recovery, this means: diverse guardians (social layer) + time locks (protocol layer) + verification protocols (human layer) + rate limiting (technical layer) + guardian privacy (information layer). An attacker would need to simultaneously compromise all five layers to succeed.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 13: ACCOUNT ABSTRACTION & ERC-4337 -->
+            <section id="erc4337" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128640;</span>The Future: Account Abstraction &amp; ERC-4337</h2>
+                <div class="reading-content">
+                    <p>Social recovery is powerful today, but it's about to become even more significant with the rise of <strong>account abstraction</strong> &mdash; a fundamental upgrade to how blockchain accounts work. ERC-4337, finalized in March 2023, is the Ethereum standard that makes this possible.</p>
+
+                    <h3>What is Account Abstraction?</h3>
+                    <p>Today, Ethereum has two types of accounts:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>EOA (Externally Owned Account):</strong> Controlled by a private key. This is the traditional wallet. Simple but rigid &mdash; it can only do what a private key allows.</li>
+                        <li><strong>Contract Account:</strong> A smart contract that holds funds. Programmable but currently requires an EOA to initiate transactions (and pay gas).</li>
+                    </ul>
+                    <p>Account abstraction <strong>blurs this distinction</strong>. It allows smart contract wallets to act as first-class accounts &mdash; initiating transactions, paying gas in any token, and implementing custom validation logic. This means wallets can be programmed with social recovery, spending limits, session keys, and more &mdash; all as native features.</p>
+
+                    <h3>How ERC-4337 Works</h3>
+                    <p>ERC-4337 introduces a new transaction flow called "UserOperations" that allows smart contract wallets to function without needing a separate EOA:</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Traditional Flow (EOA)</span><br>
+                        User &rarr; Private Key signs tx &rarr; Blockchain executes<br><br>
+                        <span class="code-comment">// ERC-4337 Flow (Account Abstraction)</span><br>
+                        User &rarr; UserOperation created &rarr; Bundler packages<br>
+                        &rarr; EntryPoint contract validates &rarr; Smart wallet executes<br><br>
+                        <span class="code-comment">// The validation step is programmable!</span><br>
+                        <span class="code-comment">// It can check: signature, guardian approval,</span><br>
+                        <span class="code-comment">// biometrics, spending limits, time restrictions...</span>
+                    </div>
+
+                    <h3>Why ERC-4337 Supercharges Social Recovery</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Capability</th>
+                            <th>Before ERC-4337</th>
+                            <th>With ERC-4337</th>
+                        </tr>
+                        <tr>
+                            <td>Gas Payment</td>
+                            <td>Must hold ETH to initiate recovery</td>
+                            <td>Paymaster can sponsor gas (gasless recovery)</td>
+                        </tr>
+                        <tr>
+                            <td>Wallet Creation</td>
+                            <td>Requires ETH for contract deployment</td>
+                            <td>Counterfactual deployment (free until first use)</td>
+                        </tr>
+                        <tr>
+                            <td>Recovery UX</td>
+                            <td>Guardian must submit on-chain tx</td>
+                            <td>Guardian can sign off-chain, bundler submits</td>
+                        </tr>
+                        <tr>
+                            <td>Multi-Chain</td>
+                            <td>Recovery per-chain</td>
+                            <td>Cross-chain recovery possible via bundlers</td>
+                        </tr>
+                        <tr>
+                            <td>Additional Security</td>
+                            <td>Limited to key-based auth</td>
+                            <td>Biometrics, passkeys, session keys, spending limits</td>
+                        </tr>
+                    </table>
+
+                    <h3>The Account Abstraction Ecosystem</h3>
+                    <p>Several major projects are building on ERC-4337 with social recovery as a core feature:</p>
+
+                    <div class="term-definition">
+                        <span class="term">Alchemy's Account Kit</span>
+                        <span class="definition">Developer tools for building ERC-4337 wallets with built-in social recovery, passkey authentication, and gasless transactions. Used by major dApps to onboard mainstream users.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">ZeroDev Kernel</span>
+                        <span class="definition">A modular smart account framework where social recovery is a plug-in module. Developers can customize recovery parameters for their specific use case.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Biconomy Smart Accounts</span>
+                        <span class="definition">Production-ready ERC-4337 infrastructure used by major DeFi protocols. Supports social recovery through their modular validation system.</span>
+                    </div>
+                    <div class="term-definition">
+                        <span class="term">Safe (formerly Gnosis Safe)</span>
+                        <span class="definition">The most widely used multi-sig wallet is evolving toward full ERC-4337 compatibility, bringing social recovery features to their $100+ billion in secured assets.</span>
+                    </div>
+
+                    <h3>Passkeys &amp; WebAuthn: The Future of Guardian Approval</h3>
+                    <p>Account abstraction enables a revolutionary UX improvement: guardians can approve recovery using <strong>passkeys</strong> (biometric authentication built into modern devices). Instead of managing private keys, guardians simply use their fingerprint or Face ID to approve a recovery &mdash; no crypto knowledge required.</p>
+
+                    <div class="code-example">
+                        <span class="code-comment">// Future: Guardian approves recovery with passkey</span><br><br>
+                        <span class="code-comment">// Guardian's device shows notification:</span><br>
+                        <span class="code-comment">// "Alice requests wallet recovery. Approve?"</span><br><br>
+                        <span class="code-comment">// Guardian authenticates with Face ID / fingerprint</span><br>
+                        <span class="code-keyword">const</span> credential = <span class="code-keyword">await</span> navigator.credentials.<span class="code-function">get</span>({<br>
+                        &nbsp;&nbsp;publicKey: {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;challenge: recoveryChallenge,<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;allowCredentials: [guardianCredential]<br>
+                        &nbsp;&nbsp;}<br>
+                        });<br><br>
+                        <span class="code-comment">// Signed approval sent to bundler &rarr; on-chain</span><br>
+                        <span class="code-comment">// No private keys, no gas, no crypto knowledge needed</span>
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Kenostod's Roadmap</h4>
+                        <p>Kenostod is actively integrating ERC-4337 capabilities. Future updates will include: gasless guardian approvals (guardians won't need to hold any tokens), passkey-based guardian authentication (approve with a fingerprint), cross-chain recovery (recover wallets on multiple chains simultaneously), and social recovery for smart contract interactions (not just fund transfers). The goal is to make social recovery so seamless that users forget it's there &mdash; until they need it.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 14: CASE STUDIES -->
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <div class="case-study">
+                        <h4>Case Study 1: The Argent Wallet Success Story</h4>
+                        <p><strong>Background:</strong> Argent is one of the first production wallets to implement social recovery on Ethereum. Since launching in 2020, they've processed thousands of successful recoveries.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> A user's phone was stolen while traveling abroad in Thailand. They purchased a new phone, installed Argent, and initiated recovery. Two of their three guardians (a friend back home and Argent's own guardian service) approved the recovery within 2 hours. After the time lock period, the user regained full access to their wallet from the new device &mdash; all while still abroad with no access to their original phone.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> Social recovery works in practice, not just in theory. The inclusion of an institutional guardian (Argent Guard) ensured availability even when the user was in a different timezone from their personal contacts. The user lost a phone but kept every token.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: The Stefan Thomas Tragedy (What Could Have Been)</h4>
+                        <p><strong>Background:</strong> Stefan Thomas, a German programmer living in San Francisco, received 7,002 Bitcoin as payment for creating an explainer video about Bitcoin in 2011. He stored them in an IronKey encrypted USB drive.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> Thomas forgot the password and had only 10 attempts before the drive permanently encrypts its contents. After 8 failed attempts, he stopped trying. The 7,002 BTC (worth over <strong>$400 million</strong> at Bitcoin's peak) remained locked. He has 2 attempts remaining and lives with the knowledge of his inaccessible fortune. He has described the experience as deeply traumatic, checking the Bitcoin price every day knowing the money is there but unreachable.</p>
+                        <p style="margin-top: 10px;"><strong>With social recovery:</strong> If Thomas had used a social recovery wallet, losing the password would have been a minor inconvenience. He would contact his guardians, verify his identity, wait 48 hours, and receive a new key to access his funds. Total loss: zero. Total time: about 3 days. Instead, he lives with $400 million locked behind 2 remaining password guesses.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: The Failed Social Engineering Attack</h4>
+                        <p><strong>Background:</strong> In a documented test case from a security audit, researchers attempted to social-engineer guardians into approving a fraudulent recovery for a wallet containing test funds.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> The researchers created a convincing story about an "emergency" and contacted the guardians claiming to be the wallet owner. They used a spoofed phone number and even created a fake social media account. Two out of three guardians initially believed the story and were ready to approve. However, the third guardian insisted on a video call, which the researchers couldn't provide. The third guardian then alerted the other two, who withdrew their approvals.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> Guardian verification protocols are critical. Even one vigilant guardian can prevent a social engineering attack. Pre-arranged verification codes and mandatory video/voice confirmation are essential safeguards. The system's security is only as strong as the most careful guardian.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: Crypto Inheritance Done Right</h4>
+                        <p><strong>Background:</strong> A crypto investor set up a 3-of-5 guardian system with guardians including their spouse, sibling, lawyer, accountant, and a trusted childhood friend.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> When the investor passed away unexpectedly from a cardiac event, the family was able to initiate a recovery process. The spouse, sibling, and lawyer (3 of 5 guardians) approved the recovery, transferring the wallet to the spouse's control. The entire process took 3 days (1 day for coordination + 48-hour time lock). The accountant and friend weren't even needed.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> Social recovery elegantly solves the crypto inheritance problem. Unlike seed phrases (which must be found and decoded) or custodial services (which may not recognize inheritance claims), guardian-based recovery provides a clear, reliable path for asset succession. The family didn't need to search for any papers, crack any passwords, or contact any exchanges.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 5: The Parity Wallet Freeze &mdash; A Cautionary Tale</h4>
+                        <p><strong>Background:</strong> In November 2017, a user accidentally destroyed the Parity multi-sig wallet library contract, freezing <strong>513,774 ETH</strong> (approximately $150 million at the time) across 587 wallets. The funds were not stolen &mdash; they were simply locked in contracts that could no longer function.</p>
+                        <p style="margin-top: 10px;"><strong>What happened:</strong> Because the affected wallets were simple multi-sig contracts without a recovery mechanism, there was no way to rescue the funds. The Ethereum community debated an EIP (Ethereum Improvement Proposal) to recover the funds through a protocol-level change, but it was ultimately rejected &mdash; modifying the blockchain to rescue funds would undermine the immutability that makes Ethereum trustworthy.</p>
+                        <p style="margin-top: 10px;"><strong>Key takeaway:</strong> This case demonstrates why smart contract wallets need robust, pre-built recovery mechanisms. Social recovery would have allowed the affected wallet owners to migrate to new contracts. The $150 million remains frozen to this day &mdash; a permanent reminder that recovery must be designed in from the start, not retrofitted after a disaster.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 15: WRITTEN EXERCISES -->
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Guardian Selection Strategy</h4>
+                        <div class="exercise-question">
+                            <p>You have 25,000 KENO in your wallet and need to set up social recovery. Design your guardian configuration: How many guardians total? What threshold? Who specifically would you choose (roles/relationships, not names) and why? Consider geographic distribution, relationship stability, and availability.</p>
+                            <textarea id="ex1" placeholder="Write your guardian strategy here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Attack Defense Analysis</h4>
+                        <div class="exercise-question">
+                            <p>An attacker has identified 2 of your 5 guardians (your brother and your college friend) and plans to impersonate you to trick them into approving a fraudulent recovery. Your threshold is 3-of-5. Describe at least 4 layers of defense that would prevent this attack from succeeding.</p>
+                            <textarea id="ex2" placeholder="Write your defense analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 3: Recovery Method Comparison</h4>
+                        <div class="exercise-question">
+                            <p>Compare social recovery with Shamir's Secret Sharing. Under what circumstances would you choose SSS over social recovery? Under what circumstances would social recovery be clearly superior? Consider security properties, usability, and flexibility.</p>
+                            <textarea id="ex3" placeholder="Write your comparison here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 4: Inheritance Planning</h4>
+                        <div class="exercise-question">
+                            <p>A parent wants to ensure their 3 adult children can inherit their crypto holdings (50,000 KENO) if something happens to them. Design a complete social recovery inheritance plan including guardian selection, instructions for the children, and safeguards against premature recovery or family disputes.</p>
+                            <textarea id="ex4" placeholder="Write your inheritance plan here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="exercise-box">
+                        <h4>Exercise 5: ERC-4337 and the Future</h4>
+                        <div class="exercise-question">
+                            <p>Explain how ERC-4337 (account abstraction) will improve social recovery wallets. Consider at least 3 specific improvements and explain why each matters for mainstream adoption. How does passkey-based guardian approval change the equation for non-technical guardians?</p>
+                            <textarea id="ex5" placeholder="Write your analysis here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 16: HANDS-ON PRACTICE -->
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128736;&#65039;</span>Hands-On Practice</h2>
+                <div class="reading-content">
+                    <p>Put your knowledge to the test with the Kenostod simulator:</p>
+                    <ul class="step-list">
+                        <li>Set up a guardian network for your test wallet (choose 3-5 guardians)</li>
+                        <li>Simulate losing your key and initiating a recovery request</li>
+                        <li>Act as a guardian and approve another user's recovery request</li>
+                        <li>Observe the 48-hour time lock countdown and understand the freeze period</li>
+                        <li>Complete the full recovery process and verify you have access with a new key</li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="/#recovery" class="practice-btn" onclick="goToPractice()">&#128640; Open Social Recovery Tab</a>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- SECTION 17: FINAL EXAM -->
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam: Social Recovery System</h2>
+                <p style="margin-bottom: 25px;">Test your comprehensive understanding. You need at least <strong>10 out of 12 correct (80%)</strong> to pass and earn your 250 KENO reward.</p>
+                
+                <div class="quiz-question" data-question="1" data-answer="c">
+                    <div class="question-text">1. What percentage of all Bitcoin is estimated to be permanently lost?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5%</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>10%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>20%</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>50%</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="b">
+                    <div class="question-text">2. Can guardians access your funds under normal circumstances?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Yes, they have full access</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>No, they can only approve recovery requests</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Yes, but only 50% of funds</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Yes, with a password</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. What does "3 of 5" threshold recovery mean?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>3 out of 5 guardians must approve the recovery</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Recovery takes 3 to 5 days</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>You need 3 passwords and 5 keys</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>3% of funds require 5 confirmations</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. How long is the default mandatory time lock after guardian approval in Kenostod?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>5 minutes</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>1 hour</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>24 hours</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>48 hours</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. Who called social recovery wallets "the clear winner" for wallet design?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Satoshi Nakamoto</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Vitalik Buterin</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Gavin Wood</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Charles Hoskinson</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. What is Shamir's Secret Sharing?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A social media platform for sharing crypto secrets</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A method for sharing passwords securely via email</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A cryptographic method that splits a secret into N parts where K parts can reconstruct it</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A blockchain consensus mechanism</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. What happens to your wallet's funds during the recovery process?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They are frozen &mdash; no one can move them until recovery completes or is cancelled</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They are automatically transferred to the guardians</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They remain fully accessible and spendable</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>They are burned and redistributed</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="d">
+                    <div class="question-text">8. Why should you choose guardians who don't know each other?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It makes the system run faster</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The protocol requires it technically</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It reduces transaction fees</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It prevents collusion &mdash; guardians can't conspire to fraudulently recover your wallet</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="c">
+                    <div class="question-text">9. What is ERC-4337?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A new cryptocurrency token standard</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A DeFi lending protocol</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The Ethereum standard for account abstraction, enabling smart contract wallets as first-class accounts</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A hardware wallet specification</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="b">
+                    <div class="question-text">10. What is a "social engineering attack" in the context of social recovery?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hacking the blockchain's code</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Tricking guardians into approving a fraudulent recovery by impersonating the wallet owner</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Creating fake cryptocurrency</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Building a competing social network</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="c">
+                    <div class="question-text">11. What is the key advantage of social recovery over Shamir's Secret Sharing?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It's mathematically more secure</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It requires fewer guardians</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Guardians can be dynamically added or removed without regenerating shares</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>It doesn't require any guardians</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="d">
+                    <div class="question-text">12. How does social recovery solve the crypto inheritance problem?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By automatically sending funds to a beneficiary after 1 year of inactivity</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By storing seed phrases in a government registry</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By requiring all heirs to share one private key</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>By allowing heirs (as guardians) to collectively initiate recovery and gain control of the wallet</span></div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Final Exam</button>
+                </div>
+                
+                <div id="quizResult" class="quiz-result">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h3 class="result-title" id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+            
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024-2026</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-4-scheduled.html" style="color: var(--primary);">&larr; Previous: Course 4</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Back to Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-6-messages.html" style="color: var(--primary);">Next: Course 6 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                if (event && event.target) {
+                    const tocItem = event.target.closest('.toc-item');
+                    if (tocItem) tocItem.classList.add('active');
+                }
+            }
+        }
+        
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+        
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+            
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+            
+            const resultDiv = document.getElementById('quizResult');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const nextCourseContainer = document.getElementById('nextCourseContainer');
+            
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+            
+            const passingScore = 10;
+            
+            if (correct >= passingScore) {
+                resultDiv.classList.add('passed');
+                resultIcon.textContent = '\uD83C\uDF89';
+                resultTitle.textContent = 'Congratulations!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}! You've mastered the Social Recovery System.`;
+                nextCourseContainer.innerHTML = `
+                    <p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 You've earned 250 KENO!</p>
+                    <a href="/courses/course-6-messages.html" class="next-course-btn">Continue to Course 6: Encrypted Messages \u2192</a>
+                `;
+                localStorage.setItem('course5_completed', 'true');
+                if (window.kenostodWallet) {
+                    window.kenostodWallet.creditReward(5, 'Course 5: Social Recovery');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                resultIcon.textContent = '\uD83D\uDCDA';
+                resultTitle.textContent = 'Keep Studying!';
+                resultMessage.textContent = `You scored ${correct} out of ${total}. You need at least ${passingScore} correct (80%) to pass. Review the material and try again.`;
+                nextCourseContainer.innerHTML = `
+                    <button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>
+                `;
+            }
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+            
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239,68,68,0.15)';
+                feedback.style.border = '1px solid rgba(239,68,68,0.3)';
+                feedback.style.color = '#fca5a5';
+                feedback.textContent = 'Please write a more detailed answer (at least a few sentences). This exercise requires thoughtful analysis.';
+                return;
+            }
+            
+            const hints = {
+                1: 'Strong answer: For 25,000 KENO, a 4-of-7 configuration is appropriate. Guardian mix: 2 close friends (different social circles), 1 family member (parent/sibling), 1 colleague, 1 institutional guardian (hardware wallet company service), 1 lawyer, 1 trusted long-distance friend. Geographic distribution across at least 3 different cities. Include both tech-savvy and non-tech guardians for diversity.',
+                2: 'Key defenses: (1) Threshold is 3-of-5, so compromising 2 guardians is not enough. (2) The 48-hour time lock gives you time to notice the fraudulent recovery and cancel it. (3) Pre-arranged verification codes with guardians (attacker doesn\'t know the code). (4) Requiring video/voice verification before approval. (5) The remaining 3 guardians the attacker hasn\'t identified serve as additional protection.',
+                3: 'SSS is better when: offline ceremony is acceptable, you want information-theoretic security, or you need one-time recovery of a static secret. Social recovery is better when: you want dynamic guardian management (add/remove without regenerating), you want the old key invalidated on recovery (SSS reconstructs the same key), you want time-lock protection, or you want a user-friendly experience without cryptographic ceremony.',
+                4: 'Strong plan: Set up 3-of-5 guardians including: spouse, the 3 children themselves as 3 of the guardians, plus 1 family lawyer. Threshold of 3-of-5 means any 2 children + the lawyer (or spouse) can recover. Include written instructions in the will explaining the guardian system. Store instructions with the lawyer. Have the children practice recovery while the parent is alive. The time lock prevents premature recovery.',
+                5: 'Key ERC-4337 improvements: (1) Gasless recovery via Paymasters \u2014 guardians don\'t need to hold ETH to approve. (2) Passkey/biometric guardian approval \u2014 guardians use Face ID instead of managing private keys. (3) Cross-chain recovery \u2014 recover wallets on multiple chains simultaneously. For non-technical guardians, passkeys eliminate the biggest barrier: they never need to understand blockchain, manage keys, or pay gas. They just tap "approve" with their fingerprint.'
+            };
+            
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16,185,129,0.15)';
+            feedback.style.border = '1px solid rgba(16,185,129,0.3)';
+            feedback.style.color = '#6ee7b7';
+            feedback.textContent = hints[num];
+        }
+        
+        function goToPractice() {
+            localStorage.setItem('course5_practice_started', 'true');
+        }
+        
+        window.addEventListener('scroll', function() {
+            const sections = ['objectives', 'history', 'problem', 'recovery-methods', 'vitalik', 'argent', 'guardians', 'recovery', 'kenostod', 'guardian-selection', 'inheritance', 'attacks', 'erc4337', 'case-studies', 'exercises', 'practice', 'quiz'];
+            let current = '';
+            
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 150) current = id;
+                }
+            });
+            
+            if (current) {
+                document.querySelectorAll('.toc-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('onclick')?.includes(current)) item.classList.add('active');
+                });
+            }
+        });
+    </script>
+    <script src="/courses/course-common.js"></script>
+</body>
+</html>

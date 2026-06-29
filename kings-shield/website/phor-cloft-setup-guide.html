@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phor-Cloft Holdings — Corporate Stack Setup Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #ffd700;
+            --indigo: #6366f1;
+            --indigo-light: #a5b4fc;
+            --green: #00c853;
+            --dark: #060612;
+            --darker: #03030a;
+            --surface: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.1);
+            --text: #d4d8f0;
+            --text-muted: #6b7280;
+        }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--darker); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+
+        /* NAV */
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(3,3,10,0.95); border-bottom: 1px solid rgba(99,102,241,0.25); padding: 0.75rem 2rem; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(16px); flex-wrap: wrap; gap: 0.5rem; }
+        .nav-brand { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--indigo-light); letter-spacing: 2px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+        .nav-links a { font-family: 'Orbitron', sans-serif; font-size: 0.6rem; letter-spacing: 1.5px; color: var(--text-muted); text-decoration: none; padding: 6px 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; transition: all 0.2s; white-space: nowrap; }
+        .nav-links a:hover { color: var(--indigo-light); border-color: rgba(99,102,241,0.4); }
+        .nav-links a.cta { background: linear-gradient(135deg, var(--indigo), #4f46e5); color: #fff; border-color: transparent; }
+
+        /* HERO */
+        .hero { min-height: 60vh; background: linear-gradient(135deg, #03030a 0%, #0a0814 40%, #060612 100%); padding: 6rem 2rem 4rem; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 50%, rgba(99,102,241,0.12) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(255,215,0,0.06) 0%, transparent 40%); pointer-events: none; }
+        .hero-content { position: relative; z-index: 2; max-width: 900px; }
+        .hero-badge { display: inline-block; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: var(--indigo-light); padding: 0.4rem 1.5rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1.5rem; }
+        .hero-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.8rem, 5vw, 3.5rem); font-weight: 900; color: #fff; margin-bottom: 0.5rem; }
+        .hero-title span { background: linear-gradient(135deg, var(--indigo-light), #c7d2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-sub { font-size: 1.2rem; color: var(--text-muted); max-width: 650px; margin: 1rem auto 2rem; }
+        .confidential-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); color: #fca5a5; padding: 0.5rem 1.5rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; }
+
+        /* MAIN LAYOUT */
+        main { max-width: 1000px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+
+        /* OVERVIEW STRUCTURE DIAGRAM */
+        .structure-block { background: rgba(99,102,241,0.05); border: 2px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 2rem; margin-bottom: 3rem; text-align: center; }
+        .struct-tier { display: inline-block; border-radius: 14px; padding: 1rem 2rem; min-width: 280px; margin: 0 auto; }
+        .struct-tier-1 { background: rgba(255,215,0,0.1); border: 2px solid rgba(255,215,0,0.5); }
+        .struct-tier-2 { background: rgba(99,102,241,0.12); border: 2px solid rgba(99,102,241,0.6); }
+        .struct-arrow { color: var(--indigo-light); font-size: 2rem; line-height: 1.4; }
+        .struct-ops { display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .struct-op { background: rgba(0,200,83,0.08); border: 1px solid rgba(0,200,83,0.25); border-radius: 10px; padding: 0.5rem 1rem; font-size: 0.78rem; color: #86efac; font-family: 'Orbitron', sans-serif; white-space: nowrap; }
+
+        /* STEP CARDS */
+        .steps-header { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--indigo-light); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; }
+        .steps-header::after { content: ''; flex: 1; height: 1px; background: rgba(99,102,241,0.25); }
+
+        .step { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; transition: border-color 0.2s; }
+        .step:hover { border-color: rgba(99,102,241,0.35); }
+        .step-number { position: absolute; top: 1.5rem; right: 1.5rem; font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; color: rgba(99,102,241,0.12); line-height: 1; }
+        .step-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.2rem; }
+        .step-icon { font-size: 2rem; flex-shrink: 0; }
+        .step-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #fff; font-weight: 700; margin-bottom: 0.2rem; }
+        .step-meta { font-size: 0.8rem; color: var(--text-muted); }
+        .step-meta span { padding: 2px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; margin-right: 0.5rem; }
+        .cost-tag { background: rgba(255,215,0,0.12); color: var(--gold); }
+        .time-tag { background: rgba(0,200,83,0.12); color: #86efac; }
+        .diy-tag { background: rgba(99,102,241,0.15); color: var(--indigo-light); }
+        .atty-tag { background: rgba(239,68,68,0.12); color: #fca5a5; }
+
+        .step p { font-size: 0.95rem; color: var(--text); margin-bottom: 1rem; line-height: 1.7; }
+
+        .doc-list { list-style: none; margin: 0 0 1rem; }
+        .doc-list li { padding: 0.6rem 0.75rem; border-left: 3px solid rgba(99,102,241,0.4); margin-bottom: 0.5rem; font-size: 0.9rem; background: rgba(99,102,241,0.04); border-radius: 0 8px 8px 0; }
+        .doc-list li strong { color: #e0e7ff; }
+        .doc-list li .doc-note { display: block; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+        .action-box { background: rgba(0,200,83,0.06); border: 1px solid rgba(0,200,83,0.2); border-radius: 10px; padding: 1rem 1.2rem; font-size: 0.88rem; color: #86efac; margin-top: 0.75rem; }
+        .action-box strong { color: #00c853; }
+
+        .warning-box { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 1rem 1.2rem; font-size: 0.88rem; color: #fcd34d; margin-top: 0.75rem; }
+
+        /* INTERCOMPANY SECTION */
+        .money-flow { background: rgba(255,215,0,0.04); border: 1px solid rgba(255,215,0,0.2); border-radius: 16px; padding: 1.5rem; margin: 1.5rem 0; }
+        .flow-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .flow-from { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.82rem; color: #e0e7ff; white-space: nowrap; }
+        .flow-arrow { color: var(--gold); font-size: 1.2rem; }
+        .flow-to { background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.82rem; color: var(--gold); white-space: nowrap; }
+        .flow-label { font-size: 0.78rem; color: var(--text-muted); }
+
+        /* PROFESSIONALS TABLE */
+        .pro-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .pro-table th { font-family: 'Orbitron', sans-serif; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--indigo-light); padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid rgba(99,102,241,0.25); }
+        .pro-table td { padding: 0.85rem 1rem; font-size: 0.88rem; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+        .pro-table tr:last-child td { border-bottom: none; }
+        .pro-table td:first-child { color: #fff; font-weight: 600; }
+        .pro-table td strong { color: var(--gold); }
+
+        /* CHECKLIST */
+        .checklist { list-style: none; margin: 0; }
+        .checklist li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.9rem; color: var(--text); }
+        .checklist li:last-child { border-bottom: none; }
+        .check-box { width: 20px; height: 20px; border: 2px solid rgba(99,102,241,0.5); border-radius: 5px; flex-shrink: 0; margin-top: 2px; }
+        .checklist li span { flex: 1; }
+        .checklist li small { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+        /* COST SUMMARY */
+        .cost-table { width: 100%; border-collapse: collapse; }
+        .cost-table td { padding: 0.75rem 1rem; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cost-table tr:last-child td { border-top: 2px solid rgba(255,215,0,0.3); font-weight: 700; border-bottom: none; }
+        .cost-table td:last-child { text-align: right; color: var(--gold); font-weight: 700; }
+        .cost-table td:first-child { color: var(--text); }
+        .cost-table td.phase { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--indigo-light); letter-spacing: 1px; text-transform: uppercase; padding-top: 1.2rem; }
+
+        h2 { font-family: 'Orbitron', sans-serif; font-size: 1.6rem; color: #fff; margin-bottom: 0.75rem; }
+        h3 { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--indigo-light); margin-bottom: 0.75rem; }
+
+        @media (max-width: 700px) {
+            main { padding: 2rem 1rem 4rem; }
+            .step { padding: 1.5rem; }
+            .step-number { font-size: 2rem; }
+            .struct-tier { min-width: unset; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/tdir-foundation.html" class="nav-brand">
+        <img src="/logo.png" alt="logo" style="width:36px;height:36px;border-radius:7px;object-fit:contain;">
+        PHOR-CLOFT HOLDINGS
+    </a>
+    <div class="nav-links">
+        <a href="/tdir-foundation.html">T.D.I.R. Foundation</a>
+        <a href="/buk-implementation-blueprint.html">B.U.K. Blueprint</a>
+        <a href="/" class="cta">← Academy</a>
+    </div>
+</nav>
+<div style="height:65px;"></div>
+
+<div class="hero">
+    <div class="hero-content">
+        <div class="hero-badge">🏛️ Internal Operations Guide</div>
+        <h1 class="hero-title">Building Under<br><span>Phor-Cloft Holdings</span></h1>
+        <p class="hero-sub">Step-by-step playbook for consolidating the Sovereign Economy under your existing Georgia holding company — legally, cleanly, and in the right order.</p>
+        <div class="confidential-badge">🔒 CONFIDENTIAL — Internal Use Only</div>
+    </div>
+</div>
+
+<main>
+
+    <!-- STRUCTURE OVERVIEW -->
+    <div class="structure-block">
+        <div style="font-family:'Orbitron',sans-serif; font-size:0.7rem; color:var(--indigo-light); letter-spacing:3px; margin-bottom:1.5rem; text-transform:uppercase;">Target Structure After Setup</div>
+        <div class="struct-tier struct-tier-1" style="margin-bottom:0.4rem;">
+            <div style="font-family:'Orbitron',sans-serif; font-size:0.8rem; color:var(--gold); font-weight:900;">🌐 T.D.I.R. Foundation</div>
+            <div style="font-size:0.75rem; color:#86efac; margin-top:0.2rem;">Marshall Islands · Offshore governance</div>
+        </div>
+        <div class="struct-arrow">↓</div>
+        <div class="struct-tier struct-tier-2" style="margin-bottom:0.4rem;">
+            <div style="font-family:'Orbitron',sans-serif; font-size:0.85rem; color:var(--indigo-light); font-weight:900;">🏛️ Phor-Cloft Holdings LLC</div>
+            <div style="font-size:0.75rem; color:#818cf8; margin-top:0.2rem;">Georgia, USA · YOU · IP owner · Investor entry</div>
+        </div>
+        <div class="struct-arrow">↓</div>
+        <div class="struct-ops">
+            <div class="struct-op">🎓 Academy (WY)</div>
+            <div class="struct-op">🔐 B.U.K. Banking (WY)</div>
+            <div class="struct-op">☀️ Solar Bunker (WY)</div>
+            <div class="struct-op">👑 King's Shield (BSC)</div>
+        </div>
+    </div>
+
+    <!-- STEPS -->
+    <div class="steps-header">📋 Step-by-Step Setup — Do In This Order</div>
+
+    <!-- STEP 1 -->
+    <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-header">
+            <div class="step-icon">📋</div>
+            <div>
+                <div class="step-title">Get Your Phor-Cloft Paperwork in Order</div>
+                <div class="step-meta">
+                    <span class="cost-tag">$0 if you have them · $150–$300 attorney if not</span>
+                    <span class="time-tag">1 week</span>
+                    <span class="diy-tag">Do first — everything depends on this</span>
+                </div>
+            </div>
+        </div>
+        <p>Before you can put anything <em>into</em> Phor-Cloft Holdings, you need three documents that prove you are the owner and manager. Pull these from Georgia Secretary of State or wherever you formed it.</p>
+        <ul class="doc-list">
+            <li>
+                <strong>Articles of Organization</strong>
+                <span class="doc-note">Filed with Georgia SOS on Feb 3, 2025. Download the stamped copy from <a href="https://sos.ga.gov" target="_blank" style="color:var(--indigo-light);">sos.ga.gov</a> — you'll need it for everything.</span>
+            </li>
+            <li>
+                <strong>Operating Agreement</strong>
+                <span class="doc-note">Internal document that names you as the sole member and manager. If you don't have one yet, create it now — it's not filed publicly but banks and attorneys require it.</span>
+            </li>
+            <li>
+                <strong>EIN (Employer Identification Number)</strong>
+                <span class="doc-note">Your federal tax ID for Phor-Cloft. Free from IRS.gov (takes 10 minutes online). You need this to open a business bank account.</span>
+            </li>
+            <li>
+                <strong>Registered Agent (Georgia)</strong>
+                <span class="doc-note">Must be a Georgia address. If you're not in GA, services like Northwest Registered Agent (~$125/yr) handle this. Check your SOS filing — it's listed there.</span>
+            </li>
+        </ul>
+        <div class="action-box">✅ <strong>Action:</strong> Download your Articles from sos.ga.gov → Search "Phor-Cloft Holdings" → Download the filing. Apply for EIN at irs.gov/businesses/small if you don't have one.</div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-header">
+            <div class="step-icon">🏦</div>
+            <div>
+                <div class="step-title">Open a Business Bank Account for Phor-Cloft</div>
+                <div class="step-meta">
+                    <span class="cost-tag">$0 — no minimum balance</span>
+                    <span class="time-tag">1–3 days</span>
+                    <span class="diy-tag">DIY — fully online</span>
+                </div>
+            </div>
+        </div>
+        <p>Phor-Cloft Holdings needs its own bank account. This becomes the central account — it receives management fees from all subsidiaries, investor deposits, and licensing royalties. All other entity accounts flow upward into this one.</p>
+        <ul class="doc-list">
+            <li>
+                <strong>Mercury Bank</strong> — <a href="https://mercury.com" target="_blank" style="color:var(--indigo-light);">mercury.com</a>
+                <span class="doc-note">Best for tech/crypto-adjacent companies. No fees, free wires, API access, multi-user. Apply with your EIN + Articles of Organization. Approved in 1–3 business days.</span>
+            </li>
+            <li>
+                <strong>Relay Financial</strong> — <a href="https://relayfi.com" target="_blank" style="color:var(--indigo-light);">relayfi.com</a>
+                <span class="doc-note">Good alternative if Mercury declines. Multiple sub-accounts, good for separating income streams from different subsidiaries.</span>
+            </li>
+        </ul>
+        <div class="action-box">✅ <strong>Action:</strong> Go to mercury.com → Apply for a business account → Select LLC → Upload EIN confirmation + Georgia Articles of Organization. Takes 10 minutes to apply.</div>
+        <div class="warning-box">⚠️ <strong>Note:</strong> Georgia is not as crypto-friendly as Wyoming. When asked about business type, describe Phor-Cloft as a "technology holding company and software licensor" — not as a crypto company. It owns equity, not crypto.</div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-header">
+            <div class="step-icon">📜</div>
+            <div>
+                <div class="step-title">Transfer Membership of Kenostod Academy LLC to Phor-Cloft</div>
+                <div class="step-meta">
+                    <span class="cost-tag">$0 DIY · $500–$1,500 attorney</span>
+                    <span class="time-tag">1–2 weeks</span>
+                    <span class="atty-tag">Recommend attorney for this one</span>
+                </div>
+            </div>
+        </div>
+        <p>Right now, you personally own Kenostod Blockchain Academy LLC (Wyoming). You need to transfer that membership interest to Phor-Cloft Holdings LLC so it sits underneath the holding company. This is a one-page legal document.</p>
+        <ul class="doc-list">
+            <li>
+                <strong>Assignment of Membership Interest</strong>
+                <span class="doc-note">Transfers your personal ownership of Kenostod Academy LLC to Phor-Cloft Holdings LLC. You sign as both the Assignor (you personally) and on behalf of Assignee (you as manager of Phor-Cloft). No state filing required — it's an internal document.</span>
+            </li>
+            <li>
+                <strong>Update Kenostod Academy Operating Agreement</strong>
+                <span class="doc-note">Amend the Academy's operating agreement to reflect that the sole member is now Phor-Cloft Holdings LLC (Georgia) instead of you personally. You remain the manager/operator.</span>
+            </li>
+            <li>
+                <strong>Wyoming Annual Report Update</strong>
+                <span class="doc-note">On next Wyoming annual report (due on the anniversary of formation), list Phor-Cloft Holdings LLC as the member. Not urgent — can wait for next renewal.</span>
+            </li>
+        </ul>
+        <div class="action-box">✅ <strong>Action:</strong> Search "Assignment of Membership Interest template" on Rocket Lawyer or LegalZoom — about $50 for a template. Or hire a business attorney for ~$500 to draft it cleanly. Sign, date, file in your personal records.</div>
+        <div class="warning-box">⚠️ <strong>Important:</strong> After this transfer, you personally own Phor-Cloft. Phor-Cloft owns Academy. You still control everything — just through the holding structure instead of directly.</div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-header">
+            <div class="step-icon">💡</div>
+            <div>
+                <div class="step-title">Assign All Intellectual Property to Phor-Cloft</div>
+                <div class="step-meta">
+                    <span class="cost-tag">$200–$800 depending on filings</span>
+                    <span class="time-tag">1–2 weeks</span>
+                    <span class="diy-tag">DIY with templates</span>
+                </div>
+            </div>
+        </div>
+        <p>This is one of the most powerful moves. By assigning all IP to Phor-Cloft Holdings, every subsidiary then <em>licenses</em> the IP from Phor-Cloft. This creates a royalty income stream flowing directly to you as the holding company owner.</p>
+        <ul class="doc-list">
+            <li>
+                <strong>IP Assignment Agreement</strong>
+                <span class="doc-note">Assigns the following from you personally (or from Academy LLC) to Phor-Cloft Holdings: KENO brand + logo, E-Fi™ term, FAL™ system, PoRV™ protocol, B.U.K. dual-chip concept, all source code copyrights, domain names (kenostodblockchain.com, etc.).</span>
+            </li>
+            <li>
+                <strong>Trademark Applications (USPTO)</strong>
+                <span class="doc-note">File: "E-Fi" (Class 36 — financial services, Class 41 — education), "FAL" (Class 36), "B.U.K." (Class 36). Each filing: $250–$350. Assign applicant as Phor-Cloft Holdings LLC. Total: ~$750–$1,050 in filing fees.</span>
+            </li>
+            <li>
+                <strong>Domain & Account Transfers</strong>
+                <span class="doc-note">Transfer ownership of kenostodblockchain.com (and any others) at your domain registrar to Phor-Cloft Holdings. Update billing contacts for Replit, Render, GitHub to reflect Phor-Cloft as the entity.</span>
+            </li>
+            <li>
+                <strong>Patent Provisional Applications</strong>
+                <span class="doc-note">File provisional patents for FAL™ system and B.U.K. dual-chip card. Each provisional: $320 (micro-entity fee). Gives 12 months of "Patent Pending" status. Applicant = Phor-Cloft Holdings LLC.</span>
+            </li>
+        </ul>
+        <div class="action-box">✅ <strong>Action:</strong> Start with the IP Assignment Agreement — it costs nothing and protects everything immediately. Then file trademarks at <a href="https://teas.uspto.gov" target="_blank" style="color:#00c853;">teas.uspto.gov</a>. Trademark your brand NOW before someone else does.</div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-header">
+            <div class="step-icon">🤝</div>
+            <div>
+                <div class="step-title">Create Intercompany Agreements (How Money Flows Up)</div>
+                <div class="step-meta">
+                    <span class="cost-tag">$0 DIY · $300–$600 attorney review</span>
+                    <span class="time-tag">1 week</span>
+                    <span class="diy-tag">DIY with templates</span>
+                </div>
+            </div>
+        </div>
+        <p>This is where the structure starts working for you. Phor-Cloft charges each operating subsidiary fees for its services and IP. Those fees flow upward — directly to the holding company — as legitimate, documented income.</p>
+        <div class="money-flow">
+            <div style="font-family:'Orbitron',sans-serif; font-size:0.65rem; color:var(--gold); letter-spacing:2px; margin-bottom:1rem; text-transform:uppercase;">💰 Money Flow Up to Phor-Cloft</div>
+            <div class="flow-row">
+                <div class="flow-from">🎓 Kenostod Academy</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-to">$500–$2,000/month</div>
+                <div class="flow-label">Management Services Fee</div>
+            </div>
+            <div class="flow-row">
+                <div class="flow-from">🎓 Kenostod Academy</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-to">3–8% of revenue</div>
+                <div class="flow-label">IP License Royalty (KENO brand, E-Fi)</div>
+            </div>
+            <div class="flow-row">
+                <div class="flow-from">🔐 B.U.K. Banking (future)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-to">5% of revenue</div>
+                <div class="flow-label">B.U.K. Patent License Royalty</div>
+            </div>
+            <div class="flow-row">
+                <div class="flow-from">☀️ Solar Bunker (future)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-to">4% of revenue</div>
+                <div class="flow-label">Solar Bunker IP License</div>
+            </div>
+        </div>
+        <ul class="doc-list">
+            <li>
+                <strong>Management Services Agreement (MSA)</strong>
+                <span class="doc-note">Phor-Cloft provides management, strategy, and administrative services to each subsidiary for a fixed monthly fee. Legitimate business expense for the subsidiary, income for Phor-Cloft.</span>
+            </li>
+            <li>
+                <strong>IP License Agreement</strong>
+                <span class="doc-note">Each subsidiary gets a license from Phor-Cloft to use the brand, trademarks, and technology in exchange for a royalty percentage. Standard rate: 3–8% of gross revenue depending on how IP-dependent the business is.</span>
+            </li>
+            <li>
+                <strong>Loan Agreement (optional)</strong>
+                <span class="doc-note">If you inject cash from Phor-Cloft into a subsidiary (e.g., funding the arb bot), document it as a formal intercompany loan at a reasonable interest rate. This keeps the holding company's investment recoverable.</span>
+            </li>
+        </ul>
+        <div class="action-box">✅ <strong>Action:</strong> Draft the Management Services Agreement first — even a simple 2-page document sets the income flow. At minimum: Phor-Cloft charges Academy a $500/month management fee. When Academy earns, that $500 comes to you through Phor-Cloft, clean and documented.</div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step">
+        <div class="step-number">6</div>
+        <div class="step-header">
+            <div class="step-icon">🌐</div>
+            <div>
+                <div class="step-title">Register T.D.I.R. Foundation (Marshall Islands) &amp; Link to Phor-Cloft</div>
+                <div class="step-meta">
+                    <span class="cost-tag">$3,000–$5,000 one-time</span>
+                    <span class="time-tag">4–8 weeks</span>
+                    <span class="atty-tag">Requires Marshall Islands agent</span>
+                </div>
+            </div>
+        </div>
+        <p>Once Phor-Cloft is organized (Steps 1–5 done), form the T.D.I.R. Foundation offshore. Then transfer a portion of your Phor-Cloft membership to the Foundation. The Foundation becomes the top-level owner — Phor-Cloft becomes its US subsidiary.</p>
+        <ul class="doc-list">
+            <li>
+                <strong>Marshall Islands Registered Agent</strong>
+                <span class="doc-note">You need a Marshall Islands registered agent to file. Recommended firms: Tango (tangomarshalleslands.com), MIHO (Marshall Islands corporate services). They handle formation for $2,000–$3,500 including government fees.</span>
+            </li>
+            <li>
+                <strong>Foundation Charter / Constitution</strong>
+                <span class="doc-note">The founding document. Names T.D.I.R. Foundation's purpose, beneficiaries (the ecosystem and its participants), supervisory council (you as Founder + 1–2 others), and the relationship to Phor-Cloft Holdings LLC.</span>
+            </li>
+            <li>
+                <strong>Membership Interest Transfer: You → T.D.I.R. Foundation</strong>
+                <span class="doc-note">After forming the Foundation, transfer 51–100% of your Phor-Cloft membership to T.D.I.R. Foundation. You retain control as the Foundation's Founder/Director. This makes the entire stack foundation-owned offshore.</span>
+            </li>
+            <li>
+                <strong>KENO Token Governance Assignment</strong>
+                <span class="doc-note">T.D.I.R. Foundation becomes the official token governance authority. The Foundation's DAO (KENO holders) votes on major protocol decisions. This legitimizes the token under Marshall Islands DAO law.</span>
+            </li>
+        </ul>
+        <div class="action-box">✅ <strong>Action:</strong> Do Steps 1–5 first. Then contact a Marshall Islands corporate agent. Tell them: "I want to register a non-profit foundation under Marshall Islands DAO law. It will own a US LLC (Phor-Cloft Holdings, Georgia)." Budget 6–8 weeks.</div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="step">
+        <div class="step-number">7</div>
+        <div class="step-header">
+            <div class="step-icon">🔐</div>
+            <div>
+                <div class="step-title">Form Future Subsidiaries Directly Under Phor-Cloft</div>
+                <div class="step-meta">
+                    <span class="cost-tag">$100–$200 per Wyoming LLC</span>
+                    <span class="time-tag">1–3 days each</span>
+                    <span class="diy-tag">DIY — Wyoming SOS online</span>
+                </div>
+            </div>
+        </div>
+        <p>Every new operating entity (B.U.K. Security Banking, Solar Bunker Technologies, etc.) gets formed with Phor-Cloft Holdings LLC as the sole member from day one. You never need to do a membership transfer for these — they're born inside the structure.</p>
+        <ul class="doc-list">
+            <li>
+                <strong>B.U.K. Security Banking LLC (Wyoming)</strong>
+                <span class="doc-note">Form when: B.U.K. card manufacturing partner is confirmed. Member = Phor-Cloft Holdings LLC. Manager = Nickeo Coleman. This entity will eventually apply for the Wyoming SPDI Charter.</span>
+            </li>
+            <li>
+                <strong>Solar Bunker Technologies LLC (Wyoming)</strong>
+                <span class="doc-note">Form when: Solar hardware supplier is confirmed and South Africa pilot is ready to launch. Member = Phor-Cloft Holdings LLC.</span>
+            </li>
+            <li>
+                <strong>UTL Protocol LLC (optional)</strong>
+                <span class="doc-note">If UTL Protocol becomes revenue-generating enough to spin off as a separate entity. Could also be a Wyoming LLC owned by Phor-Cloft.</span>
+            </li>
+        </ul>
+        <div class="action-box">✅ <strong>Action:</strong> Form Wyoming LLCs at <a href="https://sos.wyo.gov" target="_blank" style="color:#00c853;">sos.wyo.gov</a>. Filing fee: $100. Takes 1 business day. On the formation form under "Organizer" → put yourself. Under "Member" → put "Phor-Cloft Holdings LLC, Georgia".</div>
+    </div>
+
+    <!-- PROFESSIONALS -->
+    <div style="margin: 3rem 0 2rem;">
+        <div class="steps-header">👥 Who You Need (And When)</div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+            <table class="pro-table">
+                <tr>
+                    <th>Professional</th>
+                    <th>When You Need Them</th>
+                    <th>Cost Estimate</th>
+                    <th>What For</th>
+                </tr>
+                <tr>
+                    <td>Business Attorney (Georgia or Wyoming)</td>
+                    <td>Steps 3 + 4 + 5</td>
+                    <td><strong>$800–$2,500</strong></td>
+                    <td>Membership assignment, IP assignment, intercompany agreements</td>
+                </tr>
+                <tr>
+                    <td>CPA / Tax Accountant</td>
+                    <td>After Step 5</td>
+                    <td><strong>$500–$1,500/yr</strong></td>
+                    <td>Set up correct multi-entity tax filings, intercompany loan docs, transfer pricing</td>
+                </tr>
+                <tr>
+                    <td>Marshall Islands Agent</td>
+                    <td>Step 6</td>
+                    <td><strong>$2,000–$3,500</strong></td>
+                    <td>T.D.I.R. Foundation formation + annual registered agent</td>
+                </tr>
+                <tr>
+                    <td>USPTO Trademark Attorney</td>
+                    <td>Step 4 (optional)</td>
+                    <td><strong>$500–$1,000</strong></td>
+                    <td>Trademark filing review to ensure your marks are registrable. DIY possible without this.</td>
+                </tr>
+                <tr>
+                    <td>Wyoming Registered Agent</td>
+                    <td>Each new Wyoming LLC</td>
+                    <td><strong>$50–$150/yr</strong></td>
+                    <td>Required for Wyoming LLCs if you don't have a WY address. Northwest Registered Agent works well.</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- MASTER CHECKLIST -->
+    <div style="margin: 3rem 0 2rem;">
+        <div class="steps-header">✅ Master Checklist</div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.5rem;">
+            <ul class="checklist">
+                <li><div class="check-box"></div><span>Get Phor-Cloft Articles of Organization from Georgia SOS<small>Free — download at sos.ga.gov</small></span></li>
+                <li><div class="check-box"></div><span>Create Phor-Cloft Operating Agreement if you don't have one<small>Template at Rocket Lawyer or LegalZoom — ~$50</small></span></li>
+                <li><div class="check-box"></div><span>Get Phor-Cloft EIN from IRS<small>Free — irs.gov/businesses/small → Apply Online → takes 10 minutes</small></span></li>
+                <li><div class="check-box"></div><span>Open Mercury Bank account for Phor-Cloft Holdings LLC<small>Free — mercury.com, 1–3 business days</small></span></li>
+                <li><div class="check-box"></div><span>Execute Assignment of Membership Interest (You → Phor-Cloft for Academy LLC)<small>One page. $500–$1,500 attorney or $50 template</small></span></li>
+                <li><div class="check-box"></div><span>Execute IP Assignment Agreement (all brand, code, domains → Phor-Cloft)<small>DIY template — covers KENO brand, E-Fi, FAL, PoRV, B.U.K., domains</small></span></li>
+                <li><div class="check-box"></div><span>File USPTO trademark for "E-Fi" (Class 36 + 41)<small>~$350–$700 in filing fees — teas.uspto.gov</small></span></li>
+                <li><div class="check-box"></div><span>File USPTO trademark for "FAL" and "B.U.K." (Class 36)<small>~$350 each — do E-Fi first as the crown jewel mark</small></span></li>
+                <li><div class="check-box"></div><span>Draft Management Services Agreement (Phor-Cloft → Academy)<small>Sets $500–$2,000/month management fee flowing to Phor-Cloft</small></span></li>
+                <li><div class="check-box"></div><span>Draft IP License Agreement (Phor-Cloft → Academy, 3–8% royalty)<small>Sets royalty income stream from Academy's revenue to Phor-Cloft</small></span></li>
+                <li><div class="check-box"></div><span>Contact Marshall Islands agent to begin T.D.I.R. Foundation formation<small>Budget $3,000–$5,000 and 4–8 weeks</small></span></li>
+                <li><div class="check-box"></div><span>Transfer Phor-Cloft membership to T.D.I.R. Foundation once formed<small>Final step — makes the entire stack foundation-owned</small></span></li>
+                <li><div class="check-box"></div><span>Engage CPA to set up multi-entity tax structure<small>Especially important before the first year with intercompany fees</small></span></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- COST SUMMARY -->
+    <div style="margin: 3rem 0;">
+        <div class="steps-header">💰 Total Cost Estimate</div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+            <table class="cost-table">
+                <tr><td class="phase" colspan="2">Phase 1 — US Structure (Do Now)</td></tr>
+                <tr><td>Phor-Cloft paperwork + EIN + Operating Agreement</td><td>$0–$150</td></tr>
+                <tr><td>Mercury Bank account</td><td>$0</td></tr>
+                <tr><td>Membership assignment (Academy → Phor-Cloft)</td><td>$50–$1,500</td></tr>
+                <tr><td>IP Assignment Agreement</td><td>$50–$300</td></tr>
+                <tr><td>Management Services + License Agreements</td><td>$300–$600</td></tr>
+                <tr><td>USPTO trademark (E-Fi — do first)</td><td>$350–$700</td></tr>
+                <tr><td class="phase" colspan="2">Phase 2 — Offshore Governance</td></tr>
+                <tr><td>T.D.I.R. Foundation (Marshall Islands)</td><td>$3,000–$5,000</td></tr>
+                <tr><td>Annual Marshall Islands maintenance</td><td>$1,500–$2,500/yr</td></tr>
+                <tr><td class="phase" colspan="2">Ongoing</td></tr>
+                <tr><td>CPA (multi-entity tax)</td><td>$500–$1,500/yr</td></tr>
+                <tr><td>Georgia registered agent (if needed)</td><td>$125/yr</td></tr>
+                <tr style="background:rgba(255,215,0,0.05);"><td><strong>Phase 1 Total (US structure, functional)</strong></td><td>$800–$3,250</td></tr>
+                <tr style="background:rgba(255,215,0,0.05);"><td><strong>Phase 1 + 2 Total (full stack live)</strong></td><td>$3,800–$8,250</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- BOTTOM CTA -->
+    <div style="text-align:center; padding:3rem 0 1rem; border-top:1px solid rgba(99,102,241,0.2);">
+        <div style="font-family:'Orbitron',sans-serif; font-size:1rem; color:var(--indigo-light); margin-bottom:0.5rem;">That instinct that told you to create Phor-Cloft?</div>
+        <div style="font-size:1.3rem; color:#fff; font-weight:300; max-width:600px; margin:0 auto 2rem;">That was the Sovereign Economy speaking before the plan was written. Now the structure exists to hold everything you're building.</div>
+        <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+            <a href="/tdir-foundation.html" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.9rem 2rem; background:linear-gradient(135deg,var(--indigo),#4f46e5); color:#fff; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.9rem;">🌐 T.D.I.R. Foundation</a>
+            <a href="/buk-implementation-blueprint.html" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.9rem 2rem; background:rgba(255,215,0,0.12); border:1px solid rgba(255,215,0,0.35); color:var(--gold); text-decoration:none; border-radius:10px; font-weight:700; font-size:0.9rem;">🔐 B.U.K. Blueprint</a>
+            <a href="/" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.9rem 2rem; background:rgba(0,200,83,0.1); border:1px solid rgba(0,200,83,0.3); color:#00c853; text-decoration:none; border-radius:10px; font-weight:700; font-size:0.9rem;">🎓 Academy</a>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

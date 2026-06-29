@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Sovereign Economy — Strategic Liquidity Partnership | T.D.I.R. Foundation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #030810;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #e2e8f0;
+    padding: 24px 16px;
+  }
+  .wrap { max-width: 700px; margin: 0 auto; }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(245,200,66,.15);
+  }
+  .logo-row { display: flex; align-items: center; gap: 10px; }
+  .k-badge {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #f5c842, #c9a227);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 1.2rem; color: #030810;
+  }
+  .logo-text { font-size: .82rem; font-weight: 700; color: #fff; line-height: 1.3; }
+  .logo-text span { color: #f5c842; }
+  .logo-sub { font-size: .64rem; color: #475569; text-transform: uppercase; letter-spacing: 1.5px; }
+  .conf-tag {
+    font-size: .67rem; font-weight: 700;
+    background: rgba(245,200,66,.08);
+    border: 1px solid rgba(245,200,66,.2);
+    color: #f5c842; padding: 4px 12px; border-radius: 20px;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(160deg, #08102a 0%, #060e20 60%, #030810 100%);
+    border: 1px solid rgba(245,200,66,.18);
+    border-radius: 20px;
+    padding: 44px 40px 36px;
+    margin-bottom: 18px;
+    position: relative; overflow: hidden;
+    text-align: center;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(245,200,66,.06) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: .68rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    color: #f5c842; margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-size: 2.2rem; font-weight: 900; color: #fff;
+    line-height: 1.15; margin-bottom: 8px;
+  }
+  .hero h1 span { color: #f5c842; }
+  .hero-tagline {
+    font-size: .95rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    color: #64748b; margin-bottom: 18px;
+  }
+  .hero-sub {
+    font-size: .88rem; color: #94a3b8; line-height: 1.7;
+    max-width: 500px; margin: 0 auto 24px;
+  }
+  .hero-pills { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+  .series-badge {
+    display: inline-block; margin-top: 18px;
+    background: rgba(245,200,66,.1); border: 1.5px solid rgba(245,200,66,.35);
+    color: #f5c842; font-size: .78rem; font-weight: 700; letter-spacing: 1px;
+    padding: 7px 20px; border-radius: 8px;
+  }
+
+  /* ── Licensing Empire ── */
+  .license-block {
+    background: linear-gradient(135deg, #06100e 0%, #040d0b 100%);
+    border: 1.5px solid rgba(52,211,153,.25);
+    border-radius: 16px; padding: 26px 28px; margin-bottom: 16px;
+  }
+  .license-chip {
+    font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+    background: rgba(52,211,153,.1); color: #34d399;
+    border: 1px solid rgba(52,211,153,.3); padding: 3px 10px; border-radius: 8px;
+    margin-bottom: 8px; display: inline-block;
+  }
+  .license-headline { font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+  .license-sub { font-size: .8rem; color: #475569; line-height: 1.65; margin-bottom: 18px; }
+  .license-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:480px){ .license-grid { grid-template-columns: 1fr; } }
+  .lic-item {
+    background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .lic-item-name { font-size: .8rem; font-weight: 700; color: #e2e8f0; margin-bottom: 3px; }
+  .lic-item-what { font-size: .71rem; color: #475569; line-height: 1.5; margin-bottom: 5px; }
+  .lic-item-tag {
+    font-size: .63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+    background: rgba(52,211,153,.08); color: #34d399;
+    border: 1px solid rgba(52,211,153,.2); padding: 2px 8px; border-radius: 6px;
+  }
+  .license-insight {
+    margin-top: 16px; padding: 14px 18px;
+    background: rgba(52,211,153,.06); border: 1px solid rgba(52,211,153,.15); border-radius: 10px;
+    font-size: .82rem; color: #94a3b8; line-height: 1.65;
+  }
+  .license-insight strong { color: #34d399; }
+
+  /* ── Metrics table ── */
+  .metrics-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;
+  }
+  @media(max-width:480px){ .metrics-row { grid-template-columns: 1fr; } }
+  .metric-box {
+    background: #080f22; border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px; padding: 16px; text-align: center;
+  }
+  .metric-label { font-size: .62rem; text-transform: uppercase; letter-spacing: 2px; color: #334155; margin-bottom: 5px; }
+  .metric-val   { font-size: 1.05rem; font-weight: 800; color: #f5c842; margin-bottom: 2px; }
+  .metric-sub   { font-size: .7rem; color: #475569; }
+  .pill {
+    font-size: .72rem; font-weight: 600;
+    padding: 5px 14px; border-radius: 20px; border: 1px solid;
+  }
+  .pill.gold   { color: #f5c842; border-color: rgba(245,200,66,.35); background: rgba(245,200,66,.07); }
+  .pill.blue   { color: #60a5fa; border-color: rgba(96,165,250,.35); background: rgba(96,165,250,.07); }
+  .pill.green  { color: #34d399; border-color: rgba(52,211,153,.35); background: rgba(52,211,153,.07); }
+  .pill.purple { color: #a78bfa; border-color: rgba(167,139,250,.35); background: rgba(167,139,250,.07); }
+  .pill.red    { color: #f87171; border-color: rgba(248,113,113,.35); background: rgba(248,113,113,.07); }
+  .pill.cyan   { color: #22d3ee; border-color: rgba(34,211,238,.35); background: rgba(34,211,238,.07); }
+
+  /* ── Statement block ── */
+  .statement {
+    background: linear-gradient(135deg, rgba(245,200,66,.08), rgba(245,200,66,.03));
+    border: 1px solid rgba(245,200,66,.2);
+    border-left: 4px solid #f5c842;
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 18px;
+    font-size: .92rem; color: #cbd5e1; line-height: 1.75; font-style: italic;
+  }
+  .statement strong { color: #f5c842; font-style: normal; }
+
+  /* ── Section ── */
+  .sec {
+    background: #080f22;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 16px;
+    padding: 26px 28px;
+    margin-bottom: 16px;
+  }
+  .sec-label {
+    font-size: .65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2.5px; color: #f5c842; margin-bottom: 4px;
+  }
+  .sec-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 18px; }
+
+  /* ── Ecosystem pillars ── */
+  .pillars { display: flex; flex-direction: column; gap: 10px; }
+  .pillar {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px; padding: 14px 18px;
+    transition: border-color .2s;
+  }
+  .pillar-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .pi-gold   { background: rgba(245,200,66,.12); }
+  .pi-blue   { background: rgba(96,165,250,.12); }
+  .pi-green  { background: rgba(52,211,153,.12); }
+  .pi-purple { background: rgba(167,139,250,.12); }
+  .pi-red    { background: rgba(248,113,113,.12); }
+  .pi-cyan   { background: rgba(34,211,238,.12); }
+  .pi-orange { background: rgba(251,146,60,.12); }
+  .pi-pink   { background: rgba(244,114,182,.12); }
+
+  .pillar-body { flex: 1; }
+  .pillar-name { font-size: .88rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .pillar-desc { font-size: .76rem; color: #64748b; line-height: 1.55; }
+  .pillar-tag {
+    display: inline-block; margin-top: 6px;
+    font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+    padding: 2px 9px; border-radius: 8px;
+  }
+  .pt-gold   { background: rgba(245,200,66,.1); color: #f5c842; }
+  .pt-blue   { background: rgba(96,165,250,.1); color: #60a5fa; }
+  .pt-green  { background: rgba(52,211,153,.1); color: #34d399; }
+  .pt-purple { background: rgba(167,139,250,.1); color: #a78bfa; }
+  .pt-red    { background: rgba(248,113,113,.1); color: #f87171; }
+  .pt-cyan   { background: rgba(34,211,238,.1); color: #22d3ee; }
+  .pt-orange { background: rgba(251,146,60,.1); color: #fb923c; }
+  .pt-pink   { background: rgba(244,114,182,.1); color: #f472b6; }
+
+  /* ── UTL Protocol ── */
+  .utl-block {
+    background: linear-gradient(135deg, #060e24 0%, #08122e 100%);
+    border: 1.5px solid rgba(96,165,250,.25);
+    border-radius: 16px;
+    padding: 26px 28px;
+    margin-bottom: 16px;
+  }
+  .utl-title-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .utl-chip {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    background: rgba(96,165,250,.12); color: #60a5fa;
+    border: 1px solid rgba(96,165,250,.3); padding: 3px 10px; border-radius: 8px;
+  }
+  .utl-headline { font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .utl-desc { font-size: .8rem; color: #64748b; line-height: 1.65; margin-bottom: 18px; }
+  .integration-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width:480px){ .integration-grid { grid-template-columns: 1fr; } }
+  .int-item {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .int-item-title { font-size: .8rem; font-weight: 700; color: #e2e8f0; margin-bottom: 3px; }
+  .int-item-desc  { font-size: .72rem; color: #475569; line-height: 1.5; }
+  .contracts-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+  .contract-tag {
+    font-size: .68rem; font-weight: 600;
+    background: rgba(96,165,250,.07);
+    border: 1px solid rgba(96,165,250,.2);
+    color: #60a5fa; padding: 3px 10px; border-radius: 8px;
+  }
+
+  /* ── Revenue streams ── */
+  .revenue-grid { display: flex; flex-direction: column; gap: 0; }
+  .rev-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .rev-row:last-child { border-bottom: none; }
+  .rev-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .rev-name  { flex: 1; font-size: .8rem; color: #94a3b8; }
+  .rev-source { font-size: .72rem; color: #475569; }
+  .rev-val   { font-size: .8rem; font-weight: 700; min-width: 130px; text-align: right; }
+
+  /* ── What partner gets ── */
+  .benefit-list { display: flex; flex-direction: column; gap: 0; }
+  .benefit-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .benefit-row:last-child { border-bottom: none; }
+  .ben-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(245,200,66,.1); color: #f5c842;
+    font-size: .78rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .ben-title { font-size: .85rem; font-weight: 700; color: #e2e8f0; margin-bottom: 3px; }
+  .ben-desc  { font-size: .76rem; color: #475569; line-height: 1.55; }
+
+  /* ── Target partners ── */
+  .target-list { display: flex; flex-direction: column; gap: 10px; }
+  .target-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .target-badge {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, #060e24, #0d1e40);
+    border: 1px solid rgba(245,200,66,.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 800; color: #f5c842;
+  }
+  .target-name { font-size: .84rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
+  .target-why  { font-size: .74rem; color: #475569; line-height: 1.5; }
+  .target-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+
+  /* ── Ask ── */
+  .ask-block {
+    background: linear-gradient(135deg, #0a1830 0%, #060e22 100%);
+    border: 2px solid rgba(245,200,66,.25);
+    border-radius: 16px; padding: 28px 30px; margin-bottom: 16px;
+  }
+  .ask-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; color: #f5c842; margin-bottom: 8px; }
+  .ask-headline { font-size: 1.3rem; font-weight: 900; color: #fff; margin-bottom: 6px; }
+  .ask-sub { font-size: .8rem; color: #475569; line-height: 1.6; margin-bottom: 20px; }
+  .use-items { display: flex; flex-direction: column; gap: 9px; }
+  .use-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: .8rem; color: #94a3b8; line-height: 1.55;
+  }
+  .use-item .arrow { color: #f5c842; font-weight: 700; flex-shrink: 0; }
+  .use-item strong { color: #e2e8f0; }
+
+  /* ── CTA ── */
+  .cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .cta-primary {
+    flex: 1; min-width: 180px; display: block; text-align: center;
+    background: linear-gradient(135deg, #f5c842, #c9a227);
+    color: #030810; font-weight: 800; font-size: .88rem;
+    padding: 14px 20px; border-radius: 10px; text-decoration: none;
+  }
+  .cta-secondary {
+    flex: 1; min-width: 180px; display: block; text-align: center;
+    border: 1.5px solid rgba(245,200,66,.3);
+    color: #f5c842; font-weight: 700; font-size: .88rem;
+    padding: 14px 20px; border-radius: 10px; text-decoration: none;
+    background: transparent;
+  }
+
+  /* ── Footer ── */
+  .ftr {
+    text-align: center;
+    padding: 20px 0 10px;
+    border-top: 1px solid rgba(255,255,255,.05);
+  }
+  .ftr-name  { font-size: .85rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
+  .ftr-name span { color: #f5c842; }
+  .ftr-title { font-size: .7rem; color: #334155; margin-bottom: 10px; }
+  .ftr-links { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; }
+  .ftr-links a { font-size: .7rem; color: #334155; text-decoration: none; }
+  .conf-note { font-size: .64rem; color: #1e293b; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="logo-row">
+      <div class="k-badge">S</div>
+      <div>
+        <div class="logo-text">The <span>Sovereign Economy</span></div>
+        <div class="logo-sub">T.D.I.R. Foundation · Strategic Partnership</div>
+      </div>
+    </div>
+    <div class="conf-tag">Confidential</div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">T.D.I.R. Foundation · Series A Infrastructure Round</div>
+    <h1>The <span>Sovereign</span><br>Economy</h1>
+    <div class="hero-tagline">Strong. Unbreakable. Yours.</div>
+    <p class="hero-sub">This is far beyond an education platform. You are looking at a <strong style="color:#f5c842">physical-digital sovereign infrastructure</strong> — 8 independent ventures converging on KENO, with hardware, apparel, banking, security, DeFi, and a licensing empire of 6 patent-pending technologies. Every layer generates revenue. Every layer is live or in active partnership.</p>
+    <div class="hero-pills">
+      <span class="pill gold">8-Sector Infrastructure</span>
+      <span class="pill blue">DeFi Protocol</span>
+      <span class="pill green">BaaS Banking</span>
+      <span class="pill purple">Security + Hardware</span>
+      <span class="pill cyan">BNB Smart Chain</span>
+      <span class="pill red">Patent Pending Tech</span>
+    </div>
+    <div class="series-badge">Series A · The Sovereign Economy · 8-Sector Infrastructure Fund</div>
+  </div>
+
+  <!-- Statement -->
+  <div class="statement">
+    "Most financial ecosystems are built for people who already have money. <strong>The Sovereign Economy is built for everyone else.</strong> A student enters through education, earns through participation, banks through regulated infrastructure, and shops through a brand they own. Every layer generates revenue. Every layer is live or in active partnership."
+    <br><br>— <strong>Nickeo, Founder & CEO · T.D.I.R. Foundation</strong>
+  </div>
+
+  <!-- The ecosystem -->
+  <div class="sec">
+    <div class="sec-label">The Ecosystem</div>
+    <div class="sec-title">Eight Pillars. One Sovereign Movement.</div>
+    <div class="pillars">
+
+      <div class="pillar">
+        <div class="pillar-icon pi-gold">🎓</div>
+        <div class="pillar-body">
+          <div class="pillar-name">Kenostod Blockchain Academy</div>
+          <div class="pillar-desc">21-course Education-Fi gateway. Students earn 250 KENO per course (5,250 KENO total) for completing blockchain, DeFi, and financial sovereignty curriculum. The entry point to the entire ecosystem.</div>
+          <span class="pillar-tag pt-gold">Live · kenostodblockchain.com</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon pi-cyan">💳</div>
+        <div class="pillar-body">
+          <div class="pillar-name">KUTL Card · Cybrid BaaS</div>
+          <div class="pillar-desc">Members redeem KENO onto a real Visa/Mastercard debit card via Cybrid's Banking-as-a-Service infrastructure. KENO converts to USD at card load — students spend their earned value anywhere in the world.</div>
+          <span class="pillar-tag pt-cyan">Partnership Active · April 22 Integration Call</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon pi-blue">⚡</div>
+        <div class="pillar-body">
+          <div class="pillar-name">UTL Protocol · 5 Live BSC Contracts</div>
+          <div class="pillar-desc">Flash loans, LP farming, token bridge, presale infrastructure, and staking — all live on BNB Smart Chain. The UTL Protocol is designed as a standalone, integratable DeFi infrastructure layer for any platform, not just the Academy. Any exchange, neobank, or protocol can integrate UTL.</div>
+          <span class="pillar-tag pt-blue">Live · BscScan Verified · Open Integration</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon pi-green">🌾</div>
+        <div class="pillar-body">
+          <div class="pillar-name">UTLFarm · LP Staking</div>
+          <div class="pillar-desc">KENO/BNB liquidity pool staking at 151,144% APR. 864 KENO distributed daily to LP providers. Liquidity partner capital deployed here generates on-chain yield from day one.</div>
+          <span class="pillar-tag pt-green">Live · UTLFarm Contract Deployed</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon pi-purple">🔁</div>
+        <div class="pillar-body">
+          <div class="pillar-name">FAL & FALP · Flash Arbitrage System</div>
+          <div class="pillar-desc">Flash Arbitrage Loans (up to 1,000 KENO/loan) and the Flash Arbitrage Loan Pool — a fee-generating liquidity mechanism where depositors earn from every loan executed. Students participate in real DeFi arbitrage, not simulations.</div>
+          <span class="pillar-tag pt-purple">Live · FAL Dashboard Active</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon pi-red">🛡️</div>
+        <div class="pillar-body">
+          <div class="pillar-name">B.U.K. Security Banking</div>
+          <div class="pillar-desc">The security banking arm of the Sovereign Economy. Provides secure financial infrastructure and asset protection services within the T.D.I.R. ecosystem — ensuring capital held within the movement is protected, not just managed.</div>
+          <span class="pillar-tag pt-red">T.D.I.R. Foundation · Internal Infrastructure</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon pi-orange">🛡️✨</div>
+        <div class="pillar-body">
+          <div class="pillar-name">G.I.F.T. Apparel Technology</div>
+          <div class="pillar-desc"><strong style="color:#fb923c">Generational Identification Fabric Technology</strong> — Patent Pending. Smart apparel with embedded shield technology. As two Kenostodists approach each other, blocks on their shields flicker progressively with an evolution chime, lighting up fully with a harmonious "Eureka" sound — a once-per-pair blockchain-recorded first meeting. The Eureka event is cryptographically signed and stored on-chain permanently.</div>
+          <span class="pillar-tag pt-orange">Patent Pending · Coming 2026 · Academy Gated</span>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div class="pillar-icon pi-gold">🪙</div>
+        <div class="pillar-body">
+          <div class="pillar-name">KENO Token · BEP-20</div>
+          <div class="pillar-desc">1 billion supply utility token on BNB Smart Chain. Earned through education, staked for yield, redeemed onto the KUTL Card, used in flash loans and farming. KENO is the connective tissue binding every pillar of the sovereign economy together.</div>
+          <span class="pillar-tag pt-gold">Live · 1B Supply · BscScan Verified</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- UTL Protocol integration -->
+  <div class="utl-block">
+    <div class="utl-title-row">
+      <span class="utl-chip">Open Infrastructure</span>
+    </div>
+    <div class="utl-headline">UTL Protocol — Beyond Kenostod</div>
+    <div class="utl-desc">The UTL Protocol was built as standalone DeFi infrastructure. While it powers the Sovereign Economy internally, it is designed to be licensed and integrated by external platforms — creating a B2B protocol revenue stream independent of Academy enrollment. Any platform that needs flash loan, staking, or bridge infrastructure can integrate UTL.</div>
+    <div class="integration-grid">
+      <div class="int-item">
+        <div class="int-item-title">🏦 Neobanks & Fintechs</div>
+        <div class="int-item-desc">Embed flash loan and staking infrastructure into existing financial apps without building from scratch</div>
+      </div>
+      <div class="int-item">
+        <div class="int-item-title">🔄 DEXs & Exchanges</div>
+        <div class="int-item-desc">Integrate UTL liquidity pools and bridge functionality to deepen market depth and user retention</div>
+      </div>
+      <div class="int-item">
+        <div class="int-item-title">🎓 Education Platforms</div>
+        <div class="int-item-desc">White-label the learn-to-earn model — other institutions deploy UTL to reward their own students</div>
+      </div>
+      <div class="int-item">
+        <div class="int-item-title">🌐 DeFi Protocols</div>
+        <div class="int-item-desc">UTL flash loan contracts integrate as a capital efficiency layer for yield optimization strategies</div>
+      </div>
+    </div>
+    <div class="contracts-row">
+      <span class="contract-tag">UTLFarm</span>
+      <span class="contract-tag">Flash Loan</span>
+      <span class="contract-tag">Token Bridge</span>
+      <span class="contract-tag">LP Staking</span>
+      <span class="contract-tag">Presale</span>
+    </div>
+  </div>
+
+  <!-- Licensing Empire -->
+  <div class="license-block">
+    <span class="license-chip">Patent Pending · Licensing Empire</span>
+    <div class="license-headline">6 Patent-Pending Features — Other Companies Pay to Use These</div>
+    <div class="license-sub">These technologies operate independently. They are not just Academy features — they are licensable infrastructure that banks, wallets, NFT platforms, and fintechs can pay to integrate. Revenue generated without requiring a single enrolled student.</div>
+    <div class="license-grid">
+      <div class="lic-item">
+        <div class="lic-item-name">Proof-of-Residual-Value (PoRV)</div>
+        <div class="lic-item-what">AI/ML model that calculates the remaining value of a digital asset or student credential over time</div>
+        <span class="lic-item-tag">AI/ML Infrastructure</span>
+      </div>
+      <div class="lic-item">
+        <div class="lic-item-name">RVT NFT System</div>
+        <div class="lic-item-what">Perpetual royalty distribution system embedded in NFTs — an NFT platform licenses this to power ongoing creator payouts</div>
+        <span class="lic-item-tag">NFT Platform Licensable</span>
+      </div>
+      <div class="lic-item">
+        <div class="lic-item-name">Wealth Builder Program</div>
+        <div class="lic-item-what">Full learn-to-earn education system — white-labeled by institutions who want to reward their own users for completing financial curriculum</div>
+        <span class="lic-item-tag">EdTech Licensable</span>
+      </div>
+      <div class="lic-item">
+        <div class="lic-item-name">Transaction Reversal System</div>
+        <div class="lic-item-what">5-minute transaction reversal window — a bank licenses this to offer customers consumer protection without chargebacks</div>
+        <span class="lic-item-tag">Bank Licensable</span>
+      </div>
+      <div class="lic-item">
+        <div class="lic-item-name">Social Recovery System</div>
+        <div class="lic-item-what">Guardian-based wallet recovery protocol — a wallet company licenses this to give users non-custodial account recovery without seed phrase dependency</div>
+        <span class="lic-item-tag">Wallet Licensable</span>
+      </div>
+      <div class="lic-item">
+        <div class="lic-item-name">Merchant Payment Gateway</div>
+        <div class="lic-item-what">QR code-based KENO/crypto merchant processing — any point-of-sale or e-commerce platform integrates sovereign currency acceptance</div>
+        <span class="lic-item-tag">Commerce Licensable</span>
+      </div>
+    </div>
+    <div class="license-insight">
+      <strong>Key Point:</strong> These generate revenue without requiring students. A bank licenses Transaction Reversal. A wallet company licenses Social Recovery. An NFT platform licenses RVT. Each feature is a standalone B2B revenue stream — and all six are patent-pending.
+    </div>
+  </div>
+
+  <!-- Revenue streams -->
+  <div class="sec">
+    <div class="sec-label">Revenue Model</div>
+    <div class="sec-title">15+ Revenue Streams — Across 8 Sectors</div>
+    <div class="revenue-grid">
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#f5c842"></div>
+        <div>
+          <div class="rev-name">Academy Enrollment Fees</div>
+          <div class="rev-source">Direct tuition per student cohort</div>
+        </div>
+        <div class="rev-val" style="color:#f5c842">Education Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#22d3ee"></div>
+        <div>
+          <div class="rev-name">KUTL Card Interchange</div>
+          <div class="rev-source">~1.5–2.5% per merchant transaction</div>
+        </div>
+        <div class="rev-val" style="color:#22d3ee">Banking Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#a78bfa"></div>
+        <div>
+          <div class="rev-name">Flash Arbitrage Loan Fees</div>
+          <div class="rev-source">Fee per FAL executed · up to 1,000 KENO/loan</div>
+        </div>
+        <div class="rev-val" style="color:#a78bfa">Protocol Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#a78bfa"></div>
+        <div>
+          <div class="rev-name">FALP Pool Depositor Yield</div>
+          <div class="rev-source">Protocol fee split to LP depositors</div>
+        </div>
+        <div class="rev-val" style="color:#a78bfa">Protocol Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#34d399"></div>
+        <div>
+          <div class="rev-name">UTLFarm Staking Fees</div>
+          <div class="rev-source">864 KENO/day reward pool distribution</div>
+        </div>
+        <div class="rev-val" style="color:#34d399">DeFi Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#60a5fa"></div>
+        <div>
+          <div class="rev-name">UTL Protocol Integration Licensing</div>
+          <div class="rev-source">B2B fees from external platforms using UTL</div>
+        </div>
+        <div class="rev-val" style="color:#60a5fa">Infrastructure Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#60a5fa"></div>
+        <div>
+          <div class="rev-name">Token Bridge Fees</div>
+          <div class="rev-source">Cross-chain transfer fees via UTL bridge</div>
+        </div>
+        <div class="rev-val" style="color:#60a5fa">Infrastructure Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#f87171"></div>
+        <div>
+          <div class="rev-name">B.U.K. Security Banking Services</div>
+          <div class="rev-source">Ecosystem asset protection & security fees</div>
+        </div>
+        <div class="rev-val" style="color:#f87171">Security Layer</div>
+      </div>
+      <div class="rev-row">
+        <div class="rev-dot" style="background:#fb923c"></div>
+        <div>
+          <div class="rev-name">G.I.F.T. Apparel Commerce</div>
+          <div class="rev-source">Graduate merchandise sales & brand licensing</div>
+        </div>
+        <div class="rev-val" style="color:#fb923c">Commerce Layer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- What partner gets -->
+  <div class="sec">
+    <div class="sec-label">For the Partner</div>
+    <div class="sec-title">What a Liquidity Partner Receives</div>
+    <div class="benefit-list">
+      <div class="benefit-row">
+        <div class="ben-num">1</div>
+        <div>
+          <div class="ben-title">Multi-Stream Revenue Share</div>
+          <div class="ben-desc">Negotiated percentage across protocol fees, card interchange, and FAL fees — not tied to a single revenue source. As more pillars activate, partner earnings grow with the ecosystem.</div>
+        </div>
+      </div>
+      <div class="benefit-row">
+        <div class="ben-num">2</div>
+        <div>
+          <div class="ben-title">KENO Treasury Allocation</div>
+          <div class="ben-desc">Strategic KENO token allocation from the 1B supply. KENO earns yield in UTLFarm, is redeemable via KUTL Card, and appreciates as ecosystem activity grows. Partners receive tokens at the earliest possible valuation.</div>
+        </div>
+      </div>
+      <div class="benefit-row">
+        <div class="ben-num">3</div>
+        <div>
+          <div class="ben-title">UTL Protocol Integration Rights</div>
+          <div class="ben-desc">First-priority access to white-label or co-brand the UTL Protocol for deployment in the partner's own platform or client network — creating a secondary revenue stream from the infrastructure itself.</div>
+        </div>
+      </div>
+      <div class="benefit-row">
+        <div class="ben-num">4</div>
+        <div>
+          <div class="ben-title">Foundation-Level Positioning</div>
+          <div class="ben-desc">Named strategic partner of the T.D.I.R. Foundation — the governing body of the Sovereign Economy. As the ecosystem scales from Academy to banking to commerce, the partner's position scales with it.</div>
+        </div>
+      </div>
+      <div class="benefit-row">
+        <div class="ben-num">5</div>
+        <div>
+          <div class="ben-title">Full On-Chain Transparency</div>
+          <div class="ben-desc">Every contract is live and verifiable on BscScan. Capital deployment, fee generation, reward distributions, and token flows are fully auditable — no black box, no trust required.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Target partners -->
+  <div class="sec">
+    <div class="sec-label">Target Partners</div>
+    <div class="sec-title">Who Deploys Capital Into This Structure</div>
+    <div class="target-list">
+      <div class="target-item">
+        <div class="target-badge">BNB</div>
+        <div>
+          <div class="target-name">BNB Chain Accelerator Fund / Binance Labs</div>
+          <div class="target-why">Active MVB (Most Valuable Builder) program for BSC projects with live contracts. Multiple live contracts, active Farm, and a multi-pillar ecosystem meet their criteria precisely.</div>
+          <div class="target-tags">
+            <span class="pillar-tag pt-blue">BSC Native</span>
+            <span class="pillar-tag pt-gold">Live Contracts Required</span>
+          </div>
+        </div>
+      </div>
+      <div class="target-item">
+        <div class="target-badge">IMP</div>
+        <div>
+          <div class="target-name">Impact & Education Web3 Funds (Gitcoin, Learning Economy Foundation)</div>
+          <div class="target-why">Specifically fund blockchain-powered financial inclusion and learn-to-earn models. The Sovereign Economy's mission — financial sovereignty for everyday people — is the exact impact narrative these allocators back.</div>
+          <div class="target-tags">
+            <span class="pillar-tag pt-green">Grant Available</span>
+            <span class="pillar-tag pt-gold">Mission Aligned</span>
+          </div>
+        </div>
+      </div>
+      <div class="target-item">
+        <div class="target-badge">IDO</div>
+        <div>
+          <div class="target-name">BSC Launchpads (Seedify, BSCStation)</div>
+          <div class="target-why">Fund pre-launch ecosystems with liquidity in exchange for token allocation and IDO rights. KENO already exists and is live — this is a post-token, pre-scale partnership ideal for launchpad programs.</div>
+          <div class="target-tags">
+            <span class="pillar-tag pt-purple">Token Allocation</span>
+            <span class="pillar-tag pt-blue">IDO Partnership</span>
+          </div>
+        </div>
+      </div>
+      <div class="target-item">
+        <div class="target-badge">DAO</div>
+        <div>
+          <div class="target-name">DeFi Protocol Treasuries & DAOs</div>
+          <div class="target-why">DAOs with idle treasury capital deploy into yield-generating ecosystems for diversified returns. UTLFarm's 151,144% APR and multi-stream fee model makes The Sovereign Economy a compelling treasury allocation.</div>
+          <div class="target-tags">
+            <span class="pillar-tag pt-cyan">Treasury Yield</span>
+            <span class="pillar-tag pt-purple">DeFi Native</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Investor metrics -->
+  <div class="metrics-row">
+    <div class="metric-box">
+      <div class="metric-label">Customer LTV</div>
+      <div class="metric-val">$500–2,000</div>
+      <div class="metric-sub">Per student across all pillars</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-label">Defensibility</div>
+      <div class="metric-val">Content IP</div>
+      <div class="metric-sub">+ 6 patent-pending features</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-label">Exit Options</div>
+      <div class="metric-val">M&A</div>
+      <div class="metric-sub">Per-sector or full Foundation</div>
+    </div>
+  </div>
+
+  <!-- The ask -->
+  <div class="ask-block">
+    <div class="ask-label">Series A · Partnership Ask</div>
+    <div class="ask-headline">8-Sector Infrastructure Fund</div>
+    <div class="ask-sub">Capital deployed into the T.D.I.R. Foundation funds the entire ecosystem — not a single product. Every dollar activates multiple revenue streams simultaneously. This is not EdTech. This is not DeFi. This is a new financial sector where code replaces dynasties.</div>
+    <div class="use-items">
+      <div class="use-item"><span class="arrow">→</span><span><strong>Student Reward Reserve</strong> — backs KENO-to-USD redemptions at KUTL Card load, funded by enrollment fees with treasury backstop</span></div>
+      <div class="use-item"><span class="arrow">→</span><span><strong>UTLFarm Pool Depth</strong> — BNB/KENO LP liquidity that activates on-chain staking yields from day one of capital deployment</span></div>
+      <div class="use-item"><span class="arrow">→</span><span><strong>FAL Pool Seed</strong> — flash loan capital base that generates fee revenue from the first loan executed</span></div>
+      <div class="use-item"><span class="arrow">→</span><span><strong>KUTL Card Treasury</strong> — USD/USDC reserve held 1:1 for all outstanding card load obligations via Cybrid BaaS</span></div>
+      <div class="use-item"><span class="arrow">→</span><span><strong>G.I.F.T. Commerce Launch</strong> — initial inventory and technology for the graduate apparel and commerce layer</span></div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-row">
+    <a href="https://kenostodblockchain.com" class="cta-primary">View Live Ecosystem →</a>
+    <a href="mailto:kenostodblockchainacademy@gmail.com" class="cta-secondary">Request Partnership Call</a>
+  </div>
+
+  <!-- Footer -->
+  <div class="ftr">
+    <div class="ftr-name">The <span>Sovereign Economy</span></div>
+    <div class="ftr-title">T.D.I.R. Foundation · Kenostod Blockchain Academy LLC · Strong. Unbreakable. Yours.</div>
+    <div class="ftr-links">
+      <a href="https://kenostodblockchain.com">kenostodblockchain.com</a>
+      <a href="https://kenostodblockchain.com/farm.html">KENO Farm</a>
+      <a href="https://kenostodblockchain.com/fal-dashboard.html">FAL Protocol</a>
+    </div>
+    <div class="conf-note">Confidential — for prospective strategic liquidity partners only. T.D.I.R. Foundation. Not for public distribution.</div>
+  </div>
+
+</div>
+</body>
+</html>

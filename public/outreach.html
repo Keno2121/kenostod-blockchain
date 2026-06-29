@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTL Protocol — Integration Outreach Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #0a0e1a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+        .status-not-started   { background: rgba(100,116,139,0.2); color: #94a3b8; border: 1px solid #334155; }
+        .status-reached-out   { background: rgba(234,179,8,0.15);  color: #fbbf24; border: 1px solid #92400e; }
+        .status-in-talks      { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid #1e40af; }
+        .status-approved      { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid #065f46; }
+        .status-deployed      { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid #4c1d95; }
+        .priority-high   { color: #f87171; }
+        .priority-medium { color: #fbbf24; }
+        .priority-low    { color: #34d399; }
+        .copy-btn { cursor: pointer; transition: all 0.2s; }
+        .copy-btn:hover { color: #818cf8; }
+        .platform-card { transition: all 0.2s; }
+        .platform-card:hover { border-color: rgba(99,102,241,0.4); }
+        .channel-pill { display: inline-flex; align-items: center; gap: 5px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); padding: 4px 10px; border-radius: 6px; font-size: 12px; margin: 2px; }
+        .pitch-box { background: rgba(0,0,0,0.3); border-left: 3px solid #6366f1; padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.6; color: #94a3b8; }
+        select.status-select { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600/20 flex items-center justify-center">
+                    <i class="fas fa-satellite-dish text-indigo-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">UTL Protocol — Integration Outreach</h1>
+                    <p class="text-slate-400 text-sm">Contact list for all 6 injection targets · T.D.I.R. Foundation</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-slate-300" id="total-count">6</div>
+                    <div class="text-xs text-slate-500 mt-1">Total Targets</div>
+                </div>
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-yellow-400" id="reached-count">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Reached Out</div>
+                </div>
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-blue-400" id="talks-count">0</div>
+                    <div class="text-xs text-slate-500 mt-1">In Talks</div>
+                </div>
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-green-400" id="approved-count">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Approved</div>
+                </div>
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-purple-400" id="deployed-count">0</div>
+                    <div class="text-xs text-slate-500 mt-1">Live</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MetaMask Snaps (already reached out) -->
+        <div class="glass rounded-2xl p-6 mb-4 platform-card" data-platform="metamask">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-2xl">🦊</div>
+                    <div>
+                        <h2 class="text-lg font-bold">MetaMask Snaps</h2>
+                        <p class="text-slate-400 text-sm">Wallet-level transaction interception · 30M+ users</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="priority-medium text-xs font-semibold"><i class="fas fa-fire mr-1"></i>HIGH PRIORITY</span>
+                    <select class="status-select" onchange="updateStatus('metamask', this.value)">
+                        <option value="reached-out" selected>🟡 Reached Out</option>
+                        <option value="not-started">⚪ Not Started</option>
+                        <option value="in-talks">🔵 In Talks</option>
+                        <option value="approved">🟢 Approved</option>
+                        <option value="deployed">🟣 Live</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Contact Channels</div>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        <a href="https://discord.gg/metamask" target="_blank" class="channel-pill text-indigo-300 hover:text-white"><i class="fab fa-discord"></i> discord.gg/metamask</a>
+                        <a href="https://snaps.metamask.io" target="_blank" class="channel-pill text-orange-300 hover:text-white"><i class="fas fa-globe"></i> snaps.metamask.io</a>
+                        <span class="channel-pill text-slate-300"><i class="fas fa-envelope"></i> snaps@metamask.io</span>
+                        <a href="https://twitter.com/MetaMask" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-twitter"></i> @MetaMask</a>
+                    </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Developer Portal</div>
+                    <a href="https://docs.metamask.io/snaps/" target="_blank" class="text-indigo-400 text-sm hover:underline">docs.metamask.io/snaps</a>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Pitch Angle</div>
+                    <div class="pitch-box">UTL Snap intercepts BSC transactions before signing, applies a 0.09% fee, and routes it to USDC stakers. Users install once — runs on every BSC transaction forever. No new wallet needed, works inside the MetaMask they already have.</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs text-slate-500 bg-black/20 rounded-lg p-3">
+                <i class="fas fa-clock mr-1 text-yellow-400"></i> <strong class="text-yellow-400">Already reached out.</strong> Follow up if no response within 2 weeks. Reference the Snaps developer program — they actively want BSC/DeFi Snaps.
+            </div>
+        </div>
+
+        <!-- PancakeSwap v4 -->
+        <div class="glass rounded-2xl p-6 mb-4 platform-card" data-platform="pancakeswap">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-2xl">🥞</div>
+                    <div>
+                        <h2 class="text-lg font-bold">PancakeSwap v4</h2>
+                        <p class="text-slate-400 text-sm">DEX hook — BSC's largest exchange · $2B+ monthly volume</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="priority-high text-xs font-semibold"><i class="fas fa-bolt mr-1"></i>HIGHEST VOLUME</span>
+                    <select class="status-select" onchange="updateStatus('pancakeswap', this.value)">
+                        <option value="not-started" selected>⚪ Not Started</option>
+                        <option value="reached-out">🟡 Reached Out</option>
+                        <option value="in-talks">🔵 In Talks</option>
+                        <option value="approved">🟢 Approved</option>
+                        <option value="deployed">🟣 Live</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Contact Channels</div>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        <a href="https://discord.gg/pancakeswap" target="_blank" class="channel-pill text-pink-300 hover:text-white"><i class="fab fa-discord"></i> discord.gg/pancakeswap</a>
+                        <span class="channel-pill text-slate-300"><i class="fas fa-envelope"></i> admin@pancakeswap.finance</span>
+                        <a href="https://twitter.com/PancakeSwap" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-twitter"></i> @PancakeSwap</a>
+                        <a href="https://pancakeswap.finance/grants" target="_blank" class="channel-pill text-green-300 hover:text-white"><i class="fas fa-hand-holding-usd"></i> Grants Program</a>
+                    </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Key Link</div>
+                    <a href="https://forum.pancakeswap.finance" target="_blank" class="text-indigo-400 text-sm hover:underline">forum.pancakeswap.finance</a>
+                    <span class="text-slate-500 text-xs ml-2">— post in Governance/Integrations</span>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Pitch Angle</div>
+                    <div class="pitch-box">UTLHook is a PancakeSwap v4 hook that adds a 0.09% fee on all swaps on UTL-enabled pools. This is permissionless — no PancakeSwap approval needed to deploy. The pitch is for PancakeSwap to feature UTL-enabled pools or add UTL to their official hook registry as a "staker rewards" hook.</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs bg-indigo-900/20 border border-indigo-800/40 rounded-lg p-3">
+                <i class="fas fa-info-circle mr-1 text-indigo-400"></i> <strong class="text-indigo-400">Key insight:</strong> UTLHook is permissionless — you can deploy it and create pools TODAY without PancakeSwap's permission. The outreach is to get them to list UTL pools in their official UI, not for deployment approval.
+            </div>
+        </div>
+
+        <!-- Gnosis Safe -->
+        <div class="glass rounded-2xl p-6 mb-4 platform-card" data-platform="safe">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-2xl">🔐</div>
+                    <div>
+                        <h2 class="text-lg font-bold">Gnosis Safe</h2>
+                        <p class="text-slate-400 text-sm">Multisig Guard · $100B+ in assets secured · DAO treasuries</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="priority-high text-xs font-semibold"><i class="fas fa-building mr-1"></i>INSTITUTIONAL</span>
+                    <select class="status-select" onchange="updateStatus('safe', this.value)">
+                        <option value="not-started" selected>⚪ Not Started</option>
+                        <option value="reached-out">🟡 Reached Out</option>
+                        <option value="in-talks">🔵 In Talks</option>
+                        <option value="approved">🟢 Approved</option>
+                        <option value="deployed">🟣 Live</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Contact Channels</div>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        <a href="https://discord.gg/gnosis-safe" target="_blank" class="channel-pill text-green-300 hover:text-white"><i class="fab fa-discord"></i> discord.gg/gnosis-safe</a>
+                        <span class="channel-pill text-slate-300"><i class="fas fa-envelope"></i> business@safe.global</span>
+                        <a href="https://twitter.com/safe" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-twitter"></i> @safe</a>
+                        <a href="https://forum.safe.global" target="_blank" class="channel-pill text-yellow-300 hover:text-white"><i class="fas fa-comments"></i> forum.safe.global</a>
+                    </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Ecosystem Fund</div>
+                    <a href="https://safe.global/grants" target="_blank" class="text-indigo-400 text-sm hover:underline">safe.global/grants</a>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Pitch Angle</div>
+                    <div class="pitch-box">UTLGuard is a Safe Guard that generates passive staker rewards from DAO treasury transactions. Target audience: DAO operators who want their treasury activity to contribute to a broader DeFi ecosystem. Pitch directly at DAO communities on Snapshot/Tally, not just at Safe Labs.</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs bg-green-900/20 border border-green-800/40 rounded-lg p-3">
+                <i class="fas fa-bullseye mr-1 text-green-400"></i> <strong class="text-green-400">Best targets:</strong> BSC-native DAOs using Safe — PancakeSwap DAO, Venus DAO, ApeSwap, Alpaca Finance. Reach out to their governance forums directly, not Safe Labs.
+            </div>
+        </div>
+
+        <!-- Venus Protocol -->
+        <div class="glass rounded-2xl p-6 mb-4 platform-card" data-platform="venus">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center text-2xl">♀️</div>
+                    <div>
+                        <h2 class="text-lg font-bold">Venus Protocol</h2>
+                        <p class="text-slate-400 text-sm">Lending wrapper · BSC's largest DeFi protocol · ~$500M TVL</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="priority-medium text-xs font-semibold"><i class="fas fa-chart-line mr-1"></i>HIGH TVL</span>
+                    <select class="status-select" onchange="updateStatus('venus', this.value)">
+                        <option value="not-started" selected>⚪ Not Started</option>
+                        <option value="reached-out">🟡 Reached Out</option>
+                        <option value="in-talks">🔵 In Talks</option>
+                        <option value="approved">🟢 Approved</option>
+                        <option value="deployed">🟣 Live</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Contact Channels</div>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        <a href="https://discord.gg/venus" target="_blank" class="channel-pill text-yellow-300 hover:text-white"><i class="fab fa-discord"></i> discord.gg/venus</a>
+                        <span class="channel-pill text-slate-300"><i class="fas fa-envelope"></i> contact@venus.io</span>
+                        <a href="https://twitter.com/VenusProtocol" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-twitter"></i> @VenusProtocol</a>
+                        <a href="https://community.venus.io" target="_blank" class="channel-pill text-orange-300 hover:text-white"><i class="fas fa-users"></i> community.venus.io</a>
+                    </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Governance</div>
+                    <a href="https://community.venus.io" target="_blank" class="text-indigo-400 text-sm hover:underline">Submit a Venus Improvement Proposal (VIP)</a>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Pitch Angle</div>
+                    <div class="pitch-box">UTLVenusWrapper is a router that wraps Venus lending operations. Users earn UTL loyalty points and KENO rewards for routing through UTL. Pitch to Venus as a user acquisition and TVL growth tool — UTL brings new users to Venus who are motivated by the loyalty rewards.</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs bg-yellow-900/20 border border-yellow-800/40 rounded-lg p-3">
+                <i class="fas fa-gavel mr-1 text-yellow-400"></i> <strong class="text-yellow-400">VIP route:</strong> Venus governance votes on protocol integrations. Submit a VIP proposing UTL as an official partner router — requires XVS staking to submit but has a clear on-chain approval path.
+            </div>
+        </div>
+
+        <!-- 1inch -->
+        <div class="glass rounded-2xl p-6 mb-4 platform-card" data-platform="1inch">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-2xl">🔁</div>
+                    <div>
+                        <h2 class="text-lg font-bold">1inch Network</h2>
+                        <p class="text-slate-400 text-sm">Aggregator router + Fusion resolver · Multi-chain · $10B+ volume</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="priority-high text-xs font-semibold"><i class="fas fa-infinity mr-1"></i>MASSIVE VOLUME</span>
+                    <select class="status-select" onchange="updateStatus('1inch', this.value)">
+                        <option value="not-started" selected>⚪ Not Started</option>
+                        <option value="reached-out">🟡 Reached Out</option>
+                        <option value="in-talks">🔵 In Talks</option>
+                        <option value="approved">🟢 Approved</option>
+                        <option value="deployed">🟣 Live</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Contact Channels</div>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        <a href="https://discord.gg/1inch" target="_blank" class="channel-pill text-red-300 hover:text-white"><i class="fab fa-discord"></i> discord.gg/1inch</a>
+                        <span class="channel-pill text-slate-300"><i class="fas fa-envelope"></i> bd@1inch.io</span>
+                        <a href="https://twitter.com/1inch" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-twitter"></i> @1inch</a>
+                        <a href="https://fusion.1inch.io" target="_blank" class="channel-pill text-purple-300 hover:text-white"><i class="fas fa-atom"></i> fusion.1inch.io</a>
+                    </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Resolver Program</div>
+                    <a href="https://fusion.1inch.io" target="_blank" class="text-indigo-400 text-sm hover:underline">Apply as a Fusion Resolver</a>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Pitch Angle</div>
+                    <div class="pitch-box">Two angles: (1) Pitch bd@1inch.io on UTL as a fee-sharing partner for their affiliate program. (2) Apply as a Fusion resolver at fusion.1inch.io — resolvers just need capital and a working contract. UTL1inchRouter is already built for both.</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs bg-red-900/20 border border-red-800/40 rounded-lg p-3">
+                <i class="fas fa-key mr-1 text-red-400"></i> <strong class="text-red-400">Fastest path:</strong> Email bd@1inch.io directly with your UTL1inchRouter address on BSC. They have an active partnership program and respond to deployed contracts — shows you're serious.
+            </div>
+        </div>
+
+        <!-- LayerZero -->
+        <div class="glass rounded-2xl p-6 mb-4 platform-card" data-platform="layerzero">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-2xl">🌐</div>
+                    <div>
+                        <h2 class="text-lg font-bold">LayerZero</h2>
+                        <p class="text-slate-400 text-sm">Omnichain OApp · 70+ chains · Cross-chain middleware</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="priority-medium text-xs font-semibold"><i class="fas fa-globe mr-1"></i>OMNICHAIN</span>
+                    <select class="status-select" onchange="updateStatus('layerzero', this.value)">
+                        <option value="not-started" selected>⚪ Not Started</option>
+                        <option value="reached-out">🟡 Reached Out</option>
+                        <option value="in-talks">🔵 In Talks</option>
+                        <option value="approved">🟢 Approved</option>
+                        <option value="deployed">🟣 Live</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Contact Channels</div>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        <a href="https://discord.gg/layerzero" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-discord"></i> discord.gg/layerzero</a>
+                        <span class="channel-pill text-slate-300"><i class="fas fa-envelope"></i> bd@layerzero.network</span>
+                        <a href="https://twitter.com/LayerZero_Labs" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-twitter"></i> @LayerZero_Labs</a>
+                        <a href="https://layerzero.network/developers" target="_blank" class="channel-pill text-cyan-300 hover:text-white"><i class="fas fa-code"></i> Developer Hub</a>
+                    </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Grant Program</div>
+                    <a href="https://layerzero.network/grants" target="_blank" class="text-indigo-400 text-sm hover:underline">layerzero.network/grants</a>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Pitch Angle</div>
+                    <div class="pitch-box">UTL is an omnichain middleware OApp — a fee layer that sits between protocols and the LZ endpoint. Pitch to LZ Labs for their ecosystem grant and developer spotlight. Also apply for their grants program — OApps that earn fees and route volume are exactly what LZ wants to showcase.</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs bg-blue-900/20 border border-blue-800/40 rounded-lg p-3">
+                <i class="fas fa-trophy mr-1 text-blue-400"></i> <strong class="text-blue-400">Grant angle:</strong> LayerZero has a $120M ecosystem fund. UTL as a revenue-generating OApp that makes KENO omnichain is a strong grant application. Apply at layerzero.network/grants after deploying on BSC testnet.
+            </div>
+        </div>
+
+        <!-- deBridge -->
+        <div class="glass rounded-2xl p-6 mb-4 platform-card" data-platform="debridge">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-2xl">🌉</div>
+                    <div>
+                        <h2 class="text-lg font-bold">deBridge</h2>
+                        <p class="text-slate-400 text-sm">Affiliate + Maker · Built-in fee-sharing · Zero extra cost to users</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="priority-medium text-xs font-semibold"><i class="fas fa-star mr-1"></i>EASIEST WIN</span>
+                    <select class="status-select" onchange="updateStatus('debridge', this.value)">
+                        <option value="not-started" selected>⚪ Not Started</option>
+                        <option value="reached-out">🟡 Reached Out</option>
+                        <option value="in-talks">🔵 In Talks</option>
+                        <option value="approved">🟢 Approved</option>
+                        <option value="deployed">🟣 Live</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Contact Channels</div>
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        <a href="https://discord.gg/debridge-finance" target="_blank" class="channel-pill text-purple-300 hover:text-white"><i class="fab fa-discord"></i> discord.gg/debridge-finance</a>
+                        <span class="channel-pill text-slate-300"><i class="fas fa-envelope"></i> bd@debridge.finance</span>
+                        <a href="https://twitter.com/deBridgeFinance" target="_blank" class="channel-pill text-blue-300 hover:text-white"><i class="fab fa-twitter"></i> @deBridgeFinance</a>
+                        <a href="https://app.debridge.finance/affiliates" target="_blank" class="channel-pill text-green-300 hover:text-white"><i class="fas fa-link"></i> Affiliate Registration</a>
+                    </div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Action Required</div>
+                    <a href="https://app.debridge.finance/affiliates" target="_blank" class="text-green-400 text-sm font-semibold hover:underline">→ Register as affiliate NOW (5 minutes)</a>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Pitch Angle</div>
+                    <div class="pitch-box">deBridge is the only integration where no approval is needed — just register as an affiliate. The outreach to bd@debridge.finance is to negotiate a HIGHER affiliate split (default ~50%, can go up to 80% for volume partners) and to get listed as a featured integration.</div>
+                </div>
+            </div>
+            <div class="mt-4 text-xs bg-purple-900/20 border border-purple-800/40 rounded-lg p-3">
+                <i class="fas fa-rocket mr-1 text-purple-400"></i> <strong class="text-purple-400">Immediate action:</strong> Go to app.debridge.finance/affiliates right now and register. Takes 5 minutes. Your referral code will be active immediately and the UTLdeBridgeRouter can be deployed with it today.
+            </div>
+        </div>
+
+        <!-- Outreach message templates -->
+        <div class="glass rounded-2xl p-6 mt-6">
+            <h2 class="text-lg font-bold mb-4"><i class="fas fa-pen-to-square mr-2 text-indigo-400"></i>Outreach Message Templates</h2>
+            <div class="space-y-4">
+                <div>
+                    <div class="text-sm font-semibold text-slate-300 mb-2">Email/DM — Cold Outreach (Business Development)</div>
+                    <div class="pitch-box text-xs" id="cold-template">
+Subject: UTL Protocol × [Platform Name] — Fee Layer Integration Proposal
+
+Hi [Name/Team],
+
+I'm [Your Name] from Kenostod Blockchain Academy LLC and the T.D.I.R. Foundation. We've built UTL Protocol — a sovereign fee redistribution layer on BSC that routes transaction fees to USDC stakers.
+
+We've already built a [hook/guard/wrapper/resolver] for [Platform] — the contract is live on BSC and ready for review: [contract address on BscScan]
+
+The integration adds a [fee %] fee on [operation type], with 60% flowing to UTL's USDC staker pool. Users get UTL loyalty points and KENO token rewards in return.
+
+We're reaching out to discuss a formal partnership / listing in your ecosystem. Happy to jump on a call or share the full technical spec.
+
+Best,
+[Your Name]
+Kenostod Blockchain Academy LLC
+kenostodblockchain.com
+                    </div>
+                    <button onclick="copyText('cold-template')" class="mt-2 text-xs text-indigo-400 hover:text-indigo-300 copy-btn"><i class="fas fa-copy mr-1"></i>Copy template</button>
+                </div>
+                <div>
+                    <div class="text-sm font-semibold text-slate-300 mb-2">Twitter/X DM — Short Version</div>
+                    <div class="pitch-box text-xs" id="twitter-template">
+Hey [handle] — we've built a UTL Protocol integration for [Platform] that routes swap fees to USDC stakers. Contract is deployed and ready: [bscscan link]. Would love to discuss a partnership. Who's the right person to talk to about ecosystem integrations?
+                    </div>
+                    <button onclick="copyText('twitter-template')" class="mt-2 text-xs text-indigo-400 hover:text-indigo-300 copy-btn"><i class="fas fa-copy mr-1"></i>Copy template</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority action list -->
+        <div class="glass rounded-2xl p-6 mt-4">
+            <h2 class="text-lg font-bold mb-4"><i class="fas fa-list-check mr-2 text-green-400"></i>Immediate Action Order</h2>
+            <div class="space-y-2">
+                <div class="flex items-start gap-3 p-3 bg-green-900/10 border border-green-800/30 rounded-lg">
+                    <span class="text-green-400 font-bold text-sm mt-0.5">1</span>
+                    <div>
+                        <div class="text-sm font-semibold text-green-300">deBridge affiliate registration — do this today</div>
+                        <div class="text-xs text-slate-400">app.debridge.finance/affiliates — 5 minutes, immediate fee earning. No approval needed.</div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-yellow-900/10 border border-yellow-800/30 rounded-lg">
+                    <span class="text-yellow-400 font-bold text-sm mt-0.5">2</span>
+                    <div>
+                        <div class="text-sm font-semibold text-yellow-300">Follow up on MetaMask Snaps — 2 weeks since outreach</div>
+                        <div class="text-xs text-slate-400">Post in #snaps-developer on MetaMask Discord. Reference your prior outreach.</div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-blue-900/10 border border-blue-800/30 rounded-lg">
+                    <span class="text-blue-400 font-bold text-sm mt-0.5">3</span>
+                    <div>
+                        <div class="text-sm font-semibold text-blue-300">Email 1inch BD — bd@1inch.io</div>
+                        <div class="text-xs text-slate-400">Lead with the deployed contract. Most impactful volume integration after PancakeSwap.</div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-pink-900/10 border border-pink-800/30 rounded-lg">
+                    <span class="text-pink-400 font-bold text-sm mt-0.5">4</span>
+                    <div>
+                        <div class="text-sm font-semibold text-pink-300">PancakeSwap — post in governance forum</div>
+                        <div class="text-xs text-slate-400">forum.pancakeswap.finance — propose UTLHook as a featured hook for KENO/USDC pool. Permissionless to deploy, approval needed only for UI listing.</div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-indigo-900/10 border border-indigo-800/30 rounded-lg">
+                    <span class="text-indigo-400 font-bold text-sm mt-0.5">5</span>
+                    <div>
+                        <div class="text-sm font-semibold text-indigo-300">LayerZero — apply for ecosystem grant</div>
+                        <div class="text-xs text-slate-400">layerzero.network/grants — after deploying UTLLayerZeroOApp on BSC testnet. $120M fund, strong case for omnichain KENO.</div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-slate-800/30 border border-slate-700/30 rounded-lg">
+                    <span class="text-slate-400 font-bold text-sm mt-0.5">6</span>
+                    <div>
+                        <div class="text-sm font-semibold text-slate-300">Gnosis Safe + Venus — target their DAOs directly</div>
+                        <div class="text-xs text-slate-400">Don't pitch Safe Labs. DM BSC DAO treasury managers. Venus: submit a VIP at community.venus.io.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-slate-600 text-xs mt-6 pb-4">
+            UTL Protocol Integration Tracker · Kenostod Blockchain Academy LLC · T.D.I.R. Foundation
+        </div>
+    </div>
+
+    <script>
+        // Status persistence
+        function updateStatus(platform, status) {
+            localStorage.setItem(`utl_status_${platform}`, status);
+            updateCounts();
+        }
+
+        function loadStatuses() {
+            const platforms = ['metamask', 'pancakeswap', 'safe', 'venus', '1inch', 'layerzero', 'debridge'];
+            platforms.forEach(p => {
+                const saved = localStorage.getItem(`utl_status_${p}`);
+                if (saved) {
+                    const card = document.querySelector(`[data-platform="${p}"]`);
+                    if (card) {
+                        const sel = card.querySelector('select');
+                        if (sel) sel.value = saved;
+                    }
+                }
+            });
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const statuses = ['reached-out', 'in-talks', 'approved', 'deployed'];
+            const counts = { 'reached-out': 0, 'in-talks': 0, 'approved': 0, 'deployed': 0 };
+            document.querySelectorAll('select.status-select').forEach(sel => {
+                if (counts[sel.value] !== undefined) counts[sel.value]++;
+            });
+            document.getElementById('reached-count').textContent  = counts['reached-out'];
+            document.getElementById('talks-count').textContent    = counts['in-talks'];
+            document.getElementById('approved-count').textContent = counts['approved'];
+            document.getElementById('deployed-count').textContent = counts['deployed'];
+        }
+
+        function copyText(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector(`button[onclick="copyText('${id}')"]`);
+                btn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+                btn.style.color = '#34d399';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy mr-1"></i>Copy template';
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadStatuses);
+    </script>
+</body>
+</html>

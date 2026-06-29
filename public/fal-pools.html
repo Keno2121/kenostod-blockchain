@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Arbitrage Loan Pools - Kenostod Blockchain Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a2a 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-links a:hover {
+            opacity: 1;
+            color: #00d4ff;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 18px;
+            opacity: 0.8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .patent-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #00d4ff;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            border-color: transparent;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .pools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .pool-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .pool-card:hover {
+            border-color: #00d4ff;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .pool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .pool-name {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .pool-id {
+            font-size: 12px;
+            opacity: 0.5;
+            margin-top: 3px;
+        }
+        
+        .risk-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .risk-conservative {
+            background: rgba(0, 255, 100, 0.2);
+            color: #00ff64;
+        }
+        
+        .risk-balanced {
+            background: rgba(255, 200, 0, 0.2);
+            color: #ffc800;
+        }
+        
+        .risk-aggressive {
+            background: rgba(255, 50, 50, 0.2);
+            color: #ff5050;
+        }
+        
+        .pool-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .pool-stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .pool-stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+        
+        .pool-stat-label {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 3px;
+        }
+        
+        .apy-highlight {
+            color: #00ff64 !important;
+        }
+        
+        .pool-progress {
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #8a2be2);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        
+        .pool-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .create-pool-form {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 600px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        
+        .form-group select option {
+            background: #1a1a3a;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .risk-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .risk-info h4 {
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+        
+        .risk-info p {
+            font-size: 13px;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        
+        .my-contributions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .contribution-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .contribution-info h4 {
+            margin-bottom: 5px;
+        }
+        
+        .contribution-info span {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+        
+        .contribution-stats {
+            text-align: right;
+        }
+        
+        .contribution-amount {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+        
+        .contribution-earnings {
+            font-size: 14px;
+            color: #00ff64;
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .leaderboard-table th {
+            background: rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+        }
+        
+        .leaderboard-table tr:hover td {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .rank-badge {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 700;
+        }
+        
+        .rank-1 { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; }
+        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #000; }
+        .rank-3 { background: linear-gradient(135deg, #cd7f32, #a06020); color: #000; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a3a 0%, #0a0a2a 100%);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-header h2 {
+            font-size: 24px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .close-btn:hover {
+            opacity: 1;
+        }
+        
+        .how-it-works {
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .how-it-works h3 {
+            margin-bottom: 15px;
+            color: #00d4ff;
+        }
+        
+        .step-list {
+            list-style: none;
+        }
+        
+        .step-list li {
+            padding: 10px 0;
+            padding-left: 35px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .step-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .step-list li::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 0;
+            width: 25px;
+            height: 25px;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+        
+        .wallet-required {
+            background: rgba(255, 200, 0, 0.1);
+            border: 1px solid rgba(255, 200, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .wallet-required a {
+            color: #00d4ff;
+        }
+        
+        .quick-deposit-btns {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-deposit-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quick-deposit-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+            transform: scale(1.02);
+        }
+        
+        .earnings-calc {
+            background: rgba(0, 255, 100, 0.1);
+            border: 1px solid rgba(0, 255, 100, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .earnings-calc-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #00ff64;
+        }
+        
+        .earnings-calc-label {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
+        .btn-trade {
+            background: linear-gradient(135deg, #ffd700, #ff9500);
+            color: #000;
+        }
+        
+        .active-loan-banner {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 149, 0, 0.15));
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .active-loan-banner.visible {
+            display: block;
+        }
+        
+        .loan-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .loan-info-item {
+            text-align: center;
+        }
+        
+        .loan-info-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .loan-info-label {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .pools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .quick-deposit-btns {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Kenostod</div>
+        <nav class="nav-links">
+            <a href="/">Home</a>
+            <a href="/arbitrage.html">Arbitrage</a>
+            <a href="/wealth-builder.html">Wealth Builder</a>
+            <a href="/graduate-club.html">Graduate Club</a>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <section class="hero">
+            <h1>Flash Arbitrage Loan Pools</h1>
+            <p>Pool your KENO tokens with other traders. Earn token rewards when arbitrageurs borrow from your pool to execute profitable trades. Profits are automatically distributed to all contributors.</p>
+            <div style="background: rgba(251,191,36,0.15); padding: 15px 25px; border-radius: 12px; margin: 20px auto; max-width: 700px; border: 1px solid rgba(251,191,36,0.4);">
+                <p style="font-size: 1.1em; font-style: italic; margin: 0; color: #fef3c7;">
+                    👑 "KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."
+                </p>
+            </div>
+            <span class="patent-badge">FALP System (Patent-Pending)</span>
+            <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.15)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 12px 20px; margin-top: 15px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <span style="color: #60a5fa; font-weight: 600;">📚 Educational Simulation</span>
+                <span style="color: #94a3b8; font-size: 0.9em; margin-left: 10px;">Learn DeFi pooling concepts with simulated tokens - no real money involved</span>
+            </div>
+        </section>
+        
+        <section class="active-loan-banner" id="activeLoanBanner">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h3 style="margin: 0; color: #ffd700;">Active Pool Loan</h3>
+                    <p style="margin: 5px 0 0; opacity: 0.8; font-size: 14px;">You have an active flash loan! Execute arbitrage or repay before it expires.</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-trade" onclick="goToArbitrageWithLoan()">Execute Arbitrage</button>
+                    <button class="btn btn-secondary" onclick="repayPoolLoan()">Repay Loan</button>
+                </div>
+            </div>
+            <div class="loan-info-grid" id="loanInfoGrid">
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanAmount">0 KENO</div>
+                    <div class="loan-info-label">Loan Amount</div>
+                </div>
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanPool">-</div>
+                    <div class="loan-info-label">From Pool</div>
+                </div>
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanTimeLeft">5:00</div>
+                    <div class="loan-info-label">Time Left</div>
+                </div>
+                <div class="loan-info-item">
+                    <div class="loan-info-value" id="loanFee">0 KENO</div>
+                    <div class="loan-info-label">Fee (6%)</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works">
+            <h3>How It Works</h3>
+            <ol class="step-list">
+                <li data-step="1"><strong>Deposit</strong> - Add KENO tokens to a liquidity pool of your choice</li>
+                <li data-step="2"><strong>Traders Borrow</strong> - Arbitrageurs borrow from the pool to execute flash loans</li>
+                <li data-step="3"><strong>Profit Generated</strong> - Successful trades generate profit from price differences</li>
+                <li data-step="4"><strong>Auto-Distribution</strong> - Profits are automatically distributed to all pool contributors</li>
+                <li data-step="5"><strong>Withdraw Anytime</strong> - Flexible pools allow instant withdrawals with earnings</li>
+            </ol>
+        </section>
+        
+        <section class="stats-grid" id="globalStats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPools">0</div>
+                <div class="stat-label">Active Pools</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalLiquidity">0 KENO</div>
+                <div class="stat-label">Total Liquidity</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalDistributed">0 KENO</div>
+                <div class="stat-label">Profit Distributed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgAPY">15%</div>
+                <div class="stat-label">Average APY</div>
+            </div>
+        </section>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('browse')">Browse Pools</button>
+            <button class="tab-btn" onclick="switchTab('create')">Create Pool</button>
+            <button class="tab-btn" onclick="switchTab('my-pools')">My Contributions</button>
+            <button class="tab-btn" onclick="switchTab('leaderboard')">Pool Leaderboard</button>
+        </div>
+        
+        <div id="browse" class="tab-content active">
+            <h2 class="section-title">Available Pools</h2>
+            <div class="pools-grid" id="poolsGrid">
+                <div class="empty-state">
+                    <h3>Loading pools...</h3>
+                    <p>Please wait while we fetch available pools.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="create" class="tab-content">
+            <h2 class="section-title">Create a New Pool</h2>
+            <div class="wallet-required" id="walletWarning" style="display: none;">
+                Please <a href="/#wallet">create a wallet</a> first to create a pool.
+            </div>
+            <div class="create-pool-form">
+                <div class="form-group">
+                    <label for="poolName">Pool Name</label>
+                    <input type="text" id="poolName" placeholder="e.g., High Yield Arbitrage Pool">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="riskLevel">Risk Level</label>
+                        <select id="riskLevel" onchange="updateRiskInfo()">
+                            <option value="conservative">Conservative</option>
+                            <option value="balanced" selected>Balanced</option>
+                            <option value="aggressive">Aggressive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lockPeriod">Lock Period</label>
+                        <select id="lockPeriod">
+                            <option value="flexible">Flexible (1x bonus)</option>
+                            <option value="short">7 Days (1.25x bonus)</option>
+                            <option value="medium">30 Days (1.5x bonus)</option>
+                            <option value="long">90 Days (2x bonus)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="risk-info" id="riskInfo">
+                    <h4>Balanced Risk</h4>
+                    <p>Up to 50% of pool liquidity can be borrowed at once. Contributors receive 70% of arbitrage profits. Suitable for most investors seeking moderate returns with reasonable risk.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="initialDeposit">Initial Deposit (KENO)</label>
+                    <input type="number" id="initialDeposit" placeholder="Minimum: 100 KENO" min="100">
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="createPool()">
+                    Create Pool
+                </button>
+            </div>
+        </div>
+        
+        <div id="my-pools" class="tab-content">
+            <h2 class="section-title">My Contributions</h2>
+            <div class="my-contributions" id="myContributions">
+                <div class="empty-state">
+                    <h3>No contributions yet</h3>
+                    <p>Deposit to a pool to start earning token rewards from arbitrage trades.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="leaderboard" class="tab-content">
+            <h2 class="section-title">Top Performing Pools</h2>
+            <div style="overflow-x: auto;">
+                <table class="leaderboard-table" id="leaderboardTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Pool Name</th>
+                            <th>Total Liquidity</th>
+                            <th>Contributors</th>
+                            <th>Profit Distributed</th>
+                            <th>Success Rate</th>
+                            <th>APY</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">Loading leaderboard...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Deposit to Pool</h2>
+                <button class="close-btn" onclick="closeModal('depositModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Pool</label>
+                <input type="text" id="depositPoolName" readonly>
+                <input type="hidden" id="depositPoolId">
+            </div>
+            <div class="form-group">
+                <label for="depositAmount">Amount (KENO)</label>
+                <input type="number" id="depositAmount" placeholder="Minimum: 100 KENO" min="100">
+            </div>
+            <div class="form-group">
+                <label for="depositLockPeriod">Lock Period (Optional)</label>
+                <select id="depositLockPeriod">
+                    <option value="">Use pool default</option>
+                    <option value="flexible">Flexible (1x bonus)</option>
+                    <option value="short">7 Days (1.25x bonus)</option>
+                    <option value="medium">30 Days (1.5x bonus)</option>
+                    <option value="long">90 Days (2x bonus)</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="submitDeposit()">
+                Confirm Deposit
+            </button>
+        </div>
+    </div>
+    
+    <div class="modal" id="borrowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Borrow from Pool</h2>
+                <button class="close-btn" onclick="closeModal('borrowModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Pool</label>
+                <input type="text" id="borrowPoolName" readonly>
+                <input type="hidden" id="borrowPoolId">
+            </div>
+            <div class="form-group">
+                <label>Available Liquidity</label>
+                <input type="text" id="borrowAvailable" readonly>
+            </div>
+            <div class="form-group">
+                <label for="borrowAmount">Borrow Amount (KENO)</label>
+                <input type="number" id="borrowAmount" placeholder="Enter amount" min="100">
+            </div>
+            <p style="font-size: 13px; opacity: 0.7; margin-bottom: 15px;">
+                Flash loans must be repaid within 5 minutes. A 6% fee applies (1% platform + 5% pool).
+            </p>
+            <button class="btn btn-primary" style="width: 100%;" onclick="submitBorrow()">
+                Execute Flash Loan
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Dialog Modal (replaces browser alert/confirm) -->
+    <div id="customDialogModal" class="modal">
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <div id="dialogIcon" style="font-size: 3rem; margin-bottom: 16px;">✅</div>
+            <h3 id="dialogTitle" style="margin-bottom: 12px; font-size: 1.25rem;">Kenostod Academy</h3>
+            <p id="dialogMessage" style="opacity: 0.8; margin-bottom: 24px; line-height: 1.5; white-space: pre-line;"></p>
+            <div id="dialogButtons" style="display: flex; gap: 12px; justify-content: center;">
+                <button id="dialogCancelBtn" class="btn" onclick="handleDialogCancel()" style="background: transparent; border: 2px solid #00d4ff; display: none;">Cancel</button>
+                <button id="dialogOkBtn" class="btn btn-primary" onclick="handleDialogOk()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWallet = null;
+        let dialogResolve = null;
+
+        function showCustomAlert(message, icon = '✅') {
+            return new Promise((resolve) => {
+                dialogResolve = resolve;
+                const modal = document.getElementById('customDialogModal');
+                document.getElementById('dialogIcon').textContent = icon;
+                document.getElementById('dialogTitle').textContent = 'Kenostod Academy';
+                document.getElementById('dialogMessage').textContent = message;
+                document.getElementById('dialogCancelBtn').style.display = 'none';
+                document.getElementById('dialogOkBtn').textContent = 'OK';
+                modal.classList.add('active');
+            });
+        }
+
+        function showCustomConfirm(message, icon = '❓') {
+            return new Promise((resolve) => {
+                dialogResolve = resolve;
+                const modal = document.getElementById('customDialogModal');
+                document.getElementById('dialogIcon').textContent = icon;
+                document.getElementById('dialogTitle').textContent = 'Confirm Action';
+                document.getElementById('dialogMessage').textContent = message;
+                document.getElementById('dialogCancelBtn').style.display = 'inline-block';
+                document.getElementById('dialogOkBtn').textContent = 'OK';
+                modal.classList.add('active');
+            });
+        }
+
+        function handleDialogOk() {
+            document.getElementById('customDialogModal').classList.remove('active');
+            if (dialogResolve) { dialogResolve(true); dialogResolve = null; }
+        }
+
+        function handleDialogCancel() {
+            document.getElementById('customDialogModal').classList.remove('active');
+            if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
+        }
+        
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            if (tabId === 'browse') loadPools();
+            if (tabId === 'leaderboard') loadLeaderboard();
+            if (tabId === 'my-pools') loadMyContributions();
+        }
+        
+        function updateRiskInfo() {
+            const riskLevel = document.getElementById('riskLevel').value;
+            const infoDiv = document.getElementById('riskInfo');
+            
+            const riskDescriptions = {
+                conservative: {
+                    title: 'Conservative Risk',
+                    desc: 'Only 25% of pool liquidity can be borrowed at once. Contributors receive 60% of arbitrage profits. Best for risk-averse investors prioritizing capital preservation.'
+                },
+                balanced: {
+                    title: 'Balanced Risk',
+                    desc: 'Up to 50% of pool liquidity can be borrowed at once. Contributors receive 70% of arbitrage profits. Suitable for most investors seeking moderate returns with reasonable risk.'
+                },
+                aggressive: {
+                    title: 'Aggressive Risk',
+                    desc: 'Up to 75% of pool liquidity can be borrowed at once. Contributors receive 80% of arbitrage profits. Higher potential returns but increased exposure to defaults.'
+                }
+            };
+            
+            const info = riskDescriptions[riskLevel];
+            infoDiv.innerHTML = `<h4>${info.title}</h4><p>${info.desc}</p>`;
+        }
+        
+        async function loadPools() {
+            try {
+                const response = await fetch('/api/fal-pool/list');
+                const data = await response.json();
+                
+                const grid = document.getElementById('poolsGrid');
+                
+                if (!data.success || data.pools.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No pools available yet</h3>
+                            <p>Be the first to create a Flash Arbitrage Loan Pool!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                grid.innerHTML = data.pools.map(pool => {
+                    const apy = pool.estimatedAPY || 15;
+                    const monthlyReturn1000 = ((1000 * apy / 100) / 12).toFixed(1);
+                    return `
+                    <div class="pool-card">
+                        <div class="pool-header">
+                            <div>
+                                <div class="pool-name">${pool.name}</div>
+                                <div class="pool-id">${pool.id}</div>
+                            </div>
+                            <span class="risk-badge risk-${pool.riskLevel}">${pool.riskLevel.toUpperCase()}</span>
+                        </div>
+                        <div class="pool-stats">
+                            <div class="pool-stat">
+                                <div class="pool-stat-value">${formatNumber(pool.totalLiquidity)} KENO</div>
+                                <div class="pool-stat-label">Total Liquidity</div>
+                            </div>
+                            <div class="pool-stat">
+                                <div class="pool-stat-value">${formatNumber(pool.availableLiquidity)} KENO</div>
+                                <div class="pool-stat-label">Available</div>
+                            </div>
+                            <div class="pool-stat">
+                                <div class="pool-stat-value apy-highlight">${apy.toFixed(1)}%</div>
+                                <div class="pool-stat-label">Est. APY</div>
+                            </div>
+                            <div class="pool-stat">
+                                <div class="pool-stat-value">${pool.totalContributors}</div>
+                                <div class="pool-stat-label">Contributors</div>
+                            </div>
+                        </div>
+                        <div class="earnings-calc">
+                            <div class="earnings-calc-value">+${monthlyReturn1000} KENO/month</div>
+                            <div class="earnings-calc-label">Estimated return on 1,000 KENO deposit</div>
+                        </div>
+                        <div class="pool-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${pool.totalLiquidity > 0 ? ((pool.availableLiquidity / pool.totalLiquidity) * 100) : 100}%"></div>
+                            </div>
+                        </div>
+                        <div class="quick-deposit-btns">
+                            <button class="quick-deposit-btn" onclick="quickDeposit('${pool.id}', '${pool.name}', 100)">100 KENO</button>
+                            <button class="quick-deposit-btn" onclick="quickDeposit('${pool.id}', '${pool.name}', 500)">500 KENO</button>
+                            <button class="quick-deposit-btn" onclick="quickDeposit('${pool.id}', '${pool.name}', 1000)">1K KENO</button>
+                        </div>
+                        <div class="pool-actions">
+                            <button class="btn btn-primary" onclick="openDepositModal('${pool.id}', '${pool.name}')">Custom Deposit</button>
+                            <button class="btn btn-trade" onclick="borrowAndTrade('${pool.id}', '${pool.name}', ${pool.availableLiquidity})">Borrow & Trade</button>
+                        </div>
+                    </div>
+                `;}).join('');
+                
+                updateGlobalStats(data.pools);
+                
+            } catch (error) {
+                console.error('Error loading pools:', error);
+                document.getElementById('poolsGrid').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error loading pools</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function updateGlobalStats(pools) {
+            document.getElementById('totalPools').textContent = pools.length;
+            document.getElementById('totalLiquidity').textContent = formatNumber(
+                pools.reduce((sum, p) => sum + (p.totalLiquidity || 0), 0)
+            ) + ' KENO';
+            document.getElementById('totalDistributed').textContent = formatNumber(
+                pools.reduce((sum, p) => sum + (p.totalProfitDistributed || 0), 0)
+            ) + ' KENO';
+            
+            const avgAPY = pools.length > 0 
+                ? pools.reduce((sum, p) => sum + (p.estimatedAPY || 15), 0) / pools.length 
+                : 15;
+            document.getElementById('avgAPY').textContent = avgAPY.toFixed(1) + '%';
+        }
+        
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/api/fal-pool/leaderboard');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('leaderboardBody');
+                
+                if (!data.success || data.leaderboard.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">No pools in leaderboard yet</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = data.leaderboard.map((pool, index) => `
+                    <tr>
+                        <td>
+                            <span class="rank-badge ${index < 3 ? `rank-${index + 1}` : ''}">${index + 1}</span>
+                        </td>
+                        <td>
+                            <strong>${pool.name}</strong>
+                            <div style="font-size: 11px; opacity: 0.6;">${pool.id}</div>
+                        </td>
+                        <td>${formatNumber(pool.totalLiquidity)} KENO</td>
+                        <td>${pool.totalContributors}</td>
+                        <td style="color: #00ff64;">${formatNumber(pool.totalProfitDistributed)} KENO</td>
+                        <td>${pool.successRate?.toFixed(1) || 100}%</td>
+                        <td style="color: #00d4ff; font-weight: 600;">${pool.estimatedAPY?.toFixed(1) || 15}%</td>
+                    </tr>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+        
+        async function loadMyContributions() {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                document.getElementById('myContributions').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Wallet Required</h3>
+                        <p>Please <a href="/#wallet" style="color: #00d4ff;">create or connect a wallet</a> to view your contributions.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/fal-pool/contributor/${wallet.address}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('myContributions');
+                
+                if (!data.success || data.contributions.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No contributions yet</h3>
+                            <p>Deposit to a pool to start earning token rewards from arbitrage trades.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div style="margin-bottom: 20px; padding: 15px; background: rgba(0, 255, 100, 0.1); border-radius: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <div style="font-size: 24px; font-weight: 700; color: #00d4ff;">${formatNumber(data.totalDeposited)} KENO</div>
+                                <div style="font-size: 12px; opacity: 0.7;">Total Deposited</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 24px; font-weight: 700; color: #00ff64;">${formatNumber(data.totalEarnings)} KENO</div>
+                                <div style="font-size: 12px; opacity: 0.7;">Total Earnings</div>
+                            </div>
+                        </div>
+                    </div>
+                    ${data.contributions.filter(c => c.status === 'active').map(c => `
+                        <div class="contribution-item">
+                            <div class="contribution-info">
+                                <h4>${c.poolName}</h4>
+                                <span>Share: ${c.sharePercentage.toFixed(2)}% | Lock: ${c.lockPeriod}</span>
+                            </div>
+                            <div class="contribution-stats">
+                                <div class="contribution-amount">${formatNumber(c.amount)} KENO</div>
+                                <div class="contribution-earnings">+${formatNumber(c.totalEarned)} earned</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+                
+            } catch (error) {
+                console.error('Error loading contributions:', error);
+            }
+        }
+        
+        function openDepositModal(poolId, poolName) {
+            document.getElementById('depositPoolId').value = poolId;
+            document.getElementById('depositPoolName').value = poolName;
+            document.getElementById('depositAmount').value = '';
+            document.getElementById('depositModal').classList.add('active');
+        }
+        
+        function openBorrowModal(poolId, poolName, available) {
+            document.getElementById('borrowPoolId').value = poolId;
+            document.getElementById('borrowPoolName').value = poolName;
+            document.getElementById('borrowAvailable').value = formatNumber(available) + ' KENO';
+            document.getElementById('borrowAmount').value = '';
+            document.getElementById('borrowModal').classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        async function createPool() {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                await showCustomAlert('Please create a wallet first at the main page.', '⚠️');
+                return;
+            }
+            
+            const poolName = document.getElementById('poolName').value.trim();
+            const riskLevel = document.getElementById('riskLevel').value;
+            const lockPeriod = document.getElementById('lockPeriod').value;
+            const initialDeposit = parseFloat(document.getElementById('initialDeposit').value) || 0;
+            
+            if (!poolName) {
+                await showCustomAlert('Please enter a pool name.', '⚠️');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/fal-pool/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: wallet.address,
+                        poolName,
+                        riskLevel,
+                        lockPeriod,
+                        initialDeposit
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showCustomAlert(data.message, '✅');
+                    document.getElementById('poolName').value = '';
+                    document.getElementById('initialDeposit').value = '';
+                    switchTab('browse');
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error creating pool: ' + error.message, '❌');
+            }
+        }
+        
+        async function submitDeposit() {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                await showCustomAlert('Please create a wallet first.', '⚠️');
+                return;
+            }
+            
+            const poolId = document.getElementById('depositPoolId').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            const lockPeriod = document.getElementById('depositLockPeriod').value || null;
+            
+            if (!amount || amount < 100) {
+                await showCustomAlert('Minimum deposit is 100 KENO.', '⚠️');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/fal-pool/deposit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        poolId,
+                        walletAddress: wallet.address,
+                        amount,
+                        lockPeriod
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showCustomAlert(data.message, '✅');
+                    closeModal('depositModal');
+                    loadPools();
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error depositing: ' + error.message, '❌');
+            }
+        }
+        
+        async function submitBorrow() {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                await showCustomAlert('Please create a wallet first.', '⚠️');
+                return;
+            }
+            
+            const poolId = document.getElementById('borrowPoolId').value;
+            const amount = parseFloat(document.getElementById('borrowAmount').value);
+            
+            if (!amount || amount < 100) {
+                await showCustomAlert('Minimum borrow amount is 100 KENO.', '⚠️');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/fal-pool/borrow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        poolId,
+                        walletAddress: wallet.address,
+                        amount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showCustomAlert(data.message + '\n\nLoan ID: ' + data.loanId + '\n\nRemember to repay within 5 minutes!', '✅');
+                    closeModal('borrowModal');
+                    loadPools();
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error borrowing: ' + error.message, '❌');
+            }
+        }
+        
+        function getStoredWallet() {
+            try {
+                const stored = localStorage.getItem('kenostod_wallet_state');
+                if (stored) {
+                    const wallet = JSON.parse(stored);
+                    if (wallet && wallet.publicKey) {
+                        return { address: wallet.publicKey, privateKey: wallet.privateKey };
+                    }
+                }
+                
+                const addressOnly = localStorage.getItem('userWalletAddress') || 
+                                   localStorage.getItem('walletAddress');
+                if (addressOnly) {
+                    return { address: addressOnly };
+                }
+                
+                return null;
+            } catch (e) {
+                console.error('Error loading wallet:', e);
+                return null;
+            }
+        }
+        
+        function formatNumber(num) {
+            if (!num && num !== 0) return '0';
+            return parseFloat(num).toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+        
+        let activePoolLoan = null;
+        let loanCountdownInterval = null;
+        
+        async function quickDeposit(poolId, poolName, amount) {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                await showCustomAlert('Please create a wallet first at the main page.', '⚠️');
+                return;
+            }
+            
+            const confirmed = await showCustomConfirm(
+                `Quick Deposit ${amount} KENO to "${poolName}"?\n\nYou'll start earning token rewards from arbitrage trades immediately!`,
+                '💰'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const response = await fetch('/api/fal-pool/deposit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        poolId,
+                        walletAddress: wallet.address,
+                        amount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showCustomAlert(`Deposited ${amount} KENO successfully!\n\n${data.message}`, '✅');
+                    loadPools();
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error depositing: ' + error.message, '❌');
+            }
+        }
+        
+        async function borrowAndTrade(poolId, poolName, availableLiquidity) {
+            const wallet = getStoredWallet();
+            if (!wallet) {
+                await showCustomAlert('Please create a wallet first at the main page.', '⚠️');
+                return;
+            }
+            
+            const maxBorrow = Math.min(availableLiquidity, 10000);
+            const suggestedAmount = Math.min(1000, maxBorrow);
+            
+            const confirmed = await showCustomConfirm(
+                `Borrow & Trade Flow\n\n1. Borrow ${suggestedAmount} KENO from "${poolName}"\n2. Go to Arbitrage page\n3. Execute profitable trades\n4. Keep the profit!\n\nPool Fee: 6% (${(suggestedAmount * 0.06).toFixed(0)} KENO)\nAvailable: ${formatNumber(availableLiquidity)} KENO\n\nProceed with flash loan?`,
+                '⚡'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const response = await fetch('/api/fal-pool/borrow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        poolId,
+                        walletAddress: wallet.address,
+                        amount: suggestedAmount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    activePoolLoan = {
+                        loanId: data.loanId,
+                        amount: suggestedAmount,
+                        poolName: poolName,
+                        poolId: poolId,
+                        fee: suggestedAmount * 0.06,
+                        expiresAt: Date.now() + (5 * 60 * 1000)
+                    };
+                    localStorage.setItem('activePoolLoan', JSON.stringify(activePoolLoan));
+                    
+                    await showCustomAlert(
+                        `Flash Loan Approved!\n\nAmount: ${suggestedAmount} KENO\nFee: ${(suggestedAmount * 0.06).toFixed(0)} KENO\nTime Limit: 5 minutes\n\nRedirecting to Arbitrage page...`,
+                        '⚡'
+                    );
+                    
+                    window.location.href = '/arbitrage.html?poolLoan=' + data.loanId;
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error borrowing: ' + error.message, '❌');
+            }
+        }
+        
+        function goToArbitrageWithLoan() {
+            if (activePoolLoan) {
+                window.location.href = '/arbitrage.html?poolLoan=' + activePoolLoan.loanId;
+            } else {
+                window.location.href = '/arbitrage.html';
+            }
+        }
+        
+        async function repayPoolLoan() {
+            if (!activePoolLoan) {
+                await showCustomAlert('No active pool loan found.', '⚠️');
+                return;
+            }
+            
+            const wallet = getStoredWallet();
+            if (!wallet) return;
+            
+            const confirmed = await showCustomConfirm(
+                `Repay Pool Loan?\n\nAmount: ${activePoolLoan.amount} KENO\nFee: ${activePoolLoan.fee.toFixed(0)} KENO\nTotal Due: ${(activePoolLoan.amount + activePoolLoan.fee).toFixed(0)} KENO\n\nNote: You'll keep any arbitrage profits you made!`,
+                '💳'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const response = await fetch('/api/fal-pool/repay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        loanId: activePoolLoan.loanId,
+                        walletAddress: wallet.address,
+                        profit: 0
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await showCustomAlert('Loan repaid successfully!\n\n' + data.message, '✅');
+                    activePoolLoan = null;
+                    localStorage.removeItem('activePoolLoan');
+                    clearInterval(loanCountdownInterval);
+                    document.getElementById('activeLoanBanner').classList.remove('visible');
+                    loadPools();
+                } else {
+                    await showCustomAlert('Error: ' + data.error, '❌');
+                }
+            } catch (error) {
+                await showCustomAlert('Error repaying: ' + error.message, '❌');
+            }
+        }
+        
+        function updateLoanBanner() {
+            if (!activePoolLoan) return;
+            
+            const banner = document.getElementById('activeLoanBanner');
+            banner.classList.add('visible');
+            
+            document.getElementById('loanAmount').textContent = formatNumber(activePoolLoan.amount) + ' KENO';
+            document.getElementById('loanPool').textContent = activePoolLoan.poolName;
+            document.getElementById('loanFee').textContent = formatNumber(activePoolLoan.fee) + ' KENO';
+            
+            if (loanCountdownInterval) clearInterval(loanCountdownInterval);
+            
+            loanCountdownInterval = setInterval(() => {
+                const timeLeft = activePoolLoan.expiresAt - Date.now();
+                if (timeLeft <= 0) {
+                    document.getElementById('loanTimeLeft').textContent = 'EXPIRED!';
+                    document.getElementById('loanTimeLeft').style.color = '#ff5050';
+                    clearInterval(loanCountdownInterval);
+                } else {
+                    const minutes = Math.floor(timeLeft / 60000);
+                    const seconds = Math.floor((timeLeft % 60000) / 1000);
+                    document.getElementById('loanTimeLeft').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    if (timeLeft < 60000) {
+                        document.getElementById('loanTimeLeft').style.color = '#ff5050';
+                    }
+                }
+            }, 1000);
+        }
+        
+        function checkStoredPoolLoan() {
+            const stored = localStorage.getItem('activePoolLoan');
+            if (stored) {
+                try {
+                    activePoolLoan = JSON.parse(stored);
+                    if (activePoolLoan.expiresAt > Date.now()) {
+                        updateLoanBanner();
+                    } else {
+                        localStorage.removeItem('activePoolLoan');
+                        activePoolLoan = null;
+                    }
+                } catch (e) {
+                    localStorage.removeItem('activePoolLoan');
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPools();
+            
+            const wallet = getStoredWallet();
+            currentWallet = wallet;
+            
+            if (!wallet) {
+                document.getElementById('walletWarning').style.display = 'block';
+            }
+            
+            checkStoredPoolLoan();
+        });
+        
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>

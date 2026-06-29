@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course 9: Proof-of-Work Mining | Kenostod Academy</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #3b82f6;
+            --gold: #f59e0b;
+            --purple: #8b5cf6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --orange: #f97316;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 40px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-content { max-width: 1000px; margin: 0 auto; }
+
+        .breadcrumb { color: var(--text-muted); margin-bottom: 15px; font-size: 0.9em; }
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .course-title {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-title .icon { font-size: 1.2em; }
+
+        .locked-badge {
+            background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.4em;
+            font-weight: 700;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 30px;
+            padding: 30px 20px;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .toc-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toc-title {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .toc-list { list-style: none; }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .toc-item:hover, .toc-item.active { background: rgba(20, 184, 166, 0.15); color: var(--primary); }
+
+        .toc-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .toc-item.active .toc-number { background: var(--primary); color: var(--bg-dark); }
+
+        .content-area { flex: 1; min-width: 0; }
+
+        .lesson-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon { font-size: 1em; }
+
+        .reading-content { font-size: 1.05em; color: var(--text-light); }
+        .reading-content p { margin-bottom: 18px; }
+        .reading-content h3 { color: var(--primary); margin: 30px 0 15px; font-size: 1.3em; }
+        .reading-content h4 { color: var(--gold); margin: 25px 0 12px; font-size: 1.1em; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(239, 68, 68, 0.15));
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(34, 197, 94, 0.15));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .highlight-box.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .highlight-title { font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .concept-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .concept-box h4 { color: var(--gold); margin-bottom: 10px; }
+
+        .visual-diagram { background: linear-gradient(135deg, #1a2744 0%, #0f172a 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; }
+        .visual-diagram img { max-width: 100%; border-radius: 8px; }
+        .visual-diagram .caption { color: var(--text-muted); font-size: 0.9em; margin-top: 15px; }
+
+        .step-list { counter-reset: step-counter; list-style: none; margin: 20px 0; }
+        .step-list li { counter-increment: step-counter; padding: 20px 20px 20px 70px; background: var(--bg-dark); border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .step-list li::before { content: counter(step-counter); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+
+        .step-item {
+            position: relative;
+            padding: 20px 20px 20px 70px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .step-title { font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+
+        .success-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .success-box h4 { color: var(--success); margin-bottom: 10px; }
+
+        .code-block { background: #0d1117; border-radius: 8px; padding: 20px; margin: 15px 0; font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.85em; overflow-x: auto; border: 1px solid rgba(255,255,255,0.1); color: #e6edf3; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        .comparison-table th {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 12px 16px;
+            text-align: left;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .comparison-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .case-study {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .case-study h4 { color: var(--purple); margin-bottom: 12px; font-size: 1.1em; }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .exercise-box h4 { color: var(--gold); margin-bottom: 12px; }
+
+        .exercise-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .exercise-question textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 0.95em;
+            margin-top: 8px;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .check-answer-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .answer-feedback {
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .practice-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .practice-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3); }
+
+        .quiz-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid #8b5cf6;
+        }
+
+        .quiz-question {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-text { font-weight: 600; margin-bottom: 15px; }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .quiz-option.selected { border-color: var(--purple); background: rgba(139, 92, 246, 0.1); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); }
+        .quiz-option.incorrect { border-color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+
+        .quiz-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quiz-option.selected .quiz-radio { border-color: var(--purple); background: var(--purple); }
+        .quiz-option.correct .quiz-radio { border-color: var(--success); background: var(--success); }
+        .quiz-option.incorrect .quiz-radio { border-color: var(--danger); background: var(--danger); }
+
+        .submit-quiz-btn {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3); }
+
+        .quiz-result {
+            display: none;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .quiz-result.show { display: block; }
+        .quiz-result.passed { background: rgba(16, 185, 129, 0.15); border: 2px solid var(--success); }
+        .quiz-result.failed { background: rgba(239, 68, 68, 0.15); border: 2px solid var(--danger); }
+
+        .result-icon { font-size: 3em; }
+        .result-title { font-size: 1.5em; margin-bottom: 10px; }
+
+        .next-course-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold), #d97706);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .next-course-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3); }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            padding-bottom: 20px;
+            border-left: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 50%;
+        }
+
+        .timeline-item:last-child { border-left: none; }
+        .timeline-item h5 { color: var(--secondary); margin-bottom: 5px; }
+        .timeline-item p { color: var(--text-muted); font-size: 0.9em; }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .vocab-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .vocab-card .vocab-term { font-weight: 700; color: var(--secondary); margin-bottom: 4px; font-size: 0.95em; }
+        .vocab-card .vocab-def { color: var(--text-muted); font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; position: relative; top: 0; max-height: none; }
+            .vocab-grid { grid-template-columns: 1fr; }
+            .course-title { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+    <header class="course-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/">Home</a> / <a href="/#courses">Courses</a> / Course 9
+            </div>
+            <h1 class="course-title">
+                <span class="icon">&#9935;</span>
+                Course 9: Proof-of-Work Mining
+                <span class="locked-badge">PREMIUM</span>
+            </h1>
+            <div class="course-meta">
+                <div class="meta-item"><span>&#128218;</span><span>14 Lessons</span></div>
+                <div class="meta-item"><span>&#9200;</span><span>~2 hours</span></div>
+                <div class="meta-item"><span>&#127919;</span><span>Intermediate Level</span></div>
+                <div class="meta-item"><span>&#127942;</span><span>250 KENO upon completion</span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="toc-card">
+                <h3 class="toc-title">&#128214; Lesson Contents</h3>
+                <ul class="toc-list">
+                    <li class="toc-item active" onclick="scrollToSection('objectives')"><span class="toc-number">1</span>Learning Objectives</li>
+                    <li class="toc-item" onclick="scrollToSection('what-is-pow')"><span class="toc-number">2</span>What is Proof of Work?</li>
+                    <li class="toc-item" onclick="scrollToSection('double-spending')"><span class="toc-number">3</span>The Double-Spending Problem</li>
+                    <li class="toc-item" onclick="scrollToSection('mining-process')"><span class="toc-number">4</span>Mining Step by Step</li>
+                    <li class="toc-item" onclick="scrollToSection('hash-puzzles')"><span class="toc-number">5</span>Hash Puzzles &amp; Nonces</li>
+                    <li class="toc-item" onclick="scrollToSection('difficulty')"><span class="toc-number">6</span>Difficulty Adjustment</li>
+                    <li class="toc-item" onclick="scrollToSection('nakamoto')"><span class="toc-number">7</span>Nakamoto Consensus</li>
+                    <li class="toc-item" onclick="scrollToSection('mining-evolution')"><span class="toc-number">8</span>Mining Hardware Evolution</li>
+                    <li class="toc-item" onclick="scrollToSection('mining-pools')"><span class="toc-number">9</span>Mining Pools</li>
+                    <li class="toc-item" onclick="scrollToSection('economics')"><span class="toc-number">10</span>Mining Economics</li>
+                    <li class="toc-item" onclick="scrollToSection('energy')"><span class="toc-number">11</span>Energy &amp; Environment</li>
+                    <li class="toc-item" onclick="scrollToSection('pow-vs-pos')"><span class="toc-number">12</span>PoW vs PoS &amp; Others</li>
+                    <li class="toc-item" onclick="scrollToSection('attacks')"><span class="toc-number">13</span>51% Attack &amp; Security</li>
+                    <li class="toc-item" onclick="scrollToSection('kenostod-pow')"><span class="toc-number">14</span>Kenostod PoW</li>
+                    <li class="toc-item" onclick="scrollToSection('case-studies')"><span class="toc-number">15</span>Real-World Case Studies</li>
+                    <li class="toc-item" onclick="scrollToSection('exercises')"><span class="toc-number">16</span>Written Exercises</li>
+                    <li class="toc-item" onclick="scrollToSection('practice')"><span class="toc-number">17</span>Hands-On Lab</li>
+                    <li class="toc-item" onclick="scrollToSection('quiz')"><span class="toc-number">18</span>Final Exam (12 Questions)</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content-area">
+
+            <section id="objectives" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#127919;</span>Learning Objectives</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">By the end of this course, you will be able to:</p>
+                <ul class="step-list">
+                    <li class="step-item"><div class="step-title">Explain what Proof of Work is and why it is essential for trustless digital currency</div></li>
+                    <li class="step-item"><div class="step-title">Describe how PoW solves the double-spending problem without a central authority</div></li>
+                    <li class="step-item"><div class="step-title">Walk through the complete mining process: gathering transactions, constructing blocks, hashing, and finding valid nonces</div></li>
+                    <li class="step-item"><div class="step-title">Understand hash puzzles, difficulty targets, and how the network self-regulates block times</div></li>
+                    <li class="step-item"><div class="step-title">Explain Nakamoto Consensus and the longest-chain rule for resolving forks</div></li>
+                    <li class="step-item"><div class="step-title">Trace the evolution of mining hardware from CPUs to GPUs to ASICs</div></li>
+                    <li class="step-item"><div class="step-title">Analyze mining economics including block rewards, halving schedules, and profitability calculations</div></li>
+                    <li class="step-item"><div class="step-title">Compare Proof of Work with Proof of Stake and other consensus mechanisms</div></li>
+                    <li class="step-item"><div class="step-title">Evaluate the energy consumption debate and environmental considerations</div></li>
+                    <li class="step-item"><div class="step-title">Mine your first block in the Kenostod simulator and earn KENO rewards</div></li>
+                </ul>
+
+                <div class="highlight-box">
+                    <div class="highlight-title">&#128337; Estimated Completion Time</div>
+                    <p>This course is designed for thorough learning. Plan for <strong>approximately 2 hours</strong> of reading, exercises, and practice. Take breaks between sections. Proof of Work is foundational to understanding blockchain security, and mastering it will give you a deep appreciation for how decentralized networks achieve consensus without trust.</p>
+                </div>
+            </section>
+
+            <section id="what-is-pow" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9935;</span>What is Proof of Work?</h2>
+                <div class="reading-content">
+                    <p><strong>Proof of Work (PoW)</strong> is a consensus mechanism that requires participants to expend computational effort to validate transactions and create new blocks on a blockchain. It is the original and most battle-tested method for achieving decentralized agreement on the state of a shared ledger.</p>
+
+                    <p>The core idea is deceptively simple: to earn the right to add a block to the blockchain, you must demonstrate that you have performed a measurable amount of computational work. This work is easy for anyone to <em>verify</em> but extremely expensive to <em>produce</em>. This asymmetry &mdash; hard to create, easy to check &mdash; is what makes the entire system secure.</p>
+
+                    <p>The concept predates Bitcoin. In 1993, Cynthia Dwork and Moni Naor proposed requiring computational work to deter email spam. In 1997, Adam Back created <strong>Hashcash</strong>, a PoW system for email anti-spam that required senders to compute a partial hash collision before sending an email. Satoshi Nakamoto adapted this concept for Bitcoin in 2008, turning it into the backbone of the first decentralized digital currency.</p>
+
+                    <div class="visual-diagram">
+                        <img src="/assets/course-images/proof_of_work_mining_process.png" alt="Proof of Work Mining Process">
+                        <p class="caption">Figure: The mining process &mdash; miners compete to find a valid hash through computational work</p>
+                    </div>
+
+                    <h3>Why Does Proof of Work Matter?</h3>
+                    <p>Before Bitcoin, every digital payment system required a <strong>trusted third party</strong> &mdash; a bank, a payment processor, or a central server &mdash; to verify that money wasn't being spent twice. Proof of Work eliminated this requirement by replacing trust with mathematics.</p>
+
+                    <p>PoW matters because it provides three critical guarantees:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Sybil Resistance:</strong> An attacker cannot simply create millions of fake identities to take over the network. Each "vote" on the valid chain requires real computational work and real electricity.</li>
+                        <li><strong>Immutability:</strong> Altering any historical block requires re-doing all the computational work for that block and every subsequent block. As the chain grows, this becomes exponentially more expensive.</li>
+                        <li><strong>Fair Distribution:</strong> New coins are distributed to those who contribute security to the network, creating an economic incentive to be honest rather than malicious.</li>
+                    </ul>
+
+                    <div class="concept-box">
+                        <h4>&#128161; The Fundamental Trade-off</h4>
+                        <p>Proof of Work converts electricity and hardware into <strong>trust</strong>. The network is secure precisely because attacking it would cost more than any potential gain. This is sometimes called "thermodynamic security" &mdash; the laws of physics guarantee that reversing the blockchain requires an enormous expenditure of real-world energy.</p>
+                    </div>
+
+                    <h3>Key Vocabulary</h3>
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Consensus Mechanism</div>
+                            <div class="vocab-def">A protocol for multiple nodes to agree on the state of a shared ledger without trusting each other.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Hash Function</div>
+                            <div class="vocab-def">A one-way mathematical function that converts any input into a fixed-size output (the "hash" or "digest").</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Mining</div>
+                            <div class="vocab-def">The process of expending computational power to find a valid block hash that meets the network's difficulty target.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Nonce</div>
+                            <div class="vocab-def">"Number used once" &mdash; a variable miners change repeatedly to produce different hash outputs until one meets the target.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Block Reward</div>
+                            <div class="vocab-def">The newly minted cryptocurrency awarded to the miner who successfully mines a block.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Hashrate</div>
+                            <div class="vocab-def">The number of hash computations a miner (or the network) can perform per second, measuring mining power.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="double-spending" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>The Double-Spending Problem</h2>
+                <div class="reading-content">
+                    <p>The <strong>double-spending problem</strong> is the fundamental challenge that all digital currencies must solve. Unlike physical cash, which can only be in one place at a time, digital information can be copied endlessly. Without a solution, nothing stops someone from sending the same digital coin to two different people simultaneously.</p>
+
+                    <h3>How Traditional Systems Solve It</h3>
+                    <p>Banks solve double-spending through centralization. When you swipe your debit card, your bank checks a central database, verifies your balance, deducts the amount, and records the transaction. This works, but it requires you to trust the bank completely. The bank can freeze your account, reverse your transactions, deny service, or even become insolvent (as we saw with bank failures in 2008 and 2023).</p>
+
+                    <h3>How Proof of Work Solves It</h3>
+                    <p>Proof of Work solves double-spending without any central authority through a combination of mechanisms:</p>
+
+                    <ul class="step-list">
+                        <li><strong>Public Ledger:</strong> Every transaction is broadcast to the entire network. All nodes maintain a copy of every transaction ever made, so conflicting transactions are immediately visible.</li>
+                        <li><strong>Block Ordering:</strong> Transactions are grouped into blocks that form an ordered chain. Once a transaction is included in a block and that block is mined (with computational work), it becomes part of the canonical history.</li>
+                        <li><strong>Computational Cost:</strong> To change a confirmed transaction, an attacker would need to re-mine that block AND all subsequent blocks, which requires more computational power than the rest of the network combined.</li>
+                        <li><strong>Longest Chain Rule:</strong> When two conflicting chains exist, the network follows the one with the most accumulated work. Honest miners always build on the longest chain, making it grow faster than any attacker's chain.</li>
+                    </ul>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; Real-World Example</div>
+                        <p>Imagine Alice has 1 BTC. She sends it to Bob for a laptop and simultaneously sends the same 1 BTC to herself at a different address. Both transactions are broadcast to the network. Miners see both and know they conflict. They include only one in the next block. The transaction in the mined block becomes valid; the other is discarded. After 6 confirmations (~60 minutes in Bitcoin), the transaction is considered irreversible because re-mining 6 blocks would require more energy than a small country consumes.</p>
+                    </div>
+
+                    <h3>Confirmation Depth and Finality</h3>
+                    <p>The security of a transaction increases with each new block mined on top of it. This is called "confirmation depth":</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Confirmations</th>
+                                <th>Security Level</th>
+                                <th>Typical Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0 (unconfirmed)</td>
+                                <td>Very Low</td>
+                                <td>Not recommended for anything of value</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>Low-Medium</td>
+                                <td>Small purchases (coffee, digital goods)</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Medium</td>
+                                <td>Moderate purchases (electronics, services)</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>High (Bitcoin standard)</td>
+                                <td>Large transactions, exchange deposits</td>
+                            </tr>
+                            <tr>
+                                <td>60+</td>
+                                <td>Extremely High</td>
+                                <td>Very large sums, institutional transactions</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="mining-process" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9881;&#65039;</span>The Mining Process Step by Step</h2>
+                <div class="reading-content">
+                    <p>Mining is often described as "solving complex math puzzles," but that's an oversimplification. Let's break down exactly what happens when a miner attempts to create a new block.</p>
+
+                    <ul class="step-list">
+                        <li>
+                            <strong>Step 1: Gather Transactions from the Mempool</strong>
+                            <p style="margin-top: 8px;">The mempool (memory pool) is a waiting area where unconfirmed transactions sit after being broadcast to the network. Miners select transactions from the mempool, typically prioritizing those with higher fees. A miner might select anywhere from a few dozen to several thousand transactions for a single block.</p>
+                        </li>
+                        <li>
+                            <strong>Step 2: Create the Coinbase Transaction</strong>
+                            <p style="margin-top: 8px;">The very first transaction in every block is the "coinbase transaction." This is a special transaction that creates new coins out of thin air and sends them to the miner's address. It represents the block reward plus all transaction fees from included transactions. This is how new currency enters circulation.</p>
+                        </li>
+                        <li>
+                            <strong>Step 3: Build the Merkle Tree</strong>
+                            <p style="margin-top: 8px;">All selected transactions (including the coinbase) are organized into a Merkle tree &mdash; a binary tree of hashes. Each pair of transaction hashes is combined and hashed again, working upward until a single hash remains: the <strong>Merkle root</strong>. This root provides a compact summary of all transactions. If any transaction changes, the Merkle root changes completely.</p>
+                        </li>
+                        <li>
+                            <strong>Step 4: Construct the Block Header</strong>
+                            <p style="margin-top: 8px;">The block header is an 80-byte data structure containing six fields: version number, previous block hash, Merkle root, timestamp, difficulty target (nBits), and nonce. This compact header is what gets hashed repeatedly during mining.</p>
+                        </li>
+                        <li>
+                            <strong>Step 5: Hash and Find the Golden Nonce</strong>
+                            <p style="margin-top: 8px;">The miner runs SHA-256 twice (double-SHA-256) on the block header. If the resulting hash is below the current difficulty target, the block is valid. If not, the miner increments the nonce by 1 and tries again. This process repeats billions or trillions of times until a valid hash is found.</p>
+                        </li>
+                        <li>
+                            <strong>Step 6: Broadcast the Block</strong>
+                            <p style="margin-top: 8px;">When a valid hash is found, the miner immediately broadcasts the complete block (header + all transactions) to the network. Other nodes verify the block independently: they check the hash is valid, all transactions are legitimate, the Merkle root matches, and the previous block hash is correct. Once verified, they add it to their copy of the chain and start mining the next block.</p>
+                        </li>
+                    </ul>
+
+                    <h3>Block Structure Anatomy</h3>
+                    <div class="code-block">
+Block #750,000
+├── Block Header (80 bytes)
+│   ├── Version:          0x20000000
+│   ├── Prev Block Hash:  00000000000000000002a7c4...
+│   ├── Merkle Root:      8a3f5c9e7b1d2a4f...
+│   ├── Timestamp:        1654321098 (Unix time)
+│   ├── Difficulty (nBits): 386,635,001
+│   └── Nonce:            2,891,457,322
+│
+├── Transaction Count:    2,847
+├── Coinbase TX:          6.25 BTC + 0.18 BTC fees → Miner Address
+├── Transaction 1:        Alice → Bob (0.5 BTC)
+├── Transaction 2:        Carol → Dave (1.2 BTC)
+│   ...
+└── Transaction 2,847:    Eve → Frank (0.01 BTC)
+
+Block Hash: 0000000000000000000590fc...
+(Must be below difficulty target)
+                    </div>
+                </div>
+            </section>
+
+            <section id="hash-puzzles" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Hash Puzzles, Nonces &amp; Block Structure</h2>
+                <div class="reading-content">
+                    <p>At the heart of Proof of Work is the <strong>hash puzzle</strong>: finding an input that produces a hash output meeting specific criteria. Let's understand this in depth.</p>
+
+                    <h3>Properties of SHA-256</h3>
+                    <p>Bitcoin and Kenostod use the SHA-256 hash function, which has several critical properties that make mining possible:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Deterministic:</strong> The same input always produces the exact same 256-bit (64 hex character) output.</li>
+                        <li><strong>Avalanche Effect:</strong> Changing even a single bit of input completely changes the output. There's no way to predict how the hash will change.</li>
+                        <li><strong>One-Way:</strong> Given a hash output, there's no way to reverse-engineer the input. The only approach is brute force.</li>
+                        <li><strong>Collision Resistant:</strong> It's computationally infeasible to find two different inputs that produce the same hash.</li>
+                        <li><strong>Fixed Output Size:</strong> Whether you hash "hello" or the entire Library of Congress, the output is always exactly 256 bits.</li>
+                    </ul>
+
+                    <h3>The Hash Puzzle Explained</h3>
+                    <div class="code-block">
+SHA-256("Hello") = 185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969
+SHA-256("Hello!") = 334d016f755cd6dc58c53a86e183882f8ec14f52fb05345887c8a5edd42c87b7
+SHA-256("Hello!!") = 7a0d2c0d9e33ff06d3e28a0e7ad0cd8d64e4b37fce27c3cf3f69c4f7c1a55b60
+
+Notice: Changing ONE character produces a completely different hash.
+There is no pattern. No shortcut. The only way to find a hash
+starting with "0000..." is to try trillions of different inputs.
+                    </div>
+
+                    <h3>What is the Nonce?</h3>
+                    <p>The <strong>nonce</strong> (Number Used Once) is a 32-bit integer field in the block header that miners modify with each attempt. It starts at 0 and is incremented by 1 each time. Since a 32-bit nonce only provides ~4.3 billion possibilities, modern miners also modify the coinbase transaction (extra nonce) and timestamp to create additional variation when the nonce range is exhausted.</p>
+
+                    <div class="code-block">
+Mining Attempt Demonstration:
+
+Input: "Block_Data + Nonce"
+
+SHA-256("BlockData+0")     = 7f83b1657ff1fc53b92dc...  ❌ Too high
+SHA-256("BlockData+1")     = a3f2c8e9d1b5a7f4c6e2d...  ❌ Too high
+SHA-256("BlockData+2")     = e9c71628f4d83a2b7f1c9...  ❌ Too high
+...
+SHA-256("BlockData+38291") = 0000f8a3c2e71b9d4f5a6...  ❌ Close! But need more zeros
+...
+SHA-256("BlockData+872451")= 00000a7f3b2c1e9d8f4a6...  &#10004; VALID! 5 leading zeros!
+
+The miner tried 872,451 nonces before finding a valid hash.
+In real Bitcoin mining, this number is in the trillions.
+                    </div>
+
+                    <h3>Understanding the Target</h3>
+                    <p>The "difficulty target" is a 256-bit number. A valid block hash must be <em>numerically less than</em> this target. When people say "the hash must start with N leading zeros," that's a simplified way of expressing this numerical comparison. A lower target means more leading zeros are required, which means more hashes must be attempted, which means more work.</p>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Probability and Mining</h4>
+                        <p>Mining is fundamentally a game of probability. Each hash attempt has the same tiny chance of being valid. If the difficulty requires a hash starting with 19 leading zeros (as in Bitcoin today), the probability of any single hash being valid is approximately 1 in 2<sup>76</sup>. That's roughly 1 in 75 sextillion. The entire Bitcoin network performs about 500 exahashes per second (500 &times; 10<sup>18</sup> hashes/second) to find one valid block every 10 minutes.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="difficulty" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128200;</span>Difficulty Adjustment</h2>
+                <div class="reading-content">
+                    <p>The difficulty adjustment algorithm is one of the most elegant aspects of Proof of Work. It ensures that blocks are produced at a consistent rate regardless of how much (or how little) mining power is on the network.</p>
+
+                    <h3>How Bitcoin's Difficulty Adjusts</h3>
+                    <p>Bitcoin recalculates its difficulty every <strong>2,016 blocks</strong> (approximately every 2 weeks). The algorithm is straightforward:</p>
+
+                    <div class="code-block">
+New Difficulty = Old Difficulty × (Actual Time for 2016 blocks / Expected Time)
+
+Expected Time = 2016 blocks × 10 minutes = 20,160 minutes
+
+Example:
+  If the last 2016 blocks took only 18,000 minutes (too fast):
+  New Difficulty = Old × (18,000 / 20,160) = Old × 0.893
+  Result: Difficulty INCREASES by ~12% (target time < actual time → harder)
+
+Wait, that's inverted! Let's be precise:
+  If blocks came too FAST (18,000 min < 20,160 min):
+  New Difficulty = Old × (20,160 / 18,000) = Old × 1.12
+  Difficulty INCREASES by 12%
+
+  If blocks came too SLOW (24,000 min > 20,160 min):
+  New Difficulty = Old × (20,160 / 24,000) = Old × 0.84
+  Difficulty DECREASES by 16%
+
+Safety limit: Difficulty can change by at most 4x (300%) in either direction.
+                    </div>
+
+                    <h3>Why This Matters</h3>
+                    <p>Without difficulty adjustment, the block time would become unpredictable. In the early days when few miners existed, blocks would be easy to find. As millions of miners joined, blocks would be found in milliseconds, causing chain splits, network congestion, and inflation spiraling out of control. The difficulty adjustment keeps the system stable through all conditions.</p>
+
+                    <h3>Historical Difficulty Growth</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Bitcoin Difficulty</th>
+                                <th>Network Hashrate</th>
+                                <th>Context</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2009</td>
+                                <td>1</td>
+                                <td>~8 MH/s</td>
+                                <td>Satoshi mining alone on a CPU</td>
+                            </tr>
+                            <tr>
+                                <td>2011</td>
+                                <td>~1,000,000</td>
+                                <td>~10 TH/s</td>
+                                <td>GPU mining era begins</td>
+                            </tr>
+                            <tr>
+                                <td>2013</td>
+                                <td>~500,000,000</td>
+                                <td>~10 PH/s</td>
+                                <td>First ASIC miners deployed</td>
+                            </tr>
+                            <tr>
+                                <td>2017</td>
+                                <td>~1,500,000,000,000</td>
+                                <td>~15 EH/s</td>
+                                <td>Industrial mining farms</td>
+                            </tr>
+                            <tr>
+                                <td>2021</td>
+                                <td>~25,000,000,000,000</td>
+                                <td>~180 EH/s</td>
+                                <td>China mining ban, hashrate migration</td>
+                            </tr>
+                            <tr>
+                                <td>2024</td>
+                                <td>~75,000,000,000,000</td>
+                                <td>~550 EH/s</td>
+                                <td>Post-halving, publicly traded miners</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="success-box">
+                        <h4>&#9989; Self-Regulating Network</h4>
+                        <p>Bitcoin's difficulty has increased by a factor of 75 trillion since its creation, yet blocks still arrive approximately every 10 minutes. This remarkable consistency across 15+ years is a testament to the elegance of the difficulty adjustment algorithm. Whether the network hashrate doubles or is cut in half (as happened during China's 2021 mining ban), the system self-corrects within 2 weeks.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="nakamoto" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128220;</span>Nakamoto Consensus &amp; the Longest Chain Rule</h2>
+                <div class="reading-content">
+                    <p><strong>Nakamoto Consensus</strong> is the name given to Bitcoin's consensus protocol as described in Satoshi Nakamoto's 2008 whitepaper. It combines Proof of Work with the <strong>longest chain rule</strong> (more precisely, the "heaviest chain" or "most cumulative work" rule) to allow a decentralized network to agree on a single version of truth.</p>
+
+                    <h3>How It Works</h3>
+                    <p>In a decentralized network, there's no central server to say "this is the correct order of transactions." Instead, Nakamoto Consensus uses the following principles:</p>
+
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Anyone can propose blocks:</strong> Any miner can attempt to create the next block. There's no permission required.</li>
+                        <li><strong>Valid blocks require Proof of Work:</strong> You can only propose a block if you've found a valid hash below the difficulty target. This prevents spam and Sybil attacks.</li>
+                        <li><strong>The chain with the most cumulative work wins:</strong> If two miners find valid blocks at nearly the same time, a temporary fork occurs. The network resolves this by following whichever branch accumulates more Proof of Work (more blocks) first. The other branch becomes "orphaned."</li>
+                        <li><strong>Nodes independently verify everything:</strong> No node trusts any other node. Each node verifies every block and every transaction independently against the consensus rules.</li>
+                    </ul>
+
+                    <h3>Fork Resolution Example</h3>
+                    <div class="code-block">
+Time T: Both Miner A and Miner B find Block #100 at nearly the same time.
+
+Chain splits temporarily:
+
+... → Block 99 → Block 100a (Miner A) → Block 101a (Miner C)
+                 ↘ Block 100b (Miner B)
+
+At Time T+10min: Miner C finds Block 101 building on 100a.
+The chain through 100a now has MORE cumulative work.
+
+ALL nodes switch to the 100a chain. Block 100b is "orphaned."
+Transactions unique to 100b return to the mempool.
+
+This is why merchants wait for multiple confirmations!
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; Probabilistic vs. Deterministic Finality</div>
+                        <p>Unlike some newer consensus mechanisms that provide <em>deterministic finality</em> (a transaction is final, period), Nakamoto Consensus provides <em>probabilistic finality</em>. A transaction becomes exponentially harder to reverse with each confirmation. After 6 confirmations in Bitcoin, the probability of reversal is approximately 0.000000001% for an attacker with 10% of network hashrate. This is good enough for practical purposes, though mathematically it never reaches absolute zero.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="mining-evolution" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128187;</span>Mining Hardware Evolution: CPU to ASIC</h2>
+                <div class="reading-content">
+                    <p>The history of mining hardware is a fascinating story of technological escalation. As Bitcoin's value increased, the economic incentive to mine more efficiently drove a hardware arms race that has reshaped the entire computing industry.</p>
+
+                    <h3>The Four Eras of Mining</h3>
+
+                    <div class="timeline-item">
+                        <h5>Era 1: CPU Mining (2009&ndash;2010)</h5>
+                        <p>In Bitcoin's earliest days, Satoshi Nakamoto mined with a standard desktop CPU. The difficulty was 1, and a single CPU could find blocks. Satoshi is estimated to have mined approximately 1 million BTC during this period. The hashrate of a typical CPU was about 2&ndash;20 MH/s (megahashes per second).</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>Era 2: GPU Mining (2010&ndash;2013)</h5>
+                        <p>In October 2010, the first GPU mining code was released. Graphics cards are designed for parallel processing (rendering millions of pixels simultaneously), which maps perfectly to the SHA-256 hashing required for mining. A single high-end GPU could achieve 200&ndash;800 MH/s, making CPUs obsolete overnight. GPU mining rigs with 6&ndash;8 cards became common.</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>Era 3: FPGA Mining (2011&ndash;2013)</h5>
+                        <p>Field-Programmable Gate Arrays (FPGAs) offered better energy efficiency than GPUs while being reprogrammable. They achieved similar hashrates to GPUs but used significantly less electricity. However, they were expensive and difficult to program, making them a transitional technology.</p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h5>Era 4: ASIC Mining (2013&ndash;Present)</h5>
+                        <p>Application-Specific Integrated Circuits (ASICs) are chips designed exclusively for SHA-256 hashing. They cannot do anything else, but they do mining extraordinarily well. The first Bitcoin ASIC (Avalon) shipped in January 2013. Modern ASICs like the Bitmain Antminer S21 achieve 200 TH/s (terahashes per second) &mdash; that's 10 million times faster than the best GPU.</p>
+                    </div>
+
+                    <h3>Hardware Comparison</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Hardware</th>
+                                <th>Hashrate</th>
+                                <th>Power Draw</th>
+                                <th>Efficiency</th>
+                                <th>Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CPU (Core i7)</td>
+                                <td>~20 MH/s</td>
+                                <td>~100W</td>
+                                <td>0.2 MH/J</td>
+                                <td>$300</td>
+                            </tr>
+                            <tr>
+                                <td>GPU (RTX 3090)</td>
+                                <td>~120 MH/s</td>
+                                <td>~300W</td>
+                                <td>0.4 MH/J</td>
+                                <td>$1,500</td>
+                            </tr>
+                            <tr>
+                                <td>FPGA</td>
+                                <td>~800 MH/s</td>
+                                <td>~40W</td>
+                                <td>20 MH/J</td>
+                                <td>$2,000</td>
+                            </tr>
+                            <tr>
+                                <td>ASIC (S19 Pro)</td>
+                                <td>110 TH/s</td>
+                                <td>3,250W</td>
+                                <td>33.8 J/TH</td>
+                                <td>$3,000</td>
+                            </tr>
+                            <tr>
+                                <td>ASIC (S21)</td>
+                                <td>200 TH/s</td>
+                                <td>3,550W</td>
+                                <td>17.5 J/TH</td>
+                                <td>$5,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Centralization Debate</div>
+                        <p>ASICs have made Bitcoin mining inaccessible to ordinary individuals. Only companies that can invest millions in hardware, secure cheap electricity, and build data-center-scale cooling systems can compete. This has led to concerns about mining centralization, as a handful of large mining companies now produce the majority of blocks. Some cryptocurrencies (like Monero with RandomX and Ethereum's former Ethash) have deliberately chosen "ASIC-resistant" algorithms to keep mining accessible to GPU owners.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="mining-pools" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#129309;</span>Mining Pools</h2>
+                <div class="reading-content">
+                    <p>A <strong>mining pool</strong> is a group of miners who combine their computational resources and share the block rewards proportionally. Pools exist because solo mining has become impractical for individual miners due to the enormous difficulty of finding a block.</p>
+
+                    <h3>Why Pools Exist</h3>
+                    <p>Consider this: with a single Antminer S21 (200 TH/s), the expected time to solo-mine a Bitcoin block at current difficulty is approximately <strong>25 years</strong>. You would need to run the machine continuously for decades before statistically expecting to find a single block. Mining pools solve this "variance problem" by letting thousands of miners work together and share rewards proportionally.</p>
+
+                    <h3>How Pools Work</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Pool assigns work:</strong> The pool operator distributes work units to participating miners. Each miner gets a portion of the nonce space to search.</li>
+                        <li><strong>Miners submit "shares":</strong> Miners send back valid hashes that meet a lower difficulty threshold (easier than the real target). These "shares" prove the miner is doing real work.</li>
+                        <li><strong>Pool finds block:</strong> When one miner's hash happens to meet the actual network difficulty, the pool submits the block to the network.</li>
+                        <li><strong>Rewards distributed:</strong> The block reward is split among all miners based on how many valid shares they submitted during that round.</li>
+                    </ul>
+
+                    <h3>Pool Reward Distribution Methods</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Description</th>
+                                <th>Risk to Miner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PPS (Pay Per Share)</td>
+                                <td>Fixed payout per valid share, regardless of whether the pool finds a block</td>
+                                <td>Low (pool absorbs variance)</td>
+                            </tr>
+                            <tr>
+                                <td>PPLNS (Pay Per Last N Shares)</td>
+                                <td>Payout based on shares submitted in a window before a block is found</td>
+                                <td>Medium (rewards vary)</td>
+                            </tr>
+                            <tr>
+                                <td>FPPS (Full PPS)</td>
+                                <td>Like PPS but also includes estimated transaction fees</td>
+                                <td>Low</td>
+                            </tr>
+                            <tr>
+                                <td>Proportional</td>
+                                <td>When a block is found, reward split by proportion of shares in that round</td>
+                                <td>Higher (long rounds = less pay)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Major Mining Pools (Bitcoin)</h3>
+                    <p>As of 2024, the largest Bitcoin mining pools include Foundry USA (~30% of hashrate), AntPool (~20%), F2Pool (~12%), ViaBTC (~11%), and Binance Pool (~10%). The top 5 pools collectively control over 80% of the network hashrate, which raises centralization concerns.</p>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Pool Centralization vs. Network Centralization</h4>
+                        <p>While pool concentration looks concerning, individual miners can switch pools at any time. If a pool attempted to act maliciously (e.g., censoring transactions), miners would leave and join honest pools. The real concern is the concentration of ASIC manufacturing (dominated by Bitmain and MicroBT) and geographic concentration of mining (heavily concentrated in the US, Kazakhstan, and Russia after China's ban).</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="economics" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128176;</span>Mining Economics &amp; Block Reward Halving</h2>
+                <div class="reading-content">
+                    <p>Mining is ultimately a business. Miners invest in hardware and electricity to earn block rewards and transaction fees. Understanding the economics of mining reveals how the entire system's incentive structure works.</p>
+
+                    <h3>Revenue Components</h3>
+                    <p>A miner's revenue comes from two sources:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Block Subsidy:</strong> Newly minted coins created with each block. This is the primary revenue source today.</li>
+                        <li><strong>Transaction Fees:</strong> Fees attached to each transaction included in the block. As the block subsidy decreases over time, transaction fees are expected to become the dominant revenue source.</li>
+                    </ul>
+
+                    <h3>The Halving Schedule</h3>
+                    <p>Bitcoin's most important monetary policy feature is the <strong>halving</strong>: every 210,000 blocks (approximately every 4 years), the block subsidy is cut in half. This creates a predictable, decreasing supply schedule that eventually caps Bitcoin's total supply at 21 million coins.</p>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Halving #</th>
+                                <th>Year</th>
+                                <th>Block Subsidy</th>
+                                <th>Total BTC Mined</th>
+                                <th>% of Supply</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0 (Launch)</td>
+                                <td>2009</td>
+                                <td>50 BTC</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            <tr>
+                                <td>1st</td>
+                                <td>2012</td>
+                                <td>25 BTC</td>
+                                <td>10.5M</td>
+                                <td>50%</td>
+                            </tr>
+                            <tr>
+                                <td>2nd</td>
+                                <td>2016</td>
+                                <td>12.5 BTC</td>
+                                <td>15.75M</td>
+                                <td>75%</td>
+                            </tr>
+                            <tr>
+                                <td>3rd</td>
+                                <td>2020</td>
+                                <td>6.25 BTC</td>
+                                <td>18.375M</td>
+                                <td>87.5%</td>
+                            </tr>
+                            <tr>
+                                <td>4th</td>
+                                <td>2024</td>
+                                <td>3.125 BTC</td>
+                                <td>19.6875M</td>
+                                <td>93.75%</td>
+                            </tr>
+                            <tr>
+                                <td>Last</td>
+                                <td>~2140</td>
+                                <td>0 BTC</td>
+                                <td>21M</td>
+                                <td>100%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Profitability Calculation</h3>
+                    <p>A miner's profitability depends on several variables. Here's a simplified calculation:</p>
+
+                    <div class="code-block">
+Mining Profitability Formula:
+
+Daily Revenue = (Your Hashrate / Network Hashrate) × Daily Block Rewards
+Daily Cost    = Power Consumption × Hours × Electricity Rate
+Daily Profit  = Daily Revenue - Daily Cost
+
+Example (Antminer S21, mid-2024):
+  Hashrate:    200 TH/s
+  Network:     550 EH/s = 550,000 TH/s
+  Block Reward: 3.125 BTC × 144 blocks/day = 450 BTC/day
+  BTC Price:   $65,000
+
+  Daily Revenue = (200 / 550,000) × 450 × $65,000
+               = 0.000364 × 450 × $65,000
+               = $10.64/day
+
+  Daily Electricity Cost:
+  Power: 3,550W = 3.55 kW
+  24 hours × 3.55 kW × $0.05/kWh = $4.26/day
+
+  Daily Profit = $10.64 - $4.26 = $6.38/day
+  Monthly Profit ≈ $191
+
+  Breakeven: $5,000 machine / $6.38/day ≈ 784 days (2.1 years)
+
+  Note: This ignores hardware depreciation, cooling costs,
+  maintenance, pool fees (1-2%), and BTC price changes.
+                    </div>
+
+                    <div class="highlight-box warning">
+                        <div class="highlight-title">&#9888;&#65039; The Electricity Factor</div>
+                        <p>Electricity cost is the single biggest variable in mining profitability. At $0.03/kWh (common in places like Texas, Paraguay, or Kazakhstan), mining is highly profitable. At $0.15/kWh (typical US residential rate), most miners operate at a loss. This is why large mining operations locate near cheap, abundant energy sources &mdash; hydroelectric dams, natural gas flares, geothermal plants, or nuclear power stations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="energy" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9889;</span>Energy Consumption &amp; Environmental Debate</h2>
+                <div class="reading-content">
+                    <p>The energy consumption of Proof of Work mining is one of the most debated topics in cryptocurrency. Understanding both sides of this argument is essential for an informed perspective.</p>
+
+                    <h3>The Scale of Energy Use</h3>
+                    <p>The Bitcoin network consumes an estimated <strong>120&ndash;150 TWh per year</strong> (as of 2024), which is comparable to the electricity consumption of countries like Argentina or Norway. This powers the approximately 550 EH/s of global hashrate, with millions of ASIC machines running 24/7 in data centers around the world.</p>
+
+                    <h3>Arguments Against PoW Energy Use</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Carbon Footprint:</strong> When mining is powered by fossil fuels (coal, natural gas), it contributes to carbon emissions. After China's mining ban, much hashrate moved to Kazakhstan, which relies heavily on coal power.</li>
+                        <li><strong>E-Waste:</strong> ASIC miners become obsolete in 3&ndash;5 years as more efficient models are released. The old machines cannot be repurposed for anything else, creating electronic waste.</li>
+                        <li><strong>Proportionality:</strong> Critics argue that using more electricity than some countries to process ~7 transactions per second (Bitcoin's base layer) is inherently wasteful.</li>
+                    </ul>
+
+                    <h3>Arguments in Favor of PoW Energy Use</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Renewable Energy Incentive:</strong> Miners seek the cheapest electricity, which is increasingly renewable. The Bitcoin Mining Council reports that approximately 60% of Bitcoin mining uses sustainable energy sources. Mining can make renewable energy projects economically viable by acting as a "buyer of last resort" for excess energy.</li>
+                        <li><strong>Stranded Energy Utilization:</strong> Mining can capture energy that would otherwise be wasted &mdash; flared natural gas, curtailed wind/solar, or remote hydroelectric power with no transmission lines to population centers.</li>
+                        <li><strong>Grid Stabilization:</strong> Miners can quickly power down during peak demand periods, acting as a flexible load that helps stabilize electrical grids. In Texas, miners earned payments for reducing consumption during heat waves.</li>
+                        <li><strong>Security Cost:</strong> The energy spent on mining is the cost of securing a $1+ trillion network without any central authority. Compared to the energy consumed by the traditional banking system (office buildings, data centers, ATMs, armored trucks, server farms), the comparison becomes more nuanced.</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <div class="highlight-title">&#128161; The Nuanced View</div>
+                        <p>The energy debate is not black and white. The real question isn't "does Bitcoin use a lot of energy?" (it does) but rather "is the energy use justified by the value provided?" and "what energy sources are being used?" A Bitcoin miner powered by otherwise-wasted methane from a Texas oil well has a very different environmental impact than one powered by a coal plant in Mongolia. The industry is trending toward renewables, but significant challenges remain.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pow-vs-pos" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9878;&#65039;</span>PoW vs PoS &amp; Other Consensus Mechanisms</h2>
+                <div class="reading-content">
+                    <p>Proof of Work is not the only way to achieve consensus. Several alternative mechanisms have been developed, each with different tradeoffs. The most prominent alternative is <strong>Proof of Stake (PoS)</strong>, which Ethereum famously switched to in September 2022.</p>
+
+                    <h3>Comprehensive Comparison</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Proof of Work</th>
+                                <th>Proof of Stake</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Security Source</td>
+                                <td>Computational work (energy)</td>
+                                <td>Staked capital (coins locked up)</td>
+                            </tr>
+                            <tr>
+                                <td>Block Producers</td>
+                                <td>Miners (hardware + electricity)</td>
+                                <td>Validators (staked coins)</td>
+                            </tr>
+                            <tr>
+                                <td>Energy Use</td>
+                                <td>Very high (100+ TWh/year for Bitcoin)</td>
+                                <td>Very low (~0.01 TWh/year for Ethereum)</td>
+                            </tr>
+                            <tr>
+                                <td>Entry Barrier</td>
+                                <td>Expensive hardware, cheap electricity</td>
+                                <td>Capital to stake (32 ETH for Ethereum)</td>
+                            </tr>
+                            <tr>
+                                <td>Attack Cost</td>
+                                <td>51% of hashrate (hardware + electricity)</td>
+                                <td>33&ndash;51% of staked coins + risk of slashing</td>
+                            </tr>
+                            <tr>
+                                <td>Decentralization</td>
+                                <td>ASIC manufacturing concentrated</td>
+                                <td>Large stakers have more influence</td>
+                            </tr>
+                            <tr>
+                                <td>Finality</td>
+                                <td>Probabilistic (grows with confirmations)</td>
+                                <td>Can be deterministic (epoch finality)</td>
+                            </tr>
+                            <tr>
+                                <td>Track Record</td>
+                                <td>15+ years, never successfully attacked</td>
+                                <td>Newer, less battle-tested at Bitcoin's scale</td>
+                            </tr>
+                            <tr>
+                                <td>Wealth Concentration Risk</td>
+                                <td>Anyone can mine (if they have hardware)</td>
+                                <td>"Rich get richer" (more stake = more rewards)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Other Consensus Mechanisms</h3>
+                    <div class="vocab-grid">
+                        <div class="vocab-card">
+                            <div class="vocab-term">Delegated PoS (DPoS)</div>
+                            <div class="vocab-def">Token holders vote for a small number of delegates who produce blocks. Used by EOS, Tron. Fast but more centralized.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Proof of Authority (PoA)</div>
+                            <div class="vocab-def">Pre-approved validators produce blocks based on reputation. Used in private/consortium chains. Fast but requires trust.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Proof of History (PoH)</div>
+                            <div class="vocab-def">Uses a verifiable delay function to create a historical record of time, enabling parallel processing. Used by Solana.</div>
+                        </div>
+                        <div class="vocab-card">
+                            <div class="vocab-term">Proof of Space/Storage</div>
+                            <div class="vocab-def">Miners prove they have allocated disk space rather than computing power. Used by Chia. Lower energy but encourages SSD hoarding.</div>
+                        </div>
+                    </div>
+
+                    <div class="concept-box">
+                        <h4>&#128161; Why Bitcoin Remains PoW</h4>
+                        <p>Despite the energy criticism, Bitcoin's community has no plans to switch to Proof of Stake. The arguments: (1) PoW has a 15-year track record with zero successful attacks on Bitcoin, (2) PoW provides objective, thermodynamic security that doesn't depend on the value of the coin itself, (3) changing Bitcoin's consensus mechanism would be an unprecedented and extremely risky hard fork, and (4) PoW's energy expenditure creates a real-world "anchor" that makes the blockchain physically expensive to attack.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="attacks" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128721;</span>The 51% Attack &amp; Network Security</h2>
+                <div class="reading-content">
+                    <p>A <strong>51% attack</strong> (also called a majority attack) occurs when a single entity controls more than half of the network's mining hashrate. With majority hashrate, the attacker can potentially rewrite recent blockchain history and double-spend coins.</p>
+
+                    <h3>What a 51% Attacker Can Do</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Double-spend their own coins:</strong> Send coins to an exchange, sell them for fiat, then rewrite the chain to reverse the original transaction. The attacker gets both the fiat and their coins back.</li>
+                        <li><strong>Censor transactions:</strong> Refuse to include certain transactions in blocks they mine, effectively preventing specific addresses from using the network.</li>
+                        <li><strong>Prevent other miners' blocks:</strong> Build a private chain faster than the public chain, then release it to orphan honest miners' blocks.</li>
+                    </ul>
+
+                    <h3>What a 51% Attacker CANNOT Do</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>Steal coins from other addresses:</strong> They still cannot forge digital signatures or spend coins they don't own.</li>
+                        <li><strong>Create coins out of thin air:</strong> Invalid blocks (with excessive rewards) would still be rejected by all honest nodes.</li>
+                        <li><strong>Change consensus rules:</strong> Other nodes independently verify all rules and would reject invalid blocks regardless of hashrate.</li>
+                    </ul>
+
+                    <h3>Cost of Attacking Bitcoin</h3>
+                    <p>Attacking Bitcoin's network is astronomically expensive. As of 2024, a 51% attack on Bitcoin would require:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Acquiring approximately 275 EH/s of hashrate</li>
+                        <li>This means roughly 1.4 million Antminer S21 machines ($7 billion in hardware alone)</li>
+                        <li>Electricity costs of approximately $20 million per day to operate</li>
+                        <li>Data center infrastructure, cooling, and networking costs</li>
+                        <li>Even if successful, the attack would crash Bitcoin's price, making any stolen coins worth far less</li>
+                    </ul>
+
+                    <div class="highlight-box danger">
+                        <div class="highlight-title">&#128680; Real 51% Attacks on Smaller Chains</div>
+                        <p>While Bitcoin has never been successfully 51%-attacked, smaller PoW chains have been. <strong>Ethereum Classic (ETC)</strong> suffered multiple 51% attacks in 2020, with attackers double-spending millions of dollars. <strong>Bitcoin Gold (BTG)</strong> was attacked in 2018 and 2020. <strong>Verge (XVG)</strong> was attacked multiple times. These attacks demonstrate that PoW security is directly proportional to the total hashrate securing the network &mdash; which is why Bitcoin's massive hashrate is its greatest security feature.</p>
+                    </div>
+
+                    <h3>Defense Mechanisms</h3>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li><strong>High hashrate:</strong> The more computational power securing the network, the more expensive an attack becomes.</li>
+                        <li><strong>Confirmation requirements:</strong> Exchanges and merchants requiring more confirmations makes attacks less profitable (the attacker must maintain majority hashrate for longer).</li>
+                        <li><strong>Economic incentives:</strong> A successful attack would crash the coin's price, destroying the value of the attacker's own holdings and mining hardware.</li>
+                        <li><strong>Community response:</strong> The community could respond to an attack by changing the mining algorithm (a "nuclear option" that would make the attacker's ASICs worthless).</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="kenostod-pow" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128142;</span>Kenostod's Proof-of-Work Implementation</h2>
+                <div class="reading-content">
+                    <p>Kenostod implements its own Proof-of-Work system designed for educational purposes while maintaining the core principles of real blockchain mining. Understanding Kenostod's PoW helps bridge the gap between theory and practice.</p>
+
+                    <h3>Kenostod Mining Parameters</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Kenostod</th>
+                                <th>Bitcoin (for comparison)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Hash Algorithm</td>
+                                <td>SHA-256</td>
+                                <td>Double SHA-256</td>
+                            </tr>
+                            <tr>
+                                <td>Target Block Time</td>
+                                <td>~1 minute</td>
+                                <td>~10 minutes</td>
+                            </tr>
+                            <tr>
+                                <td>Initial Block Reward</td>
+                                <td>100 KENO</td>
+                                <td>50 BTC</td>
+                            </tr>
+                            <tr>
+                                <td>Halving Interval</td>
+                                <td>Every 210,000 blocks</td>
+                                <td>Every 210,000 blocks</td>
+                            </tr>
+                            <tr>
+                                <td>Difficulty Adjustment</td>
+                                <td>Every 100 blocks</td>
+                                <td>Every 2,016 blocks</td>
+                            </tr>
+                            <tr>
+                                <td>Difficulty Direction</td>
+                                <td>Up if too fast, down if too slow</td>
+                                <td>Same principle</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Mining in the Kenostod Simulator</h3>
+                    <p>When you mine in Kenostod, the simulator faithfully replicates the real mining process:</p>
+                    <ul style="margin-left: 25px; margin-bottom: 15px;">
+                        <li>Pending transactions are collected from the mempool</li>
+                        <li>A block header is constructed with the previous block hash, Merkle root, timestamp, and nonce</li>
+                        <li>The SHA-256 hash function runs repeatedly with incrementing nonces</li>
+                        <li>You can watch the hash attempts in real-time and see the nonce counting up</li>
+                        <li>When a valid hash is found (below the difficulty target), the block is added to the chain</li>
+                        <li>Your mining reward (100 KENO + transaction fees) is credited to your wallet</li>
+                    </ul>
+
+                    <div class="code-block">
+Kenostod Mining Example:
+
+Block #1,247
+Previous Hash: 0000c8a3f2e71b9d4f5a6...
+Merkle Root:   a7f3b2c1e9d8f4a6c3e2b1d...
+Timestamp:     1706500000
+Difficulty:    4 (hash must start with "0000")
+
+Mining...
+  Nonce 0:     hash = 9f3a2c... ❌
+  Nonce 1:     hash = b8e71d... ❌
+  Nonce 2:     hash = 2c4f8a... ❌
+  ...
+  Nonce 8,241: hash = 00007f... ❌ (only 4 zeros, need the number to be lower)
+  ...
+  Nonce 12,847: hash = 0000a1... &#10004; VALID BLOCK!
+
+Block mined! +100 KENO rewarded.
+                    </div>
+
+                    <div class="success-box">
+                        <h4>&#9989; Kenostod's Educational Advantage</h4>
+                        <p>Unlike real Bitcoin mining (which requires expensive ASICs), Kenostod's difficulty is calibrated for browser-based mining. You can actually watch the mining process happen in real-time, see each nonce attempt, and understand viscerally what "computational work" means. This hands-on experience makes the theoretical concepts tangible.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="case-studies" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#128270;</span>Real-World Case Studies</h2>
+                <div class="reading-content">
+                    <p>These real events demonstrate the practical implications of Proof of Work mining in the real world:</p>
+
+                    <div class="case-study">
+                        <h4>Case Study 1: The Bitcoin Genesis Block (January 3, 2009)</h4>
+                        <p><strong>What happened:</strong> Satoshi Nakamoto mined the first-ever Bitcoin block (Block #0, the "Genesis Block") on a standard desktop computer. Embedded in the coinbase transaction was the text: "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks" &mdash; a reference to a London Times headline about the 2008 financial crisis.</p>
+                        <p style="margin-top: 10px;"><strong>The significance:</strong> This timestamp proves the block couldn't have been pre-mined before January 3, 2009, and the message itself captures the philosophical motivation behind Bitcoin: creating money that doesn't depend on governments or banks that might fail.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> Proof of Work mining started with a single CPU and a single person. The system was designed to scale from one miner to millions while maintaining security through the difficulty adjustment mechanism.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 2: China's Mining Ban (May&ndash;June 2021)</h4>
+                        <p><strong>What happened:</strong> China, which hosted approximately 65% of global Bitcoin hashrate, banned all cryptocurrency mining. Within weeks, miners began shutting down or physically relocating equipment to other countries (USA, Kazakhstan, Russia, Canada).</p>
+                        <p style="margin-top: 10px;"><strong>The impact:</strong> Bitcoin's hashrate dropped by 50% almost overnight. But the difficulty adjustment kicked in, reducing difficulty by approximately 28% over the next adjustment period. Block times temporarily increased to ~15&ndash;20 minutes but returned to normal within weeks. The network never went down, never lost data, and continued processing transactions throughout the entire migration.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> This was the most dramatic real-world test of Bitcoin's resilience. The difficulty adjustment mechanism proved that even losing the majority of mining power cannot kill a well-designed PoW network. It also demonstrated the geographic decentralization benefit: no single country can shut down a global PoW network.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 3: Ethereum Classic 51% Attacks (2020)</h4>
+                        <p><strong>What happened:</strong> Ethereum Classic (ETC) suffered three separate 51% attacks in August 2020. Attackers rented hashrate from services like NiceHash, gained majority control of the ETC network, and reorganized thousands of blocks, double-spending over $7 million worth of ETC.</p>
+                        <p style="margin-top: 10px;"><strong>Why it worked:</strong> ETC has a much smaller hashrate than Ethereum or Bitcoin. The cost to rent enough hashrate for a 51% attack was estimated at only $5,000&ndash;$10,000 per hour, making the attack highly profitable.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> PoW security is directly proportional to the total hashrate securing the network. Small PoW chains are vulnerable because the cost to attack them is low relative to potential profit. This is why Bitcoin maximalists argue that only the largest PoW chain can be considered truly secure.</p>
+                    </div>
+
+                    <div class="case-study">
+                        <h4>Case Study 4: Bitcoin Halving Market Cycles</h4>
+                        <p><strong>What happened:</strong> Each of Bitcoin's four halvings (2012, 2016, 2020, 2024) has been followed by significant price appreciation within the subsequent 12&ndash;18 months. The 2012 halving preceded a rise from ~$12 to ~$1,100. The 2016 halving preceded a rise from ~$650 to ~$20,000. The 2020 halving preceded a rise from ~$8,600 to ~$69,000.</p>
+                        <p style="margin-top: 10px;"><strong>The mechanism:</strong> Halvings reduce the daily sell pressure from miners (who must sell coins to cover electricity costs). If demand remains constant but new supply drops by 50%, basic economics suggests the price should increase. However, this is debated, and past performance does not guarantee future results.</p>
+                        <p style="margin-top: 10px;"><strong>The lesson:</strong> The halving schedule is a fundamental aspect of PoW economics. It creates a predictable, decreasing inflation rate that makes Bitcoin increasingly scarce over time. Understanding halvings is essential for understanding cryptocurrency market cycles and mining profitability dynamics.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="exercises" class="lesson-section">
+                <h2 class="section-title"><span class="section-icon">&#9999;&#65039;</span>Written Exercises</h2>
+                <div class="reading-content">
+                    <p>Complete these exercises to reinforce your understanding. Take your time &mdash; thoughtful answers demonstrate true comprehension.</p>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 1: Explain It Simply</h4>
+                        <div class="exercise-question">
+                            <p>A friend asks you: "Why does Bitcoin use so much electricity? Can't they just use a normal database?" Write a clear explanation of why Proof of Work requires energy expenditure and what would be lost if Bitcoin simply used a centralized database instead.</p>
+                            <textarea id="ex1" placeholder="Write your explanation here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(1)">Check My Understanding</button>
+                            <div id="ex1-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 2: Mining Profitability Analysis</h4>
+                        <div class="exercise-question">
+                            <p>You are considering purchasing an ASIC miner that produces 200 TH/s and consumes 3,500W. The machine costs $5,000. Your electricity rate is $0.08/kWh. The current Bitcoin price is $60,000 and the network hashrate is 500 EH/s. Calculate your estimated daily revenue, daily electricity cost, and how many days until you break even. Show your work.</p>
+                            <textarea id="ex2" placeholder="Show your calculations here..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(2)">Check My Understanding</button>
+                            <div id="ex2-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 3: PoW vs PoS Debate</h4>
+                        <div class="exercise-question">
+                            <p>Ethereum switched from Proof of Work to Proof of Stake in September 2022 ("The Merge"), reducing its energy consumption by ~99.95%. Should Bitcoin do the same? Present arguments for BOTH sides, then state which position you find more convincing and why.</p>
+                            <textarea id="ex3" placeholder="Present both sides of the argument..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(3)">Check My Understanding</button>
+                            <div id="ex3-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 4: 51% Attack Scenario</h4>
+                        <div class="exercise-question">
+                            <p>Imagine you are the security advisor for a cryptocurrency exchange. A small PoW coin (let's call it "SmallCoin") wants to be listed on your exchange. SmallCoin has a total network hashrate of only 10 TH/s and uses SHA-256. What concerns would you have? What listing requirements would you impose? How many confirmations would you require for deposits?</p>
+                            <textarea id="ex4" placeholder="Describe your security analysis..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(4)">Check My Understanding</button>
+                            <div id="ex4-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-box">
+                        <h4>Exercise 5: The Double-Spending Scenario</h4>
+                        <div class="exercise-question">
+                            <p>Walk through, step by step, how a double-spending attack would work if someone had 51% of the network hashrate. Start from the attacker sending coins to a merchant, then explain how they would create an alternative chain. Why does waiting for more confirmations make this attack harder?</p>
+                            <textarea id="ex5" placeholder="Walk through the attack step by step..."></textarea>
+                            <button class="check-answer-btn" onclick="checkExercise(5)">Check My Understanding</button>
+                            <div id="ex5-feedback" class="answer-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="lesson-section practice-section">
+                <h2 class="section-title"><span class="section-icon">&#128296;</span>Hands-On Lab</h2>
+                <div class="reading-content">
+                    <p>Now it's time to put your knowledge into action! Complete ALL of the following tasks in the Kenostod blockchain simulator.</p>
+
+                    <h3>Lab Tasks:</h3>
+                    <ul class="step-list">
+                        <li class="step-item">
+                            <div class="step-title">Task 1: Start the Mining Simulator</div>
+                            <p>Navigate to the Mining tab in the Kenostod platform. Observe the mining interface and familiarize yourself with the current difficulty, block height, and reward amount.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 2: Watch Hash Calculations</div>
+                            <p>Start mining and watch the hash calculations happen in real-time. Pay attention to the nonce counter incrementing and the hash output changing completely with each attempt. This demonstrates the avalanche effect of SHA-256.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 3: Mine Your First Block</div>
+                            <p>Successfully mine a block and observe the entire process: transaction gathering, block construction, nonce searching, and block validation. Note the block reward credited to your wallet.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 4: Verify in the Block Explorer</div>
+                            <p>After mining, go to the Blockchain Explorer tab and find your newly mined block. Examine its structure: block hash, previous hash, timestamp, nonce, and included transactions.</p>
+                        </li>
+                        <li class="step-item">
+                            <div class="step-title">Task 5: Mine Multiple Blocks</div>
+                            <p>Mine 2&ndash;3 more blocks and observe how each block references the previous block's hash, forming the chain. Notice how the difficulty may adjust as you mine more blocks.</p>
+                        </li>
+                    </ul>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="/#mining" class="practice-btn">&#128640; Open Mining Simulator</a>
+                        <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9em;">Opens in the main platform. Complete all 5 tasks, then return here for the Final Exam!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="quiz" class="lesson-section quiz-section">
+                <h2 class="section-title"><span class="section-icon">&#128221;</span>Final Exam (12 Questions)</h2>
+                <p style="margin-bottom: 25px; color: var(--text-muted);">
+                    You must score at least <strong>10 out of 12 correct</strong> (80%) to complete this course and earn your 250 KENO reward.
+                    Take your time and review the material if needed.
+                </p>
+
+                <div class="quiz-question" data-question="1" data-answer="b">
+                    <div class="question-text">1. What hashing algorithm does Kenostod (and Bitcoin) use for Proof-of-Work mining?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>MD5</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>SHA-256</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>RSA-2048</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>AES-128</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="2" data-answer="c">
+                    <div class="question-text">2. What is a "nonce" in the context of mining?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A type of cryptocurrency token</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The total number of transactions in a block</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A number miners change repeatedly to find a valid block hash</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The fee paid to the mining pool operator</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="3" data-answer="a">
+                    <div class="question-text">3. What happens when blocks are being mined faster than the target block time?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Difficulty increases to slow down block production</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Block rewards are automatically reduced</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The network temporarily pauses mining</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Transaction fees are increased to discourage use</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="4" data-answer="d">
+                    <div class="question-text">4. What do miners earn for successfully mining a block?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only the block subsidy (newly minted coins)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only the transaction fees from included transactions</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>A fixed salary from the network foundation</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The block subsidy plus all transaction fees from the block</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="5" data-answer="b">
+                    <div class="question-text">5. What fundamental problem does Proof of Work solve in digital currency?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The problem of slow transaction speeds</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The double-spending problem without requiring a trusted third party</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The problem of high transaction fees</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The problem of anonymous transactions</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="6" data-answer="c">
+                    <div class="question-text">6. What is the "longest chain rule" in Nakamoto Consensus?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The blockchain with the most transactions is always valid</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Miners must always use the longest possible nonce</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The chain with the most accumulated proof of work is considered the valid chain</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Only the oldest blockchain node determines the valid chain</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="7" data-answer="a">
+                    <div class="question-text">7. What type of mining hardware made CPU and GPU mining of Bitcoin economically unviable?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>ASICs (Application-Specific Integrated Circuits)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Quantum computers</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Supercomputers</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Cloud servers (AWS, Google Cloud)</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="8" data-answer="b">
+                    <div class="question-text">8. What happens during a Bitcoin "halving" event?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The number of miners is cut in half</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The block subsidy (newly minted coins per block) is reduced by 50%</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Transaction fees are doubled</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The block size is cut in half to reduce energy use</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="9" data-answer="d">
+                    <div class="question-text">9. What is a 51% attack, and what can an attacker do?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Controlling 51% of nodes to steal anyone's coins</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Hacking 51% of wallets to drain their funds</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Owning 51% of all coins to manipulate the price</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Controlling 51% of hashrate to potentially double-spend the attacker's own coins and censor transactions</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="10" data-answer="c">
+                    <div class="question-text">10. Why do mining pools exist?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Because mining is illegal for individuals in most countries</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Because the network requires miners to register in groups</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To reduce income variance by combining hashrate and sharing rewards proportionally</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>To make mining less energy-intensive through resource sharing</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="11" data-answer="a">
+                    <div class="question-text">11. What is the primary difference between Proof of Work and Proof of Stake?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoW secures the network with computational energy; PoS secures it with locked-up capital (staked coins)</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoW is faster than PoS for processing transactions</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoS requires more electricity than PoW</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>PoW and PoS are essentially the same mechanism with different names</span></div>
+                    </div>
+                </div>
+
+                <div class="quiz-question" data-question="12" data-answer="b">
+                    <div class="question-text">12. What proved the resilience of Bitcoin's difficulty adjustment mechanism in 2021?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-value="a" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Bitcoin's price reaching an all-time high</span></div>
+                        <div class="quiz-option" data-value="b" onclick="selectOption(this)"><div class="quiz-radio"></div><span>China's mining ban caused 50% hashrate drop, but the network continued operating and self-corrected</span></div>
+                        <div class="quiz-option" data-value="c" onclick="selectOption(this)"><div class="quiz-radio"></div><span>The launch of the first Bitcoin ETF</span></div>
+                        <div class="quiz-option" data-value="d" onclick="selectOption(this)"><div class="quiz-radio"></div><span>Ethereum's transition to Proof of Stake</span></div>
+                    </div>
+                </div>
+
+                <button class="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+                <div id="quizResult" class="quiz-result">
+                    <h3 id="resultIcon"></h3>
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <div id="nextCourseContainer"></div>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                <p>Kenostod Blockchain Academy &copy; 2024</p>
+                <p style="margin-top: 10px;">
+                    <a href="/courses/course-8-governance.html" style="color: var(--primary);">&larr; Course 8</a> &nbsp;|&nbsp;
+                    <a href="/" style="color: var(--primary);">Home</a> &nbsp;|&nbsp;
+                    <a href="/courses/course-10-porv.html" style="color: var(--primary);">Course 10 &rarr;</a>
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.toc-item').classList.add('active');
+            }
+        }
+
+        function selectOption(optionElement) {
+            const question = optionElement.closest('.quiz-question');
+            question.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            optionElement.classList.add('selected');
+        }
+
+        function submitQuiz() {
+            const questions = document.querySelectorAll('.quiz-question');
+            let correct = 0;
+            let total = questions.length;
+
+            questions.forEach(question => {
+                const correctAnswer = question.dataset.answer;
+                const selectedOption = question.querySelector('.quiz-option.selected');
+                question.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.value === correctAnswer) opt.classList.add('correct');
+                });
+                if (selectedOption) {
+                    if (selectedOption.dataset.value === correctAnswer) correct++;
+                    else selectedOption.classList.add('incorrect');
+                }
+            });
+
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('passed', 'failed');
+            resultDiv.classList.add('show');
+
+            if (correct >= 10) {
+                resultDiv.classList.add('passed');
+                document.getElementById('resultIcon').textContent = '\uD83C\uDF89';
+                document.getElementById('resultTitle').textContent = 'Congratulations!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + ' correct! You have mastered Proof of Work!';
+                document.getElementById('nextCourseContainer').innerHTML = '<p style="margin-top: 15px; color: var(--primary);">\uD83C\uDF93 +250 KENO!</p><a href="/courses/course-10-porv.html" class="next-course-btn">Course 10: Proof of Residual Value \u2192</a>';
+                localStorage.setItem('course9_completed', 'true');
+                if (window.kenostodWallet && window.kenostodWallet.creditReward) {
+                    window.kenostodWallet.creditReward(9, 'Course 9: Proof of Work');
+                }
+            } else {
+                resultDiv.classList.add('failed');
+                document.getElementById('resultIcon').textContent = '\uD83D\uDCDA';
+                document.getElementById('resultTitle').textContent = 'Keep Learning!';
+                document.getElementById('resultMessage').textContent = 'You scored ' + correct + '/' + total + ' correct. You need at least 10/12 (80%) to pass. Review the material and try again!';
+                document.getElementById('nextCourseContainer').innerHTML = '<button onclick="resetQuiz()" style="margin-top: 15px; background: var(--gold); color: #000; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Try Again</button>';
+            }
+
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetQuiz() {
+            document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+            document.getElementById('quizResult').classList.remove('show');
+            document.getElementById('quiz').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function checkExercise(num) {
+            const textarea = document.getElementById('ex' + num);
+            const feedback = document.getElementById('ex' + num + '-feedback');
+            const answer = textarea.value.trim();
+
+            if (answer.length < 30) {
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedback.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                feedback.innerHTML = '<strong style="color: #ef4444;">Too short!</strong> Please provide a more detailed response (at least a few sentences).';
+                return;
+            }
+
+            feedback.style.display = 'block';
+            feedback.style.background = 'rgba(16, 185, 129, 0.15)';
+            feedback.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+
+            const responses = {
+                1: "Great explanation! The key insight is that Proof of Work converts real-world energy into digital trust. A centralized database could be faster and cheaper, but it would require trusting whoever controls it. PoW makes the system trustless \u2014 no single entity can unilaterally change the rules or reverse transactions because doing so would require re-doing an enormous amount of computational work.",
+                2: "Good work showing your calculations! The key factors are: daily revenue depends on your share of the total network hashrate, daily cost depends on your electricity rate, and breakeven time depends on hardware cost divided by daily profit. Remember that in reality, difficulty increases, BTC price fluctuates, and there are additional costs like cooling, pool fees, and hardware depreciation.",
+                3: "Well-reasoned arguments! Strong answers consider: PoW\u2019s 15-year track record and thermodynamic security vs. PoS\u2019s energy efficiency; PoW\u2019s objective security model vs. PoS\u2019s 'rich get richer' concern; the risk of changing Bitcoin\u2019s consensus vs. the environmental benefits; and the difference between Bitcoin\u2019s role as a store of value vs. Ethereum\u2019s role as a smart contract platform.",
+                4: "Excellent security analysis! Key concerns include: the low cost to rent hashrate for a 51% attack on a small SHA-256 chain, the availability of NiceHash and similar hashrate rental services, and the risk of double-spend attacks targeting exchange deposits. Good recommendations include requiring many confirmations (50-100+), setting withdrawal delays, monitoring for unusual hashrate spikes, and possibly using a different algorithm than SHA-256 to prevent Bitcoin miners from easily attacking.",
+                5: "Thorough walkthrough! The key steps are: (1) attacker sends coins to merchant on the public chain, (2) simultaneously starts mining a private chain from the block before the transaction, (3) merchant sees confirmations and delivers goods, (4) attacker releases longer private chain which replaces the public chain, (5) the transaction to the merchant disappears. More confirmations make this harder because the attacker must maintain majority hashrate for longer, increasing cost and risk of failure."
+            };
+
+            feedback.innerHTML = '<strong style="color: #10b981;">\u2705 Good response!</strong> ' + (responses[num] || 'Your answer shows solid understanding of the concepts. Keep building on this knowledge!');
+        }
+
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.lesson-section');
+            const tocItems = document.querySelectorAll('.toc-item');
+            let currentSection = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.pageYOffset >= sectionTop) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            tocItems.forEach(item => {
+                item.classList.remove('active');
+                const onclickAttr = item.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes(currentSection)) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+<script src="/courses/course-common.js"></script>
+</body>
+</html>
