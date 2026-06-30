@@ -179,8 +179,9 @@ Type /courses · /presale · /liquidity · /about`;
   processWelcomeQueue();
 });
 
-// ─── Promo solicitation filter ─────────────────────────────────────────────
+// ─── Spam / solicitation filter ────────────────────────────────────────────
 const PROMO_PATTERNS = [
+  // Direct promo offers
   /i (will|can) (post|promote|advertise|shill)/i,
   /promotion on my (telegram|channel|group)/i,
   /\b(pump your|pump this|pump the)\b/i,
@@ -191,40 +192,100 @@ const PROMO_PATTERNS = [
   /i have (many|lots of|thousands of).*(investor|buyer|follower)/i,
   /\bpost before payment\b/i,
   /\bpaid (promo|promotion|shoutout)\b/i,
+  // Service / escort solicitation
+  /\b(tips for me|tip me)\b/i,
+  /are you interested in my service/i,
+  /\b(my service|my channel|my group)\b.*\?(.*)?$/i,
+  /happiness for you/i,
+  /\b(onlyfans|only fans|escort|companionship)\b/i,
+  // Airdrop / external token spam
+  /\b(airdrop|free token|claim now|join (our|my) (channel|group))\b/i,
+  /\b(whitelist|free nft|free coin)\b/i,
+  /t\.me\/[A-Za-z0-9_]{3,}/i,  // any t.me link (not from bot)
 ];
 
-async function isPromoSolicitation(text) {
-  if (!text) return false;
-  return PROMO_PATTERNS.some(p => p.test(text));
+// Track strike counts per user (in-memory, resets on restart)
+const strikeCount = new Map();
+
+async function deleteSilent(chatId, messageId) {
+  try { await bot.deleteMessage(chatId, messageId); } catch (e) { /* silent */ }
+}
+
+async function restrictUser(chatId, userId, minutes = 60) {
+  const until = Math.floor(Date.now() / 1000) + minutes * 60;
+  try {
+    await bot.restrictChatMember(chatId, userId, {
+      permissions: {
+        can_send_messages: false,
+        can_send_media_messages: false,
+        can_send_other_messages: false,
+        can_add_web_page_previews: false,
+      },
+      until_date: until,
+    });
+    return true;
+  } catch (e) {
+    console.error('Restrict failed:', e.message);
+    return false;
+  }
+}
+
+function isSpam(msg) {
+  // Forwarded from any external chat/channel/user — always spam
+  if (msg.forward_from_chat || msg.forward_from) return { spam: true, reason: 'forwarded' };
+  const text = msg.text || msg.caption || '';
+  if (!text) return { spam: false };
+  const matched = PROMO_PATTERNS.find(p => p.test(text));
+  if (matched) return { spam: true, reason: 'pattern' };
+  return { spam: false };
 }
 
 bot.on('message', async (msg) => {
-  if (!msg.text || !msg.chat || msg.chat.type === 'private') return;
+  if (!msg.chat || msg.chat.type === 'private') return;
 
-  if (await isPromoSolicitation(msg.text)) {
-    const username = msg.from?.username
-      ? `@${msg.from.username}`
-      : (msg.from?.first_name || 'Friend');
+  const { spam, reason } = isSpam(msg);
+  if (!spam) return;
 
-    console.log(`🚫 Promo solicitation detected from ${username}: "${msg.text.slice(0, 80)}"`);
+  const userId   = msg.from?.id;
+  const username = msg.from?.username ? `@${msg.from.username}` : (msg.from?.first_name || 'Unknown');
+  const strikes  = (strikeCount.get(userId) || 0) + 1;
+  strikeCount.set(userId, strikes);
 
-    try {
-      await bot.deleteMessage(msg.chat.id, msg.message_id);
-    } catch (e) {
-      console.error('Delete promo msg failed:', e.message);
-    }
+  console.log(`🚫 Spam [${reason}] from ${username} (strike ${strikes}): "${(msg.text || '').slice(0, 80)}"`);
 
+  await deleteSilent(msg.chat.id, msg.message_id);
+
+  if (strikes >= 2) {
+    // Second offence — mute for 24 hours
+    const muted = await restrictUser(msg.chat.id, userId, 1440);
+    console.log(`🔇 ${username} muted for 24h (strike ${strikes})`);
     try {
       await send(msg.chat.id,
-        `⚔️ <b>Kings Shield Policy</b>\n\n` +
-        `${username} — we appreciate the offer, but we only partner with promoters who bring members to the community first.\n\n` +
-        `<b>Want to do business?</b> Bring 10+ real members to Kings Shield, then we'll talk. 👑\n\n` +
-        `<i>Unsolicited promo offers are removed automatically.</i>`
+        `⚔️ <b>Kings Shield</b>\n\n` +
+        `${username} has been muted for <b>24 hours</b> for repeated spam/solicitation.\n\n` +
+        `<i>This community is for Sovereign Economy members only. Keep it clean.</i>`
       );
-    } catch (e) {
-      console.error('Promo filter reply failed:', e.message);
+    } catch (e) { /* silent */ }
+  } else {
+    // First offence — delete + warn
+    if (reason === 'forwarded') {
+      try {
+        await send(msg.chat.id,
+          `⚔️ <b>Kings Shield Policy</b>\n\n` +
+          `${username} — forwarded promotions from external channels are not allowed here.\n\n` +
+          `<i>Kings Shield is a focused community. Keep content relevant. Next offence = mute. 👑</i>`
+        );
+      } catch (e) { /* silent */ }
+    } else {
+      try {
+        await send(msg.chat.id,
+          `⚔️ <b>Kings Shield Policy</b>\n\n` +
+          `${username} — solicitation is not allowed here.\n\n` +
+          `<b>Want to partner?</b> Bring 10+ real members to Kings Shield first, then we'll talk. 👑\n\n` +
+          `<i>Next offence = 24-hour mute.</i>`
+        );
+      } catch (e) { /* silent */ }
     }
-    return;
   }
 });
 
