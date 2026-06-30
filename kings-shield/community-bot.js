@@ -23,6 +23,27 @@ if (!TOKEN) {
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
+// ─── Group whitelist — auto-leave unauthorized groups ──────────────────────
+const AUTHORIZED_CHAT_ID = process.env.COMMUNITY_CHAT_ID;
+
+bot.on('message', async (msg) => {
+  if (!msg.chat || msg.chat.type === 'private') return;
+  const chatId = String(msg.chat.id);
+  if (AUTHORIZED_CHAT_ID && chatId !== String(AUTHORIZED_CHAT_ID)) {
+    console.log(`🚨 Bot messaged in unauthorized group: ${chatId} "${msg.chat.title}" — leaving`);
+    try { await bot.leaveChat(chatId); } catch (e) { console.error('leaveChat failed:', e.message); }
+  }
+});
+
+bot.on('new_chat_members', async (msg) => {
+  const addedBot = msg.new_chat_members?.some(u => u.is_bot && u.username === (process.env.BOT_USERNAME || ''));
+  const chatId = String(msg.chat.id);
+  if (AUTHORIZED_CHAT_ID && chatId !== String(AUTHORIZED_CHAT_ID)) {
+    console.log(`🚨 Bot added to unauthorized group: ${chatId} "${msg.chat.title}" — leaving immediately`);
+    try { await bot.leaveChat(chatId); } catch (e) { console.error('leaveChat failed:', e.message); }
+  }
+});
+
 // ─── Config ────────────────────────────────────────────────────────────────
 const PRESALE_OPEN  = new Date('2026-07-23T00:00:00Z');
 const PRESALE_CLOSE = new Date('2026-08-06T00:00:00Z');
