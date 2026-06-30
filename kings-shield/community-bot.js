@@ -198,6 +198,11 @@ const PROMO_PATTERNS = [
   /\b(my service|my channel|my group)\b.*\?(.*)?$/i,
   /happiness for you/i,
   /\b(onlyfans|only fans|escort|companionship)\b/i,
+  // Volume / market cap manipulation offers
+  /i will provide (volume|volumes|trading volume|market cap)/i,
+  /provide.{0,30}(600k|800k|market cap|volume)/i,
+  /\b(volume bot|wash trading|fake volume|buy volume)\b/i,
+  /\b(market cap|mcap)\b.{0,30}\b(guarantee|guaranteed|provide|promise)\b/i,
   // Airdrop / external token spam
   /\b(airdrop|free token|claim now|join (our|my) (channel|group))\b/i,
   /\b(whitelist|free nft|free coin)\b/i,
