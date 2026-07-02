@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SOE Post-Launch Trading Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #131826;
+    --panel2: #1a2033;
+    --border: #262d42;
+    --gold: #d4af37;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --text: #e8ecf4;
+    --muted: #8b93a7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 24px;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 12px; color: var(--gold); display: flex; align-items: center; gap: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .badge.green { background: rgba(34,197,94,.15); color: var(--green); }
+  .badge.yellow { background: rgba(234,179,8,.15); color: var(--yellow); }
+  .badge.red { background: rgba(239,68,68,.15); color: var(--red); }
+  input, select, textarea {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 13px;
+    width: 100%;
+  }
+  textarea { min-height: 60px; }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .field { margin-bottom: 10px; }
+  .row { display: flex; gap: 10px; }
+  .row .field { flex: 1; }
+  button {
+    background: var(--gold);
+    color: #111;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button:hover { opacity: .9; }
+  button.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+  .locked { opacity: .5; pointer-events: none; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .role-tag { background: var(--panel2); border: 1px solid var(--gold); color: var(--gold); padding: 4px 12px; border-radius: 999px; font-size: 12px; }
+  .alert-note { padding: 8px; border-left: 3px solid; margin-bottom: 6px; background: var(--panel2); border-radius: 4px; font-size: 12px; }
+  .alert-note.red { border-color: var(--red); }
+  .alert-note.yellow { border-color: var(--yellow); }
+  .alert-note.green { border-color: var(--green); }
+  .resource-link { display: block; color: #7dd3fc; font-size: 13px; margin-bottom: 6px; text-decoration: none; }
+  .resource-link:hover { text-decoration: underline; }
+  .team-list td { font-size: 12px; }
+  .link-box { font-size: 11px; word-break: break-all; background: var(--panel2); padding: 6px; border-radius: 4px; margin-top: 4px; }
+  .save-msg { font-size: 12px; color: var(--green); margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>📊 SOE Post-Launch Trading Dashboard</h1>
+    <div class="sub" id="lastUpdated">Last updated: —</div>
+  </div>
+  <div class="role-tag" id="roleTag">Loading...</div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>🟢 Health Status</h2>
+    <div class="field row">
+      <div class="field"><label>Liquidity Total ($)</label><input id="h_liq_total" type="number" /></div>
+      <div class="field"><label>Target ($)</label><input id="h_liq_target" type="number" /></div>
+      <div class="field"><label>Status</label>
+        <select id="h_liq_status"><option value="green">Green</option><option value="yellow">Yellow</option><option value="red">Red</option></select>
+      </div>
+    </div>
+    <div class="field row">
+      <div class="field"><label>Volume Daily Avg ($)</label><input id="h_vol_avg" type="number" /></div>
+      <div class="field"><label>Target ($)</label><input id="h_vol_target" type="number" /></div>
+      <div class="field"><label>Status</label>
+        <select id="h_vol_status"><option value="green">Green</option><option value="yellow">Yellow</option><option value="red">Red</option></select>
+      </div>
+    </div>
+    <div class="field row">
+      <div class="field"><label>Slippage AMM Avg (%)</label><input id="h_slip_avg" type="number" step="0.01" /></div>
+      <div class="field"><label>Target (&lt;1.5%)</label><input id="h_slip_target" type="number" step="0.01" value="1.5" /></div>
+      <div class="field"><label>Status</label>
+        <select id="h_slip_status"><option value="green">Green</option><option value="yellow">Yellow</option><option value="red">Red</option></select>
+      </div>
+    </div>
+    <button onclick="saveSection('health', getHealthPayload())">Save Health Status</button>
+    <span class="save-msg" id="save_health"></span>
+  </div>
+
+  <div class="card">
+    <h2>💧 Liquidity Metrics</h2>
+    <table id="liq_table">
+      <tr><th>Platform</th><th>Depth</th><th>Target</th><th>Status</th></tr>
+    </table>
+    <button onclick="saveLiquidity()" style="margin-top:10px;">Save Liquidity</button>
+    <span class="save-msg" id="save_liquidity"></span>
+  </div>
+
+  <div class="card">
+    <h2>📈 Volume Metrics</h2>
+    <div class="row">
+      <div class="field"><label>Daily Volume ($)</label><input id="v_daily" type="number" /></div>
+      <div class="field"><label>Trade Count</label><input id="v_trades" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Top Source</label><input id="v_top" type="text" /></div>
+      <div class="field"><label>Buy/Sell Ratio</label><input id="v_ratio" type="text" /></div>
+    </div>
+    <label style="margin-top:8px;">Volume by Source (%)</label>
+    <div class="row">
+      <div class="field"><label>FAL 2.0 Arb</label><input id="vs_fal" type="number" /></div>
+      <div class="field"><label>Cross-Platform Arb</label><input id="vs_cross" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Organic</label><input id="vs_organic" type="number" /></div>
+      <div class="field"><label>Temporal Rebates</label><input id="vs_temporal" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Aegis Redistribution</label><input id="vs_aegis" type="number" /></div>
+      <div class="field"><label>Academy Incentives</label><input id="vs_academy" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Merchant Gateway</label><input id="vs_merchant" type="number" /></div>
+      <div class="field"><label>UTLFarm Compounding</label><input id="vs_utlfarm" type="number" /></div>
+    </div>
+    <button onclick="saveVolume()">Save Volume</button>
+    <span class="save-msg" id="save_volume"></span>
+  </div>
+
+  <div class="card">
+    <h2>⚡ Slippage & Execution</h2>
+    <table id="slip_table">
+      <tr><th>Size</th><th>AMM Slip</th><th>Spread</th><th>6174 Eff</th><th>Status</th></tr>
+    </table>
+    <button onclick="saveSlippage()" style="margin-top:10px;">Save Slippage</button>
+    <span class="save-msg" id="save_slippage"></span>
+  </div>
+
+  <div class="card">
+    <h2>🤖 Market Maker Metrics</h2>
+    <div class="row">
+      <div class="field"><label>Revenue Share APR (%) — Target &gt;20%</label><input id="mm_apr" type="number" /></div>
+      <div class="field"><label>Rebalancing Cost (%) — Target &lt;0.5%</label><input id="mm_rebal" type="number" step="0.01" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Inventory Turnover (x/mo) — Target &gt;10x</label><input id="mm_turnover" type="number" /></div>
+      <div class="field"><label>TWAL ($) — Target &gt;$20K</label><input id="mm_twal" type="number" /></div>
+    </div>
+    <div class="field"><label>Toxic Flow Ratio (%) — Target &lt;30%</label><input id="mm_toxic" type="number" /></div>
+    <button onclick="saveMM()">Save MM Metrics</button>
+    <span class="save-msg" id="save_mm"></span>
+  </div>
+
+  <div class="card">
+    <h2>🛡️ ILP & LP Health</h2>
+    <div class="row">
+      <div class="field"><label>ILP Fund Size ($)</label><input id="ilp_fund" type="number" /></div>
+      <div class="field"><label>ILP Fund Target ($)</label><input id="ilp_target" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>LP Retention (%) — Target &gt;70%</label><input id="ilp_retention" type="number" /></div>
+      <div class="field"><label>Avg Staking Duration (days) — Target &gt;60</label><input id="ilp_duration" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Claims Filed</label><input id="ilp_filed" type="number" /></div>
+      <div class="field"><label>Claims Paid (%) — Target &gt;95%</label><input id="ilp_paid" type="number" /></div>
+    </div>
+    <div class="field"><label>LP Satisfaction (/5.0) — Target &gt;4.0</label><input id="ilp_satisfaction" type="number" step="0.1" /></div>
+    <button onclick="saveILP()">Save ILP</button>
+    <span class="save-msg" id="save_ilp"></span>
+  </div>
+
+  <div class="card">
+    <h2>🌐 Ecosystem Health</h2>
+    <div class="row">
+      <div class="field"><label>Unique Active Wallets</label><input id="eco_wallets" type="number" /></div>
+      <div class="field"><label>KENO Burned (Monthly)</label><input id="eco_burned" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>KENO Genesis Minted / 6174</label><input id="eco_genesis" type="number" /></div>
+      <div class="field"><label>Queens Chariot Minted / 1729</label><input id="eco_qct" type="number" /></div>
+    </div>
+    <div class="field"><label>Kings Shield Minted / 617</label><input id="eco_ks" type="number" /></div>
+    <label style="margin-top:8px;">7 Houses Revenue ($)</label>
+    <div class="row">
+      <div class="field"><label>Academy</label><input id="house_academy" type="number" /></div>
+      <div class="field"><label>Farm</label><input id="house_farm" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Arbitrage</label><input id="house_arb" type="number" /></div>
+      <div class="field"><label>Card</label><input id="house_card" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Security</label><input id="house_security" type="number" /></div>
+      <div class="field"><label>Apparel</label><input id="house_apparel" type="number" /></div>
+    </div>
+    <div class="field"><label>Bunker</label><input id="house_bunker" type="number" /></div>
+    <button onclick="saveEcosystem()">Save Ecosystem</button>
+    <span class="save-msg" id="save_ecosystem"></span>
+  </div>
+
+  <div class="card">
+    <h2>🚨 Alerts</h2>
+    <div id="alert_notes"></div>
+    <div class="row" style="margin-top:8px;">
+      <div class="field"><label>New Note</label><input id="alert_note_text" type="text" placeholder="e.g. Liquidity depth dropped below $10K" /></div>
+      <div class="field" style="max-width:120px;"><label>Level</label>
+        <select id="alert_note_level"><option value="red">Red</option><option value="yellow">Yellow</option><option value="green">Green</option></select>
+      </div>
+    </div>
+    <button onclick="addAlertNote()">Add Alert Note</button>
+    <span class="save-msg" id="save_alert"></span>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;">
+      Reference thresholds: Liquidity &lt;$10K (red) · Volume &lt;$20K 3+ days (red) · Slippage &gt;5% on &lt;$1K trades (red) · Toxic flow &gt;50% (red) · ILP fund &lt;50% of target (red)
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>📅 Weekly Report</h2>
+    <div class="field"><label>Week Of</label><input id="wr_week" type="text" placeholder="e.g. July 21, 2026" /></div>
+    <div class="row">
+      <div class="field"><label>Liquidity ($)</label><input id="wr_liq" type="number" /></div>
+      <div class="field"><label>Volume ($)</label><input id="wr_vol" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Slippage (%)</label><input id="wr_slip" type="number" step="0.01" /></div>
+      <div class="field"><label>Active MMs</label><input id="wr_mms" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>MM Revenue APR (%)</label><input id="wr_mmrev" type="number" /></div>
+      <div class="field"><label>ILP Fund ($)</label><input id="wr_ilpfund" type="number" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Red Alerts</label><input id="wr_red" type="number" value="0" /></div>
+      <div class="field"><label>Yellow Alerts</label><input id="wr_yellow" type="number" value="0" /></div>
+      <div class="field"><label>Green</label><input id="wr_green" type="number" value="0" /></div>
+    </div>
+    <div class="field"><label>Actions (one per line)</label><textarea id="wr_actions"></textarea></div>
+    <button onclick="submitWeeklyReport()">Submit Weekly Report</button>
+    <span class="save-msg" id="save_wr"></span>
+    <div id="wr_history" style="margin-top:14px;font-size:12px;color:var(--muted);"></div>
+  </div>
+
+  <div class="card">
+    <h2>📎 Resources</h2>
+    <a class="resource-link" id="r_website" href="#" target="_blank">🌐 kenostodblockchain.com</a>
+    <a class="resource-link" id="r_kingsshield" href="#" target="_blank">⚔️ kings-shield.com</a>
+    <a class="resource-link" id="r_pinksale" href="#" target="_blank">🟡 PinkSale (July 23)</a>
+    <div class="field" style="margin-top:10px;"><label>Empirica Outreach Email link</label><input id="r_empirica" type="text" /></div>
+    <div class="field"><label>SOE Document link</label><input id="r_soedoc" type="text" /></div>
+    <div class="field"><label>VLAT System Document link</label><input id="r_vlatdoc" type="text" /></div>
+    <button onclick="saveResources()">Save Resources</button>
+    <span class="save-msg" id="save_resources"></span>
+  </div>
+
+  <div class="card" id="teamCard">
+    <h2>👥 Team Access</h2>
+    <table class="team-list" id="team_table"></table>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;">Founder-only: share each unique link below with your team so they see the right view.</p>
+  </div>
+</div>
+
+<script>
+let ACCESS = null;
+let DATA = null;
+const qs = new URLSearchParams(location.search);
+const token = qs.get('token');
+
+function authedUrl(url) {
+  return token ? `${url}${url.includes('?') ? '&' : '?'}token=${token}` : url;
+}
+
+async function api(url, opts = {}) {
+  const res = await fetch(authedUrl(url), {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    credentials: 'same-origin',
+  });
+  return res.json();
+}
+
+function badge(status) {
+  return `<span class="badge ${status}">${status.toUpperCase()}</span>`;
+}
+
+function lockIfNoPermission(section) {
+  const perms = { full: ['health','liquidity','volume','slippage','marketMaker','ilp','ecosystem','alerts','weeklyReports','resources','team'],
+                   weekly_report: ['weeklyReports'], alerts: ['alerts'], view_only: [] };
+  const allowed = perms[ACCESS.permission] || [];
+  return !allowed.includes(section);
+}
+
+function applyLocks() {
+  document.querySelectorAll('.card').forEach(card => {
+    const h2 = card.querySelector('h2')?.textContent || '';
+    let section = null;
+    if (h2.includes('Health')) section = 'health';
+    else if (h2.includes('Liquidity Metrics')) section = 'liquidity';
+    else if (h2.includes('Volume Metrics')) section = 'volume';
+    else if (h2.includes('Slippage')) section = 'slippage';
+    else if (h2.includes('Market Maker')) section = 'marketMaker';
+    else if (h2.includes('ILP')) section = 'ilp';
+    else if (h2.includes('Ecosystem')) section = 'ecosystem';
+    else if (h2.includes('Alerts')) section = 'alerts';
+    else if (h2.includes('Weekly Report')) section = 'weeklyReports';
+    else if (h2.includes('Resources')) section = 'resources';
+    else if (h2.includes('Team Access')) section = 'team';
+    if (section && lockIfNoPermission(section)) card.classList.add('locked');
+  });
+  if (ACCESS.role !== 'founder') document.getElementById('teamCard').style.display = 'none';
+}
+
+function render() {
+  document.getElementById('roleTag').textContent = `${ACCESS.name} · ${ACCESS.role}`;
+  document.getElementById('lastUpdated').textContent = 'Last updated: ' + (DATA.lastUpdated ? new Date(DATA.lastUpdated).toLocaleString() : '—');
+
+  const h = DATA.health;
+  h_liq_total.value = h.liquidity.total ?? ''; h_liq_target.value = h.liquidity.target ?? ''; h_liq_status.value = h.liquidity.status;
+  h_vol_avg.value = h.volume.dailyAverage ?? ''; h_vol_target.value = h.volume.target ?? ''; h_vol_status.value = h.volume.status;
+  h_slip_avg.value = h.slippage.ammAverage ?? ''; h_slip_target.value = h.slippage.target ?? 1.5; h_slip_status.value = h.slippage.status;
+
+  const liqRows = ['pancakeswap','raydium','hyperliquid','aster'];
+  const liqLabels = { pancakeswap: 'PancakeSwap', raydium: 'Raydium', hyperliquid: 'Hyperliquid', aster: 'Aster' };
+  let liqHtml = '<tr><th>Platform</th><th>Depth ($)</th><th>Target ($)</th><th>Status</th></tr>';
+  liqRows.forEach(k => {
+    const r = DATA.liquidity[k];
+    liqHtml += `<tr>
+      <td>${liqLabels[k]}</td>
+      <td><input type="number" id="liq_${k}_depth" value="${r.depth ?? ''}"></td>
+      <td><input type="number" id="liq_${k}_target" value="${r.target ?? ''}"></td>
+      <td><select id="liq_${k}_status"><option value="green" ${r.status==='green'?'selected':''}>Green</option><option value="yellow" ${r.status==='yellow'?'selected':''}>Yellow</option><option value="red" ${r.status==='red'?'selected':''}>Red</option></select></td>
+    </tr>`;
+  });
+  document.getElementById('liq_table').innerHTML = liqHtml;
+
+  const v = DATA.volume;
+  v_daily.value = v.today.dailyVolume ?? ''; v_trades.value = v.today.tradeCount ?? '';
+  v_top.value = v.today.topSource ?? ''; v_ratio.value = v.today.buySellRatio ?? '';
+  vs_fal.value = v.bySource.falArbitrage ?? ''; vs_cross.value = v.bySource.crossPlatformArb ?? '';
+  vs_organic.value = v.bySource.organicTrading ?? ''; vs_temporal.value = v.bySource.temporalTaxonomyRebates ?? '';
+  vs_aegis.value = v.bySource.aegisTaxRedistribution ?? ''; vs_academy.value = v.bySource.academyIncentives ?? '';
+  vs_merchant.value = v.bySource.merchantGateway ?? ''; vs_utlfarm.value = v.bySource.utlFarmCompounding ?? '';
+
+  const slipRows = ['under1k','from1kTo10k','from10kTo50k','over50k'];
+  const slipLabels = { under1k: '<$1K', from1kTo10k: '$1K-$10K', from10kTo50k: '$10K-$50K', over50k: '>$50K' };
+  let slipHtml = '<tr><th>Size</th><th>AMM Slip (%)</th><th>Spread (%)</th><th>6174 Eff (%)</th><th>Status</th></tr>';
+  slipRows.forEach(k => {
+    const r = DATA.slippage[k];
+    const ammCell = k === 'over50k' ? 'Order Book' : `<input type="number" step="0.01" id="slip_${k}_amm" value="${r.ammSlippage ?? ''}">`;
+    slipHtml += `<tr>
+      <td>${slipLabels[k]}</td>
+      <td>${ammCell}</td>
+      <td><input type="number" step="0.01" id="slip_${k}_spread" value="${r.orderBookSpread ?? ''}"></td>
+      <td><input type="number" step="0.01" id="slip_${k}_eff" value="${r.efficiency ?? ''}"></td>
+      <td><select id="slip_${k}_status"><option value="green" ${r.status==='green'?'selected':''}>Green</option><option value="yellow" ${r.status==='yellow'?'selected':''}>Yellow</option><option value="red" ${r.status==='red'?'selected':''}>Red</option></select></td>
+    </tr>`;
+  });
+  document.getElementById('slip_table').innerHTML = slipHtml;
+
+  const mm = DATA.marketMaker;
+  mm_apr.value = mm.revenueShareAPR ?? ''; mm_rebal.value = mm.rebalancingCost ?? '';
+  mm_turnover.value = mm.inventoryTurnover ?? ''; mm_twal.value = mm.twal ?? ''; mm_toxic.value = mm.toxicFlowRatio ?? '';
+
+  const ilp = DATA.ilp;
+  ilp_fund.value = ilp.fundSize ?? ''; ilp_target.value = ilp.fundTarget ?? '';
+  ilp_retention.value = ilp.lpRetentionRate ?? ''; ilp_duration.value = ilp.avgStakingDurationDays ?? '';
+  ilp_filed.value = ilp.claimsFiled ?? ''; ilp_paid.value = ilp.claimsPaid ?? ''; ilp_satisfaction.value = ilp.lpSatisfaction ?? '';
+
+  const eco = DATA.ecosystem;
+  eco_wallets.value = eco.uniqueActiveWallets ?? ''; eco_burned.value = eco.kenoBurnedMonthly ?? '';
+  eco_genesis.value = eco.kenoGenesisMinted ?? ''; eco_qct.value = eco.queensChariotMinted ?? ''; eco_ks.value = eco.kingsShieldMinted ?? '';
+  house_academy.value = eco.houses.academy ?? ''; house_farm.value = eco.houses.farm ?? '';
+  house_arb.value = eco.houses.arbitrage ?? ''; house_card.value = eco.houses.card ?? '';
+  house_security.value = eco.houses.security ?? ''; house_apparel.value = eco.houses.apparel ?? '';
+  house_bunker.value = eco.houses.bunker ?? '';
+
+  const notesHtml = (DATA.alerts.notes || []).map(n =>
+    `<div class="alert-note ${n.level}">${badge(n.level)} ${n.note} <span style="color:var(--muted);float:right;">${new Date(n.at).toLocaleDateString()}</span></div>`
+  ).join('') || '<p style="color:var(--muted);font-size:12px;">No alerts logged.</p>';
+  document.getElementById('alert_notes').innerHTML = notesHtml;
+
+  const res = DATA.resources;
+  r_website.href = res.website; r_kingsshield.href = res.kingsShield; r_pinksale.href = res.pinksale;
+  r_empirica.value = res.empiricaOutreach ?? ''; r_soedoc.value = res.soeDocument ?? ''; r_vlatdoc.value = res.vlatDocument ?? '';
+
+  const wrHtml = (DATA.weeklyReports || []).slice(0, 5).map(r =>
+    `<div style="margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:6px;">
+      <b>${r.week || 'Unknown week'}</b> — Liq $${r.liquidity ?? '—'} · Vol $${r.volume ?? '—'} · Slip ${r.slippage ?? '—'}%
+      · 🔴${r.redAlerts ?? 0} 🟡${r.yellowAlerts ?? 0} 🟢${r.greenAlerts ?? 0}
+    </div>`
+  ).join('') || 'No weekly reports yet.';
+  document.getElementById('wr_history').innerHTML = wrHtml;
+
+  if (ACCESS.role === 'founder') {
+    let teamHtml = '<tr><th>Name</th><th>Role</th><th>Access</th></tr>';
+    (DATA.team || []).forEach(t => {
+      teamHtml += `<tr><td>${t.name}</td><td>${t.role}</td><td>${t.permission}</td></tr>`;
+    });
+    document.getElementById('team_table').innerHTML = teamHtml;
+    loadTeamLinks();
+  }
+
+  applyLocks();
+}
+
+async function loadTeamLinks() {
+  const r = await api('/api/soe-dashboard/team-links');
+  if (!r.ok) return;
+  let html = document.getElementById('team_table').innerHTML;
+  html += `<tr><td colspan="3"><b>Shareable Links</b></td></tr>`;
+  r.links.forEach(l => {
+    html += `<tr><td colspan="3">${l.name} (${l.role}): <div class="link-box">${l.link}</div></td></tr>`;
+  });
+  document.getElementById('team_table').innerHTML = html;
+}
+
+function flashSaved(id) {
+  const el = document.getElementById(id);
+  el.textContent = '✓ Saved';
+  setTimeout(() => el.textContent = '', 2000);
+}
+
+function getHealthPayload() {
+  return {
+    liquidity: { total: +h_liq_total.value || null, target: +h_liq_target.value || null, status: h_liq_status.value },
+    volume: { dailyAverage: +h_vol_avg.value || null, target: +h_vol_target.value || null, status: h_vol_status.value },
+    slippage: { ammAverage: +h_slip_avg.value || null, target: +h_slip_target.value || 1.5, status: h_slip_status.value },
+  };
+}
+
+async function saveSection(section, payload) {
+  const r = await api('/api/soe-dashboard/update', { method: 'POST', body: JSON.stringify({ section, payload }) });
+  if (r.ok) { DATA = r.data; flashSaved(`save_${section === 'marketMaker' ? 'mm' : section}`); }
+  else alert(r.msg);
+}
+
+function saveLiquidity() {
+  const keys = ['pancakeswap','raydium','hyperliquid','aster'];
+  const payload = {};
+  keys.forEach(k => {
+    payload[k] = {
+      depth: +document.getElementById(`liq_${k}_depth`).value || null,
+      target: +document.getElementById(`liq_${k}_target`).value || null,
+      status: document.getElementById(`liq_${k}_status`).value,
+      pct: null,
+    };
+  });
+  saveSection('liquidity', payload);
+}
+
+function saveVolume() {
+  const payload = {
+    today: { date: new Date().toISOString().slice(0,10), dailyVolume: +v_daily.value || null, tradeCount: +v_trades.value || null, topSource: v_top.value, buySellRatio: v_ratio.value },
+    bySource: {
+      falArbitrage: +vs_fal.value || null, crossPlatformArb: +vs_cross.value || null,
+      organicTrading: +vs_organic.value || null, temporalTaxonomyRebates: +vs_temporal.value || null,
+      aegisTaxRedistribution: +vs_aegis.value || null, academyIncentives: +vs_academy.value || null,
+      merchantGateway: +vs_merchant.value || null, utlFarmCompounding: +vs_utlfarm.value || null,
+    },
+  };
+  saveSection('volume', payload);
+}
+
+function saveSlippage() {
+  const keys = ['under1k','from1kTo10k','from10kTo50k','over50k'];
+  const payload = {};
+  keys.forEach(k => {
+    payload[k] = {
+      ammSlippage: k === 'over50k' ? null : (+document.getElementById(`slip_${k}_amm`).value || null),
+      orderBookSpread: +document.getElementById(`slip_${k}_spread`).value || null,
+      efficiency: +document.getElementById(`slip_${k}_eff`).value || null,
+      status: document.getElementById(`slip_${k}_status`).value,
+    };
+  });
+  saveSection('slippage', payload);
+}
+
+function saveMM() {
+  saveSection('marketMaker', {
+    revenueShareAPR: +mm_apr.value || null, rebalancingCost: +mm_rebal.value || null,
+    inventoryTurnover: +mm_turnover.value || null, twal: +mm_twal.value || null, toxicFlowRatio: +mm_toxic.value || null,
+  });
+}
+
+function saveILP() {
+  saveSection('ilp', {
+    fundSize: +ilp_fund.value || null, fundTarget: +ilp_target.value || null,
+    lpRetentionRate: +ilp_retention.value || null, avgStakingDurationDays: +ilp_duration.value || null,
+    claimsFiled: +ilp_filed.value || null, claimsPaid: +ilp_paid.value || null, lpSatisfaction: +ilp_satisfaction.value || null,
+  });
+}
+
+function saveEcosystem() {
+  saveSection('ecosystem', {
+    uniqueActiveWallets: +eco_wallets.value || null, kenoBurnedMonthly: +eco_burned.value || null,
+    kenoGenesisMinted: +eco_genesis.value || null, kenoGenesisTotal: 6174,
+    queensChariotMinted: +eco_qct.value || null, queensChariotTotal: 1729,
+    kingsShieldMinted: +eco_ks.value || null, kingsShieldTotal: 617,
+    houses: {
+      academy: +house_academy.value || null, farm: +house_farm.value || null,
+      arbitrage: +house_arb.value || null, card: +house_card.value || null,
+      security: +house_security.value || null, apparel: +house_apparel.value || null,
+      bunker: +house_bunker.value || null,
+    },
+  });
+}
+
+async function addAlertNote() {
+  const note = alert_note_text.value.trim();
+  if (!note) return;
+  const r = await api('/api/soe-dashboard/alert-note', { method: 'POST', body: JSON.stringify({ note, level: alert_note_level.value }) });
+  if (r.ok) { DATA = r.data; alert_note_text.value = ''; render(); flashSaved('save_alert'); }
+  else alert(r.msg);
+}
+
+async function submitWeeklyReport() {
+  const actions = wr_actions.value.split('\n').map(s => s.trim()).filter(Boolean);
+  const payload = {
+    week: wr_week.value, liquidity: +wr_liq.value || null, volume: +wr_vol.value || null, slippage: +wr_slip.value || null,
+    activeMMs: +wr_mms.value || null, mmRevenue: +wr_mmrev.value || null, ilpFund: +wr_ilpfund.value || null,
+    redAlerts: +wr_red.value || 0, yellowAlerts: +wr_yellow.value || 0, greenAlerts: +wr_green.value || 0, actions,
+  };
+  const r = await api('/api/soe-dashboard/weekly-report', { method: 'POST', body: JSON.stringify(payload) });
+  if (r.ok) { DATA = r.data; render(); flashSaved('save_wr'); }
+  else alert(r.msg);
+}
+
+function saveResources() {
+  saveSection('resources', {
+    website: DATA.resources.website, kingsShield: DATA.resources.kingsShield, pinksale: DATA.resources.pinksale,
+    empiricaOutreach: r_empirica.value, soeDocument: r_soedoc.value, vlatDocument: r_vlatdoc.value,
+  });
+}
+
+async function init() {
+  const r = await api('/api/soe-dashboard/state');
+  if (!r.ok) { document.body.innerHTML = '<h2 style="color:#ef4444;padding:40px;">Unauthorized — please log in via /founder-login.html or use your team access link.</h2>'; return; }
+  ACCESS = r.access; DATA = r.data;
+  render();
+}
+init();
+</script>
+</body>
+</html>
