@@ -127,6 +127,8 @@ const WebhookHandlers = require('./src/webhookHandlers');
 const MerchantIncentives = require('./src/MerchantIncentives');
 const RevenueTracker = require('./src/RevenueTracker');
 const DataPersistence = require('./src/DataPersistence');
+const { SoeDashboardStore, PERMISSION_SECTIONS } = require('./src/SoeDashboardStore');
+const soeDashboardStore = new SoeDashboardStore();
 const DatabaseConnection = require('./src/DatabaseConnection');
 const OrganizationManager = require('./src/OrganizationManager');
 const WealthBuilderManager  = require('./src/WealthBuilderManager');
@@ -9373,6 +9375,96 @@ function requireFounder(req, res, next) {
     res.status(401).json({ ok: false, msg: 'Unauthorized' });
 }
 app.use('/api/live-arb', requireFounder);
+
+// ── SOE Post-Launch Trading Dashboard ────────────────────────────────────────
+function resolveSoeAccess(req) {
+    if (req.session.isFounder) {
+        return { role: 'founder', permission: 'full', name: 'Founder' };
+    }
+    const token = req.query.token || req.headers['x-soe-token'] || req.session.soeToken;
+    if (token) {
+        const member = soeDashboardStore.getRoleByToken(token);
+        if (member) return { role: member.role, permission: member.permission, name: member.name };
+    }
+    return null;
+}
+
+app.get('/soe-dashboard.html', (req, res, next) => {
+    const access = resolveSoeAccess(req);
+    if (!access) return res.redirect('/founder-login.html');
+    if (req.query.token) req.session.soeToken = req.query.token;
+    next();
+});
+
+app.get('/api/soe-dashboard/state', (req, res) => {
+    const access = resolveSoeAccess(req);
+    if (!access) return res.status(401).json({ ok: false, msg: 'Unauthorized' });
+    const data = soeDashboardStore.load();
+    // Never expose other members' tokens to non-founders
+    const safeData = { ...data };
+    if (access.role !== 'founder') {
+        safeData.team = data.team.map(t => ({ name: t.name, role: t.role, permission: t.permission }));
+    }
+    res.json({ ok: true, access, data: safeData });
+});
+
+app.post('/api/soe-dashboard/update', (req, res) => {
+    const access = resolveSoeAccess(req);
+    if (!access) return res.status(401).json({ ok: false, msg: 'Unauthorized' });
+    const { section, payload } = req.body || {};
+    const allowedSections = PERMISSION_SECTIONS[access.permission] || [];
+    if (!section || !allowedSections.includes(section)) {
+        return res.status(403).json({ ok: false, msg: `${access.role} cannot edit "${section}"` });
+    }
+    try {
+        const data = soeDashboardStore.update(section, payload);
+        res.json({ ok: true, data });
+    } catch (e) {
+        res.status(400).json({ ok: false, msg: e.message });
+    }
+});
+
+app.post('/api/soe-dashboard/weekly-report', (req, res) => {
+    const access = resolveSoeAccess(req);
+    if (!access || !['full', 'weekly_report'].includes(access.permission)) {
+        return res.status(403).json({ ok: false, msg: 'Not permitted to submit weekly reports' });
+    }
+    const data = soeDashboardStore.addWeeklyReport(req.body || {});
+    res.json({ ok: true, data });
+});
+
+app.post('/api/soe-dashboard/alert-note', (req, res) => {
+    const access = resolveSoeAccess(req);
+    if (!access || !['full', 'alerts'].includes(access.permission)) {
+        return res.status(403).json({ ok: false, msg: 'Not permitted to manage alerts' });
+    }
+    const { note, level } = req.body || {};
+    if (!note) return res.status(400).json({ ok: false, msg: 'note required' });
+    const data = soeDashboardStore.addAlertNote(note, level || 'yellow');
+    res.json({ ok: true, data });
+});
+
+app.post('/api/soe-dashboard/regenerate-token', requireFounder, (req, res) => {
+    const { role } = req.body || {};
+    try {
+        const member = soeDashboardStore.regenerateToken(role);
+        res.json({ ok: true, member });
+    } catch (e) {
+        res.status(400).json({ ok: false, msg: e.message });
+    }
+});
+
+app.get('/api/soe-dashboard/team-links', requireFounder, (req, res) => {
+    const data = soeDashboardStore.load();
+    const base = `${req.protocol}://${req.get('host')}/soe-dashboard.html`;
+    const links = data.team.map(t => ({
+        name: t.name,
+        role: t.role,
+        permission: t.permission,
+        link: t.token ? `${base}?token=${t.token}` : `${base} (uses founder login)`,
+    }));
+    res.json({ ok: true, links });
+});
 
 // ── Sovereign Bot Framework — 4 protocol-native bots ─────────────────────────
 app.get('/api/sovereign/status', (req, res) => {
