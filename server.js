@@ -9456,14 +9456,23 @@ app.post('/api/soe-dashboard/regenerate-token', requireFounder, (req, res) => {
 
 app.get('/api/soe-dashboard/team-links', requireFounder, (req, res) => {
     const data = soeDashboardStore.load();
-    const base = `${req.protocol}://${req.get('host')}/soe-dashboard.html`;
+    const host = req.get('host') || '';
+    const isDevWorkspace = host.includes('replit.dev') || host.includes('repl.co') || host.includes('localhost');
+    const origin = isDevWorkspace ? 'https://kenostodblockchain.com' : `${req.protocol}://${host}`;
+    const base = `${origin}/soe-dashboard.html`;
     const links = data.team.map(t => ({
         name: t.name,
         role: t.role,
         permission: t.permission,
         link: t.token ? `${base}?token=${t.token}` : `${base} (uses founder login)`,
     }));
-    res.json({ ok: true, links });
+    res.json({
+        ok: true,
+        links,
+        note: isDevWorkspace
+            ? 'These links point to kenostodblockchain.com. They will only work once this app is published/deployed there — publish first, then send these to your team.'
+            : undefined,
+    });
 });
 
 // ── Sovereign Bot Framework — 4 protocol-native bots ─────────────────────────
