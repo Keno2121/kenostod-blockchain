@@ -400,7 +400,7 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
                 <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;">
                     <a href="/index.html#courses" style="background:linear-gradient(135deg,#10b981,#059669);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Subscribe Now</a>
                     <a href="/wealth-builder.html" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Apply for Scholarship</a>
-                    <a href="/courses/course-1-wallet.html" style="background:rgba(255,255,255,0.1);color:#ccc;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid #555;">Try Course 1 Free</a>
+                    <a href="/courses/course-1-wallet-basics.html" style="background:rgba(255,255,255,0.1);color:#ccc;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid #555;">Try Course 1 Free</a>
                 </div>
             </div>
         `;
