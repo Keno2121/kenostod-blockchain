@@ -362,12 +362,12 @@ bot.onText(/\/freekeno/, async (msg) => {
 If you believe in where KENO is going, this is the easiest way to start holding — <b>before</b> presale even opens.
 
 <b>1️⃣ Enroll</b> — name, email, wallet: ${WEBSITE}
-<b>2️⃣ Complete Course 1</b> — free, ~10 minutes, no crypto experience needed
+<b>2️⃣ Complete Course 1</b> — free, plan for 2-3 hours, no crypto experience needed
 <b>3️⃣ Claim</b> — sign with your wallet, 250 KENO lands + auto-stakes at 15% APY
 
 Every one of the 21 courses pays <b>250 KENO</b>. Finish all 21 → <b>5,250 KENO</b>.
 
-Only a handful of people in this group have claimed so far. If you're serious about KENO taking off, this is the first move — <b>same goes for the team, not just newcomers.</b> 🤝
+Only a handful of people in this group have claimed so far. If you're serious about KENO taking off, this is the first move — <b>and it's required if you want to join the team.</b> You can't promote features you've never used. 🤝
 
 👉 Start here: ${WEBSITE}`;
 
