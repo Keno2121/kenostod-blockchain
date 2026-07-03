@@ -23,6 +23,17 @@ if (!TOKEN) {
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
+bot.setMyCommands([
+  { command: 'courses',   description: '21 free courses — earn KENO for learning' },
+  { command: 'freekeno',  description: 'How to get free KENO in 3 steps' },
+  { command: 'presale',   description: 'Presale dates, rate, caps' },
+  { command: 'keno',      description: 'KENO token contract & details' },
+  { command: 'liquidity', description: 'How KENO redemption works' },
+  { command: 'about',     description: 'About The Sovereign Economy' },
+  { command: 'links',     description: 'Official links' },
+  { command: 'trivia',    description: "Today's trivia" }
+]).catch(e => console.error('setMyCommands failed:', e.message));
+
 // ─── Group whitelist — auto-leave unauthorized groups ──────────────────────
 const AUTHORIZED_CHAT_ID = process.env.COMMUNITY_CHAT_ID;
 
@@ -342,6 +353,25 @@ Complete a course → screenshot it → drop it here.
 First 10 graduates get <b>priority presale allocation</b> 🎯`;
 
   try { await send(msg.chat.id, text); } catch (e) { console.error('/courses:', e.message); }
+});
+
+bot.onText(/\/freekeno/, async (msg) => {
+  const text =
+`🎁 <b>Free KENO — 3 Steps, No Purchase Required</b>
+
+If you believe in where KENO is going, this is the easiest way to start holding — <b>before</b> presale even opens.
+
+<b>1️⃣ Enroll</b> — name, email, wallet: ${WEBSITE}
+<b>2️⃣ Complete Course 1</b> — free, ~10 minutes, no crypto experience needed
+<b>3️⃣ Claim</b> — sign with your wallet, 250 KENO lands + auto-stakes at 15% APY
+
+Every one of the 21 courses pays <b>250 KENO</b>. Finish all 21 → <b>5,250 KENO</b>.
+
+Only a handful of people in this group have claimed so far. If you're serious about KENO taking off, this is the first move — <b>same goes for the team, not just newcomers.</b> 🤝
+
+👉 Start here: ${WEBSITE}`;
+
+  try { await send(msg.chat.id, text); } catch (e) { console.error('/freekeno:', e.message); }
 });
 
 bot.onText(/\/liquidity/, async (msg) => {
