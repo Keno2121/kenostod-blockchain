@@ -1,85 +1,89 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function Scene2() {
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase(1), 500),  // Shield enters
-      setTimeout(() => setPhase(2), 2000), // KENOSTOD text
-      setTimeout(() => setPhase(3), 3500), // Subtitle
+      setTimeout(() => setPhase(1), 300),  // Cards appear
+      setTimeout(() => setPhase(2), 1000), // Flow of coins starts
+      setTimeout(() => setPhase(3), 2800), // Exiting
     ];
     return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
-  // Generate glass shards
-  const shards = Array.from({ length: 15 }).map((_, i) => ({
-    id: i,
-    x: (Math.random() - 0.5) * 100,
-    y: (Math.random() - 0.5) * 100,
-    r: (Math.random() - 0.5) * 360,
-    s: 0.5 + Math.random() * 1.5,
-  }));
-
   return (
-    <motion.div
-      className="absolute inset-0 flex flex-col items-center justify-center z-20"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-      transition={{ duration: 0.8 }}
+    <motion.div 
+      className="absolute inset-0 flex flex-col items-center justify-center z-10"
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '-100%', opacity: 0 }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Glass shatter effect */}
-      {shards.map((shard) => (
-        <motion.div
-          key={shard.id}
-          className="absolute w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-b-[40px] border-b-white/20 backdrop-blur-sm"
-          initial={{ x: 0, y: 0, rotate: 0, scale: 0 }}
-          animate={{
-            x: `${shard.x}vw`,
-            y: `${shard.y}vh`,
-            rotate: shard.r,
-            scale: shard.s,
-            opacity: [1, 0],
-          }}
-          transition={{ duration: 2, ease: "easeOut" }}
-        />
-      ))}
-
-      {/* Emerald Shield Logo */}
-      <motion.div
-        className="relative z-10 w-[20vw] h-[20vw] mb-8"
-        initial={{ scale: 0, rotate: -30, filter: 'brightness(2)' }}
-        animate={{ scale: 1, rotate: 0, filter: 'brightness(1)' }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-      >
-        <img 
-          src={`${import.meta.env.BASE_URL}assets/course-images/keno_gold_token_emerald_shield.png`} 
-          alt="Kenostod Shield"
-          className="w-full h-full object-contain drop-shadow-[0_0_40px_rgba(0,200,150,0.5)]"
-        />
-      </motion.div>
-
-      {/* Texts */}
-      <div className="text-center overflow-hidden h-[15vh]">
-        <motion.h1
-          className="text-[6vw] font-display text-white tracking-widest leading-none drop-shadow-lg"
-          initial={{ y: '100%', opacity: 0 }}
-          animate={phase >= 2 ? { y: 0, opacity: 1 } : { y: '100%', opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        >
-          KENOSTOD
-        </motion.h1>
+      <div className="relative w-full max-w-6xl mx-auto flex items-center justify-between px-16">
         
-        <motion.p
-          className="text-[2vw] text-[#00C896] uppercase tracking-widest font-semibold mt-4"
-          initial={{ opacity: 0, filter: 'blur(10px)' }}
-          animate={phase >= 3 ? { opacity: 1, filter: 'blur(0px)' } : { opacity: 0, filter: 'blur(10px)' }}
-          transition={{ duration: 1 }}
+        {/* Exchange A */}
+        <motion.div 
+          className="w-[30vw] bg-[#0A1930]/80 border border-[#1E3A8A] rounded-2xl p-8 backdrop-blur-md flex flex-col items-center shadow-[0_0_30px_rgba(30,58,138,0.5)]"
+          initial={{ opacity: 0, x: -50, rotateY: -30 }}
+          animate={phase >= 1 ? { opacity: 1, x: 0, rotateY: 0 } : { opacity: 0, x: -50, rotateY: -30 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          style={{ perspective: 1000 }}
         >
-          A Shield Against Poverty
-        </motion.p>
+          <div className="text-[#FFD700] text-[2vw] font-bold uppercase tracking-wider mb-2">Exchange A</div>
+          <div className="text-white text-[5vw] font-black font-body leading-none">$8.30</div>
+        </motion.div>
+
+        {/* The Flow */}
+        <div className="flex-1 h-32 relative mx-8 flex items-center justify-center">
+          <AnimatePresence>
+            {phase >= 2 && (
+              <motion.div 
+                className="absolute inset-0 flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {/* Arrow line */}
+                <div className="absolute w-full h-1 bg-[#1E3A8A] rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-[#FFD700] shadow-[0_0_10px_#FFD700]"
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '100%' }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  />
+                </div>
+                
+                {/* Flowing coins */}
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-8 h-8 rounded-full bg-[#FFD700] shadow-[0_0_15px_#FFD700] border-2 border-white flex items-center justify-center z-10"
+                    initial={{ left: '0%', opacity: 0, scale: 0 }}
+                    animate={{ left: '100%', opacity: [0, 1, 1, 0], scale: [0.5, 1, 1, 0.5] }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.5, ease: 'linear' }}
+                  >
+                    <span className="text-[#0A1930] text-xs font-bold">$</span>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Exchange B */}
+        <motion.div 
+          className="w-[30vw] bg-[#0A1930]/80 border border-[#1E3A8A] rounded-2xl p-8 backdrop-blur-md flex flex-col items-center shadow-[0_0_30px_rgba(30,58,138,0.5)]"
+          initial={{ opacity: 0, x: 50, rotateY: 30 }}
+          animate={phase >= 1 ? { opacity: 1, x: 0, rotateY: 0 } : { opacity: 0, x: 50, rotateY: 30 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 }}
+          style={{ perspective: 1000 }}
+        >
+          <div className="text-[#FFD700] text-[2vw] font-bold uppercase tracking-wider mb-2">Exchange B</div>
+          <div className="text-white text-[5vw] font-black font-body leading-none">$8.79</div>
+        </motion.div>
+
       </div>
     </motion.div>
   );
