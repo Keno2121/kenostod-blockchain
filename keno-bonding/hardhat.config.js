@@ -14,7 +14,7 @@ module.exports = {
   },
   networks: {
     bsc: {
-      url: "https://bsc-dataseed1.binance.org",
+      url: "https://bsc.drpc.org",
       chainId: 56,
       accounts: [NEW_WALLET_PRIVATE_KEY]
     },
