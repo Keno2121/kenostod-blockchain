@@ -11,8 +11,8 @@ const path = require("path");
 
 const CONFIG = {
   bsc: {
-    kenoToken: "0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E",
-    owner:     "0x4AA73FadfFd71E6549867a37455EA957A52Cf849",
+    kenoToken: "0x48bb049afe50b050b458624dc6233acd51024ab4", // KENO v2 — ACTIVE
+    owner:     "0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2", // KENO Bot wallet
   },
   bscTestnet: {
     kenoToken: process.env.TESTNET_KENO_TOKEN || "0x0000000000000000000000000000000000000001",
