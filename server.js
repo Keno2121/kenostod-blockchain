@@ -1637,6 +1637,21 @@ app.post('/api/grants/apply', (req, res) => {
     }
 });
 
+// ONE-SHOT: Deploy KENOAutoBurn from server context (has KENO_WALLET_PRIVATE_KEY)
+app.post('/api/admin/deploy-autoburn', adminAuth, (req, res) => {
+    const { spawn } = require('child_process');
+    const script = require('path').join(__dirname, 'keno-bonding/scripts/deploy-autoburn-direct.js');
+    const proc = spawn('node', [script], { env: process.env });
+    let out = '';
+    proc.stdout.on('data', d => { out += d; console.log('[DEPLOY]', d.toString().trim()); });
+    proc.stderr.on('data', d => { out += d; console.error('[DEPLOY ERR]', d.toString().trim()); });
+    proc.on('close', code => {
+        const match = out.match(/DEPLOYED_ADDRESS=(\S+)/);
+        res.json({ code, address: match ? match[1] : null, log: out });
+    });
+    res.setTimeout && res.setTimeout(300000); // 5 min timeout
+});
+
 // Admin endpoint to view grants (protected)
 app.get('/api/admin/grants', adminAuth, (req, res) => {
     res.json(miningGrants);
