@@ -115,6 +115,7 @@ Design preferences: Professional, appealing, fun; market-ready for ROI growth an
     - Source: `keno-v2/KenostodToken.sol`, deployment: `keno-v2/deployments/keno-v2-bsc.json`
 - **KENO Token (v1 — ABANDONED):** `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` — all wallets pointed to compromised deployer, no mint fn, locked until Nov 2026
 - **BSC Mainnet Contracts (v1.1 — ACTIVE):**
+    - KENOAutoBurn: `0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79` ([BSCScan](https://bscscan.com/address/0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79)) — deployed July 12 2026, owner = bot wallet
     - FeeCollector: `0xb9489B33Bd9bB835139369b1dD282fB44B2273d8`
     - Staking (v2, KENO v2): `0x5e4D6C40B9629C8A4C9bBbBDafE503e0C5D175a4` (deployed June 15 2026, 10M KENO staked by bot wallet)
     - Staking (v1 — RETIRED, pointed to KENO v1): `0x77C3946A9FD5F509584F94e81C43efb25120c837`
