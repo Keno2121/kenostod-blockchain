@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ Flash Orb Bot | Kenostod</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:#060d1f;color:#e2e8f0;min-height:100vh}
+
+    /* ── Header ── */
+    .header{background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:18px 20px;text-align:center;position:relative}
+    .header h1{font-size:1.6rem;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px}
+    .header p{opacity:.85;font-size:.85rem;margin-top:4px}
+    .contract-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(255,255,255,.12);border-radius:20px;
+      padding:4px 12px;font-size:.75rem;margin-top:8px;color:#c4b5fd
+    }
+    .contract-badge a{color:#c4b5fd;text-decoration:none}
+    .contract-badge a:hover{color:#fff}
+    .nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .nav a{
+      padding:6px 14px;background:rgba(255,255,255,.15);
+      color:#fff;text-decoration:none;border-radius:6px;font-size:.82rem;font-weight:600
+    }
+    .nav a:hover{background:rgba(255,255,255,.28)}
+
+    /* ── Layout ── */
+    .container{max-width:960px;margin:0 auto;padding:20px 16px}
+
+    /* ── Waiting state ── */
+    .waiting-banner{
+      background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.05));
+      border:1px solid rgba(245,158,11,.4);border-radius:12px;
+      padding:22px;text-align:center;margin-bottom:20px
+    }
+    .waiting-banner h2{color:#f59e0b;font-size:1.2rem;margin-bottom:8px}
+    .waiting-banner p{color:#94a3b8;font-size:.9rem;line-height:1.6}
+    .waiting-banner .wallet-addr{
+      display:inline-block;background:#0f172a;border-radius:8px;
+      padding:10px 16px;font-family:monospace;font-size:.85rem;
+      color:#fbbf24;margin:12px 0;letter-spacing:.5px;word-break:break-all
+    }
+    .waiting-banner .balance-pill{
+      display:inline-block;background:rgba(245,158,11,.15);
+      border:1px solid rgba(245,158,11,.3);border-radius:20px;
+      padding:4px 14px;font-size:.8rem;color:#f59e0b;margin-top:6px
+    }
+    .bnb-meter{
+      background:#1e293b;border-radius:8px;height:8px;margin:12px 0 4px;overflow:hidden
+    }
+    .bnb-meter-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#10b981);transition:width .6s}
+
+    /* ── Status bar ── */
+    .status-bar{
+      display:flex;align-items:center;gap:12px;
+      background:#111827;border-radius:10px;padding:14px 18px;
+      margin-bottom:16px;border:1px solid #1f2937;flex-wrap:wrap
+    }
+    .dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+    .dot.green{background:#10b981;box-shadow:0 0 8px #10b981;animation:pulse 1.5s infinite}
+    .dot.red{background:#ef4444}
+    .dot.yellow{background:#f59e0b;animation:pulse 1.5s infinite}
+    .dot.gray{background:#475569}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+    .status-text{flex:1}
+    .status-text strong{font-size:.95rem}
+    .status-text small{color:#64748b;font-size:.78rem;display:block;margin-top:2px}
+    .btn-group{display:flex;gap:7px;flex-wrap:wrap}
+    .btn{
+      padding:8px 16px;border:none;border-radius:7px;
+      font-weight:700;cursor:pointer;font-size:.82rem;transition:all .18s
+    }
+    .btn-green{background:#10b981;color:#fff}
+    .btn-red{background:#ef4444;color:#fff}
+    .btn-yellow{background:#f59e0b;color:#111}
+    .btn-blue{background:#3b82f6;color:#fff}
+    .btn-ghost{background:#1e293b;color:#94a3b8;border:1px solid #334155}
+    .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+    .btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+
+    /* ── Grid ── */
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+    @media(max-width:680px){.grid-3,.grid-2{grid-template-columns:1fr}}
+
+    /* ── Cards ── */
+    .card{background:#111827;border-radius:10px;padding:16px 18px;border:1px solid #1f2937}
+    .card h3{font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+    .stat-big{font-size:1.6rem;font-weight:800;color:#10b981}
+    .stat-big.purple{color:#a78bfa}
+    .stat-big.yellow{color:#f59e0b}
+    .stat-big.blue{color:#60a5fa}
+    .stat-big.white{color:#e2e8f0}
+    .stat-sub{font-size:.78rem;color:#64748b;margin-top:3px}
+
+    /* ── Kaprekar split ── */
+    .split-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:10px 0 6px}
+    .split-r{background:#10b981;flex:60}
+    .split-f{background:#a78bfa;flex:25}
+    .split-b{background:#ef4444;flex:15}
+    .split-legend{display:flex;gap:14px;flex-wrap:wrap}
+    .split-item{display:flex;align-items:center;gap:5px;font-size:.78rem;color:#94a3b8}
+    .split-dot{width:8px;height:8px;border-radius:50%}
+
+    /* ── Wallet card ── */
+    .wallet-info{display:flex;flex-direction:column;gap:10px}
+    .wallet-row{display:flex;justify-content:space-between;align-items:center}
+    .wallet-label{font-size:.82rem;color:#64748b}
+    .wallet-value{font-weight:700;font-size:.95rem}
+    .wallet-addr-small{
+      font-family:monospace;font-size:.72rem;color:#64748b;
+      background:#0f172a;padding:4px 8px;border-radius:5px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px
+    }
+
+    /* ── Flash amounts ── */
+    .flash-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .flash-pill{
+      background:#1e293b;border:1px solid #334155;border-radius:20px;
+      padding:3px 10px;font-size:.75rem;color:#a78bfa;font-weight:600
+    }
+
+    /* ── Log feed ── */
+    .log-feed{
+      background:#070e1c;border:1px solid #1f2937;border-radius:10px;
+      padding:12px;height:300px;overflow-y:auto;font-family:monospace;font-size:.78rem;
+      margin-bottom:16px
+    }
+    .log-feed::-webkit-scrollbar{width:4px}
+    .log-feed::-webkit-scrollbar-track{background:#111827}
+    .log-feed::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+    .log-entry{padding:3px 0;border-bottom:1px solid #0d1526;display:flex;gap:8px;align-items:flex-start}
+    .log-time{color:#475569;flex-shrink:0;font-size:.72rem;padding-top:1px}
+    .log-msg{color:#94a3b8;line-height:1.4}
+    .log-msg.info{color:#e2e8f0}
+    .log-msg.warn{color:#f59e0b}
+    .log-msg.error{color:#f87171}
+
+    /* ── Last opportunity ── */
+    .opp-card{
+      background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.25);
+      border-radius:10px;padding:14px;margin-bottom:16px
+    }
+    .opp-card h3{font-size:.72rem;color:#7c3aed;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+    .opp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media(max-width:500px){.opp-grid{grid-template-columns:1fr 1fr}}
+    .opp-item label{font-size:.72rem;color:#64748b;display:block;margin-bottom:2px}
+    .opp-item span{font-weight:700;font-size:.9rem;color:#a78bfa}
+
+    /* ── Profit table ── */
+    .profit-table{width:100%;border-collapse:collapse;font-size:.8rem}
+    .profit-table th{
+      text-align:left;color:#64748b;font-size:.7rem;text-transform:uppercase;
+      letter-spacing:.8px;padding:6px 10px;border-bottom:1px solid #1f2937
+    }
+    .profit-table td{padding:8px 10px;border-bottom:1px solid #111827;color:#e2e8f0}
+    .profit-table td.green{color:#10b981;font-weight:700}
+    .profit-table td.purple{color:#a78bfa}
+    .profit-table tr:hover td{background:#0f172a}
+
+    /* ── Config panel ── */
+    .config-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .config-label{font-size:.85rem;color:#94a3b8}
+    .toggle{position:relative;width:44px;height:24px}
+    .toggle input{opacity:0;width:0;height:0}
+    .slider{
+      position:absolute;inset:0;background:#374151;border-radius:24px;cursor:pointer;transition:.3s
+    }
+    .slider:before{
+      content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;
+      background:#fff;border-radius:50%;transition:.3s
+    }
+    input:checked+.slider{background:#10b981}
+    input:checked+.slider:before{transform:translateX(20px)}
+    .input-num{
+      width:80px;background:#0f172a;border:1px solid #334155;border-radius:6px;
+      padding:5px 8px;color:#e2e8f0;font-size:.85rem;text-align:right
+    }
+
+    /* ── Ticker ── */
+    .ticker{
+      position:fixed;bottom:0;left:0;right:0;
+      background:#070e1c;border-top:1px solid #1f2937;
+      padding:8px 20px;display:flex;gap:24px;overflow-x:auto;font-size:.75rem
+    }
+    .ticker-item{display:flex;gap:6px;align-items:center;white-space:nowrap;flex-shrink:0}
+    .ticker-item label{color:#475569}
+    .ticker-item span{color:#e2e8f0;font-weight:600}
+    .ticker-item span.green{color:#10b981}
+    .ticker-item span.yellow{color:#f59e0b}
+
+    .section-title{
+      font-size:.72rem;color:#64748b;text-transform:uppercase;
+      letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px
+    }
+    .section-title::after{content:'';flex:1;height:1px;background:#1f2937}
+
+    .empty-state{color:#475569;font-size:.82rem;text-align:center;padding:30px 0}
+
+    .refresh-badge{
+      font-size:.7rem;color:#475569;display:flex;align-items:center;gap:4px;
+      margin-left:auto;margin-bottom:8px
+    }
+    #last-refresh{color:#334155}
+
+    .pb-20{padding-bottom:48px}
+  </style>
+</head>
+<body>
+<div class="header">
+  <h1>⚡ KENO Flash Orb Bot</h1>
+  <p>Pure flash loan arbitrage · PancakeSwap ↔ BiSwap · BSC Mainnet</p>
+  <div class="contract-badge">
+    🔥 KENOAutoBurn:
+    <a href="https://bscscan.com/address/0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79" target="_blank">
+      0x9Fb4...A79
+    </a>
+  </div>
+  <div class="nav">
+    <a href="/founder-backoffice.html">← Back Office</a>
+    <a href="/fal-dashboard.html">FAL Pool</a>
+    <a href="/live-arb-bot.html">Live Arb Bot</a>
+    <a href="https://bscscan.com/address/0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2" target="_blank">BSCScan Wallet</a>
+  </div>
+</div>
+
+<div class="container pb-20">
+
+  <!-- Waiting for BNB banner (shown when bot is not running) -->
+  <div class="waiting-banner" id="waiting-banner" style="display:none">
+    <h2>⏳ Waiting for BNB to land…</h2>
+    <p>Send at least <strong>0.01 BNB</strong> to the bot wallet and the bot fires up automatically.<br>
+    Recommended: <strong>0.05 BNB (~$30)</strong> for a healthy gas buffer.</p>
+    <div class="wallet-addr">0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2</div>
+    <div>
+      <div style="font-size:.78rem;color:#64748b;margin-bottom:4px">BNB balance</div>
+      <div class="bnb-meter"><div class="bnb-meter-fill" id="bnb-meter-fill" style="width:0%"></div></div>
+      <span class="balance-pill" id="bnb-pill">Loading…</span>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="dot gray" id="status-dot"></div>
+    <div class="status-text">
+      <strong id="status-label">Connecting…</strong>
+      <small id="status-sub">Polling BSC…</small>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-green" id="btn-start" onclick="botAction('start')" disabled>▶ Start</button>
+      <button class="btn btn-yellow" id="btn-pause" onclick="botAction('pause')" disabled>⏸ Pause</button>
+      <button class="btn btn-red" id="btn-stop" onclick="botAction('stop')" disabled>■ Stop</button>
+    </div>
+  </div>
+
+  <!-- Stats grid top -->
+  <div class="grid-3">
+    <div class="card">
+      <h3>Total Profit (USD)</h3>
+      <div class="stat-big green" id="stat-profit">$0.0000</div>
+      <div class="stat-sub" id="stat-trades">0 trades executed</div>
+    </div>
+    <div class="card">
+      <h3>Your Pocket (25%)</h3>
+      <div class="stat-big purple" id="stat-founder">$0.0000</div>
+      <div class="stat-sub">Kaprekar Founder Split</div>
+    </div>
+    <div class="card">
+      <h3>KENO Burned (15%)</h3>
+      <div class="stat-big yellow" id="stat-burned">0</div>
+      <div class="stat-sub" id="stat-burn-note">Paused pre-listing</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Wallet -->
+    <div class="card">
+      <h3>Bot Wallet</h3>
+      <div class="wallet-info">
+        <div class="wallet-row">
+          <span class="wallet-label">Address</span>
+          <span class="wallet-addr-small">0xC20b...8cf2</span>
+        </div>
+        <div class="wallet-row">
+          <span class="wallet-label">BNB (gas)</span>
+          <span class="wallet-value" id="w-bnb">—</span>
+        </div>
+        <div class="wallet-row">
+          <span class="wallet-label">KENO</span>
+          <span class="wallet-value" id="w-keno" style="color:#f59e0b">—</span>
+        </div>
+        <div class="wallet-row">
+          <span class="wallet-label">BNB price</span>
+          <span class="wallet-value" id="w-bnb-usd" style="color:#60a5fa">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kaprekar split -->
+    <div class="card">
+      <h3>Kaprekar Split (Law V)</h3>
+      <div class="split-bar">
+        <div class="split-r"></div>
+        <div class="split-f"></div>
+        <div class="split-b"></div>
+      </div>
+      <div class="split-legend">
+        <div class="split-item"><div class="split-dot" style="background:#10b981"></div>60% Reinvest</div>
+        <div class="split-item"><div class="split-dot" style="background:#a78bfa"></div>25% You</div>
+        <div class="split-item"><div class="split-dot" style="background:#ef4444"></div>15% Burn</div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="wallet-row" style="margin-bottom:6px">
+          <span class="wallet-label">Reinvested</span>
+          <span class="wallet-value green" id="stat-reinvest">$0.00</span>
+        </div>
+        <div class="wallet-row" style="margin-bottom:6px">
+          <span class="wallet-label">Flash amounts</span>
+          <span></span>
+        </div>
+        <div class="flash-pills">
+          <span class="flash-pill">0.05 BNB</span>
+          <span class="flash-pill">0.1 BNB</span>
+          <span class="flash-pill">0.5 BNB</span>
+          <span class="flash-pill">1 BNB</span>
+          <span class="flash-pill">2 BNB</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scan stats -->
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="card">
+      <h3>Scans Run</h3>
+      <div class="stat-big white" id="stat-scans">0</div>
+      <div class="stat-sub">Every 10 seconds</div>
+    </div>
+    <div class="card">
+      <h3>Quotes Checked</h3>
+      <div class="stat-big blue" id="stat-quotes">0</div>
+      <div class="stat-sub">5 flash amounts × each scan</div>
+    </div>
+    <div class="card">
+      <h3>Uptime</h3>
+      <div class="stat-big white" id="stat-uptime">—</div>
+      <div class="stat-sub" id="stat-last-scan">Last scan: —</div>
+    </div>
+  </div>
+
+  <!-- Last opportunity -->
+  <div class="opp-card" id="opp-section" style="display:none">
+    <h3>⚡ Last Flash Opportunity</h3>
+    <div class="opp-grid">
+      <div class="opp-item">
+        <label>Flash Amount</label>
+        <span id="opp-amount">—</span>
+      </div>
+      <div class="opp-item">
+        <label>Gross Profit</label>
+        <span id="opp-gross">—</span>
+      </div>
+      <div class="opp-item">
+        <label>Net Profit</label>
+        <span id="opp-net" style="color:#10b981">—</span>
+      </div>
+      <div class="opp-item">
+        <label>Spread</label>
+        <span id="opp-spread">—</span>
+      </div>
+      <div class="opp-item">
+        <label>Gas Cost</label>
+        <span id="opp-gas" style="color:#ef4444">—</span>
+      </div>
+      <div class="opp-item">
+        <label>Executable?</label>
+        <span id="opp-exec">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config -->
+  <div class="card" style="margin-bottom:16px">
+    <h3>Configuration</h3>
+    <div class="config-row">
+      <span class="config-label">Auto-execute trades</span>
+      <label class="toggle">
+        <input type="checkbox" id="cfg-auto" onchange="updateConfig()">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="config-row">
+      <span class="config-label">Min profit threshold (USD)</span>
+      <input type="number" class="input-num" id="cfg-minprofit" value="0.25" step="0.05" onchange="updateConfig()">
+    </div>
+    <div style="font-size:.75rem;color:#475569;margin-top:4px">
+      Law III — Sovereign Threshold: no trade executes below this net profit.
+    </div>
+  </div>
+
+  <!-- Live log -->
+  <div class="refresh-badge">
+    <span id="last-refresh">—</span>
+  </div>
+  <div class="section-title">Live Log</div>
+  <div class="log-feed" id="log-feed">
+    <div class="empty-state">Waiting for bot to start…</div>
+  </div>
+
+  <!-- Profit history -->
+  <div class="section-title" style="margin-top:20px">Trade History</div>
+  <div class="card" style="overflow-x:auto">
+    <table class="profit-table" id="profit-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Flash (BNB)</th>
+          <th>Net Profit</th>
+          <th>You +$</th>
+          <th>Burn</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="profit-tbody">
+        <tr><td colspan="6" style="color:#475569;text-align:center;padding:20px">No trades yet — bot starts when 0.01 BNB lands</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Ticker bar -->
+<div class="ticker">
+  <div class="ticker-item"><label>Status:</label><span id="tk-status" class="yellow">WAITING</span></div>
+  <div class="ticker-item"><label>BNB:</label><span id="tk-bnb">—</span></div>
+  <div class="ticker-item"><label>Profit:</label><span id="tk-profit" class="green">$0.00</span></div>
+  <div class="ticker-item"><label>Trades:</label><span id="tk-trades">0</span></div>
+  <div class="ticker-item"><label>Scans:</label><span id="tk-scans">0</span></div>
+  <div class="ticker-item"><label>Your pocket:</label><span id="tk-pocket" class="green">$0.00</span></div>
+  <div class="ticker-item"><label>Next scan in:</label><span id="tk-next">10s</span></div>
+</div>
+
+<script>
+let lastStatus = null;
+let countdown  = 10;
+let walletData = { bnb: '—', keno: '—', bnbUSD: '—' };
+let rawBnb     = 0;
+
+// ── Tick countdown ───────────────────────────────────────────────
+setInterval(() => {
+  countdown = Math.max(0, countdown - 1);
+  document.getElementById('tk-next').textContent = countdown + 's';
+}, 1000);
+
+// ── Format uptime ────────────────────────────────────────────────
+function fmtUptime(s) {
+  if (!s || s < 0) return '—';
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h) return `${h}h ${m}m`;
+  if (m) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+function fmtTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleTimeString();
+}
+
+// ── Fetch wallet (every 30s) ─────────────────────────────────────
+async function fetchWallet() {
+  try {
+    const r = await fetch('/api/flash-orb/wallet');
+    if (r.status === 401) { window.location = '/founder-login.html'; return; }
+    const d = await r.json();
+    walletData = d;
+    rawBnb = parseFloat(d.bnb) || 0;
+
+    document.getElementById('w-bnb').textContent  = d.bnb  + ' BNB';
+    document.getElementById('w-keno').textContent = d.keno + ' KENO';
+    document.getElementById('w-bnb-usd').textContent = '$' + (d.bnbUSD || '—');
+
+    // Ticker
+    document.getElementById('tk-bnb').textContent = d.bnb + ' BNB';
+
+    // Waiting banner meter (0.01 BNB = 100%)
+    const pct = Math.min(100, (rawBnb / 0.01) * 100);
+    document.getElementById('bnb-meter-fill').style.width = pct + '%';
+    document.getElementById('bnb-pill').textContent = rawBnb.toFixed(6) + ' BNB / 0.01 BNB needed';
+  } catch(e) {}
+}
+
+// ── Fetch status (every 5s) ──────────────────────────────────────
+async function fetchStatus() {
+  try {
+    const r = await fetch('/api/flash-orb/status');
+    if (r.status === 401) { window.location = '/founder-login.html'; return; }
+    const d = await r.json();
+    lastStatus = d;
+    applyStatus(d);
+    countdown = Math.round(d.config?.scanIntervalSec || 10);
+    document.getElementById('last-refresh').textContent = 'Refreshed ' + new Date().toLocaleTimeString();
+  } catch(e) {}
+}
+
+function applyStatus(d) {
+  const dot   = document.getElementById('status-dot');
+  const label = document.getElementById('status-label');
+  const sub   = document.getElementById('status-sub');
+  const banner= document.getElementById('waiting-banner');
+
+  // Status dot + label
+  if (d.running && !d.paused) {
+    dot.className = 'dot green';
+    label.textContent = '⚡ Running — scanning every 10s';
+    banner.style.display = 'none';
+    document.getElementById('tk-status').textContent = 'RUNNING';
+    document.getElementById('tk-status').className = 'green';
+  } else if (d.paused) {
+    dot.className = 'dot yellow';
+    label.textContent = '⏸ Paused';
+    banner.style.display = 'none';
+    document.getElementById('tk-status').textContent = 'PAUSED';
+    document.getElementById('tk-status').className = 'yellow';
+  } else {
+    dot.className = 'dot gray';
+    label.textContent = rawBnb >= 0.01 ? '⚡ Starting soon…' : '⏳ Waiting for BNB';
+    banner.style.display = rawBnb >= 0.01 ? 'none' : '';
+    document.getElementById('tk-status').textContent = 'WAITING';
+    document.getElementById('tk-status').className = 'yellow';
+  }
+
+  sub.textContent = `Uptime: ${fmtUptime(d.uptimeSeconds)} · Last scan: ${fmtTime(d.stats?.lastScan)}`;
+
+  // Buttons
+  document.getElementById('btn-start').disabled  = d.running;
+  document.getElementById('btn-pause').disabled  = !d.running;
+  document.getElementById('btn-stop').disabled   = !d.running;
+
+  // Stats
+  const s = d.stats || {};
+  document.getElementById('stat-profit').textContent   = '$' + (s.profitUSD || '0.0000');
+  document.getElementById('stat-trades').textContent   = (s.tradesExecuted || 0) + ' trades executed';
+  document.getElementById('stat-founder').textContent  = '$' + (s.founderPocketUSD || '0.0000');
+  document.getElementById('stat-burned').textContent   = s.kenoBurned || '0';
+  document.getElementById('stat-reinvest').textContent = '$' + (s.reinvestedUSD || '0.00');
+  document.getElementById('stat-scans').textContent    = s.scansRun || 0;
+  document.getElementById('stat-quotes').textContent   = s.quotesChecked || 0;
+  document.getElementById('stat-uptime').textContent   = fmtUptime(d.uptimeSeconds);
+  document.getElementById('stat-last-scan').textContent= 'Last scan: ' + fmtTime(s.lastScan);
+
+  // Ticker
+  document.getElementById('tk-profit').textContent  = '$' + (s.profitUSD || '0.00');
+  document.getElementById('tk-trades').textContent  = s.tradesExecuted || 0;
+  document.getElementById('tk-scans').textContent   = s.scansRun || 0;
+  document.getElementById('tk-pocket').textContent  = '$' + (s.founderPocketUSD || '0.00');
+
+  // Config toggles (first load only)
+  if (d.config) {
+    document.getElementById('cfg-auto').checked     = d.config.autoExecute;
+    document.getElementById('cfg-minprofit').value  = d.config.minProfitUSD;
+    document.getElementById('w-bnb-usd').textContent= '$' + (d.config.bnbPriceUSD || '—') + ' BNB price';
+  }
+
+  // Last opportunity
+  const opp = d.lastOpportunity;
+  if (opp) {
+    document.getElementById('opp-section').style.display = '';
+    document.getElementById('opp-amount').textContent = opp.flashAmountBNB + ' BNB';
+    document.getElementById('opp-gross').textContent  = opp.grossProfitBNB + ' BNB';
+    document.getElementById('opp-net').textContent    = '$' + (opp.netProfitUSD?.toFixed(4) || '?');
+    document.getElementById('opp-spread').textContent = opp.spread + '%';
+    document.getElementById('opp-gas').textContent    = opp.gasCostBNB + ' BNB';
+    document.getElementById('opp-exec').textContent   = opp.executable ? '✅ Yes' : '❌ Below threshold';
+    document.getElementById('opp-exec').style.color   = opp.executable ? '#10b981' : '#f87171';
+  }
+
+  // Live log
+  const logs = d.recentLogs || [];
+  if (logs.length) {
+    const feed = document.getElementById('log-feed');
+    const wasAtBottom = feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 20;
+    feed.innerHTML = logs.map(l => `
+      <div class="log-entry">
+        <span class="log-time">${fmtTime(l.time)}</span>
+        <span class="log-msg ${l.level || 'info'}">${escHtml(l.msg)}</span>
+      </div>
+    `).join('');
+    if (wasAtBottom) feed.scrollTop = feed.scrollHeight;
+  }
+
+  // Profit table
+  const profits = d.profitLog || [];
+  if (profits.length) {
+    const tbody = document.getElementById('profit-tbody');
+    tbody.innerHTML = profits.slice(0, 50).map(p => `
+      <tr>
+        <td>${fmtTime(p.time)}</td>
+        <td>${p.flashAmountBNB || '?'} BNB</td>
+        <td class="green">$${p.netProfitUSD?.toFixed(4) || '?'}</td>
+        <td class="purple">$${p.kaprekarSplit?.founder || '?'}</td>
+        <td style="color:#ef4444">${p.kaprekarSplit?.burn || '?'}</td>
+        <td style="color:#10b981">✅ Executed</td>
+      </tr>
+    `).join('');
+  }
+}
+
+// ── Bot controls ─────────────────────────────────────────────────
+async function botAction(action) {
+  const btns = document.querySelectorAll('.btn');
+  btns.forEach(b => b.disabled = true);
+  try {
+    const r = await fetch('/api/flash-orb/' + action, { method: 'POST' });
+    if (r.status === 401) { window.location = '/founder-login.html'; return; }
+    await fetchStatus();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+// ── Config update ────────────────────────────────────────────────
+let configTimer;
+async function updateConfig() {
+  clearTimeout(configTimer);
+  configTimer = setTimeout(async () => {
+    try {
+      await fetch('/api/flash-orb/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          autoExecute:    document.getElementById('cfg-auto').checked,
+          minProfitUSD:   parseFloat(document.getElementById('cfg-minprofit').value) || 0.25,
+        })
+      });
+    } catch(e) {}
+  }, 800);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+fetchWallet();
+fetchStatus();
+setInterval(fetchStatus, 5000);
+setInterval(fetchWallet, 30000);
+</script>
+</body>
+</html>
