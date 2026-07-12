@@ -13197,4 +13197,22 @@ app.post('/api/vlat/revenue', (req, res) => {
     }
 });
 
+// ── Render Keepalive — ping sovereign-bots every 4 min so it never suspends ──
+(function startRenderKeepalive() {
+    const PING_URL = (process.env.BOT_SERVER_URL || 'https://sovereign-bots.onrender.com') + '/health';
+    const INTERVAL_MS = 4 * 60 * 1000;
+    setInterval(async () => {
+        try {
+            const controller = new AbortController();
+            const t = setTimeout(() => controller.abort(), 8000);
+            const r = await fetch(PING_URL, { signal: controller.signal });
+            clearTimeout(t);
+            if (!r.ok) console.warn('[Keepalive] sovereign-bots ping non-200:', r.status);
+        } catch (_) {
+            console.warn('[Keepalive] sovereign-bots unreachable — will retry in 4min');
+        }
+    }, INTERVAL_MS);
+    console.log('[Keepalive] Render ping active — sovereign-bots pinged every 4 minutes');
+})();
+
 module.exports = { app, kenostodChain, minerWallet, wallet1, wallet2 };
