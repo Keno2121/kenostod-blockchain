@@ -1,0 +1,122 @@
+modules = ["nodejs-20", "java-graalvm22.3", "python-3.11", "postgresql-16"]
+[agent]
+expertMode = true
+integrations = [
+  "javascript_database:1.0.0",
+  "javascript_openai_ai_integrations:1.0.0",
+  "stripe:1.0.0",
+]
+
+[nix]
+channel = "stable-25_05"
+packages = ["chromium"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Kenostod Blockchain Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Kings Shield Website"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Kings Shield Community Bot"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Deploy KENOAutoBurn"
+
+[[workflows.workflow]]
+name = "Kenostod Blockchain Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Kings Shield Website"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node kings-shield/website/server.js"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Kings Shield Community Bot"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node kings-shield/community-bot.js"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Deploy KENOAutoBurn"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd keno-bonding && npx hardhat run scripts/deploy-autoburn.js --network bsc"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["node", "server.js"]
+build = ["npm", "run", "build"]
+publicDir = "public"
+
+[userenv]
+
+[userenv.shared]
+RENDER_SERVICE_ID = "srv-d6q4k1p4tr6s73aev95g"
+
+
+FAL_ALERT_CHAT_ID = "6715306356"
+SHIELD_MINT_AUTHORITY_PUBKEY = "FTjM3ocrUSC9mpHWNsMLEbwuCFryr8DxwdwbHtEiP4De"
+SHIELD_TOTAL_SUPPLY = "6174000000"
+SHIELD_CLUSTER = "mainnet"
+
+SHIELD_BOT_ADDRESS = "CLgn5H6j3QhD9HnJgKFcfnymg5BCuC41K7Ze7SmTjzVr"
+
+SOLANA_NETWORK = "mainnet"
+SOLANA_RPC_MAINNET = "https://api.mainnet-beta.solana.com"
+COMMUNITY_CHAT_ID = "-1004436875296"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 23636
+externalPort = 3000
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 60000
