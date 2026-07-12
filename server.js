@@ -9384,6 +9384,11 @@ app.get('/live-arb-bot.html', (req, res, next) => {
     res.redirect('/founder-login.html');
 });
 
+app.get('/flash-orb-dashboard.html', (req, res, next) => {
+    if (req.session.isFounder) return next();
+    res.redirect('/founder-login.html');
+});
+
 // Middleware: all /api/live-arb/* require founder session
 function requireFounder(req, res, next) {
     if (req.session.isFounder) return next();
