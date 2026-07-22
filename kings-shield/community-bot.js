@@ -317,26 +317,34 @@ bot.on('message', async (msg) => {
   }
 });
 
-bot.onText(/\/presale/, async (msg) => {
-  const text =
-`🟡 <b>KENO Presale</b>
+// ─── Unified command handler (entity-based — works 100% reliably in groups) ──
+bot.on('message', async (msg) => {
+  if (!msg.text || !msg.entities) return;
+  const cmdEntity = msg.entities.find(e => e.type === 'bot_command' && e.offset === 0);
+  if (!cmdEntity) return;
+
+  const raw = msg.text.slice(cmdEntity.offset, cmdEntity.offset + cmdEntity.length);
+  const cmd = raw.split('@')[0].toLowerCase();
+  console.log(`⚡ Command: ${cmd} from ${msg.from?.username || msg.from?.first_name || msg.from?.id} in chat ${msg.chat.id}`);
+
+  try {
+    if (cmd === '/presale') {
+      await send(msg.chat.id,
+`🟡 <b>KENO Presale — LIVE NOW</b>
 
 📅 Opens: <b>July 23, 2026</b>
 📅 Closes: <b>August 6, 2026</b>
 ⚡ Rate: 750,000 KENO per BNB
 🎯 Soft cap: 30 BNB | Hard cap: 60 BNB
 
-🔗 PinkSale: ${PINKSALE_LINK}
+🔗 Join the presale: ${PINKSALE_LINK}
 🌐 Website: ${WEBSITE}
 
-<i>The Sovereign Economy — Education-Fi (E-Fi)</i>`;
+<i>The Sovereign Economy — Education-Fi (E-Fi)</i>`);
 
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/presale:', e.message); }
-});
-
-bot.onText(/\/courses/, async (msg) => {
-  const c = todayCourse();
-  const text =
+    } else if (cmd === '/courses') {
+      const c = todayCourse();
+      await send(msg.chat.id,
 `📚 <b>The Sovereign Economy Academy</b>
 
 21 courses. All FREE — always.
@@ -350,13 +358,10 @@ You don't pay to learn. <b>Learning pays YOU.</b>
 👉 Start Course 1 FREE: ${WEBSITE}
 
 Complete a course → screenshot it → drop it here.
-First 10 graduates get <b>priority presale allocation</b> 🎯`;
+First 10 graduates get <b>priority presale allocation</b> 🎯`);
 
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/courses:', e.message); }
-});
-
-bot.onText(/\/freekeno/, async (msg) => {
-  const text =
+    } else if (cmd === '/freekeno') {
+      await send(msg.chat.id,
 `🎁 <b>Free KENO — 3 Steps, No Purchase Required</b>
 
 If you believe in where KENO is going, this is the easiest way to start holding — <b>before</b> presale even opens.
@@ -367,46 +372,39 @@ If you believe in where KENO is going, this is the easiest way to start holding 
 
 Every one of the 21 courses pays <b>250 KENO</b>. Finish all 21 → <b>5,250 KENO</b>.
 
-Only a handful of people in this group have claimed so far. If you're serious about KENO taking off, this is the first move — <b>and it's required if you want to join the team.</b> You can't promote features you've never used. 🤝
+Only a handful of people in this group have claimed so far. If you're serious about KENO taking off, this is the first move. 🤝
 
-👉 Start here: ${WEBSITE}`;
+👉 Start here: ${WEBSITE}`);
 
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/freekeno:', e.message); }
-});
-
-bot.onText(/\/liquidity/, async (msg) => {
-  const text =
+    } else if (cmd === '/liquidity') {
+      await send(msg.chat.id,
 `💧 <b>How KENO Redemption Works — Full Transparency</b>
 
 When you graduate the Academy you earn:
 → <b>5,250 KENO</b> (target value: $5,250 at $1/KENO)
 
-<b>Can I cash out $5,250 immediately?</b>
-Not if the liquidity pool is small.
-A low-liquidity pool can't absorb large sells without affecting the price for everyone.
+<b>Can I cash out immediately?</b>
+Not if the liquidity pool is small — a low-liquidity pool can't absorb large sells without affecting the price for everyone.
 
-<b>So how do I access my value?</b>
+<b>How do I access my value?</b>
 → Use <b>FALs</b> (Flash Arbitrage Loans) to generate yield while the pool grows
 → Partial sells as liquidity deepens
 → Full redemption once pool supports the volume
 
 <b>What grows the pool?</b>
 → Every presale participant adds liquidity
-→ Every KENO holder who stakes adds depth
-→ Arbitrage bot profits recycle back in
+→ Arb bot profits recycle back in
+→ Every staker adds depth
 
 <b>The honest timeline:</b>
 Early graduates → FAL strategy first
 As community grows → full cashout unlocks
 
 This is how DeFi actually works.
-We tell you upfront so there are no surprises. 🤜`;
+We tell you upfront so there are no surprises. 🤜`);
 
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/liquidity:', e.message); }
-});
-
-bot.onText(/\/keno/, async (msg) => {
-  const text =
+    } else if (cmd === '/keno') {
+      await send(msg.chat.id,
 `🟡 <b>KENO Token (v2 — Active)</b>
 
 📍 Network: Binance Smart Chain (BSC)
@@ -416,13 +414,10 @@ bot.onText(/\/keno/, async (msg) => {
 📅 Presale: July 23 – August 6, 2026
 
 ✅ Verify on BSCScan before buying.
-🌐 ${WEBSITE}`;
+🌐 ${WEBSITE}`);
 
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/keno:', e.message); }
-});
-
-bot.onText(/\/about/, async (msg) => {
-  const text =
+    } else if (cmd === '/about') {
+      await send(msg.chat.id,
 `⚔️ <b>The Sovereign Economy</b>
 
 We coined <b>Education-Fi (E-Fi)</b> in 2026.
@@ -440,27 +435,21 @@ Where learning ends and earning begins — there is no line.
 Each token is a chapter in the same story.
 
 🌐 ${WEBSITE}
-Founded by Nickeo Coleman`;
+Founded by Nickeo Coleman`);
 
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/about:', e.message); }
-});
-
-bot.onText(/\/links/, async (msg) => {
-  const text =
+    } else if (cmd === '/links') {
+      await send(msg.chat.id,
 `🔗 <b>Official Links</b>
 
 🌐 Website: ${WEBSITE}
 📚 Academy: ${WEBSITE}
 🐦 Twitter/X: https://twitter.com/kenostod
 📋 PinkSale: ${PINKSALE_LINK}
-🔍 KENO on BSCScan: https://bscscan.com/token/${KENO_CONTRACT}`;
+🔍 KENO on BSCScan: https://bscscan.com/token/${KENO_CONTRACT}`);
 
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/links:', e.message); }
-});
-
-bot.onText(/\/trivia/, async (msg) => {
-  const t = todayTrivia();
-  const text =
+    } else if (cmd === '/trivia') {
+      const t = todayTrivia();
+      await send(msg.chat.id,
 `🧠 <b>Daily Crypto Trivia!</b>
 
 <b>${t.q}</b>
@@ -468,9 +457,11 @@ bot.onText(/\/trivia/, async (msg) => {
 Reply with your answer — winner gets a shoutout 👑
 
 <i>Hint: The answer is covered in one of our 21 free courses.</i>
-Start free at ${WEBSITE}`;
-
-  try { await send(msg.chat.id, text); } catch (e) { console.error('/trivia:', e.message); }
+Start free at ${WEBSITE}`);
+    }
+  } catch (e) {
+    console.error(`Command ${cmd} failed:`, e.message);
+  }
 });
 
 // ─── Daily post content builders ───────────────────────────────────────────
