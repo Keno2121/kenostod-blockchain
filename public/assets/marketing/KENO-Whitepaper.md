@@ -1,546 +1,416 @@
-# KENO Token Whitepaper
-## Blockchain Education Platform with Proof-of-Residual-Value Consensus
+# KENO Token Whitepaper v2.1
+## The Sovereign Economy — Knowledge Utility Token on BNB Smart Chain
 
-**Version 1.0 | November 2025**
+**Version 2.1 | August 2026**
+
+---
+
+> *"KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."*
 
 ---
 
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [Introduction](#introduction)
-3. [The Problem](#the-problem)
-4. [The Solution](#the-solution)
-5. [Technology Architecture](#technology-architecture)
-6. [Proof-of-Residual-Value (PoRV)](#proof-of-residual-value-porv)
-7. [KENO Token Economics](#keno-token-economics)
-8. [ICO Structure](#ico-structure)
-9. [Platform Features](#platform-features)
-10. [Roadmap](#roadmap)
-11. [Team & Advisors](#team--advisors)
-12. [Legal & Compliance](#legal--compliance)
-13. [Conclusion](#conclusion)
+2. [The Problem](#the-problem)
+3. [Solution: The Sovereign Economy](#solution-the-sovereign-economy)
+4. [7 Constitutional Laws](#7-constitutional-laws)
+5. [Kenostod Academy Platform](#kenostod-academy-platform)
+6. [Live Smart Contracts](#live-smart-contracts)
+7. [Tokenomics — KENO v2](#tokenomics--keno-v2)
+8. [Participant Revenue Streams](#participant-revenue-streams)
+9. [Flash Arbitrage Loan Technology](#flash-arbitrage-loan-technology)
+10. [UTL Protocol](#utl-protocol)
+11. [Kings Shield — Security Layer](#kings-shield--security-layer)
+12. [Queens Chariot Token (QCT)](#queens-chariot-token-qct)
+13. [PinkSale Presale 2026](#pinksale-presale-2026)
+14. [Market Opportunity](#market-opportunity)
+15. [Roadmap](#roadmap)
+16. [Founder & Team](#founder--team)
+17. [Legal & Compliance](#legal--compliance)
 
 ---
 
 ## Executive Summary
 
-**Kenostod Blockchain Academy** is revolutionizing blockchain education by creating the world's first educational platform that combines comprehensive learning with real economic value generation. Through our innovative **KENO token** and **Proof-of-Residual-Value (PoRV)** consensus mechanism, students don't just learn about blockchain—they participate in it and earn rewards.
+**KENO** is the world's first **Knowledge Utility Token (KUT)** — a cryptocurrency that cannot be bought or speculated into existence. It is exclusively *earned* through education and *compounded* through participation in the Sovereign Economy.
 
-### Key Highlights:
+**Kenostod Blockchain Academy LLC** has built a vertically integrated sovereign financial ecosystem with live infrastructure on BNB Smart Chain, Base, and Polygon mainnets. As of August 2026, the ecosystem includes:
 
-- **21 Comprehensive Courses** covering blockchain fundamentals to advanced concepts
-- **Real BEP-20 Token** deployed on Binance Smart Chain
-- **Proof-of-Residual-Value** - Patent-pending consensus creating actual economic value
-- **Earning Opportunities** through Residual Value Tokens (RVTs)
-- **ICO Launch**: Private Sale starting November 28, 2025
-- **Total Supply**: 1,000,000,000 KENO
-- **ICO Allocation**: 300,000,000 KENO (30%)
+- ✅ **KENO v2** — Live on BSC Mainnet (`0x48bb049afe50b050b458624dc6233acd51024ab4`)
+- ✅ **14 active bots** — Arbitrage, funding rate, burn, and arb bots running on Render
+- ✅ **UTL Protocol** — 6 live contracts on BSC Mainnet
+- ✅ **Kings Shield** — Security token with 6.174% Aegis Tax redistributing to holders
+- ✅ **Queens Chariot Token (QCT)** — Live on Base Mainnet
+- ✅ **KENOAutoBurn** — Automated buy-and-burn contract on BSC
+- ✅ **PinkSale Presale** — Active, ends August 6, 2026
 
----
-
-## Introduction
-
-### Vision
-
-To democratize blockchain education and create pathways to financial independence for individuals worldwide, particularly those facing economic hardship.
-
-### Mission
-
-Provide world-class blockchain education that combines theoretical knowledge with hands-on experience, while creating sustainable earning opportunities for students and graduates.
-
-### The Kenostod Philosophy
-
-"Kenostod" means "a shield that protects generations from poverty." We believe education is the ultimate shield against economic hardship, and blockchain technology provides unprecedented opportunities for wealth creation.
+This is not a concept document. Every component described below is live on mainnet.
 
 ---
 
 ## The Problem
 
-### Global Blockchain Skills Gap
+| Problem | Scale |
+|---------|-------|
+| Unbanked & underbanked globally | 2.4 billion people |
+| Retail crypto investors who lose money | 95% |
+| Global student debt burden | $1.7 trillion |
+| Blockchain job growth (2020–2024) | 300% — skills gap widening |
 
-1. **Lack of Accessible Education**
-   - Most blockchain courses are expensive ($500-$5,000)
-   - Content is often theoretical without practical application
-   - No real-world experience opportunities
+### The Access Gap
+Traditional financial infrastructure excludes billions. Banks require credit histories that require bank accounts to build. DeFi requires technical knowledge that requires financial access to acquire.
 
-2. **Economic Barriers**
-   - Traditional education excludes those who need it most
-   - No immediate earning potential while learning
-   - Certification doesn't guarantee job opportunities
+### The Speculation Trap
+95% of retail cryptocurrency investors lose money because tokens are priced by speculation, not utility. Early adopters extract value from late adopters. KENO inverts this entirely — it is earned, not purchased.
 
-3. **Limited Real-World Experience**
-   - Students learn concepts but never interact with real blockchains
-   - No understanding of mining, consensus, or token economics
-   - Gap between education and employment
-
-4. **Earning Opportunity Inaccessibility**
-   - Crypto mining requires expensive hardware
-   - Staking requires large capital
-   - Complex DeFi protocols intimidate beginners
+### The Education-Income Disconnect
+Graduates of traditional education accumulate debt with no guaranteed income pathway. Blockchain education platforms teach theory. None reward students with the very asset they are learning about.
 
 ---
 
-## The Solution
+## Solution: The Sovereign Economy
 
-### Kenostod Blockchain Academy Platform
+The Sovereign Economy is governed by one architectural principle:
 
-A comprehensive educational ecosystem that provides:
+> *"The Inversion Principle — value flows DOWN to participants, not UP to the house."*
 
-#### 1. **Hands-On Blockchain Simulator**
-- Fully functional blockchain with real cryptography
-- Live wallet creation with secp256k1 key pairs
-- Real transaction signing and validation
-- Complete mining experience (PoW and PoRV)
-- Smart contract interaction
-- DeFi protocols simulation
+| Traditional Finance / Crypto | The Sovereign Economy |
+|-------------------------------|----------------------|
+| Token acquired through speculation | **KENO earned exclusively through education** |
+| Fees extracted from users | **Fees recycled back to participants** |
+| Wealth concentrated at top | **Kaprekar law routes all dust to the participant** |
+| DeFi requires capital to start | **Flash Arbitrage Loans — zero collateral for graduates** |
+| Passive investing = hope | **14 live bots generating compounding passive income** |
+| Banking excludes the poor | **KUTL Card (Rain.xyz) + Wyoming SPDI charter pursuit** |
 
-#### 2. **21-Course Curriculum**
-
-**Foundation (Courses 1-7)**
-- Wallet Creation & Security
-- Blockchain Explorer
-- Transactions & Fees
-- Mining & Proof-of-Work
-- Transaction Reversal
-- Social Recovery
-- Block Production
-
-**Advanced (Courses 8-14)**
-- Exchange Trading
-- Merchant Payments
-- Arbitrage Revolution
-- Proof-of-Residual-Value Mining
-- RVT Portfolio Management
-- Enterprise Computational Tasks
-- Governance Systems
-
-**Professional (Courses 15-21)**
-- Smart Contracts
-- DeFi Protocols
-- NFTs & Tokenization
-- Security & Auditing
-- Scaling Solutions
-- Cross-Chain Technology
-- Regulatory Compliance
-
-#### 3. **Real Economic Value**
-- Earn KENO tokens for course completion
-- Mine KENO through PoRV computational work
-- Earn Residual Value Tokens (RVTs) that generate perpetual royalties
-- Arbitrage trading opportunities
-- Career placement assistance
-
-#### 4. **Graduate Benefits**
-- Blockchain-verified Graduate Club membership
-- Exclusive merchandise
-- Priority job opportunities
-- Advanced training programs
-- Lifetime platform access
+The ecosystem has seven interlocking layers: **Academy → KENO Token → UTL Protocol → Kings Shield → Queens Chariot → PoRV Mining → Graduate Benefits**. Every layer generates income. Every income stream feeds every other.
 
 ---
 
-## Technology Architecture
+## 7 Constitutional Laws
 
-### Blockchain Specifications
+Seven mathematical principles from pure mathematics are embedded silently and structurally into every Sovereign Economy contract, bot, and distribution event.
 
-**Consensus Mechanisms:**
-- **Proof-of-Work (PoW)**: SHA-256 mining algorithm
-- **Proof-of-Residual-Value (PoRV)**: Enterprise AI/ML computation
-
-**Technical Stack:**
-- **Cryptography**: secp256k1 elliptic curve
-- **Hashing**: SHA-256
-- **Transaction Model**: UTXO-style
-- **Block Time**: Variable (educational flexibility)
-- **Smart Contracts**: Compatible framework
-
-**Network Features:**
-- Transaction reversal window (5 minutes)
-- Social recovery system
-- Multi-signature support
-- Governance voting
-- Merchant payment gateway
-- Exchange order book
-
-### KENO Token (BEP-20)
-
-**Smart Contract Address:**
-```
-0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
-```
-
-**Presale Contract Address:**
-```
-0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0
-```
-
-**Verified on BscScan:** ✅
-
-**Security:**
-- OpenZeppelin audited contracts
-- Multi-layer validation
-- Rate limiting
-- Replay attack protection
+| Law | Principle | Application |
+|-----|-----------|-------------|
+| **I — Kaprekar (6174)** | All numbers converge to 6174 | Fee dust always flows to the participant, never to the protocol |
+| **II — Benford's Law** | Natural leading-digit distribution | Silent fraud detection on every transaction pipeline |
+| **III — Golden Ratio (φ = 1.618)** | Harmony through proportion | Reward multipliers approach φ the longer users stake (up to 1.47× at 8 periods) |
+| **IV — Nash Equilibrium** | Dominant strategy for all players | Protocol auto-tunes staker splits at 55–65% — participation is always optimal |
+| **V — Euler's Number (e)** | Continuous compounding | Interest accrues every second, not periodically |
+| **VI — Ramanujan (1729)** | Hardy-Ramanujan taxicab number | Silent one-time bonus when a wallet crosses 1,729 KENO earned |
+| **VII — Inversion** | Structural opposite of extraction | Value flows down. Protocol-owned liquidity grows with usage. |
 
 ---
 
-## Proof-of-Residual-Value (PoRV)
+## Kenostod Academy Platform
 
-### Revolutionary Consensus Mechanism
+Kenostod Academy is the entry point to the Sovereign Economy. Students *earn the very asset they are learning about* — making it the first curriculum where completing education is itself a financial event.
 
-PoRV is our patent-pending consensus mechanism that creates actual economic value through enterprise computational work.
+- **21 Courses** — from wallet basics to advanced DeFi
+- **5,250 KENO** earned per full graduate (250 per course × 21)
+- **G.I.F.T.** patent-pending graduate apparel unlocked on completion
 
-### How It Works
+### 21-Course Curriculum
 
-1. **Enterprise Clients Submit Tasks**
-   - AI/ML model training
-   - Data analysis jobs
-   - Scientific computations
-   - Blockchain analysis
+**Foundations (Courses 1–7)**
+Wallet setup, blockchain basics, PoW & PoRV consensus, transaction mechanics, security fundamentals, and KENO token integration.
 
-2. **Miners Complete Computational Work**
-   - Perform actual valuable computations
-   - Submit verified results
-   - Receive block rewards + enterprise payment
+**DeFi Mechanics (Courses 8–14)**
+AMM liquidity pools, yield farming, Flash Arbitrage Loans (FAL), FALP pools, transaction reversal, social recovery, and staking strategy.
 
-3. **Results Generate Ongoing Value**
-   - Enterprises license results commercially
-   - Miners receive Residual Value Tokens (RVTs)
-   - RVTs generate perpetual royalties (50% to holders)
+**Advanced Protocols (Courses 15–18)**
+UTL Protocol architecture, Kings Shield security layer, cross-exchange arbitrage theory, PoRV mining, and RVT (Residual Value Token) mechanics.
 
-4. **Deflationary Tokenomics**
-   - 40% of licensing fees burned (reduces KENO supply)
-   - 10% to platform treasury
-   - Creates deflationary pressure on KENO
-
-### RVT Revenue Distribution
-
-```
-Enterprise pays for licensed computational results
-         ↓
-100% Revenue Split:
-  → 50% to RVT holders (perpetual royalties)
-  → 40% KENO token burn (deflationary)
-  → 10% Platform treasury (operations)
-```
-
-### Benefits Over Traditional Mining
-
-| Feature | Traditional PoW | PoRV |
-|---------|----------------|------|
-| Energy Use | Wasted | Productive |
-| Value Created | None | Real economic value |
-| Revenue | Block reward only | Block reward + enterprise payment + royalties |
-| Sustainability | Unsustainable | Sustainable |
-| Environmental | High impact | Low impact |
+**Sovereign Wealth (Courses 19–21)**
+Bot capital ladder strategy, Kaprekar profit splitting, the 7 Constitutional Laws in practice, and graduate onboarding to the wealth-building ecosystem.
 
 ---
 
-## KENO Token Economics
+## Live Smart Contracts
 
-### Token Distribution
+All contracts below are deployed on mainnet and actively processing transactions as of August 2026.
 
-**Total Supply:** 1,000,000,000 KENO
+### KENO Token
 
-```
-ICO Sale:                30% (300,000,000 KENO)
-Platform Rewards:        25% (250,000,000 KENO)
-Development:             15% (150,000,000 KENO)
-Team & Advisors:         10% (100,000,000 KENO) - 2 year vest
-Ecosystem Growth:        10% (100,000,000 KENO)
-Liquidity Reserve:        5% (50,000,000 KENO)
-Marketing:                5% (50,000,000 KENO)
-```
+| Version | Network | Address | Status |
+|---------|---------|---------|--------|
+| **v2 (ACTIVE)** | BNB Smart Chain | `0x48bb049afe50b050b458624dc6233acd51024ab4` | ✅ Live |
+| v1 (ABANDONED) | BNB Smart Chain | `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` | ❌ Deprecated |
 
-### Token Utility
+> **v1 Deprecation Notice:** KENO v1 is fully abandoned. The deployer wallet was compromised. No mint function exists and there is no path to recovery. KENO v2 is a clean redeployment with a new deployer wallet and full supply transparency.
 
-1. **Educational Platform Access**
-   - Course enrollment
-   - Premium features
-   - Advanced training
+### UTL Protocol — v1.1 (Current, BSC)
 
-2. **Mining & Staking**
-   - PoRV mining participation
-   - Governance staking
-   - Validator requirements
+| Contract | Address | Role |
+|----------|---------|------|
+| FeeCollector | `0xb9489B33Bd9bB835139369b1dD282fB44B2273d8` | Collects and routes protocol fees (USDC) |
+| Staking | `0x77C3946A9FD5F509584F94e81C43efb25120c837` | KENO staking with φ-multiplied rewards |
+| Treasury | `0x54A01A5bf5096c351F166C15143eA9a9Af393C84` | Protocol-owned liquidity reserve |
+| Distribution | `0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167` | Automated reward distribution engine |
+| UTLFarm | `0x37D320A881CcF553F6cd757f0A33743ae01A2644` | Yield farming for LP providers |
+| UTLHook | `0xAF810a663995DCe98c5D7EdF5C970446A33bAA74` | AMM hook for fee capture on swaps |
 
-3. **Ecosystem Transactions**
-   - Merchant payment processing
-   - Exchange trading fees
-   - Arbitrage opportunities
+### Other Live Contracts
 
-4. **Governance**
-   - Protocol upgrades voting
-   - Feature proposals
-   - Treasury management
-
-5. **Rewards & Incentives**
-   - Course completion rewards
-   - Referral bonuses
-   - Scholarship funding
-
-### Deflationary Mechanisms
-
-- **PoRV Burns**: 40% of enterprise licensing fees
-- **Transaction Fees**: Optional fee burning
-- **Buyback Program**: Platform revenue used for buybacks
+| Token | Network | Address |
+|-------|---------|---------|
+| QCT (Queens Chariot) | Base Mainnet | `0x137a5Fc22a76Ec42490F2421a81935d124baE714` |
+| wKENO | Base Mainnet | `0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd` |
+| wKENO | Polygon Mainnet | `0xB6B79a2491e5b59C32da1Fd885F3eeFBE8F28bBd` |
+| KENOAutoBurn | BSC Mainnet | `0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79` |
 
 ---
 
-## ICO Structure
+## Tokenomics — KENO v2
 
-### Private Sale (November 28 - December 28, 2025)
+- **Total Supply:** 1,000,000,000 KENO (fixed — no minting ever)
+- **Transfer Tax:** 0% (no hidden fee)
+- **Verification:** Sourcify exact match (June 21, 2026)
 
-- **Duration**: 30 days
-- **Price**: $0.01 per KENO
-- **Bonus**: 20% bonus tokens
-- **Min Investment**: $10 USD
-- **Max Investment**: $50,000 USD
-- **Allocation**: 150,000,000 KENO
+### Distribution
 
-### Public Sale (December 29, 2025 - February 27, 2026)
+| Allocation | % | Amount | Notes |
+|-----------|---|--------|-------|
+| Student Rewards (Academy) | 40% | 400,000,000 | Released on course completion — 250 per course |
+| FAL / FALP Liquidity | 25% | 250,000,000 | Locked in arbitrage pools for graduate access |
+| PinkSale Presale | 15% | 150,000,000 | Public presale June 26 – August 6, 2026 |
+| Protocol Operations | 10% | 100,000,000 | Ecosystem development, infrastructure, protocol liquidity |
+| Scholarship Fund | 5% | 50,000,000 | Perpetual fund — self-compounding via Euler law |
+| Reserve | 5% | 50,000,000 | Emergency + protocol upgrades |
 
-- **Duration**: 60 days
-- **Price**: $0.05 per KENO (5x increase)
-- **Bonus**: None
-- **Min Investment**: $10 USD
-- **Max Investment**: $100,000 USD
-- **Allocation**: 150,000,000 KENO
+### Token Utility — 7 Active Use Cases
 
-### Payment Methods
-
-- BNB (Binance Coin)
-- PayPal (via integrated gateway)
-- Credit/Debit Cards (via PayPal)
-
-### Token Distribution
-
-- **Immediate**: Tokens distributed automatically after purchase
-- **Vesting**: No vesting for ICO participants
-- **Listing**: PancakeSwap DEX listing post-ICO
-
-### Use of Funds
-
-```
-Platform Development:     35%
-Marketing & Growth:       25%
-Content Creation:         15%
-Security Audits:          10%
-Operations:               10%
-Legal & Compliance:        5%
-```
+1. **Education rewards** — 250 KENO per completed course; 5,250 KENO on full graduation
+2. **Staking (UTL Protocol)** — Stake to earn USDC from FeeCollector income
+3. **FAL collateral** — Graduate KENO balance serves as creditworthiness for zero-collateral flash loans
+4. **Arbitrage fuel** — Bot fleet executes KENO/BNB arb on PancakeSwap; profits compound bot capital
+5. **Governance** — 1 KENO = 1 vote on protocol parameter decisions
+6. **G.I.F.T. apparel access** — Graduates unlock smart garment drops on completion
+7. **KENOAutoBurn** — Maker rebates from HL trading automatically buy and burn KENO — deflationary pressure
 
 ---
 
-## Platform Features
+## Participant Revenue Streams
 
-### 1. Comprehensive Blockchain Simulator
+Every participant in the Sovereign Economy has a direct, protocol-guaranteed income stream.
 
-- Full cryptographic implementation
-- Real wallet management
-- Live transaction processing
-- Mining simulation (PoW/PoRV)
-- Exchange trading
-- Merchant payment gateway
+| Participant | Earning Mechanism | Status |
+|-------------|------------------|--------|
+| Academy Students | 250 KENO per completed course — 5,250 KENO on full graduation | ✅ Live |
+| KENO Stakers | UTL FeeCollector distributes USDC to all stakers via Nash equilibrium (55–65% of fees) | ✅ Live |
+| FALP Contributors | Share of all FAL platform fees — φ-multiplied by lock duration (up to 2× at 90-day lock) | ✅ Active |
+| PoRV Miners | Upfront KENO reward per job + Residual Value Token (RVT) for perpetual royalties | ✅ Active |
+| SHIELD Holders | 6.174% Aegis Tax on all Kings Shield transfer volume redistributed to holders | ✅ Active |
+| LP Providers | UTLFarm yield farming on KENO/BNB pair — standard LP fees plus UTL reward allocation | ✅ Live |
+| All KENO Holders | KENOAutoBurn reduces circulating supply — deflationary benefit for all holders | ✅ Active |
+| Graduates (KUTL Card) | Spend with the KUTL Card (Rain.xyz) and earn KENO cashback on eligible transactions | 🔄 Integration |
+| Wealth Builders | Perpetual referral royalties in KENO for every student enrolled through your link | ✅ Active |
 
-### 2. KENO Arbitrage Revolution™
+---
 
-**Flash Arbitrage Loans (FAL™)**
-- Instant, zero-collateral loans
-- Up to 10,000 KENO borrowing capacity
-- Educational arbitrage opportunities
-- Real multi-exchange price data
+## Flash Arbitrage Loan Technology
 
-**Arbitrage Incentive Protocol (AIP™)**
-- Bonus rewards for successful trades
-- Reputation-based loan limits
-- Performance leaderboards
-- NFT achievement badges
+Flash Arbitrage Loans (FAL) are Kenostod's proprietary lending technology. They allow graduates to borrow KENO instantly — without collateral — execute an arbitrage trade, and repay within a single protocol interaction.
 
-### 3. Wealth Builder Program
+**Flow:**
+1. Graduate requests up to 10,000 KENO — zero collateral required
+2. Execute price spread trade across PancakeSwap, HL, or BSC DEXs
+3. Repay loan + protocol fee in same transaction
+4. If trade is unprofitable → transaction auto-reverses (no loss to borrower)
 
-- Earn KENO per course completion
-- Tiered perpetual royalty NFTs
-- Scholarship fund contributions
-- Career center access
-- Referral program
-- Financial literacy courses
+**FALP (Flash Arbitrage Loan Pool)** — KENO holders can contribute to the FAL pool and earn a share of all FAL fees, φ-multiplied by their lock duration.
 
-### 4. Graduate Club Recognition
+---
 
-- Blockchain-verified credentials
-- Exclusive Graduate ID
-- Special merchandise
-- Priority job placement
-- Advanced training access
-- Community privileges
+## UTL Protocol
 
-### 5. Career Center
+The Universal Transaction Layer (UTL) Protocol is a 6-contract system on BSC that captures, routes, and redistributes protocol fees to KENO stakers.
 
-Real blockchain job opportunities from:
-- Major blockchain companies
-- DeFi protocols
-- NFT marketplaces
-- Web3 startups
-- Enterprise blockchain teams
+- **FeeCollector** — receives USDC from every protocol interaction
+- **Staking** — distributes to stakers proportionally via Nash equilibrium
+- **UTLHook** — captures fees on every PancakeSwap swap involving KENO
+- **UTLFarm** — provides LP farming rewards for KENO/BNB liquidity providers
+- **UTL MetaMask Snap** — in-wallet protocol interaction (npm: `kenostod-utl-snap` v2.3.0)
 
-Salary Range: $50,000 - $165,000+
+The UTL MetaMask Snap is under review by MetaMask (Issue #625, open since Feb 2026). Once approved, users can interact with UTL staking directly from MetaMask without leaving their browser.
+
+---
+
+## Kings Shield — Security Layer
+
+Kings Shield is sovereign financial protection — a security layer built on blockchain, governed by the Kaprekar Constant.
+
+- **Aegis Tax** — 6.174% on every SHIELD transfer redistributes value back to all SHIELD holders
+- **B.U.K. Card** — Dual-chip physical security card, cold-storage grade protection
+- **Kaprekar Reserve** — Each SHIELD token is anchored to real-world value through the Kaprekar reserve
+- **Website** — [kings-shield.com](https://kings-shield.com)
+
+The Kings Shield Telegram community has 334+ members as of August 2026.
+
+---
+
+## Queens Chariot Token (QCT)
+
+QCT is the ecosystem's governance and prestige layer, deployed on Base Mainnet (`0x137a5Fc22a76Ec42490F2421a81935d124baE714`).
+
+- **Supply:** 1,729 total (Ramanujan number)
+- **Hyperliquid Integration** — QCT listed via HIP-1 (permissionless spot listing) on Hyperliquid
+- **Role** — Governance votes, access tier for advanced protocol features
+
+---
+
+## PinkSale Presale 2026
+
+The KENO v2 public presale is live on PinkSale Finance.
+
+| Parameter | Value |
+|-----------|-------|
+| Platform | PinkSale Finance (BSC) |
+| Start Date | June 26, 2026 |
+| End Date | **August 6, 2026 23:59 UTC** |
+| Token | KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) |
+| Softcap | 30 BNB |
+| Hardcap | 60 BNB |
+| Currency | BNB |
+
+**Presale Link:** https://www.pinksale.finance/launchpad/bsc/0x92d69213842Ee84b47221Cbba299e01853fccF2d
+
+Post-presale: KENO lists on PancakeSwap v2. 60% of raised BNB deployed into bot capital for immediate arbitrage operations.
+
+---
+
+## Market Opportunity
+
+| Segment | TAM | Kenostod Entry Point |
+|---------|-----|---------------------|
+| Blockchain education | $15B by 2027 | 21-course curriculum, KENO rewards |
+| DeFi / Arbitrage | $100B+ TVL | FAL technology, 14-bot fleet |
+| Unbanked financial services | $380B addressable | KUTL Card (Rain.xyz), Wyoming SPDI |
+| AI compute marketplace | $200B+ by 2030 | PoRV network, RVT royalties, CDI oracle |
+| Corporate blockchain training | $380B | IaaS — white-label API licensing |
+| Smart wearables | $180B by 2028 | G.I.F.T. patent-pending graduate apparel |
+
+**IaaS (Infrastructure-as-a-Service):** The Kenostod protocol stack — FAL, FALP, VLAT, UTL, SOE — is now available as licensable API services for HBCUs, financial institutions, Big 4 L&D, and government agencies. A single enterprise license at $45,000+/year exceeds the entire presale hardcap. See: [kenostodblockchain.com/iaas.html](https://kenostodblockchain.com/iaas.html)
 
 ---
 
 ## Roadmap
 
-### Phase 1: Foundation (Q4 2025) ✅
+### Phase 1 — Completed (2024)
+- KENO v1 token deployed on BSC (subsequently deprecated)
+- Kenostod Academy platform launched — 21-course curriculum
+- Blockchain simulator with PoRV/PoW dual consensus
+- FAL/FALP system implemented
+- Whitepaper v1.0 published
 
-- ✅ Platform development complete
-- ✅ KENO token deployment (BSC)
-- ✅ Smart contract verification
-- ✅ ICO infrastructure
-- ✅ 21 courses live
-- ✅ Private Sale launch (Nov 28)
+### Phase 2 — Completed (Q1–Q2 2026)
+- ✅ KENO v2 deployed on BSC — clean redeployment, 1B supply
+- ✅ wKENO deployed on Base and Polygon mainnets
+- ✅ UTL Protocol v1.1 — 6 live contracts on BSC
+- ✅ Kings Shield security layer + Aegis Tax (6.174%)
+- ✅ QCT (Queens Chariot Token) live on Base
+- ✅ 14-bot fleet deployed on Render
+- ✅ G.I.F.T. Eureka system — first meeting recorded on-chain
+- ✅ PoRV CDI Oracle — Compute Demand Index API live
+- ✅ HL Builder Registry — 0.01% rebate on all routed volume
+- ✅ KENOAutoBurn contract deployed and active
 
-### Phase 2: ICO & Growth (Q1 2026)
+### Phase 3 — Active (June–September 2026)
+- **June 26 – August 6:** PinkSale presale (30–60 BNB target)
+- PancakeSwap v2 listing post-presale
+- Bot capital deployed — milestone 1 ($500) → milestone 2 ($2,000)
+- Kaprekar split active on every arb profit
+- KUTL Card (Rain.xyz) integration completion
+- **August–September:** Node sale (60 days of bot income data)
+- IaaS enterprise licensing — HBCU and institutional outreach active
+- Wyoming SPDI Charter application filing
 
-- 🔄 Private Sale (Nov 28 - Dec 28, 2025)
-- 📅 Public Sale (Dec 29, 2025 - Feb 27, 2026)
-- 📅 Marketing campaign expansion
-- 📅 Community building (10,000+ users)
-- 📅 Strategic partnerships
-- 📅 Exchange listings (PancakeSwap)
+### Phase 4 — Planned (Q4 2026)
+- PancakeSwap v4 migration + full UTLHook activation
+- Nash equilibrium staker split goes live (55–65% auto-tune)
+- Mercury Bank USD cashout pathway for KENO graduates
+- Solar Bunker Protocol — South Africa pilot launch
+- Metaverse land parcels (15+ independent 3D Storehouses)
+- $3,000/month passive income milestone achieved
 
-### Phase 3: Expansion (Q2 2026)
-
-- Advanced course modules
-- Mobile app launch (Android/iOS)
-- Corporate training programs
-- PoRV enterprise client onboarding
-- RVT marketplace launch
-- Additional exchange listings
-
-### Phase 4: Ecosystem (Q3 2026)
-
-- White-label licensing
-- API marketplace
-- Graduate recruitment platform
-- International expansion
-- Multi-language support expansion
-- Institutional partnerships
-
-### Phase 5: Decentralization (Q4 2026)
-
-- Governance token distribution
-- DAO formation
-- Community-driven development
-- Open-source contributions
-- Grant programs
-- Research initiatives
+### Phase 5 — Planned (2027+)
+- QCT DAO governance — holder votes on cross-chain expansion
+- Real-world asset integration via RVT royalty streams
+- B.U.K. Security Banking full launch
+- T.D.I.R. Foundation establishment
+- 100,000+ ecosystem participants
+- Self-sustaining scholarship fund — Euler compounding
 
 ---
 
-## Team & Advisors
+## Founder & Team
 
-### Core Team
+### Nickeo Coleman — Founder & CEO
 
-**Founder & CEO**
-- Blockchain architect and educator
-- Vision: Create accessible blockchain education for global poverty reduction
+> *"Creating innovations since 2007. Coding since 2020. Crypto enthusiast since conception."*
 
-**Development Team**
-- Full-stack blockchain developers
-- Smart contract specialists
-- Security experts
-- UX/UI designers
+| Milestone | Year |
+|-----------|------|
+| Innovation begins | 2007 |
+| Software development | 2020 |
+| Blockchain protocol architecture | 2024–2026 |
 
-**Education Team**
-- Blockchain curriculum designers
-- Industry practitioners
-- Career counselors
+Nickeo Coleman represents a rare convergence: serial innovator, hands-on software developer, and crypto-native builder. The Sovereign Economy is not an idea that was outsourced — every smart contract, every bot, every mathematical law was implemented by the founder. This vertical capability is a structural competitive advantage.
 
-**Business Development**
-- Enterprise partnerships
-- Exchange relationships
-- Marketing & growth
-
-### Advisors
-
-- Blockchain technology experts
-- Educational consultants
-- Legal & compliance advisors
-- Financial strategists
+The transition from innovator → developer → blockchain protocol architect follows a natural progression of depth-first mastery. KENO is not a product in search of a market — it is the culmination of two decades of thinking about what financial sovereignty should look like for people the traditional system was never designed to serve.
 
 ---
 
 ## Legal & Compliance
 
-### Regulatory Status
+### Corporate Structure
+**Kenostod Blockchain Academy LLC** is registered in Wyoming. The company is pursuing a **Wyoming Special Purpose Depository Institution (SPDI) Charter** — the highest regulatory standard for digital asset institutions in the United States.
 
-- **Token Classification**: Utility token for educational platform access
-- **Jurisdiction**: International platform (excluding restricted regions)
-- **KYC/AML**: Available for institutional investors
-- **Securities Compliance**: Not offered as investment contract
+**Registrations:**
+- Wyoming LLC #2026-001863120
+- FinCEN MSB #MRX26-00001866
+- Patent-Pending FAL™ & FALP Technology
 
-### Terms & Conditions
+### Token Classification
+KENO is designed and operated as a **utility token**:
+- **Earned, not purchased** — primary distribution is through educational course completion
+- **Utility-native** — every use case (staking, FAL access, governance, apparel) is a functional use
+- **Not a security instrument** — no promise of profit, no investment in a common enterprise
 
-- Complete Terms of Service available at kenostodblockchain.com/terms-of-service.html
-- Commercial licensing agreements for white-label use
-- API licensing for enterprise integration
+### KENO v1 Deprecation — Full Disclosure
+KENO v1 (`0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E`) is fully deprecated as of Q1 2026. The deployer wallet was compromised. No v1 mint function exists. All v1 tokens are locked with no recovery path. KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) is a clean redeployment with full supply transparency.
 
-### Risk Disclosures
+### Partner Disclosures
+- **Rain.xyz** — confirmed card infrastructure partner for KUTL Card
+- **OpenAI** — AI Customer Support integration
+- **PinkSale** — presale launchpad (June 26 – August 6, 2026)
+- **PancakeSwap** — primary DEX liquidity venue (v2 launch, v4 upgrade planned)
+- **Hyperliquid** — HL Builder Registry + KENOAutoBurn + QCT HIP-1 listing
 
-**Investment Risks:**
-- Cryptocurrency markets are volatile
-- Token value may fluctuate
-- No guarantee of returns
-- Regulatory environment may change
+### Risk Disclosure
+Cryptocurrency tokens involve significant risk of loss, including total loss of principal. Past performance of arbitrage bots, staking yields, or protocol fees is not indicative of future results. Projected income figures represent goals, not guarantees. Regulatory treatment of KENO and related tokens varies by jurisdiction and may change. This document reflects the state of the Sovereign Economy as of **August 2026** and will be updated as the ecosystem evolves.
 
-**Technology Risks:**
-- Smart contract vulnerabilities
-- Network security threats
-- Platform technical issues
-- Third-party dependency risks
-
-**Market Risks:**
-- Competition from other platforms
-- Adoption rate uncertainties
-- Economic conditions
-- Exchange listing delays
-
-**Important:** KENO is primarily an educational utility token. Do not invest more than you can afford to lose. This is not financial advice. DYOR (Do Your Own Research).
-
----
-
-## Conclusion
-
-**Kenostod Blockchain Academy** represents a paradigm shift in blockchain education. By combining comprehensive learning with real economic value creation through our innovative PoRV consensus mechanism, we're creating sustainable pathways to financial independence.
-
-The KENO token serves as the foundation for this ecosystem, enabling students to:
-- Learn blockchain technology hands-on
-- Access arbitrage earnings while studying
-- Build professional careers in blockchain
-- Access global opportunities
-
-With our ICO launching November 28, 2025, we invite you to join the revolution in blockchain education and economic empowerment.
+**KENO is primarily an educational utility token. Do not invest more than you can afford to lose. This is not financial advice. DYOR.**
 
 ---
 
 ## Contact & Resources
 
-**Website:** https://kenostodblockchain.com  
-**ICO Dashboard:** https://kenostodblockchain.com/investor-dashboard.html  
-**Documentation:** https://kenostodblockchain.com/docs.html  
+- **Website:** https://kenostodblockchain.com
+- **IaaS Services:** https://kenostodblockchain.com/iaas.html
+- **Kings Shield:** https://kings-shield.com
+- **PinkSale Presale:** https://www.pinksale.finance/launchpad/bsc/0x92d69213842Ee84b47221Cbba299e01853fccF2d
+- **GitHub:** https://github.com/Keno2121/kenostod-blockchain
 
 **Smart Contracts (BSC):**
-- Token: 0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E
-- Presale: 0xE26D6fcf7f3d560a8acEB43fa904Bef31b1fB6D0
-
-
-
-
-
+- KENO v2: `0x48bb049afe50b050b458624dc6233acd51024ab4`
+- KENOAutoBurn: `0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79`
 
 ---
 
-**© 2025 Kenostod Blockchain Academy. All rights reserved.**
+**© 2026 Kenostod Blockchain Academy LLC — The Sovereign Economy**
+Wyoming LLC #2026-001863120 | FinCEN MSB #MRX26-00001866 | Patent-Pending FAL™ & FALP Technology
 
-*This whitepaper is for informational purposes only and does not constitute financial, legal, or investment advice. Prospective buyers should conduct their own research and consult with professional advisors before making any investment decisions.*
+*This whitepaper is for informational purposes only and does not constitute financial, legal, or investment advice. Prospective participants should conduct their own research and consult qualified legal and financial advisors before participating.*
