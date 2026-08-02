@@ -143,6 +143,9 @@ const AegisArbBotManager              = require('./src/AegisArbBotManager');
 const ConstitutionFlashBotManager     = require('./src/ConstitutionFlashBotManager');
 const HyperliquidFundingBotManager    = require('./src/HyperliquidFundingBotManager');
 const DriftFundingBotManager          = require('./src/DriftFundingBotManager');
+const AsterLPBotManager               = require('./src/AsterLPBotManager');
+const GMXFundingBotManager            = require('./src/GMXFundingBotManager');
+const DydxFundingBotManager           = require('./src/DydxFundingBotManager');
 const QueensChariotBotManager         = require('./src/QueensChariotBotManager');
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
@@ -1384,6 +1387,9 @@ const constitutionFlash = new ConstitutionFlashBotManager();
 const sovereignBots     = new SovereignBotOrchestrator();
 const hyperliquidFunding = new HyperliquidFundingBotManager();
 const driftFunding       = new DriftFundingBotManager();
+const asterLP            = new AsterLPBotManager();
+const gmxFunding         = new GMXFundingBotManager();
+const dydxFunding        = new DydxFundingBotManager();
 
 // Queens Chariot Bot — initialized AFTER all worker bots so it can reference them
 // The Queen receives the entire hive as her court
@@ -1394,6 +1400,9 @@ const queensChariot = new QueensChariotBotManager([
     { id: 'constitution-flash', name: 'Constitution Flash',    emoji: '📜', chain: 'Solana',       manager: constitutionFlash },
     { id: 'hl-funding',         name: 'Hyperliquid Funding',   emoji: '💎', chain: 'Hyperliquid',  manager: hyperliquidFunding },
     { id: 'drift-funding',      name: 'Drift Funding',         emoji: '💜', chain: 'Solana',       manager: driftFunding },
+    { id: 'aster-lp',           name: 'Aster LP Bot',          emoji: '💧', chain: 'Multi-chain',  manager: asterLP },
+    { id: 'gmx-funding',        name: 'GMX v2 Funding',        emoji: '⚡', chain: 'Arbitrum',     manager: gmxFunding },
+    { id: 'dydx-funding',       name: 'dYdX v4 Funding',       emoji: '🪐', chain: 'dYdX Chain',   manager: dydxFunding },
 ]);
 let   telegramBotInstance = null;
 let icoPurchases = [], pendingPayPalOrders = new Map();
@@ -9829,6 +9838,23 @@ app.post('/api/drift-funding/start',  (req, res) => res.json(driftFunding.start(
 app.post('/api/drift-funding/stop',   (req, res) => res.json(driftFunding.stop()));
 app.get('/api/drift-funding/status',  (req, res) => res.json(driftFunding.getStatus()));
 
+// ── VLAT Platform Bots (Aster LP · GMX v2 · dYdX v4) ─────────────────────────
+app.use('/api/aster-lp',     requireFounder);
+app.use('/api/gmx-funding',  requireFounder);
+app.use('/api/dydx-funding', requireFounder);
+
+app.post('/api/aster-lp/start',      (req, res) => res.json(asterLP.start()));
+app.post('/api/aster-lp/stop',       (req, res) => res.json(asterLP.stop()));
+app.get('/api/aster-lp/status',      (req, res) => res.json(asterLP.getStatus()));
+
+app.post('/api/gmx-funding/start',   (req, res) => res.json(gmxFunding.start()));
+app.post('/api/gmx-funding/stop',    (req, res) => res.json(gmxFunding.stop()));
+app.get('/api/gmx-funding/status',   (req, res) => res.json(gmxFunding.getStatus()));
+
+app.post('/api/dydx-funding/start',  (req, res) => res.json(dydxFunding.start()));
+app.post('/api/dydx-funding/stop',   (req, res) => res.json(dydxFunding.stop()));
+app.get('/api/dydx-funding/status',  (req, res) => res.json(dydxFunding.getStatus()));
+
 // Queens Chariot Bot — Hive Orchestrator (all routes require founder auth)
 app.use('/api/qct-hive', requireFounder);
 app.post('/api/qct-hive/start',        (req, res) => res.json(queensChariot.start()));
@@ -9852,6 +9878,9 @@ const RENDER_BOT_ID_MAP = {
     'shield-alert':           'shield-alert',
     'queens-chariot-manager': 'qct-manager',
     'hl-funding-alert':       'hl-alert',
+    'aster-lp-bot':           'aster-lp',
+    'gmx-funding-bot':        'gmx-funding',
+    'dydx-funding-bot':       'dydx-funding',
     'utl-reversal-pool':      'utl-reversal',
     'cross-exchange-arb':     'cross-exchange',
     'hl-builder-registry':    'hl-builder',
@@ -10085,6 +10114,43 @@ app.get('/api/bots/status', requireFounder, async (req, res) => {
                 running:     false,
                 totalProfit: 0, tradeCount: 0, scanCount: 0,
             }),
+            // ── VLAT Platform Bots ─────────────────────────────────────────────────
+            {
+                id:          'aster-lp',
+                name:        'Aster LP Bot',
+                emoji:       '💧',
+                chain:       'Multi-chain (BNB/ETH/ARB/SOL)',
+                description: 'Liquidity provision on Aster — scan top pools, deploy capital after Nash 3× confirm, collect trading fees passively (VLAT Platform 2)',
+                controllable: true,
+                startUrl:    '/api/aster-lp/start',
+                stopUrl:     '/api/aster-lp/stop',
+                statusUrl:   '/api/aster-lp/status',
+                ...asterLP.getStatus(),
+            },
+            {
+                id:          'gmx-funding',
+                name:        'GMX v2 Funding Bot',
+                emoji:       '⚡',
+                chain:       'Arbitrum + Avalanche',
+                description: 'Delta-neutral funding rate arb on GMX v2 isolated GM pools — OI imbalance pays the receiving side (VLAT Platform 3)',
+                controllable: true,
+                startUrl:    '/api/gmx-funding/start',
+                stopUrl:     '/api/gmx-funding/stop',
+                statusUrl:   '/api/gmx-funding/status',
+                ...gmxFunding.getStatus(),
+            },
+            {
+                id:          'dydx-funding',
+                name:        'dYdX v4 Funding Bot',
+                emoji:       '🪐',
+                chain:       'dYdX Chain (Cosmos)',
+                description: 'Delta-neutral funding rate arb on dYdX v4 — short perps when funding is positive, collect hourly USDC + maker rebates (VLAT Platform 4)',
+                controllable: true,
+                startUrl:    '/api/dydx-funding/start',
+                stopUrl:     '/api/dydx-funding/stop',
+                statusUrl:   '/api/dydx-funding/status',
+                ...dydxFunding.getStatus(),
+            },
             // ── Sovereign Bot Framework (4 bots) ───────────────────────────────────
             {
                 id:          'sovereignty-harvester',
