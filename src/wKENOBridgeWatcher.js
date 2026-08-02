@@ -133,8 +133,15 @@ class wKENOBridgeWatcher {
             const usdtFor10k = parseFloat(ethers.formatEther(amounts[2]));
             return usdtFor10k / 10000; // price per KENO in USD
         } catch (err) {
-            this._log(`BSC price error: ${err.message}`);
-            return 0;
+            // "require(false)" = no liquidity pair yet on PancakeSwap (pre-listing)
+            // Silently return null — bot will skip the spread check until pair exists
+            const noLiquidity = err.message && (
+                err.message.includes('require(false)') ||
+                err.message.includes('INSUFFICIENT_OUTPUT') ||
+                err.message.includes('no data present')
+            );
+            if (!noLiquidity) this._log(`BSC price error: ${err.message}`);
+            return null;
         }
     }
 
@@ -199,8 +206,8 @@ class wKENOBridgeWatcher {
             this.stats.lastKenoPriceBSC  = kenoBSC;
             this.stats.lastKenoPriceBase = wkenoBase;
 
-            if (kenoBSC <= 0) {
-                this._log('⚠️ Could not fetch BSC KENO price — RPC issue?');
+            if (kenoBSC == null || kenoBSC <= 0) {
+                this._log('⏳ KENO/BSC price unavailable — no PancakeSwap liquidity yet (pre-listing). Watching...');
                 return;
             }
 
