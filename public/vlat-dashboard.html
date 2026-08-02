@@ -151,6 +151,64 @@
   .stat-value { font-size: 1.5rem; font-weight: 700; }
   .stat-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
 
+  /* ── Live Bot Status section ── */
+  .bot-status-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .bot-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; position: relative; overflow: hidden; transition: border-color 0.2s;
+  }
+  .bot-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0; opacity: 0.7;
+  }
+  .bot-card.hl-card::before      { background: var(--hl); }
+  .bot-card.aster-card::before   { background: var(--aster); }
+  .bot-card.gmx-card::before     { background: var(--gmx); }
+  .bot-card.dydx-card::before    { background: var(--dydx); }
+  .bot-card.running-true  { border-color: rgba(16,185,129,0.3); }
+  .bot-card.running-false { border-color: rgba(107,114,128,0.3); }
+  .bot-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .bot-card-name   { font-weight: 700; font-size: 0.92rem; }
+  .bot-card-chain  { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .bot-status-indicator { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; }
+  .bot-status-indicator.on  { color: var(--green); }
+  .bot-status-indicator.off { color: var(--muted); }
+  .bot-run-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .bot-run-dot.on  { background: var(--green); animation: pulse 2s infinite; }
+  .bot-run-dot.off { background: var(--muted); }
+  .bot-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .bot-stat-item {}
+  .bot-stat-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .bot-stat-value { font-size: 1.0rem; font-weight: 700; margin-top: 1px; }
+  .bot-opportunities { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .bot-opp-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 6px; }
+  .bot-opp-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .bot-opp-name { font-size: 0.75rem; font-weight: 600; }
+  .bot-opp-rate { font-size: 0.75rem; font-weight: 700; }
+  .bot-opp-nash { font-size: 0.62rem; color: var(--muted); margin-left: 4px; }
+  .bot-mode-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; font-weight: 600; display: inline-block; margin-top: 8px; }
+  .bot-mode-live    { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .bot-mode-scan    { background: rgba(251,191,36,0.12); color: var(--gold); }
+  .bot-mode-stopped { background: rgba(107,114,128,0.1); color: var(--muted); }
+  .bot-ctrl { display: flex; gap: 6px; margin-top: 10px; }
+  .bot-btn { flex: 1; padding: 5px 0; border-radius: 6px; border: 1px solid var(--border); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: none; color: var(--muted); }
+  .bot-btn:hover { border-color: var(--hl); color: var(--hl); }
+  .bot-btn.start-btn:hover { border-color: var(--green); color: var(--green); }
+  .bot-btn.stop-btn:hover  { border-color: var(--red);   color: #ef4444; }
+
+  /* ── Ecosystem composite bar ── */
+  .ecosystem-score-bar { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin-bottom: 0; }
+  .eco-score-row { display: flex; align-items: center; gap: 16px; }
+  .eco-score-big { font-size: 2.6rem; font-weight: 800; color: var(--green); line-height: 1; min-width: 90px; }
+  .eco-score-details { flex: 1; }
+  .eco-score-title { font-weight: 700; font-size: 0.9rem; }
+  .eco-score-sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .eco-platform-pills { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .eco-pill { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 99px; display: flex; align-items: center; gap: 4px; }
+
+  @media (max-width: 1200px) { .bot-status-grid { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 700px)  { .bot-status-grid { grid-template-columns: 1fr; } }
+
   /* ── Loading ── */
   .loading { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--muted); }
 
@@ -208,6 +266,15 @@
     </div>
   </div>
 
+  <!-- Live Bot Status — all 4 VLAT platform bots -->
+  <div>
+    <div class="section-label">Live Bot Status — VLAT 4-Platform Ecosystem</div>
+    <div id="ecosystemScoreBar" class="ecosystem-score-bar" style="margin-bottom:16px;display:none;"></div>
+    <div class="bot-status-grid" id="botStatusGrid">
+      <div class="loading">Loading bot status...</div>
+    </div>
+  </div>
+
   <!-- Composite Stats Row -->
   <div class="stats-row" id="statsRow">
     <div class="loading">Loading...</div>
@@ -257,12 +324,142 @@ function statusLabel(s) {
 function fmt(n) { return n != null ? parseFloat(n).toFixed(2) : '0.00'; }
 function fmtPct(n) { return Math.min(100, Math.max(0, parseFloat(n || 0))).toFixed(1); }
 
+// ── VLAT bot colour/class mapping ────────────────────────────────────────────
+const BOT_VLAT = {
+  'hl-funding':   { cssClass: 'hl-card',    color: 'var(--hl)',    label: 'Hyperliquid', oppKey: 'opportunities', apyField: 'fundingAPR', nameField: 'ticker',     unit: '% APR' },
+  'aster-lp':     { cssClass: 'aster-card', color: 'var(--aster)', label: 'Aster LP',    oppKey: 'bestPools',    apyField: 'apy',        nameField: 'pair',       unit: '% APY' },
+  'gmx-funding':  { cssClass: 'gmx-card',   color: 'var(--gmx)',   label: 'GMX v2',      oppKey: 'opportunities', apyField: 'fundingAPR', nameField: 'name',       unit: '% APR' },
+  'dydx-funding': { cssClass: 'dydx-card',  color: 'var(--dydx)',  label: 'dYdX v4',     oppKey: 'opportunities', apyField: 'fundingAPR', nameField: 'ticker',     unit: '% APR' },
+};
+
+function renderBotCards(bots) {
+  const vlatBots = bots.filter(b => BOT_VLAT[b.id]);
+  if (!vlatBots.length) {
+    document.getElementById('botStatusGrid').innerHTML = '<div class="loading">VLAT bots not found — ensure server is running</div>';
+    return;
+  }
+
+  // Ecosystem composite score
+  const running  = vlatBots.filter(b => b.running).length;
+  const liveMode = vlatBots.filter(b => b.liveTrading).length;
+  const totalProfit = vlatBots.reduce((s, b) => s + (b.totalProfit || 0), 0);
+  const ecoScore = Math.round((running / 4) * 50 + (liveMode / 4) * 30 + Math.min(20, totalProfit / 100));
+
+  const ecoBar = document.getElementById('ecosystemScoreBar');
+  ecoBar.style.display = '';
+  const pillColors = { 'hl-funding': 'var(--hl)', 'aster-lp': 'var(--aster)', 'gmx-funding': 'var(--gmx)', 'dydx-funding': 'var(--dydx)' };
+  ecoBar.innerHTML = `
+    <div class="eco-score-row">
+      <div class="eco-score-big">${ecoScore}<span style="font-size:1.1rem;color:var(--muted)">/100</span></div>
+      <div class="eco-score-details">
+        <div class="eco-score-title">Ecosystem Health Score</div>
+        <div class="eco-score-sub">${running}/4 bots running · ${liveMode}/4 live capital · $${totalProfit.toFixed(4)} total earned</div>
+        <div class="eco-platform-pills">
+          ${vlatBots.map(b => {
+            const meta = BOT_VLAT[b.id];
+            const col  = pillColors[b.id];
+            return `<span class="eco-pill" style="background:rgba(0,0,0,0.3);border:1px solid ${col};color:${col}">
+              <span style="width:5px;height:5px;border-radius:50%;background:${b.running ? 'var(--green)' : 'var(--muted)'};display:inline-block;${b.running ? 'animation:pulse 2s infinite' : ''}"></span>
+              ${meta.label}
+            </span>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('botStatusGrid').innerHTML = vlatBots.map(b => {
+    const meta   = BOT_VLAT[b.id];
+    const isOn   = b.running;
+    const opps   = (b[meta.oppKey] || []).slice(0, 3);
+    const mode   = !isOn ? 'stopped' : b.liveTrading ? 'live' : 'scan';
+    const modeLabel = { live: '🔴 Live Capital', scan: '🟡 Scan-Only', stopped: '⬤ Stopped' }[mode];
+    const modeCls   = { live: 'bot-mode-live', scan: 'bot-mode-scan', stopped: 'bot-mode-stopped' }[mode];
+    const uptimeStr = b.uptimeSeconds > 0
+      ? (b.uptimeSeconds >= 3600 ? Math.floor(b.uptimeSeconds/3600) + 'h ' : '') + Math.floor((b.uptimeSeconds % 3600)/60) + 'm'
+      : '—';
+    const lastScanAgo = b.lastTrade ? (() => {
+      const s = Math.floor((Date.now() - new Date(b.lastTrade)) / 1000);
+      return s < 60 ? s + 's ago' : Math.floor(s/60) + 'm ago';
+    })() : '—';
+
+    const oppHtml = opps.length
+      ? opps.map(o => {
+          const name = o[meta.nameField] || o.name || o.pair || o.ticker || '—';
+          const rate = parseFloat(o[meta.apyField] || o.apy || 0);
+          const nash = o.consecutive || o.nashCounters || '';
+          const rateColor = rate >= 20 ? 'var(--green)' : rate >= 10 ? 'var(--gold)' : 'var(--text)';
+          return `<div class="bot-opp-item">
+            <span class="bot-opp-name">${name}</span>
+            <span>
+              <span class="bot-opp-rate" style="color:${rateColor}">${Math.abs(rate).toFixed(1)}${meta.unit}</span>
+              ${nash ? `<span class="bot-opp-nash">(${nash}×)</span>` : ''}
+            </span>
+          </div>`;
+        }).join('')
+      : `<div style="font-size:0.75rem;color:var(--muted)">Scanning for opportunities...</div>`;
+
+    return `<div class="bot-card ${meta.cssClass} running-${isOn}">
+      <div class="bot-card-header">
+        <div>
+          <div class="bot-card-name" style="color:${meta.color}">${b.emoji || '🤖'} ${b.name}</div>
+          <div class="bot-card-chain">${b.chain}</div>
+        </div>
+        <div class="bot-status-indicator ${isOn ? 'on' : 'off'}">
+          <div class="bot-run-dot ${isOn ? 'on' : 'off'}"></div>
+          ${isOn ? 'Running' : 'Stopped'}
+        </div>
+      </div>
+
+      <div class="bot-stats">
+        <div class="bot-stat-item">
+          <div class="bot-stat-label">Earned</div>
+          <div class="bot-stat-value" style="color:var(--green)">$${(b.totalProfit || 0).toFixed(4)}</div>
+        </div>
+        <div class="bot-stat-item">
+          <div class="bot-stat-label">Scans</div>
+          <div class="bot-stat-value">${b.scanCount || 0}</div>
+        </div>
+        <div class="bot-stat-item">
+          <div class="bot-stat-label">Uptime</div>
+          <div class="bot-stat-value" style="font-size:0.85rem">${uptimeStr}</div>
+        </div>
+        <div class="bot-stat-item">
+          <div class="bot-stat-label">Last Scan</div>
+          <div class="bot-stat-value" style="font-size:0.8rem;color:var(--muted)">${lastScanAgo}</div>
+        </div>
+      </div>
+
+      <div class="bot-opportunities">
+        <div class="bot-opp-label">Top Opportunities</div>
+        ${oppHtml}
+      </div>
+
+      <span class="bot-mode-badge ${modeCls}">${modeLabel}</span>
+
+      ${b.controllable ? `<div class="bot-ctrl">
+        <button class="bot-btn start-btn" onclick="ctrlBot('${b.startUrl}','start')" ${isOn ? 'disabled style="opacity:.4"' : ''}>▶ Start</button>
+        <button class="bot-btn stop-btn"  onclick="ctrlBot('${b.stopUrl}','stop')"   ${!isOn ? 'disabled style="opacity:.4"' : ''}>■ Stop</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function ctrlBot(url, action) {
+  try {
+    const r = await fetch(url, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok === false) alert('Bot control: ' + (d.msg || 'Error'));
+    setTimeout(loadData, 1200);
+  } catch (e) { alert('Request failed: ' + e.message); }
+}
+
 async function loadData() {
   try {
-    // Fetch protocol summary + live platform feeds in parallel
-    const [summaryRes, feedRes] = await Promise.all([
+    // Fetch protocol summary, live platform feeds, and bot status in parallel
+    const [summaryRes, feedRes, botsRes] = await Promise.all([
       fetch('/api/protocols/summary'),
-      fetch('/api/vlat/feeds').catch(() => null)
+      fetch('/api/vlat/feeds').catch(() => null),
+      fetch('/api/bots/status').catch(() => null),
     ]);
     const data = await summaryRes.json();
     const vlat = data.vlat;
@@ -299,6 +496,14 @@ async function loadData() {
           const ago = Math.floor((Date.now() - new Date(lastPoll)) / 60000);
           bar.innerHTML = `<span style="color:var(--green)">⬤</span> Live feeds active · Last sync: ${ago < 1 ? 'just now' : ago + 'm ago'} · Poll #${feedData.pollCount || 0} &nbsp;<button onclick="refreshFeeds()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:0.7rem">↻ Force Refresh</button>`;
         }
+      } catch (_) {}
+    }
+
+    // Render live bot status cards
+    if (botsRes && botsRes.ok) {
+      try {
+        const botsData = await botsRes.json();
+        if (botsData.bots && botsData.bots.length) renderBotCards(botsData.bots);
       } catch (_) {}
     }
 
