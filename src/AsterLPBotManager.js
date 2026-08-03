@@ -30,6 +30,8 @@ const Nash        = require('./Nash');
 const Euler       = require('./Euler');
 const Ramanujan   = require('./Ramanujan');
 
+const AsterAutoBurnService = require('./AsterAutoBurnService');
+
 // ── Config ─────────────────────────────────────────────────────────────────────
 const POLL_MS             = 10 * 60 * 1000;   // 10 min scan interval
 const REPORT_MS           = 8  * 60 * 60 * 1000; // 8h summary report
@@ -70,6 +72,10 @@ class AsterLPBotManager {
         this._r1729Hit       = false;
         this.lastScan        = null;
         this.apiStatus       = 'connecting'; // 'live' | 'static' | 'offline'
+        this._lastFeeUpdate  = null;         // timestamp of last fee income accrual
+
+        // AutoBurn service — routes 15% of LP fee income (same BSC chain, no bridge)
+        this.autoBurn = new AsterAutoBurnService(this);
 
         // Static fallback data (known Aster stats — updated June 2026)
         this._staticPools = [
@@ -125,12 +131,15 @@ class AsterLPBotManager {
             '📐 <b>Laws:</b> Kaprekar 60/25/15 · Benford APY guard · φ allocation · Nash 3× confirm'
         );
 
+        // Start AutoBurn harvester alongside the LP bot
+        this.autoBurn.start();
+
         // Start immediately then poll
         this._poll();
         this.pollTimer   = setInterval(() => this._poll(), POLL_MS);
         this.reportTimer = setInterval(() => this._report(), REPORT_MS);
 
-        return { ok: true, msg: 'Aster LP Bot started — scanning pools every 10 min' };
+        return { ok: true, msg: 'Aster LP Bot started — scanning pools every 10 min · AutoBurn service active' };
     }
 
     // ── Stop ──────────────────────────────────────────────────────────────────
@@ -139,6 +148,7 @@ class AsterLPBotManager {
         this.running = false;
         if (this.pollTimer)   { clearInterval(this.pollTimer);   this.pollTimer   = null; }
         if (this.reportTimer) { clearInterval(this.reportTimer); this.reportTimer = null; }
+        this.autoBurn.stop();
         this._log('🛑 Aster LP Bot stopped by operator');
         this._sendTg(
             '🛑 <b>Aster LP Bot — STOPPED</b>\n\n' +
@@ -241,7 +251,41 @@ class AsterLPBotManager {
             );
         }
 
-        this._log(`✅ Scan #${this.scanCount} done — ${this.bestPools.length} pools above ${MIN_APY_THRESHOLD}% APY | top: ${this.bestPools[0]?.pair || 'none'} @ ${this.bestPools[0]?.apy?.toFixed(1) || 0}%`);
+        // ── Update fee income from active positions ────────────────────────────
+        this._updateFeeIncome();
+
+        this._log(`✅ Scan #${this.scanCount} done — ${this.bestPools.length} pools above ${MIN_APY_THRESHOLD}% APY | top: ${this.bestPools[0]?.pair || 'none'} @ ${this.bestPools[0]?.apy?.toFixed(1) || 0}% | fees earned: $${this.totalFeesEarned.toFixed(4)}`);
+    }
+
+    // ── Estimate and accrue LP fee income from active positions ────────────────
+    // Called after every poll. Uses pool APY × position size × elapsed time to
+    // estimate trading fees earned since the last update. This is the trustworthy
+    // income feed that AsterAutoBurnService reads via getStatus().totalProfit.
+    // In scan-only mode (no positions), totalFeesEarned stays 0 — correct behaviour.
+    _updateFeeIncome() {
+        const now = Date.now();
+        const lastUpdate = this._lastFeeUpdate || this.startedAt || now;
+        const elapsedYearFraction = (now - lastUpdate) / (365.25 * 24 * 3600 * 1000);
+        this._lastFeeUpdate = now;
+
+        if (elapsedYearFraction <= 0) return;
+
+        let newFees = 0;
+        for (const [poolId, pos] of Object.entries(this.positions)) {
+            // Find the matching pool for its current APY
+            const pool = this.pools.find(p => p.id === poolId);
+            const apy  = pool ? pool.apy : (pos.apy || 0);
+            if (apy <= 0 || !pos.depositedUSD || pos.depositedUSD <= 0) continue;
+
+            const earned = pos.depositedUSD * (apy / 100) * elapsedYearFraction;
+            pos.feesEarned = (pos.feesEarned || 0) + earned;
+            newFees += earned;
+        }
+
+        if (newFees > 0) {
+            this.totalFeesEarned += newFees;
+            this._log(`💰 Fee income accrued: +$${newFees.toFixed(6)} | total: $${this.totalFeesEarned.toFixed(4)} (${Object.keys(this.positions).length} positions)`);
+        }
     }
 
     // ── Fetch pool data from Aster API ─────────────────────────────────────────
@@ -364,6 +408,7 @@ class AsterLPBotManager {
             recentLogs:    this.logs.slice(0, 50),
             vlatPhase:     2,
             vlatPlatform:  'aster',
+            autoBurn:      this.autoBurn.getStatus(),
         };
     }
 }

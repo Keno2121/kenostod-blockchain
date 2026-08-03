@@ -9998,6 +9998,11 @@ app.post('/api/gmx-funding/start',   (req, res) => res.json(gmxFunding.start()))
 app.post('/api/gmx-funding/stop',    (req, res) => res.json(gmxFunding.stop()));
 app.get('/api/gmx-funding/status',   (req, res) => res.json(gmxFunding.getStatus()));
 
+// Aster AutoBurn manual controls (same BSC chain — no bridge)
+app.use('/api/aster-autoburn', requireFounder);
+app.get('/api/aster-autoburn/status', (req, res) => res.json(asterLP.autoBurn.getStatus()));
+app.post('/api/aster-autoburn/sweep', async (req, res) => res.json(await asterLP.autoBurn.triggerManualSweep()));
+
 // GMX AutoBurn manual controls (sweep now / trigger BSC burn / status)
 app.use('/api/gmx-autoburn', requireFounder);
 app.get('/api/gmx-autoburn/status',  (req, res) => res.json(gmxFunding.autoBurn.getStatus()));
