@@ -1240,8 +1240,9 @@ app.get('/api/utl/reversal/pool', (req, res) => {
 
 // ── UTL Embeddable Widget (B2B SaaS) ─────────────────────────────────────
 // Docs landing page
-app.get('/utl-widget', (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
+app.get('/utl-widget',    (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
 app.get('/utl-widget-docs', (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
+app.get('/utl-outreach', (req, res) => res.sendFile(__dirname + '/public/utl-outreach.html'));
 
 // In-memory site registry (survives server restarts via re-registration; DB persistence can be added later)
 const _widgetSites = new Map();   // siteId → { name, email, url, project, plan, dailyCounts, createdAt }

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UTL Widget Outreach — Kenostod</title>
+<style>
+  :root {
+    --bg:     #07090f;
+    --card:   #0f1117;
+    --card2:  #141720;
+    --border: rgba(139,92,246,0.18);
+    --purple: #8b5cf6;
+    --text:   #e5e7eb;
+    --muted:  #6b7280;
+    --green:  #34d399;
+    --yellow: #fbbf24;
+    --red:    #f87171;
+    --blue:   #60a5fa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; }
+
+  /* ── Layout ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px; border-bottom: 1px solid var(--border);
+    background: rgba(7,9,15,0.95); position: sticky; top:0; z-index:100;
+  }
+  .nav-brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; }
+  .nav-icon { width:30px;height:30px;background:linear-gradient(135deg,#7c3aed,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px; }
+  .nav-links { display:flex; gap:8px; }
+  .nav-link { padding:7px 14px; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none; color:var(--muted); transition:color 0.15s,background 0.15s; }
+  .nav-link:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+  .nav-link.active { color:#a78bfa; background:rgba(139,92,246,0.1); }
+
+  .page { max-width: 1320px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ── Stats row ── */
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 20px; }
+  .stat-val  { font-size:28px; font-weight:800; letter-spacing:-0.02em; }
+  .stat-lbl  { font-size:12px; color:var(--muted); margin-top:3px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+
+  /* ── Tab strip ── */
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:24px; }
+  .tab { padding:10px 18px; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; transition:color 0.15s,border-color 0.15s; user-select:none; }
+  .tab.active { color:#a78bfa; border-bottom-color:#a78bfa; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* ── Pipeline board ── */
+  .pipeline { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+  @media (max-width:900px) { .pipeline { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px) { .pipeline { grid-template-columns:1fr; } }
+  .pipeline-col { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; min-height:280px; }
+  .pipeline-col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .pipeline-col-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+  .pipeline-count { background:rgba(255,255,255,0.07); border-radius:100px; padding:2px 8px; font-size:11px; font-weight:700; color:var(--muted); }
+  .pipeline-card {
+    background: var(--card2); border:1px solid rgba(255,255,255,0.05);
+    border-radius:10px; padding:12px; margin-bottom:8px; cursor:pointer;
+    transition:border-color 0.15s,box-shadow 0.15s;
+  }
+  .pipeline-card:hover { border-color:rgba(139,92,246,0.4); box-shadow:0 0 0 2px rgba(139,92,246,0.08); }
+  .pipeline-card-name { font-size:14px; font-weight:700; margin-bottom:3px; }
+  .pipeline-card-meta { font-size:11px; color:var(--muted); }
+  .pipeline-card-tag { display:inline-block; margin-top:6px; padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+
+  /* ── Target list ── */
+  .target-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .search-box { flex:1; min-width:200px; padding:9px 14px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:14px; outline:none; transition:border-color 0.15s; }
+  .search-box:focus { border-color:var(--purple); }
+  .filter-btn { padding:8px 14px; background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .filter-btn:hover,.filter-btn.active { color:#a78bfa; border-color:rgba(139,92,246,0.4); background:rgba(139,92,246,0.08); }
+
+  .target-table { width:100%; border-collapse:collapse; }
+  .target-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); border-bottom:1px solid var(--border); }
+  .target-table td { padding:12px 14px; font-size:14px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; }
+  .target-table tr:hover td { background:rgba(255,255,255,0.015); }
+  .status-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:100px; font-size:11px; font-weight:700; cursor:pointer; transition:opacity 0.15s; }
+  .status-badge:hover { opacity:0.8; }
+  .s-new      { background:rgba(107,114,128,0.15); color:#9ca3af; border:1px solid rgba(107,114,128,0.2); }
+  .s-pitched  { background:rgba(251,191,36,0.12); color:#fbbf24;  border:1px solid rgba(251,191,36,0.25); }
+  .s-replied  { background:rgba(96,165,250,0.12); color:#60a5fa;  border:1px solid rgba(96,165,250,0.25); }
+  .s-live     { background:rgba(52,211,153,0.12); color:#34d399;  border:1px solid rgba(52,211,153,0.25); }
+  .s-paying   { background:rgba(139,92,246,0.15); color:#a78bfa;  border:1px solid rgba(139,92,246,0.35); }
+  .category-tag { padding:3px 8px; border-radius:6px; font-size:11px; font-weight:600; background:rgba(255,255,255,0.06); color:var(--muted); }
+  .action-btns { display:flex; gap:6px; }
+  .action-btn { padding:5px 10px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--card); color:var(--muted); transition:all 0.15s; }
+  .action-btn:hover { color:var(--text); border-color:rgba(255,255,255,0.2); }
+  .action-btn.dm  { color:#a78bfa; border-color:rgba(139,92,246,0.3); background:rgba(139,92,246,0.08); }
+  .action-btn.dm:hover { background:rgba(139,92,246,0.18); }
+
+  /* ── Templates ── */
+  .template-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(440px,1fr)); gap:20px; }
+  @media (max-width:500px) { .template-grid { grid-template-columns:1fr; } }
+  .template-card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .template-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .template-title { font-size:14px; font-weight:700; }
+  .template-platform { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .template-body { padding:20px; font-size:13px; line-height:1.7; color:#c4b5fd; white-space:pre-wrap; font-family:'Courier New',monospace; background:var(--card2); max-height:280px; overflow-y:auto; }
+  .template-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+  .copy-tpl-btn { padding:6px 14px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); color:#a78bfa; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; transition:background 0.15s; }
+  .copy-tpl-btn:hover { background:rgba(139,92,246,0.28); }
+  .copy-tpl-btn.copied { color:var(--green); border-color:var(--green); background:rgba(52,211,153,0.1); }
+  .template-tag { font-size:11px; color:var(--muted); padding:4px 10px; background:rgba(255,255,255,0.04); border-radius:100px; }
+
+  /* ── Notes modal ── */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--card); border:1px solid var(--border); border-radius:20px; width:100%; max-width:520px; padding:32px; position:relative; }
+  .modal h3 { font-size:20px; font-weight:800; margin-bottom:6px; }
+  .modal-sub { font-size:14px; color:var(--muted); margin-bottom:22px; }
+  .modal-close { position:absolute; top:16px; right:18px; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; }
+  .modal textarea { width:100%; min-height:100px; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:14px; resize:vertical; outline:none; transition:border-color 0.15s; }
+  .modal textarea:focus { border-color:var(--purple); }
+  .modal-row { display:flex; gap:10px; margin-top:14px; }
+  .modal-btn { flex:1; padding:11px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; border:none; transition:opacity 0.15s; }
+  .modal-btn.primary { background:linear-gradient(135deg,#7c3aed,#6366f1); color:#fff; }
+  .modal-btn.ghost   { background:var(--bg); border:1px solid var(--border); color:var(--text); }
+  .modal-btn:hover   { opacity:0.85; }
+
+  /* Status cycle select */
+  .status-select { padding:4px 8px; background:var(--card2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:12px; font-weight:600; cursor:pointer; outline:none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-icon">📡</div>
+    UTL Outreach
+  </div>
+  <div class="nav-links">
+    <a href="/utl-widget" class="nav-link">Widget Docs</a>
+    <a href="/utl-outreach" class="nav-link active">Outreach</a>
+    <a href="/vlat-dashboard.html" class="nav-link">VLAT Dashboard</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Stats -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Total Targets</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-pitched" style="color:var(--yellow)">—</div><div class="stat-lbl">Pitched</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-replied" style="color:var(--blue)">—</div><div class="stat-lbl">Replied</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-live"    style="color:var(--green)">—</div><div class="stat-lbl">Widget Live</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-paying"  style="color:#a78bfa">—</div><div class="stat-lbl">Paying (KENO)</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-keno"    style="color:#a78bfa">—</div><div class="stat-lbl">KENO/month</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('pipeline')">Pipeline</div>
+    <div class="tab" onclick="switchTab('targets')">All Targets</div>
+    <div class="tab" onclick="switchTab('templates')">DM Templates</div>
+  </div>
+
+  <!-- Pipeline view -->
+  <div class="tab-panel active" id="tab-pipeline">
+    <div class="pipeline" id="pipeline-board"></div>
+  </div>
+
+  <!-- Target list view -->
+  <div class="tab-panel" id="tab-targets">
+    <div class="target-toolbar">
+      <input class="search-box" id="search" placeholder="Search projects…" oninput="filterTargets()"/>
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('DEX',this)">DEX</button>
+      <button class="filter-btn" onclick="setFilter('Perps',this)">Perps</button>
+      <button class="filter-btn" onclick="setFilter('Lending',this)">Lending</button>
+      <button class="filter-btn" onclick="setFilter('NFT',this)">NFT</button>
+      <button class="filter-btn" onclick="setFilter('Bridge',this)">Bridge</button>
+      <button class="filter-btn" onclick="setFilter('Wallet',this)">Wallet</button>
+    </div>
+    <table class="target-table">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Category</th>
+          <th>Platform</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="targets-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Templates view -->
+  <div class="tab-panel" id="tab-templates">
+    <div class="template-grid" id="template-grid"></div>
+  </div>
+
+</div>
+
+<!-- Notes modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3 id="modal-title">Notes</h3>
+    <p class="modal-sub" id="modal-sub"></p>
+    <select class="status-select" id="modal-status" style="margin-bottom:14px;width:100%"></select>
+    <textarea id="modal-notes" placeholder="Add notes, contact name, response details…"></textarea>
+    <div class="modal-row">
+      <button class="modal-btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ────────────────────────────────────────────────────────────────────
+const STATUSES = ['new','pitched','replied','live','paying'];
+const STATUS_LABELS = { new:'Not Contacted', pitched:'Pitched', replied:'Replied', live:'Widget Live', paying:'Paying (KENO)' };
+const STATUS_CLASSES = { new:'s-new', pitched:'s-pitched', replied:'s-replied', live:'s-live', paying:'s-paying' };
+const STATUS_DOT = { new:'⚪', pitched:'🟡', replied:'🔵', live:'🟢', paying:'💜' };
+
+const TARGETS = [
+  // Perps / Derivatives
+  { id:'dydx',       name:'dYdX',           cat:'Perps',   platform:'X/Discord', x:'@dYdX',        site:'dydx.trade',          note:'' },
+  { id:'gmx',        name:'GMX',            cat:'Perps',   platform:'X/Discord', x:'@GMX_IO',       site:'gmx.io',              note:'' },
+  { id:'hliquid',    name:'Hyperliquid',     cat:'Perps',   platform:'X',         x:'@HyperliquidX', site:'hyperliquid.xyz',     note:'' },
+  { id:'vertex',     name:'Vertex Protocol',cat:'Perps',   platform:'X/Discord', x:'@vertex_proto', site:'vertexprotocol.com',  note:'' },
+  { id:'gains',      name:'Gains Network',  cat:'Perps',   platform:'X/Discord', x:'@GainsNetwork_',site:'gains.trade',         note:'' },
+  { id:'perp',       name:'Perpetual Proto',cat:'Perps',   platform:'X/Discord', x:'@perpprotocol', site:'perp.exchange',       note:'' },
+  { id:'drift',      name:'Drift Protocol', cat:'Perps',   platform:'X/Discord', x:'@DriftProtocol',site:'drift.trade',         note:'' },
+  { id:'orderly',    name:'Orderly Network',cat:'Perps',   platform:'X',         x:'@OrderlyNetwork',site:'orderly.network',    note:'' },
+  // DEX
+  { id:'jupiter',    name:'Jupiter',        cat:'DEX',     platform:'X/Discord', x:'@JupiterExchange',site:'jup.ag',            note:'' },
+  { id:'uniswap',    name:'Uniswap',        cat:'DEX',     platform:'X/Discord', x:'@Uniswap',      site:'uniswap.org',         note:'' },
+  { id:'curve',      name:'Curve Finance',  cat:'DEX',     platform:'X/Discord', x:'@CurveFinance', site:'curve.fi',            note:'' },
+  { id:'raydium',    name:'Raydium',        cat:'DEX',     platform:'X/Discord', x:'@RaydiumProtocol',site:'raydium.io',        note:'' },
+  { id:'orca',       name:'Orca',           cat:'DEX',     platform:'X/Discord', x:'@orca_so',      site:'orca.so',             note:'' },
+  { id:'aster',      name:'Aster Finance',  cat:'DEX',     platform:'X',         x:'@AsterFinance', site:'aster.finance',       note:'' },
+  { id:'sushi',      name:'SushiSwap',      cat:'DEX',     platform:'X/Discord', x:'@SushiSwap',    site:'sushi.com',           note:'' },
+  { id:'velodrome',  name:'Velodrome',      cat:'DEX',     platform:'X/Discord', x:'@VelodromeFi',  site:'velodrome.finance',   note:'' },
+  // Lending
+  { id:'aave',       name:'Aave',           cat:'Lending', platform:'X/Discord', x:'@AaveAave',     site:'aave.com',            note:'' },
+  { id:'compound',   name:'Compound',       cat:'Lending', platform:'X/Discord', x:'@compoundfinance',site:'compound.finance', note:'' },
+  { id:'venus',      name:'Venus Protocol', cat:'Lending', platform:'X/Discord', x:'@VenusProtocol',site:'venus.io',           note:'' },
+  { id:'morpho',     name:'Morpho',         cat:'Lending', platform:'X/Discord', x:'@MorphoLabs',   site:'morpho.org',          note:'' },
+  // NFT
+  { id:'blur',       name:'Blur',           cat:'NFT',     platform:'X/Discord', x:'@blur_io',      site:'blur.io',             note:'' },
+  { id:'opensea',    name:'OpenSea',        cat:'NFT',     platform:'X',         x:'@opensea',      site:'opensea.io',          note:'' },
+  { id:'magiceden',  name:'Magic Eden',     cat:'NFT',     platform:'X/Discord', x:'@MagicEden',    site:'magiceden.io',        note:'' },
+  { id:'tensorhq',   name:'Tensor',         cat:'NFT',     platform:'X/Discord', x:'@tensor_hq',    site:'tensor.trade',        note:'' },
+  // Bridge
+  { id:'stargate',   name:'Stargate',       cat:'Bridge',  platform:'X/Discord', x:'@StargateFinance',site:'stargate.finance', note:'' },
+  { id:'across',     name:'Across Protocol',cat:'Bridge',  platform:'X/Discord', x:'@AcrossProtocol',site:'across.to',         note:'' },
+  { id:'hop',        name:'Hop Exchange',   cat:'Bridge',  platform:'X/Discord', x:'@HopProtocol',  site:'hop.exchange',        note:'' },
+  { id:'wormhole',   name:'Wormhole',       cat:'Bridge',  platform:'X/Discord', x:'@wormhole',     site:'wormhole.com',        note:'' },
+  // Wallet
+  { id:'rabby',      name:'Rabby Wallet',   cat:'Wallet',  platform:'X',         x:'@Rabby_io',     site:'rabby.io',            note:'' },
+  { id:'phantom',    name:'Phantom',        cat:'Wallet',  platform:'X/Discord', x:'@phantom',      site:'phantom.app',         note:'' },
+  { id:'rainbow',    name:'Rainbow Wallet', cat:'Wallet',  platform:'X',         x:'@rainbowdotme', site:'rainbow.me',          note:'' },
+  { id:'zerion',     name:'Zerion',         cat:'Wallet',  platform:'X/Discord', x:'@zerion_io',    site:'zerion.io',           note:'' },
+];
+
+const TEMPLATES = [
+  {
+    id: 'cold-perps',
+    title: 'Cold DM — Perps / Trading Platforms',
+    platform: 'X · Direct Message',
+    category: 'Perps',
+    body: `Quick question: how many support tickets do you get from users who sent funds to the wrong address, clicked the wrong button, or got front-run by a bot?
+
+I built something for my own platform (Kenostod) that gives users a 5-minute "undo" window on every transaction. Mistakes get reverted. Support tickets dropped 60%.
+
+I turned it into a free widget. Takes 10 minutes to add to your frontend. Your users get 1 free undo per day.
+
+If you want unlimited undos + anti-fraud protection, it's 25 KENO/month (~$25). No contract. Cancel anytime.
+
+Want the snippet? → kenostodblockchain.com/utl-widget`
+  },
+  {
+    id: 'cold-dex',
+    title: 'Cold DM — DEX / Swap Platforms',
+    platform: 'X · Direct Message',
+    category: 'DEX',
+    body: `Quick question — how many times a week does a user accidentally swap to the wrong token, or approve the wrong amount?
+
+I built a 5-minute "undo" window into my own DEX (Kenostod). One script tag. Transaction sits in escrow for 5 minutes, user can reverse it if they made a mistake. Support tickets dropped 60%.
+
+Free to add to your platform. Your users get 1 free undo per day.
+Unlimited: 25 KENO/month (~$25).
+
+Snippet + docs: kenostodblockchain.com/utl-widget`
+  },
+  {
+    id: 'cold-nft',
+    title: 'Cold DM — NFT Marketplaces',
+    platform: 'X · Direct Message',
+    category: 'NFT',
+    body: `Quick question: how many "I sent my NFT to the wrong wallet" tickets do you handle per week?
+
+I built a 5-minute reversal window for my own platform that catches those mistakes before they're permanent. One script tag, 10 minutes to integrate.
+
+Free tier: 1 undo/day per user.
+Paid: 25 KENO/month for unlimited reversals + anti-fraud Benford monitoring.
+
+Details: kenostodblockchain.com/utl-widget`
+  },
+  {
+    id: 'cold-bridge',
+    title: 'Cold DM — Bridges',
+    platform: 'X · Direct Message',
+    category: 'Bridge',
+    body: `Quick question — how often do your users bridge to the wrong chain or wrong address?
+
+I built a 5-minute "undo" window that catches cross-chain mistakes before they finalize. Built it for my own protocol (Kenostod), now I'm offering it as a free widget.
+
+One script tag. Takes 10 minutes to add. 1 free undo/day per user.
+Unlimited: 25 KENO/month.
+
+kenostodblockchain.com/utl-widget — snippet is ready to send.`
+  },
+  {
+    id: 'cold-wallet',
+    title: 'Cold DM — Wallets',
+    platform: 'X · Direct Message',
+    category: 'Wallet',
+    body: `Quick question: how many "I sent to the wrong address" complaints hit your support every week?
+
+I built a 5-minute undo window for my own platform. One script tag, sits between the user and MetaMask. If they realize the mistake within 5 minutes, they click Undo and the transaction reverses.
+
+Free tier for your users: 1 undo/day.
+Paid upgrade: 25 KENO/month for unlimited.
+
+Snippet + docs: kenostodblockchain.com/utl-widget`
+  },
+  {
+    id: 'follow-up',
+    title: 'Follow-up (no reply in 3 days)',
+    platform: 'X · Direct Message',
+    category: 'All',
+    body: `Hey [NAME] — following up on the UTL reversal widget I mentioned.
+
+Short version: one script tag gives your users a 5-minute "undo" window on every transaction. Free to start.
+
+Thought it might cut your support load since [SPECIFIC_PAIN — wrong address / wrong token / wrong chain].
+
+Snippet is live at kenostodblockchain.com/utl-widget if you want to look. No pressure.`
+  },
+  {
+    id: 'interested-reply',
+    title: 'Reply to "interested" / "want to know more"',
+    platform: 'X · Direct Message',
+    category: 'All',
+    body: `Great — here's the snippet:\n\n` +
+      `<` + `script\n  src="https://kenostodblockchain.com/utl-widget.js"\n  data-site-id="YOUR_SITE_ID"\n><` + `/script>\n\n` +
+      `Paste that before your closing </body> tag.\n\n` +
+      `To get your Site ID (takes 1 min): kenostodblockchain.com/utl-widget → fill out the form → you get the snippet instantly.\n\n` +
+      `Free tier is live immediately. If you want unlimited undos + anti-fraud, reply back and I'll set you up on the 25 KENO/month plan. No contract.\n\n` +
+      `Any questions, I'm here.`
+  },
+  {
+    id: 'discord-announce',
+    title: 'Discord — Server Announcement / #partnerships',
+    platform: 'Discord · #partnerships or #general',
+    category: 'All',
+    body: `Hey everyone 👋
+
+I built a free widget for web3 teams that gives your users a **5-minute "undo" window** on every transaction. Built it for my own platform after watching users lose funds to wrong addresses and front-running bots.
+
+**How it works:**
+→ Paste 1 script tag into your frontend
+→ Users see a countdown toast after every tx
+→ They click Undo within 5 min if they made a mistake
+→ Funds return minus 0.05% reversal fee
+
+**Free tier:** 1 undo per user per day
+**Paid:** 25 KENO/month → unlimited undos + anti-fraud monitoring
+
+Docs + snippet: https://kenostodblockchain.com/utl-widget
+
+DM me if you want to integrate or have questions — happy to help set it up.`
+  },
+];
+
+// ── State ────────────────────────────────────────────────────────────────────
+let state = {};        // id → { status, notes }
+let filterCat = 'all';
+let modalId   = null;
+
+function load() {
+  try { state = JSON.parse(localStorage.getItem('utl_outreach') || '{}'); } catch(_) { state={}; }
+  TARGETS.forEach(t => { if (!state[t.id]) state[t.id] = { status:'new', notes:'' }; });
+}
+function save() { localStorage.setItem('utl_outreach', JSON.stringify(state)); }
+
+// ── Stats ────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const counts = { new:0, pitched:0, replied:0, live:0, paying:0 };
+  TARGETS.forEach(t => { const s = state[t.id]?.status || 'new'; counts[s]++; });
+  document.getElementById('s-total').textContent   = TARGETS.length;
+  document.getElementById('s-pitched').textContent = counts.pitched;
+  document.getElementById('s-replied').textContent = counts.replied;
+  document.getElementById('s-live').textContent    = counts.live;
+  document.getElementById('s-paying').textContent  = counts.paying;
+  document.getElementById('s-keno').textContent    = (counts.paying * 25) + ' KENO';
+}
+
+// ── Pipeline ─────────────────────────────────────────────────────────────────
+function renderPipeline() {
+  const cols = {};
+  STATUSES.forEach(s => cols[s] = []);
+  TARGETS.forEach(t => { cols[state[t.id]?.status || 'new'].push(t); });
+
+  const board = document.getElementById('pipeline-board');
+  board.innerHTML = STATUSES.map(s => `
+    <div class="pipeline-col">
+      <div class="pipeline-col-header">
+        <span class="pipeline-col-title" style="color:${s==='new'?'#6b7280':s==='pitched'?'#fbbf24':s==='replied'?'#60a5fa':s==='live'?'#34d399':'#a78bfa'}">${STATUS_DOT[s]} ${STATUS_LABELS[s]}</span>
+        <span class="pipeline-count">${cols[s].length}</span>
+      </div>
+      ${cols[s].map(t=>`
+        <div class="pipeline-card" onclick="openModal('${t.id}')">
+          <div class="pipeline-card-name">${t.name}</div>
+          <div class="pipeline-card-meta">${t.cat} · ${t.x}</div>
+          ${state[t.id]?.notes ? `<div class="pipeline-card-tag" style="background:rgba(139,92,246,0.1);color:#a78bfa">📝 Has notes</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ── Target table ─────────────────────────────────────────────────────────────
+function renderTargets() {
+  const q   = (document.getElementById('search')?.value||'').toLowerCase();
+  const rows = TARGETS.filter(t =>
+    (filterCat === 'all' || t.cat === filterCat) &&
+    (!q || t.name.toLowerCase().includes(q) || t.cat.toLowerCase().includes(q) || t.x.toLowerCase().includes(q))
+  );
+
+  document.getElementById('targets-tbody').innerHTML = rows.map(t => {
+    const s = state[t.id]?.status || 'new';
+    return `<tr>
+      <td>
+        <div style="font-weight:700">${t.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${t.x}</div>
+      </td>
+      <td><span class="category-tag">${t.cat}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${t.platform}</td>
+      <td>
+        <span class="status-badge ${STATUS_CLASSES[s]}" onclick="cycleStatus('${t.id}')">${STATUS_DOT[s]} ${STATUS_LABELS[s]}</span>
+      </td>
+      <td style="font-size:12px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        ${state[t.id]?.notes || '<span style="color:#374151">—</span>'}
+      </td>
+      <td>
+        <div class="action-btns">
+          <button class="action-btn dm" onclick="copyDMForTarget('${t.id}')">Copy DM</button>
+          <button class="action-btn"    onclick="openModal('${t.id}')">Notes</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Templates ────────────────────────────────────────────────────────────────
+function renderTemplates() {
+  document.getElementById('template-grid').innerHTML = TEMPLATES.map(tpl => `
+    <div class="template-card">
+      <div class="template-header">
+        <div>
+          <div class="template-title">${tpl.title}</div>
+          <div class="template-platform">${tpl.platform}</div>
+        </div>
+        <span class="template-tag">${tpl.category}</span>
+      </div>
+      <div class="template-body">${escHtml(tpl.body)}</div>
+      <div class="template-footer">
+        <button class="copy-tpl-btn" onclick="copyTemplate('${tpl.id}',this)">Copy</button>
+        <span style="font-size:12px;color:var(--muted)">Personalize before sending</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function copyTemplate(id, btn) {
+  const tpl = TEMPLATES.find(t=>t.id===id);
+  if (!tpl) return;
+  navigator.clipboard.writeText(tpl.body);
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+function copyDMForTarget(id) {
+  const target = TARGETS.find(t=>t.id===id);
+  const catMap = { Perps:'cold-perps', DEX:'cold-dex', NFT:'cold-nft', Bridge:'cold-bridge', Wallet:'cold-wallet', Lending:'cold-perps' };
+  const tplId  = catMap[target?.cat] || 'cold-perps';
+  const tpl    = TEMPLATES.find(t=>t.id===tplId);
+  if (tpl) {
+    navigator.clipboard.writeText(tpl.body);
+    // Mark as pitched if still new
+    if ((state[id]?.status||'new')==='new') {
+      state[id].status = 'pitched';
+      save(); renderAll();
+    }
+  }
+}
+
+// ── Status cycle ─────────────────────────────────────────────────────────────
+function cycleStatus(id) {
+  const cur = state[id]?.status || 'new';
+  const idx = STATUSES.indexOf(cur);
+  state[id].status = STATUSES[(idx+1) % STATUSES.length];
+  save(); renderAll();
+}
+
+// ── Modal ────────────────────────────────────────────────────────────────────
+function openModal(id) {
+  const target = TARGETS.find(t=>t.id===id);
+  if (!target) return;
+  modalId = id;
+  document.getElementById('modal-title').textContent = target.name;
+  document.getElementById('modal-sub').textContent   = target.cat + ' · ' + target.x + ' · ' + target.site;
+  document.getElementById('modal-notes').value       = state[id]?.notes || '';
+
+  const sel = document.getElementById('modal-status');
+  sel.innerHTML = STATUSES.map(s=>`<option value="${s}" ${state[id]?.status===s?'selected':''}>${STATUS_DOT[s]} ${STATUS_LABELS[s]}</option>`).join('');
+
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); modalId=null; }
+function saveModal() {
+  if (!modalId) return;
+  state[modalId].status = document.getElementById('modal-status').value;
+  state[modalId].notes  = document.getElementById('modal-notes').value;
+  save(); renderAll(); closeModal();
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['pipeline','targets','templates'][i]===id));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id==='tab-'+id));
+}
+
+function setFilter(cat, btn) {
+  filterCat = cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTargets();
+}
+
+function filterTargets() { renderTargets(); }
+
+function renderAll() { renderStats(); renderPipeline(); renderTargets(); }
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+load();
+renderAll();
+renderTemplates();
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+</script>
+</body>
+</html>
