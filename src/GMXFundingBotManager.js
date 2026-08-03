@@ -32,12 +32,13 @@
 const https  = require('https');
 const { ethers } = require('ethers');
 
-const Kaprekar    = require('./Kaprekar');
-const Benford     = require('./Benford');
-const GoldenRatio = require('./GoldenRatio');
-const Nash        = require('./Nash');
-const Euler       = require('./Euler');
-const Ramanujan   = require('./Ramanujan');
+const Kaprekar          = require('./Kaprekar');
+const Benford           = require('./Benford');
+const GoldenRatio       = require('./GoldenRatio');
+const Nash              = require('./Nash');
+const Euler             = require('./Euler');
+const Ramanujan         = require('./Ramanujan');
+const GMXAutoBurnService = require('./GMXAutoBurnService');
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 const POLL_MS            = 10 * 60 * 1000;   // 10 min scan
@@ -86,6 +87,9 @@ class GMXFundingBotManager {
         this._r1729Hit       = false;
         this.lastScan        = null;
         this.apiStatus       = 'connecting';
+
+        // AutoBurn service — routes 15% of funding income cross-chain to KENOAutoBurn
+        this.autoBurn = new GMXAutoBurnService(this);
     }
 
     // ── Telegram ──────────────────────────────────────────────────────────────
@@ -135,7 +139,10 @@ class GMXFundingBotManager {
         this.pollTimer   = setInterval(() => this._poll(), POLL_MS);
         this.reportTimer = setInterval(() => this._report(), REPORT_MS);
 
-        return { ok: true, msg: 'GMX v2 Funding Bot started — scanning Arbitrum/Avalanche every 10 min' };
+        // Start AutoBurn harvester alongside the funding bot
+        this.autoBurn.start();
+
+        return { ok: true, msg: 'GMX v2 Funding Bot started — scanning Arbitrum/Avalanche every 10 min · AutoBurn service active' };
     }
 
     // ── Stop ──────────────────────────────────────────────────────────────────
@@ -144,6 +151,7 @@ class GMXFundingBotManager {
         this.running = false;
         if (this.pollTimer)   { clearInterval(this.pollTimer);   this.pollTimer   = null; }
         if (this.reportTimer) { clearInterval(this.reportTimer); this.reportTimer = null; }
+        this.autoBurn.stop();
         this._log('🛑 GMX v2 Funding Bot stopped');
         this._sendTg(
             '🛑 <b>GMX v2 Funding Bot — STOPPED</b>\n\n' +
@@ -399,6 +407,7 @@ class GMXFundingBotManager {
             recentLogs:    this.logs.slice(0, 50),
             vlatPhase:     3,
             vlatPlatform:  'gmx',
+            autoBurn:      this.autoBurn.getStatus(),
         };
     }
 }

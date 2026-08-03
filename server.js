@@ -9851,6 +9851,12 @@ app.post('/api/gmx-funding/start',   (req, res) => res.json(gmxFunding.start()))
 app.post('/api/gmx-funding/stop',    (req, res) => res.json(gmxFunding.stop()));
 app.get('/api/gmx-funding/status',   (req, res) => res.json(gmxFunding.getStatus()));
 
+// GMX AutoBurn manual controls (sweep now / trigger BSC burn / status)
+app.use('/api/gmx-autoburn', requireFounder);
+app.get('/api/gmx-autoburn/status',  (req, res) => res.json(gmxFunding.autoBurn.getStatus()));
+app.post('/api/gmx-autoburn/sweep',  async (req, res) => res.json(await gmxFunding.autoBurn.triggerManualSweep()));
+app.post('/api/gmx-autoburn/burn',   async (req, res) => res.json(await gmxFunding.autoBurn.triggerManualBSCBurn()));
+
 app.post('/api/dydx-funding/start',  (req, res) => res.json(dydxFunding.start()));
 app.post('/api/dydx-funding/stop',   (req, res) => res.json(dydxFunding.stop()));
 app.get('/api/dydx-funding/status',  (req, res) => res.json(dydxFunding.getStatus()));
