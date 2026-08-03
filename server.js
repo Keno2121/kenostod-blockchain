@@ -1238,6 +1238,152 @@ app.get('/api/utl/reversal/pool', (req, res) => {
     res.json({ ok: true, ...utlReversalPool.getPoolStats() });
 });
 
+// ── UTL Embeddable Widget (B2B SaaS) ─────────────────────────────────────
+// Docs landing page
+app.get('/utl-widget', (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
+app.get('/utl-widget-docs', (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
+
+// In-memory site registry (survives server restarts via re-registration; DB persistence can be added later)
+const _widgetSites = new Map();   // siteId → { name, email, url, project, plan, dailyCounts, createdAt }
+const _KENO_PER_MO = 25;         // paid tier cost in KENO
+
+function _generateSiteId(url) {
+    const base = (url || 'site').replace(/https?:\/\//,'').replace(/[^a-z0-9]/gi,'-').slice(0,16).toLowerCase();
+    const rand = Math.random().toString(36).slice(2,7);
+    return `utl-${base}-${rand}`;
+}
+
+function _widgetDailyKey() {
+    return new Date().toISOString().slice(0,10); // YYYY-MM-DD
+}
+
+// Register a new site — returns siteId + embed snippet
+app.post('/api/utl/widget/register-site', (req, res) => {
+    const { name, email, url, project } = req.body || {};
+    if (!name || !email || !url) return res.json({ ok: false, error: 'name, email, and url are required' });
+
+    const siteId = _generateSiteId(url);
+    _widgetSites.set(siteId, {
+        name, email, url, project: project || '',
+        plan: 'free',
+        dailyCounts: {},   // date → { undoCount }
+        totalUndos: 0,
+        totalTxs: 0,
+        createdAt: Date.now(),
+    });
+
+    console.log(`[UTLWidget] ✅ New site registered: ${siteId} — ${name} <${email}> | ${url}`);
+
+    // Telegram alert to founder
+    const tgToken  = process.env.KINGS_SHIELD_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+    const tgChatId = process.env.SHIELD_ALERT_CHAT_ID;
+    if (tgToken && tgChatId) {
+        const body = JSON.stringify({
+            chat_id: tgChatId, parse_mode: 'HTML', disable_web_page_preview: true,
+            text: `🎯 <b>UTL Widget — New Site Registered!</b>\n\n` +
+                  `<b>Who:</b> ${name} &lt;${email}&gt;\n` +
+                  `<b>Project:</b> ${project || 'N/A'}\n` +
+                  `<b>URL:</b> ${url}\n` +
+                  `<b>Site ID:</b> <code>${siteId}</code>\n` +
+                  `<b>Plan:</b> Free (upgrade: 25 KENO/month)\n\n` +
+                  `<i>Snippet sent. Follow up to convert to paid.</i>`,
+        });
+        const https = require('https');
+        const req2  = https.request({ hostname:'api.telegram.org', path:`/bot${tgToken}/sendMessage`, method:'POST', headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)} });
+        req2.on('error', ()=>{});
+        req2.write(body);
+        req2.end();
+    }
+
+    res.json({
+        ok: true,
+        siteId,
+        plan: 'free',
+        snippet: `<script\n  src="https://kenostodblockchain.com/utl-widget.js"\n  data-site-id="${siteId}"\n></script>`,
+        paidUpgrade: `25 KENO/month — DM @Kenostod on X or email academy@kenostod.com`,
+    });
+});
+
+// Register an individual transaction (called by the widget automatically)
+app.post('/api/utl/widget/register-tx', (req, res) => {
+    const { siteId, txHash, userAddress, amount, currency } = req.body || {};
+    if (!siteId || !txHash) return res.json({ ok: false, error: 'siteId and txHash required' });
+
+    const site = _widgetSites.get(siteId);
+    // Unknown site IDs are accepted silently (site may have registered before a restart)
+    if (site) site.totalTxs++;
+
+    // Delegate to UTLReversalPool
+    const result = utlReversalPool.register({
+        txHash,
+        amount:      parseFloat(amount) || 0,
+        currency:    currency || 'ETH',
+        sender:      userAddress || 'unknown',
+        recipient:   userAddress || 'unknown',
+        windowMs:    300_000,
+        tier:        site?.plan === 'paid' ? 'KENO' : 'Free',
+        metadata:    { siteId, source: 'widget' },
+    });
+
+    res.json({ ok: true, ...result });
+});
+
+// Undo a transaction (called by the widget's Undo button)
+app.post('/api/utl/widget/undo', (req, res) => {
+    const { siteId, txHash, userAddress, reason } = req.body || {};
+    if (!siteId || !txHash) return res.json({ ok: false, error: 'siteId and txHash required' });
+
+    const site    = _widgetSites.get(siteId);
+    const today   = _widgetDailyKey();
+    const isPaid  = site?.plan === 'paid';
+
+    // Free tier: 1 undo per site per day
+    if (!isPaid) {
+        const dayCount = site?.dailyCounts?.[today]?.undoCount || 0;
+        if (dayCount >= 1 && site) {
+            return res.json({
+                ok:    false,
+                error: 'Free tier limit reached (1 undo/day). Upgrade to 25 KENO/month for unlimited — DM @Kenostod on X.',
+                upgrade: true,
+            });
+        }
+    }
+
+    const result = utlReversalPool.reverse(txHash, reason || 'widget-undo');
+    if (result.ok && site) {
+        site.dailyCounts[today] = site.dailyCounts[today] || { undoCount: 0 };
+        site.dailyCounts[today].undoCount++;
+        site.totalUndos++;
+        console.log(`[UTLWidget] 🔄 Undo processed | site=${siteId} | tx=${txHash.slice(0,12)}...`);
+    }
+    res.json(result);
+});
+
+// Widget status for a site
+app.get('/api/utl/widget/status/:siteId', (req, res) => {
+    const site = _widgetSites.get(req.params.siteId);
+    if (!site) return res.json({ ok: false, error: 'Site not found — re-register at kenostodblockchain.com/utl-widget' });
+    const today = _widgetDailyKey();
+    res.json({
+        ok:          true,
+        siteId:      req.params.siteId,
+        plan:        site.plan,
+        totalTxs:    site.totalTxs,
+        totalUndos:  site.totalUndos,
+        undosToday:  site.dailyCounts[today]?.undoCount || 0,
+        undoLimit:   site.plan === 'paid' ? 'unlimited' : 1,
+    });
+});
+
+// Admin: list all registered widget sites
+app.get('/api/utl/widget/sites', requireFounder, (req, res) => {
+    const sites = [];
+    for (const [siteId, s] of _widgetSites) {
+        sites.push({ siteId, name: s.name, email: s.email, url: s.url, project: s.project, plan: s.plan, totalUndos: s.totalUndos, totalTxs: s.totalTxs, createdAt: s.createdAt });
+    }
+    res.json({ ok: true, total: sites.length, sites });
+});
+
 // ── King's Shield × KENO Flywheel ────────────────────────────────────────
 app.get('/kings-shield-flywheel', (req, res) => {
     res.sendFile(__dirname + '/public/kings-shield-flywheel.html');
