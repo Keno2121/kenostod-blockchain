@@ -104,9 +104,9 @@ class LiveArbBot {
   }
 
   async init() {
-    const key = process.env.KENO_WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
+    const key = process.env.BOT_WALLET_PRIVATE_KEY || process.env.KENO_WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
     if (!key) {
-      this.log('❌ KENO_WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
+      this.log('❌ BOT_WALLET_PRIVATE_KEY not set — bot cannot start', 'error');
       return false;
     }
     for (const rpc of BSC_RPC_ENDPOINTS) {
