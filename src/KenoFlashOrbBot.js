@@ -289,6 +289,23 @@ class KenoFlashOrbBot {
     }
   }
 
+  // Retry wrapper — catches QuickNode/RPC rate-limit errors (code -32007) and retries
+  async _rpcRetry(fn, retries = 3, delayMs = 1200) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await fn();
+      } catch (e) {
+        const isRateLimit = e?.error?.code === -32007 || e?.message?.includes('request limit');
+        if (isRateLimit && attempt < retries) {
+          this.log(`⏳ RPC rate limit hit — retrying in ${delayMs}ms (attempt ${attempt}/${retries})`, 'warn');
+          await new Promise(r => setTimeout(r, delayMs));
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
   //  Law II — Aegis Covenant: check gas reserve before every scan
   // ═══════════════════════════════════════════════════════════════════════
@@ -457,14 +474,14 @@ class KenoFlashOrbBot {
         }
       }
 
-      const tx = await this.flashArb.executeFlashArb(
+      const tx = await this._rpcRetry(() => this.flashArb.executeFlashArb(
         opp.repayPair,
         opp.sellRouter,
         opp.buyRouter,
         USDT,
         borrowAmt,
         { gasPrice, gasLimit: this.config.gasLimitFlash }
-      );
+      ));
 
       this.log(`📤 Flash tx sent: ${tx.hash}`);
       const receipt = await tx.wait();
