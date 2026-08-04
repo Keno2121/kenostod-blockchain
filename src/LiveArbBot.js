@@ -233,6 +233,23 @@ class LiveArbBot {
     }
   }
 
+  // Retry wrapper — catches QuickNode/RPC rate-limit errors (code -32007) and retries
+  async _rpcRetry(fn, retries = 3, delayMs = 1200) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await fn();
+      } catch (e) {
+        const isRateLimit = e?.error?.code === -32007 || e?.message?.includes('request limit');
+        if (isRateLimit && attempt < retries) {
+          this.log(`⏳ RPC rate limit hit — retrying in ${delayMs}ms (attempt ${attempt}/${retries})`, 'warn');
+          await new Promise(r => setTimeout(r, delayMs));
+        } else {
+          throw e;
+        }
+      }
+    }
+  }
+
   async getAmountsOut(routerAddr, amountIn, path) {
     const router = new ethers.Contract(routerAddr, ROUTER_ABI, this.provider);
     try {
@@ -355,14 +372,14 @@ class LiveArbBot {
       }
 
       this.log(`✅ Pre-flight passed — submitting flash arb`);
-      const tx = await this.flashArb.executeFlashArb(
+      const tx = await this._rpcRetry(() => this.flashArb.executeFlashArb(
         opp.repayPair,
         opp.sellRouter,
         opp.buyRouter,
         USDT,
         borrowAmt,
         { gasPrice: this.config.gasPrice, gasLimit: 500_000 }
-      );
+      ));
       this.log(`📤 Flash arb tx sent: ${tx.hash}`);
       const receipt = await tx.wait();
       this.log(`✅ Flash arb confirmed: block ${receipt.blockNumber}`);
@@ -418,13 +435,13 @@ class LiveArbBot {
       const buyRouter = new ethers.Contract(opp.buyRouter, ROUTER_ABI, this.wallet);
 
       this.log(`🔄 Step 1: Buy ${stableName} on ${opp.buyDex} with ${this.config.arbTradeAmountBNB} BNB [${opp.pair}]`);
-      const buyTx = await buyRouter.swapExactETHForTokens(
+      const buyTx = await this._rpcRetry(() => buyRouter.swapExactETHForTokens(
         minOut,
         [WBNB, stableAddr],
         this.wallet.address,
         deadline,
         { value: tradeWei, gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitArb }
-      );
+      ));
       const buyReceipt = await buyTx.wait();
       this.log(`✅ Buy tx: ${buyReceipt.hash}`);
 
@@ -439,14 +456,14 @@ class LiveArbBot {
 
       const sellRouter = new ethers.Contract(opp.sellRouter, ROUTER_ABI, this.wallet);
       this.log(`🔄 Step 2: Sell ${stableName} on ${opp.sellDex} for BNB`);
-      const sellTx = await sellRouter.swapExactTokensForETH(
+      const sellTx = await this._rpcRetry(() => sellRouter.swapExactTokensForETH(
         stableBal,
         minBNBOut,
         [stableAddr, WBNB],
         this.wallet.address,
         deadline,
         { gasPrice: this.config.gasPrice, gasLimit: this.config.gasLimitArb }
-      );
+      ));
       const sellReceipt = await sellTx.wait();
       this.log(`✅ Sell tx: ${sellReceipt.hash}`);
 
