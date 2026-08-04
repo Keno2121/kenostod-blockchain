@@ -73,10 +73,13 @@ const ERC20_ABI = [
 ];
 
 const BSC_RPC_ENDPOINTS = [
-  'https://bsc-rpc.publicnode.com',
+  process.env.BSC_RPC_PRIMARY,                // QuickNode URL — set BSC_RPC_PRIMARY secret for fastest execution
+  'https://bsc-rpc.publicnode.com',           // PublicNode — fast, proven
+  'https://bsc-dataseed1.binance.org',        // Binance official node 1
+  'https://bsc-dataseed2.binance.org',        // Binance official node 2
   'https://bsc.rpc.blxrbdn.com',
   'https://rpc-bsc.48.club',
-];
+].filter(Boolean);
 
 // ── Profit log path (Law V) ───────────────────────────────────────────────
 const PROFIT_LOG = path.join(__dirname, '../flash-orb-profits.json');
