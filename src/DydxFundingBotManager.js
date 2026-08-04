@@ -55,6 +55,10 @@ const NASH_CONFIRM      = 3;                 // consecutive readings
 const MAX_EQUITY_PCT    = 0.30;              // max 30% per position
 const BENFORD_WARN      = 0.35;
 
+// ── Wallet config — captured ONCE at module load (server startup), never stale ──
+const WALLET_ADDRESS = process.env.DYDX_WALLET_ADDRESS || '';
+const LIVE_MODE      = !!(process.env.DYDX_PRIVATE_KEY || process.env.DYDX_MNEMONIC);
+
 // dYdX v4 public indexer (no key needed for read)
 const INDEXER_BASE = 'https://indexer.dydx.trade';
 
@@ -118,9 +122,6 @@ class DydxFundingBotManager {
         this.startedAt = Date.now();
         this._log('🪐 dYdX v4 Funding Bot started');
 
-        const walletSet = !!process.env.DYDX_WALLET_ADDRESS;
-        const liveMode  = !!(process.env.DYDX_PRIVATE_KEY || process.env.DYDX_MNEMONIC);
-
         this._sendTg(
             '🪐 <b>dYdX v4 Funding Bot — STARTED</b>\n\n' +
             '🔗 <b>Network:</b> dYdX Chain (Cosmos SDK appchain)\n' +
@@ -129,8 +130,8 @@ class DydxFundingBotManager {
             '   + Maker rebates on qualifying limit orders\n' +
             '⏱ <b>Scan interval:</b> every 10 minutes\n' +
             `💰 <b>Min threshold:</b> ${MIN_FUNDING_PCT}%/8h (~${(MIN_FUNDING_PCT * 3 * 365).toFixed(0)}% APR)\n` +
-            `🔑 <b>Wallet:</b> ${walletSet ? 'Configured ✅' : 'NOT SET — scan-only mode'}\n` +
-            `⚡ <b>Live trading:</b> ${liveMode ? 'ENABLED 🔴' : 'DISABLED (scan-only) 🟡'}\n` +
+            `🔑 <b>Wallet:</b> ${WALLET_ADDRESS ? `${WALLET_ADDRESS.slice(0,6)}...${WALLET_ADDRESS.slice(-4)} ✅` : 'NOT SET — scan-only mode'}\n` +
+            `⚡ <b>Live trading:</b> ${LIVE_MODE ? 'ENABLED 🔴' : 'DISABLED (scan-only) 🟡'}\n` +
             `📊 <b>Watching:</b> ${WATCH_MARKETS.slice(0, 5).join(', ')} +${WATCH_MARKETS.length - 5} more\n` +
             '📐 <b>Laws:</b> Kaprekar 60/25/15 · Nash 3× gate · Euler 30d · Benford guard'
         );
@@ -247,7 +248,7 @@ class DydxFundingBotManager {
                     `📅 30-day (Euler): $${euler30d.toFixed(2)}\n` +
                     `📅 90-day (Euler): $${euler90d.toFixed(2)}\n\n` +
                     (splitStr ? splitStr + '\n\n' : '') +
-                    `${!process.env.DYDX_PRIVATE_KEY ? '⚡ Set DYDX_PRIVATE_KEY or DYDX_MNEMONIC to deploy' : `🔗 dydx.trade/trade/${ticker}`}`
+                    `${LIVE_MODE ? `🔗 <a href="https://dydx.trade/trade/${ticker}">Open on dYdX →</a>` : '⚡ Wallet configured — ready to deploy capital'}`
                 );
             }
         }
@@ -383,8 +384,8 @@ class DydxFundingBotManager {
             stopUrl:       '/api/dydx-funding/stop',
             statusUrl:     '/api/dydx-funding/status',
             telegramLinked:   !!(this._tgToken() && this._tgChatId()),
-            walletConfigured: !!process.env.DYDX_WALLET_ADDRESS,
-            liveTrading:   !!(process.env.DYDX_PRIVATE_KEY || process.env.DYDX_MNEMONIC),
+            walletConfigured: !!WALLET_ADDRESS,
+            liveTrading:   LIVE_MODE,
             apiStatus:     this.apiStatus,
             opportunities: sorted,
             markets:       this.markets,

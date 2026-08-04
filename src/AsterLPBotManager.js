@@ -40,6 +40,13 @@ const NASH_CONFIRM_COUNT  = 3;                // consecutive reads before deploy
 const MAX_POOLS_TRACKED   = 20;               // top N pools to monitor
 const BENFORD_WARN_PCT    = 0.35;             // Benford deviation threshold
 
+// ── Wallet config — captured ONCE at module load (server startup), never stale ──
+// Wallet address is public — hardcoded fallback so display is always correct.
+// Private key existence is read immediately; if it's in process.env when the
+// server starts, LIVE_MODE is true for the entire lifetime of this process.
+const WALLET_ADDRESS = process.env.ASTER_WALLET_ADDRESS || '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+const LIVE_MODE      = !!(process.env.ASTER_PRIVATE_KEY);
+
 // Known Aster API endpoints (public, no key needed for read)
 const ASTER_ENDPOINTS = [
     'https://api.aster.com/v1/pools',
@@ -116,9 +123,6 @@ class AsterLPBotManager {
         this.startedAt = Date.now();
         this._log('💧 Aster LP Bot started — scanning pools');
 
-        const walletSet = !!process.env.ASTER_WALLET_ADDRESS;
-        const liveMode  = !!process.env.ASTER_PRIVATE_KEY;
-
         this._sendTg(
             '💧 <b>Aster LP Bot — STARTED</b>\n\n' +
             '🌐 <b>Platform:</b> Aster (BNB / ETH / ARB / SOL)\n' +
@@ -126,8 +130,8 @@ class AsterLPBotManager {
             '   Scan pools → identify top APY → deposit after Nash 3× confirm\n' +
             '⏱ <b>Scan interval:</b> every 10 minutes\n' +
             `💰 <b>Min APY threshold:</b> ${MIN_APY_THRESHOLD}%\n` +
-            `🔑 <b>Wallet:</b> ${walletSet ? 'Configured ✅' : 'NOT SET — scan-only mode'}\n` +
-            `⚡ <b>Live LP:</b> ${liveMode ? 'ENABLED 🔴' : 'DISABLED (scan-only) 🟡'}\n` +
+            `🔑 <b>Wallet:</b> ${WALLET_ADDRESS ? `${WALLET_ADDRESS.slice(0,6)}...${WALLET_ADDRESS.slice(-4)} ✅` : 'NOT SET — scan-only mode'}\n` +
+            `⚡ <b>Live LP:</b> ${LIVE_MODE ? 'ENABLED 🔴' : 'DISABLED (scan-only) 🟡'}\n` +
             '📐 <b>Laws:</b> Kaprekar 60/25/15 · Benford APY guard · φ allocation · Nash 3× confirm'
         );
 
@@ -201,7 +205,7 @@ class AsterLPBotManager {
             (this.nashCounters[p.id] || 0) >= NASH_CONFIRM_COUNT
         );
 
-        if (nashConfirmed.length > 0 && !process.env.ASTER_WALLET_ADDRESS) {
+        if (nashConfirmed.length > 0) {
             // Scan-only: alert about opportunity
             for (const pool of nashConfirmed.slice(0, 2)) {
                 // ── Law V: Euler — continuous compounding projection ─────────────
@@ -233,7 +237,7 @@ class AsterLPBotManager {
                     `📐 φ allocation: $${(1000 * phiMultiplier).toFixed(0)} at tier-${positionCount + 1}\n` +
                     `📅 30-day projection ($1k): $${(eulerProjection || 1000 * (pool.apy / 100) / 12).toFixed(2)}` +
                     splitStr + '\n\n' +
-                    `⚡ <b>Set ASTER_WALLET_ADDRESS + ASTER_PRIVATE_KEY to deploy capital</b>`
+                    (LIVE_MODE ? `🔗 <b>Deploy now → <a href="https://app.aster.finance/pools">app.aster.finance/pools</a></b>` : `⚡ <b>Wallet configured — ready to deploy capital</b>`)
                 );
             }
         }
@@ -399,8 +403,8 @@ class AsterLPBotManager {
             stopUrl:       '/api/aster-lp/stop',
             statusUrl:     '/api/aster-lp/status',
             telegramLinked: !!(this._tgToken() && this._tgChatId()),
-            walletConfigured: !!process.env.ASTER_WALLET_ADDRESS,
-            liveTrading:   !!process.env.ASTER_PRIVATE_KEY,
+            walletConfigured: !!WALLET_ADDRESS,
+            liveTrading:   LIVE_MODE,
             apiStatus:     this.apiStatus,
             bestPools:     this.bestPools,
             positions:     this.positions,

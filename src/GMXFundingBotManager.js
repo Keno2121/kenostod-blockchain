@@ -50,6 +50,10 @@ const NASH_CONFIRM       = 3;                 // consecutive readings before ent
 const MAX_EQUITY_PCT     = 0.30;              // max 30% per position
 const BENFORD_WARN       = 0.35;
 
+// ── Wallet config — captured ONCE at module load (server startup), never stale ──
+const WALLET_ADDRESS = process.env.GMX_WALLET_ADDRESS || '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+const LIVE_MODE      = !!(process.env.GMX_PRIVATE_KEY);
+
 const ARBITRUM_RPC   = 'https://arb1.arbitrum.io/rpc';
 const AVALANCHE_RPC  = 'https://api.avax.network/ext/bc/C/rpc';
 
@@ -120,9 +124,6 @@ class GMXFundingBotManager {
         this.startedAt = Date.now();
         this._log('⚡ GMX v2 Funding Bot started');
 
-        const walletSet = !!process.env.GMX_WALLET_ADDRESS;
-        const liveMode  = !!process.env.GMX_PRIVATE_KEY;
-
         this._sendTg(
             '⚡ <b>GMX v2 Funding Bot — STARTED</b>\n\n' +
             '🔗 <b>Networks:</b> Arbitrum + Avalanche\n' +
@@ -130,8 +131,8 @@ class GMXFundingBotManager {
             '   Monitor OI imbalance → be on receiving funding side\n' +
             '⏱ <b>Scan interval:</b> every 10 minutes\n' +
             `💰 <b>Min threshold:</b> ${MIN_FUNDING_APR}% APR\n` +
-            `🔑 <b>Wallet:</b> ${walletSet ? 'Configured ✅' : 'NOT SET — scan-only mode'}\n` +
-            `⚡ <b>Live trading:</b> ${liveMode ? 'ENABLED 🔴' : 'DISABLED (scan-only) 🟡'}\n` +
+            `🔑 <b>Wallet:</b> ${WALLET_ADDRESS ? `${WALLET_ADDRESS.slice(0,6)}...${WALLET_ADDRESS.slice(-4)} ✅` : 'NOT SET — scan-only mode'}\n` +
+            `⚡ <b>Live trading:</b> ${LIVE_MODE ? 'ENABLED 🔴' : 'DISABLED (scan-only) 🟡'}\n` +
             '📐 <b>Laws:</b> Kaprekar 60/25/15 · Benford OI guard · Nash 3× gate · Euler 30d projection'
         );
 
@@ -243,7 +244,7 @@ class GMXFundingBotManager {
                     `📐 φ position: $${phiSize}\n` +
                     `📅 30-day Euler ($1k): $${euler30d.toFixed(2)}\n` +
                     (splitStr ? splitStr + '\n' : '') + '\n' +
-                    `${!process.env.GMX_PRIVATE_KEY ? '⚡ Set GMX_PRIVATE_KEY to deploy capital' : `🔗 app.gmx.io/#/trade/${name.replace('/', '-')}`}`
+                    `${LIVE_MODE ? `🔗 <a href="https://app.gmx.io/#/trade/${name.replace('/', '-')}">Open on GMX →</a>` : '⚡ Wallet configured — ready to deploy capital'}`
                 );
             }
         }
@@ -398,8 +399,8 @@ class GMXFundingBotManager {
             stopUrl:       '/api/gmx-funding/stop',
             statusUrl:     '/api/gmx-funding/status',
             telegramLinked: !!(this._tgToken() && this._tgChatId()),
-            walletConfigured: !!process.env.GMX_WALLET_ADDRESS,
-            liveTrading:   !!process.env.GMX_PRIVATE_KEY,
+            walletConfigured: !!WALLET_ADDRESS,
+            liveTrading:   LIVE_MODE,
             apiStatus:     this.apiStatus,
             opportunities: this.opportunities,
             markets:       this.markets,
