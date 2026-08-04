@@ -6,6 +6,15 @@ const FLASH_ARB_LOAN2    = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
 
 const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
+const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b8';
+const MDEX_ROUTER     = '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8';
+
+const ALL_DEXES = [
+  { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
+  { name: 'BiSwap',      addr: BISWAP_ROUTER  },
+  { name: 'ApeSwap',     addr: APESWAP_ROUTER },
+  { name: 'MDEX',        addr: MDEX_ROUTER    },
+];
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644'; // v1.1 active contract
 
 const FLASH_ARB_ABI = [
@@ -24,11 +33,11 @@ const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — added 
 // ── Multi-pair scan list — all use BNB as capital, round-trip back to BNB ──
 // NOTE: WBNB/KENO removed until KENO v2 liquidity pool is live post-PinkSale
 const ARB_PAIRS = [
-  { name: 'WBNB/USDT',  token: USDT,  bnbAmount: '0.10' },
-  { name: 'WBNB/BUSD',  token: BUSD,  bnbAmount: '0.10' },
-  { name: 'WBNB/ETH',   token: ETH,   bnbAmount: '0.10' },
-  { name: 'WBNB/BTCB',  token: BTCB,  bnbAmount: '0.10' },
-  { name: 'WBNB/CAKE',  token: CAKE,  bnbAmount: '0.10' },
+  { name: 'WBNB/USDT',  token: USDT,  bnbAmount: '0.20' },
+  { name: 'WBNB/BUSD',  token: BUSD,  bnbAmount: '0.20' },
+  { name: 'WBNB/ETH',   token: ETH,   bnbAmount: '0.20' },
+  { name: 'WBNB/BTCB',  token: BTCB,  bnbAmount: '0.20' },
+  { name: 'WBNB/CAKE',  token: CAKE,  bnbAmount: '0.20' },
 ];
 
 const ROUTER_ABI = [
@@ -77,8 +86,8 @@ class LiveArbBot {
 
     this.config = {
       autoExecute:       true,          // LIVE — quoteBest() contract simulation guards every trade
-      minProfitUSD:      0.05,         // $0.05 — achievable at 0.054% spread on 0.10 BNB
-      arbTradeAmountBNB: '0.10',       // 0.10 BNB per trade
+      minProfitUSD:      0.05,         // $0.05 — achievable at 0.027% spread on 0.20 BNB
+      arbTradeAmountBNB: '0.20',       // 0.20 BNB per trade — doubles gross profit per spread %
       kenoVolBNB:        '0.001',
       checkIntervalMs:   15_000,
       kenoVolIntervalMs: 3_600_000,
@@ -136,8 +145,8 @@ class LiveArbBot {
     if (!ready) return { ok: false, msg: 'Wallet/RPC init failed' };
 
     this.running = true;
-    this.log(`🤖 Multi-Pair Arb Bot STARTED — scanning ${ARB_PAIRS.length} pairs on PancakeSwap ↔ BiSwap every 15s`);
-    this.log(`📊 Pairs: ${ARB_PAIRS.map(p => p.name).join(' | ')}`);
+    this.log(`🤖 Multi-Pair Arb Bot STARTED — scanning ${ARB_PAIRS.length} pairs × ${ALL_DEXES.length} DEXs (${ALL_DEXES.map(d => d.name).join(', ')}) every 15s`);
+    this.log(`📊 Pairs: ${ARB_PAIRS.map(p => p.name).join(' | ')} | Trade size: ${this.config.arbTradeAmountBNB} BNB`);
 
     this._priceTimer = setInterval(() => this._priceLoop(), this.config.checkIntervalMs);
     this._priceLoop();
@@ -235,32 +244,30 @@ class LiveArbBot {
   }
 
   async _checkPair(tradeAmountBNB, stableToken, pairName) {
-    const [pancakeOut, biswapOut] = await Promise.all([
-      this.getAmountsOut(PANCAKE_ROUTER, tradeAmountBNB, [WBNB, stableToken]),
-      this.getAmountsOut(BISWAP_ROUTER,  tradeAmountBNB, [WBNB, stableToken]),
-    ]);
-    if (!pancakeOut || !biswapOut || pancakeOut === 0n || biswapOut === 0n) return null;
+    // Query all 4 DEXs in parallel
+    const outs = await Promise.all(
+      ALL_DEXES.map(d => this.getAmountsOut(d.addr, tradeAmountBNB, [WBNB, stableToken]))
+    );
 
-    const pancakeUSD = parseFloat(ethers.formatUnits(pancakeOut, 18));
-    const biswapUSD  = parseFloat(ethers.formatUnits(biswapOut,  18));
-    const tradeBNB   = parseFloat(this.config.arbTradeAmountBNB);
+    const prices = ALL_DEXES
+      .map((d, i) => ({ name: d.name, addr: d.addr, usd: parseFloat(ethers.formatUnits(outs[i] || 0n, 18)) }))
+      .filter(d => d.usd > 0);
 
-    let buyDex, sellDex, buyRouter, sellRouter, buyOut, sellOut;
-    if (biswapUSD > pancakeUSD) {
-      buyDex = 'PancakeSwap'; sellDex = 'BiSwap';
-      buyRouter = PANCAKE_ROUTER; sellRouter = BISWAP_ROUTER;
-      buyOut = pancakeUSD; sellOut = biswapUSD;
-    } else {
-      buyDex = 'BiSwap'; sellDex = 'PancakeSwap';
-      buyRouter = BISWAP_ROUTER; sellRouter = PANCAKE_ROUTER;
-      buyOut = biswapUSD; sellOut = pancakeUSD;
-    }
+    if (prices.length < 2) return null;
 
+    // Best spread: sell on highest-output DEX, buy on lowest-output DEX
+    const sellDexInfo = prices.reduce((a, b) => a.usd > b.usd ? a : b);
+    const buyDexInfo  = prices.reduce((a, b) => a.usd < b.usd ? a : b);
+    if (sellDexInfo.addr === buyDexInfo.addr) return null;
+
+    const tradeBNB    = parseFloat(this.config.arbTradeAmountBNB);
+    const sellOut     = sellDexInfo.usd;
+    const buyOut      = buyDexInfo.usd;
     const grossProfit = sellOut - buyOut;
-    const spread = ((grossProfit / buyOut) * 100).toFixed(3);
+    const spread      = ((grossProfit / buyOut) * 100).toFixed(3);
     if (parseFloat(spread) < 0.1) return null;
 
-    const bnbPriceUSD = (pancakeUSD + biswapUSD) / 2 / tradeBNB;
+    const bnbPriceUSD  = prices.reduce((s, d) => s + d.usd, 0) / prices.length / tradeBNB;
     const gasPriceGwei = parseFloat(ethers.formatUnits(this.config.gasPrice, 'gwei'));
     const gasCostBNB   = (this.config.gasLimitArb * 2 * gasPriceGwei) / 1e9;
     const gasCostUSD   = gasCostBNB * bnbPriceUSD;
@@ -270,10 +277,11 @@ class LiveArbBot {
       time: new Date().toISOString(),
       pair: pairName,
       stableToken,
-      buyDex, sellDex, buyRouter, sellRouter,
+      buyDex:    buyDexInfo.name,
+      sellDex:   sellDexInfo.name,
+      buyRouter: buyDexInfo.addr,
+      sellRouter: sellDexInfo.addr,
       tradeBNB,
-      pancakeUSD: pancakeUSD.toFixed(4),
-      biswapUSD:  biswapUSD.toFixed(4),
       grossProfitUSD: grossProfit.toFixed(4),
       netProfitUSD,
       spread,

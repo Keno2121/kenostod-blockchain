@@ -39,6 +39,15 @@ const path       = require('path');
 const FLASH_ARB_LOAN2 = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
 const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
+const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b8';
+const MDEX_ROUTER     = '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8';
+
+const MANUAL_DEXES = [
+  { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
+  { name: 'BiSwap',      addr: BISWAP_ROUTER  },
+  { name: 'ApeSwap',     addr: APESWAP_ROUTER },
+  { name: 'MDEX',        addr: MDEX_ROUTER    },
+];
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644';
 
 // ── FALP contract (set FALP_CONTRACT_ADDRESS after deployment) ────────────
@@ -50,6 +59,7 @@ const FALP_ABI = [
 const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 const USDT = '0x55d398326f99059fF775485246999027B3197955';
 const BUSD = '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56';
+const BTCB = '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c'; // BTCB on BSC
 const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — pool disabled for PinkSale, burn skipped until re-listed
 
 // ── Law VI: Kaprekar flash amounts (BNB) ──────────────────────────────────
@@ -195,6 +205,90 @@ class KenoFlashOrbBot {
   resume() { this.paused = false; this.log('▶️ Bot resumed'); }
 
   // ═══════════════════════════════════════════════════════════════════════
+  //  Manual 4-DEX scan — fallback when flash contract finds no route
+  //  Checks PancakeSwap / BiSwap / ApeSwap / MDEX for direct arb spreads
+  // ═══════════════════════════════════════════════════════════════════════
+  async _manualDexScan() {
+    const SCAN_PAIRS = [
+      { name: 'WBNB/USDT', token: USDT },
+      { name: 'WBNB/BTCB', token: BTCB },
+      { name: 'WBNB/BUSD', token: BUSD },
+    ];
+    const tradeWei = ethers.parseEther('0.10');
+
+    const getOut = async (dexAddr, token) => {
+      try {
+        const r = new ethers.Contract(dexAddr, ROUTER_ABI, this.provider);
+        const a = await r.getAmountsOut(tradeWei, [WBNB, token]);
+        return parseFloat(ethers.formatUnits(a[a.length - 1], 18));
+      } catch (_) { return 0; }
+    };
+
+    for (const pair of SCAN_PAIRS) {
+      const outs = await Promise.all(MANUAL_DEXES.map(d => getOut(d.addr, pair.token)));
+      const prices = MANUAL_DEXES.map((d, i) => ({ name: d.name, addr: d.addr, usd: outs[i] })).filter(d => d.usd > 0);
+      if (prices.length < 2) continue;
+
+      const sellDex = prices.reduce((a, b) => a.usd > b.usd ? a : b);
+      const buyDex  = prices.reduce((a, b) => a.usd < b.usd ? a : b);
+      if (sellDex.addr === buyDex.addr) continue;
+
+      const gross  = sellDex.usd - buyDex.usd;
+      const spread = ((gross / buyDex.usd) * 100).toFixed(3);
+      if (parseFloat(spread) < 0.15) continue;
+
+      const bnbPrice    = prices.reduce((s, d) => s + d.usd, 0) / prices.length / 0.10;
+      const gasCostUSD  = (130_000 * 2 * 1) / 1e9 * bnbPrice;
+      const netProfitUSD = gross - gasCostUSD;
+
+      this.log(`🔍 [Manual ${pair.name}] ${buyDex.name}→${sellDex.name}: ${spread}% spread | net $${netProfitUSD.toFixed(4)}`);
+
+      if (netProfitUSD >= this.config.minProfitUSD && this.config.autoExecute) {
+        this.log(`⚡ [Manual] Executing direct arb — ${pair.name} ${buyDex.name}→${sellDex.name}`);
+        await this._executeManualArb({ pair: pair.name, token: pair.token, buyRouter: buyDex.addr, sellRouter: sellDex.addr, buyDex: buyDex.name, sellDex: sellDex.name, netProfitUSD, spread });
+        return; // one trade per scan
+      }
+    }
+  }
+
+  async _executeManualArb(opp) {
+    try {
+      const tradeWei  = ethers.parseEther('0.10');
+      const bnbBal    = await this.provider.getBalance(this.wallet.address);
+      if (bnbBal < tradeWei + ethers.parseEther('0.002')) {
+        this.log(`⚠️ Manual arb: insufficient BNB (${ethers.formatEther(bnbBal)} BNB)`, 'warn');
+        return;
+      }
+      const buyRouter  = new ethers.Contract(opp.buyRouter,  ROUTER_ABI, this.wallet);
+      const sellRouter = new ethers.Contract(opp.sellRouter, ROUTER_ABI, this.wallet);
+      const deadline   = Math.floor(Date.now() / 1000) + 60;
+
+      // Step 1: BNB → token on buy DEX
+      const buyTx = await buyRouter.swapExactETHForTokens(
+        0n, [WBNB, opp.token], this.wallet.address, deadline,
+        { value: tradeWei, gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 130_000 }
+      );
+      const buyReceipt = await buyTx.wait();
+      if (!buyReceipt || buyReceipt.status !== 1) { this.log('⚠️ Manual arb: buy tx failed', 'warn'); return; }
+
+      // Step 2: token → BNB on sell DEX
+      const tokenContract = new ethers.Contract(opp.token, ROUTER_ABI, this.wallet);
+      const tokenBal = await new ethers.Contract(opp.token, ['function balanceOf(address) view returns (uint256)'], this.wallet).balanceOf(this.wallet.address);
+      await (new ethers.Contract(opp.token, ['function approve(address,uint256) returns (bool)'], this.wallet)).approve(opp.sellRouter, tokenBal);
+      const sellTx = await sellRouter.swapExactTokensForETH(
+        tokenBal, 0n, [opp.token, WBNB], this.wallet.address, deadline,
+        { gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 130_000 }
+      );
+      await sellTx.wait();
+
+      this.stats.tradesExecuted++;
+      this.log(`✅ Manual arb complete: ${opp.pair} ${opp.buyDex}→${opp.sellDex} | est. +$${opp.netProfitUSD.toFixed(3)}`);
+    } catch (e) {
+      this.log(`⚠️ Manual arb error: ${e.message}`, 'warn');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
   //  Law II — Aegis Covenant: check gas reserve before every scan
   // ═══════════════════════════════════════════════════════════════════════
   async _checkGasReserve() {
@@ -296,6 +390,8 @@ class KenoFlashOrbBot {
 
       if (!best) {
         this.log(`🔍 No flash profit found (scan #${this.stats.scansRun})`);
+        // Fallback: manual 4-DEX price scan for direct arb opportunity
+        await this._manualDexScan();
         return;
       }
 
