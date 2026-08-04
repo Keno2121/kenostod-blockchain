@@ -104,8 +104,9 @@ class KenoFlashOrbBot {
 
     // ── Law VI: Kaprekar scan interval = 10s (BSC) ─────────────────────
     this.config = {
-      autoExecute:    true,         // LIVE — contract-level quoteBest() reverts if not profitable
-      minProfitUSD:   0.25,         // Law III — Sovereign Threshold
+      autoExecute:      true,         // LIVE — contract-level quoteBest() reverts if not profitable
+      minProfitUSD:     0.25,        // Law III — Sovereign Threshold (flash loan path)
+      minManualProfitUSD: 0.05,      // Manual 4-DEX direct swap path — lower gas, lower bar
       checkIntervalMs: 10_000,      // 10s scan — catches brief AMM imbalances (view calls are free)
       gasPrice:       null,         // null = dynamic from provider.getFeeData() + 20% buffer
       gasLimitFlash:  600_000,      // flash arb uses more gas (borrow + 2 swaps + repay)
@@ -243,7 +244,7 @@ class KenoFlashOrbBot {
 
       this.log(`🔍 [Manual ${pair.name}] ${buyDex.name}→${sellDex.name}: ${spread}% spread | net $${netProfitUSD.toFixed(4)}`);
 
-      if (netProfitUSD >= this.config.minProfitUSD && this.config.autoExecute) {
+      if (netProfitUSD >= this.config.minManualProfitUSD && this.config.autoExecute) {
         this.log(`⚡ [Manual] Executing direct arb — ${pair.name} ${buyDex.name}→${sellDex.name}`);
         await this._executeManualArb({ pair: pair.name, token: pair.token, buyRouter: buyDex.addr, sellRouter: sellDex.addr, buyDex: buyDex.name, sellDex: sellDex.name, netProfitUSD, spread });
         return; // one trade per scan
