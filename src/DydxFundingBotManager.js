@@ -44,6 +44,7 @@ const GoldenRatio = require('./GoldenRatio');
 const Nash        = require('./Nash');
 const Euler       = require('./Euler');
 const Ramanujan   = require('./Ramanujan');
+const DydxAutoBurnService = require('./DydxAutoBurnService');
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 const POLL_MS           = 10 * 60 * 1000;   // 10 min scan
@@ -94,6 +95,9 @@ class DydxFundingBotManager {
 
         // Staking tracking
         this.stakingYield    = 0;
+
+        // AutoBurn service — 15% of funding + maker rebates → cross-chain → KENO burned
+        this.autoBurn        = new DydxAutoBurnService(this);
     }
 
     // ── Telegram ──────────────────────────────────────────────────────────────
@@ -142,6 +146,9 @@ class DydxFundingBotManager {
         this.pollTimer   = setInterval(() => this._poll(), POLL_MS);
         this.reportTimer = setInterval(() => this._report(), REPORT_MS);
 
+        // Start AutoBurn service alongside the funding bot
+        this.autoBurn.start();
+
         return { ok: true, msg: `dYdX v4 Funding Bot started — watching ${WATCH_MARKETS.length} markets every 10 min` };
     }
 
@@ -152,6 +159,7 @@ class DydxFundingBotManager {
         if (this.pollTimer)   { clearInterval(this.pollTimer);   this.pollTimer   = null; }
         if (this.reportTimer) { clearInterval(this.reportTimer); this.reportTimer = null; }
         this._log('🛑 dYdX v4 Funding Bot stopped');
+        this.autoBurn.stop();
         this._sendTg(
             '🛑 <b>dYdX v4 Funding Bot — STOPPED</b>\n\n' +
             `📊 Total scans: ${this.scanCount}\n` +
@@ -493,6 +501,7 @@ class DydxFundingBotManager {
             recentLogs:    this.logs.slice(0, 50),
             vlatPhase:     4,
             vlatPlatform:  'dydx',
+            autoBurn:      this.autoBurn.getStatus(),
         };
     }
 }

@@ -10013,6 +10013,12 @@ app.post('/api/dydx-funding/start',  (req, res) => res.json(dydxFunding.start())
 app.post('/api/dydx-funding/stop',   (req, res) => res.json(dydxFunding.stop()));
 app.get('/api/dydx-funding/status',  (req, res) => res.json(dydxFunding.getStatus()));
 
+// dYdX AutoBurn manual controls (sweep now / trigger BSC burn / status)
+app.use('/api/dydx-autoburn', requireFounder);
+app.get('/api/dydx-autoburn/status',  (req, res) => res.json(dydxFunding.autoBurn.getStatus()));
+app.post('/api/dydx-autoburn/sweep',  async (req, res) => res.json(await dydxFunding.autoBurn.triggerManualSweep()));
+app.post('/api/dydx-autoburn/burn',   async (req, res) => res.json(await dydxFunding.autoBurn.triggerManualBSCBurn()));
+
 // Queens Chariot Bot — Hive Orchestrator (all routes require founder auth)
 app.use('/api/qct-hive', requireFounder);
 app.post('/api/qct-hive/start',        (req, res) => res.json(queensChariot.start()));
