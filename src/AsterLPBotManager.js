@@ -125,6 +125,12 @@ class AsterLPBotManager {
         this.startedAt = Date.now();
         this._log('💧 Aster LP Bot started — scanning pools');
 
+        // DEBUG — will remove after confirming values
+        console.log('[AsterLP DEBUG] WALLET_ADDRESS=', WALLET_ADDRESS, '| LIVE_MODE=', LIVE_MODE,
+            '| env.ASTER_WALLET_ADDRESS=', process.env.ASTER_WALLET_ADDRESS,
+            '| env.ASTER_PRIVATE_KEY exists=', !!process.env.ASTER_PRIVATE_KEY,
+            '| env.PRIVATE_KEY exists=', !!process.env.PRIVATE_KEY);
+
         this._sendTg(
             '💧 <b>Aster LP Bot — STARTED</b>\n\n' +
             '🌐 <b>Platform:</b> Aster (BNB / ETH / ARB / SOL)\n' +
