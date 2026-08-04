@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Upgrade to Unlimited — UTL Widget</title>
+<style>
+  :root {
+    --bg:      #07090f;
+    --card:    #0f1117;
+    --border:  rgba(139,92,246,0.2);
+    --purple:  #8b5cf6;
+    --indigo:  #6366f1;
+    --text:    #e5e7eb;
+    --muted:   #6b7280;
+    --green:   #34d399;
+    --red:     #f87171;
+    --amber:   #fbbf24;
+    --code-bg: #141720;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* Nav */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(7,9,15,0.95);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 17px; color: var(--text); text-decoration: none;
+  }
+  .nav-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav-back { color: var(--muted); text-decoration: none; font-size: 14px; }
+  .nav-back:hover { color: var(--text); }
+
+  /* Page */
+  .page {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px 80px;
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 100px; padding: 5px 14px;
+    font-size: 12px; color: #a78bfa; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 800; line-height: 1.15; letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  h1 span {
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .sub {
+    color: var(--muted); font-size: 16px; margin-bottom: 40px;
+  }
+
+  /* Steps */
+  .steps-track {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 40px;
+  }
+  .step-dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--card); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    flex-shrink: 0; transition: all 0.2s;
+  }
+  .step-dot.active  { border-color: var(--purple); color: #a78bfa; background: rgba(139,92,246,0.12); }
+  .step-dot.done    { border-color: var(--green);  color: var(--green); background: rgba(52,211,153,0.1); }
+  .step-line {
+    flex: 1; height: 2px; background: var(--border); transition: background 0.2s;
+  }
+  .step-line.done { background: rgba(52,211,153,0.4); }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 20px; font-weight: 700; margin-bottom: 6px;
+  }
+  .card-sub {
+    color: var(--muted); font-size: 14px; margin-bottom: 28px;
+  }
+
+  /* Form */
+  .form-group { margin-bottom: 18px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.05em; }
+  input[type="text"] {
+    width: 100%; padding: 12px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 15px;
+    transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+  }
+  input[type="text"]:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
+  input[type="text"]::placeholder { color: #374151; }
+  input[type="text"]:read-only { opacity: 0.6; cursor: default; }
+
+  /* Buttons */
+  .btn {
+    width: 100%; padding: 14px;
+    border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    margin-top: 4px;
+  }
+  .btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn-primary { background: linear-gradient(135deg, #7c3aed, #6366f1); color: #fff; }
+  .btn-outline {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover:not(:disabled) { border-color: var(--purple); background: rgba(139,92,246,0.06); }
+  .btn-green { background: linear-gradient(135deg, #059669, #34d399); color: #fff; }
+
+  /* Alert boxes */
+  .alert {
+    padding: 14px 18px; border-radius: 12px;
+    font-size: 14px; margin-top: 16px; display: none;
+  }
+  .alert.info    { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; }
+  .alert.success { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: #34d399; }
+  .alert.error   { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+  .alert.warn    { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25); color: var(--amber); }
+
+  /* Info row */
+  .info-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15);
+    border-radius: 12px; padding: 16px; margin-bottom: 20px;
+    font-size: 14px; color: var(--muted);
+  }
+  .info-row-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Address pill */
+  .addr-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    font-family: 'Courier New', monospace; font-size: 13px;
+    color: #a78bfa; word-break: break-all;
+    margin: 12px 0; width: 100%;
+  }
+  .copy-pill-btn {
+    background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3);
+    color: #a78bfa; font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 6px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .copy-pill-btn:hover { background: rgba(139,92,246,0.28); }
+  .copy-pill-btn.copied { color: var(--green); border-color: var(--green); background: rgba(52,211,153,0.1); }
+
+  /* Success state */
+  .success-box {
+    text-align: center; padding: 40px 20px; display: none;
+  }
+  .success-icon { font-size: 56px; margin-bottom: 20px; }
+  .success-box h2 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+  .success-box p { color: var(--muted); margin-bottom: 24px; }
+
+  /* Wallet status */
+  .wallet-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 20px;
+  }
+  .wallet-status {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+  }
+  .wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: #374151; }
+  .wallet-dot.connected { background: var(--green); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* Small text */
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  @media (max-width: 640px) {
+    nav { padding: 14px 20px; }
+    .card { padding: 28px 20px; }
+    .page { margin: 30px auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/utl-widget" class="nav-logo">
+    <div class="nav-logo-icon">⟳</div>
+    UTL Widget
+  </a>
+  <a href="/utl-widget" class="nav-back">← Back to docs</a>
+</nav>
+
+<div class="page">
+
+  <div class="badge">⚡ Unlimited Tier Upgrade</div>
+  <h1>Upgrade your site to<br/><span>Unlimited undos</span></h1>
+  <p class="sub">Pay 25 KENO/month on-chain. Tokens are burned instantly via KENOAutoBurn. No credit card needed.</p>
+
+  <!-- Step tracker -->
+  <div class="steps-track" id="steps-track">
+    <div class="step-dot active" id="dot-1">1</div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-dot" id="dot-2">2</div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-dot" id="dot-3">3</div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step-dot" id="dot-4">4</div>
+  </div>
+
+  <!-- ── STEP 1: Enter Site ID ── -->
+  <div class="card" id="step1-card">
+    <div class="card-title">Step 1 — Enter your Site ID</div>
+    <div class="card-sub">You received this when you registered at /utl-widget.</div>
+    <div class="form-group">
+      <label>Site ID</label>
+      <input type="text" id="site-id-input" placeholder="utl-yoursite-xxxxx" autocomplete="off"/>
+    </div>
+    <button class="btn btn-primary" id="step1-btn" onclick="checkSiteId()">Continue →</button>
+    <div class="alert" id="step1-alert"></div>
+  </div>
+
+  <!-- ── STEP 2: Connect Wallet ── -->
+  <div class="card" id="step2-card" style="display:none">
+    <div class="card-title">Step 2 — Connect your wallet</div>
+    <div class="card-sub">Connect the wallet that holds your KENO. You need at least 25 KENO on BSC.</div>
+
+    <div class="wallet-row">
+      <div class="wallet-status">
+        <div class="wallet-dot" id="wallet-dot"></div>
+        <span id="wallet-label">Not connected</span>
+      </div>
+      <button class="btn btn-outline" id="connect-btn" onclick="connectWallet()" style="width:auto;padding:10px 20px;margin-top:0">Connect MetaMask</button>
+    </div>
+
+    <div class="info-row">
+      <div class="info-row-icon">ℹ️</div>
+      <div>Make sure your wallet is on <strong>BNB Smart Chain (BSC, Chain ID 56)</strong>. Your 25 KENO balance will be verified automatically before sending.</div>
+    </div>
+
+    <button class="btn btn-primary" id="step2-btn" onclick="goToStep3()" disabled>Continue →</button>
+    <div class="alert" id="step2-alert"></div>
+  </div>
+
+  <!-- ── STEP 3: Send 25 KENO ── -->
+  <div class="card" id="step3-card" style="display:none">
+    <div class="card-title">Step 3 — Send 25 KENO to AutoBurn</div>
+    <div class="card-sub">Click the button below. MetaMask will open to confirm the transfer.</div>
+
+    <div class="info-row">
+      <div class="info-row-icon">🔥</div>
+      <div>
+        25 KENO will be sent to the <strong>KENOAutoBurn contract</strong>. The contract burns it immediately — permanently reducing KENO supply in exchange for your Unlimited plan.
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">Destination (KENOAutoBurn)</div>
+      <div class="addr-pill">
+        <span id="autoburn-display">0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79</span>
+        <button class="copy-pill-btn" onclick="copyAddr()">Copy</button>
+      </div>
+    </div>
+
+    <button class="btn btn-green" id="send-btn" onclick="sendKeno()">🔥 Send 25 KENO &amp; Burn</button>
+    <p class="hint">Gas fees apply (~$0.10 in BNB). Approval tx may appear first if this is your first KENO transfer.</p>
+    <div class="alert" id="step3-alert"></div>
+  </div>
+
+  <!-- ── STEP 4: Verify ── -->
+  <div class="card" id="step4-card" style="display:none">
+    <div class="card-title">Step 4 — Confirm your upgrade</div>
+    <div class="card-sub">Your transaction was detected. Click Verify to activate your Unlimited plan.</div>
+
+    <div class="form-group">
+      <label>Transaction Hash</label>
+      <input type="text" id="tx-hash-input" placeholder="0x..." readonly/>
+    </div>
+
+    <p class="hint" style="margin-bottom:16px">Wait ~15 seconds after MetaMask confirms before clicking Verify (BSC needs a few blocks).</p>
+
+    <button class="btn btn-primary" id="verify-btn" onclick="verifyPayment()">Verify &amp; Activate →</button>
+    <div class="alert" id="step4-alert"></div>
+  </div>
+
+  <!-- ── SUCCESS ── -->
+  <div class="success-box" id="success-box">
+    <div class="success-icon">🎉</div>
+    <h2>You're on Unlimited!</h2>
+    <p id="success-msg">Your site now has unlimited undos per day. Subscription valid for 30 days.</p>
+    <a href="/utl-widget" class="btn btn-primary" style="display:inline-block;width:auto;padding:13px 32px;text-decoration:none">← Back to docs</a>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// Constants
+const KENO_TOKEN    = '0x48bb049afe50b050b458624dc6233acd51024ab4';
+const AUTOBURN_ADDR = '0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79';
+const BSC_CHAIN_ID  = '0x38'; // 56 in hex
+const KENO_AMOUNT   = BigInt('25000000000000000000'); // 25 * 10^18
+
+// ERC-20 ABI slices (minimal)
+const ERC20_ABI = [
+  { name: 'transfer', type: 'function', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
+  { name: 'approve',  type: 'function', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
+  { name: 'allowance', type: 'function', inputs: [{ name: 'owner', type: 'address' }, { name: 'spender', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'balanceOf', type: 'function', inputs: [{ name: 'account', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+];
+
+let walletAddress = null;
+let currentSiteId = null;
+let pendingTxHash = null;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'alert ' + type;
+  el.innerHTML = msg;
+  el.style.display = 'block';
+}
+function hideAlert(id) { document.getElementById(id).style.display = 'none'; }
+
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const dot  = document.getElementById('dot-' + i);
+    const line = document.getElementById('line-' + i);
+    if (i < n)       { dot.className = 'step-dot done'; dot.textContent = '✓'; }
+    else if (i === n) { dot.className = 'step-dot active'; dot.textContent = i; }
+    else              { dot.className = 'step-dot'; dot.textContent = i; }
+    if (line) line.className = i < n ? 'step-line done' : 'step-line';
+  }
+}
+
+function encodeTransferData(to, amount) {
+  // transfer(address,uint256) = 0xa9059cbb
+  const selector = 'a9059cbb';
+  const addrPad  = to.toLowerCase().replace('0x','').padStart(64, '0');
+  const amtHex   = amount.toString(16).padStart(64, '0');
+  return '0x' + selector + addrPad + amtHex;
+}
+
+async function eth(method, params) {
+  return await window.ethereum.request({ method, params });
+}
+
+// ── STEP 1 ───────────────────────────────────────────────────────────────────
+async function checkSiteId() {
+  const siteId = document.getElementById('site-id-input').value.trim();
+  if (!siteId) { showAlert('step1-alert', 'error', 'Please enter your Site ID.'); return; }
+
+  const btn = document.getElementById('step1-btn');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  hideAlert('step1-alert');
+
+  try {
+    const res  = await fetch('/api/utl/widget/status/' + encodeURIComponent(siteId));
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Site not found');
+
+    if (data.plan === 'paid') {
+      showAlert('step1-alert', 'warn', `⚠️ Site <strong>${siteId}</strong> is already on the Unlimited plan. Return here before your 30-day period ends to renew.`);
+      btn.disabled = false; btn.textContent = 'Continue →';
+      return;
+    }
+
+    currentSiteId = siteId;
+    document.getElementById('step1-card').style.display = 'none';
+    document.getElementById('step2-card').style.display = 'block';
+    setStep(2);
+  } catch (e) {
+    showAlert('step1-alert', 'error', e.message);
+    btn.disabled = false; btn.textContent = 'Continue →';
+  }
+}
+
+// ── STEP 2 ───────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) {
+    showAlert('step2-alert', 'error', 'MetaMask not detected. <a href="https://metamask.io" target="_blank" style="color:#a78bfa">Install MetaMask →</a>');
+    return;
+  }
+  const btn = document.getElementById('connect-btn');
+  btn.disabled = true; btn.textContent = 'Connecting…';
+  hideAlert('step2-alert');
+
+  try {
+    const accounts = await eth('eth_requestAccounts', []);
+    if (!accounts.length) throw new Error('No accounts returned');
+
+    // Switch to BSC if needed
+    const chainId = await eth('eth_chainId', []);
+    if (chainId !== BSC_CHAIN_ID) {
+      try {
+        await eth('wallet_switchEthereumChain', [{ chainId: BSC_CHAIN_ID }]);
+      } catch (switchErr) {
+        if (switchErr.code === 4902) {
+          await eth('wallet_addEthereumChain', [{
+            chainId: BSC_CHAIN_ID,
+            chainName: 'BNB Smart Chain',
+            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+            rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+            blockExplorerUrls: ['https://bscscan.com/'],
+          }]);
+        } else throw switchErr;
+      }
+    }
+
+    walletAddress = accounts[0];
+    document.getElementById('wallet-dot').className   = 'wallet-dot connected';
+    document.getElementById('wallet-label').textContent = walletAddress.slice(0,6) + '…' + walletAddress.slice(-4) + ' (BSC)';
+    document.getElementById('step2-btn').disabled = false;
+    btn.textContent = 'Connected ✓';
+    hideAlert('step2-alert');
+
+  } catch (e) {
+    showAlert('step2-alert', 'error', e.message || 'Could not connect wallet');
+    btn.disabled = false; btn.textContent = 'Connect MetaMask';
+  }
+}
+
+function goToStep3() {
+  if (!walletAddress) { showAlert('step2-alert', 'error', 'Please connect your wallet first.'); return; }
+  document.getElementById('step2-card').style.display = 'none';
+  document.getElementById('step3-card').style.display = 'block';
+  setStep(3);
+}
+
+// ── STEP 3 ───────────────────────────────────────────────────────────────────
+async function sendKeno() {
+  if (!walletAddress) { showAlert('step3-alert', 'error', 'Wallet not connected.'); return; }
+
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true; btn.textContent = '⏳ Waiting for MetaMask…';
+  hideAlert('step3-alert');
+
+  try {
+    // Check balance first via eth_call to balanceOf
+    const balData = '0x70a08231' + walletAddress.toLowerCase().replace('0x','').padStart(64,'0');
+    const balHex  = await eth('eth_call', [{ to: KENO_TOKEN, data: balData }, 'latest']);
+    const balance = BigInt(balHex || '0x0');
+
+    if (balance < KENO_AMOUNT) {
+      const have = (Number(balance) / 1e18).toFixed(2);
+      throw new Error(`Insufficient KENO balance. You have ${have} KENO, need 25 KENO.`);
+    }
+
+    // Send transfer(AUTOBURN_ADDR, 25e18) directly — simplest on-chain payment
+    const transferData = encodeTransferData(AUTOBURN_ADDR, KENO_AMOUNT);
+    const txHash = await eth('eth_sendTransaction', [{
+      from: walletAddress,
+      to:   KENO_TOKEN,
+      data: transferData,
+      gas:  '0x186A0',  // 100000 gas limit
+    }]);
+
+    pendingTxHash = txHash;
+    document.getElementById('tx-hash-input').value = txHash;
+    btn.textContent = 'Sent ✓ — proceed to Step 4';
+
+    // Auto-advance to step 4
+    setTimeout(() => {
+      document.getElementById('step3-card').style.display = 'none';
+      document.getElementById('step4-card').style.display = 'block';
+      setStep(4);
+    }, 800);
+
+  } catch (e) {
+    btn.disabled = false; btn.textContent = '🔥 Send 25 KENO & Burn';
+    showAlert('step3-alert', 'error', e.message || 'Transaction failed');
+  }
+}
+
+// ── STEP 4 ───────────────────────────────────────────────────────────────────
+async function verifyPayment() {
+  const txHash = document.getElementById('tx-hash-input').value.trim();
+  if (!txHash) { showAlert('step4-alert', 'error', 'No transaction hash found.'); return; }
+  if (!currentSiteId) { showAlert('step4-alert', 'error', 'Site ID missing — please start over.'); return; }
+
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true; btn.textContent = 'Verifying on-chain…';
+  hideAlert('step4-alert');
+
+  try {
+    const res  = await fetch('/api/utl/widget/verify-payment', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ siteId: currentSiteId, txHash }),
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      document.getElementById('step4-card').style.display = 'none';
+      const box = document.getElementById('success-box');
+      box.style.display = 'block';
+      document.getElementById('success-msg').textContent =
+        `Site ${currentSiteId} now has unlimited undos per day. Subscription valid until ${data.expiresAt}.`;
+      // Mark all steps done
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById('dot-' + i);
+        dot.className = 'step-dot done'; dot.textContent = '✓';
+        const line = document.getElementById('line-' + i);
+        if (line) line.className = 'step-line done';
+      }
+    } else {
+      showAlert('step4-alert', 'error', data.error || 'Verification failed. Please wait a few seconds and try again.');
+      btn.disabled = false; btn.textContent = 'Verify & Activate →';
+    }
+  } catch (e) {
+    showAlert('step4-alert', 'error', e.message || 'Network error');
+    btn.disabled = false; btn.textContent = 'Verify & Activate →';
+  }
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function copyAddr() {
+  navigator.clipboard.writeText(AUTOBURN_ADDR).then(() => {
+    const btn = document.querySelector('.copy-pill-btn');
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Pre-fill site ID from URL param ?siteId=xxx
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const sid    = params.get('siteId');
+  if (sid) document.getElementById('site-id-input').value = sid;
+})();
+</script>
+</body>
+</html>
