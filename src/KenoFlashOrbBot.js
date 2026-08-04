@@ -46,7 +46,9 @@ const MANUAL_DEXES = [
   { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
   { name: 'BiSwap',      addr: BISWAP_ROUTER  },
   { name: 'ApeSwap',     addr: APESWAP_ROUTER },
-  { name: 'MDEX',        addr: MDEX_ROUTER    },
+  // MDEX excluded from manual scan: router returns inflated spread quotes but
+  // reverts on execution (liquidity routing differs from standard V2 forks).
+  // MDEX is still included in flash-loan path via FlashArbLoan2 contract.
 ];
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644';
 
@@ -264,10 +266,22 @@ class KenoFlashOrbBot {
       const sellRouter = new ethers.Contract(opp.sellRouter, ROUTER_ABI, this.wallet);
       const deadline   = Math.floor(Date.now() / 1000) + 60;
 
+      // ── Pre-flight simulation (mirrors flash path) ──────────────────────
+      // Simulate the buy tx before submitting — zero gas wasted if it would revert.
+      try {
+        await buyRouter.swapExactETHForTokens.estimateGas(
+          0n, [WBNB, opp.token], this.wallet.address, deadline,
+          { value: tradeWei }
+        );
+      } catch (_simErr) {
+        this.log(`⛔ [Manual] Pre-flight failed — spread gone or router incompatible. No gas spent.`, 'warn');
+        return;
+      }
+
       // Step 1: BNB → token on buy DEX
       const buyTx = await buyRouter.swapExactETHForTokens(
         0n, [WBNB, opp.token], this.wallet.address, deadline,
-        { value: tradeWei, gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 130_000 }
+        { value: tradeWei, gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 200_000 }
       );
       const buyReceipt = await buyTx.wait();
       if (!buyReceipt || buyReceipt.status !== 1) { this.log('⚠️ Manual arb: buy tx failed', 'warn'); return; }
@@ -278,7 +292,7 @@ class KenoFlashOrbBot {
       await (new ethers.Contract(opp.token, ['function approve(address,uint256) returns (bool)'], this.wallet)).approve(opp.sellRouter, tokenBal);
       const sellTx = await sellRouter.swapExactTokensForETH(
         tokenBal, 0n, [opp.token, WBNB], this.wallet.address, deadline,
-        { gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 130_000 }
+        { gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 200_000 }
       );
       await sellTx.wait();
 
