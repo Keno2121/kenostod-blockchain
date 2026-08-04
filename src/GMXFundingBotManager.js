@@ -84,6 +84,7 @@ class GMXFundingBotManager {
         this.positions       = {};           // market → { side, entryPx, sz, entryTime, fundingEarned }
         this.nashCounters    = {};           // market → consecutive readings
         this.opportunities   = [];
+        this.alertedOpps     = {};           // market → last-alerted APR (dedup — only re-alert on >5% swing)
 
         // Stats
         this.scanCount       = 0;
@@ -235,18 +236,32 @@ class GMXFundingBotManager {
                     }
                 } catch (_) {}
 
-                this._sendTg(
-                    `⚡ <b>GMX v2 Funding Opportunity — Nash Confirmed</b>\n\n` +
-                    `📈 Market: <b>${name}</b> on ${market.chain}\n` +
-                    `💰 Funding APR: <b>${fundingAPR.toFixed(2)}%</b> (${consecutive}× confirmed)\n` +
-                    `📊 Long OI: $${this._fmt(longOI)} | Short OI: $${this._fmt(shortOI)}\n` +
-                    `🎯 Receiving side: <b>${receivingSide}</b>\n` +
-                    `💵 Mark price: $${currentPx?.toFixed(2) || '—'}\n` +
-                    `📐 φ position: $${phiSize}\n` +
-                    `📅 30-day Euler ($1k): $${euler30d.toFixed(2)}\n` +
-                    (splitStr ? splitStr + '\n' : '') + '\n' +
-                    `${LIVE_MODE ? `🔗 <a href="https://app.gmx.io/#/trade/${name.replace('/', '-')}">Open on GMX →</a>` : '⚡ Wallet configured — ready to deploy capital'}`
-                );
+                // ── Dedup — only alert when new or APR swings >5% ────────────
+                const lastAPR = this.alertedOpps[name];
+                const swing   = lastAPR ? Math.abs(fundingAPR - lastAPR) / Math.abs(lastAPR) : 1;
+                if (!lastAPR || swing > 0.05 || !this.positions[name]) {
+                    this.alertedOpps[name] = fundingAPR;
+                    this._sendTg(
+                        `⚡ <b>GMX v2 Funding Opportunity — Nash Confirmed</b>\n\n` +
+                        `📈 Market: <b>${name}</b> on ${market.chain}\n` +
+                        `💰 Funding APR: <b>${fundingAPR.toFixed(2)}%</b> (${consecutive}× confirmed)\n` +
+                        `📊 Long OI: $${this._fmt(longOI)} | Short OI: $${this._fmt(shortOI)}\n` +
+                        `🎯 Receiving side: <b>${receivingSide}</b>\n` +
+                        `💵 Mark price: $${currentPx?.toFixed(2) || '—'}\n` +
+                        `📐 φ position: $${phiSize}\n` +
+                        `📅 30-day Euler ($1k): $${euler30d.toFixed(2)}\n` +
+                        (splitStr ? splitStr + '\n' : '') + '\n' +
+                        `🔗 <a href="https://app.gmx.io/#/trade/${name.replace('/', '-')}">Open on GMX →</a>`
+                    );
+                }
+
+                // ── Auto-execute ──────────────────────────────────────────────
+                this._executePosition(opp).catch(e => this._log(`🔴 GMX execute error: ${e.message}`, 'error'));
+            }
+
+            // ── Clear dedup when opportunity falls below threshold ────────────
+            if (Math.abs(fundingAPR) < MIN_FUNDING_APR) {
+                delete this.alertedOpps[name];
             }
         }
 
@@ -345,6 +360,156 @@ class GMXFundingBotManager {
             { name: 'SOL/USD',  chain: 'Arbitrum',  fundingAPR: 14.7, longOI: 62_000_000,  shortOI: 48_000_000,  receivingSide: 'SHORT', currentPx: 168, imbalance: 0.127 },
             { name: 'AVAX/USD', chain: 'Avalanche', fundingAPR: 16.9, longOI: 28_000_000,  shortOI: 19_000_000,  receivingSide: 'SHORT', currentPx: 38, imbalance: 0.191 },
         ];
+    }
+
+    // ── Auto-Execute Position on GMX v2 ───────────────────────────────────────
+    async _executePosition(opp) {
+        // Guard 1: never execute on static/fallback data
+        if (this.apiStatus !== 'live') {
+            this._log(`⏸ GMX execution deferred — live API required (current: ${this.apiStatus})`);
+            return;
+        }
+        // Guard 2: no double-entry
+        if (this.positions[opp.name]) return;
+        // Guard 3: max 3 simultaneous positions
+        if (Object.keys(this.positions).length >= 3) return;
+
+        const pk = process.env.GMX_PRIVATE_KEY;
+        if (!pk) { this._log('⚠ GMX_PRIVATE_KEY not set', 'warn'); return; }
+
+        const ARBITRUM_RPC_URL  = 'https://arb1.arbitrum.io/rpc';
+        const EXCHANGE_ROUTER   = '0x7C68C7866A64FA2160F78EEaE12217FFbf871fa8';
+        const ORDER_VAULT       = '0x31eF83a530Fde1B38EE9A18093A333D8Bbbc40D5';
+        const USDC_ARB          = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+        const MIN_USDC          = 50;   // $50 minimum to execute
+        const COLLATERAL_USD    = 100;  // $100 position size
+
+        try {
+            const { ethers } = require('ethers');
+            const provider = new ethers.JsonRpcProvider(ARBITRUM_RPC_URL);
+            const wallet   = new ethers.Wallet(pk.startsWith('0x') ? pk : '0x' + pk, provider);
+
+            // ── Balance check ──────────────────────────────────────────────────
+            const erc20 = new ethers.Contract(USDC_ARB, [
+                'function balanceOf(address) view returns (uint256)',
+                'function approve(address,uint256) returns (bool)',
+            ], wallet);
+            const raw  = await erc20.balanceOf(wallet.address);
+            const balUSD = Number(raw) / 1e6;  // USDC on Arbitrum has 6 decimals
+
+            if (balUSD < MIN_USDC) {
+                // Only send the "fund me" message once per market
+                if (!this._fundAlerted) this._fundAlerted = {};
+                if (!this._fundAlerted[opp.name]) {
+                    this._fundAlerted[opp.name] = true;
+                    this._sendTg(
+                        `⚡ <b>GMX Ready to Execute — Needs Arbitrum USDC</b>\n\n` +
+                        `Market: <b>${opp.name}</b> @ ${opp.fundingAPR.toFixed(1)}% APR\n` +
+                        `Side: <b>${opp.receivingSide}</b> receives funding\n\n` +
+                        `Bot wallet has <b>$${balUSD.toFixed(2)} USDC</b> on Arbitrum.\n` +
+                        `Minimum needed: <b>$${MIN_USDC} USDC</b>\n\n` +
+                        `Send USDC to this address on <b>Arbitrum network</b>:\n` +
+                        `<code>${wallet.address}</code>\n\n` +
+                        `Bot auto-executes the moment balance hits $${MIN_USDC}.`
+                    );
+                }
+                return;
+            }
+
+            // ── Find market address ────────────────────────────────────────────
+            const mkt = WATCH_MARKETS.find(m => m.name === opp.name);
+            if (!mkt || mkt.chain !== 'Arbitrum') {
+                this._log(`⚠ No Arbitrum market address for ${opp.name}`, 'warn');
+                return;
+            }
+
+            const isLong              = opp.receivingSide === 'LONG';
+            const collateral          = BigInt(Math.floor(COLLATERAL_USD * 1e6));
+            const sizeDeltaUsd        = ethers.parseUnits(COLLATERAL_USD.toString(), 30);
+            const executionFee        = ethers.parseEther('0.0015');
+
+            // ── Approve USDC to Order Vault ────────────────────────────────────
+            this._log(`💳 Approving USDC to GMX OrderVault for ${opp.name} ${opp.receivingSide}...`);
+            const approveTx = await erc20.approve(ORDER_VAULT, collateral + BigInt(1e6));
+            await approveTx.wait();
+
+            // ── Build multicall: sendTokens + createOrder ──────────────────────
+            const ROUTER_ABI = [
+                'function multicall(bytes[] calldata data) external payable returns (bytes[] memory)',
+                'function sendTokens(address token, address receiver, uint256 amount) external',
+                `function createOrder(tuple(
+                    tuple(address receiver, address cancellationReceiver, address callbackContract, address uiFeeReceiver, address market, address initialCollateralToken, address[] swapPath) addresses,
+                    tuple(uint256 sizeDeltaUsd, uint256 initialCollateralDeltaAmount, uint256 triggerPrice, uint256 acceptablePrice, uint256 executionFee, uint256 callbackGasLimit, uint256 minOutputAmount, uint256 validFromTime) numbers,
+                    uint8 orderType, uint8 decreasePositionSwapType,
+                    bool isLong, bool shouldUnwrapNativeToken, bool autoCancel, bytes32 referralCode
+                ) params) external payable returns (bytes32)`
+            ];
+            const router = new ethers.Contract(EXCHANGE_ROUTER, ROUTER_ABI, wallet);
+
+            const sendTokensData = router.interface.encodeFunctionData('sendTokens', [
+                USDC_ARB, ORDER_VAULT, collateral
+            ]);
+            const createOrderData = router.interface.encodeFunctionData('createOrder', [{
+                addresses: {
+                    receiver:                wallet.address,
+                    cancellationReceiver:    wallet.address,
+                    callbackContract:        ethers.ZeroAddress,
+                    uiFeeReceiver:           ethers.ZeroAddress,
+                    market:                  mkt.address,
+                    initialCollateralToken:  USDC_ARB,
+                    swapPath:                []
+                },
+                numbers: {
+                    sizeDeltaUsd,
+                    initialCollateralDeltaAmount: collateral,
+                    triggerPrice:        0n,
+                    acceptablePrice:     isLong ? ethers.MaxUint256 : 0n,
+                    executionFee,
+                    callbackGasLimit:    0n,
+                    minOutputAmount:     0n,
+                    validFromTime:       0n
+                },
+                orderType:               2,  // MarketIncrease
+                decreasePositionSwapType: 0,
+                isLong,
+                shouldUnwrapNativeToken: false,
+                autoCancel:              false,
+                referralCode:            ethers.ZeroHash
+            }]);
+
+            this._log(`🚀 Submitting GMX order: ${opp.name} ${opp.receivingSide} $${COLLATERAL_USD}...`, 'info');
+            const tx = await router.multicall([sendTokensData, createOrderData], {
+                value:    executionFee,
+                gasLimit: 3_000_000
+            });
+            await tx.wait();
+
+            // ── Record position ────────────────────────────────────────────────
+            this.positions[opp.name] = {
+                side:          opp.receivingSide,
+                entryPx:       opp.currentPx,
+                sz:            COLLATERAL_USD,
+                entryTime:     new Date().toISOString(),
+                fundingEarned: 0,
+                txHash:        tx.hash
+            };
+            this.tradeCount++;
+            if (this._fundAlerted) delete this._fundAlerted[opp.name];
+
+            this._sendTg(
+                `✅ <b>GMX Position Opened — Earning Funding Now</b>\n\n` +
+                `Market: <b>${opp.name}</b>\n` +
+                `Side: <b>${opp.receivingSide}</b> (receives funding)\n` +
+                `Size: <b>$${COLLATERAL_USD}</b> collateral\n` +
+                `APR: <b>${opp.fundingAPR.toFixed(2)}%</b>\n` +
+                `Est. daily: <b>$${(COLLATERAL_USD * opp.fundingAPR / 100 / 365).toFixed(3)}</b>\n\n` +
+                `🔗 <a href="https://arbiscan.io/tx/${tx.hash}">View tx on Arbiscan</a>`
+            );
+
+        } catch (e) {
+            this._log(`🔴 GMX execution failed: ${e.message}`, 'error');
+            this._sendTg(`🔴 <b>GMX execution failed</b>\n${e.message.slice(0, 200)}`);
+        }
     }
 
     // ── 8-Hour Report ─────────────────────────────────────────────────────────

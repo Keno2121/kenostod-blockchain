@@ -75,6 +75,7 @@ class AsterLPBotManager {
         this.positions       = {};          // poolId → { chain, pair, depositedUSD, feesEarned, entryTime }
         this.nashCounters    = {};          // poolId → consecutive positive count
         this.bestPools       = [];          // top pools by fee yield
+        this.alertedPools    = {};          // poolId → last-alerted APY (dedup — only re-alert on >5% swing)
 
         // Stats
         this.scanCount       = 0;
@@ -216,13 +217,11 @@ class AsterLPBotManager {
         );
 
         if (nashConfirmed.length > 0) {
-            // Scan-only: alert about opportunity
             for (const pool of nashConfirmed.slice(0, 2)) {
                 // ── Law V: Euler — continuous compounding projection ─────────────
                 let eulerProjection = 0;
                 try {
                     if (Euler.continuousEarnings) {
-                        const daily = 1000 * (pool.apy / 100) / 365;
                         eulerProjection = Euler.continuousEarnings(1000, pool.apy / 100, 30 / 365);
                     }
                 } catch (_) {}
@@ -238,17 +237,34 @@ class AsterLPBotManager {
                 } catch (_) {}
 
                 this._log(`🎯 NASH-CONFIRMED: ${pool.pair} on ${pool.chain} — ${pool.apy.toFixed(1)}% APY (${this.nashCounters[pool.id]}× confirmed)`, 'info');
-                this._sendTg(
-                    `💧 <b>Aster LP Opportunity — Nash Confirmed</b>\n\n` +
-                    `🌊 Pool: <b>${pool.pair}</b> on ${pool.chain}\n` +
-                    `📈 APY: <b>${pool.apy.toFixed(2)}%</b> (${this.nashCounters[pool.id]}× confirmed)\n` +
-                    `💰 Pool TVL: $${this._fmt(pool.tvl)}\n` +
-                    `📊 24h Volume: $${this._fmt(pool.volume24h)}\n` +
-                    `📐 φ allocation: $${(1000 * phiMultiplier).toFixed(0)} at tier-${positionCount + 1}\n` +
-                    `📅 30-day projection ($1k): $${(eulerProjection || 1000 * (pool.apy / 100) / 12).toFixed(2)}` +
-                    splitStr + '\n\n' +
-                    (LIVE_MODE ? `🔗 <b>Deploy now → <a href="https://app.aster.finance/pools">app.aster.finance/pools</a></b>` : `⚡ <b>Wallet configured — ready to deploy capital</b>`)
-                );
+
+                // ── Dedup — only alert when new or APY swings >5% ────────────
+                const lastAPY = this.alertedPools[pool.id];
+                const swing   = lastAPY ? Math.abs(pool.apy - lastAPY) / Math.abs(lastAPY) : 1;
+                if (!lastAPY || swing > 0.05 || !this.positions[pool.id]) {
+                    this.alertedPools[pool.id] = pool.apy;
+                    this._sendTg(
+                        `💧 <b>Aster LP Opportunity — Nash Confirmed</b>\n\n` +
+                        `🌊 Pool: <b>${pool.pair}</b> on ${pool.chain}\n` +
+                        `📈 APY: <b>${pool.apy.toFixed(2)}%</b> (${this.nashCounters[pool.id]}× confirmed)\n` +
+                        `💰 Pool TVL: $${this._fmt(pool.tvl)}\n` +
+                        `📊 24h Volume: $${this._fmt(pool.volume24h)}\n` +
+                        `📐 φ allocation: $${(1000 * phiMultiplier).toFixed(0)} at tier-${positionCount + 1}\n` +
+                        `📅 30-day projection ($1k): $${(eulerProjection || monthlyEst).toFixed(2)}` +
+                        splitStr + '\n\n' +
+                        `🔗 <a href="https://app.aster.finance/pools">Deploy on Aster →</a>`
+                    );
+                }
+
+                // ── Auto-execute ──────────────────────────────────────────────
+                this._executeDeposit(pool).catch(e => this._log(`🔴 Aster execute error: ${e.message}`, 'error'));
+            }
+        }
+
+        // ── Clear dedup for pools that dropped below threshold ─────────────────
+        for (const poolId of Object.keys(this.alertedPools)) {
+            if (!this.bestPools.find(p => p.id === poolId)) {
+                delete this.alertedPools[poolId];
             }
         }
 
@@ -269,6 +285,130 @@ class AsterLPBotManager {
         this._updateFeeIncome();
 
         this._log(`✅ Scan #${this.scanCount} done — ${this.bestPools.length} pools above ${MIN_APY_THRESHOLD}% APY | top: ${this.bestPools[0]?.pair || 'none'} @ ${this.bestPools[0]?.apy?.toFixed(1) || 0}% | fees earned: $${this.totalFeesEarned.toFixed(4)}`);
+    }
+
+    // ── Auto-Execute LP Deposit on Aster ──────────────────────────────────────
+    async _executeDeposit(pool) {
+        // Guard 1: never execute on static/fallback data — Aster API must be live
+        if (this.apiStatus !== 'live') {
+            this._log(`⏸ Aster execution deferred — live API required (current: ${this.apiStatus})`);
+            return;
+        }
+        // Guard 2: no duplicate position in same pool
+        if (this.positions[pool.id]) return;
+        // Guard 3: max 3 simultaneous LP positions
+        if (Object.keys(this.positions).length >= 3) return;
+        // Guard 4: pool must have a contract address (comes from live API, not static)
+        if (!pool.address) {
+            this._log(`⚠ No contract address for ${pool.pair} — live API needed`, 'warn');
+            return;
+        }
+
+        const pk = process.env.ASTER_PRIVATE_KEY;
+        if (!pk) { this._log('⚠ ASTER_PRIVATE_KEY not set', 'warn'); return; }
+
+        const MIN_DEPOSIT = 50;    // $50 minimum
+        const MAX_DEPOSIT = 500;   // $500 maximum per position
+
+        try {
+            const { ethers } = require('ethers');
+
+            // ── Select RPC by chain ────────────────────────────────────────────
+            const chainRpcs = {
+                'BNB':      process.env.BSC_RPC_PRIMARY || 'https://bsc-rpc.publicnode.com',
+                'Arbitrum': 'https://arb1.arbitrum.io/rpc',
+                'ETH':      'https://eth.llamarpc.com',
+            };
+            const rpcUrl   = chainRpcs[pool.chain] || chainRpcs['BNB'];
+            const provider = new ethers.JsonRpcProvider(rpcUrl);
+            const wallet   = new ethers.Wallet(pk.startsWith('0x') ? pk : '0x' + pk, provider);
+
+            // ── Token addresses by chain ───────────────────────────────────────
+            const stablecoins = {
+                'BNB':      '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
+                'Arbitrum': '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', // USDC on Arbitrum
+                'ETH':      '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC on Ethereum
+            };
+            const stableAddr = stablecoins[pool.chain] || stablecoins['BNB'];
+            const decimals   = pool.chain === 'BNB' ? 18 : 6;
+
+            const erc20 = new ethers.Contract(stableAddr, [
+                'function balanceOf(address) view returns (uint256)',
+                'function approve(address,uint256) returns (bool)',
+            ], wallet);
+
+            const raw    = await erc20.balanceOf(wallet.address);
+            const balUSD = Number(raw) / (10 ** decimals);
+
+            if (balUSD < MIN_DEPOSIT) {
+                if (!this._fundAlerted) this._fundAlerted = {};
+                if (!this._fundAlerted[pool.id]) {
+                    this._fundAlerted[pool.id] = true;
+                    const tokenName = pool.chain === 'BNB' ? 'USDT (BNB chain)' : 'USDC (Arbitrum)';
+                    this._sendTg(
+                        `💧 <b>Aster LP Ready — Needs ${tokenName}</b>\n\n` +
+                        `Pool: <b>${pool.pair}</b> on ${pool.chain}\n` +
+                        `APY: <b>${pool.apy.toFixed(1)}%</b> (confirmed ✅)\n\n` +
+                        `Bot wallet has <b>$${balUSD.toFixed(2)}</b> on ${pool.chain}.\n` +
+                        `Minimum needed: <b>$${MIN_DEPOSIT}</b>\n\n` +
+                        `Send ${tokenName} to:\n<code>${wallet.address}</code>\n\n` +
+                        `Bot auto-deposits the moment funds arrive.`
+                    );
+                }
+                return;
+            }
+
+            // ── Deposit into Aster LP pool ─────────────────────────────────────
+            const depositUSD    = Math.min(balUSD * 0.5, MAX_DEPOSIT);
+            const depositAmount = ethers.parseUnits(depositUSD.toFixed(6), decimals);
+
+            // Approve router to spend tokens
+            this._log(`💧 Approving ${pool.pair} LP router on ${pool.chain}...`);
+            const approveTx = await erc20.approve(pool.router || pool.address, depositAmount);
+            await approveTx.wait();
+
+            // Add liquidity (Aster uses Uniswap V2-compatible addLiquidity interface)
+            const routerABI = [
+                `function addLiquidity(address tokenA, address tokenB, uint amountADesired, uint amountBDesired, uint amountAMin, uint amountBMin, address to, uint deadline) returns (uint amountA, uint amountB, uint liquidity)`
+            ];
+            const router   = new ethers.Contract(pool.router || pool.address, routerABI, wallet);
+            const deadline = Math.floor(Date.now() / 1000) + 600; // 10 min
+
+            this._log(`🚀 Adding liquidity to ${pool.pair} on ${pool.chain} — $${depositUSD.toFixed(2)}...`, 'info');
+            const tx = await router.addLiquidity(
+                pool.token0 || stableAddr,
+                pool.token1 || stableAddr,
+                depositAmount, depositAmount,
+                depositAmount * 95n / 100n,  // 5% slippage
+                depositAmount * 95n / 100n,
+                wallet.address, deadline,
+                { gasLimit: 500_000 }
+            );
+            await tx.wait();
+
+            // ── Record position ────────────────────────────────────────────────
+            this.positions[pool.id] = {
+                chain: pool.chain, pair: pool.pair,
+                depositedUSD: depositUSD, feesEarned: 0,
+                entryTime: new Date().toISOString(), apy: pool.apy,
+                txHash: tx.hash
+            };
+            this.totalDeposited += depositUSD;
+            if (this._fundAlerted) delete this._fundAlerted[pool.id];
+
+            this._sendTg(
+                `✅ <b>Aster LP Position Opened — Earning Fees Now</b>\n\n` +
+                `Pool: <b>${pool.pair}</b> on ${pool.chain}\n` +
+                `Deposited: <b>$${depositUSD.toFixed(2)}</b>\n` +
+                `APY: <b>${pool.apy.toFixed(1)}%</b>\n` +
+                `Est. monthly: <b>$${(depositUSD * pool.apy / 100 / 12).toFixed(2)}</b>\n\n` +
+                `🔗 <a href="https://app.aster.finance/pools">View position on Aster</a>`
+            );
+
+        } catch (e) {
+            this._log(`🔴 Aster deposit failed: ${e.message}`, 'error');
+            this._sendTg(`🔴 <b>Aster LP deposit failed</b>\n${e.message.slice(0, 200)}`);
+        }
     }
 
     // ── Estimate and accrue LP fee income from active positions ────────────────
