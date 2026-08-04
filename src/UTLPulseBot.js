@@ -116,7 +116,7 @@ class UTLPulseBot {
         if (this._provider) return;
         const rpc = process.env.BSC_RPC || 'https://bsc-dataseed1.binance.org';
         this._provider = new ethers.JsonRpcProvider(rpc);
-        const pk = process.env.NEW_WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY || '';
+        const pk = process.env.BOT_WALLET_PRIVATE_KEY || process.env.NEW_WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY || '';
         if (pk) {
             this._wallet = new ethers.Wallet(pk, this._provider);
             this._log(`Wallet: ${this._wallet.address}`);
