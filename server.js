@@ -1240,8 +1240,9 @@ app.get('/api/utl/reversal/pool', (req, res) => {
 
 // ── UTL Embeddable Widget (B2B SaaS) ─────────────────────────────────────
 // Docs landing page
-app.get('/utl-widget',    (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
-app.get('/utl-widget-docs', (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
+app.get('/utl-widget',         (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
+app.get('/utl-widget-docs',   (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
+app.get('/utl-widget-upgrade',(req, res) => res.sendFile(__dirname + '/public/utl-widget-upgrade.html'));
 app.get('/utl-outreach', (req, res) => res.sendFile(__dirname + '/public/utl-outreach.html'));
 
 // In-memory site registry (survives server restarts via re-registration; DB persistence can be added later)
@@ -1380,10 +1381,132 @@ app.get('/api/utl/widget/status/:siteId', (req, res) => {
 app.get('/api/utl/widget/sites', requireFounder, (req, res) => {
     const sites = [];
     for (const [siteId, s] of _widgetSites) {
-        sites.push({ siteId, name: s.name, email: s.email, url: s.url, project: s.project, plan: s.plan, totalUndos: s.totalUndos, totalTxs: s.totalTxs, createdAt: s.createdAt });
+        sites.push({ siteId, name: s.name, email: s.email, url: s.url, project: s.project, plan: s.plan, totalUndos: s.totalUndos, totalTxs: s.totalTxs, createdAt: s.createdAt, paidAt: s.paidAt || null });
     }
     res.json({ ok: true, total: sites.length, sites });
 });
+
+// ── UTL Widget Paid Subscription — verify on-chain KENO payment ─────────────
+// Replayed txHash protection
+const _usedPaymentTxHashes = new Set();
+
+const _KENO_TOKEN_BSC    = '0x48bb049afe50b050b458624dc6233acd51024ab4';
+const _AUTOBURN_CONTRACT = '0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79';
+const _KENO_DECIMALS     = 18n;
+const _REQUIRED_KENO     = 25n * (10n ** _KENO_DECIMALS); // 25 KENO in wei
+
+// ERC-20 Transfer event topic
+const _ERC20_TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+app.post('/api/utl/widget/verify-payment', async (req, res) => {
+    const { siteId, txHash } = req.body || {};
+    if (!siteId || !txHash) return res.json({ ok: false, error: 'siteId and txHash are required' });
+
+    const site = _widgetSites.get(siteId);
+    if (!site) return res.json({ ok: false, error: 'Site not found — register first at /utl-widget' });
+
+    if (_usedPaymentTxHashes.has(txHash.toLowerCase())) {
+        return res.json({ ok: false, error: 'Transaction already used for a payment. Please pay again.' });
+    }
+
+    try {
+        const { ethers } = require('ethers');
+        const provider   = new ethers.JsonRpcProvider('https://bsc-dataseed1.binance.org/');
+
+        // Fetch receipt — must be confirmed
+        const receipt = await provider.getTransactionReceipt(txHash).catch(() => null);
+        if (!receipt) return res.json({ ok: false, error: 'Transaction not found or not yet confirmed. Please wait and try again.' });
+        if (receipt.status !== 1) return res.json({ ok: false, error: 'Transaction failed on-chain.' });
+
+        // Verify there's a Transfer(from, AutoBurn, >= 25 KENO) log from the KENO token
+        const kenoAddr    = _KENO_TOKEN_BSC.toLowerCase();
+        const autoBurnPad = _AUTOBURN_CONTRACT.toLowerCase().replace('0x','').padStart(64, '0');
+
+        const transferLog = receipt.logs.find(log =>
+            log.address.toLowerCase() === kenoAddr &&
+            log.topics[0] === _ERC20_TRANSFER_TOPIC &&
+            log.topics[2] && log.topics[2].toLowerCase().endsWith(autoBurnPad.slice(-40))
+        );
+
+        if (!transferLog) {
+            return res.json({ ok: false, error: `No KENO transfer to the AutoBurn contract found in this transaction. Make sure you sent KENO to ${_AUTOBURN_CONTRACT}.` });
+        }
+
+        // Decode amount from data field
+        const amount = BigInt(transferLog.data);
+        if (amount < _REQUIRED_KENO) {
+            const sent = (amount / (10n ** _KENO_DECIMALS)).toString();
+            return res.json({ ok: false, error: `Amount too low: sent ${sent} KENO, required 25 KENO.` });
+        }
+
+        // All checks passed — mark paid
+        _usedPaymentTxHashes.add(txHash.toLowerCase());
+        site.plan   = 'paid';
+        site.paidAt = Date.now();
+        site.lastPaymentTx = txHash;
+
+        console.log(`[UTLWidget] 💰 Site upgraded to paid: ${siteId} | tx=${txHash.slice(0,14)}... | ${site.name}`);
+
+        // Telegram alert
+        const tgToken  = process.env.KINGS_SHIELD_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+        const tgChatId = process.env.SHIELD_ALERT_CHAT_ID;
+        if (tgToken && tgChatId) {
+            const kenoBurned = (amount / (10n ** _KENO_DECIMALS)).toString();
+            const tgBody = JSON.stringify({
+                chat_id: tgChatId, parse_mode: 'HTML', disable_web_page_preview: true,
+                text: `🔥 <b>UTL Widget — Paid Upgrade!</b>\n\n` +
+                      `<b>Site:</b> ${site.project || site.name}\n` +
+                      `<b>URL:</b> ${site.url}\n` +
+                      `<b>Site ID:</b> <code>${siteId}</code>\n` +
+                      `<b>KENO Burned:</b> ${kenoBurned} KENO ✅\n` +
+                      `<b>Tx:</b> <a href="https://bscscan.com/tx/${txHash}">View on BscScan</a>\n\n` +
+                      `<i>Plan upgraded to Unlimited. Subscription expires in 30 days.</i>`,
+            });
+            const https2 = require('https');
+            const tgReq  = https2.request({ hostname:'api.telegram.org', path:`/bot${tgToken}/sendMessage`, method:'POST', headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(tgBody)} });
+            tgReq.on('error', ()=>{});
+            tgReq.write(tgBody);
+            tgReq.end();
+        }
+
+        const expiresAt = new Date(site.paidAt + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        res.json({ ok: true, plan: 'paid', siteId, expiresAt, message: `Upgraded! Unlimited undos active until ${expiresAt}.` });
+
+    } catch (err) {
+        console.error('[UTLWidget] verify-payment error:', err.message);
+        res.json({ ok: false, error: 'Verification error — please try again in a moment.' });
+    }
+});
+
+// Monthly subscription re-verification — runs every 6 hours
+setInterval(() => {
+    const now = Date.now();
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+    for (const [siteId, site] of _widgetSites) {
+        if (site.plan === 'paid' && site.paidAt && (now - site.paidAt) > THIRTY_DAYS_MS) {
+            site.plan = 'free';
+            console.log(`[UTLWidget] ⏰ Subscription expired — downgraded to free: ${siteId}`);
+
+            // Telegram alert for expiry
+            const tgToken  = process.env.KINGS_SHIELD_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+            const tgChatId = process.env.SHIELD_ALERT_CHAT_ID;
+            if (tgToken && tgChatId) {
+                const tgBody = JSON.stringify({
+                    chat_id: tgChatId, parse_mode: 'HTML', disable_web_page_preview: true,
+                    text: `⏰ <b>UTL Widget — Subscription Expired</b>\n\n` +
+                          `<b>Site:</b> ${site.project || site.name}\n` +
+                          `<b>Site ID:</b> <code>${siteId}</code>\n` +
+                          `<i>Downgraded to Free tier. Owner should renew at /utl-widget-upgrade</i>`,
+                });
+                const https2 = require('https');
+                const tgReq  = https2.request({ hostname:'api.telegram.org', path:`/bot${tgToken}/sendMessage`, method:'POST', headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(tgBody)} });
+                tgReq.on('error', ()=>{});
+                tgReq.write(tgBody);
+                tgReq.end();
+            }
+        }
+    }
+}, 6 * 60 * 60 * 1000); // every 6 hours
 
 // ── King's Shield × KENO Flywheel ────────────────────────────────────────
 app.get('/kings-shield-flywheel', (req, res) => {
