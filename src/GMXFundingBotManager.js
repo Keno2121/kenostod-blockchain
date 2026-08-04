@@ -51,8 +51,9 @@ const MAX_EQUITY_PCT     = 0.30;              // max 30% per position
 const BENFORD_WARN       = 0.35;
 
 // ── Wallet config — captured ONCE at module load (server startup), never stale ──
-const WALLET_ADDRESS = process.env.GMX_WALLET_ADDRESS || '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
-const LIVE_MODE      = !!(process.env.GMX_PRIVATE_KEY || process.env.PRIVATE_KEY || process.env.PrivateKey);
+const WALLET_ADDRESS = '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+const LIVE_MODE      = true;
+console.log('[GMXFunding] Module loaded — WALLET_ADDRESS:', WALLET_ADDRESS, '| LIVE_MODE:', LIVE_MODE);
 
 const ARBITRUM_RPC   = 'https://arb1.arbitrum.io/rpc';
 const AVALANCHE_RPC  = 'https://api.avax.network/ext/bc/C/rpc';

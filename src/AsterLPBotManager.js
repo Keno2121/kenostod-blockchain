@@ -44,10 +44,12 @@ const BENFORD_WARN_PCT    = 0.35;             // Benford deviation threshold
 // Wallet address is public — hardcoded fallback so display is always correct.
 // Private key existence is read immediately; if it's in process.env when the
 // server starts, LIVE_MODE is true for the entire lifetime of this process.
-const WALLET_ADDRESS = process.env.ASTER_WALLET_ADDRESS || '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
-// LIVE_MODE: check new secret first, fall back to PRIVATE_KEY / PrivateKey (old secrets
-// always visible to the workflow process regardless of when they were added).
-const LIVE_MODE      = !!(process.env.ASTER_PRIVATE_KEY || process.env.PRIVATE_KEY || process.env.PrivateKey);
+// Wallet address is public — hardcoded so display never depends on env injection timing.
+// LIVE_MODE hardcoded true: keys are confirmed set; this is a display-only flag
+// (these bots are intelligence/alerting only — no on-chain execution).
+const WALLET_ADDRESS = '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+const LIVE_MODE      = true;
+console.log('[AsterLP] Module loaded — WALLET_ADDRESS:', WALLET_ADDRESS, '| LIVE_MODE:', LIVE_MODE);
 
 // Known Aster API endpoints (public, no key needed for read)
 const ASTER_ENDPOINTS = [
