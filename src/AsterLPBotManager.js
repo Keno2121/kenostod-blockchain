@@ -45,7 +45,9 @@ const BENFORD_WARN_PCT    = 0.35;             // Benford deviation threshold
 // Private key existence is read immediately; if it's in process.env when the
 // server starts, LIVE_MODE is true for the entire lifetime of this process.
 const WALLET_ADDRESS = process.env.ASTER_WALLET_ADDRESS || '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
-const LIVE_MODE      = !!(process.env.ASTER_PRIVATE_KEY);
+// LIVE_MODE: check new secret first, fall back to PRIVATE_KEY / PrivateKey (old secrets
+// always visible to the workflow process regardless of when they were added).
+const LIVE_MODE      = !!(process.env.ASTER_PRIVATE_KEY || process.env.PRIVATE_KEY || process.env.PrivateKey);
 
 // Known Aster API endpoints (public, no key needed for read)
 const ASTER_ENDPOINTS = [
