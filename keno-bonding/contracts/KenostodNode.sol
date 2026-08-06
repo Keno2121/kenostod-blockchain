@@ -16,6 +16,7 @@ interface IERC721Receiver {
     function onERC721Received(address, address, uint256, bytes calldata) external returns (bytes4);
 }
 
+// WBNB on BSC: 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
 contract KenostodNode {
     // ── ERC-721 storage ───────────────────────────────────────────────────────
     string public name     = "Kenostod Network Node";
