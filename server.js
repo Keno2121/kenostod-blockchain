@@ -622,6 +622,53 @@ app.get('/iaas.html', (req, res) => {
     res.sendFile(__dirname + '/public/iaas.html');
 });
 
+// Whitepaper PDF redirect — PDF doesn't exist, serve the markdown as styled HTML
+app.get('/assets/marketing/KENO-Whitepaper.pdf', (req, res) => {
+    const fs = require('fs');
+    const mdPath = __dirname + '/public/assets/marketing/KENO-Whitepaper.md';
+    try {
+        const md = fs.readFileSync(mdPath, 'utf8');
+        // Convert basic markdown to readable HTML (headings, bold, lists, links)
+        const html = md
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/`(.+?)`/g, '<code>$1</code>')
+            .replace(/^\- (.+)$/gm, '<li>$1</li>')
+            .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KENO Whitepaper — Kenostod Blockchain Academy</title>
+<style>
+  body{font-family:Georgia,serif;max-width:860px;margin:40px auto;padding:0 24px;background:#0a0a0a;color:#e8e8e8;line-height:1.8}
+  h1{color:#FFD700;border-bottom:2px solid #2E8B57;padding-bottom:12px}
+  h2{color:#50C878;margin-top:40px}h3{color:#8cc63f}h4{color:#aaa}
+  strong{color:#FFD700}code{background:#1a1a1a;padding:2px 6px;border-radius:3px;color:#8cc63f}
+  a{color:#50C878}li{margin:6px 0}
+  .header{text-align:center;padding:40px 0;border-bottom:1px solid #222;margin-bottom:40px}
+  .logo{font-size:2.5rem;margin-bottom:8px}
+  .note{background:#111;border:1px solid #2E8B57;border-radius:8px;padding:16px;margin-bottom:32px;color:#8cc63f;font-size:0.9rem}
+</style></head><body>
+<div class="header"><div class="logo">🛡️</div>
+<h1 style="border:none">KENO Whitepaper</h1>
+<p style="color:#888">Kenostod Blockchain Academy LLC · kenostodblockchain.com</p></div>
+<div class="note">📄 Contract: <strong>0x48BB049Afe50B050b458624Dc6233acd51024AB4</strong> (BNB Chain) · 
+<a href="https://pancakeswap.finance/swap?outputCurrency=0x48bb049afe50b050b458624dc6233acd51024ab4">Trade on PancakeSwap</a></div>
+<p>${html}</p></body></html>`);
+    } catch (e) {
+        res.redirect('/assets/marketing/KENO-Whitepaper.md');
+    }
+});
+// Case-insensitive variant
+app.get('/assets/marketing/KENO-whitepaper.pdf', (req, res) => res.redirect(301, '/assets/marketing/KENO-Whitepaper.pdf'));
+
 app.use(express.static('public', {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html')) {
