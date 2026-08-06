@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KENO Whitelist Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a0f;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #13131a;
+      border: 1px solid #2a2a3a;
+      border-radius: 16px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 420px;
+    }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #fff; }
+    .sub { font-size: 13px; color: #666; margin-bottom: 28px; }
+    .contract-addr {
+      font-size: 11px;
+      font-family: monospace;
+      color: #44e;
+      word-break: break-all;
+      margin-bottom: 24px;
+      background: #1a1a28;
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: #1a1a28;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.on  { background: #ff4444; box-shadow: 0 0 6px #ff4444; }
+    .dot.off { background: #00cc66; box-shadow: 0 0 6px #00cc66; }
+    .dot.unknown { background: #888; }
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+      margin-bottom: 12px;
+    }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    #btn-connect { background: #5865f2; color: #fff; }
+    #btn-disable { background: #ff4444; color: #fff; display: none; }
+    #btn-disable.hidden { display: none; }
+    .msg {
+      font-size: 13px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: none;
+      word-break: break-all;
+    }
+    .msg.info    { background: #1a1a40; color: #88aaff; display: block; }
+    .msg.success { background: #0d2a1a; color: #00cc66; display: block; }
+    .msg.error   { background: #2a0d0d; color: #ff6666; display: block; }
+    .wallet-row {
+      font-size: 11px;
+      font-family: monospace;
+      color: #555;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🔐 KENO Whitelist Toggle</h1>
+  <p class="sub">Admin only — must connect as contract owner</p>
+
+  <div class="contract-addr">
+    KENO: 0x48bb049afe50b050b458624dc6233acd51024ab4<br/>
+    Owner: 0x4aa73fadffd71e6549867a37455ea957a52cf849
+  </div>
+
+  <div class="status-row">
+    <div class="dot unknown" id="dot"></div>
+    <span id="status-txt">Checking on-chain status…</span>
+  </div>
+
+  <div class="wallet-row" id="wallet-row">Connected: <span id="wallet-addr">—</span></div>
+
+  <button id="btn-connect">Connect Wallet</button>
+  <button id="btn-disable">Disable Whitelist (set to false)</button>
+
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+const KENO_ADDR    = '0x48bb049afe50b050b458624dc6233acd51024ab4';
+const OWNER_ADDR   = '0x4aa73fadffd71e6549867a37455ea957a52cf849';
+const BSC_RPC      = 'https://bsc-dataseed.binance.org/';
+const BSC_CHAIN_ID = '0x38'; // 56
+
+// Minimal ABIs
+const TOGGLE_ABI = [
+  {
+    "inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],
+    "name":"toggleWhitelist",
+    "outputs":[],
+    "stateMutability":"nonpayable",
+    "type":"function"
+  }
+];
+
+// Read whitelistEnabled via raw eth_call
+async function getWhitelistStatus() {
+  const res = await fetch(BSC_RPC, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0', id: 1, method: 'eth_call',
+      params: [{ to: KENO_ADDR, data: '0x51fb012d' }, 'latest']
+    })
+  });
+  const json = await res.json();
+  return json.result !== '0x' + '0'.repeat(63) + '0';
+}
+
+const dot = document.getElementById('dot');
+const statusTxt = document.getElementById('status-txt');
+const btnConnect = document.getElementById('btn-connect');
+const btnDisable = document.getElementById('btn-disable');
+const msg = document.getElementById('msg');
+const walletRow = document.getElementById('wallet-row');
+const walletAddr = document.getElementById('wallet-addr');
+
+function showMsg(text, type) {
+  msg.textContent = text;
+  msg.className = 'msg ' + type;
+}
+
+async function refreshStatus() {
+  try {
+    const enabled = await getWhitelistStatus();
+    dot.className = 'dot ' + (enabled ? 'on' : 'off');
+    statusTxt.textContent = enabled
+      ? 'Whitelist: ENABLED — transfers blocked'
+      : '✅ Whitelist: DISABLED — transfers open';
+    return enabled;
+  } catch(e) {
+    statusTxt.textContent = 'Could not read on-chain status';
+  }
+}
+
+refreshStatus();
+
+let provider, signer;
+
+btnConnect.addEventListener('click', async () => {
+  if (!window.ethereum) {
+    showMsg('No wallet detected. Open this page inside the MetaMask app browser.', 'error');
+    return;
+  }
+  try {
+    btnConnect.disabled = true;
+    btnConnect.textContent = 'Connecting…';
+
+    // Switch to BSC if needed
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BSC_CHAIN_ID }] });
+    } catch(se) {
+      if (se.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{ chainId: BSC_CHAIN_ID, chainName: 'BNB Smart Chain', nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 }, rpcUrls: ['https://bsc-dataseed.binance.org/'], blockExplorerUrls: ['https://bscscan.com'] }]
+        });
+      }
+    }
+
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const account = accounts[0].toLowerCase();
+
+    walletAddr.textContent = accounts[0];
+    walletRow.style.display = 'block';
+
+    if (account !== OWNER_ADDR.toLowerCase()) {
+      showMsg('Wrong wallet connected. Please connect 0x4aa73fadffd71e6549867a37455ea957a52cf849', 'error');
+      btnConnect.disabled = false;
+      btnConnect.textContent = 'Connect Wallet';
+      return;
+    }
+
+    showMsg('Owner wallet connected ✅', 'success');
+    btnConnect.style.display = 'none';
+    btnDisable.style.display = 'block';
+
+    const enabled = await refreshStatus();
+    if (!enabled) {
+      btnDisable.disabled = true;
+      btnDisable.textContent = 'Whitelist already disabled ✅';
+      showMsg('Whitelist is already off — liquidity can be added now!', 'success');
+    }
+
+  } catch(e) {
+    showMsg('Connection failed: ' + e.message, 'error');
+    btnConnect.disabled = false;
+    btnConnect.textContent = 'Connect Wallet';
+  }
+});
+
+btnDisable.addEventListener('click', async () => {
+  btnDisable.disabled = true;
+  btnDisable.textContent = 'Sending transaction…';
+  showMsg('Submitting toggleWhitelist(false) to BSC…', 'info');
+
+  try {
+    // Encode call: toggleWhitelist(false)
+    // selector: keccak256("toggleWhitelist(bool)") = 0x88d98498 ... let's compute manually
+    // Actually use eth_sendTransaction with raw encoding
+    // toggleWhitelist(bool) selector
+    // toggleWhitelist(bool) selector = keccak256("toggleWhitelist(bool)")[0:4] = 0x80e3f1ad
+    const data = '0x80e3f1ad' + '0'.repeat(64); // toggleWhitelist(false)
+
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: accounts[0],
+        to: KENO_ADDR,
+        data: data,
+        gas: '0x186A0' // 100000
+      }]
+    });
+
+    showMsg('Tx sent: ' + txHash + '\n\nWaiting for confirmation…', 'info');
+    btnDisable.textContent = 'Confirming on BSC…';
+
+    // Poll for receipt
+    for (let i = 0; i < 30; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const res = await fetch(BSC_RPC, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_getTransactionReceipt', params: [txHash] })
+      });
+      const json = await res.json();
+      if (json.result && json.result.status) {
+        const success = json.result.status === '0x1';
+        if (success) {
+          showMsg('✅ Whitelist disabled! Tx: ' + txHash, 'success');
+          btnDisable.textContent = '✅ Done!';
+          await refreshStatus();
+        } else {
+          showMsg('❌ Transaction reverted. Make sure you are the contract owner.', 'error');
+          btnDisable.disabled = false;
+          btnDisable.textContent = 'Retry';
+        }
+        return;
+      }
+    }
+    showMsg('Tx submitted but not confirmed yet. Check BscScan: ' + txHash, 'info');
+
+  } catch(e) {
+    showMsg('Error: ' + e.message, 'error');
+    btnDisable.disabled = false;
+    btnDisable.textContent = 'Disable Whitelist (set to false)';
+  }
+});
+</script>
+</body>
+</html>
