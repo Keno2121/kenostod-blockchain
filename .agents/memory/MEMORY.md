@@ -1,3 +1,4 @@
+- [KENO live deployment](keno-live-deployment.md) — pair 0xD1264c…, node contract 0x45599c…, owner now bot wallet; `toggleWhitelistEnabled` not `toggleWhitelist`; addLiquidityETH needs 3.5M gas for new pair
 - [Bot wallets and key setup](bot-wallets.md) — BSC bot key is BOT_WALLET_PRIVATE_KEY (64-char no 0x); KENO_WALLET_PRIVATE_KEY stores address not key; Resi-Fi auto-sweeps BNB
 - [Jupiter API endpoints](jupiter-api.md) — Use api.jup.ag/swap/v1/quote not quote-api.jup.ag/v6; SOLANA_NETWORK must be "mainnet" not "mainnet-beta"
 - [KENO v2 deployment](keno-v2-deployment.md) — v2 live on BSC; old v1 wallets all pointed to compromised deployer; v2 fixes all that
