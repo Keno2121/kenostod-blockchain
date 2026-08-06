@@ -1,8 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config({ path: "../.env" });
 
-const NEW_WALLET_PRIVATE_KEY = process.env.NEW_WALLET_PRIVATE_KEY ||
-  "0x0000000000000000000000000000000000000000000000000000000000000001";
+// Use bot wallet (has BNB) as deployer — key is 64-char no 0x prefix
+const rawKey = process.env.BOT_WALLET_PRIVATE_KEY || process.env.NEW_WALLET_PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000001";
+const DEPLOY_KEY = rawKey.startsWith('0x') ? rawKey : '0x' + rawKey;
 
 module.exports = {
   solidity: {
@@ -14,9 +15,9 @@ module.exports = {
   },
   networks: {
     bsc: {
-      url: "https://bsc.drpc.org",
+      url: process.env.BSC_RPC_PRIMARY || "https://bsc-dataseed.binance.org/",
       chainId: 56,
-      accounts: [NEW_WALLET_PRIVATE_KEY]
+      accounts: [DEPLOY_KEY]
     },
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",

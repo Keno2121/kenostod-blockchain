@@ -42,7 +42,7 @@ const FACTORY_ABI = [
   'function getPair(address tokenA, address tokenB) view returns (address)',
 ];
 
-const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095C';
+const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
