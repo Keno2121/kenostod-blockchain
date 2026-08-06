@@ -22,7 +22,7 @@ module.exports = {
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,
-      accounts: [NEW_WALLET_PRIVATE_KEY]
+      accounts: [DEPLOY_KEY]
     }
   },
   etherscan: {
