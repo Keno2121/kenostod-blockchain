@@ -33,11 +33,11 @@ const KENO = '0x48bb049afe50b050b458624dc6233acd51024ab4'; // KENO v2 — added 
 // ── Multi-pair scan list — all use BNB as capital, round-trip back to BNB ──
 // NOTE: WBNB/KENO removed until KENO v2 liquidity pool is live post-PinkSale
 const ARB_PAIRS = [
-  { name: 'WBNB/USDT',  token: USDT,  bnbAmount: '0.20' },
-  { name: 'WBNB/BUSD',  token: BUSD,  bnbAmount: '0.20' },
-  { name: 'WBNB/ETH',   token: ETH,   bnbAmount: '0.20' },
-  { name: 'WBNB/BTCB',  token: BTCB,  bnbAmount: '0.20' },
-  { name: 'WBNB/CAKE',  token: CAKE,  bnbAmount: '0.20' },
+  { name: 'WBNB/USDT',  token: USDT,  bnbAmount: '0.09' },
+  { name: 'WBNB/BUSD',  token: BUSD,  bnbAmount: '0.09' },
+  { name: 'WBNB/ETH',   token: ETH,   bnbAmount: '0.09' },
+  { name: 'WBNB/BTCB',  token: BTCB,  bnbAmount: '0.09' },
+  { name: 'WBNB/CAKE',  token: CAKE,  bnbAmount: '0.09' },
 ];
 
 const ROUTER_ABI = [
@@ -86,8 +86,8 @@ class LiveArbBot {
 
     this.config = {
       autoExecute:       true,          // LIVE — quoteBest() contract simulation guards every trade
-      minProfitUSD:      0.05,         // $0.05 — achievable at 0.027% spread on 0.20 BNB
-      arbTradeAmountBNB: '0.20',       // 0.20 BNB per trade — doubles gross profit per spread %
+      minProfitUSD:      0.05,         // $0.05 — achievable at 0.027% spread on 0.09 BNB
+      arbTradeAmountBNB: '0.09',       // 0.09 BNB per trade — fits current wallet balance (0.10 BNB + gas)
       kenoVolBNB:        '0.001',
       checkIntervalMs:   15_000,
       kenoVolIntervalMs: 3_600_000,
