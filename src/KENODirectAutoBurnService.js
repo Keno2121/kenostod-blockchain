@@ -56,7 +56,6 @@ const AUTOBURN_ABI = [
     'function totalBnbUsed() view returns (uint256)',
     'function burnCount() view returns (uint256)',
     'event KenoBurned(address indexed triggeredBy, uint256 bnbIn, uint256 kenoBurned, uint256 totalBurned)',
-    'receive() external payable',
 ];
 
 const PC_ROUTER_ABI = [
