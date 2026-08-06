@@ -150,6 +150,7 @@ const QueensChariotBotManager         = require('./src/QueensChariotBotManager')
 const ArbitrageSystem = require('./src/ArbitrageSystem');
 const FALPoolManager = require('./src/FALPoolManager');
 const LiveArbBot      = require('./src/LiveArbBot');
+const KENODirectAutoBurnService = require('./src/KENODirectAutoBurnService');
 const KenoFlashOrbBot = require('./src/KenoFlashOrbBot');
 const SovereignBotOrchestrator = require('./src/SovereignBotOrchestrator');
 const UTLFeeCollector  = require('./src/UTLFeeCollector');
@@ -1651,6 +1652,7 @@ let dataPersistence, kenostodChain, minerWallet, wallet1, wallet2, bankingAPI, s
 let paypalIntegration, merchantIncentives, revenueTracker, arbitrageSystem, falPoolManager, utlFeeCollector;
 let bscTokenTransfer;
 const liveArbBot        = new LiveArbBot();
+const kenoAutoBurn      = new KENODirectAutoBurnService(liveArbBot);
 const flashOrbBot       = new KenoFlashOrbBot();
 const aegisArbBot       = new AegisArbBotManager();
 const constitutionFlash = new ConstitutionFlashBotManager();
@@ -10132,6 +10134,13 @@ app.get('/api/gmx-autoburn/status',  (req, res) => res.json(gmxFunding.autoBurn.
 app.post('/api/gmx-autoburn/sweep',  async (req, res) => res.json(await gmxFunding.autoBurn.triggerManualSweep()));
 app.post('/api/gmx-autoburn/burn',   async (req, res) => res.json(await gmxFunding.autoBurn.triggerManualBSCBurn()));
 
+// KENO Direct AutoBurn — arb profits → KENO burn (bot wallet, same BSC chain, no bridge)
+app.use('/api/keno-autoburn', requireFounder);
+app.get('/api/keno-autoburn/status', (req, res) => res.json(kenoAutoBurn.getStatus()));
+app.post('/api/keno-autoburn/sweep', async (req, res) => res.json(await kenoAutoBurn.triggerManualSweep()));
+app.post('/api/keno-autoburn/start', (req, res) => res.json(kenoAutoBurn.start()));
+app.post('/api/keno-autoburn/stop',  (req, res) => res.json(kenoAutoBurn.stop()));
+
 app.post('/api/dydx-funding/start',  (req, res) => res.json(dydxFunding.start()));
 app.post('/api/dydx-funding/stop',   (req, res) => res.json(dydxFunding.stop()));
 app.get('/api/dydx-funding/status',  (req, res) => res.json(dydxFunding.getStatus()));
@@ -13105,6 +13114,9 @@ app.listen(PORT, '0.0.0.0', () => {
     // CRITICAL: Initialize blockchain systems immediately (async - won't block port)
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
+
+    // Auto-start KENO AutoBurn — monitors arb profits every 6h, burns 15% to 0xdEaD
+    kenoAutoBurn.start();
 
     // Start Telegram bot (Kenostod Assistant — auto-start)
     try {
