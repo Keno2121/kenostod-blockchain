@@ -626,42 +626,195 @@ app.get('/iaas.html', (req, res) => {
 app.get('/assets/marketing/KENO-Whitepaper.pdf', (req, res) => {
     const fs = require('fs');
     const mdPath = __dirname + '/public/assets/marketing/KENO-Whitepaper.md';
-    try {
-        const md = fs.readFileSync(mdPath, 'utf8');
-        // Convert basic markdown to readable HTML (headings, bold, lists, links)
-        const html = md
+
+    function slugify(text) {
+        return text.toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+    }
+
+    function mdToHtml(md) {
+        const lines = md.split('\n');
+        const out = [];
+        let inTable = false, inList = false, inBlockquote = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+
+            // Horizontal rule
+            if (/^---+$/.test(line.trim())) {
+                if (inList) { out.push('</ul>'); inList = false; }
+                if (inTable) { out.push('</tbody></table>'); inTable = false; }
+                out.push('<hr>');
+                continue;
+            }
+
+            // Headings — with anchor IDs for TOC links
+            const hm = line.match(/^(#{1,4}) (.+)$/);
+            if (hm) {
+                if (inList) { out.push('</ul>'); inList = false; }
+                if (inTable) { out.push('</tbody></table>'); inTable = false; }
+                const level = hm[1].length;
+                const text = hm[2];
+                const id = slugify(text);
+                const styled = inlineFormat(text);
+                out.push(`<h${level} id="${id}">${styled}</h${level}>`);
+                continue;
+            }
+
+            // Table rows
+            if (/^\|/.test(line)) {
+                if (!inTable) {
+                    inTable = true;
+                    out.push('<table><thead>');
+                    // header row
+                    const cells = line.split('|').filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+                    out.push('<tr>' + cells.map(c => `<th>${inlineFormat(c.trim())}</th>`).join('') + '</tr>');
+                    out.push('</thead><tbody>');
+                    i++; // skip separator line
+                    continue;
+                }
+                const cells = line.split('|').filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+                out.push('<tr>' + cells.map(c => `<td>${inlineFormat(c.trim())}</td>`).join('') + '</tr>');
+                continue;
+            } else if (inTable) {
+                out.push('</tbody></table>');
+                inTable = false;
+            }
+
+            // Blockquote
+            if (/^> /.test(line)) {
+                const text = line.replace(/^> /, '');
+                if (!inBlockquote) { out.push('<blockquote>'); inBlockquote = true; }
+                out.push(`<p>${inlineFormat(text)}</p>`);
+                continue;
+            } else if (inBlockquote) {
+                out.push('</blockquote>');
+                inBlockquote = false;
+            }
+
+            // List items
+            if (/^[\-\*] /.test(line)) {
+                if (!inList) { out.push('<ul>'); inList = true; }
+                out.push(`<li>${inlineFormat(line.replace(/^[\-\*] /, ''))}</li>`);
+                continue;
+            }
+            // Ordered list
+            if (/^\d+\. /.test(line)) {
+                if (!inList) { out.push('<ol>'); inList = 'ol'; }
+                out.push(`<li>${inlineFormat(line.replace(/^\d+\. /, ''))}</li>`);
+                continue;
+            }
+            if (inList) { out.push(inList === 'ol' ? '</ol>' : '</ul>'); inList = false; }
+
+            // Blank line
+            if (line.trim() === '') {
+                out.push('');
+                continue;
+            }
+
+            // Normal paragraph
+            out.push(`<p>${inlineFormat(line)}</p>`);
+        }
+
+        if (inList) out.push(inList === 'ol' ? '</ol>' : '</ul>');
+        if (inTable) out.push('</tbody></table>');
+        if (inBlockquote) out.push('</blockquote>');
+        return out.join('\n');
+    }
+
+    function inlineFormat(text) {
+        return text
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
-            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.+?)\*/g, '<em>$1</em>')
             .replace(/`(.+?)`/g, '<code>$1</code>')
-            .replace(/^\- (.+)$/gm, '<li>$1</li>')
-            .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>');
+            // internal anchor links (#section)
+            .replace(/\[([^\]]+)\]\(#([^)]+)\)/g, '<a href="#$2">$1</a>')
+            // external links
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    }
+
+    try {
+        const md = fs.readFileSync(mdPath, 'utf8');
+        const body = mdToHtml(md);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KENO Whitepaper — Kenostod Blockchain Academy</title>
+<title>KENO Whitepaper v2.1 — Kenostod Blockchain Academy</title>
 <style>
-  body{font-family:Georgia,serif;max-width:860px;margin:40px auto;padding:0 24px;background:#0a0a0a;color:#e8e8e8;line-height:1.8}
-  h1{color:#FFD700;border-bottom:2px solid #2E8B57;padding-bottom:12px}
-  h2{color:#50C878;margin-top:40px}h3{color:#8cc63f}h4{color:#aaa}
-  strong{color:#FFD700}code{background:#1a1a1a;padding:2px 6px;border-radius:3px;color:#8cc63f}
-  a{color:#50C878}li{margin:6px 0}
-  .header{text-align:center;padding:40px 0;border-bottom:1px solid #222;margin-bottom:40px}
-  .logo{font-size:2.5rem;margin-bottom:8px}
-  .note{background:#111;border:1px solid #2E8B57;border-radius:8px;padding:16px;margin-bottom:32px;color:#8cc63f;font-size:0.9rem}
-</style></head><body>
-<div class="header"><div class="logo">🛡️</div>
-<h1 style="border:none">KENO Whitepaper</h1>
-<p style="color:#888">Kenostod Blockchain Academy LLC · kenostodblockchain.com</p></div>
-<div class="note">📄 Contract: <strong>0x48BB049Afe50B050b458624Dc6233acd51024AB4</strong> (BNB Chain) · 
-<a href="https://pancakeswap.finance/swap?outputCurrency=0x48bb049afe50b050b458624dc6233acd51024ab4">Trade on PancakeSwap</a></div>
-<p>${html}</p></body></html>`);
+  :root{--gold:#FFD700;--green:#50C878;--bg:#080808;--surface:#111;--border:#1e1e1e;--text:#e0e0e0;--muted:#888}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:Georgia,serif;background:var(--bg);color:var(--text);line-height:1.85;font-size:16px}
+  .page{max-width:900px;margin:0 auto;padding:0 24px 80px}
+  /* Header */
+  .wp-header{text-align:center;padding:56px 0 40px;border-bottom:1px solid var(--border);margin-bottom:48px}
+  .wp-header .shield{font-size:3rem;margin-bottom:12px}
+  .wp-header h1{font-size:2.4rem;color:var(--gold);margin-bottom:8px;font-weight:700}
+  .wp-header p{color:var(--muted);font-size:0.95rem}
+  .contract-bar{background:var(--surface);border:1px solid var(--green);border-radius:10px;padding:14px 20px;margin-bottom:40px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;font-size:0.9rem}
+  .contract-bar strong{color:var(--green)}
+  .contract-bar a{color:var(--gold);text-decoration:none}
+  .contract-bar a:hover{text-decoration:underline}
+  /* TOC links */
+  a[href^="#"]{color:var(--green);text-decoration:none}
+  a[href^="#"]:hover{text-decoration:underline;color:var(--gold)}
+  /* Headings */
+  h1{color:var(--gold);font-size:2rem;margin:48px 0 20px;padding-bottom:10px;border-bottom:2px solid var(--green)}
+  h2{color:var(--green);font-size:1.5rem;margin:40px 0 16px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  h3{color:#8cc63f;font-size:1.2rem;margin:28px 0 12px}
+  h4{color:var(--muted);font-size:1rem;margin:20px 0 8px;text-transform:uppercase;letter-spacing:0.05em}
+  /* Scroll offset so fixed headers don't hide anchors */
+  h1,h2,h3,h4{scroll-margin-top:24px}
+  p{margin:12px 0}
+  strong{color:var(--gold)}
+  em{color:#aac}
+  code{background:#1a2a1a;color:var(--green);padding:2px 7px;border-radius:4px;font-size:0.87em;font-family:'Courier New',monospace}
+  a{color:var(--green)}a:hover{color:var(--gold)}
+  /* Lists */
+  ul,ol{margin:12px 0 12px 28px}
+  li{margin:6px 0;line-height:1.7}
+  /* Tables */
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:0.92rem;overflow-x:auto;display:block}
+  th{background:#0f1f0f;color:var(--green);padding:10px 14px;text-align:left;border:1px solid var(--border);font-weight:600}
+  td{padding:9px 14px;border:1px solid var(--border);vertical-align:top}
+  tr:nth-child(even){background:#0a0a0a}
+  /* Blockquote */
+  blockquote{border-left:3px solid var(--gold);margin:20px 0;padding:12px 20px;background:#0f0f0a;font-style:italic;color:#ccc}
+  blockquote p{margin:4px 0}
+  hr{border:none;border-top:1px solid var(--border);margin:36px 0}
+  /* TOC styling */
+  .toc-nav{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;margin:0 0 36px;font-size:0.93rem}
+  .toc-nav ol,.toc-nav ul{margin:0 0 0 20px}
+  .toc-nav li{margin:5px 0}
+  @media(max-width:600px){h1{font-size:1.5rem}h2{font-size:1.2rem}.wp-header h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="wp-header">
+    <div class="shield">🛡️</div>
+    <h1>KENO Whitepaper v2.1</h1>
+    <p>Kenostod Blockchain Academy LLC &nbsp;·&nbsp; kenostodblockchain.com &nbsp;·&nbsp; August 2026</p>
+  </div>
+  <div class="contract-bar">
+    <span>📄 Contract: <strong>0x48BB049Afe50B050b458624Dc6233acd51024AB4</strong> (BNB Chain)</span>
+    <span>·</span>
+    <a href="https://bscscan.com/token/0x48BB049Afe50B050b458624Dc6233acd51024AB4" target="_blank">BscScan ↗</a>
+    <span>·</span>
+    <a href="https://pancakeswap.finance/swap?outputCurrency=0x48bb049afe50b050b458624dc6233acd51024ab4" target="_blank">Trade on PancakeSwap ↗</a>
+  </div>
+  ${body}
+</div>
+</body>
+</html>`);
     } catch (e) {
         res.redirect('/assets/marketing/KENO-Whitepaper.md');
     }

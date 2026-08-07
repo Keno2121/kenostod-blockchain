@@ -43,7 +43,7 @@
 - ✅ **Kings Shield** — Security token with 6.174% Aegis Tax redistributing to holders
 - ✅ **Queens Chariot Token (QCT)** — Live on Base Mainnet
 - ✅ **KENOAutoBurn** — Automated buy-and-burn contract on BSC
-- ✅ **PinkSale Presale** — Active, ends August 6, 2026
+- ✅ **PinkSale Presale** — Completed August 6, 2026 (SOLD OUT)
 
 This is not a concept document. Every component described below is live on mainnet.
 
