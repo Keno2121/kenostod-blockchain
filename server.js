@@ -10839,7 +10839,11 @@ app.get('/api/bots/status', requireFounder, async (req, res) => {
     const https = require('https');
 
     const FAL_CONTRACT = '0xE08eD19B34A3704ED7f7DD757027Ff4dd174474e';
-    const SAFE_WALLET  = '0x4AA73FadfFd71E6549867a37455EA957A52Cf849';
+    // SAFE_WALLET must be the same wallet that signs transactions so leg-2 can spend
+    // the stablecoins received in leg-1. Using a different address caused leg-1 to drain
+    // BNB from the bot wallet while stablecoins accumulated unreachable in the other address.
+    const BOT_KEY      = process.env.BOT_WALLET_PRIVATE_KEY ? '0x' + process.env.BOT_WALLET_PRIVATE_KEY : null;
+    const SAFE_WALLET  = BOT_KEY ? new ethers.Wallet(BOT_KEY).address : '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
     const BSC_RPC      = 'https://bsc-dataseed1.binance.org/';
 
     // All BSC DEXes using Uniswap V2 interface (deep liquidity only — BabySwap excluded)
@@ -10912,7 +10916,7 @@ app.get('/api/bots/status', requireFounder, async (req, res) => {
 
     let lastExecAt   = 0;
     let isRunning    = false;
-    let autoEnabled  = true;
+    let autoEnabled  = false; // starts paused — enable via POST /api/fal/auto/toggle after verifying SAFE_WALLET fix
     let lastSnapshot = []; // latest spread data for all pairs
 
     // ── API endpoints ─────────────────────────────────────────────────────────
