@@ -196,7 +196,7 @@ class LiveArbBot {
   }
 
   async _priceLoop() {
-    if (!this.running || this.paused) return;
+    if (!this.running || this.paused || global._botEmergencyPause) return;
     this.stats.scanCount++;
     if (this.stats.scanCount % 20 === 1) await this._fetchBNBPrice(); // refresh every 5 min
     // Safety floor check every 4 scans (~1 min)

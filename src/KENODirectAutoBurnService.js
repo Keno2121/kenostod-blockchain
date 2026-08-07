@@ -143,7 +143,7 @@ class KENODirectAutoBurnService {
 
     // ── Main Poll ─────────────────────────────────────────────────────────────
     async _poll() {
-        if (!this.running) return;
+        if (!this.running || global._botEmergencyPause) return;
 
         // 1. Sync arb profit from LiveArbBot
         await this._syncArbProfit();
