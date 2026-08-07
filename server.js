@@ -10917,6 +10917,9 @@ app.get('/api/bots/status', requireFounder, async (req, res) => {
     let lastExecAt   = 0;
     let isRunning    = false;
     let autoEnabled  = false; // starts paused — enable via POST /api/fal/auto/toggle after verifying SAFE_WALLET fix
+
+    // ── Global emergency pause: set by wallet watchdog when balance is critically low ──
+    if (typeof global._botEmergencyPause === 'undefined') global._botEmergencyPause = false;
     let lastSnapshot = []; // latest spread data for all pairs
 
     // ── API endpoints ─────────────────────────────────────────────────────────
@@ -11017,7 +11020,7 @@ app.get('/api/bots/status', requireFounder, async (req, res) => {
 
     // ── Main loop ─────────────────────────────────────────────────────────────
     async function checkAndExecute() {
-        if (!autoEnabled || isRunning) return;
+        if (!autoEnabled || isRunning || global._botEmergencyPause) return;
         const pk = process.env.WALLET_PRIVATE_KEY;
         if (!pk) return;
         if (Date.now() - lastExecAt < COOLDOWN_MS) return;
@@ -13318,6 +13321,93 @@ app.listen(PORT, '0.0.0.0', () => {
     // CRITICAL: Initialize blockchain systems immediately (async - won't block port)
     // This includes loading blockchain, wallets, and mining genesis block
     initializeBlockchainSystems().catch(err => console.error('❌ Blockchain init error:', err));
+
+    // ══════════════════════════════════════════════════════════════
+    // WALLET FLOOR WATCHDOG — runs every 5 min
+    // Pauses ALL spending bots and fires Telegram alert if the bot
+    // wallet drops below the floor.  Two tiers:
+    //   WARN  (< 0.08 BNB) — alert only, bots keep running
+    //   CRITICAL (< 0.04 BNB) — global emergency pause + alert
+    // ══════════════════════════════════════════════════════════════
+    (function startWalletWatchdog() {
+        const { ethers: _ew } = require('ethers');
+        const BOT_ADDR   = (() => {
+            try {
+                const k = process.env.BOT_WALLET_PRIVATE_KEY;
+                return k ? new _ew.Wallet('0x' + k).address : '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+            } catch { return '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2'; }
+        })();
+        const WARN_FLOOR  = 0.08;   // BNB — send alert but keep running
+        const HALT_FLOOR  = 0.04;   // BNB — emergency pause all spending bots
+        const BSC_RPC     = process.env.BSC_RPC_PRIMARY || 'https://bsc-rpc.publicnode.com';
+        let   lastWarnAt  = 0;
+        let   lastHaltAt  = 0;
+
+        function tgAlert(msg) {
+            const token  = process.env.TELEGRAM_BOT_TOKEN;
+            const chatId = process.env.SHIELD_ALERT_CHAT_ID || process.env.FAL_ALERT_CHAT_ID;
+            if (!token || !chatId) return;
+            try {
+                const body = JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' });
+                const req  = https.request({
+                    hostname: 'api.telegram.org',
+                    path: `/bot${token}/sendMessage`,
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+                });
+                req.write(body); req.end();
+            } catch (_) {}
+        }
+
+        async function checkWallet() {
+            try {
+                const provider = new _ew.JsonRpcProvider(BSC_RPC);
+                const bal      = await provider.getBalance(BOT_ADDR);
+                const bnb      = parseFloat(_ew.formatEther(bal));
+
+                if (bnb < HALT_FLOOR) {
+                    global._botEmergencyPause = true;
+                    const now = Date.now();
+                    if (now - lastHaltAt > 10 * 60 * 1000) { // alert max every 10 min
+                        lastHaltAt = now;
+                        const msg = `🚨 <b>EMERGENCY — Bot wallet critically low</b>\n\n` +
+                            `Balance: <b>${bnb.toFixed(4)} BNB</b> (floor: ${HALT_FLOOR} BNB)\n` +
+                            `⛔ ALL spending bots PAUSED automatically.\n` +
+                            `Wallet: <code>${BOT_ADDR}</code>\n\n` +
+                            `Top up the bot wallet and restart the server, or re-enable bots via the dashboard.`;
+                        tgAlert(msg);
+                        console.error(`🚨 [WalletWatchdog] CRITICAL: ${bnb.toFixed(4)} BNB — emergency pause active`);
+                    }
+                } else if (bnb < WARN_FLOOR) {
+                    global._botEmergencyPause = false; // not critical — lift halt if it was set
+                    const now = Date.now();
+                    if (now - lastWarnAt > 30 * 60 * 1000) { // warn max every 30 min
+                        lastWarnAt = now;
+                        const msg = `⚠️ <b>Bot wallet running low</b>\n\n` +
+                            `Balance: <b>${bnb.toFixed(4)} BNB</b> (warn floor: ${WARN_FLOOR} BNB)\n` +
+                            `Bots still running — top up soon to avoid auto-pause.\n` +
+                            `Wallet: <code>${BOT_ADDR}</code>`;
+                        tgAlert(msg);
+                        console.warn(`⚠️ [WalletWatchdog] LOW: ${bnb.toFixed(4)} BNB`);
+                    }
+                } else {
+                    // Healthy — lift emergency pause if balance recovered
+                    if (global._botEmergencyPause) {
+                        global._botEmergencyPause = false;
+                        tgAlert(`✅ <b>Bot wallet recovered</b>\nBalance: <b>${bnb.toFixed(4)} BNB</b> — emergency pause lifted.`);
+                        console.log(`✅ [WalletWatchdog] Recovered: ${bnb.toFixed(4)} BNB — pause lifted`);
+                    }
+                }
+            } catch (err) {
+                console.error('[WalletWatchdog] check failed:', err.message);
+            }
+        }
+
+        // Run immediately then every 5 minutes
+        setTimeout(checkWallet, 15000);
+        setInterval(checkWallet, 5 * 60 * 1000);
+        console.log(`🛡️  Wallet watchdog started — WARN<${WARN_FLOOR}BNB HALT<${HALT_FLOOR}BNB → ${BOT_ADDR}`);
+    })();
 
     // Auto-start KENO AutoBurn — monitors arb profits every 6h, burns 15% to 0xdEaD
     kenoAutoBurn.start();
