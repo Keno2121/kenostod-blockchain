@@ -51,7 +51,10 @@ async function main() {
 
   console.log("  Deploying...");
   const token = await Factory.deploy(
-    BOT_WALLET,   // initialOwner — bot wallet controls the contract
+    BOT_WALLET,   // _owner
+    BOT_WALLET,   // _teamWallet  — receives minted supply
+    BOT_WALLET,   // _treasuryWallet
+    BOT_WALLET,   // _liquidityWallet
     { gasLimit: 3_000_000 }
   );
 
