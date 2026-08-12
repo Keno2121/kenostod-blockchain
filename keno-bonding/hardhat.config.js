@@ -9,6 +9,13 @@ module.exports = {
   solidity: {
     compilers: [
       {
+        // KENO v2 BSC contract — deployed via solc 0.8.34 with default evmVersion (cancun)
+        version: "0.8.34",
+        settings: {
+          optimizer: { enabled: true, runs: 200 }
+        }
+      },
+      {
         version: "0.8.28",
         settings: {
           optimizer: { enabled: true, runs: 200 },
