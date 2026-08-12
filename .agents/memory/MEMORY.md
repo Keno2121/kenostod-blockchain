@@ -12,3 +12,4 @@
 - [Flash Arb & Solana Arb Strategy Findings](flash-arb-strategy.md) — FlashArbLoan2 live on BSC; Jupiter round-trip arb not viable; Aegis must stay scan-only; HL rates near-zero June 2026
 - [Post-PinkSale action plan](post-pinksale-plan.md) — fund bots week 1, POL setup week 2 (if liquidity thin)
 - [Sovereign Trinity NFT Collection](sovereign-trinity-nft.md) — COMPLETE: 4 tiers + 7 Houses of Royals + Access Hierarchy + chariot-gate.html + sovereign-throne.html built and live
+- [IaaS Partnership Strategy](iaas-partnership-strategy.md) — lead with SOE/UTL/FAL/VLAT as deployable infrastructure, not KENO listing; Solar Bunker reserved for Africa
