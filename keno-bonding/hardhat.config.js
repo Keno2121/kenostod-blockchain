@@ -48,6 +48,12 @@ module.exports = {
       chainId: 677,
       accounts: [DEPLOY_KEY],
       gasPrice: "auto"
+    },
+    botchainTestnet: {
+      url: "https://rpc.bohr.life",
+      chainId: 968,
+      accounts: [DEPLOY_KEY],
+      gasPrice: "auto"
     }
   },
   etherscan: {
