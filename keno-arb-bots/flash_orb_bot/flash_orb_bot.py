@@ -41,8 +41,10 @@ from telegram_notify import (notify_bot_started, notify_flash_arb,
                               notify_error, notify_daily_summary, get_chat_id_help)
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-NETWORK          = os.getenv("NETWORK", "testnet")
-BOT_PRIVATE_KEY  = os.getenv("BOT_PRIVATE_KEY", "")
+NETWORK          = os.getenv("NETWORK", "mainnet")
+# Accept BOT_PRIVATE_KEY or fallback to BOT_WALLET_PRIVATE_KEY (64-char, no 0x)
+_raw_key         = os.getenv("BOT_PRIVATE_KEY") or os.getenv("BOT_WALLET_PRIVATE_KEY", "")
+BOT_PRIVATE_KEY  = ("0x" + _raw_key) if _raw_key and not _raw_key.startswith("0x") else _raw_key
 BOT_ADDRESS      = os.getenv("BOT_ADDRESS", "")
 CONTRACT_ADDRESS = os.getenv("FLASH_ORB_CONTRACT", "")
 MIN_PROFIT_USD   = float(os.getenv("MIN_PROFIT_USD", "0.25"))
@@ -56,7 +58,7 @@ RPC = {
 }
 
 WBNB_KENO_PAIR = {
-    "mainnet": "0x0000000000000000000000000000000000000000",  # update after pair creation
+    "mainnet": "0xD1264cb02970cd494D9455FC8d7C889b14E23503",  # KENO/WBNB PancakeSwap V2
     "testnet": "0x0000000000000000000000000000000000000000",
 }
 

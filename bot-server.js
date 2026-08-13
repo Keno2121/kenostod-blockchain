@@ -40,22 +40,22 @@ const BOTS = [
   {
     id:       'live-arb',
     name:     'Live Arb Bot',
-    enabled:  !!process.env.WALLET_PRIVATE_KEY,
-    requires: ['WALLET_PRIVATE_KEY'],
+    enabled:  !!(process.env.WALLET_PRIVATE_KEY || process.env.BOT_WALLET_PRIVATE_KEY),
+    requires: ['WALLET_PRIVATE_KEY or BOT_WALLET_PRIVATE_KEY'],
     load:     () => require('./src/LiveArbBot'),
   },
   {
     id:       'keno-flash-orb',
     name:     'KENO Flash Orb Bot',
-    enabled:  !!process.env.WALLET_PRIVATE_KEY,
-    requires: ['WALLET_PRIVATE_KEY'],
+    enabled:  !!(process.env.WALLET_PRIVATE_KEY || process.env.BOT_WALLET_PRIVATE_KEY),
+    requires: ['WALLET_PRIVATE_KEY or BOT_WALLET_PRIVATE_KEY'],
     load:     () => require('./src/KenoFlashOrbBot'),
   },
   {
     id:       'aegis-arb',
     name:     'Aegis Arb Bot Manager',
-    enabled:  !!process.env.WALLET_PRIVATE_KEY,
-    requires: ['WALLET_PRIVATE_KEY'],
+    enabled:  !!(process.env.WALLET_PRIVATE_KEY || process.env.BOT_WALLET_PRIVATE_KEY),
+    requires: ['WALLET_PRIVATE_KEY or BOT_WALLET_PRIVATE_KEY'],
     load:     () => require('./src/AegisArbBotManager'),
   },
   {

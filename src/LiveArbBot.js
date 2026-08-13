@@ -7,13 +7,12 @@ const FLASH_ARB_LOAN2    = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
 const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
 const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b8';
-const MDEX_ROUTER     = '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8';
+// MDEX removed — routes show false spreads that fail on-chain simulation every time
 
 const ALL_DEXES = [
   { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
   { name: 'BiSwap',      addr: BISWAP_ROUTER  },
   { name: 'ApeSwap',     addr: APESWAP_ROUTER },
-  { name: 'MDEX',        addr: MDEX_ROUTER    },
 ];
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644'; // v1.1 active contract
 
