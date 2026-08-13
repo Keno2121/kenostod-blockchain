@@ -84,11 +84,24 @@
 
     <div id="walletModal" class="fixed inset-0 z-50 hidden modal-overlay flex items-center justify-center p-4">
         <div class="glass rounded-2xl p-6 max-w-md w-full fade-in">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold">Connect Wallet</h2>
                 <button onclick="closeWalletModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
             </div>
-            <p class="text-sm text-slate-400 mb-5">Choose how you'd like to connect to UTL on BNB Smart Chain.</p>
+
+            <!-- Network selector tabs -->
+            <div class="flex rounded-xl overflow-hidden border border-slate-700 mb-5">
+                <button id="tabBSC" onclick="selectModalNetwork('bsc')"
+                    class="flex-1 py-2 text-sm font-semibold transition-all bg-indigo-600 text-white">
+                    🟡 BNB Smart Chain
+                </button>
+                <button id="tabBOT" onclick="selectModalNetwork('botchain')"
+                    class="flex-1 py-2 text-sm font-semibold transition-all bg-transparent text-slate-400 hover:text-white">
+                    🤖 BOT Chain
+                </button>
+            </div>
+
+            <p id="modalNetworkDesc" class="text-sm text-slate-400 mb-5">Choose how you'd like to connect to UTL on BNB Smart Chain.</p>
 
             <div class="space-y-3" id="walletOptions">
                 <div onclick="connectWallet('metamask')" class="wallet-option glass rounded-xl p-4 flex items-center gap-4">
@@ -104,7 +117,7 @@
                     <div class="wallet-icon wallet-icon-wc"><i class="fas fa-qrcode"></i></div>
                     <div class="flex-1">
                         <div class="font-semibold text-white">WalletConnect</div>
-                        <div class="text-xs text-slate-400">MetaMask Mobile · Trust Wallet · 300+ wallets</div>
+                        <div id="wcSubtext" class="text-xs text-slate-400">MetaMask Mobile · Trust Wallet · 300+ wallets</div>
                     </div>
                     <i class="fas fa-chevron-right text-slate-500"></i>
                 </div>
@@ -131,7 +144,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm">U</div>
                 <span class="font-bold text-lg">UTL <span class="text-indigo-400 text-sm font-normal">Dashboard</span></span>
-                <span class="live-tag ml-2">LIVE on BSC</span>
+                <span id="navNetworkTag" class="live-tag ml-2">LIVE on BSC</span>
             </div>
             <div class="flex items-center gap-4">
                 <a href="/keno-market.html" style="font-size:13px;color:#f5c842;text-decoration:none;font-weight:600;padding:6px 12px;border:1px solid rgba(245,200,66,.3);border-radius:8px;background:rgba(245,200,66,.06);">KENO Market</a>
@@ -186,7 +199,23 @@
 
         <div class="glass rounded-xl p-6 mb-8 max-w-3xl mx-auto">
             <h3 class="font-semibold mb-4 text-center text-lg">Connect With Your Favorite Wallet</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- Network toggle for landing section -->
+            <div class="flex justify-center mb-5">
+                <div class="flex rounded-xl overflow-hidden border border-slate-700 text-sm">
+                    <button id="landingTabBSC" onclick="selectLandingNetwork('bsc')"
+                        class="px-5 py-2 font-semibold transition-all bg-indigo-600 text-white">
+                        🟡 BNB Smart Chain
+                    </button>
+                    <button id="landingTabBOT" onclick="selectLandingNetwork('botchain')"
+                        class="px-5 py-2 font-semibold transition-all bg-transparent text-slate-400 hover:text-white">
+                        🤖 BOT Chain
+                    </button>
+                </div>
+            </div>
+            <p id="landingNetworkDesc" class="text-xs text-center text-slate-400 mb-4">Connecting to UTL on BNB Smart Chain</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <button onclick="connectWallet('metamask')" class="btn-metamask rounded-xl p-5 text-center text-white transition-all hover:scale-105">
                     <i class="fa-brands fa-ethereum text-3xl mb-3 block"></i>
                     <div class="font-semibold mb-1">MetaMask</div>
@@ -195,7 +224,7 @@
                 <button onclick="connectWallet('walletconnect')" class="btn-walletconnect rounded-xl p-5 text-center text-white transition-all hover:scale-105">
                     <i class="fas fa-qrcode text-3xl mb-3 block"></i>
                     <div class="font-semibold mb-1">WalletConnect</div>
-                    <div class="text-xs opacity-80">Trust Wallet · 300+ BSC wallets</div>
+                    <div id="landingWcSubtext" class="text-xs opacity-80">Trust Wallet · 300+ BSC wallets</div>
                 </button>
                 <button onclick="connectWallet('coinbase-sdk')" class="btn-coinbase rounded-xl p-5 text-center text-white transition-all hover:scale-105">
                     <i class="fas fa-coins text-3xl mb-3 block"></i>
@@ -1180,6 +1209,15 @@
         };
         const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
         const BSC_CHAIN_ID = '0x38';
+        const BOT_CHAIN_ID = '0x3C8'; // 968 decimal — BOT Chain Testnet
+        const BOT_CHAIN_CONFIG = {
+            chainId: BOT_CHAIN_ID,
+            chainName: 'BOT Chain Testnet',
+            nativeCurrency: { name: 'BOT', symbol: 'tBOT', decimals: 18 },
+            rpcUrls: ['https://rpc.bohr.life'],
+            blockExplorerUrls: ['https://scan.bohr.life']
+        };
+        let selectedNetwork = 'bsc'; // 'bsc' | 'botchain'
         let WALLETCONNECT_PROJECT_ID = 'b5a74d48402f00067b4979c315e7350a'; // public key, safe in frontend
         let configLoaded = false;
 
@@ -1257,6 +1295,57 @@
             document.getElementById('walletModal').classList.add('hidden');
         }
 
+        function selectLandingNetwork(net) {
+            selectModalNetwork(net); // syncs selectedNetwork + modal tabs + nav badge
+            const isBOT = net === 'botchain';
+            const lt1 = document.getElementById('landingTabBSC');
+            const lt2 = document.getElementById('landingTabBOT');
+            if (lt1) lt1.className = 'px-5 py-2 font-semibold transition-all ' + (isBOT ? 'bg-transparent text-slate-400 hover:text-white' : 'bg-indigo-600 text-white');
+            if (lt2) lt2.className = 'px-5 py-2 font-semibold transition-all ' + (isBOT ? 'bg-purple-600 text-white' : 'bg-transparent text-slate-400 hover:text-white');
+            const desc = document.getElementById('landingNetworkDesc');
+            if (desc) desc.textContent = isBOT ? 'Connecting to UTL on BOT Chain Testnet (Chain ID 968)' : 'Connecting to UTL on BNB Smart Chain';
+            const wcs = document.getElementById('landingWcSubtext');
+            if (wcs) wcs.textContent = isBOT ? 'Any EVM wallet supporting BOT Chain' : 'Trust Wallet · 300+ BSC wallets';
+        }
+
+        function selectModalNetwork(net) {
+            selectedNetwork = net;
+            const isBOT = net === 'botchain';
+            // Tab styles
+            document.getElementById('tabBSC').className = 'flex-1 py-2 text-sm font-semibold transition-all ' + (isBOT ? 'bg-transparent text-slate-400 hover:text-white' : 'bg-indigo-600 text-white');
+            document.getElementById('tabBOT').className = 'flex-1 py-2 text-sm font-semibold transition-all ' + (isBOT ? 'bg-purple-600 text-white' : 'bg-transparent text-slate-400 hover:text-white');
+            document.getElementById('modalNetworkDesc').textContent = isBOT
+                ? "Connect to UTL on BOT Chain Testnet — your BOT wallet will be added automatically."
+                : "Choose how you'd like to connect to UTL on BNB Smart Chain.";
+            document.getElementById('wcSubtext').textContent = isBOT
+                ? 'Any EVM wallet supporting BOT Chain (Chain ID 968)'
+                : 'MetaMask Mobile · Trust Wallet · 300+ wallets';
+            // Update nav badge
+            const navTag = document.getElementById('navNetworkTag');
+            if (navTag) navTag.textContent = isBOT ? 'BOT Chain Testnet' : 'LIVE on BSC';
+        }
+
+        async function ensureNetwork(prov) {
+            const targetId = selectedNetwork === 'botchain' ? BOT_CHAIN_ID : BSC_CHAIN_ID;
+            const targetConfig = selectedNetwork === 'botchain' ? BOT_CHAIN_CONFIG : {
+                chainId: BSC_CHAIN_ID,
+                chainName: 'BNB Smart Chain',
+                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                blockExplorerUrls: ['https://bscscan.com/']
+            };
+            const chainId = await prov.request({ method: 'eth_chainId' });
+            if (chainId.toLowerCase() !== targetId.toLowerCase()) {
+                try {
+                    await prov.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: targetId }] });
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        await prov.request({ method: 'wallet_addEthereumChain', params: [targetConfig] });
+                    } else { throw switchError; }
+                }
+            }
+        }
+
         async function connectWallet(walletId) {
             closeWalletModal();
 
@@ -1300,7 +1389,7 @@
                 return;
             }
             await mmProvider.request({ method: 'eth_requestAccounts' });
-            await ensureBSC(mmProvider);
+            await ensureNetwork(mmProvider);
             provider = new ethers.providers.Web3Provider(mmProvider);
             signer = provider.getSigner();
             userAddress = await signer.getAddress();
@@ -1318,7 +1407,7 @@
             const cbProvider = window.ethereum?.providers?.find(p => p.isCoinbaseWallet) || (window.ethereum?.isCoinbaseWallet ? window.ethereum : null);
             if (cbProvider) {
                 await cbProvider.request({ method: 'eth_requestAccounts' });
-                await ensureBSC(cbProvider);
+                await ensureNetwork(cbProvider);
                 provider = new ethers.providers.Web3Provider(cbProvider);
                 signer = provider.getSigner();
                 userAddress = await signer.getAddress();
@@ -1368,10 +1457,10 @@
             signer = provider.getSigner();
             userAddress = await signer.getAddress();
 
-            // Step 2: Try BSC switch AFTER connected — handle rejection gracefully
-            // NOTE: Phantom mobile does NOT support BSC — connect on Ethereum, still show address
+            // Step 2: Try network switch AFTER connected — handle rejection gracefully
+            // NOTE: Phantom mobile may not support all EVM chains
             try {
-                await ensureBSC(phantomProvider);
+                await ensureNetwork(phantomProvider);
             } catch (networkErr) {
                 setupContracts();
                 showConnected('Phantom');
@@ -1411,10 +1500,16 @@
                 const WCProvider = window.WalletConnectEthereumProvider;
                 if (!WCProvider) throw new Error('CDN_LOAD_FAIL');
 
+                const isBOT = selectedNetwork === 'botchain';
+                const wcChainId = isBOT ? 968 : 56;
+                const wcRpcMap = isBOT
+                    ? { 968: 'https://rpc.bohr.life' }
+                    : { 56: 'https://bsc-dataseed1.binance.org/' };
+
                 const wcEthProvider = await WCProvider.init({
                     projectId: WALLETCONNECT_PROJECT_ID,
-                    chains: [56],
-                    optionalChains: [56],
+                    chains: [wcChainId],
+                    optionalChains: [wcChainId],
                     showQrModal: true,
                     metadata: {
                         name: 'UTL — Universal Transaction Layer',
@@ -1422,10 +1517,10 @@
                         url: window.location.origin,
                         icons: [window.location.origin + '/keno-logo-128.png']
                     },
-                    rpcMap: { 56: 'https://bsc-dataseed1.binance.org/' }
+                    rpcMap: wcRpcMap
                 });
 
-                await wcEthProvider.connect({ chains: [56] });
+                await wcEthProvider.connect({ chains: [wcChainId] });
 
                 provider = new ethers.providers.Web3Provider(wcEthProvider);
                 signer = provider.getSigner();
@@ -1543,7 +1638,8 @@
             const shortAddr = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
             document.getElementById('connectBtn').innerHTML = `<span class="connected-badge"><i class="fas fa-check-circle mr-1"></i>${shortAddr}</span>`;
             document.getElementById('connectBtn').onclick = openWalletModal;
-            document.getElementById('networkStatus').innerHTML = `<span class="network-dot connected"></span><span>BSC Mainnet via ${walletType}</span>`;
+            const netLabel = selectedNetwork === 'botchain' ? 'BOT Chain Testnet' : 'BSC Mainnet';
+            document.getElementById('networkStatus').innerHTML = `<span class="network-dot connected"></span><span>${netLabel} via ${walletType}</span>`;
             document.getElementById('notConnected').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             document.getElementById('walletTypeDisplay').textContent = walletType;
