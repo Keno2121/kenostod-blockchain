@@ -140,13 +140,25 @@
     </div>
 
     <nav class="glass sticky top-0 z-40 px-6 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm">U</div>
                 <span class="font-bold text-lg">UTL <span class="text-indigo-400 text-sm font-normal">Dashboard</span></span>
-                <span id="navNetworkTag" class="live-tag ml-2">LIVE on BSC</span>
             </div>
-            <div class="flex items-center gap-4">
+
+            <!-- ── Network selector — always visible ── -->
+            <div class="flex rounded-lg overflow-hidden border border-slate-700" style="font-size:12px;">
+                <button id="navTabBSC" onclick="navSelectNetwork('bsc')"
+                    style="padding:6px 14px;font-weight:700;transition:all .2s;background:rgba(99,102,241,0.9);color:#fff;border:none;cursor:pointer;">
+                    🟡 BSC
+                </button>
+                <button id="navTabBOT" onclick="navSelectNetwork('botchain')"
+                    style="padding:6px 14px;font-weight:700;transition:all .2s;background:transparent;color:#94a3b8;border:none;cursor:pointer;">
+                    🤖 BOT Chain
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3 flex-wrap">
                 <a href="/keno-market.html" style="font-size:13px;color:#f5c842;text-decoration:none;font-weight:600;padding:6px 12px;border:1px solid rgba(245,200,66,.3);border-radius:8px;background:rgba(245,200,66,.06);">KENO Market</a>
                 <div id="networkStatus" class="flex items-center gap-2 text-sm text-slate-400">
                     <span class="network-dot disconnected"></span>
@@ -1293,6 +1305,40 @@
 
         function closeWalletModal() {
             document.getElementById('walletModal').classList.add('hidden');
+        }
+
+        function navSelectNetwork(net) {
+            selectModalNetwork(net); // syncs selectedNetwork, modal tabs, nav badge
+            const isBOT = net === 'botchain';
+            const bscBtn = document.getElementById('navTabBSC');
+            const botBtn = document.getElementById('navTabBOT');
+            if (bscBtn) {
+                bscBtn.style.background = isBOT ? 'transparent' : 'rgba(99,102,241,0.9)';
+                bscBtn.style.color      = isBOT ? '#94a3b8' : '#fff';
+            }
+            if (botBtn) {
+                botBtn.style.background = isBOT ? 'rgba(139,92,246,0.9)' : 'transparent';
+                botBtn.style.color      = isBOT ? '#fff' : '#94a3b8';
+            }
+            // Also sync landing tabs if visible
+            selectLandingNetwork(net);
+            // If already connected, prompt to switch chain
+            if (provider && signer) {
+                const prov = window.ethereum?.providers?.find(p => p.isMetaMask) ||
+                             (window.ethereum?.isMetaMask ? window.ethereum : null) || window.ethereum;
+                if (prov) {
+                    ensureNetwork(prov).then(() => {
+                        const netLabel = isBOT ? 'BOT Chain Testnet' : 'BSC Mainnet';
+                        document.getElementById('networkStatus').innerHTML =
+                            `<span class="network-dot connected"></span><span>${netLabel} via ${currentWalletType || 'wallet'}</span>`;
+                        showToast(`Switched to ${netLabel}`, 'success');
+                    }).catch(() => {
+                        showToast('Switch the network in your wallet to continue.', 'warning', 6000);
+                    });
+                } else {
+                    showToast(`Network set to ${isBOT ? 'BOT Chain' : 'BSC'} — reconnect your wallet to apply.`, 'info', 5000);
+                }
+            }
         }
 
         function selectLandingNetwork(net) {
