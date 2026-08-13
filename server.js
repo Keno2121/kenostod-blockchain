@@ -13502,6 +13502,77 @@ app.listen(PORT, '0.0.0.0', () => {
         console.log('Governance proposal checker started (runs every hour)');
     }, 2000);
 
+    // ── Livingstone Muriki — Monthly Marketing Payment ─────────────────────
+    // 50,000 KENO/month to 0xb6677d76f3a87e7dd1163ad3254d35693ff59842
+    // Checks once per day; pays if 30+ days have passed since last payment.
+    (function startLivingstonePaymentScheduler() {
+        const LIVINGSTONE_WALLET  = '0xb6677d76f3a87e7dd1163ad3254d35693ff59842';
+        const KENO_PER_MONTH      = 50000;
+        const PAYMENT_STATE_FILE  = './livingstone-payment-state.json';
+        const CHECK_INTERVAL_MS   = 24 * 60 * 60 * 1000; // once per day
+        const DAYS_BETWEEN_PAY    = 30;
+
+        function loadState() {
+            try {
+                return JSON.parse(require('fs').readFileSync(PAYMENT_STATE_FILE, 'utf8'));
+            } catch { return { lastPaid: null, totalPaid: 0, payments: [] }; }
+        }
+
+        function saveState(state) {
+            require('fs').writeFileSync(PAYMENT_STATE_FILE, JSON.stringify(state, null, 2));
+        }
+
+        async function checkAndPay() {
+            if (!bscTokenTransfer || !bscTokenTransfer.initialized) {
+                console.log('[Livingstone] BSC transfer not ready — skipping check');
+                return;
+            }
+            const state = loadState();
+            const now   = Date.now();
+            const last  = state.lastPaid ? new Date(state.lastPaid).getTime() : 0;
+            const daysSince = (now - last) / (1000 * 60 * 60 * 24);
+
+            if (daysSince < DAYS_BETWEEN_PAY) {
+                const daysLeft = Math.ceil(DAYS_BETWEEN_PAY - daysSince);
+                console.log(`[Livingstone] Next payment in ${daysLeft} day(s)`);
+                return;
+            }
+
+            const paymentNum = (state.payments?.length || 0) + 1;
+            console.log(`[Livingstone] 💸 Sending payment #${paymentNum} — ${KENO_PER_MONTH.toLocaleString()} KENO to ${LIVINGSTONE_WALLET}`);
+
+            const result = await bscTokenTransfer.transferTokens(
+                LIVINGSTONE_WALLET,
+                KENO_PER_MONTH,
+                `livingstone-marketing-month-${paymentNum}`
+            );
+
+            if (result.success) {
+                state.lastPaid  = new Date().toISOString();
+                state.totalPaid = (state.totalPaid || 0) + KENO_PER_MONTH;
+                state.payments  = state.payments || [];
+                state.payments.push({
+                    paymentNum,
+                    date:   state.lastPaid,
+                    amount: KENO_PER_MONTH,
+                    txHash: result.txHash
+                });
+                saveState(state);
+                console.log(`[Livingstone] ✅ Payment #${paymentNum} confirmed — TX: ${result.txHash}`);
+            } else {
+                console.error(`[Livingstone] ❌ Payment #${paymentNum} failed: ${result.error}`);
+            }
+        }
+
+        // First check after 5 minutes (let server settle), then every 24 hours
+        setTimeout(() => {
+            checkAndPay();
+            setInterval(checkAndPay, CHECK_INTERVAL_MS);
+        }, 5 * 60 * 1000);
+
+        console.log('💳 Livingstone marketing payment scheduler started — 50,000 KENO/month');
+    })();
+
     // ── Auto-start Flash Orb Bot when BNB lands in bot wallet ──────────────
     // Polls every 60s. Once balance >= 0.01 BNB the bot self-starts and the
     // watcher clears itself so it never double-starts.
