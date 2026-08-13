@@ -2200,6 +2200,41 @@ app.get('/api/admin/enterprise-inquiries', adminAuth, (req, res) => {
     res.json({ success: true, inquiries: enterpriseInquiries });
 });
 
+// ==================== SOLAR BUNKER PARTNER INTEREST ====================
+
+let solarBunkerPartners = [];
+try {
+    const saved = require('fs').readFileSync('./solar_bunker_partners.json', 'utf8');
+    solarBunkerPartners = JSON.parse(saved);
+} catch (e) { solarBunkerPartners = []; }
+
+app.post('/api/solar-bunker/partner-interest', async (req, res) => {
+    try {
+        const { name, company, email, country, type, tier, message, submittedAt } = req.body;
+        if (!name || !email || !type) {
+            return res.status(400).json({ success: false, error: 'Name, email and partner type are required.' });
+        }
+        const entry = {
+            id: 'SBP-' + Date.now(),
+            name, company: company || '', email, country: country || '',
+            type, tier: tier || '', message: message || '',
+            status: 'new',
+            submittedAt: submittedAt || new Date().toISOString()
+        };
+        solarBunkerPartners.push(entry);
+        require('fs').writeFileSync('./solar_bunker_partners.json', JSON.stringify(solarBunkerPartners, null, 2));
+        console.log(`☀️  [SolarBunker] Partner interest: ${name} (${type}) — ${email}`);
+        res.json({ success: true, id: entry.id });
+    } catch (error) {
+        console.error('Solar Bunker partner form error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/solar-bunker-partners', adminAuth, (req, res) => {
+    res.json({ success: true, partners: solarBunkerPartners, total: solarBunkerPartners.length });
+});
+
 // ==================== LICENSE INQUIRY SYSTEM ====================
 
 let licenseInquiries = [];
