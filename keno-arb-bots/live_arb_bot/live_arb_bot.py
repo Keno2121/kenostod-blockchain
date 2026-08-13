@@ -40,8 +40,10 @@ from telegram_notify import (notify_bot_started, notify_arb_executed,
                               notify_error, notify_daily_summary, get_chat_id_help)
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-NETWORK         = os.getenv("NETWORK", "testnet")
-BOT_PRIVATE_KEY = os.getenv("BOT_PRIVATE_KEY", "")
+NETWORK         = os.getenv("NETWORK", "mainnet")
+# Accept BOT_PRIVATE_KEY or fallback to BOT_WALLET_PRIVATE_KEY (64-char, no 0x)
+_raw_key        = os.getenv("BOT_PRIVATE_KEY") or os.getenv("BOT_WALLET_PRIVATE_KEY", "")
+BOT_PRIVATE_KEY = ("0x" + _raw_key) if _raw_key and not _raw_key.startswith("0x") else _raw_key
 BOT_ADDRESS     = os.getenv("BOT_ADDRESS", "")
 MIN_SPREAD_PCT  = float(os.getenv("MIN_SPREAD_PCT", "0.6"))
 MIN_PROFIT_USD  = float(os.getenv("MIN_PROFIT_USD", "0.25"))
