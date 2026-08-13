@@ -3,7 +3,7 @@ const fs = require('fs');
 
 class BSCTokenTransfer {
     constructor() {
-        this.KENO_TOKEN_ADDRESS = '0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E';
+        this.KENO_TOKEN_ADDRESS = '0x48BB049Afe50B050b458624Dc6233acd51024AB4'; // KENO v2
         this.BSC_RPC_URL = 'https://bsc-dataseed.binance.org/';
         this.BSC_CHAIN_ID = 56;
         
