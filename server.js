@@ -622,6 +622,14 @@ app.get('/iaas.html', (req, res) => {
     res.sendFile(__dirname + '/public/iaas.html');
 });
 
+app.get('/proposals/keno-academy-curriculum.html', (req, res) => {
+    res.sendFile(__dirname + '/proposals/keno-academy-curriculum.html');
+});
+
+app.get('/academy', (req, res) => {
+    res.sendFile(__dirname + '/proposals/keno-academy-curriculum.html');
+});
+
 // Whitepaper PDF redirect — PDF doesn't exist, serve the markdown as styled HTML
 app.get('/assets/marketing/KENO-Whitepaper.pdf', (req, res) => {
     const fs = require('fs');
