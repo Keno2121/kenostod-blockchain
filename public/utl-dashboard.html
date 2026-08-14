@@ -1218,13 +1218,13 @@
         };
         const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
         const BSC_CHAIN_ID = '0x38';
-        const BOT_CHAIN_ID = '0x3C8'; // 968 decimal — BOT Chain Testnet
+        const BOT_CHAIN_ID = '0x2A5'; // 677 decimal — BOT Chain Mainnet
         const BOT_CHAIN_CONFIG = {
             chainId: BOT_CHAIN_ID,
-            chainName: 'BOT Chain Testnet',
+            chainName: 'BOT Chain',
             nativeCurrency: { name: 'BOT', symbol: 'tBOT', decimals: 18 },
-            rpcUrls: ['https://rpc.bohr.life'],
-            blockExplorerUrls: ['https://scan.bohr.life']
+            rpcUrls: ['https://rpc.botchain.ai'],
+            blockExplorerUrls: ['https://scan.botchain.ai']
         };
         let selectedNetwork = 'bsc'; // 'bsc' | 'botchain'
         let WALLETCONNECT_PROJECT_ID = 'b5a74d48402f00067b4979c315e7350a'; // public key, safe in frontend
@@ -1325,7 +1325,7 @@
                              (window.ethereum?.isMetaMask ? window.ethereum : null) || window.ethereum;
                 if (prov) {
                     ensureNetwork(prov).then(() => {
-                        const netLabel = isBOT ? 'BOT Chain Testnet' : 'BSC Mainnet';
+                        const netLabel = isBOT ? 'BOT Chain' : 'BSC Mainnet';
                         document.getElementById('networkStatus').innerHTML =
                             `<span class="network-dot connected"></span><span>${netLabel} via ${currentWalletType || 'wallet'}</span>`;
                         showToast(`Switched to ${netLabel}`, 'success');
@@ -1346,7 +1346,7 @@
             if (lt1) lt1.className = 'px-5 py-2 font-semibold transition-all ' + (isBOT ? 'bg-transparent text-slate-400 hover:text-white' : 'bg-indigo-600 text-white');
             if (lt2) lt2.className = 'px-5 py-2 font-semibold transition-all ' + (isBOT ? 'bg-purple-600 text-white' : 'bg-transparent text-slate-400 hover:text-white');
             const desc = document.getElementById('landingNetworkDesc');
-            if (desc) desc.textContent = isBOT ? 'Connecting to UTL on BOT Chain Testnet (Chain ID 968)' : 'Connecting to UTL on BNB Smart Chain';
+            if (desc) desc.textContent = isBOT ? 'Connecting to UTL on BOT Chain Mainnet (Chain ID 677)' : 'Connecting to UTL on BNB Smart Chain';
             const wcs = document.getElementById('landingWcSubtext');
             if (wcs) wcs.textContent = isBOT ? 'Any EVM wallet supporting BOT Chain' : 'Trust Wallet · 300+ BSC wallets';
         }
@@ -1358,14 +1358,14 @@
             document.getElementById('tabBSC').className = 'flex-1 py-2 text-sm font-semibold transition-all ' + (isBOT ? 'bg-transparent text-slate-400 hover:text-white' : 'bg-indigo-600 text-white');
             document.getElementById('tabBOT').className = 'flex-1 py-2 text-sm font-semibold transition-all ' + (isBOT ? 'bg-purple-600 text-white' : 'bg-transparent text-slate-400 hover:text-white');
             document.getElementById('modalNetworkDesc').textContent = isBOT
-                ? "Connect to UTL on BOT Chain Testnet — your BOT wallet will be added automatically."
+                ? "Connect to UTL on BOT Chain Mainnet — your BOT wallet will be added automatically."
                 : "Choose how you'd like to connect to UTL on BNB Smart Chain.";
             document.getElementById('wcSubtext').textContent = isBOT
-                ? 'Any EVM wallet supporting BOT Chain (Chain ID 968)'
+                ? 'Any EVM wallet supporting BOT Chain (Chain ID 677)'
                 : 'MetaMask Mobile · Trust Wallet · 300+ wallets';
             // Update nav badge
             const navTag = document.getElementById('navNetworkTag');
-            if (navTag) navTag.textContent = isBOT ? 'BOT Chain Testnet' : 'LIVE on BSC';
+            if (navTag) navTag.textContent = isBOT ? 'BOT Chain' : 'LIVE on BSC';
         }
 
         async function ensureNetwork(prov) {
@@ -1556,9 +1556,9 @@
                 if (!WCProvider) throw new Error('CDN_LOAD_FAIL');
 
                 const isBOT = selectedNetwork === 'botchain';
-                const wcChainId = isBOT ? 968 : 56;
+                const wcChainId = isBOT ? 677 : 56;
                 const wcRpcMap = isBOT
-                    ? { 968: 'https://rpc.bohr.life' }
+                    ? { 677: 'https://rpc.botchain.ai' }
                     : { 56: 'https://bsc-dataseed1.binance.org/' };
 
                 const wcEthProvider = await WCProvider.init({
@@ -1693,7 +1693,7 @@
             const shortAddr = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
             document.getElementById('connectBtn').innerHTML = `<span class="connected-badge"><i class="fas fa-check-circle mr-1"></i>${shortAddr}</span>`;
             document.getElementById('connectBtn').onclick = openWalletModal;
-            const netLabel = selectedNetwork === 'botchain' ? 'BOT Chain Testnet' : 'BSC Mainnet';
+            const netLabel = selectedNetwork === 'botchain' ? 'BOT Chain' : 'BSC Mainnet';
             document.getElementById('networkStatus').innerHTML = `<span class="network-dot connected"></span><span>${netLabel} via ${walletType}</span>`;
             document.getElementById('notConnected').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
