@@ -481,14 +481,13 @@
                     <!-- ===== END DEMO ===== -->
 
                     <div id="snapMobileNote" class="hidden rounded-xl p-4 border border-blue-500/30 bg-blue-500/10 mb-2">
-                        <p class="text-sm text-blue-300 font-semibold mb-1"><i class="fas fa-mobile-screen mr-2"></i>Desktop Only Feature</p>
-                        <p class="text-xs text-slate-400">MetaMask Snaps only work in the <strong class="text-white">desktop browser extension</strong> — not the mobile app. To install the UTL Snap:</p>
+                        <p class="text-sm text-blue-300 font-semibold mb-1"><i class="fas fa-mobile-screen mr-2"></i>MetaMask Snap</p>
+                        <p class="text-xs text-slate-400">UTL Snap works inside the MetaMask browser extension. To install:</p>
                         <ol class="text-xs text-slate-400 mt-2 space-y-1 list-decimal list-inside">
-                            <li>Open this page on your desktop computer</li>
-                            <li>Make sure MetaMask browser extension is installed</li>
-                            <li>Click "Install UTL Snap" on desktop</li>
+                            <li>Open MetaMask and navigate to this page</li>
+                            <li>Tap "Install UTL Snap" below</li>
                         </ol>
-                        <a href="https://metamask.io/download/" target="_blank" class="inline-block mt-3 text-xs text-blue-400 underline">Get MetaMask for desktop →</a>
+                        <a href="https://metamask.io/download/" target="_blank" class="inline-block mt-3 text-xs text-blue-400 underline">Get MetaMask →</a>
                     </div>
 
                     <div id="snapNotInstalled" class="">
@@ -1218,6 +1217,23 @@
         };
         const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
         const BSC_CHAIN_ID = '0x38';
+        // ── WalletConnect — pre-load eagerly so it's ready by the time user taps ──
+        (function preloadWC() {
+            if (window.WalletConnectEthereumProvider || window._wcLoading) return;
+            window._wcLoading = true;
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.3/dist/index.umd.min.js';
+            s.onload = () => {
+                // WC v2 UMD may nest under .EthereumProvider
+                if (window.WalletConnectEthereumProvider?.EthereumProvider) {
+                    window.WalletConnectEthereumProvider = window.WalletConnectEthereumProvider.EthereumProvider;
+                }
+                window._wcLoading = false;
+            };
+            s.onerror = () => { window._wcLoading = false; };
+            document.head.appendChild(s);
+        })();
+
         const BOT_CHAIN_ID = '0x2A5'; // 677 decimal — BOT Chain Mainnet
         const BOT_CHAIN_CONFIG = {
             chainId: BOT_CHAIN_ID,
@@ -1420,9 +1436,10 @@
         }
 
         async function connectMetaMaskDirect() {
-            const mmProvider = window.ethereum?.providers?.find(p => p.isMetaMask) || (window.ethereum?.isMetaMask ? window.ethereum : null) || window.ethereum;
+            // Only grab MetaMask — never fall back to an arbitrary injected provider
+            const mmProvider = window.ethereum?.providers?.find(p => p.isMetaMask) || (window.ethereum?.isMetaMask ? window.ethereum : null);
             if (!mmProvider) {
-                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const isMobile = /Android|iPhone|iPad|iPod|Mobile|mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
                 if (isMobile) {
                     // anchor-click bypasses Chrome's programmatic navigation block
                     showToast('Opening MetaMask app…', 'info', 4000);
@@ -1453,6 +1470,7 @@
         }
 
         async function connectCoinbaseDirect() {
+            // Only grab Coinbase — never fall back to arbitrary injected provider
             const cbProvider = window.ethereum?.providers?.find(p => p.isCoinbaseWallet) || (window.ethereum?.isCoinbaseWallet ? window.ethereum : null);
             if (cbProvider) {
                 await cbProvider.request({ method: 'eth_requestAccounts' });
@@ -1464,7 +1482,7 @@
                 showConnected('Coinbase Wallet');
                 loadDashboard();
             } else {
-                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                const isMobile = /Android|iPhone|iPad|iPod|Mobile|mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
                 if (isMobile) {
                     showToast('Opening Coinbase Wallet…', 'info', 4000);
                     const a = document.createElement('a');
@@ -1542,18 +1560,36 @@
             await configPromise;
             showToast('Opening WalletConnect…', 'info', 8000);
             try {
-                // Load WalletConnect EthereumProvider via CDN
+                // Wait up to 8s for the eagerly-preloaded script to finish
                 await new Promise((resolve, reject) => {
-                    if (window.WalletConnectEthereumProvider) { resolve(); return; }
-                    const s = document.createElement('script');
-                    s.src = 'https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.3/dist/index.umd.min.js';
-                    s.onload = resolve;
-                    s.onerror = () => reject(new Error('CDN_LOAD_FAIL'));
-                    document.head.appendChild(s);
+                    if (window.WalletConnectEthereumProvider && !window._wcLoading) { resolve(); return; }
+                    let waited = 0;
+                    const poll = setInterval(() => {
+                        waited += 100;
+                        if (window.WalletConnectEthereumProvider && !window._wcLoading) { clearInterval(poll); resolve(); return; }
+                        if (waited >= 8000) { clearInterval(poll); reject(new Error('CDN_LOAD_FAIL')); }
+                    }, 100);
+                    // Also try injecting ourselves in case preload failed silently
+                    if (!window._wcLoading && !window.WalletConnectEthereumProvider) {
+                        window._wcLoading = true;
+                        const s = document.createElement('script');
+                        s.src = 'https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.3/dist/index.umd.min.js';
+                        s.onload = () => {
+                            if (window.WalletConnectEthereumProvider?.EthereumProvider) {
+                                window.WalletConnectEthereumProvider = window.WalletConnectEthereumProvider.EthereumProvider;
+                            }
+                            window._wcLoading = false;
+                        };
+                        s.onerror = () => { window._wcLoading = false; };
+                        document.head.appendChild(s);
+                    }
                 });
 
-                const WCProvider = window.WalletConnectEthereumProvider;
-                if (!WCProvider) throw new Error('CDN_LOAD_FAIL');
+                // Handle both WC v2 export shapes: direct class or nested under .EthereumProvider
+                const WCProvider = window.WalletConnectEthereumProvider?.init
+                    ? window.WalletConnectEthereumProvider
+                    : window.WalletConnectEthereumProvider?.EthereumProvider;
+                if (!WCProvider?.init) throw new Error('CDN_LOAD_FAIL');
 
                 const isBOT = selectedNetwork === 'botchain';
                 const wcChainId = isBOT ? 677 : 56;
@@ -2297,11 +2333,10 @@
             const noMetaMask = document.getElementById('snapNoMetaMask');
             const mobileNote = document.getElementById('snapMobileNote');
 
-            const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+            const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
             if (isMobile) {
-                badge.textContent = 'Desktop Only';
-                badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400';
-                notInstalled.classList.add('hidden');
+                badge.textContent = 'No MetaMask';
+                badge.className = 'ml-auto px-3 py-1 rounded-full text-xs font-semibold bg-slate-700/60 text-slate-400';
                 if (mobileNote) mobileNote.classList.remove('hidden');
                 return;
             }
