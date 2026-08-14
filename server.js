@@ -630,6 +630,14 @@ app.get('/academy', (req, res) => {
     res.sendFile(__dirname + '/proposals/keno-academy-curriculum.html');
 });
 
+app.get('/soe', (req, res) => {
+    res.sendFile(__dirname + '/public/sovereign-economy.html');
+});
+
+app.get('/sovereign-economy', (req, res) => {
+    res.sendFile(__dirname + '/public/sovereign-economy.html');
+});
+
 // Whitepaper PDF redirect — PDF doesn't exist, serve the markdown as styled HTML
 app.get('/assets/marketing/KENO-Whitepaper.pdf', (req, res) => {
     const fs = require('fs');
