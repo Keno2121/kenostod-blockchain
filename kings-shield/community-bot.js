@@ -583,14 +583,10 @@ async function sendStartupPost() {
   const text =
 `👑 <b>Sovereign Economy — ${timeGreeting()}, Sovereigns!</b>
 
-📅 Presale opens in <b>${daysUntil(PRESALE_OPEN)} days</b> — July 23, 2026
-⚡ Rate: 750,000 KENO per BNB
-🎯 Soft cap: 30 BNB | Hard cap: 60 BNB
-
 🎓 <b>21 free courses → earn 5,250 KENO</b>
 Start free: ${WEBSITE}
 
-Type /courses · /presale · /liquidity · /trivia
+Type /courses · /liquidity · /trivia
 
 <i>The Sovereign Economy — Education-Fi (E-Fi)
 Where Learning ends and Earning begins.</i>`;
