@@ -613,7 +613,7 @@
             <div class="glass rounded-xl p-5 stat-card">
                 <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Total Fees Collected</div>
                 <div id="totalFees" class="text-2xl font-bold text-white">-</div>
-                <div class="text-xs text-slate-500 mt-1">BNB</div>
+                <div id="stat-fees-curr" class="text-xs text-slate-500 mt-1">BNB</div>
             </div>
             <div class="glass rounded-xl p-5 stat-card">
                 <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Transactions Processed</div>
@@ -623,7 +623,7 @@
             <div class="glass rounded-xl p-5 stat-card">
                 <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Contract Balance</div>
                 <div id="contractBalance" class="text-2xl font-bold text-white">-</div>
-                <div class="text-xs text-slate-500 mt-1">BNB held</div>
+                <div id="stat-balance-curr" class="text-xs text-slate-500 mt-1">BNB held</div>
             </div>
             <div class="glass rounded-xl p-5 stat-card">
                 <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">Fee Rate</div>
@@ -635,17 +635,17 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div class="glass rounded-xl p-6 lg:col-span-2">
                 <h3 class="font-semibold text-lg mb-4"><i class="fas fa-exchange-alt mr-2 text-indigo-400"></i>Send Transaction via UTL</h3>
-                <p class="text-sm text-slate-400 mb-4">Send BNB to any address. UTL captures a 0.1% fee — 60% goes to stakers, 40% to treasury.</p>
+                <p id="send-native-desc" class="text-sm text-slate-400 mb-4">Send BNB to any address. UTL captures a 0.1% fee — 60% goes to stakers, 40% to treasury.</p>
                 <div class="space-y-4">
                     <div>
                         <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Recipient Address</label>
                         <input id="recipientAddr" type="text" placeholder="0x..." class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white"/>
                     </div>
                     <div>
-                        <label class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Amount (BNB)</label>
+                        <label id="send-amount-label" class="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Amount (BNB)</label>
                         <input id="sendAmount" type="number" step="0.001" min="0.001" placeholder="0.01" class="w-full bg-slate-800/50 border border-slate-600/50 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 text-white" oninput="updateFeePreview()"/>
                         <div class="flex justify-between mt-1">
-                            <span class="text-xs text-slate-500">Min: 0.001 BNB</span>
+                            <span id="send-min-label" class="text-xs text-slate-500">Min: 0.001 BNB</span>
                             <span id="feePreview" class="text-xs text-indigo-400">Fee: ~0.000001 BNB</span>
                         </div>
                     </div>
@@ -667,7 +667,7 @@
                         <div id="userAddress" class="text-sm font-mono text-white truncate mt-1">-</div>
                     </div>
                     <div>
-                        <div class="text-xs text-slate-400 uppercase tracking-wider">Your BNB Balance</div>
+                        <div id="user-balance-label" class="text-xs text-slate-400 uppercase tracking-wider">Your BNB Balance</div>
                         <div id="userBalance" class="text-lg font-bold text-white mt-1">-</div>
                     </div>
                     <div>
@@ -1238,11 +1238,32 @@
         const BOT_CHAIN_CONFIG = {
             chainId: BOT_CHAIN_ID,
             chainName: 'BOT Chain',
-            nativeCurrency: { name: 'BOT', symbol: 'tBOT', decimals: 18 },
+            nativeCurrency: { name: 'BOT', symbol: 'BOT', decimals: 18 },
             rpcUrls: ['https://rpc.botchain.ai'],
             blockExplorerUrls: ['https://scan.botchain.ai']
         };
         let selectedNetwork = 'bsc'; // 'bsc' | 'botchain'
+
+        // Returns the native gas token symbol for the current network
+        function getNativeCurrency() { return selectedNetwork === 'botchain' ? 'BOT' : 'BNB'; }
+
+        // Updates all static HTML labels that show the native currency name
+        function updateNativeCurrencyLabels() {
+            const sym = getNativeCurrency();
+            const els = {
+                'stat-fees-curr':      sym,
+                'stat-balance-curr':   sym + ' held',
+                'send-amount-label':   'Amount (' + sym + ')',
+                'send-min-label':      'Min: 0.001 ' + sym,
+                'user-balance-label':  'Your ' + sym + ' Balance',
+            };
+            Object.entries(els).forEach(([id, txt]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = txt;
+            });
+            const desc = document.getElementById('send-native-desc');
+            if (desc) desc.textContent = `Send ${sym} to any address. UTL captures a 0.1% fee — 60% goes to stakers, 40% to treasury.`;
+        }
         let WALLETCONNECT_PROJECT_ID = 'b5a74d48402f00067b4979c315e7350a'; // public key, safe in frontend
         let configLoaded = false;
 
@@ -1805,7 +1826,8 @@
                 ]);
 
                 document.getElementById('userAddress').textContent = userAddress;
-                document.getElementById('userBalance').textContent = parseFloat(ethers.utils.formatEther(balance)).toFixed(6) + ' BNB';
+                document.getElementById('userBalance').textContent = parseFloat(ethers.utils.formatEther(balance)).toFixed(6) + ' ' + getNativeCurrency();
+                updateNativeCurrencyLabels();
                 document.getElementById('totalFees').textContent = parseFloat(ethers.utils.formatEther(totalFees)).toFixed(8);
                 document.getElementById('totalTx').textContent = totalTx.toString();
                 document.getElementById('feeRate').textContent = feeRateVal.toString();
@@ -1816,8 +1838,8 @@
                 try {
                     const userStats = await feeCollectorContract.getUserStats(userAddress);
                     document.getElementById('userTxCount').textContent = userStats[0].toString();
-                    document.getElementById('userFeesPaid').textContent = parseFloat(ethers.utils.formatEther(userStats[1])).toFixed(8) + ' BNB';
-                } catch { document.getElementById('userTxCount').textContent = '0'; document.getElementById('userFeesPaid').textContent = '0 BNB'; }
+                    document.getElementById('userFeesPaid').textContent = parseFloat(ethers.utils.formatEther(userStats[1])).toFixed(8) + ' ' + getNativeCurrency();
+                } catch { document.getElementById('userTxCount').textContent = '0'; document.getElementById('userFeesPaid').textContent = '0 ' + getNativeCurrency(); }
 
                 try {
                     const stakeInfo = await stakingContract.getStakeInfo(userAddress);
@@ -1829,7 +1851,7 @@
                     const tierIdx = stakeInfo[3];
                     document.getElementById('userTier').className = `tier-badge ${tierClasses[tierIdx]}`;
                     document.getElementById('userTier').textContent = tierNames[tierIdx];
-                    const rewardStr = parseFloat(ethers.utils.formatEther(stakeInfo[2])).toFixed(8) + ' BNB';
+                    const rewardStr = parseFloat(ethers.utils.formatEther(stakeInfo[2])).toFixed(8) + ' ' + getNativeCurrency();
                     document.getElementById('userRewards').textContent = rewardStr;
                     const fw = document.getElementById('flywheelRewards');
                     if (fw) fw.textContent = rewardStr;
@@ -1862,7 +1884,7 @@
         function updateFeePreview() {
             const amount = parseFloat(document.getElementById('sendAmount').value) || 0;
             const fee = amount * 0.001;
-            document.getElementById('feePreview').textContent = `Fee: ~${fee.toFixed(6)} BNB`;
+            document.getElementById('feePreview').textContent = `Fee: ~${fee.toFixed(6)} ${getNativeCurrency()}`;
         }
 
         function withTimeout(promise, ms, label) {
@@ -1893,11 +1915,12 @@
                     'Wallet approval'
                 );
 
-                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Confirming on BSC...';
+                const netName = selectedNetwork === 'botchain' ? 'BOT Chain' : 'BSC';
+                sendBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Confirming on ${netName}...`;
                 showToast(`Transaction sent! Hash: ${tx.hash.slice(0,10)}...`, 'success');
 
                 const receipt = await withTimeout(tx.wait(), 120000, 'Transaction confirmation');
-                showToast('Transaction confirmed on BSC!', 'success');
+                showToast(`Transaction confirmed on ${netName}!`, 'success');
                 loadDashboard();
             } catch (err) {
                 console.error('Send transaction error:', err);
@@ -1907,7 +1930,7 @@
                 } else if (msg.includes('timed out')) {
                     showToast(msg, 'error');
                 } else if (msg.includes('insufficient funds') || msg.includes('INSUFFICIENT_FUNDS')) {
-                    showToast('Insufficient BNB balance for this transaction + gas fees', 'error');
+                    showToast(`Insufficient ${getNativeCurrency()} balance for this transaction + gas fees`, 'error');
                 } else {
                     showToast('Transaction failed: ' + msg, 'error');
                 }
@@ -2208,7 +2231,7 @@
             autoCompoundEnabled = enabled;
             localStorage.setItem('utl_autocompound', enabled ? 'true' : 'false');
             if (enabled) {
-                showToast('Auto-compound enabled — rewards above 0.001 BNB will auto-restake', 'success');
+                showToast(`Auto-compound enabled — rewards above 0.001 ${getNativeCurrency()} will auto-restake`, 'success');
                 startAutoCompound();
             } else {
                 showToast('Auto-compound disabled', 'info');
@@ -2225,10 +2248,10 @@
                     const info = await withTimeout(stakingContract.getUserInfo(addr), 15000, 'getUserInfo');
                     const pendingBNB = parseFloat(ethers.utils.formatEther(info.pendingRewards || 0));
                     if (pendingBNB >= 0.001) {
-                        console.log('Auto-compound: claiming', pendingBNB, 'BNB');
+                        console.log('Auto-compound: claiming', pendingBNB, getNativeCurrency());
                         const tx = await withTimeout(stakingContract.claimRewards(), 120000, 'autocompound claim');
                         await tx.wait();
-                        showToast(`Auto-compound: Claimed ${pendingBNB.toFixed(6)} BNB rewards`, 'success');
+                        showToast(`Auto-compound: Claimed ${pendingBNB.toFixed(6)} ${getNativeCurrency()} rewards`, 'success');
                         loadDashboard();
                     }
                 } catch (e) { console.log('Auto-compound check failed:', e.message); }
@@ -2286,12 +2309,12 @@
                     const parsed = iface.parseLog(log);
                     const amt = parseFloat(ethers.utils.formatEther(parsed.args.amount));
                     totalClaimed += amt;
-                    events.push({ block: log.blockNumber, type: 'Claimed', amount: amt, unit: 'BNB', hash: log.transactionHash });
+                    events.push({ block: log.blockNumber, type: 'Claimed', amount: amt, unit: getNativeCurrency(), hash: log.transactionHash });
                 }
 
                 events.sort((a, b) => b.block - a.block);
 
-                document.getElementById('histTotalClaimed').textContent  = totalClaimed.toFixed(8)  + ' BNB';
+                document.getElementById('histTotalClaimed').textContent  = totalClaimed.toFixed(8)  + ' ' + getNativeCurrency();
                 document.getElementById('histTotalStaked').textContent   = totalStaked.toFixed(4)   + ' USDC';
                 document.getElementById('histTotalUnstaked').textContent = totalUnstaked.toFixed(4) + ' USDC';
                 document.getElementById('histEventCount').textContent    = events.length;
