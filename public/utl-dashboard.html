@@ -1104,36 +1104,9 @@
         <!-- ═══════════════════════════════════════════════════════════════ -->
 
         <div class="glass rounded-xl p-6 mb-8">
-            <h3 class="font-semibold text-lg mb-4"><i class="fas fa-file-contract mr-2 text-indigo-400"></i>Live Contracts on BSC</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <a href="https://bscscan.com/address/0xb9489B33Bd9bB835139369b1dD282fB44B2273d8" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
-                    <div>
-                        <div class="text-sm font-semibold">FeeCollector</div>
-                        <div class="text-xs font-mono text-slate-400">0xfE537c...BB662f</div>
-                    </div>
-                    <i class="fas fa-external-link-alt text-slate-500"></i>
-                </a>
-                <a href="https://bscscan.com/address/0x77C3946A9FD5F509584F94e81C43efb25120c837" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
-                    <div>
-                        <div class="text-sm font-semibold">Staking</div>
-                        <div class="text-xs font-mono text-slate-400">0x49961...19d1d</div>
-                    </div>
-                    <i class="fas fa-external-link-alt text-slate-500"></i>
-                </a>
-                <a href="https://bscscan.com/address/0x54A01A5bf5096c351F166C15143eA9a9Af393C84" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
-                    <div>
-                        <div class="text-sm font-semibold">Treasury</div>
-                        <div class="text-xs font-mono text-slate-400">0x3B353...bE97</div>
-                    </div>
-                    <i class="fas fa-external-link-alt text-slate-500"></i>
-                </a>
-                <a href="https://bscscan.com/address/0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167" target="_blank" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
-                    <div>
-                        <div class="text-sm font-semibold">Distribution</div>
-                        <div class="text-xs font-mono text-slate-400">0xE6918...93c7</div>
-                    </div>
-                    <i class="fas fa-external-link-alt text-slate-500"></i>
-                </a>
+            <h3 id="liveContractsPanelTitle" class="font-semibold text-lg mb-4"><i class="fas fa-file-contract mr-2 text-indigo-400"></i>Live Contracts</h3>
+            <div id="liveContractsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- populated by renderLiveContractsPanel() on connect / network switch -->
             </div>
         </div>
 
@@ -1209,13 +1182,61 @@
     </footer>
 
     <script>
-        const CONTRACTS = {
+        // ── Per-network contract addresses ────────────────────────────────────
+        const BSC_CONTRACTS = {
             FeeCollector: '0xb9489B33Bd9bB835139369b1dD282fB44B2273d8',
-            Staking: '0x77C3946A9FD5F509584F94e81C43efb25120c837',
-            Treasury: '0x54A01A5bf5096c351F166C15143eA9a9Af393C84',
+            Staking:      '0x77C3946A9FD5F509584F94e81C43efb25120c837',
+            Treasury:     '0x54A01A5bf5096c351F166C15143eA9a9Af393C84',
             Distribution: '0xdeE5a5456e394DB34F03c770e81eDC9B7F8FE167'
         };
-        const KENO_ADDRESS = '0x48bb049afe50b050b458624dc6233acd51024ab4';
+        const BOTCHAIN_CONTRACTS = {
+            FeeCollector: '0xBb44a52b2B69D820cA1792Ca9a496e9F00B2F9E7',
+            Staking:      '0xd6a73bc00f623f893831B623efdA9901CAF58e63',
+            Treasury:     '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2', // bot wallet (treasury)
+            Distribution: '0xa4061713630e272eb69d6549fF14B0b2B955CB70'
+        };
+        function getContracts() {
+            return selectedNetwork === 'botchain' ? BOTCHAIN_CONTRACTS : BSC_CONTRACTS;
+        }
+        const BSC_KENO_ADDRESS      = '0x48bb049afe50b050b458624dc6233acd51024ab4';
+        const BOTCHAIN_KENO_ADDRESS = '0x137a5Fc22a76Ec42490F2421a81935d124baE714';
+        function getKenoAddress() {
+            return selectedNetwork === 'botchain' ? BOTCHAIN_KENO_ADDRESS : BSC_KENO_ADDRESS;
+        }
+        function getExplorer() {
+            return selectedNetwork === 'botchain'
+                ? 'https://scan.botchain.ai'
+                : 'https://bscscan.com';
+        }
+        // Legacy alias kept for any remaining references
+        const KENO_ADDRESS = BSC_KENO_ADDRESS;
+
+        function renderLiveContractsPanel() {
+            const c = getContracts();
+            const explorer = getExplorer();
+            const netLabel = selectedNetwork === 'botchain' ? 'BOT Chain' : 'BSC';
+            const title = document.getElementById('liveContractsPanelTitle');
+            if (title) title.innerHTML = `<i class="fas fa-file-contract mr-2 text-indigo-400"></i>Live Contracts on ${netLabel}`;
+
+            const shortAddr = addr => addr.slice(0, 8) + '...' + addr.slice(-6);
+            const entries = [
+                { name: 'FeeCollector',  addr: c.FeeCollector },
+                { name: 'Staking',       addr: c.Staking },
+                { name: 'Treasury',      addr: c.Treasury },
+                { name: 'Distribution',  addr: c.Distribution }
+            ];
+            const grid = document.getElementById('liveContractsGrid');
+            if (!grid) return;
+            grid.innerHTML = entries.map(({ name, addr }) => `
+                <a href="${explorer}/address/${addr}" target="_blank"
+                   class="flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-800/70 transition-colors">
+                    <div>
+                        <div class="text-sm font-semibold">${name}</div>
+                        <div class="text-xs font-mono text-slate-400">${shortAddr(addr)}</div>
+                    </div>
+                    <i class="fas fa-external-link-alt text-slate-500"></i>
+                </a>`).join('');
+        }
         const BSC_CHAIN_ID = '0x38';
         // ── WalletConnect — pre-load eagerly so it's ready by the time user taps ──
         (function preloadWC() {
@@ -1311,6 +1332,7 @@
         let walletConnector = null;
         let stakedAmountWei = null;
         let currentWalletType = null;
+        let rawProvider = null; // raw EIP-1193 provider — reused for chain switches
 
         if (window.UTLWalletConnector) {
             walletConnector = new window.UTLWalletConnector();
@@ -1356,16 +1378,24 @@
             }
             // Also sync landing tabs if visible
             selectLandingNetwork(net);
-            // If already connected, prompt to switch chain
+            // If already connected, switch chain then rebuild the ethers stack
             if (provider && signer) {
-                const prov = window.ethereum?.providers?.find(p => p.isMetaMask) ||
-                             (window.ethereum?.isMetaMask ? window.ethereum : null) || window.ethereum;
+                const prov = rawProvider ||
+                             window.ethereum?.providers?.find(p => p.isMetaMask) ||
+                             (window.ethereum?.isMetaMask ? window.ethereum : null) ||
+                             window.ethereum;
                 if (prov) {
-                    ensureNetwork(prov).then(() => {
+                    ensureNetwork(prov).then(async () => {
+                        // Rebuild provider/signer for the new chain
+                        provider = new ethers.providers.Web3Provider(prov);
+                        signer   = provider.getSigner();
+                        userAddress = await signer.getAddress();
+                        setupContracts();
                         const netLabel = isBOT ? 'BOT Chain' : 'BSC Mainnet';
                         document.getElementById('networkStatus').innerHTML =
                             `<span class="network-dot connected"></span><span>${netLabel} via ${currentWalletType || 'wallet'}</span>`;
                         showToast(`Switched to ${netLabel}`, 'success');
+                        loadDashboard();
                     }).catch(() => {
                         showToast('Switch the network in your wallet to continue.', 'warning', 6000);
                     });
@@ -1403,6 +1433,50 @@
             // Update nav badge
             const navTag = document.getElementById('navNetworkTag');
             if (navTag) navTag.textContent = isBOT ? 'BOT Chain' : 'LIVE on BSC';
+        }
+
+        /**
+         * Handles the EIP-1193 `chainChanged` event fired by the wallet.
+         * Syncs selectedNetwork UI tabs, rebuilds ethers provider/signer,
+         * re-instantiates contracts, and refreshes the dashboard.
+         * Shows a warning for unsupported chains without disconnecting.
+         */
+        async function handleChainChanged(chainId, walletLabel) {
+            const chainIdDec = parseInt(chainId, 16);
+            const isBSC = chainIdDec === 56;
+            const isBOT = chainIdDec === 677;
+
+            if (!isBSC && !isBOT) {
+                showToast(`Unsupported network (Chain ID ${chainIdDec}). Switch to BSC (56) or BOT Chain (677).`, 'warning', 8000);
+                return;
+            }
+
+            const net = isBOT ? 'botchain' : 'bsc';
+            // Sync UI without triggering another chain switch
+            selectModalNetwork(net);
+            // Sync nav tabs
+            const bscBtn = document.getElementById('navTabBSC');
+            const botBtn = document.getElementById('navTabBOT');
+            if (bscBtn) { bscBtn.style.background = isBOT ? 'transparent' : 'rgba(99,102,241,0.9)'; bscBtn.style.color = isBOT ? '#94a3b8' : '#fff'; }
+            if (botBtn) { botBtn.style.background = isBOT ? 'rgba(139,92,246,0.9)' : 'transparent'; botBtn.style.color = isBOT ? '#fff' : '#94a3b8'; }
+
+            if (rawProvider) {
+                try {
+                    provider    = new ethers.providers.Web3Provider(rawProvider);
+                    signer      = provider.getSigner();
+                    userAddress = await signer.getAddress();
+                    setupContracts();
+                    const netLabel = isBOT ? 'BOT Chain' : 'BSC Mainnet';
+                    document.getElementById('networkStatus').innerHTML =
+                        `<span class="network-dot connected"></span><span>${netLabel} via ${walletLabel}</span>`;
+                    showToast(`Chain switched to ${netLabel}`, 'success');
+                    loadDashboard();
+                } catch (err) {
+                    console.error('handleChainChanged rebuild failed:', err);
+                    showToast('Chain changed — please reconnect your wallet.', 'warning', 6000);
+                    showDisconnected();
+                }
+            }
         }
 
         async function ensureNetwork(prov) {
@@ -1477,6 +1551,7 @@
             }
             await mmProvider.request({ method: 'eth_requestAccounts' });
             await ensureNetwork(mmProvider);
+            rawProvider = mmProvider;
             provider = new ethers.providers.Web3Provider(mmProvider);
             signer = provider.getSigner();
             userAddress = await signer.getAddress();
@@ -1488,6 +1563,7 @@
                 if (accounts.length === 0) { showDisconnected(); }
                 else { userAddress = accounts[0]; loadDashboard(); }
             });
+            mmProvider.on('chainChanged', (chainId) => handleChainChanged(chainId, 'MetaMask'));
         }
 
         async function connectCoinbaseDirect() {
@@ -1496,12 +1572,14 @@
             if (cbProvider) {
                 await cbProvider.request({ method: 'eth_requestAccounts' });
                 await ensureNetwork(cbProvider);
+                rawProvider = cbProvider;
                 provider = new ethers.providers.Web3Provider(cbProvider);
                 signer = provider.getSigner();
                 userAddress = await signer.getAddress();
                 setupContracts();
                 showConnected('Coinbase Wallet');
                 loadDashboard();
+                cbProvider.on('chainChanged', (chainId) => handleChainChanged(chainId, 'Coinbase Wallet'));
             } else {
                 const isMobile = /Android|iPhone|iPad|iPod|Mobile|mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
                 if (isMobile) {
@@ -1556,6 +1634,7 @@
             try {
                 await ensureNetwork(phantomProvider);
             } catch (networkErr) {
+                rawProvider = phantomProvider;
                 setupContracts();
                 showConnected('Phantom');
                 showPhantomBSCNotice();
@@ -1567,6 +1646,7 @@
                 return;
             }
 
+            rawProvider = phantomProvider;
             setupContracts();
             showConnected('Phantom');
             loadDashboard();
@@ -1575,6 +1655,7 @@
                 if (accounts.length === 0) { showDisconnected(); }
                 else { userAddress = accounts[0]; loadDashboard(); }
             });
+            phantomProvider.on('chainChanged', (chainId) => handleChainChanged(chainId, 'Phantom'));
         }
 
         async function connectWalletConnectDirect() {
@@ -1634,6 +1715,7 @@
 
                 await wcEthProvider.connect({ chains: [wcChainId] });
 
+                rawProvider = wcEthProvider;
                 provider = new ethers.providers.Web3Provider(wcEthProvider);
                 signer = provider.getSigner();
                 userAddress = await signer.getAddress();
@@ -1646,6 +1728,7 @@
                     if (!accounts.length) showDisconnected();
                     else { userAddress = accounts[0]; loadDashboard(); }
                 });
+                wcEthProvider.on('chainChanged', (chainId) => handleChainChanged(chainId, 'WalletConnect'));
             } catch (err) {
                 if (err.message?.includes('User rejected') || err.code === 4001) {
                     showToast('Connection cancelled.', 'warning');
@@ -1740,9 +1823,10 @@
         }
 
         function setupContracts() {
-            feeCollectorContract = new ethers.Contract(CONTRACTS.FeeCollector, FEE_COLLECTOR_ABI, signer);
-            stakingContract = new ethers.Contract(CONTRACTS.Staking, STAKING_ABI, signer);
-            kenoContract = new ethers.Contract(KENO_ADDRESS, ERC20_ABI, signer);
+            const c = getContracts();
+            feeCollectorContract = new ethers.Contract(c.FeeCollector, FEE_COLLECTOR_ABI, signer);
+            stakingContract      = new ethers.Contract(c.Staking,      STAKING_ABI,       signer);
+            kenoContract         = new ethers.Contract(getKenoAddress(), ERC20_ABI,        signer);
         }
 
         function showConnected(walletType) {
@@ -1817,6 +1901,7 @@
             // Auto-sync Snap with connected wallet (non-blocking)
             syncSnapOnConnect(userAddress).catch(() => {});
 
+            renderLiveContractsPanel();
             try {
                 const [balance, totalFees, totalTx, feeRateVal] = await Promise.all([
                     provider.getBalance(userAddress),
@@ -1832,7 +1917,7 @@
                 document.getElementById('totalTx').textContent = totalTx.toString();
                 document.getElementById('feeRate').textContent = feeRateVal.toString();
 
-                const contractBal = await provider.getBalance(CONTRACTS.FeeCollector);
+                const contractBal = await provider.getBalance(getContracts().FeeCollector);
                 document.getElementById('contractBalance').textContent = parseFloat(ethers.utils.formatEther(contractBal)).toFixed(8);
 
                 try {
@@ -1950,7 +2035,7 @@
                 showToast('Step 1 of 2: Approving KENO — check your wallet...', 'info');
                 const stakeWei = ethers.utils.parseUnits(amount, 18);
                 console.log('Approving', amount, 'KENO, wei:', stakeWei.toString());
-                const approveTx = await withTimeout(kenoContract.approve(CONTRACTS.Staking, stakeWei), 120000, 'KENO approval');
+                const approveTx = await withTimeout(kenoContract.approve(getContracts().Staking, stakeWei), 120000, 'KENO approval');
                 showToast('Approval sent! Waiting for confirmation...', 'info');
                 await withTimeout(approveTx.wait(), 120000, 'Approval confirmation');
                 showToast('Step 2 of 2: Now staking — approve again in your wallet...', 'info');
@@ -2272,10 +2357,11 @@
                 return;
             }
             section.classList.remove('hidden');
-            table.innerHTML = '<div class="text-center text-slate-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Reading events from BSC...</div>';
+            const netLabel = selectedNetwork === 'botchain' ? 'BOT Chain' : 'BSC';
+            table.innerHTML = `<div class="text-center text-slate-500 py-8"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Reading events from ${netLabel}...</div>`;
 
             try {
-                const STAKING_ADDR = '0x77C3946A9FD5F509584F94e81C43efb25120c837';
+                const STAKING_ADDR = getContracts().Staking;
                 const iface = new ethers.utils.Interface(STAKING_ABI_HIST);
                 const latestBlock = await provider.getBlockNumber();
                 const fromBlock = Math.max(latestBlock - 4900, 0);
@@ -2336,7 +2422,7 @@
                         <td class="py-3 pr-4"><span class="px-2 py-0.5 rounded text-xs font-semibold ${typeColor[e.type]} ${typeBg[e.type]}">${e.type}</span></td>
                         <td class="py-3 pr-4 font-mono font-semibold ${typeColor[e.type]}">${e.amount.toFixed(6)} ${e.unit}</td>
                         <td class="py-3 pr-4 text-slate-400 font-mono">#${e.block.toLocaleString()}</td>
-                        <td class="py-3"><a href="https://bscscan.com/tx/${e.hash}" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-mono text-xs">${e.hash.slice(0,8)}...${e.hash.slice(-6)} <i class="fas fa-external-link-alt ml-1 text-xs"></i></a></td>
+                        <td class="py-3"><a href="${getExplorer()}/tx/${e.hash}" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-mono text-xs">${e.hash.slice(0,8)}...${e.hash.slice(-6)} <i class="fas fa-external-link-alt ml-1 text-xs"></i></a></td>
                     </tr>`).join('')}
                     </tbody></table>`;
             } catch (err) {
