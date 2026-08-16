@@ -21,13 +21,13 @@ export const modules: ModuleMap = {
   "./components/mockups/trinity/TrinityMonogramTY.tsx": () => import("../components/mockups/trinity/TrinityMonogramTY.tsx"),
   "./components/mockups/trinity/TrinityTriquetra.tsx": () => import("../components/mockups/trinity/TrinityTriquetra.tsx"),
   "./components/mockups/utlhook/InvestorPitch.tsx": () => import("../components/mockups/utlhook/InvestorPitch.tsx"),
-  "./components/mockups/fal-arbitrage-loans/scenes/Scene1.tsx": () => import("../components/mockups/fal-arbitrage-loans/scenes/Scene1.tsx"),
-  "./components/mockups/fal-arbitrage-loans/scenes/Scene2.tsx": () => import("../components/mockups/fal-arbitrage-loans/scenes/Scene2.tsx"),
-  "./components/mockups/fal-arbitrage-loans/scenes/Scene3.tsx": () => import("../components/mockups/fal-arbitrage-loans/scenes/Scene3.tsx"),
   "./components/mockups/kenostod-promo/scenes/Scene1.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene1.tsx"),
   "./components/mockups/kenostod-promo/scenes/Scene2.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene2.tsx"),
   "./components/mockups/kenostod-promo/scenes/Scene3.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene3.tsx"),
   "./components/mockups/kenostod-promo/scenes/Scene4.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene4.tsx"),
   "./components/mockups/kenostod-promo/scenes/Scene5.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene5.tsx"),
-  "./components/mockups/kenostod-promo/scenes/Scene6.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene6.tsx")
+  "./components/mockups/kenostod-promo/scenes/Scene6.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene6.tsx"),
+  "./components/mockups/fal-arbitrage-loans/scenes/Scene1.tsx": () => import("../components/mockups/fal-arbitrage-loans/scenes/Scene1.tsx"),
+  "./components/mockups/fal-arbitrage-loans/scenes/Scene2.tsx": () => import("../components/mockups/fal-arbitrage-loans/scenes/Scene2.tsx"),
+  "./components/mockups/fal-arbitrage-loans/scenes/Scene3.tsx": () => import("../components/mockups/fal-arbitrage-loans/scenes/Scene3.tsx")
 };
