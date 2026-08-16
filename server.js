@@ -617,6 +617,9 @@ app.get('/buk-implementation-blueprint.html', (req, res) => {
     res.sendFile(__dirname + '/public/buk-implementation-blueprint.html');
 });
 
+app.get('/iaas-partners', (req, res) => {
+    res.sendFile(__dirname + '/public/iaas.html');
+});
 app.get('/iaas.html', (req, res) => {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.sendFile(__dirname + '/public/iaas.html');
