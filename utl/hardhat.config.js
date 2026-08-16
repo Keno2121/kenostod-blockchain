@@ -5,6 +5,9 @@ require("dotenv").config();
 // Old DEPLOYER_PRIVATE_KEY was compromised via EIP-7702 — kept for BSC legacy contracts only
 const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000001";
 const NEW_WALLET_PRIVATE_KEY = process.env.NEW_WALLET_PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000001";
+// BOT Chain uses bot wallet (same key as keno-bonding deployments)
+const rawBotKey = process.env.BOT_WALLET_PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000001";
+const BOT_WALLET_KEY = rawBotKey.startsWith('0x') ? rawBotKey : '0x' + rawBotKey;
 
 module.exports = {
   solidity: {
@@ -35,6 +38,12 @@ module.exports = {
       chainId: 97,
       accounts: [DEPLOYER_PRIVATE_KEY],
       gasPrice: 10000000000
+    },
+    botchain: {
+      url: "https://rpc.botchain.ai",
+      chainId: 677,
+      accounts: [BOT_WALLET_KEY],
+      gasPrice: "auto"
     },
     polygon: {
       url: "https://polygon-rpc.com/",
