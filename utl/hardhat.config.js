@@ -27,6 +27,12 @@ module.exports = {
       accounts: [DEPLOYER_PRIVATE_KEY],
       gasPrice: 3000000000
     },
+    bscBot: {
+      url: "https://bsc-dataseed1.binance.org/",
+      chainId: 56,
+      accounts: [BOT_WALLET_KEY],
+      gasPrice: 3000000000
+    },
     bscSafe: {
       url: "https://bsc-dataseed1.binance.org/",
       chainId: 56,
