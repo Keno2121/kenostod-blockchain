@@ -15,3 +15,4 @@
 - [IaaS Partnership Strategy](iaas-partnership-strategy.md) — lead with SOE/UTL/FAL/VLAT as deployable infrastructure, not KENO listing; Solar Bunker reserved for Africa
 - [Domain DNS setup](domain-dns-setup.md) — kenostodblockchain.com registered via Replit; Replit publish OVERWRITES DNS to their IP; fix is A @ → 216.24.57.1 (Render static IP); never use Replit publish button
 - [PancakeSwap Infinity Permit2](pancakeswap-infinity-permit2.md) — CLPositionManager uses Permit2 (not raw ERC-20 approve); missing allowance = 0xd81b2f2e AllowanceExpired; must approve Permit2 contract first then set permit2.approve(token, spender, amount, expiry)
+- [BOT Chain Scan verification](botchain-scan-verification.md) — Scan uses Blockscout; its edge blocks large standard-input uploads, while clean flattened-source submissions verify successfully.
