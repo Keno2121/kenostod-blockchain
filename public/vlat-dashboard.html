@@ -196,6 +196,40 @@
   .bot-btn.start-btn:hover { border-color: var(--green); color: var(--green); }
   .bot-btn.stop-btn:hover  { border-color: var(--red);   color: #ef4444; }
 
+  /* ── AutoBurn cards ── */
+  .autoburn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .autoburn-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 22px; position: relative; overflow: hidden; transition: border-color 0.2s;
+  }
+  .autoburn-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0; opacity: 0.8;
+  }
+  .autoburn-card.aster-burn::before { background: linear-gradient(90deg, var(--aster), #c39bd3); }
+  .autoburn-card.gmx-burn::before   { background: linear-gradient(90deg, var(--gmx), #a9dfbf); }
+  .autoburn-card.live-true   { border-color: rgba(239,68,68,0.3); }
+  .autoburn-card.live-false  { border-color: rgba(251,191,36,0.2); }
+  .ab-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .ab-title  { font-weight: 700; font-size: 0.95rem; }
+  .ab-chain  { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+  .ab-mode-badge { font-size: 0.65rem; padding: 2px 9px; border-radius: 99px; font-weight: 600; }
+  .ab-mode-live  { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .ab-mode-scan  { background: rgba(251,191,36,0.12); color: var(--gold); }
+  .ab-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .ab-stat-item {}
+  .ab-stat-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .ab-stat-value { font-size: 1.05rem; font-weight: 700; margin-top: 2px; }
+  .ab-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+  .ab-sub-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .ab-sub-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .ab-sub-value { font-size: 0.8rem; font-weight: 600; margin-top: 1px; }
+  .ab-referral { font-size: 0.73rem; padding: 6px 10px; border-radius: 8px; background: rgba(155,89,182,0.08); border: 1px solid rgba(155,89,182,0.18); margin-top: 6px; }
+  .ab-sweep-btn { margin-top: 10px; width: 100%; padding: 6px; border-radius: 7px; border: 1px solid var(--border); background: none; color: var(--muted); font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .ab-sweep-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .ab-contract { font-size: 0.62rem; color: var(--muted); margin-top: 8px; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 900px) { .autoburn-grid { grid-template-columns: 1fr; } }
+
   /* ── Ecosystem composite bar ── */
   .ecosystem-score-bar { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin-bottom: 0; }
   .eco-score-row { display: flex; align-items: center; gap: 16px; }
@@ -272,6 +306,14 @@
     <div id="ecosystemScoreBar" class="ecosystem-score-bar" style="margin-bottom:16px;display:none;"></div>
     <div class="bot-status-grid" id="botStatusGrid">
       <div class="loading">Loading bot status...</div>
+    </div>
+  </div>
+
+  <!-- AutoBurn Activity — Aster & GMX -->
+  <div>
+    <div class="section-label">🔥 AutoBurn Activity — KENO Burned from LP Fees</div>
+    <div class="autoburn-grid" id="autoBurnGrid">
+      <div class="loading">Loading AutoBurn stats...</div>
     </div>
   </div>
 
@@ -444,6 +486,144 @@ function renderBotCards(bots) {
   }).join('');
 }
 
+// ── AutoBurn rendering ────────────────────────────────────────────────────────
+
+function renderAutoBurnCard(status, type) {
+  const isAster = type === 'aster';
+  const cardCls  = isAster ? 'aster-burn' : 'gmx-burn';
+  const color    = isAster ? 'var(--aster)' : 'var(--gmx)';
+  const label    = isAster ? 'Aster AutoBurn' : 'GMX AutoBurn';
+  const chain    = isAster ? 'BNB Chain — no bridge needed' : 'GMX (Arbitrum) → BSC';
+  const apiPath  = isAster ? '/api/aster-autoburn/sweep' : '/api/gmx-autoburn/sweep';
+
+  if (!status || status.error) {
+    return `<div class="autoburn-card ${cardCls} live-false">
+      <div class="ab-header">
+        <div><div class="ab-title" style="color:${color}">🔥 ${label}</div><div class="ab-chain">${chain}</div></div>
+        <span class="ab-mode-badge ab-mode-scan">⬤ Offline</span>
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted)">Could not load status — server may be starting</div>
+    </div>`;
+  }
+
+  const live       = status.liveMode;
+  const modeLbl    = live ? '🔴 Live Capital' : '🟡 Scan-Only';
+  const modeCls    = live ? 'ab-mode-live' : 'ab-mode-scan';
+  const liveCls    = live ? 'live-true' : 'live-false';
+
+  // Pending amount display
+  const pendingBNB = isAster ? (status.pendingBurnBNB || 0) : null;
+  const pendingUSD = status.pendingBurnUSD || (pendingBNB ? pendingBNB * (status.bnbPriceUSD || 400) : 0);
+  const pendingLabel = isAster
+    ? `${(pendingBNB || 0).toFixed(5)} BNB`
+    : `$${(pendingUSD || 0).toFixed(4)}`;
+  const threshLabel = isAster
+    ? `${(status.burnThresholdBNB || 0.005)} BNB threshold`
+    : `$${(status.threshold || 0.5)} threshold`;
+
+  // AutoBurn contract on-chain stats
+  const abs = status.autoBurnStats;
+  const chainBurned  = abs ? parseFloat(abs.totalKenoBurned || 0).toFixed(2)  : '—';
+  const chainCount   = abs ? abs.burnCount : '—';
+  const chainPending = abs ? parseFloat(abs.pendingBnb || 0).toFixed(5) : '—';
+
+  // Referral row
+  const refActive  = status.referralActive;
+  const refEarned  = (status.referralEarned || 0).toFixed(4);
+  const refCode    = status.referralCode || '—';
+  const refHtml    = refActive
+    ? `<div class="ab-referral" style="background:rgba(16,185,129,0.07);border-color:rgba(16,185,129,0.2);">
+        🔖 Referral <code>${refCode}</code> <span style="color:var(--green);font-weight:700">active</span> — $${refEarned} earned
+       </div>`
+    : `<div class="ab-referral">
+        🔖 Referral code <code>${refCode}</code> — <span style="color:var(--muted)">not yet active</span>
+       </div>`;
+
+  const contractAddr = status.autoBurnContract || '—';
+
+  return `<div class="autoburn-card ${cardCls} ${liveCls}">
+    <div class="ab-header">
+      <div>
+        <div class="ab-title" style="color:${color}">🔥 ${label}</div>
+        <div class="ab-chain">${chain}</div>
+      </div>
+      <span class="ab-mode-badge ${modeCls}">${modeLbl}</span>
+    </div>
+
+    <div class="ab-stats">
+      <div class="ab-stat-item">
+        <div class="ab-stat-label">Total KENO Burned</div>
+        <div class="ab-stat-value" style="color:var(--keno)">${(status.totalBurned || 0).toFixed(2)}</div>
+      </div>
+      <div class="ab-stat-item">
+        <div class="ab-stat-label">Sweeps Done</div>
+        <div class="ab-stat-value" style="color:var(--green)">${status.sweepCount || 0}</div>
+      </div>
+      <div class="ab-stat-item">
+        <div class="ab-stat-label">Pending Burn</div>
+        <div class="ab-stat-value" style="color:var(--gold)">${pendingLabel}</div>
+      </div>
+    </div>
+
+    <div class="ab-sub-row">
+      <div>
+        <div class="ab-sub-label">On-Chain Burned</div>
+        <div class="ab-sub-value" style="color:var(--keno)">${chainBurned} KENO</div>
+      </div>
+      <div>
+        <div class="ab-sub-label">On-Chain Sweeps</div>
+        <div class="ab-sub-value">${chainCount}</div>
+      </div>
+      <div>
+        <div class="ab-sub-label">Contract Pending</div>
+        <div class="ab-sub-value">${chainPending} BNB</div>
+      </div>
+      <div>
+        <div class="ab-sub-label">Burn Threshold</div>
+        <div class="ab-sub-value" style="color:var(--muted)">${threshLabel}</div>
+      </div>
+    </div>
+
+    <hr class="ab-divider"/>
+
+    ${refHtml}
+
+    <div class="ab-contract">📋 AutoBurn: ${contractAddr}</div>
+
+    <button class="ab-sweep-btn" onclick="triggerSweep('${apiPath}', '${label}')">
+      ↗ Manual Sweep Now
+    </button>
+  </div>`;
+}
+
+async function loadAutoBurnCards() {
+  const grid = document.getElementById('autoBurnGrid');
+  try {
+    const [asterRes, gmxRes] = await Promise.all([
+      fetch('/api/aster-autoburn/status').catch(() => null),
+      fetch('/api/gmx-autoburn/status').catch(() => null),
+    ]);
+    const asterStatus = asterRes && asterRes.ok ? await asterRes.json().catch(() => null) : null;
+    const gmxStatus   = gmxRes   && gmxRes.ok   ? await gmxRes.json().catch(() => null)   : null;
+    grid.innerHTML =
+      renderAutoBurnCard(asterStatus, 'aster') +
+      renderAutoBurnCard(gmxStatus,   'gmx');
+  } catch (e) {
+    grid.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;padding:12px;">AutoBurn stats unavailable: ${e.message}</div>`;
+  }
+}
+
+async function triggerSweep(apiPath, label) {
+  if (!confirm(`Trigger manual sweep for ${label}?`)) return;
+  try {
+    const r = await fetch(apiPath, { method: 'POST' });
+    const d = await r.json();
+    if (d.ok === false) { alert('Sweep: ' + (d.msg || 'Error')); return; }
+    alert('Sweep triggered: ' + (d.msg || 'OK'));
+    setTimeout(loadAutoBurnCards, 1500);
+  } catch (e) { alert('Request failed: ' + e.message); }
+}
+
 async function ctrlBot(url, action) {
   try {
     const r = await fetch(url, { method: 'POST' });
@@ -506,6 +686,9 @@ async function loadData() {
         if (botsData.bots && botsData.bots.length) renderBotCards(botsData.bots);
       } catch (_) {}
     }
+
+    // Render AutoBurn activity cards (non-blocking — auth-gated endpoint, may 401 if not logged in)
+    loadAutoBurnCards().catch(() => {});
 
     renderRevenue(vlat, data);
     renderPlatforms(vlat.platforms);
