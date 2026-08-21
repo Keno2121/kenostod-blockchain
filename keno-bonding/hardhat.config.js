@@ -30,7 +30,20 @@ module.exports = {
           evmVersion: "paris"
         }
       }
-    ]
+    ],
+    // KENO on BOT Chain was deployed with solc 0.8.28, optimizer 200,
+    // and Cancun bytecode. Pin this source so verification reproduces
+    // the deployed runtime bytecode even when newer compatible compilers
+    // are also installed for other contracts.
+    overrides: {
+      "contracts/KenostodToken.sol": {
+        version: "0.8.28",
+        settings: {
+          optimizer: { enabled: true, runs: 200 },
+          evmVersion: "cancun"
+        }
+      }
+    }
   },
   networks: {
     bsc: {

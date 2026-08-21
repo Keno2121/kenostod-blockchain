@@ -110,7 +110,7 @@ async function main() {
   // ── Next steps ──────────────────────────────────────────────────────────
   console.log("\n  ── Next Steps ─────────────────────────────────────");
   console.log(`  1. Verify on explorer:`);
-  console.log(`     npx hardhat verify --network botchain ${address} "${BOT_WALLET}"`);
+  console.log(`     npm run verify:botchain:keno`);
   console.log(`  2. Add KENO liquidity pair on BOT Chain DEX`);
   console.log(`     (coordinate with Roy4by4 for DEX details)`);
   console.log(`  3. Share contract address with BOT Chain team for incentive program`);
