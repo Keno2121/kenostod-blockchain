@@ -51,6 +51,12 @@ module.exports = {
       accounts: [BOT_WALLET_KEY],
       gasPrice: "auto"
     },
+    botchainTestnet: {
+      url: "https://rpc.bohr.life",
+      chainId: 968,
+      accounts: [BOT_WALLET_KEY],
+      gasPrice: "auto"
+    },
     polygon: {
       url: "https://polygon-rpc.com/",
       chainId: 137,
