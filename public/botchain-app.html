@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOT Chain App — Kenostod Blockchain</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --cyan: #00d4ff;
+      --purple: #8a2be2;
+      --gold: #ffd700;
+      --green: #00ff87;
+      --red: #ff4d6d;
+      --bg: #070714;
+      --surface: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --border-active: rgba(0,212,255,0.4);
+      --text: #e8eaf0;
+      --muted: rgba(255,255,255,0.45);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0,212,255,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(138,43,226,0.08) 0%, transparent 60%);
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,7,20,0.85);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display:flex; align-items:center; gap:14px; }
+    .logo-mark {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border-radius: 10px;
+      display: flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:15px; color:#fff; letter-spacing:-0.5px;
+    }
+    .logo-text { font-size:18px; font-weight:700; }
+    .logo-text span { color: var(--cyan); }
+    .chain-badge {
+      background: linear-gradient(135deg,rgba(0,212,255,0.15),rgba(138,43,226,0.15));
+      border: 1px solid var(--border-active);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+
+    .header-right { display:flex; align-items:center; gap:12px; }
+    #netStatus {
+      font-size:12px; padding:5px 12px; border-radius:20px;
+      background:rgba(255,255,255,0.07); border:1px solid var(--border);
+      display:none;
+    }
+    #netStatus.wrong { background:rgba(255,77,109,0.15); border-color:rgba(255,77,109,0.4); color:var(--red); }
+    #netStatus.ok { background:rgba(0,255,135,0.1); border-color:rgba(0,255,135,0.3); color:var(--green); }
+
+    #connectBtn {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    #connectBtn:hover { opacity:0.88; transform:translateY(-1px); }
+    #connectBtn:disabled { opacity:0.5; cursor:default; }
+
+    /* ── NETWORK BANNER ── */
+    #netBanner {
+      display: none;
+      background: linear-gradient(90deg,rgba(255,77,109,0.12),rgba(255,165,0,0.12));
+      border-bottom: 1px solid rgba(255,77,109,0.3);
+      padding: 12px 28px;
+      text-align: center;
+      font-size: 14px;
+    }
+    #netBanner button {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight:600;
+      cursor:pointer;
+      margin-left: 12px;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .app-wrapper { max-width: 1100px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    /* ── PORTFOLIO BAR ── */
+    #portfolioBar {
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .port-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      transition: border-color 0.2s;
+    }
+    .port-card:hover { border-color: var(--border-active); }
+    .port-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .port-value { font-size: 22px; font-weight: 700; }
+    .port-value.cyan { color: var(--cyan); }
+    .port-value.gold { color: var(--gold); }
+    .port-value.green { color: var(--green); }
+    .port-value.purple { color: #b06ee8; }
+
+    /* ── CONNECT PROMPT ── */
+    #connectPrompt {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .prompt-icon {
+      font-size: 56px;
+      margin-bottom: 20px;
+    }
+    #connectPrompt h2 { font-size:28px; font-weight:700; margin-bottom:12px; }
+    #connectPrompt p { color:var(--muted); font-size:16px; margin-bottom:28px; max-width:480px; margin-left:auto; margin-right:auto; }
+    .btn-large {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: #fff;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      display: inline-flex; align-items:center; gap:8px;
+    }
+    .btn-large:hover { opacity:0.88; transform:translateY(-2px); }
+
+    /* ── TABS ── */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .badge-live { background:rgba(0,255,135,0.15); color:var(--green); }
+    .badge-bot { background:rgba(255,215,0,0.15); color:var(--gold); }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+      gap: 14px;
+    }
+    .stat-box {
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .stat-box .label { font-size:11px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+    .stat-box .val { font-size:20px; font-weight:700; color: var(--cyan); }
+    .stat-box .val.gold { color: var(--gold); }
+    .stat-box .val.green { color: var(--green); }
+    .stat-box .val.purple { color: #b06ee8; }
+
+    /* ── FORMS ── */
+    .form-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-top:18px; }
+    .form-group { flex:1; min-width:160px; }
+    .form-group label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+    .form-group input, .form-group select {
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--border-active); }
+    .form-group select option { background: #1a1a3a; }
+
+    .btn {
+      padding: 10px 22px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      font-family: inherit;
+    }
+    .btn:hover { opacity:0.85; transform:translateY(-1px); }
+    .btn:disabled { opacity:0.4; cursor:default; transform:none; }
+    .btn-primary { background: linear-gradient(135deg, var(--cyan), var(--purple)); color:#fff; }
+    .btn-secondary { background: rgba(255,255,255,0.1); color:var(--text); border:1px solid var(--border); }
+    .btn-gold { background: linear-gradient(135deg,#ffd700,#ff8c00); color:#000; }
+    .btn-danger { background: rgba(255,77,109,0.15); color:var(--red); border:1px solid rgba(255,77,109,0.3); }
+
+    /* ── USER POSITION ── */
+    .position-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .pos-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .pos-row:last-child { border-bottom: none; }
+    .pos-key { font-size:13px; color:var(--muted); }
+    .pos-val { font-size:14px; font-weight:600; }
+
+    .actions-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+
+    /* ── LOCK TIER PILLS ── */
+    .tier-pills { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .tier-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--muted);
+    }
+    .tier-pill:hover { border-color: var(--border-active); color: var(--text); }
+    .tier-pill.selected { background:rgba(0,212,255,0.15); border-color:var(--cyan); color:var(--cyan); }
+
+    /* ── OVERVIEW GRID ── */
+    .overview-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: rgba(20,20,40,0.97);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 14px;
+      max-width: 340px;
+      z-index: 999;
+      display: none;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+    #toast.success { border-color:rgba(0,255,135,0.4); }
+    #toast.error { border-color:rgba(255,77,109,0.4); color:var(--red); }
+    #toast.info { border-color:rgba(0,212,255,0.4); }
+
+    /* ── SPINNER ── */
+    .spin { animation: spin 1s linear infinite; display:inline-block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── DIVIDER ── */
+    .divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
+
+    .section-label {
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:1px; color:var(--muted); margin-bottom:14px;
+    }
+
+    .empty-state {
+      text-align:center; padding:32px; color:var(--muted); font-size:14px;
+    }
+
+    /* ── TX LINK ── */
+    .tx-link { color:var(--cyan); text-decoration:none; font-size:12px; }
+    .tx-link:hover { text-decoration:underline; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:700px) {
+      #portfolioBar { grid-template-columns:1fr 1fr; }
+      .overview-grid { grid-template-columns:1fr; }
+      .position-grid { grid-template-columns:1fr; }
+      header { padding:14px 16px; }
+      .app-wrapper { padding:20px 14px 50px; }
+      .logo-text { font-size:15px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <div class="logo-mark">KB</div>
+    <div class="logo-text">Kenostod <span>BOT Chain</span></div>
+    <div class="chain-badge">⛓ Chain ID 677</div>
+  </div>
+  <div class="header-right">
+    <div id="netStatus"></div>
+    <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
+</header>
+
+<!-- NETWORK BANNER -->
+<div id="netBanner">
+  ⚠️ You're not on BOT Chain. All protocols require BOT Chain Mainnet (Chain ID 677).
+  <button onclick="switchToBOTChain()">Switch Network</button>
+</div>
+
+<!-- MAIN -->
+<div class="app-wrapper">
+
+  <!-- CONNECT PROMPT -->
+  <div id="connectPrompt">
+    <div class="prompt-icon">🔗</div>
+    <h2>Connect to BOT Chain</h2>
+    <p>Access UTL staking, FAL Pool deposits, and your full BOT Chain portfolio in one place.</p>
+    <button class="btn-large" onclick="connectWallet()">
+      🦊 Connect Wallet
+    </button>
+    <p style="margin-top:18px;font-size:13px;color:var(--muted);">Supports MetaMask and any EVM wallet</p>
+  </div>
+
+  <!-- PORTFOLIO BAR (shown after connect) -->
+  <div id="portfolioBar">
+    <div class="port-card">
+      <div class="port-label">KENO Balance</div>
+      <div class="port-value cyan" id="pbKeno">—</div>
+    </div>
+    <div class="port-card">
+      <div class="port-label">BOT Balance</div>
+      <div class="port-value gold" id="pbBOT">—</div>
+    </div>
+    <div class="port-card">
+      <div class="port-label">FAL Pool Deposited</div>
+      <div class="port-value purple" id="pbFAL">—</div>
+    </div>
+    <div class="port-card">
+      <div class="port-label">Pending BOT Rewards</div>
+      <div class="port-value green" id="pbRewards">—</div>
+    </div>
+  </div>
+
+  <!-- TABS (shown after connect) -->
+  <div id="tabsSection" style="display:none;">
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('overview')">📊 Overview</button>
+      <button class="tab-btn" onclick="switchTab('fal')">⚡ FAL Pool</button>
+      <button class="tab-btn" onclick="switchTab('utl')">🔁 UTL Protocol</button>
+    </div>
+
+    <!-- ── OVERVIEW TAB ── -->
+    <div id="tab-overview" class="tab-pane active">
+      <div class="overview-grid">
+
+        <!-- FAL Summary -->
+        <div class="card">
+          <div class="card-title">⚡ FAL Pool <span class="badge badge-live">LIVE</span></div>
+          <div class="stats-row" style="grid-template-columns:1fr 1fr;">
+            <div class="stat-box">
+              <div class="label">Pool TVL</div>
+              <div class="val" id="ov-falTVL">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Total Stakers</div>
+              <div class="val" id="ov-falStakers">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Your Deposit</div>
+              <div class="val purple" id="ov-myFAL">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Pending BOT</div>
+              <div class="val green" id="ov-myFALRewards">—</div>
+            </div>
+          </div>
+          <div class="actions-row" style="margin-top:16px;">
+            <button class="btn btn-primary" onclick="switchTab('fal')">Manage FAL Pool →</button>
+          </div>
+        </div>
+
+        <!-- UTL Summary -->
+        <div class="card">
+          <div class="card-title">🔁 UTL Protocol <span class="badge badge-live">LIVE</span></div>
+          <div class="stats-row" style="grid-template-columns:1fr 1fr;">
+            <div class="stat-box">
+              <div class="label">Total Staked</div>
+              <div class="val" id="ov-utlTVL">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Fees Distributed</div>
+              <div class="val gold" id="ov-utlFees">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Your Stake</div>
+              <div class="val purple" id="ov-myUTL">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Claimable Fees</div>
+              <div class="val green" id="ov-myUTLRewards">—</div>
+            </div>
+          </div>
+          <div class="actions-row" style="margin-top:16px;">
+            <button class="btn btn-primary" onclick="switchTab('utl')">Manage UTL →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arb Bot Stats -->
+      <div class="card">
+        <div class="card-title">🤖 FAL Flash Arb Bot <span class="badge badge-bot">BOT Rewards</span></div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="label">Total Arb Executions</div>
+            <div class="val" id="arb-count">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Total Profit Generated</div>
+            <div class="val gold" id="arb-profit">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Sent to FAL Stakers</div>
+            <div class="val green" id="arb-distributed">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Last Arb</div>
+            <div class="val" id="arb-last">—</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:14px;">
+          The arb bot executes flash loans across BDEX V3 pools. 5% of profit flows to FAL stakers as BOT rewards.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── FAL POOL TAB ── -->
+    <div id="tab-fal" class="tab-pane">
+
+      <!-- Pool Info -->
+      <div class="card">
+        <div class="card-title">⚡ FAL Pool Stats <span class="badge badge-live">LIVE</span></div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="label">Total Value Locked</div>
+            <div class="val" id="fal-tvl">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Total Stakers</div>
+            <div class="val" id="fal-stakers">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">BOT Rewards Pool</div>
+            <div class="val gold" id="fal-rewardPool">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Total Paid Out</div>
+            <div class="val green" id="fal-totalPaid">—</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:14px;">
+          Contract: <a class="tx-link" href="https://scan.botchain.ai/address/0x5065DDd17B35427131d7EA0387Ba68dC26d61fD1" target="_blank">0x5065...61fD1 ↗</a>
+        </p>
+      </div>
+
+      <!-- Your Position -->
+      <div class="card" id="falPositionCard">
+        <div class="card-title">👤 Your Position</div>
+        <div id="falNoPosition" class="empty-state" style="display:none;">
+          No active deposit. Deposit KENO below to start earning BOT rewards.
+        </div>
+        <div id="falPosition" style="display:none;">
+          <div class="position-grid">
+            <div>
+              <div class="pos-row">
+                <span class="pos-key">Deposited KENO</span>
+                <span class="pos-val cyan" id="pos-deposited">—</span>
+              </div>
+              <div class="pos-row">
+                <span class="pos-key">Lock Tier</span>
+                <span class="pos-val" id="pos-tier">—</span>
+              </div>
+              <div class="pos-row">
+                <span class="pos-key">Unlock Time</span>
+                <span class="pos-val" id="pos-unlock">—</span>
+              </div>
+            </div>
+            <div>
+              <div class="pos-row">
+                <span class="pos-key">Pending BOT Rewards</span>
+                <span class="pos-val green" id="pos-pending">—</span>
+              </div>
+              <div class="pos-row">
+                <span class="pos-key">Total Claimed</span>
+                <span class="pos-val gold" id="pos-claimed">—</span>
+              </div>
+              <div class="pos-row">
+                <span class="pos-key">Withdraw Ready</span>
+                <span class="pos-val" id="pos-ready">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="actions-row">
+            <button class="btn btn-gold" onclick="claimFALRewards()">💰 Claim BOT Rewards</button>
+            <button class="btn btn-danger" id="withdrawBtn" onclick="withdrawFAL()">↩ Withdraw KENO</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deposit -->
+      <div class="card">
+        <div class="card-title">➕ Deposit KENO</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+          Stake KENO to earn native BOT rewards from the flash arb bot. Longer locks earn higher multipliers.
+        </p>
+        <div class="section-label">Select Lock Tier</div>
+        <div class="tier-pills" id="tierPills">
+          <div class="tier-pill selected" data-tier="0" onclick="selectTier(0)">Flexible · 1×</div>
+          <div class="tier-pill" data-tier="1" onclick="selectTier(1)">30 Days · 1.5×</div>
+          <div class="tier-pill" data-tier="2" onclick="selectTier(2)">90 Days · 2×</div>
+          <div class="tier-pill" data-tier="3" onclick="selectTier(3)">180 Days · 3×</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>KENO Amount</label>
+            <input type="number" id="depositAmount" placeholder="e.g. 1000" min="1">
+          </div>
+          <div>
+            <button class="btn btn-secondary" onclick="setMaxKENO()" style="white-space:nowrap;">Max</button>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="depositFAL()">Deposit →</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+          KENO balance: <span id="depositKenoBalance" style="color:var(--cyan);">—</span>
+          &nbsp;|&nbsp; Approval required on first deposit.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── UTL TAB ── -->
+    <div id="tab-utl" class="tab-pane">
+
+      <!-- UTL Stats -->
+      <div class="card">
+        <div class="card-title">🔁 UTL Protocol Stats <span class="badge badge-live">LIVE</span></div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="label">Total KENO Staked</div>
+            <div class="val" id="utl-tvl">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Fees Collected (BOT)</div>
+            <div class="val gold" id="utl-fees">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Active Stakers</div>
+            <div class="val" id="utl-stakers">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="label">Rewards Distributed</div>
+            <div class="val green" id="utl-distributed">—</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:14px;">
+          Staking: <a class="tx-link" href="https://scan.botchain.ai/address/0xd6a73bc00f623f893831B623efdA9901CAF58e63" target="_blank">0xd6a7...f58e63 ↗</a>
+          &nbsp;|&nbsp;
+          FeeCollector: <a class="tx-link" href="https://scan.botchain.ai/address/0xBb44a52b2B69D820cA1792Ca9a496e9F00B2F9E7" target="_blank">0xBb44...2F9E7 ↗</a>
+        </p>
+      </div>
+
+      <!-- UTL Position -->
+      <div class="card">
+        <div class="card-title">👤 Your UTL Position</div>
+        <div id="utlNoPosition" class="empty-state" style="display:none;">
+          No KENO staked in UTL. Stake KENO below to earn protocol fees.
+        </div>
+        <div id="utlPosition" style="display:none;">
+          <div class="position-grid">
+            <div>
+              <div class="pos-row">
+                <span class="pos-key">Staked KENO</span>
+                <span class="pos-val cyan" id="utl-myStake">—</span>
+              </div>
+              <div class="pos-row">
+                <span class="pos-key">Share of Pool</span>
+                <span class="pos-val" id="utl-myShare">—</span>
+              </div>
+            </div>
+            <div>
+              <div class="pos-row">
+                <span class="pos-key">Claimable Fees (BOT)</span>
+                <span class="pos-val green" id="utl-myRewards">—</span>
+              </div>
+              <div class="pos-row">
+                <span class="pos-key">Total Claimed</span>
+                <span class="pos-val gold" id="utl-myClaimed">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="actions-row">
+            <button class="btn btn-gold" onclick="claimUTLRewards()">💰 Claim Fee Rewards</button>
+            <button class="btn btn-danger" onclick="unstakeUTL()">↩ Unstake KENO</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stake -->
+      <div class="card">
+        <div class="card-title">➕ Stake KENO in UTL</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+          Staking KENO in UTL earns you a share of all protocol fees collected on BOT Chain — paid in native BOT.
+        </p>
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>KENO Amount to Stake</label>
+            <input type="number" id="utlStakeAmount" placeholder="e.g. 500" min="1">
+          </div>
+          <div>
+            <button class="btn btn-secondary" onclick="setMaxUTL()">Max</button>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="stakeUTL()">Stake →</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+          Available KENO: <span id="utlKenoBalance" style="color:var(--cyan);">—</span>
+        </p>
+      </div>
+    </div>
+
+  </div><!-- end tabsSection -->
+</div><!-- end app-wrapper -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════════════
+const BOT_CHAIN_ID     = 677;
+const BOT_CHAIN_HEX    = '0x2A5';
+const BOT_RPC          = 'https://rpc.botchain.ai';
+const BOT_EXPLORER     = 'https://scan.botchain.ai';
+
+const KENO_ADDRESS     = '0x137a5Fc22a76Ec42490F2421a81935d124baE714';
+const FAL_POOL         = '0x5065DDd17B35427131d7EA0387Ba68dC26d61fD1';
+const FAL_ARB_BOT      = '0x446b29625fBE8F8Fe254E8fEf7e296224DB4C2d8';
+const UTL_STAKING      = '0xd6a73bc00f623f893831B623efdA9901CAF58e63';
+const UTL_FEECOLLECTOR = '0xBb44a52b2B69D820cA1792Ca9a496e9F00B2F9E7';
+
+const ERC20_ABI = [
+  'function balanceOf(address) view returns (uint256)',
+  'function allowance(address,address) view returns (uint256)',
+  'function approve(address,uint256) returns (bool)',
+  'function decimals() view returns (uint8)'
+];
+
+const FAL_POOL_ABI = [
+  'function deposit(uint256 amount, uint8 lockTier) external',
+  'function withdraw() external',
+  'function claimReward() external',
+  'function depositProfit() external payable',
+  'function pendingReward(address user) external view returns (uint256)',
+  'function getPoolInfo() external view returns (uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)',
+  'function getDepositInfo(address user) external view returns (uint256,uint8,uint256,uint256,uint256,uint256,uint256,uint256,bool,uint256)',
+  'function getLockTierInfo() external view returns (uint256[4],uint256[4])',
+  'function totalEffectiveStake() external view returns (uint256)'
+];
+
+const FAL_ARB_ABI = [
+  'function getStats() external view returns (uint256,uint256,uint256,uint256)'
+];
+
+const UTL_STAKING_ABI = [
+  'function stake(uint256 amount) external',
+  'function unstake(uint256 amount) external',
+  'function claimRewards() external',
+  'function stakedBalance(address) view returns (uint256)',
+  'function pendingRewards(address) view returns (uint256)',
+  'function totalStaked() view returns (uint256)',
+  'function totalRewardsPaid() view returns (uint256)',
+  'function totalRewardsDistributed() view returns (uint256)'
+];
+
+const UTL_FEE_ABI = [
+  'function totalFeesCollected() view returns (uint256)',
+  'function totalUsersServed() view returns (uint256)'
+];
+
+const LOCK_TIERS = [
+  { label:'Flexible', mult:'1×',  days:0 },
+  { label:'30 Days',  mult:'1.5×', days:30 },
+  { label:'90 Days',  mult:'2×',  days:90 },
+  { label:'180 Days', mult:'3×',  days:180 }
+];
+
+// ══════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════
+let provider, signer, userAddress;
+let kenoContract, falPoolContract, falArbContract, utlStakingContract, utlFeeContract;
+let selectedLockTier = 0;
+let refreshInterval;
+
+// ══════════════════════════════════════════════════════════════
+//  WALLET
+// ══════════════════════════════════════════════════════════════
+async function connectWallet() {
+  if (!window.ethereum) {
+    showToast('No wallet detected. Install MetaMask or a compatible EVM wallet.', 'error');
+    return;
+  }
+  try {
+    const btn = document.getElementById('connectBtn');
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send('eth_requestAccounts', []);
+    signer = provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    initContracts();
+    await checkNetwork();
+    onConnected();
+
+    window.ethereum.on('accountsChanged', accounts => {
+      if (accounts.length === 0) onDisconnect();
+      else { userAddress = accounts[0]; signer = provider.getSigner(); initContracts(); refreshAll(); }
+    });
+    window.ethereum.on('chainChanged', () => location.reload());
+
+  } catch(e) {
+    showToast('Connection cancelled.', 'error');
+    resetBtn();
+  }
+}
+
+function initContracts() {
+  kenoContract     = new ethers.Contract(KENO_ADDRESS,     ERC20_ABI,      signer);
+  falPoolContract  = new ethers.Contract(FAL_POOL,         FAL_POOL_ABI,   signer);
+  falArbContract   = new ethers.Contract(FAL_ARB_BOT,      FAL_ARB_ABI,    provider);
+  utlStakingContract = new ethers.Contract(UTL_STAKING,    UTL_STAKING_ABI, signer);
+  utlFeeContract   = new ethers.Contract(UTL_FEECOLLECTOR, UTL_FEE_ABI,    provider);
+}
+
+async function checkNetwork() {
+  const network = await provider.getNetwork();
+  const chainId = network.chainId;
+  const netStatus = document.getElementById('netStatus');
+  const netBanner = document.getElementById('netBanner');
+
+  netStatus.style.display = 'block';
+  if (chainId !== BOT_CHAIN_ID) {
+    netStatus.textContent = '⚠ Wrong Network';
+    netStatus.className = 'wrong';
+    netBanner.style.display = 'block';
+    return false;
+  } else {
+    netStatus.textContent = '✓ BOT Chain';
+    netStatus.className = 'ok';
+    netBanner.style.display = 'none';
+    return true;
+  }
+}
+
+async function switchToBOTChain() {
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: BOT_CHAIN_HEX }]
+    });
+  } catch(e) {
+    if (e.code === 4902) {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: BOT_CHAIN_HEX,
+            chainName: 'BOT Chain Mainnet',
+            nativeCurrency: { name:'BOT', symbol:'BOT', decimals:18 },
+            rpcUrls: [BOT_RPC],
+            blockExplorerUrls: [BOT_EXPLORER]
+          }]
+        });
+      } catch(e2) {
+        showToast('Could not add BOT Chain. Add it manually: RPC ' + BOT_RPC, 'error', 7000);
+      }
+    }
+  }
+}
+
+function onConnected() {
+  document.getElementById('connectPrompt').style.display = 'none';
+  document.getElementById('portfolioBar').style.display = 'grid';
+  document.getElementById('tabsSection').style.display = 'block';
+
+  const short = userAddress.slice(0,6) + '…' + userAddress.slice(-4);
+  document.getElementById('connectBtn').textContent = short;
+  document.getElementById('connectBtn').disabled = false;
+
+  refreshAll();
+  refreshInterval = setInterval(refreshAll, 30000);
+}
+
+function onDisconnect() {
+  clearInterval(refreshInterval);
+  location.reload();
+}
+
+function resetBtn() {
+  const btn = document.getElementById('connectBtn');
+  btn.disabled = false;
+  btn.textContent = 'Connect Wallet';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DATA REFRESH
+// ══════════════════════════════════════════════════════════════
+async function refreshAll() {
+  const onCorrectChain = await checkNetwork();
+  if (!onCorrectChain) return;
+
+  await Promise.all([
+    refreshBalances(),
+    refreshFALPool(),
+    refreshUTL(),
+    refreshArbBot()
+  ]);
+}
+
+async function refreshBalances() {
+  try {
+    const [kenoBal, botBal] = await Promise.all([
+      kenoContract.balanceOf(userAddress),
+      provider.getBalance(userAddress)
+    ]);
+    const keno = fmt(kenoBal, 18, 2);
+    const bot  = fmt(botBal,  18, 4);
+    document.getElementById('pbKeno').textContent = keno + ' KENO';
+    document.getElementById('pbBOT').textContent  = bot  + ' BOT';
+    document.getElementById('depositKenoBalance').textContent = keno + ' KENO';
+    document.getElementById('utlKenoBalance').textContent     = keno + ' KENO';
+    window._kenoBal = kenoBal;
+  } catch(e) { console.error('balances', e); }
+}
+
+async function refreshFALPool() {
+  try {
+    const [poolInfo, depInfo, pending] = await Promise.all([
+      falPoolContract.getPoolInfo(),
+      falPoolContract.getDepositInfo(userAddress),
+      falPoolContract.pendingReward(userAddress)
+    ]);
+
+    // poolInfo: totalKeno, rewardPool, totalPaid, totalStakers, ...
+    const tvl      = fmt(poolInfo[0], 18, 2);
+    const rwPool   = fmt(poolInfo[1], 18, 6);
+    const totalPd  = fmt(poolInfo[2], 18, 6);
+    const stakers  = poolInfo[3].toString();
+
+    setText('fal-tvl',        tvl + ' KENO');
+    setText('fal-stakers',    stakers);
+    setText('fal-rewardPool', rwPool + ' BOT');
+    setText('fal-totalPaid',  totalPd + ' BOT');
+    setText('ov-falTVL',      tvl + ' KENO');
+    setText('ov-falStakers',  stakers);
+
+    // depInfo: amount, lockTier, lockEnd, depositTime, pendingReward, totalClaimed, ...
+    const deposited = depInfo[0];
+    const lockTier  = depInfo[1];
+    const lockEnd   = depInfo[2].toNumber();
+    const claimed   = depInfo[5];
+    const pendingBOT = pending;
+
+    const pbFAL = fmt(deposited, 18, 2);
+    const pbRew = fmt(pendingBOT, 18, 6);
+    setText('pbFAL',           pbFAL + ' KENO');
+    setText('pbRewards',       pbRew + ' BOT');
+    setText('ov-myFAL',        pbFAL + ' KENO');
+    setText('ov-myFALRewards', pbRew + ' BOT');
+
+    if (deposited.gt(0)) {
+      document.getElementById('falNoPosition').style.display = 'none';
+      document.getElementById('falPosition').style.display = 'block';
+      setText('pos-deposited', fmt(deposited, 18, 2) + ' KENO');
+      setText('pos-tier',      LOCK_TIERS[lockTier] ? LOCK_TIERS[lockTier].label : 'Tier ' + lockTier);
+      setText('pos-pending',   fmt(pendingBOT, 18, 6) + ' BOT');
+      setText('pos-claimed',   fmt(claimed, 18, 6) + ' BOT');
+      const now = Math.floor(Date.now() / 1000);
+      const ready = lockEnd === 0 || now >= lockEnd;
+      setText('pos-unlock',    lockEnd === 0 ? 'Flexible' : new Date(lockEnd * 1000).toLocaleDateString());
+      setText('pos-ready',     ready ? '✅ Yes' : '⏳ ' + daysUntil(lockEnd) + ' days');
+      document.getElementById('withdrawBtn').disabled = !ready;
+    } else {
+      document.getElementById('falNoPosition').style.display = 'block';
+      document.getElementById('falPosition').style.display = 'none';
+    }
+  } catch(e) { console.error('FALPool', e); }
+}
+
+async function refreshUTL() {
+  try {
+    const [myStake, myRew, totalStaked] = await Promise.all([
+      safeCall(() => utlStakingContract.stakedBalance(userAddress), ethers.BigNumber.from(0)),
+      safeCall(() => utlStakingContract.pendingRewards(userAddress), ethers.BigNumber.from(0)),
+      safeCall(() => utlStakingContract.totalStaked(), ethers.BigNumber.from(0))
+    ]);
+
+    const tvl  = fmt(totalStaked, 18, 2);
+    const myS  = fmt(myStake, 18, 2);
+    const myR  = fmt(myRew,   18, 6);
+
+    setText('utl-tvl',        tvl  + ' KENO');
+    setText('utl-stakers',    '—');
+    setText('ov-utlTVL',      tvl  + ' KENO');
+    setText('ov-myUTL',       myS  + ' KENO');
+    setText('ov-myUTLRewards',myR  + ' BOT');
+
+    let feeTotal = '—';
+    try {
+      const fc = await utlFeeContract.totalFeesCollected();
+      feeTotal = fmt(fc, 18, 4) + ' BOT';
+    } catch(_) {}
+    setText('utl-fees',        feeTotal);
+    setText('ov-utlFees',      feeTotal);
+
+    // My claimed
+    let myClaimed = '—';
+    try {
+      const paid = await utlStakingContract.totalRewardsPaid(userAddress).catch(() =>
+                   utlStakingContract.totalRewardsDistributed());
+      myClaimed = fmt(paid, 18, 4) + ' BOT';
+      setText('utl-distributed', myClaimed);
+    } catch(_) {}
+
+    if (myStake.gt(0)) {
+      document.getElementById('utlNoPosition').style.display = 'none';
+      document.getElementById('utlPosition').style.display = 'block';
+      setText('utl-myStake',   myS + ' KENO');
+      setText('utl-myRewards', myR + ' BOT');
+      setText('utl-myClaimed', myClaimed);
+      if (totalStaked.gt(0)) {
+        const sharePct = myStake.mul(10000).div(totalStaked).toNumber() / 100;
+        setText('utl-myShare', sharePct.toFixed(2) + '%');
+      }
+    } else {
+      document.getElementById('utlNoPosition').style.display = 'block';
+      document.getElementById('utlPosition').style.display = 'none';
+    }
+  } catch(e) { console.error('UTL', e); }
+}
+
+async function refreshArbBot() {
+  try {
+    const stats = await falArbContract.getStats();
+    // stats: executions, totalProfit, sentToPool, lastArbTime
+    setText('arb-count',       stats[0].toString());
+    setText('arb-profit',      fmt(stats[1], 18, 6) + ' BOT');
+    setText('arb-distributed', fmt(stats[2], 18, 6) + ' BOT');
+    const ts = stats[3].toNumber();
+    setText('arb-last', ts > 0 ? timeAgo(ts) : 'No arbs yet');
+  } catch(e) {
+    setText('arb-count', '0');
+    setText('arb-profit', '0 BOT');
+    setText('arb-distributed', '0 BOT');
+    setText('arb-last', 'Awaiting arb opportunities');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FAL ACTIONS
+// ══════════════════════════════════════════════════════════════
+async function depositFAL() {
+  const amtStr = document.getElementById('depositAmount').value;
+  if (!amtStr || parseFloat(amtStr) <= 0) { showToast('Enter a valid amount.', 'error'); return; }
+
+  const amount = ethers.utils.parseUnits(amtStr, 18);
+
+  try {
+    // Check / grant allowance
+    showToast('⏳ Checking KENO allowance…', 'info');
+    const allowance = await kenoContract.allowance(userAddress, FAL_POOL);
+    if (allowance.lt(amount)) {
+      showToast('⏳ Approving KENO…', 'info');
+      const approveTx = await kenoContract.approve(FAL_POOL, ethers.constants.MaxUint256);
+      await approveTx.wait();
+      showToast('✅ KENO approved', 'success');
+    }
+
+    showToast('⏳ Depositing KENO into FAL Pool…', 'info');
+    const tx = await falPoolContract.deposit(amount, selectedLockTier, { gasLimit: 400000 });
+    showToast('⏳ Tx sent — waiting for confirmation…', 'info');
+    await tx.wait();
+    showToast('✅ Deposited! BOT rewards are now accruing.', 'success', 5000);
+    document.getElementById('depositAmount').value = '';
+    await refreshFALPool();
+    await refreshBalances();
+  } catch(e) {
+    handleTxError(e);
+  }
+}
+
+async function withdrawFAL() {
+  try {
+    showToast('⏳ Withdrawing KENO from FAL Pool…', 'info');
+    const tx = await falPoolContract.withdraw({ gasLimit: 300000 });
+    await tx.wait();
+    showToast('✅ KENO withdrawn successfully.', 'success', 5000);
+    await refreshFALPool();
+    await refreshBalances();
+  } catch(e) {
+    handleTxError(e);
+  }
+}
+
+async function claimFALRewards() {
+  try {
+    showToast('⏳ Claiming BOT rewards…', 'info');
+    const tx = await falPoolContract.claimReward({ gasLimit: 200000 });
+    await tx.wait();
+    showToast('✅ BOT rewards claimed to your wallet.', 'success', 5000);
+    await refreshFALPool();
+    await refreshBalances();
+  } catch(e) {
+    handleTxError(e);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UTL ACTIONS
+// ══════════════════════════════════════════════════════════════
+async function stakeUTL() {
+  const amtStr = document.getElementById('utlStakeAmount').value;
+  if (!amtStr || parseFloat(amtStr) <= 0) { showToast('Enter a valid amount.', 'error'); return; }
+
+  const amount = ethers.utils.parseUnits(amtStr, 18);
+
+  try {
+    showToast('⏳ Checking KENO allowance…', 'info');
+    const allowance = await kenoContract.allowance(userAddress, UTL_STAKING);
+    if (allowance.lt(amount)) {
+      showToast('⏳ Approving KENO for UTL…', 'info');
+      const approveTx = await kenoContract.approve(UTL_STAKING, ethers.constants.MaxUint256);
+      await approveTx.wait();
+      showToast('✅ KENO approved', 'success');
+    }
+
+    showToast('⏳ Staking KENO in UTL…', 'info');
+    const tx = await utlStakingContract.stake(amount, { gasLimit: 300000 });
+    await tx.wait();
+    showToast('✅ KENO staked in UTL! You now earn protocol fees.', 'success', 5000);
+    document.getElementById('utlStakeAmount').value = '';
+    await refreshUTL();
+    await refreshBalances();
+  } catch(e) {
+    handleTxError(e);
+  }
+}
+
+async function claimUTLRewards() {
+  try {
+    showToast('⏳ Claiming UTL fee rewards…', 'info');
+    const tx = await utlStakingContract.claimRewards({ gasLimit: 200000 });
+    await tx.wait();
+    showToast('✅ UTL rewards claimed.', 'success', 5000);
+    await refreshUTL();
+    await refreshBalances();
+  } catch(e) {
+    handleTxError(e);
+  }
+}
+
+async function unstakeUTL() {
+  const myStake = await safeCall(() => utlStakingContract.stakedBalance(userAddress), ethers.BigNumber.from(0));
+  if (myStake.isZero()) { showToast('No stake to withdraw.', 'error'); return; }
+  try {
+    showToast('⏳ Unstaking KENO from UTL…', 'info');
+    const tx = await utlStakingContract.unstake(myStake, { gasLimit: 300000 });
+    await tx.wait();
+    showToast('✅ KENO unstaked from UTL.', 'success', 5000);
+    await refreshUTL();
+    await refreshBalances();
+  } catch(e) {
+    handleTxError(e);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['overview','fal','utl'];
+    b.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function selectTier(tier) {
+  selectedLockTier = tier;
+  document.querySelectorAll('.tier-pill').forEach(p => {
+    p.classList.toggle('selected', parseInt(p.dataset.tier) === tier);
+  });
+}
+
+async function setMaxKENO() {
+  if (!window._kenoBal) return;
+  document.getElementById('depositAmount').value = ethers.utils.formatUnits(window._kenoBal, 18);
+}
+
+async function setMaxUTL() {
+  if (!window._kenoBal) return;
+  document.getElementById('utlStakeAmount').value = ethers.utils.formatUnits(window._kenoBal, 18);
+}
+
+let toastTimer;
+function showToast(msg, type='info', duration=3500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type;
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.display = 'none'; }, duration);
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function fmt(bn, decimals=18, dp=4) {
+  try {
+    const s = ethers.utils.formatUnits(bn, decimals);
+    return parseFloat(s).toLocaleString('en-US', {maximumFractionDigits: dp});
+  } catch(_) { return '0'; }
+}
+
+function daysUntil(ts) {
+  const diff = ts - Math.floor(Date.now()/1000);
+  return Math.max(0, Math.ceil(diff / 86400));
+}
+
+function timeAgo(ts) {
+  const diff = Math.floor(Date.now()/1000) - ts;
+  if (diff < 60)   return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+
+async function safeCall(fn, fallback) {
+  try { return await fn(); }
+  catch(_) { return fallback; }
+}
+
+function handleTxError(e) {
+  if (e.code === 4001 || e.code === 'ACTION_REJECTED') {
+    showToast('Transaction cancelled.', 'error');
+  } else {
+    const msg = e?.data?.message || e?.message || 'Transaction failed.';
+    showToast('❌ ' + msg.slice(0, 120), 'error', 6000);
+    console.error(e);
+  }
+}
+
+// Auto-connect if already connected
+window.addEventListener('load', async () => {
+  if (window.ethereum) {
+    const accounts = await window.ethereum.request({ method:'eth_accounts' }).catch(()=>[]);
+    if (accounts.length > 0) connectWallet();
+  }
+});
+</script>
+</body>
+</html>
