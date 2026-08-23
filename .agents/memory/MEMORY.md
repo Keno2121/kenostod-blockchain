@@ -13,6 +13,7 @@
 - [Post-PinkSale action plan](post-pinksale-plan.md) — fund bots week 1, POL setup week 2 (if liquidity thin)
 - [Sovereign Trinity NFT Collection](sovereign-trinity-nft.md) — COMPLETE: 4 tiers + 7 Houses of Royals + Access Hierarchy + chariot-gate.html + sovereign-throne.html built and live
 - [IaaS Partnership Strategy](iaas-partnership-strategy.md) — lead with SOE/UTL/FAL/VLAT as deployable infrastructure, not KENO listing; Solar Bunker reserved for Africa
+- [UTL BDEX Wrapper](utl-bdex-wrapper.md) — live on BOT Chain mainnet 0x829658BE065C75C174639701672dE820E4683ca7; BDEX router found by tracing WBOT logs, not at standard V3 addresses
 - [Domain DNS setup](domain-dns-setup.md) — kenostodblockchain.com registered via Replit; Replit publish OVERWRITES DNS to their IP; fix is A @ → 216.24.57.1 (Render static IP); never use Replit publish button
 - [PancakeSwap Infinity Permit2](pancakeswap-infinity-permit2.md) — CLPositionManager uses Permit2 (not raw ERC-20 approve); missing allowance = 0xd81b2f2e AllowanceExpired; must approve Permit2 contract first then set permit2.approve(token, spender, amount, expiry)
 - [BOT Chain Scan verification](botchain-scan-verification.md) — Scan uses Blockscout; its edge blocks large standard-input uploads, while clean flattened-source submissions verify successfully.
