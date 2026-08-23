@@ -380,10 +380,38 @@
     <div class="prompt-icon">🔗</div>
     <h2>Connect to BOT Chain</h2>
     <p>Access UTL staking, FAL Pool deposits, and your full BOT Chain portfolio in one place.</p>
-    <button class="btn-large" onclick="connectWallet()">
-      🦊 Connect Wallet
-    </button>
-    <p style="margin-top:18px;font-size:13px;color:var(--muted);">Supports MetaMask and any EVM wallet</p>
+
+    <!-- Desktop / injected wallet -->
+    <div id="desktopConnect">
+      <button class="btn-large" onclick="connectWallet()">
+        🦊 Connect Wallet
+      </button>
+      <p style="margin-top:18px;font-size:13px;color:var(--muted);">MetaMask or any EVM wallet</p>
+    </div>
+
+    <!-- Mobile fallback: shown when no window.ethereum detected -->
+    <div id="mobileConnect" style="display:none;">
+      <p style="margin-bottom:20px;font-size:14px;color:#ffcc44;background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.2);border-radius:10px;padding:12px 16px;">
+        📱 Chrome on mobile doesn't support Web3 directly.<br>Open this DApp inside your wallet's browser:
+      </p>
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:300px;margin:0 auto;">
+        <a class="btn-large" href="https://metamask.app.link/dapp/kenostodblockchain.com/botchain-app"
+           style="text-decoration:none;justify-content:center;">
+          🦊 Open in MetaMask
+        </a>
+        <a class="btn-large" href="https://link.trustwallet.com/open_url?coin_id=60&url=https://kenostodblockchain.com/botchain-app"
+           style="text-decoration:none;justify-content:center;background:linear-gradient(135deg,#3375BB,#1A56DB);">
+          🛡️ Open in Trust Wallet
+        </a>
+        <a class="btn-large" href="https://go.cb-wallet.com/dapp?url=https://kenostodblockchain.com/botchain-app"
+           style="text-decoration:none;justify-content:center;background:linear-gradient(135deg,#1652f0,#0a3ac4);">
+          🔵 Open in Coinbase Wallet
+        </a>
+      </div>
+      <p style="margin-top:20px;font-size:12px;color:var(--muted);">
+        Or open kenostodblockchain.com/botchain-app inside your wallet's built-in browser
+      </p>
+    </div>
   </div>
 
   <!-- PORTFOLIO BAR (shown after connect) -->
@@ -1232,12 +1260,22 @@ function handleTxError(e) {
   }
 }
 
-// Auto-connect if already connected
+// Mobile detection + auto-connect
 window.addEventListener('load', async () => {
-  if (window.ethereum) {
-    const accounts = await window.ethereum.request({ method:'eth_accounts' }).catch(()=>[]);
-    if (accounts.length > 0) connectWallet();
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (!window.ethereum) {
+    if (isMobile) {
+      // Show wallet deep-link buttons, hide desktop button
+      document.getElementById('desktopConnect').style.display = 'none';
+      document.getElementById('mobileConnect').style.display = 'block';
+    }
+    return;
   }
+
+  // Wallet available — auto-connect if already authorized
+  const accounts = await window.ethereum.request({ method:'eth_accounts' }).catch(()=>[]);
+  if (accounts.length > 0) connectWallet();
 });
 </script>
 </body>
