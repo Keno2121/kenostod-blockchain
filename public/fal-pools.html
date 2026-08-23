@@ -682,6 +682,9 @@
             <a href="/wealth-builder.html">Wealth Builder</a>
             <a href="/graduate-club.html">Graduate Club</a>
         </nav>
+        <button id="mmConnectBtn" onclick="connectMetaMask()" style="background:linear-gradient(135deg,#00d4ff,#8a2be2);color:#fff;border:none;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">
+            🦊 Connect Wallet
+        </button>
     </header>
     
     <div class="container">
@@ -828,6 +831,36 @@
         
         <div id="my-pools" class="tab-content">
             <h2 class="section-title">My Contributions</h2>
+
+            <!-- Wallet connect prompt -->
+            <div id="contribWalletPrompt" style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);border-radius:16px;padding:28px;text-align:center;margin-bottom:20px;">
+                <div style="font-size:36px;margin-bottom:12px;">🦊</div>
+                <h3 style="margin-bottom:8px;">Connect Your Wallet</h3>
+                <p style="opacity:0.7;margin-bottom:20px;font-size:14px;">Connect MetaMask to view your pool contributions, earnings, and withdraw profits to your wallet.</p>
+                <button onclick="connectMetaMask()" style="background:linear-gradient(135deg,#00d4ff,#8a2be2);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">
+                    🦊 Connect MetaMask
+                </button>
+                <p style="margin-top:12px;font-size:12px;opacity:0.5;">Or open in MetaMask Mobile browser</p>
+            </div>
+
+            <!-- Wallet summary (shown after connect) -->
+            <div id="contribWalletSummary" style="display:none;background:rgba(0,255,135,0.07);border:1px solid rgba(0,255,135,0.2);border-radius:14px;padding:20px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                    <div>
+                        <div style="font-size:12px;opacity:0.6;margin-bottom:4px;">CONNECTED WALLET</div>
+                        <div id="contribWalletAddr" style="font-size:14px;font-weight:600;color:#00d4ff;">—</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:12px;opacity:0.6;margin-bottom:4px;">TOTAL DEPOSITED</div>
+                        <div id="contribTotalDeposited" style="font-size:22px;font-weight:700;color:#00d4ff;">0 KENO</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:12px;opacity:0.6;margin-bottom:4px;">TOTAL EARNINGS</div>
+                        <div id="contribTotalEarnings" style="font-size:22px;font-weight:700;color:#00ff87;">0 KENO</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="my-contributions" id="myContributions">
                 <div class="empty-state">
                     <h3>No contributions yet</h3>
@@ -1144,61 +1177,91 @@
         
         async function loadMyContributions() {
             const wallet = getStoredWallet();
+            const prompt = document.getElementById('contribWalletPrompt');
+            const summary = document.getElementById('contribWalletSummary');
+            const container = document.getElementById('myContributions');
+
             if (!wallet) {
-                document.getElementById('myContributions').innerHTML = `
-                    <div class="empty-state">
-                        <h3>Wallet Required</h3>
-                        <p>Please <a href="/#wallet" style="color: #00d4ff;">create or connect a wallet</a> to view your contributions.</p>
-                    </div>
-                `;
+                if (prompt) prompt.style.display = 'block';
+                if (summary) summary.style.display = 'none';
+                container.innerHTML = '';
                 return;
             }
-            
+
+            if (prompt) prompt.style.display = 'none';
+            if (summary) summary.style.display = 'block';
+
+            const short = wallet.address.slice(0,6) + '…' + wallet.address.slice(-4);
+            document.getElementById('contribWalletAddr').textContent = wallet.address;
+
             try {
                 const response = await fetch(`/api/fal-pool/contributor/${wallet.address}`);
                 const data = await response.json();
-                
-                const container = document.getElementById('myContributions');
-                
-                if (!data.success || data.contributions.length === 0) {
+
+                // Update summary totals
+                document.getElementById('contribTotalDeposited').textContent = formatNumber(data.totalDeposited || 0) + ' KENO';
+                document.getElementById('contribTotalEarnings').textContent  = formatNumber(data.totalEarnings  || 0) + ' KENO';
+
+                if (!data.success || !data.contributions || data.contributions.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <h3>No contributions yet</h3>
-                            <p>Deposit to a pool to start earning token rewards from arbitrage trades.</p>
+                            <p>Deposit to any pool below to start earning KENO rewards from arbitrage trades.
+                               Profits are auto-distributed to your wallet address.</p>
                         </div>
                     `;
                     return;
                 }
-                
-                container.innerHTML = `
-                    <div style="margin-bottom: 20px; padding: 15px; background: rgba(0, 255, 100, 0.1); border-radius: 10px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <div>
-                                <div style="font-size: 24px; font-weight: 700; color: #00d4ff;">${formatNumber(data.totalDeposited)} KENO</div>
-                                <div style="font-size: 12px; opacity: 0.7;">Total Deposited</div>
+
+                container.innerHTML = data.contributions.filter(c => c.status === 'active').map(c => {
+                    const canWithdraw = !c.lockedUntil || Date.now() >= c.lockedUntil;
+                    const unlockDate  = c.lockedUntil ? new Date(c.lockedUntil).toLocaleDateString() : 'Flexible';
+                    return `
+                        <div class="contribution-item" style="border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:18px;margin-bottom:14px;background:rgba(255,255,255,0.04);">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+                                <div>
+                                    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${c.poolName || 'Pool'}</div>
+                                    <div style="font-size:12px;opacity:0.6;">Share: ${(c.sharePercentage||0).toFixed(2)}% &nbsp;|&nbsp; Lock: ${c.lockPeriod} &nbsp;|&nbsp; Unlock: ${unlockDate}</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:20px;font-weight:700;color:#00d4ff;">${formatNumber(c.amount)} KENO</div>
+                                    <div style="font-size:13px;color:#00ff87;font-weight:600;">+${formatNumber(c.totalEarned)} earned</div>
+                                </div>
                             </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 24px; font-weight: 700; color: #00ff64;">${formatNumber(data.totalEarnings)} KENO</div>
-                                <div style="font-size: 12px; opacity: 0.7;">Total Earnings</div>
+                            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+                                <button onclick="withdrawContribution('${c.id}', '${wallet.address}')"
+                                    ${canWithdraw ? '' : 'disabled'}
+                                    style="background:${canWithdraw ? 'linear-gradient(135deg,#00d4ff,#8a2be2)' : 'rgba(255,255,255,0.1)'};color:#fff;border:none;padding:9px 20px;border-radius:9px;font-size:13px;font-weight:600;cursor:${canWithdraw ? 'pointer' : 'default'};opacity:${canWithdraw ? '1' : '0.5'};">
+                                    💰 ${canWithdraw ? 'Withdraw + Profits to Wallet' : 'Locked until ' + unlockDate}
+                                </button>
                             </div>
                         </div>
-                    </div>
-                    ${data.contributions.filter(c => c.status === 'active').map(c => `
-                        <div class="contribution-item">
-                            <div class="contribution-info">
-                                <h4>${c.poolName}</h4>
-                                <span>Share: ${c.sharePercentage.toFixed(2)}% | Lock: ${c.lockPeriod}</span>
-                            </div>
-                            <div class="contribution-stats">
-                                <div class="contribution-amount">${formatNumber(c.amount)} KENO</div>
-                                <div class="contribution-earnings">+${formatNumber(c.totalEarned)} earned</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                `;
-                
+                    `;
+                }).join('');
+
             } catch (error) {
                 console.error('Error loading contributions:', error);
+                container.innerHTML = '<div class="empty-state"><h3>Error loading contributions</h3></div>';
+            }
+        }
+
+        async function withdrawContribution(contributionId, walletAddress) {
+            if (!confirm('Withdraw your KENO deposit + all earned profits to your wallet?')) return;
+            try {
+                const res = await fetch('/api/fal-pool/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contributionId, walletAddress })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`✅ Withdrawal successful!\n\nAmount returned: ${formatNumber(data.amountReturned)} KENO\nProfit earned: ${formatNumber(data.profitEarned)} KENO\n\nFunds sent to: ${walletAddress}`);
+                    loadMyContributions();
+                } else {
+                    alert('❌ Withdrawal failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('❌ Network error: ' + e.message);
             }
         }
         
@@ -1348,7 +1411,38 @@
             }
         }
         
+        // ── MetaMask wallet state ──
+        let mmAddress = null;
+
+        async function connectMetaMask() {
+            if (!window.ethereum) {
+                const isM = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isM) {
+                    window.location.href = 'https://metamask.app.link/dapp/kenostodblockchain.com/fal-pools.html';
+                } else {
+                    alert('MetaMask not detected. Install MetaMask or open this page in the MetaMask mobile browser.');
+                }
+                return;
+            }
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                mmAddress = accounts[0];
+                const short = mmAddress.slice(0,6) + '…' + mmAddress.slice(-4);
+                document.getElementById('mmConnectBtn').textContent = '✅ ' + short;
+                document.getElementById('mmConnectBtn').style.background = 'rgba(0,255,135,0.15)';
+                document.getElementById('mmConnectBtn').style.border = '1px solid rgba(0,255,135,0.4)';
+                document.getElementById('mmConnectBtn').style.color = '#00ff87';
+                // Reload contributions if on that tab
+                loadMyContributions();
+            } catch(e) {
+                console.error('MetaMask connect error', e);
+            }
+        }
+
         function getStoredWallet() {
+            // MetaMask takes priority
+            if (mmAddress) return { address: mmAddress };
+
             try {
                 const stored = localStorage.getItem('kenostod_wallet_state');
                 if (stored) {
@@ -1357,16 +1451,11 @@
                         return { address: wallet.publicKey, privateKey: wallet.privateKey };
                     }
                 }
-                
-                const addressOnly = localStorage.getItem('userWalletAddress') || 
+                const addressOnly = localStorage.getItem('userWalletAddress') ||
                                    localStorage.getItem('walletAddress');
-                if (addressOnly) {
-                    return { address: addressOnly };
-                }
-                
+                if (addressOnly) return { address: addressOnly };
                 return null;
             } catch (e) {
-                console.error('Error loading wallet:', e);
                 return null;
             }
         }
@@ -1570,9 +1659,43 @@
             }
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             loadPools();
-            
+
+            // Auto-connect MetaMask if user already authorised this site
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        mmAddress = accounts[0];
+                        const short = mmAddress.slice(0,6) + '…' + mmAddress.slice(-4);
+                        const btn = document.getElementById('mmConnectBtn');
+                        btn.textContent = '✅ ' + short;
+                        btn.style.background = 'rgba(0,255,135,0.15)';
+                        btn.style.border = '1px solid rgba(0,255,135,0.4)';
+                        btn.style.color = '#00ff87';
+                    }
+                    // Listen for account changes
+                    window.ethereum.on('accountsChanged', accs => {
+                        mmAddress = accs[0] || null;
+                        const btn = document.getElementById('mmConnectBtn');
+                        if (mmAddress) {
+                            const s = mmAddress.slice(0,6) + '…' + mmAddress.slice(-4);
+                            btn.textContent = '✅ ' + s;
+                            btn.style.background = 'rgba(0,255,135,0.15)';
+                            btn.style.border = '1px solid rgba(0,255,135,0.4)';
+                            btn.style.color = '#00ff87';
+                        } else {
+                            btn.textContent = '🦊 Connect Wallet';
+                            btn.style.background = 'linear-gradient(135deg,#00d4ff,#8a2be2)';
+                            btn.style.border = '';
+                            btn.style.color = '#fff';
+                        }
+                        loadMyContributions();
+                    });
+                } catch(e) { /* silent */ }
+            }
+
             const wallet = getStoredWallet();
             currentWallet = wallet;
             
