@@ -1460,6 +1460,9 @@ app.get('/api/utl/reversal/pool', (req, res) => {
 
 // ── UTL Embeddable Widget (B2B SaaS) ─────────────────────────────────────
 // Docs landing page
+app.get('/student-earn-model', (req, res) => res.sendFile(__dirname + '/public/docs/student-earn-model.html'));
+app.get('/docs/student-earn-model', (req, res) => res.sendFile(__dirname + '/public/docs/student-earn-model.html'));
+app.get('/docs/student-earn-model.html', (req, res) => res.sendFile(__dirname + '/public/docs/student-earn-model.html'));
 app.get('/utl-dashboard',      (req, res) => res.sendFile(__dirname + '/public/utl-dashboard.html'));
 app.get('/utl-widget',         (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
 app.get('/utl-widget-docs',   (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
