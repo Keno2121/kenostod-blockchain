@@ -1276,14 +1276,33 @@
                 'stat-balance-curr':   sym + ' held',
                 'send-amount-label':   'Amount (' + sym + ')',
                 'send-min-label':      'Min: 0.001 ' + sym,
+                'send-min-2':          'Min: 0.001 ' + sym,
                 'user-balance-label':  'Your ' + sym + ' Balance',
+                'feePreview':          'Fee: ~0.000001 ' + sym,
             };
             Object.entries(els).forEach(([id, txt]) => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = txt;
             });
+            // Description paragraph
             const desc = document.getElementById('send-native-desc');
             if (desc) desc.textContent = `Send ${sym} to any address. UTL captures a 0.1% fee — 60% goes to stakers, 40% to treasury.`;
+            // Reward display fields — only update if they still show a currency suffix
+            ['userRewards','flywheelRewards'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && /^\d[\d.,]* (BNB|BOT)$/.test(el.textContent.trim())) {
+                    const num = el.textContent.trim().split(' ')[0];
+                    el.textContent = num + ' ' + sym;
+                } else if (el && el.textContent.trim() === '0 BNB') {
+                    el.textContent = '0 ' + sym;
+                }
+            });
+            const hc = document.getElementById('histTotalClaimed');
+            if (hc && hc.textContent.includes('BNB')) hc.textContent = hc.textContent.replace('BNB', sym);
+            // Info text nodes that are purely static
+            document.querySelectorAll('[data-sym]').forEach(el => {
+                el.textContent = sym;
+            });
         }
         let WALLETCONNECT_PROJECT_ID = 'b5a74d48402f00067b4979c315e7350a'; // public key, safe in frontend
         let configLoaded = false;
@@ -1365,6 +1384,7 @@
 
         function navSelectNetwork(net) {
             selectModalNetwork(net); // syncs selectedNetwork, modal tabs, nav badge
+            updateNativeCurrencyLabels();   // swap BNB ↔ BOT on all static labels
             const isBOT = net === 'botchain';
             const bscBtn = document.getElementById('navTabBSC');
             const botBtn = document.getElementById('navTabBOT');
