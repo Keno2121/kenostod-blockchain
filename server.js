@@ -10343,6 +10343,226 @@ app.post('/api/falp/deposit-profit', requireFounder, async (req, res) => {
 });
 // ==================== END FALP API ENDPOINTS ====================
 
+// ==================== FALP BOT CHAIN API ENDPOINTS ====================
+// FALPool + FALFlashArbBOT deployed on BOT Chain (chain 677, BDEX-based)
+// Investors deposit KENO (BOT Chain) and earn BOT from flash arb profits
+
+const FALP_BOTCHAIN_ABI = [
+    'function getPoolInfo() external view returns (uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)',
+    'function getLockTierInfo() external view returns (uint256[4],uint256[4])',
+    'function getDepositInfo(address user) external view returns (uint256,uint8,uint256,uint256,uint256,uint256,uint256,uint256,bool,uint256)',
+    'function arbBot() external view returns (address)',
+    'function totalEffectiveStake() external view returns (uint256)',
+    'function depositProfit() external payable',
+    'function setArbBot(address) external',
+];
+
+const FALP_ARB_BOT_ABI = [
+    'function getStats() external view returns (uint256,uint256,uint256,uint256)',
+    'function injectProfit() external payable',
+    'function falPool() external view returns (address)',
+    'function WBOT() external view returns (address)',
+    'function totalProfitBOT() external view returns (uint256)',
+    'function totalArbsExecuted() external view returns (uint256)',
+    'function totalStakerPaid() external view returns (uint256)',
+];
+
+function _getBotChainProvider() {
+    const { ethers } = require('ethers');
+    return new ethers.JsonRpcProvider('https://rpc.botchain.ai');
+}
+
+// Pool stats — public
+app.get('/api/falp/botchain/info', async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const poolAddr   = process.env.FALP_BOTCHAIN_ADDRESS;
+        const arbAddr    = process.env.FALP_ARB_BOT_BOTCHAIN;
+
+        if (!poolAddr) {
+            return res.json({
+                deployed: false,
+                message:  'FALPool not deployed on BOT Chain yet',
+                network:  'botchain'
+            });
+        }
+
+        const provider = _getBotChainProvider();
+        const falPool  = new ethers.Contract(poolAddr, FALP_BOTCHAIN_ABI, provider);
+
+        const [info, tiers] = await Promise.all([
+            falPool.getPoolInfo(),
+            falPool.getLockTierInfo()
+        ]);
+
+        let arbStats = null;
+        if (arbAddr) {
+            try {
+                const arbBot = new ethers.Contract(arbAddr, FALP_ARB_BOT_ABI, provider);
+                const stats  = await arbBot.getStats();
+                arbStats = {
+                    address:          arbAddr,
+                    totalProfitBOT:   ethers.formatEther(stats[0]),
+                    totalArbs:        Number(stats[1]),
+                    totalStakerPaid:  ethers.formatEther(stats[2]),
+                    botBalance:       ethers.formatEther(stats[3]),
+                    scanUrl:          `https://scan.botchain.ai/address/${arbAddr}`
+                };
+            } catch (_) { /* arb stats optional */ }
+        }
+
+        res.json({
+            deployed:            true,
+            network:             'botchain',
+            chainId:             677,
+            address:             poolAddr,
+            scanUrl:             `https://scan.botchain.ai/address/${poolAddr}`,
+            totalDepositedKeno:  ethers.formatEther(info[0]),
+            totalEffectiveStake: ethers.formatEther(info[1]),
+            totalProfitReceived: ethers.formatEther(info[2]),  // BOT received
+            totalProfitPaid:     ethers.formatEther(info[3]),  // BOT paid to stakers
+            platformFees:        ethers.formatEther(info[4]),
+            contractBotBalance:  ethers.formatEther(info[5]),
+            nashFeeBp:           info[6].toString(),
+            minDepositKeno:      ethers.formatEther(info[7]),
+            rewardToken:         'BOT',
+            stakeToken:          'KENO (BOT Chain)',
+            kenoAddress:         '0x137a5Fc22a76Ec42490F2421a81935d124baE714',
+            bdexPool:            '0x0E5CDa3A501010331774B3cdB66Fa15425c5D251',
+            lockTiers: [
+                { tier: 0, days: tiers[1][0].toString(), multiplier: (Number(tiers[0][0]) / 1000).toFixed(3), label: 'Flexible' },
+                { tier: 1, days: tiers[1][1].toString(), multiplier: (Number(tiers[0][1]) / 1000).toFixed(3), label: '7 Days' },
+                { tier: 2, days: tiers[1][2].toString(), multiplier: (Number(tiers[0][2]) / 1000).toFixed(3), label: '30 Days' },
+                { tier: 3, days: tiers[1][3].toString(), multiplier: (Number(tiers[0][3]) / 1000).toFixed(3), label: '90 Days (φ)' },
+            ],
+            arbBot: arbStats
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message, network: 'botchain' });
+    }
+});
+
+// Investor deposit info — public
+app.get('/api/falp/botchain/deposit-info/:address', async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const poolAddr   = process.env.FALP_BOTCHAIN_ADDRESS;
+        const userAddr   = req.params.address;
+
+        if (!poolAddr) return res.json({ deployed: false, network: 'botchain' });
+
+        const provider = _getBotChainProvider();
+        const falPool  = new ethers.Contract(poolAddr, FALP_BOTCHAIN_ABI, provider);
+        const d        = await falPool.getDepositInfo(userAddr);
+
+        const lockLabels = ['Flexible', '7 Days', '30 Days', '90 Days (φ)'];
+        res.json({
+            address:               userAddr,
+            network:               'botchain',
+            depositedKeno:         ethers.formatEther(d[0]),
+            lockTier:              Number(d[1]),
+            lockTierLabel:         lockLabels[Number(d[1])] || 'Unknown',
+            lockEnd:               Number(d[2]) > 0 ? new Date(Number(d[2]) * 1000).toISOString() : 'Flexible',
+            depositedAt:           new Date(Number(d[3]) * 1000).toISOString(),
+            effectiveStakeKeno:    ethers.formatEther(d[4]),
+            pendingRewardBOT:      ethers.formatEther(d[5]),
+            lifetimeDepositedKeno: ethers.formatEther(d[6]),
+            lifetimeBotClaimed:    ethers.formatEther(d[7]),
+            ramanujanUnlocked:     d[8],
+            timeUntilUnlockSec:    Number(d[9]),
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message, network: 'botchain' });
+    }
+});
+
+// FALFlashArbBOT stats — public
+app.get('/api/falp/botchain/arb-stats', async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const arbAddr    = process.env.FALP_ARB_BOT_BOTCHAIN;
+
+        if (!arbAddr) return res.json({ deployed: false, network: 'botchain' });
+
+        const provider = _getBotChainProvider();
+        const arbBot   = new ethers.Contract(arbAddr, FALP_ARB_BOT_ABI, provider);
+        const stats    = await arbBot.getStats();
+
+        res.json({
+            deployed:        true,
+            network:         'botchain',
+            address:         arbAddr,
+            scanUrl:         `https://scan.botchain.ai/address/${arbAddr}`,
+            totalProfitBOT:  ethers.formatEther(stats[0]),
+            totalArbs:       Number(stats[1]),
+            totalStakerPaid: ethers.formatEther(stats[2]),
+            botBalance:      ethers.formatEther(stats[3]),
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message, network: 'botchain' });
+    }
+});
+
+// Founder-only: inject profit manually into FALPool via FALFlashArbBOT
+app.post('/api/falp/botchain/inject-profit', requireFounder, async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const arbAddr    = process.env.FALP_ARB_BOT_BOTCHAIN;
+        if (!arbAddr) return res.status(400).json({ error: 'FALFlashArbBOT not deployed on BOT Chain' });
+
+        const key = process.env.BOT_WALLET_PRIVATE_KEY;
+        if (!key) return res.status(400).json({ error: 'BOT_WALLET_PRIVATE_KEY not set' });
+
+        const provider = _getBotChainProvider();
+        const wallet   = new ethers.Wallet(`0x${key.replace(/^0x/, '')}`, provider);
+        const arbBot   = new ethers.Contract(arbAddr, FALP_ARB_BOT_ABI, wallet);
+
+        const botAmount = req.body.botAmount || '0.001';
+        const tx        = await arbBot.injectProfit({ value: ethers.parseEther(botAmount) });
+        const receipt   = await tx.wait();
+
+        res.json({
+            ok:           true,
+            txHash:       receipt.hash,
+            botInjected:  botAmount,
+            stakerShare:  (parseFloat(botAmount) * 0.05).toFixed(6) + ' BOT',
+            scanUrl:      `https://scan.botchain.ai/tx/${receipt.hash}`
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Founder-only: send BOT profit directly to FALPool.depositProfit()
+app.post('/api/falp/botchain/deposit-profit', requireFounder, async (req, res) => {
+    try {
+        const { ethers } = require('ethers');
+        const poolAddr   = process.env.FALP_BOTCHAIN_ADDRESS;
+        if (!poolAddr) return res.status(400).json({ error: 'FALPool not deployed on BOT Chain' });
+
+        const key = process.env.BOT_WALLET_PRIVATE_KEY;
+        if (!key) return res.status(400).json({ error: 'BOT_WALLET_PRIVATE_KEY not set' });
+
+        const provider = _getBotChainProvider();
+        const wallet   = new ethers.Wallet(`0x${key.replace(/^0x/, '')}`, provider);
+        const falPool  = new ethers.Contract(poolAddr, FALP_BOTCHAIN_ABI, wallet);
+
+        const botAmount = req.body.botAmount || '0.001';
+        const tx        = await falPool.depositProfit({ value: ethers.parseEther(botAmount) });
+        const receipt   = await tx.wait();
+
+        res.json({
+            ok:          true,
+            txHash:      receipt.hash,
+            botDeposited: botAmount,
+            scanUrl:     `https://scan.botchain.ai/tx/${receipt.hash}`
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+// ==================== END FALP BOT CHAIN API ENDPOINTS ====================
+
 // ==================== KINGS SHIELD BOTS API ENDPOINTS ====================
 app.use('/api/aegis-arb',         requireFounder);
 app.use('/api/constitution-flash', requireFounder);
