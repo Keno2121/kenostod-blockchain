@@ -6,6 +6,17 @@
   <title>BOT Chain App — Kenostod Blockchain</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- WalletConnect v2 — loaded as ES module, exposed globally -->
+  <script type="module">
+    try {
+      const { EthereumProvider } = await import('https://esm.sh/@walletconnect/ethereum-provider@2.11.2');
+      window.WCEthereumProvider = EthereumProvider;
+    } catch(e) {
+      console.warn('WalletConnect CDN failed to load:', e);
+    }
+    document.dispatchEvent(new Event('wc-ready'));
+  </script>
   <style>
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
@@ -381,36 +392,30 @@
     <h2>Connect to BOT Chain</h2>
     <p>Access UTL staking, FAL Pool deposits, and your full BOT Chain portfolio in one place.</p>
 
-    <!-- Desktop / injected wallet -->
-    <div id="desktopConnect">
-      <button class="btn-large" onclick="connectWallet()">
-        🦊 Connect Wallet
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:320px;margin:0 auto;">
+      <!-- Primary: works in any browser, any device -->
+      <button class="btn-large" id="wcBtn" onclick="connectWalletConnect()" style="justify-content:center;opacity:0.5;cursor:default;">
+        <span id="wcBtnText">⏳ Loading…</span>
       </button>
-      <p style="margin-top:18px;font-size:13px;color:var(--muted);">MetaMask or any EVM wallet</p>
+      <!-- Secondary: MetaMask extension (desktop/MetaMask browser) -->
+      <button class="btn-large" id="mmBtn" onclick="connectInjected()" style="justify-content:center;background:linear-gradient(135deg,#f6851b,#e2761b);display:none;">
+        🦊 MetaMask
+      </button>
     </div>
+    <p style="margin-top:18px;font-size:12px;color:var(--muted);">Works on desktop and mobile · Any wallet supported</p>
 
-    <!-- Mobile fallback: shown when no window.ethereum detected -->
-    <div id="mobileConnect" style="display:none;">
-      <p style="margin-bottom:20px;font-size:14px;color:#ffcc44;background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.2);border-radius:10px;padding:12px 16px;">
-        📱 Chrome on mobile doesn't support Web3 directly.<br>Open this DApp inside your wallet's browser:
-      </p>
-      <div style="display:flex;flex-direction:column;gap:12px;max-width:300px;margin:0 auto;">
-        <a class="btn-large" href="https://metamask.app.link/dapp/kenostodblockchain.com/botchain-app"
-           style="text-decoration:none;justify-content:center;">
-          🦊 Open in MetaMask
-        </a>
-        <a class="btn-large" href="https://link.trustwallet.com/open_url?coin_id=60&url=https://kenostodblockchain.com/botchain-app"
-           style="text-decoration:none;justify-content:center;background:linear-gradient(135deg,#3375BB,#1A56DB);">
-          🛡️ Open in Trust Wallet
-        </a>
-        <a class="btn-large" href="https://go.cb-wallet.com/dapp?url=https://kenostodblockchain.com/botchain-app"
-           style="text-decoration:none;justify-content:center;background:linear-gradient(135deg,#1652f0,#0a3ac4);">
-          🔵 Open in Coinbase Wallet
-        </a>
+    <!-- QR Modal -->
+    <div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;">
+      <div style="background:#111125;border:1px solid rgba(0,212,255,0.3);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">
+        <h3 style="font-size:18px;margin-bottom:8px;">Scan to Connect</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Open MetaMask, Trust Wallet, or any WalletConnect wallet and scan this QR code.</p>
+        <canvas id="qrCanvas" style="border-radius:12px;width:220px;height:220px;background:#fff;padding:10px;"></canvas>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+          <a id="mmDeepLink" href="#" style="display:block;padding:10px;background:rgba(246,133,27,0.15);border:1px solid rgba(246,133,27,0.3);border-radius:10px;color:#f6851b;text-decoration:none;font-size:13px;font-weight:600;">🦊 Open in MetaMask Mobile</a>
+          <a id="twDeepLink" href="#" style="display:block;padding:10px;background:rgba(51,117,187,0.15);border:1px solid rgba(51,117,187,0.3);border-radius:10px;color:#3375BB;text-decoration:none;font-size:13px;font-weight:600;">🛡️ Open in Trust Wallet</a>
+        </div>
+        <button onclick="closeQR()" style="margin-top:16px;background:none;border:1px solid var(--border);color:var(--muted);padding:8px 24px;border-radius:8px;cursor:pointer;font-size:13px;">Cancel</button>
       </div>
-      <p style="margin-top:20px;font-size:12px;color:var(--muted);">
-        Or open kenostodblockchain.com/botchain-app inside your wallet's built-in browser
-      </p>
     </div>
   </div>
 
@@ -800,19 +805,106 @@ let refreshInterval;
 // ══════════════════════════════════════════════════════════════
 //  WALLET
 // ══════════════════════════════════════════════════════════════
-async function connectWallet() {
+let wcProjectId = '';
+let wcProviderInstance = null;
+
+// Fetch project ID + initialise WC button once the ESM module fires
+document.addEventListener('wc-ready', async () => {
+  try {
+    const cfg = await fetch('/api/utl/config').then(r => r.json());
+    wcProjectId = cfg.walletConnectProjectId || '';
+  } catch(_) {}
+
+  const btn = document.getElementById('wcBtn');
+  const txt = document.getElementById('wcBtnText');
+  if (window.WCEthereumProvider && wcProjectId) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    txt.textContent = '🔗 Connect Wallet';
+  } else {
+    // WC CDN failed — fall back to injected only
+    txt.textContent = '🦊 Connect Wallet';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.onclick = connectInjected;
+  }
+
+  // Also show MetaMask button if injected wallet present
+  if (window.ethereum) {
+    document.getElementById('mmBtn').style.display = 'flex';
+  }
+});
+
+// Primary: WalletConnect (works in ANY browser, ANY device)
+async function connectWalletConnect() {
+  if (!window.WCEthereumProvider || !wcProjectId) {
+    // WC not loaded — fall back to injected
+    return connectInjected();
+  }
+  try {
+    document.getElementById('wcBtnText').textContent = '⏳ Connecting…';
+    document.getElementById('wcBtn').disabled = true;
+
+    const wcProvider = await window.WCEthereumProvider.init({
+      projectId: wcProjectId,
+      chains: [BOT_CHAIN_ID],
+      optionalChains: [BOT_CHAIN_ID],
+      showQrModal: false,   // we draw our own QR below
+      metadata: {
+        name: 'Kenostod BOT Chain App',
+        description: 'UTL Staking & FAL Pool on BOT Chain',
+        url: 'https://kenostodblockchain.com',
+        icons: ['https://kenostodblockchain.com/assets/images/logo.png']
+      }
+    });
+
+    wcProviderInstance = wcProvider;
+
+    // Show QR code when URI is ready
+    wcProvider.on('display_uri', uri => showQR(uri));
+
+    // Connection established
+    wcProvider.on('connect', async () => {
+      closeQR();
+      provider = new ethers.providers.Web3Provider(wcProvider);
+      signer   = provider.getSigner();
+      userAddress = await signer.getAddress();
+      initContracts();
+      await checkNetwork();
+      onConnected();
+    });
+
+    wcProvider.on('disconnect', onDisconnect);
+
+    await wcProvider.connect();
+
+  } catch(e) {
+    closeQR();
+    if (e?.message?.includes('User rejected') || e?.code === 4001) {
+      showToast('Connection cancelled.', 'error');
+    } else {
+      showToast('WalletConnect failed — try MetaMask button below.', 'error', 5000);
+    }
+    document.getElementById('wcBtnText').textContent = '🔗 Connect Wallet';
+    document.getElementById('wcBtn').disabled = false;
+  }
+}
+
+// Secondary: injected wallet (MetaMask extension / in-wallet browser)
+async function connectInjected() {
   if (!window.ethereum) {
-    showToast('No wallet detected. Install MetaMask or a compatible EVM wallet.', 'error');
+    showToast('No wallet detected. Use the WalletConnect button instead.', 'error', 5000);
     return;
   }
   try {
-    const btn = document.getElementById('connectBtn');
-    btn.disabled = true;
-    btn.textContent = 'Connecting…';
+    document.getElementById('connectBtn').textContent = 'Connecting…';
+    document.getElementById('connectBtn').disabled = true;
 
-    provider = new ethers.providers.Web3Provider(window.ethereum);
+    provider   = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send('eth_requestAccounts', []);
-    signer = provider.getSigner();
+    signer     = provider.getSigner();
     userAddress = await signer.getAddress();
 
     initContracts();
@@ -820,7 +912,7 @@ async function connectWallet() {
     onConnected();
 
     window.ethereum.on('accountsChanged', accounts => {
-      if (accounts.length === 0) onDisconnect();
+      if (!accounts.length) onDisconnect();
       else { userAddress = accounts[0]; signer = provider.getSigner(); initContracts(); refreshAll(); }
     });
     window.ethereum.on('chainChanged', () => location.reload());
@@ -829,6 +921,40 @@ async function connectWallet() {
     showToast('Connection cancelled.', 'error');
     resetBtn();
   }
+}
+
+// Legacy alias — header button still calls connectWallet
+function connectWallet() { connectWalletConnect(); }
+
+// ── QR code helpers ──
+let qrDrawn = false;
+function showQR(uri) {
+  const modal = document.getElementById('qrModal');
+  modal.style.display = 'flex';
+
+  if (!qrDrawn) {
+    qrDrawn = true;
+    const canvas = document.getElementById('qrCanvas');
+    // Use qrcode.js to draw on canvas
+    if (window.QRCode) {
+      new QRCode(canvas.parentElement.appendChild(document.createElement('div')), {
+        text: uri, width: 200, height: 200,
+        colorDark: '#000000', colorLight: '#ffffff'
+      });
+      canvas.style.display = 'none';
+    }
+  }
+
+  // Set deep links with real URI
+  const encoded = encodeURIComponent(uri);
+  document.getElementById('mmDeepLink').href =
+    `https://metamask.app.link/wc?uri=${encoded}`;
+  document.getElementById('twDeepLink').href =
+    `https://link.trustwallet.com/wc?uri=${encoded}`;
+}
+
+function closeQR() {
+  document.getElementById('qrModal').style.display = 'none';
 }
 
 function initContracts() {
@@ -1260,22 +1386,12 @@ function handleTxError(e) {
   }
 }
 
-// Mobile detection + auto-connect
+// Auto-connect if injected wallet already authorised
 window.addEventListener('load', async () => {
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  if (!window.ethereum) {
-    if (isMobile) {
-      // Show wallet deep-link buttons, hide desktop button
-      document.getElementById('desktopConnect').style.display = 'none';
-      document.getElementById('mobileConnect').style.display = 'block';
-    }
-    return;
+  if (window.ethereum) {
+    const accounts = await window.ethereum.request({ method:'eth_accounts' }).catch(()=>[]);
+    if (accounts.length > 0) connectInjected();
   }
-
-  // Wallet available — auto-connect if already authorized
-  const accounts = await window.ethereum.request({ method:'eth_accounts' }).catch(()=>[]);
-  if (accounts.length > 0) connectWallet();
 });
 </script>
 </body>
