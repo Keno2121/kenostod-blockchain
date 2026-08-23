@@ -1964,6 +1964,21 @@ async function initializeBlockchainSystems() {
         revenueTracker = new RevenueTracker();
         arbitrageSystem = new ArbitrageSystem(kenostodChain, dataPersistence);
         falPoolManager = new FALPoolManager(kenostodChain, dataPersistence, arbitrageSystem);
+
+        // Seed default BSC pools on first run so users always see pools to deposit into
+        setTimeout(() => {
+            try {
+                const existing = falPoolManager.getAllPools ? falPoolManager.getAllPools() : [];
+                if (existing.length === 0) {
+                    const PLATFORM_WALLET = '0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2';
+                    falPoolManager.createPool(PLATFORM_WALLET, 'Kenostod Flexible Earn Pool', 'conservative', 'flexible', 0);
+                    falPoolManager.createPool(PLATFORM_WALLET, 'Kenostod Balanced Growth Pool', 'balanced', 'short', 0);
+                    falPoolManager.createPool(PLATFORM_WALLET, 'Kenostod High Yield Pool', 'aggressive', 'medium', 0);
+                    console.log('🏊 Seeded 3 default FAL pools');
+                }
+            } catch(e) { console.warn('FAL pool seed skipped:', e.message); }
+        }, 3000);
+
         utlFeeCollector = new UTLFeeCollector(dataPersistence, dbConnection);
         await utlFeeCollector.initDB();
         await utlFeeCollector.loadFromDB();
