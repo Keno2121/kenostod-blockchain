@@ -9,12 +9,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- WalletConnect v2 — loaded as ES module, exposed globally -->
   <script type="module">
+    // Fire wc-ready after 8 s even if CDN hangs, so the button is never frozen
+    const wcTimeout = setTimeout(() => document.dispatchEvent(new Event('wc-ready')), 8000);
     try {
       const { EthereumProvider } = await import('https://esm.sh/@walletconnect/ethereum-provider@2.11.2');
       window.WCEthereumProvider = EthereumProvider;
     } catch(e) {
       console.warn('WalletConnect CDN failed to load:', e);
     }
+    clearTimeout(wcTimeout);
     document.dispatchEvent(new Event('wc-ready'));
   </script>
   <style>
@@ -414,7 +417,7 @@
           <a id="mmDeepLink" href="#" style="display:block;padding:10px;background:rgba(246,133,27,0.15);border:1px solid rgba(246,133,27,0.3);border-radius:10px;color:#f6851b;text-decoration:none;font-size:13px;font-weight:600;">🦊 Open in MetaMask Mobile</a>
           <a id="twDeepLink" href="#" style="display:block;padding:10px;background:rgba(51,117,187,0.15);border:1px solid rgba(51,117,187,0.3);border-radius:10px;color:#3375BB;text-decoration:none;font-size:13px;font-weight:600;">🛡️ Open in Trust Wallet</a>
         </div>
-        <button onclick="closeQR()" style="margin-top:16px;background:none;border:1px solid var(--border);color:var(--muted);padding:8px 24px;border-radius:8px;cursor:pointer;font-size:13px;">Cancel</button>
+        <button onclick="resetWCBtn()" style="margin-top:16px;background:none;border:1px solid var(--border);color:var(--muted);padding:8px 24px;border-radius:8px;cursor:pointer;font-size:13px;">Cancel</button>
       </div>
     </div>
   </div>
@@ -862,20 +865,35 @@ document.addEventListener('wc-ready', async () => {
 });
 
 // Primary: WalletConnect (works in ANY browser, ANY device)
+let wcConnectTimer = null;
+function resetWCBtn() {
+  clearTimeout(wcConnectTimer);
+  const btn = document.getElementById('wcBtn');
+  const txt = document.getElementById('wcBtnText');
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  if (txt) txt.textContent = '🔗 Connect Wallet';
+  closeQR();
+}
+
 async function connectWalletConnect() {
   if (!window.WCEthereumProvider || !wcProjectId) {
-    // WC not loaded — fall back to injected
     return connectInjected();
   }
   try {
     document.getElementById('wcBtnText').textContent = '⏳ Connecting…';
     document.getElementById('wcBtn').disabled = true;
 
+    // Safety net — reset button after 35 s if nothing happens
+    wcConnectTimer = setTimeout(() => {
+      resetWCBtn();
+      showToast('Connection timed out. Please try again.', 'error', 5000);
+    }, 35000);
+
     const wcProvider = await window.WCEthereumProvider.init({
       projectId: wcProjectId,
       chains: [BOT_CHAIN_ID],
       optionalChains: [BOT_CHAIN_ID],
-      showQrModal: false,   // we draw our own QR below
+      showQrModal: false,
       metadata: {
         name: 'Kenostod BOT Chain App',
         description: 'UTL Staking & FAL Pool on BOT Chain',
@@ -886,11 +904,28 @@ async function connectWalletConnect() {
 
     wcProviderInstance = wcProvider;
 
-    // Show QR code when URI is ready
-    wcProvider.on('display_uri', uri => showQR(uri));
+    // When URI is ready: on mobile auto-open deep link, on desktop show QR
+    wcProvider.on('display_uri', uri => {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile) {
+        // Show the modal so user can choose wallet, but also auto-open MetaMask
+        showQR(uri);
+        const mmLink = `metamask://wc?uri=${encodeURIComponent(uri)}`;
+        window.location.href = mmLink;
+        // Fallback: if MetaMask doesn't open in 2s show Trust Wallet option prominently
+        setTimeout(() => {
+          const twLink = `trust://wc?uri=${encodeURIComponent(uri)}`;
+          document.getElementById('twDeepLink').href = twLink;
+          document.getElementById('mmDeepLink').href = mmLink;
+        }, 200);
+      } else {
+        showQR(uri);
+      }
+    });
 
     // Connection established
     wcProvider.on('connect', async () => {
+      clearTimeout(wcConnectTimer);
       closeQR();
       provider = new ethers.providers.Web3Provider(wcProvider);
       signer   = provider.getSigner();
@@ -905,14 +940,12 @@ async function connectWalletConnect() {
     await wcProvider.connect();
 
   } catch(e) {
-    closeQR();
+    resetWCBtn();
     if (e?.message?.includes('User rejected') || e?.code === 4001) {
       showToast('Connection cancelled.', 'error');
     } else {
       showToast('WalletConnect failed — try MetaMask button below.', 'error', 5000);
     }
-    document.getElementById('wcBtnText').textContent = '🔗 Connect Wallet';
-    document.getElementById('wcBtn').disabled = false;
   }
 }
 
