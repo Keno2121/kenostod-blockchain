@@ -168,9 +168,12 @@ const FAL_POOL_ABI = [
   'function getLockTierInfo() external view returns (uint256[4],uint256[4])'
 ];
 
-// ── Theme ──────────────────────────────────────────────────────────────────
+// ── Theme & URL params ────────────────────────────────────────────────────
 const params = new URLSearchParams(location.search);
 if (params.get('theme') === 'dark') document.body.classList.add('dark');
+// ?lockTier=0|1|2|3 pre-selects a lock tier
+const tierParam = parseInt(params.get('lockTier') || '0', 10);
+if (!isNaN(tierParam) && tierParam >= 0 && tierParam <= 3) selectedTier = tierParam;
 
 // ── State ──────────────────────────────────────────────────────────────────
 let provider, signer, userAddress, kenoContract, falContract, wcProvider;
