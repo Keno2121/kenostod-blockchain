@@ -207,6 +207,7 @@ async function ensureBotChain() {
       });
     } catch(e) {
       if (e.code === 4902) {
+        // Chain not added yet — prompt user to add it
         await provider.provider.request({
           method: 'wallet_addEthereumChain',
           params: [{
@@ -217,10 +218,18 @@ async function ensureBotChain() {
             blockExplorerUrls: [BOT_EXPLORER]
           }]
         });
+      } else {
+        // User declined the switch request — abort; do not proceed on wrong chain
+        throw new Error('Network switch declined. Please switch your wallet to BOT Chain (677) to continue.');
       }
     }
+    // Refresh provider after switch/add, then verify we are actually on BOT Chain
     provider = new ethers.providers.Web3Provider(wcProvider || window.ethereum);
     signer   = provider.getSigner();
+    const verify = await provider.getNetwork();
+    if (verify.chainId !== BOT_CHAIN_ID) {
+      throw new Error('Still on wrong network after switch. Please switch to BOT Chain (677) manually.');
+    }
   }
 }
 
