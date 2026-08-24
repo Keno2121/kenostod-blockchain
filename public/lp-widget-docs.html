@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PancakeSwap LP Funder Widget — Kenostod</title>
+<style>
+  :root {
+    --bg:      #07090f;
+    --card:    #0d1120;
+    --border:  rgba(0,180,216,0.18);
+    --blue:    #0070f3;
+    --cyan:    #00b4d8;
+    --text:    #e5e7eb;
+    --muted:   #6b7280;
+    --green:   #34d399;
+    --yellow:  #fbbf24;
+    --code-bg: #0a0f1e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── Nav ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(7,9,15,0.92);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 17px; color: var(--text); text-decoration: none;
+  }
+  .nav-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #0070f3, #00b4d8);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: linear-gradient(135deg, #0070f3, #00b4d8);
+    color: #fff; padding: 8px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    padding: 90px 20px 60px;
+    max-width: 760px; margin: 0 auto;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse at center, rgba(0,180,216,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,180,216,0.1);
+    border: 1px solid rgba(0,180,216,0.28);
+    border-radius: 100px; padding: 5px 14px;
+    font-size: 12px; color: #38bdf8; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 5.5vw, 56px);
+    font-weight: 800; line-height: 1.1; letter-spacing: -0.03em;
+    margin-bottom: 20px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, #38bdf8, #0070f3);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 18px; color: var(--muted); max-width: 540px; margin: 0 auto 36px;
+  }
+  .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: linear-gradient(135deg, #0070f3, #00b4d8);
+    color: #fff; padding: 13px 28px; border-radius: 10px;
+    font-size: 15px; font-weight: 600; text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s; cursor: pointer; border: none;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text); padding: 13px 28px; border-radius: 10px;
+    font-size: 15px; font-weight: 600; text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .btn-ghost:hover { border-color: var(--cyan); background: rgba(0,180,216,0.06); }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;
+    padding: 36px 20px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat { text-align: center; }
+  .stat-value { font-size: 28px; font-weight: 800; color: #38bdf8; }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Section ── */
+  section { max-width: 960px; margin: 0 auto; padding: 80px 20px; }
+  section h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+  section .section-sub { color: var(--muted); font-size: 16px; margin-bottom: 48px; }
+
+  /* ── Feature cards ── */
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    transition: border-color 0.2s;
+  }
+  .feature-card:hover { border-color: rgba(0,180,216,0.4); }
+  .feature-icon {
+    font-size: 28px; margin-bottom: 14px;
+  }
+  .feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .feature-card p  { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  /* ── Steps ── */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+  }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(0,112,243,0.3), rgba(0,180,216,0.2));
+    border: 1px solid rgba(0,180,216,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; color: #38bdf8;
+    margin-bottom: 16px;
+  }
+  .step-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .step-card p  { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  /* ── Code block ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+  .code-header-title { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .copy-btn {
+    background: rgba(0,180,216,0.12); border: 1px solid rgba(0,180,216,0.28);
+    color: #38bdf8; font-size: 12px; font-weight: 600; padding: 4px 12px;
+    border-radius: 6px; cursor: pointer; transition: background 0.15s;
+  }
+  .copy-btn:hover { background: rgba(0,180,216,0.24); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); background: rgba(52,211,153,0.1); }
+  pre {
+    padding: 22px 20px; overflow-x: auto;
+    font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 13px; line-height: 1.65; color: #7dd3fc;
+  }
+  pre .c  { color: #4b5563; }
+  pre .s  { color: #6ee7b7; }
+  pre .k  { color: #93c5fd; }
+  pre .a  { color: #fbbf24; }
+  pre .p  { color: #f9a8d4; }
+
+  /* ── Config reference table ── */
+  .config-table { width: 100%; border-collapse: collapse; margin-top: 0; }
+  .config-table th, .config-table td {
+    text-align: left; padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .config-table th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .config-table td { color: var(--text); }
+  .config-table tr:last-child td { border-bottom: none; }
+  .config-table code {
+    background: rgba(0,180,216,0.1); color: #7dd3fc;
+    padding: 2px 7px; border-radius: 4px; font-size: 12px;
+    font-family: 'Courier New', monospace;
+  }
+  .config-table .default { color: var(--muted); font-size: 13px; }
+
+  /* ── Flow diagram ── */
+  .flow-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    justify-content: center; margin-bottom: 16px;
+  }
+  .flow-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text);
+  }
+  .flow-arrow { color: #38bdf8; font-size: 20px; font-weight: 300; }
+
+  /* ── Registration form ── */
+  #register {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px; padding: 52px 48px;
+    max-width: 600px; margin: 0 auto;
+  }
+  @media (max-width: 640px) { #register { padding: 36px 24px; } }
+  #register h2 { text-align: center; margin-bottom: 8px; }
+  #register .section-sub { text-align: center; margin-bottom: 36px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 12px 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 15px;
+    transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(0,180,216,0.15);
+  }
+  .form-group input::placeholder { color: #374151; }
+  .form-group select option { background: #0d1120; }
+  #register-btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #0070f3, #00b4d8);
+    border: none; border-radius: 10px; color: #fff;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: opacity 0.15s; margin-top: 4px;
+  }
+  #register-btn:hover { opacity: 0.88; }
+  #register-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .form-result {
+    margin-top: 20px; padding: 16px 20px;
+    border-radius: 12px; display: none;
+  }
+  .form-result.success { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: #34d399; }
+  .form-result.error   { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
+  .site-id-box {
+    margin-top: 14px; padding: 14px 16px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; font-family: 'Courier New', monospace;
+    font-size: 14px; word-break: break-all;
+  }
+  .site-id-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .site-id-value { color: #38bdf8; font-weight: 700; font-size: 15px; }
+
+  /* ── Live demo ── */
+  .demo-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    text-align: center;
+  }
+  .demo-label { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .demo-btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 13px 26px;
+    background: linear-gradient(135deg, #0070f3, #00b4d8);
+    border: none; border-radius: 50px; color: #fff;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,112,243,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .demo-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,112,243,0.5); }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--muted); font-size: 13px; flex-wrap: wrap; gap: 16px;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .stats-bar { gap: 30px; }
+    section { padding: 60px 20px; }
+    footer { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-icon">💧</div>
+    LP Funder Widget
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#embed">Embed</a>
+    <a href="#config">Config</a>
+    <a href="#register">Get started</a>
+  </div>
+  <a href="#register" class="nav-cta">Get your snippet →</a>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">💧 PancakeSwap LP Funder · by Kenostod</div>
+  <h1>Add liquidity to any<br/><span>V2 pool</span><br/>from your own site.</h1>
+  <p>One script tag. Your users add LP directly — no redirect to PancakeSwap needed. Default-configured for KENO/BNB.</p>
+  <div class="hero-actions">
+    <a href="#register" class="btn-primary">Get your free snippet</a>
+    <a href="#how-it-works" class="btn-ghost">See how it works</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-value">1 tag</div><div class="stat-label">To embed</div></div>
+  <div class="stat"><div class="stat-value">V2</div><div class="stat-label">PancakeSwap version</div></div>
+  <div class="stat"><div class="stat-value">BSC</div><div class="stat-label">Network</div></div>
+  <div class="stat"><div class="stat-value">1%</div><div class="stat-label">Default slippage</div></div>
+</div>
+
+<!-- How it works -->
+<section id="how-it-works">
+  <h2>How it works</h2>
+  <p class="section-sub">Full liquidity-add flow — inside your site, no redirects.</p>
+  <div class="steps">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <h3>Floating button appears</h3>
+      <p>A "💧 Add Liquidity" button is injected into the bottom-right corner of your site automatically after the script loads.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <h3>Panel shows pool data</h3>
+      <p>Live reserves, current ratio, and the user's token + BNB balances are loaded directly from BSC RPC — no API keys needed.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <h3>Auto-ratio calculation</h3>
+      <p>User enters one side; the other fills automatically from the pool ratio. Slippage tolerance is 1% by default.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <h3>Approve → Add</h3>
+      <p>Widget handles ERC-20 approval then calls <code style="color:#38bdf8;background:rgba(0,180,216,0.1);padding:1px 5px;border-radius:3px">addLiquidityETH</code> on the PancakeSwap V2 Router. LP tokens land in user's wallet.</p>
+    </div>
+  </div>
+
+  <!-- Transaction flow diagram -->
+  <div style="margin-top:52px">
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:20px;text-align:center;color:var(--muted)">Transaction Flow</h3>
+    <div class="flow-row">
+      <div class="flow-box">User enters amounts</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Check allowance</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:rgba(0,180,216,0.4)">Approve KENO (if needed)</div>
+    </div>
+    <div class="flow-row">
+      <div class="flow-box" style="border-color:rgba(0,180,216,0.4)">addLiquidityETH → Router</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">LP tokens minted</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:rgba(52,211,153,0.5);color:#34d399">✓ Success</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section style="padding-top:0">
+  <h2>What you get</h2>
+  <p class="section-sub">A complete, self-contained liquidity widget — no external dependencies, no API keys.</p>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>No-redirect UX</h3>
+      <p>Users complete the full liquidity flow without leaving your site. Better conversion, better experience.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Live pool data</h3>
+      <p>Reserves, TVL, price, and ratio pulled directly from BSC — always fresh, no third-party dependencies.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⛓️</div>
+      <h3>Chain guard</h3>
+      <p>Detects wrong network and prompts BSC switch automatically. Works with MetaMask and EIP-6963 wallets.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Zero config for KENO</h3>
+      <p>Pre-configured for KENO/BNB. Drop the script on any partner site and the right pool loads instantly.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>1% slippage default</h3>
+      <p>Minimum amounts automatically computed at 1% slippage. No sandwich attacks on careless users.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📦</div>
+      <h3>Self-contained</h3>
+      <p>Pure vanilla JS, no npm, no bundler, no ethers.js. One script tag is all it takes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Embed -->
+<section id="embed" style="padding-top:0">
+  <h2>The snippet</h2>
+  <p class="section-sub">Paste before your closing <code style="color:#38bdf8;background:rgba(0,180,216,0.1);padding:2px 6px;border-radius:4px">&lt;/body&gt;</code> tag.</p>
+
+  <div class="code-wrap" style="margin-bottom:28px">
+    <div class="code-header">
+      <span class="code-header-title">HTML · KENO/BNB (zero config)</span>
+      <button class="copy-btn" onclick="copyCode('basic')">Copy</button>
+    </div>
+    <pre id="code-basic"><span class="c">&lt;!-- PancakeSwap LP Funder Widget by Kenostod --&gt;</span>
+<span class="k">&lt;script</span>
+  <span class="a">src</span>=<span class="s">"https://kenostodblockchain.com/pancakeswap-lp-widget.js"</span>
+  <span class="a">data-site-id</span>=<span class="s">"YOUR_SITE_ID"</span>
+<span class="k">&gt;&lt;/script&gt;</span></pre>
+  </div>
+
+  <div class="code-wrap" style="margin-bottom:28px">
+    <div class="code-header">
+      <span class="code-header-title">HTML · Custom token pair</span>
+      <button class="copy-btn" onclick="copyCode('custom')">Copy</button>
+    </div>
+    <pre id="code-custom"><span class="c">&lt;!-- Any BSC token/BNB pair --&gt;</span>
+<span class="k">&lt;script</span>
+  <span class="a">src</span>=<span class="s">"https://kenostodblockchain.com/pancakeswap-lp-widget.js"</span>
+  <span class="a">data-token</span>=<span class="s">"0xYOUR_TOKEN_ADDRESS"</span>
+  <span class="a">data-token-symbol</span>=<span class="s">"MYTOKEN"</span>
+  <span class="a">data-pair-name</span>=<span class="s">"MYTOKEN/BNB"</span>
+  <span class="a">data-site-id</span>=<span class="s">"YOUR_SITE_ID"</span>
+<span class="k">&gt;&lt;/script&gt;</span></pre>
+  </div>
+
+  <div class="code-wrap" style="margin-bottom:28px">
+    <div class="code-header">
+      <span class="code-header-title">JavaScript · Programmatic control</span>
+      <button class="copy-btn" onclick="copyCode('api')">Copy</button>
+    </div>
+    <pre id="code-api"><span class="c">// Open/close the widget panel programmatically</span>
+<span class="k">LPWidget</span>.open();    <span class="c">// open the liquidity panel</span>
+<span class="k">LPWidget</span>.close();   <span class="c">// close it</span>
+<span class="k">LPWidget</span>.toggle();  <span class="c">// toggle open/closed</span>
+
+<span class="c">// Metadata</span>
+<span class="k">console</span>.log(<span class="k">LPWidget</span>.siteId);    <span class="c">// "your-site-id"</span>
+<span class="k">console</span>.log(<span class="k">LPWidget</span>.pairName);  <span class="c">// "KENO/BNB"</span>
+<span class="k">console</span>.log(<span class="k">LPWidget</span>.version);   <span class="c">// "1.0.0"</span></pre>
+  </div>
+
+  <!-- Live demo -->
+  <div class="demo-box" style="margin-top:0">
+    <p class="demo-label">Try the widget live on this page</p>
+    <button class="demo-btn" onclick="loadDemoWidget()">💧 Launch Demo Widget</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:16px">
+      Requires MetaMask + BNB Smart Chain. Demo uses the real KENO/BNB pool.
+    </p>
+  </div>
+</section>
+
+<!-- Configuration reference -->
+<section id="config" style="padding-top:0">
+  <h2>Configuration reference</h2>
+  <p class="section-sub">All attributes are optional when using the KENO/BNB default.</p>
+  <div class="code-wrap">
+    <div style="overflow-x:auto">
+      <table class="config-table">
+        <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Description</th>
+            <th>Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>data-site-id</code></td>
+            <td>Your registered site ID (obtain below)</td>
+            <td class="default">demo</td>
+          </tr>
+          <tr>
+            <td><code>data-token</code></td>
+            <td>BSC address of the ERC-20 token (token0)</td>
+            <td class="default">KENO: 0x48bb…4ab4</td>
+          </tr>
+          <tr>
+            <td><code>data-token-symbol</code></td>
+            <td>Ticker shown in the UI</td>
+            <td class="default">KENO</td>
+          </tr>
+          <tr>
+            <td><code>data-pair-name</code></td>
+            <td>Human-readable pair label</td>
+            <td class="default">KENO/BNB</td>
+          </tr>
+          <tr>
+            <td><code>data-api-url</code></td>
+            <td>Override the Kenostod API base URL</td>
+            <td class="default">https://kenostodblockchain.com</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:32px">
+    <h3 style="font-size:20px;font-weight:700;margin-bottom:16px">API endpoints</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-header-title">REST · Pool stats</span>
+        <button class="copy-btn" onclick="copyCode('api-stats')">Copy</button>
+      </div>
+      <pre id="code-api-stats"><span class="c"># Live pool reserves + TVL + price (cached 60s)</span>
+<span class="k">GET</span> /api/lp-widget/pool-stats<span class="p">?pair=KENO-BNB</span>
+
+<span class="c"># Response:</span>
+{
+  <span class="a">"ok"</span>:     <span class="k">true</span>,
+  <span class="a">"pair"</span>:   <span class="s">"KENO/BNB"</span>,
+  <span class="a">"tvl"</span>:    <span class="s">"12450.00"</span>,       <span class="c">// USD</span>
+  <span class="a">"price"</span>:  <span class="s">"0.0234"</span>,         <span class="c">// USD per KENO</span>
+  <span class="a">"reserve0"</span>: <span class="s">"532000"</span>,       <span class="c">// KENO</span>
+  <span class="a">"reserve1"</span>: <span class="s">"20.5"</span>,          <span class="c">// BNB</span>
+  <span class="a">"pairAddress"</span>: <span class="s">"0x..."</span>
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- Register -->
+<section>
+  <div id="register">
+    <h2>Get your snippet</h2>
+    <p class="section-sub">Register your site and receive your Site ID and embed code instantly.</p>
+    <div class="form-group">
+      <label>Your name</label>
+      <input type="text" id="reg-name" placeholder="Your name" autocomplete="name"/>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="you@yourproject.com" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label>Your site URL</label>
+      <input type="url" id="reg-url" placeholder="https://yourproject.io" autocomplete="url"/>
+    </div>
+    <div class="form-group">
+      <label>Project / Protocol name</label>
+      <input type="text" id="reg-project" placeholder="e.g. MyDEX, GameFi Protocol"/>
+    </div>
+    <div class="form-group">
+      <label>Token / Pair (optional)</label>
+      <input type="text" id="reg-token" placeholder="e.g. KENO/BNB or 0xYOUR_TOKEN"/>
+    </div>
+    <button id="register-btn" onclick="registerSite()">Get my free snippet →</button>
+    <div class="form-result" id="reg-result"></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div>© 2026 Kenostod Blockchain Academy LLC · PancakeSwap LP Funder Widget</div>
+  <div style="display:flex;gap:24px">
+    <a href="/">Kenostod Home</a>
+    <a href="/utl-widget">UTL Reversal Widget</a>
+    <a href="https://pancakeswap.finance/add/0x48bb049afe50b050b458624dc6233acd51024ab4/BNB" target="_blank">KENO/BNB on PancakeSwap ↗</a>
+  </div>
+</footer>
+
+<script>
+/* ── Copy code ── */
+function copyCode(id) {
+  const el = document.getElementById('code-' + id);
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = el.closest('.code-wrap').querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+/* ── Register site ── */
+async function registerSite() {
+  const btn     = document.getElementById('register-btn');
+  const result  = document.getElementById('reg-result');
+  const name    = document.getElementById('reg-name').value.trim();
+  const email   = document.getElementById('reg-email').value.trim();
+  const url     = document.getElementById('reg-url').value.trim();
+  const project = document.getElementById('reg-project').value.trim();
+  const token   = document.getElementById('reg-token').value.trim();
+
+  if (!name || !email || !url) {
+    result.textContent = 'Please fill in your name, email, and site URL.';
+    result.className = 'form-result error';
+    result.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Registering…';
+
+  try {
+    const res  = await fetch('/api/lp-widget/register-site', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, url, project, token }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      result.innerHTML = `
+        <strong>✓ Registered!</strong> Here's your embed snippet:<br/><br/>
+        <div class="site-id-box">
+          <div class="site-id-label">Your Site ID</div>
+          <div class="site-id-value">${data.siteId}</div>
+        </div>
+        <div class="site-id-box" style="margin-top:10px;font-size:12px;color:#7dd3fc">
+&lt;script<br/>
+&nbsp;&nbsp;src="https://kenostodblockchain.com/pancakeswap-lp-widget.js"<br/>
+&nbsp;&nbsp;data-site-id="${data.siteId}"<br/>
+&gt;&lt;/script&gt;
+        </div>
+        <br/><span style="color:#6b7280;font-size:13px">Questions? DM @Kenostod on X or email academy@kenostod.com</span>
+      `;
+      result.className = 'form-result success';
+      result.style.display = 'block';
+      btn.textContent = 'Registered ✓';
+    } else {
+      throw new Error(data.error || 'Registration failed');
+    }
+  } catch (e) {
+    result.textContent = e.message;
+    result.className = 'form-result error';
+    result.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Get my free snippet →';
+  }
+}
+
+/* ── Live demo — inject widget dynamically ── */
+function loadDemoWidget() {
+  if (window.LPWidget) {
+    window.LPWidget.open();
+    return;
+  }
+  const s = document.createElement('script');
+  s.src = '/pancakeswap-lp-widget.js';
+  s.setAttribute('data-site-id', 'lp-docs-demo');
+  s.setAttribute('data-token', '0x48bb049afe50b050b458624dc6233acd51024ab4');
+  s.setAttribute('data-token-symbol', 'KENO');
+  s.setAttribute('data-pair-name', 'KENO/BNB');
+  s.onload = () => setTimeout(() => window.LPWidget?.open(), 200);
+  document.body.appendChild(s);
+}
+</script>
+
+</body>
+</html>
