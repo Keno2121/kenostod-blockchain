@@ -1465,6 +1465,7 @@ app.get('/docs/student-earn-model', (req, res) => res.sendFile(__dirname + '/pub
 app.get('/docs/student-earn-model.html', (req, res) => res.sendFile(__dirname + '/public/docs/student-earn-model.html'));
 app.get('/botchain-app',        (req, res) => res.sendFile(__dirname + '/public/botchain-app.html'));
 app.get('/botchain',           (req, res) => res.sendFile(__dirname + '/public/botchain-app.html'));
+app.get('/botchain-start',     (req, res) => res.sendFile(__dirname + '/public/botchain-start.html'));
 app.get('/utl-dashboard',      (req, res) => res.sendFile(__dirname + '/public/utl-dashboard.html'));
 app.get('/utl-widget',         (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));
 app.get('/utl-widget-docs',   (req, res) => res.sendFile(__dirname + '/public/utl-widget-docs.html'));

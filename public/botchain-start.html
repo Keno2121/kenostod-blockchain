@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kenostod on BOT Chain — Earn with UTL & FAL</title>
+  <meta name="description" content="Stake KENO, earn BOT rewards, and participate in flash arbitrage pools — all live on BOT Chain mainnet.">
+  <meta property="og:title" content="Kenostod on BOT Chain">
+  <meta property="og:description" content="UTL Protocol staking + FAL Flash Arb Pools — live on BOT Chain mainnet. Connect your wallet and start earning.">
+  <meta property="og:image" content="https://kenostodblockchain.com/assets/images/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bot: #00c896;
+      --cyan: #00d4ff;
+      --purple: #8a2be2;
+      --bg: #060612;
+      --card: #0e0e1f;
+      --border: rgba(255,255,255,0.08);
+      --muted: #94a3b8;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: rgba(0,0,0,0.6);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+    }
+    .chain-badge {
+      background: linear-gradient(135deg, var(--bot), #00a3ff);
+      color: #000;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+    .header-cta {
+      background: linear-gradient(135deg, var(--bot), #00a3ff);
+      color: #000;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 56px 20px 48px;
+      text-align: center;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,200,150,0.12) 0%, transparent 70%);
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,200,150,0.12);
+      border: 1px solid rgba(0,200,150,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--bot);
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+    .hero-eyebrow::before { content: '●'; font-size: 8px; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero h1 {
+      font-size: clamp(28px, 8vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { background: linear-gradient(135deg, var(--bot), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .hero-sub {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--bot), #00a3ff);
+      color: #000;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 15px 36px;
+      border-radius: 14px;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      box-shadow: 0 0 32px rgba(0,200,150,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 0 44px rgba(0,200,150,0.5); }
+
+    .hero-note {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── Live Stats ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 0 16px 40px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--bot);
+      margin-bottom: 4px;
+    }
+    .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+    /* ── Features ── */
+    .section {
+      padding: 0 16px 48px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 20px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(0,200,150,0.3); }
+
+    .feature-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .feature-name { font-size: 16px; font-weight: 700; }
+    .feature-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .tag-live { background: rgba(0,200,150,0.15); color: var(--bot); border: 1px solid rgba(0,200,150,0.3); }
+    .tag-earn { background: rgba(0,212,255,0.12); color: var(--cyan); border: 1px solid rgba(0,212,255,0.25); }
+
+    .feature-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+
+    .feature-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bot);
+      text-decoration: none;
+    }
+    .feature-link:hover { text-decoration: underline; }
+
+    /* ── How to connect ── */
+    .steps { list-style: none; }
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--bot), #00a3ff);
+      color: #000;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content { flex: 1; }
+    .step-title { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+    .step-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Contracts ── */
+    .contracts {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 16px;
+    }
+    .contract-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+    .contract-row:last-child { border-bottom: none; }
+    .contract-name { font-size: 13px; font-weight: 600; }
+    .contract-addr {
+      font-size: 11px;
+      color: var(--bot);
+      font-family: monospace;
+      text-decoration: none;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    /* ── Bottom CTA ── */
+    .bottom-cta {
+      padding: 32px 16px 48px;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .bottom-cta h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .bottom-cta p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+    .bottom-cta a {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--bot), #00a3ff);
+      color: #000;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 15px 40px;
+      border-radius: 14px;
+      text-decoration: none;
+      box-shadow: 0 0 32px rgba(0,200,150,0.3);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 16px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .footer a { color: var(--muted); text-decoration: none; margin: 0 8px; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="/" class="header-logo">
+      Kenostod <span class="chain-badge">BOT Chain</span>
+    </a>
+    <a href="/botchain-app" class="header-cta">Launch App →</a>
+  </header>
+
+  <section class="hero">
+    <div class="hero-eyebrow">LIVE ON BOT CHAIN MAINNET</div>
+    <h1>Earn on BOT Chain<br>with <span>KENO</span></h1>
+    <p class="hero-sub">
+      Stake KENO tokens in UTL Protocol or provide liquidity to FAL Flash Arb Pools —
+      both live on BOT Chain mainnet. One wallet connect, everything in one place.
+    </p>
+    <a href="/botchain-app" class="hero-cta">⚡ Open the DApp</a>
+    <p class="hero-note">Works in Chrome, Safari, and MetaMask mobile · WalletConnect supported</p>
+  </section>
+
+  <!-- Live Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-value" id="statPools">3</div>
+      <div class="stat-label">Active Pools</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statArbs">0</div>
+      <div class="stat-label">Arb Trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statNetwork">BOT Chain</div>
+      <div class="stat-label">Network</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="section">
+    <div class="section-title">What Kenostod offers on BOT Chain</div>
+
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon" style="background:rgba(0,200,150,0.12);">🏦</div>
+        <div>
+          <div class="feature-name">UTL Protocol</div>
+          <span class="feature-tag tag-live">LIVE</span>
+        </div>
+      </div>
+      <p class="feature-desc">
+        Stake KENO and earn BOT rewards through the Universal Transaction Layer.
+        UTL collects fees from on-chain activity and distributes them back to stakers
+        automatically — no manual claiming needed.
+      </p>
+      <a href="/botchain-app" class="feature-link">Start staking →</a>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon" style="background:rgba(0,212,255,0.10);">⚡</div>
+        <div>
+          <div class="feature-name">FAL Flash Arb Pool</div>
+          <span class="feature-tag tag-live">LIVE</span>
+        </div>
+      </div>
+      <p class="feature-desc">
+        Deposit KENO into the Flash Arbitrage Loan Pool. Arbitrage bots borrow from
+        the pool to execute profitable trades on BDEX, and a share of every profit
+        goes back to depositors automatically.
+      </p>
+      <a href="/botchain-app" class="feature-link">View FAL Pool →</a>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-header">
+        <div class="feature-icon" style="background:rgba(138,43,226,0.12);">🔄</div>
+        <div>
+          <div class="feature-name">KENO / WBOT on BDEX</div>
+          <span class="feature-tag tag-earn">TRADE</span>
+        </div>
+      </div>
+      <p class="feature-desc">
+        KENO trades live on BDEX (BOT Chain's native DEX). Swap BOT for KENO directly
+        — no bridge, no wrapped tokens needed. Pool seeded and verified on-chain.
+      </p>
+      <a href="https://bdex.botchain.ai" target="_blank" rel="noopener" class="feature-link">Trade on BDEX →</a>
+    </div>
+  </section>
+
+  <!-- How to connect -->
+  <section class="section">
+    <div class="section-title">How to connect in 3 steps</div>
+    <ul class="steps">
+      <li class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Open the DApp</div>
+          <div class="step-desc">Tap "Open the DApp" above — works in Chrome, Safari, or the MetaMask in-app browser on mobile.</div>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Connect your wallet</div>
+          <div class="step-desc">Tap "Connect Wallet" — a QR code appears. Tap <strong>"Open in MetaMask Mobile"</strong> and approve the connection. Stays in Chrome, no browser switching needed.</div>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Start earning</div>
+          <div class="step-desc">Switch to BOT Chain network when prompted, deposit KENO into UTL staking or FAL Pool, and start earning BOT rewards.</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- Contract addresses -->
+  <section class="section">
+    <div class="section-title">Verified contracts</div>
+    <div class="contracts">
+      <div class="contract-row">
+        <span class="contract-name">FAL Pool</span>
+        <a class="contract-addr" href="https://scan.botchain.ai/address/0x446b29625fBE8F8Fe254E8fEf7e296224DB4C2d8" target="_blank" rel="noopener">0x446b…C2d8</a>
+      </div>
+      <div class="contract-row">
+        <span class="contract-name">UTL Wrapper (BDEX)</span>
+        <a class="contract-addr" href="https://scan.botchain.ai/address/0x829658BE065C75C174639701672dE820E4683ca7" target="_blank" rel="noopener">0x8296…3ca7</a>
+      </div>
+      <div class="contract-row">
+        <span class="contract-name">KENO/WBOT Pool</span>
+        <a class="contract-addr" href="https://scan.botchain.ai/address/0x0E5CDa3A501010331774B3cdB66Fa15425c5D251" target="_blank" rel="noopener">0x0E5C…D251</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom CTA -->
+  <div class="bottom-cta">
+    <h2>Ready to earn on BOT Chain?</h2>
+    <p>Connect your wallet and start in under 60 seconds.</p>
+    <a href="/botchain-app">⚡ Open the DApp</a>
+  </div>
+
+  <footer class="footer">
+    <div style="margin-bottom:10px;">
+      <a href="/">Home</a>
+      <a href="/botchain-app">BOT Chain DApp</a>
+      <a href="/fal-pools.html">FAL Pools (BSC)</a>
+      <a href="/utl-dashboard.html">UTL Dashboard</a>
+    </div>
+    <div>© 2026 Kenostod Blockchain · <a href="https://scan.botchain.ai" target="_blank" rel="noopener">BOT Chain Explorer</a></div>
+  </footer>
+
+  <script>
+    // Pull live stats
+    async function loadStats() {
+      try {
+        const info = await fetch('/api/falp/botchain/info').then(r => r.json());
+        if (info.totalArbs !== undefined) {
+          document.getElementById('statArbs').textContent = info.totalArbs.toLocaleString();
+        }
+      } catch(e) {}
+      try {
+        const pools = await fetch('/api/fal-pool/list').then(r => r.json());
+        if (pools.count !== undefined) {
+          document.getElementById('statPools').textContent = pools.count;
+        }
+      } catch(e) {}
+    }
+    loadStats();
+  </script>
+</body>
+</html>
