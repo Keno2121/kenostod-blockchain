@@ -157,34 +157,37 @@
       const r = await fetch(`${API_BASE}/api/lp-widget/pool-stats?pair=KENO-BNB&token=${KENO_ADDR}`);
       const d = await r.json();
 
-      // 24h volume: try PancakeSwap subgraph
+      // 24h volume: try PancakeSwap V2 subgraph (pairDayDatas for true 24h figure)
+      const tvl = d.ok ? parseFloat(d.tvl || '0') : 0;
       let volume24h = 0;
+      let volumeModeled = true; // assume modeled until subgraph confirms real data
       try {
-        const gqlRes = await fetch('https://bsc.streamingfast.io/subgraphs/name/pancakeswap/exchange-v2', {
+        const yesterday = Math.floor(Date.now() / 86400000) - 1;
+        const gqlRes = await fetch('https://api.thegraph.com/subgraphs/name/pancakeswap/exchange-v2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            query: `{ pair(id: "${(pairAddr || '').toLowerCase()}") { volumeUSD dailyTxns: txCount } }`,
+            query: `{ pairDayDatas(where:{pairAddress:"${(pairAddr || '').toLowerCase()}",date:${yesterday}},first:1){dailyVolumeUSD} }`,
           }),
-          signal: AbortSignal.timeout(4000),
+          signal: AbortSignal.timeout(5000),
         });
         const gqlData = await gqlRes.json();
-        // fallback: estimate from reserves TVL change (subgraph may not have exact 24h)
-        volume24h = 0; // will be set below if subgraph succeeds
+        const v = parseFloat(gqlData?.data?.pairDayDatas?.[0]?.dailyVolumeUSD || '0');
+        if (v > 0) { volume24h = v; volumeModeled = false; }
       } catch (_) {}
 
-      // Estimate 24h volume from TVL if subgraph unavailable:
-      // Typical DeFi pool: volume ≈ 0.5–2× TVL daily; use 0.3× as conservative
-      const tvl = d.ok ? parseFloat(d.tvl || '0') : 0;
+      // Fallback when subgraph is unavailable: model volume as 30% of TVL/day.
+      // This is a conservative estimate. Actual volume can vary widely.
       if (volume24h === 0) volume24h = tvl * 0.3;
 
       _statsCache = {
-        tvl:       d.ok ? parseFloat(d.tvl   || '0') : 0,
-        price:     d.ok ? parseFloat(d.price || '0') : 0,
-        bnbUsd:    d.ok ? parseFloat(d.bnbUsd || '600') : 600,
-        reserve0:  d.ok ? parseFloat(d.reserve0 || '0') : 0,
-        reserve1:  d.ok ? parseFloat(d.reserve1 || '0') : 0,
+        tvl:           d.ok ? parseFloat(d.tvl   || '0') : 0,
+        price:         d.ok ? parseFloat(d.price || '0') : 0,
+        bnbUsd:        d.ok ? parseFloat(d.bnbUsd || '600') : 600,
+        reserve0:      d.ok ? parseFloat(d.reserve0 || '0') : 0,
+        reserve1:      d.ok ? parseFloat(d.reserve1 || '0') : 0,
         volume24h,
+        volumeModeled, // true = TVL×30% heuristic; false = real subgraph 24h data
         ts: now,
       };
       return _statsCache;
@@ -633,7 +636,7 @@
           <div class="klp-burn-value" id="klp-fee-est">—</div>
         </div>
         <div class="klp-burn-note">
-          PancakeSwap V2 LPs earn 0.17% of every trade proportional to their share. Deeper KENO liquidity also creates more arb volume, which supplies the KENOAutoBurn engine indirectly.
+          PancakeSwap V2 LPs earn 0.17% of every trade proportional to their share. Fee income is estimated from live pool data; when marked "(modeled)", volume is assumed at 30% of TVL/day — actual volume may vary significantly.
         </div>
       </div>
 
@@ -722,7 +725,9 @@
         if (shareEl) shareEl.textContent = '~' + sharePct.toFixed(6) + '% (est.)';
         const proj = calcFeeProjection(sharePct, stats.volume24h);
         if (proj && feeEl) {
-          feeEl.textContent = '~$' + proj.userMonthlyFeeUsd.toFixed(4);
+          // Show 2dp only — higher precision implies measured data we may not have
+          const suffix = stats.volumeModeled ? ' (modeled)' : '';
+          feeEl.textContent = '~$' + proj.userMonthlyFeeUsd.toFixed(2) + suffix;
         }
       } else {
         if (shareEl) shareEl.textContent = '—';
