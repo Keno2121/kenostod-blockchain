@@ -168,17 +168,17 @@ const FAL_POOL_ABI = [
   'function getLockTierInfo() external view returns (uint256[4],uint256[4])'
 ];
 
-// ── Theme & URL params ────────────────────────────────────────────────────
+// ── Theme ─────────────────────────────────────────────────────────────────
 const params = new URLSearchParams(location.search);
 if (params.get('theme') === 'dark') document.body.classList.add('dark');
-// ?lockTier=0|1|2|3 pre-selects a lock tier
-const tierParam = parseInt(params.get('lockTier') || '0', 10);
-if (!isNaN(tierParam) && tierParam >= 0 && tierParam <= 3) selectedTier = tierParam;
 
 // ── State ──────────────────────────────────────────────────────────────────
+// selectedTier declared here so the URL-param read below is in scope
+const _tierParam = parseInt(params.get('lockTier') || '0', 10);
+let selectedTier = (!isNaN(_tierParam) && _tierParam >= 0 && _tierParam <= 3) ? _tierParam : 0;
 let provider, signer, userAddress, kenoContract, falContract, wcProvider;
 let wcProjectId = '';
-let selectedTier = 0;
+let poolDeployed = false;   // set to true only after API confirms deployment
 let poolInfo = null;
 let tierLabels = ['Flexible', '7 Days', '30 Days', '90 Days'];
 let tierMults  = ['1.0×', '1.25×', '1.75×', '2.5×'];
@@ -191,17 +191,30 @@ document.addEventListener('wc-ready', async () => {
   } catch(_) {}
 });
 
+// Hide wallet/deposit controls and show a reason message.
+// Called when the pool is not deployed or the API is unreachable.
+function disablePoolActions(msg) {
+  document.getElementById('connectSection').style.display = 'none';
+  document.getElementById('depositSection').style.display = 'none';
+  document.getElementById('poolStats').innerHTML = `<div class="not-deployed">${msg}</div>`;
+}
+
 async function loadPoolData() {
   try {
     const data = await fetch('/api/falp/botchain/info').then(r => r.json());
+
     if (!data.deployed) {
-      document.getElementById('poolStats').innerHTML =
-        '<div class="not-deployed">🔧 FAL Pool not yet deployed on BOT Chain</div>';
+      disablePoolActions('🔧 FAL Pool not yet deployed on BOT Chain');
       return;
     }
 
-    // Update contract address from API
-    if (data.address) FAL_POOL = data.address;
+    // Only trust the address from the API — never fall back to the hardcoded default
+    if (!data.address) {
+      disablePoolActions('⚠️ Pool address not available — try again later');
+      return;
+    }
+    FAL_POOL = data.address;
+    poolDeployed = true;
 
     // Build tier info
     if (data.lockTiers) {
@@ -210,9 +223,8 @@ async function loadPoolData() {
     }
 
     poolInfo = data;
-    const deposited   = parseFloat(data.totalDepositedKeno || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
-    const contributors = '—'; // not in API response currently
-    const botBal      = parseFloat(data.contractBotBalance || 0).toFixed(4);
+    const deposited = parseFloat(data.totalDepositedKeno || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const botBal    = parseFloat(data.contractBotBalance || 0).toFixed(4);
 
     document.getElementById('poolStats').innerHTML = `
       <div class="stats-row">
@@ -223,8 +235,7 @@ async function loadPoolData() {
 
     buildTierButtons();
   } catch(err) {
-    document.getElementById('poolStats').innerHTML =
-      '<div class="not-deployed">Unable to load pool data</div>';
+    disablePoolActions('Unable to load pool data — please refresh');
   }
 }
 
@@ -322,6 +333,11 @@ async function ensureBotChain() {
 }
 
 function onConnected() {
+  if (!poolDeployed) {
+    // Pool address not confirmed from API — do not expose any transaction UI
+    disablePoolActions('⚠️ Pool not available — please refresh and try again');
+    return;
+  }
   kenoContract = new ethers.Contract(KENO_ADDRESS, ERC20_ABI, signer);
   falContract  = new ethers.Contract(FAL_POOL, FAL_POOL_ABI, signer);
   const short = `${userAddress.slice(0,6)}…${userAddress.slice(-4)}`;
