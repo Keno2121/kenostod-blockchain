@@ -106,7 +106,9 @@
     <div id="poolStats" class="loading">Loading pool data…</div>
 
     <div id="connectSection">
-      <button class="btn btn-connect" id="connectBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+      <!-- disabled until loadPoolData() confirms pool is deployed -->
+      <button class="btn btn-connect" id="connectBtn" onclick="connectWallet()"
+              disabled style="opacity:0.5;cursor:not-allowed">⏳ Verifying pool…</button>
     </div>
 
     <div id="depositSection" style="display:none">
@@ -234,6 +236,13 @@ async function loadPoolData() {
       </div>`;
 
     buildTierButtons();
+
+    // Unlock the connect button now that the pool address is confirmed
+    const btn = document.getElementById('connectBtn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor  = 'pointer';
+    btn.textContent   = '🔗 Connect Wallet';
   } catch(err) {
     disablePoolActions('Unable to load pool data — please refresh');
   }
@@ -334,8 +343,14 @@ async function ensureBotChain() {
 
 function onConnected() {
   if (!poolDeployed) {
-    // Pool address not confirmed from API — do not expose any transaction UI
-    disablePoolActions('⚠️ Pool not available — please refresh and try again');
+    // Pool address not yet confirmed from API (should not happen since the connect
+    // button is disabled until loadPoolData() resolves, but guard anyway).
+    // Show an inline retry instead of permanently hiding controls.
+    setStatus('Pool is still loading — please wait a moment and try connecting again.', 'warn');
+    document.getElementById('connectBtn').disabled = false;
+    document.getElementById('connectBtn').style.opacity = '1';
+    document.getElementById('connectBtn').style.cursor = 'pointer';
+    document.getElementById('connectBtn').textContent = '🔗 Connect Wallet';
     return;
   }
   kenoContract = new ethers.Contract(KENO_ADDRESS, ERC20_ABI, signer);
