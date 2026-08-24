@@ -39,16 +39,17 @@ const path       = require('path');
 const FLASH_ARB_LOAN2 = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
 const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
-const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b8';
+const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b7'; // ApeSwap V2 Router (fixed: was ...b8)
 const MDEX_ROUTER     = '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8';
 
+// quoteOnly: true — DEX is included in spread detection / logging but never selected
+// as the execution router. Pre-flight estimateGas still guards any execution path,
+// but quoteOnly prevents false MDEX spreads from triggering trade attempts at all.
 const MANUAL_DEXES = [
   { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
   { name: 'BiSwap',      addr: BISWAP_ROUTER  },
   { name: 'ApeSwap',     addr: APESWAP_ROUTER },
-  // MDEX excluded from manual scan: router returns inflated spread quotes but
-  // reverts on execution (liquidity routing differs from standard V2 forks).
-  // MDEX is still included in flash-loan path via FlashArbLoan2 contract.
+  { name: 'MDEX',        addr: MDEX_ROUTER,   quoteOnly: true }, // quote scan only — liquidity routing differs from standard V2
 ];
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644';
 
@@ -229,19 +230,29 @@ class KenoFlashOrbBot {
 
     for (const pair of SCAN_PAIRS) {
       const outs = await Promise.all(MANUAL_DEXES.map(d => getOut(d.addr, pair.token)));
-      const prices = MANUAL_DEXES.map((d, i) => ({ name: d.name, addr: d.addr, usd: outs[i] })).filter(d => d.usd > 0);
-      if (prices.length < 2) continue;
+      const allPrices = MANUAL_DEXES
+        .map((d, i) => ({ name: d.name, addr: d.addr, usd: outs[i], quoteOnly: !!d.quoteOnly }))
+        .filter(d => d.usd > 0);
+      if (allPrices.length < 2) continue;
 
-      const sellDex = prices.reduce((a, b) => a.usd > b.usd ? a : b);
-      const buyDex  = prices.reduce((a, b) => a.usd < b.usd ? a : b);
+      // Log all DEX quotes including quoteOnly for spread visibility
+      const bnbPriceEst = allPrices.reduce((s, d) => s + d.usd, 0) / allPrices.length / 0.10;
+      const quoteLine = allPrices.map(d => `${d.name}:${d.usd.toFixed(4)}${d.quoteOnly ? '(q)' : ''}`).join(' ');
+      this.log(`📊 [${pair.name}] ${quoteLine}`);
+
+      // Execution routing: only DEXs without quoteOnly flag
+      const execPrices = allPrices.filter(d => !d.quoteOnly);
+      if (execPrices.length < 2) continue;
+
+      const sellDex = execPrices.reduce((a, b) => a.usd > b.usd ? a : b);
+      const buyDex  = execPrices.reduce((a, b) => a.usd < b.usd ? a : b);
       if (sellDex.addr === buyDex.addr) continue;
 
       const gross  = sellDex.usd - buyDex.usd;
       const spread = ((gross / buyDex.usd) * 100).toFixed(3);
       if (parseFloat(spread) < 0.15) continue;
 
-      const bnbPrice    = prices.reduce((s, d) => s + d.usd, 0) / prices.length / 0.10;
-      const gasCostUSD  = (130_000 * 2 * 1) / 1e9 * bnbPrice;
+      const gasCostUSD  = (130_000 * 2 * 1) / 1e9 * bnbPriceEst;
       const netProfitUSD = gross - gasCostUSD;
 
       this.log(`🔍 [Manual ${pair.name}] ${buyDex.name}→${sellDex.name}: ${spread}% spread | net $${netProfitUSD.toFixed(4)}`);

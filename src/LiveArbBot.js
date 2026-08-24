@@ -6,13 +6,19 @@ const FLASH_ARB_LOAN2    = '0x24428f4c0A1FCEd87e84241F103f4aa4FFaD51Be';
 
 const PANCAKE_ROUTER  = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
-const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b8';
-// MDEX removed — routes show false spreads that fail on-chain simulation every time
+const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b7'; // ApeSwap V2 Router (fixed: was ...b8)
+const MDEX_ROUTER     = '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8';
 
+// quoteOnly: true — included in spread detection / logging but never selected as
+// execution router. MDEX liquidity routing differs from standard V2; getAmountsOut
+// returns real data but on-chain execution uses a different internal path that
+// reverts. Spread data appears in logs; the pre-flight estimateGas gate (already
+// present in executeArb) provides a second safety net.
 const ALL_DEXES = [
   { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
   { name: 'BiSwap',      addr: BISWAP_ROUTER  },
   { name: 'ApeSwap',     addr: APESWAP_ROUTER },
+  { name: 'MDEX',        addr: MDEX_ROUTER,   quoteOnly: true },
 ];
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644'; // v1.1 active contract
 
@@ -260,15 +266,25 @@ class LiveArbBot {
   }
 
   async _checkPair(tradeAmountBNB, stableToken, pairName) {
-    // Query all 4 DEXs in parallel
+    // Query all DEXs in parallel (includes quoteOnly DEXs for spread visibility)
     const outs = await Promise.all(
       ALL_DEXES.map(d => this.getAmountsOut(d.addr, tradeAmountBNB, [WBNB, stableToken]))
     );
 
-    const prices = ALL_DEXES
-      .map((d, i) => ({ name: d.name, addr: d.addr, usd: parseFloat(ethers.formatUnits(outs[i] || 0n, 18)) }))
+    const allPrices = ALL_DEXES
+      .map((d, i) => ({ name: d.name, addr: d.addr, usd: parseFloat(ethers.formatUnits(outs[i] || 0n, 18)), quoteOnly: !!d.quoteOnly }))
       .filter(d => d.usd > 0);
 
+    if (allPrices.length < 2) return null;
+
+    // Log all quotes including quoteOnly for full spread visibility
+    if (allPrices.some(d => d.usd > 0)) {
+      const quoteLine = allPrices.map(d => `${d.name}:${d.usd.toFixed(4)}${d.quoteOnly ? '(q)' : ''}`).join(' ');
+      this.log(`📊 [${pairName}] ${quoteLine}`);
+    }
+
+    // Execution routing: only non-quoteOnly DEXs
+    const prices = allPrices.filter(d => !d.quoteOnly);
     if (prices.length < 2) return null;
 
     // Best spread: sell on highest-output DEX, buy on lowest-output DEX
