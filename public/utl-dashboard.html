@@ -2007,6 +2007,16 @@
 
             const sendBtn = document.getElementById('sendTxBtn');
             try {
+                // Pre-flight: check balance before touching the wallet
+                const bal = await provider.getBalance(userAddress);
+                const needed = ethers.utils.parseEther(amount);
+                const gasEstimate = ethers.utils.parseEther('0.001'); // conservative gas buffer
+                if (bal.lt(needed.add(gasEstimate))) {
+                    const have = parseFloat(ethers.utils.formatEther(bal)).toFixed(6);
+                    showToast(`Not enough ${getNativeCurrency()} — you have ${have} but need ${amount} + gas. Top up your wallet first.`, 'error', 7000);
+                    return;
+                }
+
                 sendBtn.disabled = true;
                 sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Waiting for wallet approval...';
                 showMobileWalletHint(currentWalletType);
