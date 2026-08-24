@@ -82,6 +82,8 @@ const BSC_RPC_ENDPOINTS = [
   'https://rpc-bsc.48.club',
 ].filter(Boolean);
 
+const WALLET_SAFETY_FLOOR_BNB = 0.02;
+
 class LiveArbBot {
   constructor() {
     this.provider = null;
@@ -188,8 +190,8 @@ class LiveArbBot {
     try {
       const bal = await this.provider.getBalance(this.wallet.address);
       const bnb = parseFloat(ethers.formatEther(bal));
-      if (bnb < 0.05) {
-        this.log(`🛑 SAFETY PAUSE — BNB balance too low (${bnb.toFixed(4)} BNB < 0.05 floor). Bot paused to protect wallet.`);
+      if (bnb < WALLET_SAFETY_FLOOR_BNB) {
+        this.log(`🛑 SAFETY PAUSE — BNB balance too low (${bnb.toFixed(4)} BNB < ${WALLET_SAFETY_FLOOR_BNB} floor). Bot paused to protect wallet.`);
         this.pause();
         return false;
       }
