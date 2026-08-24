@@ -1472,6 +1472,11 @@ app.get('/utl-widget-docs',   (req, res) => res.sendFile(__dirname + '/public/ut
 app.get('/utl-widget-upgrade',(req, res) => res.sendFile(__dirname + '/public/utl-widget-upgrade.html'));
 app.get('/utl-outreach', (req, res) => res.sendFile(__dirname + '/public/utl-outreach.html'));
 
+// ── Embeddable BOT Chain widgets ──────────────────────────────────────────
+app.get('/widgets/utl-send',   (req, res) => res.sendFile(__dirname + '/public/widgets/utl-send.html'));
+app.get('/widgets/fal-pool',   (req, res) => res.sendFile(__dirname + '/public/widgets/fal-pool.html'));
+app.get('/widgets/falp-stake', (req, res) => res.sendFile(__dirname + '/public/widgets/falp-stake.html'));
+
 // In-memory site registry (survives server restarts via re-registration; DB persistence can be added later)
 const _widgetSites = new Map();   // siteId → { name, email, url, project, plan, dailyCounts, createdAt }
 const _KENO_PER_MO = 25;         // paid tier cost in KENO

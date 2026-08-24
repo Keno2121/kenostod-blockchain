@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAL Pool — BOT Chain</title>
+<script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+<script type="module">
+  try {
+    const { EthereumProvider } = await import('https://esm.sh/@walletconnect/ethereum-provider@2.11.2');
+    window.WCEthereumProvider = EthereumProvider;
+  } catch(_) {}
+  document.dispatchEvent(new Event('wc-ready'));
+</script>
+<style>
+  :root {
+    --bg: #ffffff; --card: #f8fafc; --border: #e2e8f0;
+    --text: #1e293b; --muted: #64748b; --accent: #10b981;
+    --accent-h: #059669; --green: #22c55e; --red: #ef4444;
+    --yellow: #f59e0b; --radius: 10px;
+  }
+  body.dark {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+         min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 12px; }
+  .widget { width: 100%; max-width: 420px; }
+  .header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .logo { width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+          display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+  .title { font-size: 15px; font-weight: 700; }
+  .subtitle { font-size: 11px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .stats-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+          padding: 8px 10px; text-align: center; }
+  .stat-val { font-size: 14px; font-weight: 700; color: var(--accent); }
+  .stat-lbl { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .tiers { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tier-btn { flex: 1; min-width: 70px; padding: 7px 4px; border: 1px solid var(--border);
+              border-radius: 7px; background: var(--bg); color: var(--text); font-size: 11px;
+              font-weight: 600; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .tier-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .tier-mult { display: block; font-size: 9px; font-weight: 400; margin-top: 2px; opacity: 0.85; }
+  .field { margin-bottom: 12px; }
+  label { display: block; font-size: 11px; font-weight: 600; color: var(--muted);
+          text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  input { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px;
+          background: var(--bg); color: var(--text); font-size: 13px; outline: none; transition: border 0.15s; }
+  input:focus { border-color: var(--accent); }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .max-btn { background: none; border: 1px solid var(--accent); color: var(--accent);
+             font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 5px;
+             cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+  .max-btn:hover { background: var(--accent); color: #fff; }
+  .bal-line { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .btn { width: 100%; padding: 11px; border: none; border-radius: 7px; font-size: 14px; font-weight: 700;
+         cursor: pointer; transition: opacity 0.15s, transform 0.1s; margin-bottom: 6px; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+  .btn-connect { background: var(--card); border: 1px solid var(--border); color: var(--text);
+                 font-size: 13px; font-weight: 600; }
+  .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text);
+                   font-size: 13px; font-weight: 600; }
+  .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .status { font-size: 12px; padding: 8px 10px; border-radius: 6px; margin-top: 10px; display: none; }
+  .status.info { background: #d1fae5; color: #065f46; display: block; }
+  .status.success { background: #dcfce7; color: #15803d; display: block; }
+  .status.error { background: #fee2e2; color: #b91c1c; display: block; }
+  .status.warn { background: #fef3c7; color: #92400e; display: block; }
+  body.dark .status.info { background: #064e3b; color: #6ee7b7; }
+  body.dark .status.success { background: #14532d; color: #86efac; }
+  body.dark .status.error { background: #450a0a; color: #fca5a5; }
+  body.dark .status.warn { background: #451a03; color: #fcd34d; }
+  .wallet-bar { font-size: 11px; color: var(--muted); text-align: right; margin-bottom: 10px; min-height: 16px; }
+  .section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+                   letter-spacing: 0.05em; margin-bottom: 8px; }
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  .loading { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0; }
+  .not-deployed { text-align: center; color: var(--muted); font-size: 13px; padding: 16px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .approve-note { font-size: 10px; color: var(--muted); text-align: center; }
+  .my-deposit { background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+                padding: 10px 12px; margin-bottom: 12px; }
+  .my-deposit-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
+  .my-deposit-val { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="header">
+    <div class="logo">FAL</div>
+    <div>
+      <div class="title">FAL Pool</div>
+      <div class="subtitle">Stake KENO · Earn BOT · BOT Chain</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="wallet-bar" id="walletBar">Not connected</div>
+    <div id="poolStats" class="loading">Loading pool data…</div>
+
+    <div id="connectSection">
+      <button class="btn btn-connect" id="connectBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+    </div>
+
+    <div id="depositSection" style="display:none">
+      <div class="divider"></div>
+
+      <div id="myDepositInfo" style="display:none">
+        <div class="section-title">Your Position</div>
+        <div class="my-deposit">
+          <div class="my-deposit-row"><span>Staked</span><span class="my-deposit-val" id="myStaked">—</span></div>
+          <div class="my-deposit-row"><span>Pending Reward</span><span class="my-deposit-val" id="myReward">—</span></div>
+          <div class="my-deposit-row"><span>Lock Tier</span><span class="my-deposit-val" id="myTier">—</span></div>
+        </div>
+        <button class="btn btn-secondary" id="claimBtn" onclick="claimReward()">Claim BOT Rewards</button>
+        <div class="divider"></div>
+      </div>
+
+      <div class="section-title">Deposit KENO</div>
+
+      <div class="tiers" id="tierBtns"></div>
+
+      <div class="field">
+        <label>Amount (KENO)</label>
+        <div class="row">
+          <input type="number" id="depositAmount" placeholder="0.0" min="0" step="any" style="flex:1" />
+          <button class="max-btn" onclick="setMax()">MAX</button>
+        </div>
+        <div class="bal-line" id="balLine">Balance: — KENO</div>
+      </div>
+
+      <button class="btn btn-primary" id="approveBtn" onclick="approveAndDeposit()">Approve &amp; Deposit</button>
+      <div class="approve-note" id="approveNote">First deposit requires an approve transaction</div>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const BOT_CHAIN_ID  = 677;
+const BOT_CHAIN_HEX = '0x2A5';
+const BOT_RPC       = 'https://rpc.botchain.ai';
+const BOT_EXPLORER  = 'https://scan.botchain.ai';
+const KENO_ADDRESS  = '0x137a5Fc22a76Ec42490F2421a81935d124baE714';
+let   FAL_POOL      = '0x5065DDd17B35427131d7EA0387Ba68dC26d61fD1'; // updated from /api/falp/botchain/info
+
+const ERC20_ABI = [
+  'function balanceOf(address) view returns (uint256)',
+  'function allowance(address,address) view returns (uint256)',
+  'function approve(address,uint256) returns (bool)',
+  'function decimals() view returns (uint8)'
+];
+const FAL_POOL_ABI = [
+  'function deposit(uint256 amount, uint8 lockTier) external',
+  'function claimReward() external',
+  'function pendingReward(address user) external view returns (uint256)',
+  'function getPoolInfo() external view returns (uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)',
+  'function getDepositInfo(address user) external view returns (uint256,uint8,uint256,uint256,uint256,uint256,uint256,uint256,bool,uint256)',
+  'function getLockTierInfo() external view returns (uint256[4],uint256[4])'
+];
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+if (params.get('theme') === 'dark') document.body.classList.add('dark');
+
+// ── State ──────────────────────────────────────────────────────────────────
+let provider, signer, userAddress, kenoContract, falContract, wcProvider;
+let wcProjectId = '';
+let selectedTier = 0;
+let poolInfo = null;
+let tierLabels = ['Flexible', '7 Days', '30 Days', '90 Days'];
+let tierMults  = ['1.0×', '1.25×', '1.75×', '2.5×'];
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('wc-ready', async () => {
+  try {
+    const cfg = await fetch('/api/utl/config').then(r => r.json());
+    wcProjectId = cfg.walletConnectProjectId || '';
+  } catch(_) {}
+});
+
+async function loadPoolData() {
+  try {
+    const data = await fetch('/api/falp/botchain/info').then(r => r.json());
+    if (!data.deployed) {
+      document.getElementById('poolStats').innerHTML =
+        '<div class="not-deployed">🔧 FAL Pool not yet deployed on BOT Chain</div>';
+      return;
+    }
+
+    // Update contract address from API
+    if (data.address) FAL_POOL = data.address;
+
+    // Build tier info
+    if (data.lockTiers) {
+      tierLabels = data.lockTiers.map(t => t.label);
+      tierMults  = data.lockTiers.map(t => `${t.multiplier}×`);
+    }
+
+    poolInfo = data;
+    const deposited   = parseFloat(data.totalDepositedKeno || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const contributors = '—'; // not in API response currently
+    const botBal      = parseFloat(data.contractBotBalance || 0).toFixed(4);
+
+    document.getElementById('poolStats').innerHTML = `
+      <div class="stats-row">
+        <div class="stat"><div class="stat-val">${deposited}</div><div class="stat-lbl">KENO Staked</div></div>
+        <div class="stat"><div class="stat-val">${botBal}</div><div class="stat-lbl">BOT Rewards</div></div>
+        <div class="stat"><div class="stat-val">4 Tiers</div><div class="stat-lbl">Lock Options</div></div>
+      </div>`;
+
+    buildTierButtons();
+  } catch(err) {
+    document.getElementById('poolStats').innerHTML =
+      '<div class="not-deployed">Unable to load pool data</div>';
+  }
+}
+
+function buildTierButtons() {
+  const container = document.getElementById('tierBtns');
+  container.innerHTML = '';
+  tierLabels.forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.className = `tier-btn${i === selectedTier ? ' active' : ''}`;
+    btn.innerHTML = `${label}<span class="tier-mult">${tierMults[i] || ''}</span>`;
+    btn.onclick = () => selectTier(i);
+    container.appendChild(btn);
+  });
+}
+
+function selectTier(i) {
+  selectedTier = i;
+  document.querySelectorAll('.tier-btn').forEach((b, j) => {
+    b.className = `tier-btn${j === i ? ' active' : ''}`;
+  });
+}
+
+loadPoolData();
+
+// ── Connect ────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.WCEthereumProvider || !wcProjectId) return connectInjected();
+  try {
+    setStatus('Connecting via WalletConnect…', 'info');
+    document.getElementById('connectBtn').disabled = true;
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    wcProvider = await window.WCEthereumProvider.init({
+      projectId: wcProjectId,
+      chains: [BOT_CHAIN_ID],
+      optionalChains: [BOT_CHAIN_ID],
+      showQrModal: false,
+      metadata: {
+        name: 'FAL Pool Widget',
+        description: 'Stake KENO · Earn BOT on BOT Chain',
+        url: location.origin,
+        icons: ['https://kenostodblockchain.com/assets/images/logo.png']
+      }
+    });
+
+    wcProvider.on('display_uri', uri => {
+      if (isMobile) location.href = `metamask://wc?uri=${encodeURIComponent(uri)}`;
+    });
+
+    await wcProvider.connect();
+    provider = new ethers.providers.Web3Provider(wcProvider);
+    signer   = provider.getSigner();
+    userAddress = await signer.getAddress();
+    await ensureBotChain();
+    onConnected();
+  } catch(err) {
+    clearStatus();
+    document.getElementById('connectBtn').disabled = false;
+    if (!err.message?.includes('User rejected') && !err.message?.includes('closed')) {
+      setStatus('Connection failed — try MetaMask directly.', 'error');
+    }
+  }
+}
+
+async function connectInjected() {
+  if (!window.ethereum) { setStatus('No wallet found. Install MetaMask.', 'error'); return; }
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    provider    = new ethers.providers.Web3Provider(window.ethereum);
+    signer      = provider.getSigner();
+    userAddress = await signer.getAddress();
+    await ensureBotChain();
+    onConnected();
+  } catch(err) { setStatus(err.message || 'Connection failed.', 'error'); }
+}
+
+async function ensureBotChain() {
+  const net = await provider.getNetwork();
+  if (net.chainId !== BOT_CHAIN_ID) {
+    try {
+      await provider.provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BOT_CHAIN_HEX }] });
+    } catch(e) {
+      if (e.code === 4902) {
+        await provider.provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{ chainId: BOT_CHAIN_HEX, chainName: 'BOT Chain', rpcUrls: [BOT_RPC],
+                     nativeCurrency: { name: 'BOT', symbol: 'BOT', decimals: 18 },
+                     blockExplorerUrls: [BOT_EXPLORER] }]
+        });
+      }
+    }
+    provider = new ethers.providers.Web3Provider(wcProvider || window.ethereum);
+    signer   = provider.getSigner();
+  }
+}
+
+function onConnected() {
+  kenoContract = new ethers.Contract(KENO_ADDRESS, ERC20_ABI, signer);
+  falContract  = new ethers.Contract(FAL_POOL, FAL_POOL_ABI, signer);
+  const short = `${userAddress.slice(0,6)}…${userAddress.slice(-4)}`;
+  document.getElementById('walletBar').textContent = `Connected: ${short} · BOT Chain`;
+  document.getElementById('connectSection').style.display = 'none';
+  document.getElementById('depositSection').style.display = 'block';
+  clearStatus();
+  refreshBalances();
+}
+
+async function refreshBalances() {
+  try {
+    const [bal, depositInfo, pending] = await Promise.all([
+      kenoContract.balanceOf(userAddress),
+      falContract.getDepositInfo(userAddress),
+      falContract.pendingReward(userAddress)
+    ]);
+    const fmt = parseFloat(ethers.utils.formatEther(bal)).toLocaleString();
+    document.getElementById('balLine').textContent = `Balance: ${fmt} KENO`;
+    window._kenoBal = bal;
+
+    const staked = parseFloat(ethers.utils.formatEther(depositInfo[0]));
+    if (staked > 0) {
+      document.getElementById('myDepositInfo').style.display = 'block';
+      document.getElementById('myStaked').textContent = `${staked.toLocaleString()} KENO`;
+      document.getElementById('myReward').textContent = `${parseFloat(ethers.utils.formatEther(pending)).toFixed(6)} BOT`;
+      const tierIdx = Number(depositInfo[1]);
+      document.getElementById('myTier').textContent = tierLabels[tierIdx] || `Tier ${tierIdx}`;
+    }
+  } catch(_) {}
+}
+
+function setMax() {
+  if (!window._kenoBal) return;
+  document.getElementById('depositAmount').value = parseFloat(ethers.utils.formatEther(window._kenoBal)).toFixed(4);
+}
+
+// ── Approve & Deposit ──────────────────────────────────────────────────────
+async function approveAndDeposit() {
+  const amountStr = document.getElementById('depositAmount').value.trim();
+  if (!amountStr || isNaN(amountStr) || parseFloat(amountStr) <= 0) {
+    setStatus('Enter an amount to deposit.', 'error'); return;
+  }
+  const amount = ethers.utils.parseEther(amountStr);
+
+  const btn = document.getElementById('approveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Checking allowance…';
+
+  try {
+    const allowance = await kenoContract.allowance(userAddress, FAL_POOL);
+    if (allowance.lt(amount)) {
+      setStatus('Step 1/2 — Approving KENO spend…', 'info');
+      btn.textContent = 'Approving…';
+      const approveTx = await kenoContract.approve(FAL_POOL, ethers.constants.MaxUint256, { gasLimit: 80000 });
+      await approveTx.wait();
+      document.getElementById('approveNote').textContent = 'Approved ✓ — depositing now…';
+    }
+
+    setStatus('Step 2/2 — Depositing KENO…', 'info');
+    btn.textContent = 'Depositing…';
+    const tx = await falContract.deposit(amount, selectedTier, { gasLimit: 300000 });
+    setStatus(`Deposit submitted — <a href="${BOT_EXPLORER}/tx/${tx.hash}" target="_blank">view on scan</a>`, 'info');
+    await tx.wait();
+    setStatus(`✅ Deposited ${amountStr} KENO into ${tierLabels[selectedTier]} tier — earning BOT rewards!`, 'success');
+    document.getElementById('depositAmount').value = '';
+    refreshBalances();
+  } catch(err) {
+    const msg = err.reason || err.message || 'Transaction failed';
+    setStatus(msg.includes('user rejected') ? 'Transaction cancelled.' : `Error: ${msg}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Approve & Deposit';
+  }
+}
+
+async function claimReward() {
+  const btn = document.getElementById('claimBtn');
+  btn.disabled = true; btn.textContent = 'Claiming…';
+  try {
+    const tx = await falContract.claimReward({ gasLimit: 200000 });
+    setStatus('Claim submitted…', 'info');
+    await tx.wait();
+    setStatus('✅ BOT rewards claimed!', 'success');
+    refreshBalances();
+  } catch(err) {
+    setStatus(err.reason || err.message || 'Claim failed', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Claim BOT Rewards';
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg; el.className = `status ${type}`;
+}
+function clearStatus() {
+  const el = document.getElementById('status');
+  el.innerHTML = ''; el.className = 'status';
+}
+</script>
+</body>
+</html>
