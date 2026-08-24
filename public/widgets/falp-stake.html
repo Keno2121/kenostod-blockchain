@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FALP Stake — BOT Chain</title>
+<script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+<script type="module">
+  try {
+    const { EthereumProvider } = await import('https://esm.sh/@walletconnect/ethereum-provider@2.11.2');
+    window.WCEthereumProvider = EthereumProvider;
+  } catch(_) {}
+  document.dispatchEvent(new Event('wc-ready'));
+</script>
+<style>
+  :root {
+    --bg: #ffffff; --card: #f8fafc; --border: #e2e8f0;
+    --text: #1e293b; --muted: #64748b; --accent: #8b5cf6;
+    --accent-h: #7c3aed; --green: #22c55e; --red: #ef4444;
+    --yellow: #f59e0b; --radius: 10px;
+  }
+  body.dark {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+         min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 12px; }
+  .widget { width: 100%; max-width: 420px; }
+  .header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .logo { width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+          display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; }
+  .title { font-size: 15px; font-weight: 700; }
+  .subtitle { font-size: 11px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .stats-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .stat { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+          padding: 8px 10px; text-align: center; }
+  .stat-val { font-size: 14px; font-weight: 700; color: var(--accent); }
+  .stat-lbl { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .my-position { background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+                 padding: 10px 12px; margin-bottom: 12px; }
+  .pos-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+  .pos-val { font-weight: 700; }
+  .pos-val.green { color: var(--green); }
+  .tabs { display: flex; gap: 0; margin-bottom: 14px; border: 1px solid var(--border);
+          border-radius: 7px; overflow: hidden; }
+  .tab { flex: 1; padding: 8px 4px; background: var(--bg); border: none; color: var(--muted);
+         font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .tab.active { background: var(--accent); color: #fff; }
+  .field { margin-bottom: 12px; }
+  label { display: block; font-size: 11px; font-weight: 600; color: var(--muted);
+          text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  input { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px;
+          background: var(--bg); color: var(--text); font-size: 13px; outline: none; transition: border 0.15s; }
+  input:focus { border-color: var(--accent); }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .max-btn { background: none; border: 1px solid var(--accent); color: var(--accent);
+             font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 5px;
+             cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+  .max-btn:hover { background: var(--accent); color: #fff; }
+  .bal-line { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .btn { width: 100%; padding: 11px; border: none; border-radius: 7px; font-size: 14px; font-weight: 700;
+         cursor: pointer; transition: opacity 0.15s, transform 0.1s; margin-bottom: 6px; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+  .btn-connect { background: var(--card); border: 1px solid var(--border); color: var(--text);
+                 font-size: 13px; font-weight: 600; }
+  .btn-claim { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+  .btn-claim:hover:not(:disabled) { opacity: 0.9; }
+  .btn-unstake { background: var(--bg); border: 1px solid var(--border); color: var(--text);
+                 font-size: 13px; font-weight: 600; }
+  .btn-unstake:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+  .status { font-size: 12px; padding: 8px 10px; border-radius: 6px; margin-top: 10px; display: none; }
+  .status.info { background: #ede9fe; color: #4c1d95; display: block; }
+  .status.success { background: #dcfce7; color: #15803d; display: block; }
+  .status.error { background: #fee2e2; color: #b91c1c; display: block; }
+  .status.warn { background: #fef3c7; color: #92400e; display: block; }
+  body.dark .status.info { background: #2e1065; color: #c4b5fd; }
+  body.dark .status.success { background: #14532d; color: #86efac; }
+  body.dark .status.error { background: #450a0a; color: #fca5a5; }
+  body.dark .status.warn { background: #451a03; color: #fcd34d; }
+  .wallet-bar { font-size: 11px; color: var(--muted); text-align: right; margin-bottom: 10px; min-height: 16px; }
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  .approve-note { font-size: 10px; color: var(--muted); text-align: center; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+                   letter-spacing: 0.05em; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="header">
+    <div class="logo">FALP</div>
+    <div>
+      <div class="title">UTL Staking</div>
+      <div class="subtitle">Stake KENO · Earn BOT fees · BOT Chain</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="wallet-bar" id="walletBar">Not connected</div>
+
+    <!-- Global pool stats (loaded without wallet) -->
+    <div id="poolStats" style="margin-bottom:12px">
+      <div class="stats-row">
+        <div class="stat"><div class="stat-val" id="totalStaked">—</div><div class="stat-lbl">Total Staked</div></div>
+        <div class="stat"><div class="stat-val" id="totalPaid">—</div><div class="stat-lbl">BOT Distributed</div></div>
+      </div>
+    </div>
+
+    <div id="connectSection">
+      <button class="btn btn-connect" id="connectBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+    </div>
+
+    <div id="actionSection" style="display:none">
+
+      <!-- My position (shown if staked > 0) -->
+      <div id="myPosition" style="display:none">
+        <div class="section-title">Your Position</div>
+        <div class="my-position">
+          <div class="pos-row"><span>Staked KENO</span><span class="pos-val" id="myStaked">—</span></div>
+          <div class="pos-row"><span>Pending BOT</span><span class="pos-val green" id="myPending">—</span></div>
+        </div>
+        <button class="btn btn-claim" onclick="claimRewards()">⚡ Claim BOT Rewards</button>
+        <div class="divider"></div>
+      </div>
+
+      <!-- Stake / Unstake tabs -->
+      <div class="tabs">
+        <button class="tab active" id="tabStake" onclick="switchTab('stake')">Stake</button>
+        <button class="tab" id="tabUnstake" onclick="switchTab('unstake')">Unstake</button>
+      </div>
+
+      <!-- Stake panel -->
+      <div id="stakePanel">
+        <div class="field">
+          <label>Amount to Stake (KENO)</label>
+          <div class="row">
+            <input type="number" id="stakeAmount" placeholder="0.0" min="0" step="any" style="flex:1" />
+            <button class="max-btn" onclick="setStakeMax()">MAX</button>
+          </div>
+          <div class="bal-line" id="stakeBal">Balance: — KENO</div>
+        </div>
+        <button class="btn btn-primary" id="stakeBtn" onclick="approveAndStake()">Approve &amp; Stake</button>
+        <div class="approve-note" id="stakeNote">First stake requires an approve transaction</div>
+      </div>
+
+      <!-- Unstake panel -->
+      <div id="unstakePanel" style="display:none">
+        <div class="field">
+          <label>Amount to Unstake (KENO)</label>
+          <div class="row">
+            <input type="number" id="unstakeAmount" placeholder="0.0" min="0" step="any" style="flex:1" />
+            <button class="max-btn" onclick="setUnstakeMax()">MAX</button>
+          </div>
+          <div class="bal-line" id="unstakeBal">Staked: — KENO</div>
+        </div>
+        <button class="btn btn-unstake" id="unstakeBtn" onclick="doUnstake()">Unstake KENO</button>
+      </div>
+
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const BOT_CHAIN_ID  = 677;
+const BOT_CHAIN_HEX = '0x2A5';
+const BOT_RPC       = 'https://rpc.botchain.ai';
+const BOT_EXPLORER  = 'https://scan.botchain.ai';
+const KENO_ADDRESS  = '0x137a5Fc22a76Ec42490F2421a81935d124baE714';
+const UTL_STAKING   = '0xd6a73bc00f623f893831B623efdA9901CAF58e63';
+
+const ERC20_ABI = [
+  'function balanceOf(address) view returns (uint256)',
+  'function allowance(address,address) view returns (uint256)',
+  'function approve(address,uint256) returns (bool)'
+];
+const STAKING_ABI = [
+  'function stake(uint256 amount) external',
+  'function unstake(uint256 amount) external',
+  'function claimRewards() external',
+  'function stakedBalance(address) view returns (uint256)',
+  'function pendingRewards(address) view returns (uint256)',
+  'function totalStaked() view returns (uint256)',
+  'function totalRewardsPaid() view returns (uint256)'
+];
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+if (params.get('theme') === 'dark') document.body.classList.add('dark');
+
+// ── State ──────────────────────────────────────────────────────────────────
+let provider, signer, userAddress, kenoContract, stakingContract, wcProvider;
+let wcProjectId = '';
+let userStaked = ethers.BigNumber.from(0);
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('wc-ready', async () => {
+  try {
+    const cfg = await fetch('/api/utl/config').then(r => r.json());
+    wcProjectId = cfg.walletConnectProjectId || '';
+  } catch(_) {}
+});
+
+// Load global pool stats without wallet
+(async function loadGlobalStats() {
+  try {
+    const ro = new ethers.providers.JsonRpcProvider(BOT_RPC);
+    const stk = new ethers.Contract(UTL_STAKING, STAKING_ABI, ro);
+    const [total, paid] = await Promise.all([stk.totalStaked(), stk.totalRewardsPaid()]);
+    document.getElementById('totalStaked').textContent =
+      parseFloat(ethers.utils.formatEther(total)).toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' KENO';
+    document.getElementById('totalPaid').textContent =
+      parseFloat(ethers.utils.formatEther(paid)).toFixed(4) + ' BOT';
+  } catch(_) {}
+})();
+
+// ── Connect ────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.WCEthereumProvider || !wcProjectId) return connectInjected();
+  try {
+    setStatus('Connecting via WalletConnect…', 'info');
+    document.getElementById('connectBtn').disabled = true;
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    wcProvider = await window.WCEthereumProvider.init({
+      projectId: wcProjectId,
+      chains: [BOT_CHAIN_ID],
+      optionalChains: [BOT_CHAIN_ID],
+      showQrModal: false,
+      metadata: {
+        name: 'UTL Staking Widget',
+        description: 'Stake KENO · Earn BOT on BOT Chain',
+        url: location.origin,
+        icons: ['https://kenostodblockchain.com/assets/images/logo.png']
+      }
+    });
+
+    wcProvider.on('display_uri', uri => {
+      if (isMobile) location.href = `metamask://wc?uri=${encodeURIComponent(uri)}`;
+    });
+
+    await wcProvider.connect();
+    provider    = new ethers.providers.Web3Provider(wcProvider);
+    signer      = provider.getSigner();
+    userAddress = await signer.getAddress();
+    await ensureBotChain();
+    onConnected();
+  } catch(err) {
+    clearStatus();
+    document.getElementById('connectBtn').disabled = false;
+    if (!err.message?.includes('User rejected') && !err.message?.includes('closed')) {
+      setStatus('Connection failed — try MetaMask directly.', 'error');
+    }
+  }
+}
+
+async function connectInjected() {
+  if (!window.ethereum) { setStatus('No wallet found. Install MetaMask.', 'error'); return; }
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    provider    = new ethers.providers.Web3Provider(window.ethereum);
+    signer      = provider.getSigner();
+    userAddress = await signer.getAddress();
+    await ensureBotChain();
+    onConnected();
+  } catch(err) { setStatus(err.message || 'Connection failed.', 'error'); }
+}
+
+async function ensureBotChain() {
+  const net = await provider.getNetwork();
+  if (net.chainId !== BOT_CHAIN_ID) {
+    try {
+      await provider.provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: BOT_CHAIN_HEX }] });
+    } catch(e) {
+      if (e.code === 4902) {
+        await provider.provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{ chainId: BOT_CHAIN_HEX, chainName: 'BOT Chain', rpcUrls: [BOT_RPC],
+                     nativeCurrency: { name: 'BOT', symbol: 'BOT', decimals: 18 },
+                     blockExplorerUrls: [BOT_EXPLORER] }]
+        });
+      }
+    }
+    provider = new ethers.providers.Web3Provider(wcProvider || window.ethereum);
+    signer   = provider.getSigner();
+  }
+}
+
+function onConnected() {
+  kenoContract    = new ethers.Contract(KENO_ADDRESS, ERC20_ABI, signer);
+  stakingContract = new ethers.Contract(UTL_STAKING, STAKING_ABI, signer);
+  const short = `${userAddress.slice(0,6)}…${userAddress.slice(-4)}`;
+  document.getElementById('walletBar').textContent = `Connected: ${short} · BOT Chain`;
+  document.getElementById('connectSection').style.display = 'none';
+  document.getElementById('actionSection').style.display = 'block';
+  clearStatus();
+  refreshUserData();
+}
+
+async function refreshUserData() {
+  try {
+    const [bal, staked, pending] = await Promise.all([
+      kenoContract.balanceOf(userAddress),
+      stakingContract.stakedBalance(userAddress),
+      stakingContract.pendingRewards(userAddress)
+    ]);
+
+    window._kenoBal = bal;
+    userStaked = staked;
+    const balFmt    = parseFloat(ethers.utils.formatEther(bal)).toLocaleString();
+    const stakedFmt = parseFloat(ethers.utils.formatEther(staked)).toLocaleString();
+    const pendingFmt = parseFloat(ethers.utils.formatEther(pending)).toFixed(6);
+
+    document.getElementById('stakeBal').textContent = `Balance: ${balFmt} KENO`;
+    document.getElementById('unstakeBal').textContent = `Staked: ${stakedFmt} KENO`;
+
+    if (staked.gt(0)) {
+      document.getElementById('myPosition').style.display = 'block';
+      document.getElementById('myStaked').textContent = `${stakedFmt} KENO`;
+      document.getElementById('myPending').textContent = `${pendingFmt} BOT`;
+    } else {
+      document.getElementById('myPosition').style.display = 'none';
+    }
+  } catch(_) {}
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tabStake').className   = `tab${tab === 'stake' ? ' active' : ''}`;
+  document.getElementById('tabUnstake').className = `tab${tab === 'unstake' ? ' active' : ''}`;
+  document.getElementById('stakePanel').style.display   = tab === 'stake' ? 'block' : 'none';
+  document.getElementById('unstakePanel').style.display = tab === 'unstake' ? 'block' : 'none';
+  clearStatus();
+}
+
+function setStakeMax() {
+  if (!window._kenoBal) return;
+  document.getElementById('stakeAmount').value = parseFloat(ethers.utils.formatEther(window._kenoBal)).toFixed(4);
+}
+function setUnstakeMax() {
+  document.getElementById('unstakeAmount').value = parseFloat(ethers.utils.formatEther(userStaked)).toFixed(4);
+}
+
+// ── Approve & Stake ────────────────────────────────────────────────────────
+async function approveAndStake() {
+  const amountStr = document.getElementById('stakeAmount').value.trim();
+  if (!amountStr || isNaN(amountStr) || parseFloat(amountStr) <= 0) {
+    setStatus('Enter an amount to stake.', 'error'); return;
+  }
+  const amount = ethers.utils.parseEther(amountStr);
+  const btn = document.getElementById('stakeBtn');
+  btn.disabled = true; btn.textContent = 'Checking allowance…';
+
+  try {
+    const allowance = await kenoContract.allowance(userAddress, UTL_STAKING);
+    if (allowance.lt(amount)) {
+      setStatus('Step 1/2 — Approving KENO…', 'info');
+      btn.textContent = 'Approving…';
+      const approveTx = await kenoContract.approve(UTL_STAKING, ethers.constants.MaxUint256, { gasLimit: 80000 });
+      await approveTx.wait();
+      document.getElementById('stakeNote').textContent = 'Approved ✓';
+    }
+
+    setStatus('Step 2/2 — Staking KENO…', 'info');
+    btn.textContent = 'Staking…';
+    const tx = await stakingContract.stake(amount, { gasLimit: 250000 });
+    setStatus(`Stake submitted — <a href="${BOT_EXPLORER}/tx/${tx.hash}" target="_blank">view on scan</a>`, 'info');
+    await tx.wait();
+    setStatus(`✅ Staked ${amountStr} KENO — you're now earning BOT transaction fees!`, 'success');
+    document.getElementById('stakeAmount').value = '';
+    refreshUserData();
+  } catch(err) {
+    const msg = err.reason || err.message || 'Transaction failed';
+    setStatus(msg.includes('user rejected') ? 'Transaction cancelled.' : `Error: ${msg}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Approve & Stake';
+  }
+}
+
+// ── Unstake ────────────────────────────────────────────────────────────────
+async function doUnstake() {
+  const amountStr = document.getElementById('unstakeAmount').value.trim();
+  if (!amountStr || isNaN(amountStr) || parseFloat(amountStr) <= 0) {
+    setStatus('Enter an amount to unstake.', 'error'); return;
+  }
+  const amount = ethers.utils.parseEther(amountStr);
+  const btn = document.getElementById('unstakeBtn');
+  btn.disabled = true; btn.textContent = 'Unstaking…';
+  setStatus('Waiting for wallet approval…', 'info');
+
+  try {
+    const tx = await stakingContract.unstake(amount, { gasLimit: 250000 });
+    setStatus(`Unstake submitted — <a href="${BOT_EXPLORER}/tx/${tx.hash}" target="_blank">view on scan</a>`, 'info');
+    await tx.wait();
+    setStatus(`✅ Unstaked ${amountStr} KENO — funds returned to your wallet.`, 'success');
+    document.getElementById('unstakeAmount').value = '';
+    refreshUserData();
+  } catch(err) {
+    const msg = err.reason || err.message || 'Transaction failed';
+    setStatus(msg.includes('user rejected') ? 'Transaction cancelled.' : `Error: ${msg}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Unstake KENO';
+  }
+}
+
+// ── Claim ──────────────────────────────────────────────────────────────────
+async function claimRewards() {
+  const btn = document.querySelector('.btn-claim');
+  btn.disabled = true; btn.textContent = 'Claiming…';
+  setStatus('Claiming BOT rewards…', 'info');
+  try {
+    const tx = await stakingContract.claimRewards({ gasLimit: 200000 });
+    setStatus(`Claim submitted — <a href="${BOT_EXPLORER}/tx/${tx.hash}" target="_blank">view on scan</a>`, 'info');
+    await tx.wait();
+    setStatus('✅ BOT rewards claimed to your wallet!', 'success');
+    refreshUserData();
+  } catch(err) {
+    setStatus(err.reason || err.message || 'Claim failed', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '⚡ Claim BOT Rewards';
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg; el.className = `status ${type}`;
+}
+function clearStatus() {
+  const el = document.getElementById('status');
+  el.innerHTML = ''; el.className = 'status';
+}
+</script>
+</body>
+</html>

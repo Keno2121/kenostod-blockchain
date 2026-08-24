@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UTL Send — BOT Chain</title>
+<script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+<script type="module">
+  try {
+    const { EthereumProvider } = await import('https://esm.sh/@walletconnect/ethereum-provider@2.11.2');
+    window.WCEthereumProvider = EthereumProvider;
+  } catch(_) {}
+  document.dispatchEvent(new Event('wc-ready'));
+</script>
+<style>
+  :root {
+    --bg: #ffffff; --card: #f8fafc; --border: #e2e8f0;
+    --text: #1e293b; --muted: #64748b; --accent: #6366f1;
+    --accent-h: #4f46e5; --green: #22c55e; --red: #ef4444;
+    --yellow: #f59e0b; --radius: 10px;
+  }
+  body.dark {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+         min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 12px; }
+  .widget { width: 100%; max-width: 420px; }
+  .header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .logo { width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+          display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+  .title { font-size: 15px; font-weight: 700; }
+  .subtitle { font-size: 11px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .field { margin-bottom: 12px; }
+  label { display: block; font-size: 11px; font-weight: 600; color: var(--muted);
+          text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  input { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px;
+          background: var(--bg); color: var(--text); font-size: 13px; outline: none; transition: border 0.15s; }
+  input:focus { border-color: var(--accent); }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .max-btn { background: none; border: 1px solid var(--accent); color: var(--accent);
+             font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 5px;
+             cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+  .max-btn:hover { background: var(--accent); color: #fff; }
+  .bal-line { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .btn { width: 100%; padding: 11px; border: none; border-radius: 7px; font-size: 14px; font-weight: 700;
+         cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+  .btn-connect { background: var(--card); border: 1px solid var(--border); color: var(--text);
+                 font-size: 13px; font-weight: 600; }
+  .status { font-size: 12px; padding: 8px 10px; border-radius: 6px; margin-top: 10px; display: none; }
+  .status.info { background: #dbeafe; color: #1e40af; display: block; }
+  .status.success { background: #dcfce7; color: #15803d; display: block; }
+  .status.error { background: #fee2e2; color: #b91c1c; display: block; }
+  .status.warn { background: #fef3c7; color: #92400e; display: block; }
+  body.dark .status.info { background: #1e3a5f; color: #93c5fd; }
+  body.dark .status.success { background: #14532d; color: #86efac; }
+  body.dark .status.error { background: #450a0a; color: #fca5a5; }
+  body.dark .status.warn { background: #451a03; color: #fcd34d; }
+  .wallet-bar { font-size: 11px; color: var(--muted); text-align: right; margin-bottom: 10px;
+                min-height: 16px; }
+  .fee-note { font-size: 10px; color: var(--muted); text-align: center; margin-top: 8px; }
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="header">
+    <div class="logo">UTL</div>
+    <div>
+      <div class="title">UTL Send</div>
+      <div class="subtitle">BOT Chain · Powered by Kenostod</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="wallet-bar" id="walletBar">Not connected</div>
+
+    <div id="connectSection">
+      <button class="btn btn-connect" id="connectBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+    </div>
+
+    <div id="sendSection" style="display:none">
+      <div class="field">
+        <label>Recipient Address</label>
+        <input type="text" id="recipient" placeholder="0x…" />
+      </div>
+
+      <div class="field">
+        <label>Amount (BOT)</label>
+        <div class="row">
+          <input type="number" id="amount" placeholder="0.0" min="0" step="any" style="flex:1" />
+          <button class="max-btn" onclick="setMax()">MAX</button>
+        </div>
+        <div class="bal-line" id="balLine">Balance: — BOT</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn btn-primary" id="sendBtn" onclick="sendTx()">Send via UTL</button>
+      <div class="fee-note">A small BOT fee is collected by the UTL FeeCollector</div>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const BOT_CHAIN_ID     = 677;
+const BOT_CHAIN_HEX    = '0x2A5';
+const BOT_RPC          = 'https://rpc.botchain.ai';
+const BOT_EXPLORER     = 'https://scan.botchain.ai';
+const UTL_FEECOLLECTOR = '0xBb44a52b2B69D820cA1792Ca9a496e9F00B2F9E7';
+
+const UTL_FEE_ABI = [
+  'function processTransactionWithFee(address recipient) external payable'
+];
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+if (params.get('theme') === 'dark') document.body.classList.add('dark');
+
+// ── State ──────────────────────────────────────────────────────────────────
+let provider, signer, userAddress, feeContract, wcProvider;
+let wcProjectId = '';
+
+// ── WalletConnect ready ────────────────────────────────────────────────────
+document.addEventListener('wc-ready', async () => {
+  try {
+    const cfg = await fetch('/api/utl/config').then(r => r.json());
+    wcProjectId = cfg.walletConnectProjectId || '';
+  } catch(_) {}
+});
+
+// ── Connect ────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.WCEthereumProvider || !wcProjectId) return connectInjected();
+  try {
+    setStatus('Connecting via WalletConnect…', 'info');
+    document.getElementById('connectBtn').disabled = true;
+
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+    wcProvider = await window.WCEthereumProvider.init({
+      projectId: wcProjectId,
+      chains: [BOT_CHAIN_ID],
+      optionalChains: [BOT_CHAIN_ID],
+      showQrModal: false,
+      metadata: {
+        name: 'UTL Send Widget',
+        description: 'Send BOT via UTL FeeCollector',
+        url: location.origin,
+        icons: ['https://kenostodblockchain.com/assets/images/logo.png']
+      }
+    });
+
+    wcProvider.on('display_uri', uri => {
+      if (isMobile) {
+        location.href = `metamask://wc?uri=${encodeURIComponent(uri)}`;
+      }
+    });
+
+    await wcProvider.connect();
+    provider = new ethers.providers.Web3Provider(wcProvider);
+    signer   = provider.getSigner();
+    userAddress = await signer.getAddress();
+    await ensureBotChain();
+    onConnected();
+  } catch (err) {
+    clearStatus();
+    document.getElementById('connectBtn').disabled = false;
+    if (!err.message?.includes('User rejected') && !err.message?.includes('closed')) {
+      setStatus('Connection failed — try MetaMask directly.', 'error');
+    }
+  }
+}
+
+async function connectInjected() {
+  if (!window.ethereum) { setStatus('No wallet found. Install MetaMask.', 'error'); return; }
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer   = provider.getSigner();
+    userAddress = await signer.getAddress();
+    await ensureBotChain();
+    onConnected();
+  } catch(err) {
+    setStatus(err.message || 'Connection failed.', 'error');
+  }
+}
+
+async function ensureBotChain() {
+  const net = await provider.getNetwork();
+  if (net.chainId !== BOT_CHAIN_ID) {
+    try {
+      await provider.provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: BOT_CHAIN_HEX }]
+      });
+    } catch(e) {
+      if (e.code === 4902) {
+        await provider.provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: BOT_CHAIN_HEX,
+            chainName: 'BOT Chain',
+            rpcUrls: [BOT_RPC],
+            nativeCurrency: { name: 'BOT', symbol: 'BOT', decimals: 18 },
+            blockExplorerUrls: [BOT_EXPLORER]
+          }]
+        });
+      }
+    }
+    provider = new ethers.providers.Web3Provider(wcProvider || window.ethereum);
+    signer   = provider.getSigner();
+  }
+}
+
+function onConnected() {
+  feeContract = new ethers.Contract(UTL_FEECOLLECTOR, UTL_FEE_ABI, signer);
+  const short = `${userAddress.slice(0,6)}…${userAddress.slice(-4)}`;
+  document.getElementById('walletBar').textContent = `Connected: ${short} · BOT Chain`;
+  document.getElementById('connectSection').style.display = 'none';
+  document.getElementById('sendSection').style.display = 'block';
+  clearStatus();
+  refreshBalance();
+}
+
+async function refreshBalance() {
+  try {
+    const bal = await provider.getBalance(userAddress);
+    const fmt = parseFloat(ethers.utils.formatEther(bal)).toFixed(6);
+    document.getElementById('balLine').textContent = `Balance: ${fmt} BOT`;
+    window._botBalance = bal;
+    if (bal.isZero()) {
+      setStatus('⚠️ Your BOT balance is 0. Top up at <a href="https://bdex.io" target="_blank">BDEX</a> to pay gas.', 'warn');
+    }
+  } catch(_) {}
+}
+
+function setMax() {
+  if (!window._botBalance) return;
+  const gas = ethers.utils.parseEther('0.001'); // reserve for gas
+  const max = window._botBalance.sub(gas);
+  if (max.gt(0)) {
+    document.getElementById('amount').value = parseFloat(ethers.utils.formatEther(max)).toFixed(6);
+  }
+}
+
+// ── Send ───────────────────────────────────────────────────────────────────
+async function sendTx() {
+  const recipient = document.getElementById('recipient').value.trim();
+  const amount    = document.getElementById('amount').value.trim();
+
+  if (!ethers.utils.isAddress(recipient)) { setStatus('Enter a valid recipient address.', 'error'); return; }
+  if (!amount || isNaN(amount) || parseFloat(amount) <= 0) { setStatus('Enter a valid amount.', 'error'); return; }
+
+  const value = ethers.utils.parseEther(amount);
+
+  // Pre-flight balance check
+  try {
+    const bal = await provider.getBalance(userAddress);
+    const gasEst = ethers.utils.parseEther('0.001');
+    if (bal.lt(value.add(gasEst))) {
+      const have = parseFloat(ethers.utils.formatEther(bal)).toFixed(6);
+      const need = parseFloat(ethers.utils.formatEther(value.add(gasEst))).toFixed(6);
+      setStatus(`Not enough BOT — you have ${have} but need ~${need} (amount + gas).`, 'error');
+      return;
+    }
+  } catch(_) {}
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  setStatus('Waiting for wallet approval…', 'info');
+
+  try {
+    const tx = await feeContract.processTransactionWithFee(recipient, { value, gasLimit: 120000 });
+    setStatus(`Transaction submitted — <a href="${BOT_EXPLORER}/tx/${tx.hash}" target="_blank">view on scan</a>`, 'info');
+    btn.textContent = 'Confirming…';
+    await tx.wait();
+    setStatus(`✅ Sent ${amount} BOT to ${recipient.slice(0,6)}… — <a href="${BOT_EXPLORER}/tx/${tx.hash}" target="_blank">view receipt</a>`, 'success');
+    refreshBalance();
+  } catch(err) {
+    const msg = err.reason || err.message || 'Transaction failed';
+    setStatus(msg.includes('user rejected') ? 'Transaction cancelled.' : `Error: ${msg}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send via UTL';
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.innerHTML = msg;
+  el.className = `status ${type}`;
+}
+function clearStatus() {
+  const el = document.getElementById('status');
+  el.innerHTML = '';
+  el.className = 'status';
+}
+</script>
+</body>
+</html>
