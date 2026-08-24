@@ -14228,6 +14228,197 @@ app.post('/api/vlat/revenue', (req, res) => {
     }
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// PANCAKESWAP LP FUNDER WIDGET
+// Embeddable widget that lets any site's users add liquidity to any V2 pool.
+// Default: KENO/BNB on BSC
+// ══════════════════════════════════════════════════════════════════════════════
+
+app.get('/lp-widget',      (req, res) => res.sendFile(__dirname + '/public/lp-widget-docs.html'));
+app.get('/lp-widget-docs', (req, res) => res.sendFile(__dirname + '/public/lp-widget-docs.html'));
+
+// In-memory LP widget site registry
+const _lpWidgetSites = new Map(); // siteId → { name, email, url, project, token, createdAt }
+
+function _generateLpSiteId(url) {
+    const base = (url || 'site').replace(/https?:\/\//, '').replace(/[^a-z0-9]/gi, '-').slice(0, 16).toLowerCase();
+    const rand = Math.random().toString(36).slice(2, 7);
+    return `lp-${base}-${rand}`;
+}
+
+// POST /api/lp-widget/register-site — register a site, return siteId + snippet
+app.post('/api/lp-widget/register-site', (req, res) => {
+    const { name, email, url, project, token } = req.body || {};
+    if (!name || !email || !url) {
+        return res.json({ ok: false, error: 'name, email, and url are required' });
+    }
+
+    const siteId = _generateLpSiteId(url);
+    _lpWidgetSites.set(siteId, {
+        name, email, url,
+        project: project || '',
+        token:   token   || 'KENO/BNB',
+        createdAt: Date.now(),
+    });
+
+    console.log(`[LPWidget] ✅ New site registered: ${siteId} — ${name} <${email}> | ${url}`);
+
+    // Telegram alert
+    const tgToken  = process.env.KINGS_SHIELD_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+    const tgChatId = process.env.SHIELD_ALERT_CHAT_ID;
+    if (tgToken && tgChatId) {
+        const body = JSON.stringify({
+            chat_id: tgChatId, parse_mode: 'HTML', disable_web_page_preview: true,
+            text: `💧 <b>LP Funder Widget — New Site Registered!</b>\n\n` +
+                  `<b>Who:</b> ${name} &lt;${email}&gt;\n` +
+                  `<b>Project:</b> ${project || 'N/A'}\n` +
+                  `<b>URL:</b> ${url}\n` +
+                  `<b>Token/Pair:</b> ${token || 'KENO/BNB (default)'}\n` +
+                  `<b>Site ID:</b> <code>${siteId}</code>\n\n` +
+                  `<i>LP Widget snippet ready. Follow up to offer KENO ecosystem integration.</i>`,
+        });
+        const _tgHttps = require('https');
+        const tgReq = _tgHttps.request({
+            hostname: 'api.telegram.org',
+            path: `/bot${tgToken}/sendMessage`,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        });
+        tgReq.on('error', () => {});
+        tgReq.write(body);
+        tgReq.end();
+    }
+
+    res.json({
+        ok: true,
+        siteId,
+        snippet: `<script\n  src="https://kenostodblockchain.com/pancakeswap-lp-widget.js"\n  data-site-id="${siteId}"\n></script>`,
+        docsUrl: 'https://kenostodblockchain.com/lp-widget',
+    });
+});
+
+// GET /api/lp-widget/pool-stats — live BSC on-chain pool reserves + TVL + price
+// Cached for 60 seconds per pair
+const _lpPoolStatsCache = new Map(); // cacheKey → { data, ts }
+const _LP_CACHE_TTL = 60_000;
+
+const _LP_FACTORY  = '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73';
+const _LP_WBNB     = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+const _LP_KENO     = '0x48bb049afe50b050b458624dc6233acd51024ab4';
+const _LP_BSC_RPC  = 'https://bsc-dataseed1.binance.org/';
+
+async function _lpRpcCall(method, params) {
+    const r = await fetch(_LP_BSC_RPC, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        signal: AbortSignal.timeout(8000),
+    });
+    const j = await r.json();
+    if (j.error) throw new Error(j.error.message || 'RPC error');
+    return j.result;
+}
+
+function _lpHexPad(addr) {
+    return addr.replace(/^0x/i, '').toLowerCase().padStart(64, '0');
+}
+
+async function _lpGetPairAddress(token0, token1) {
+    const data = '0xe6a43905' + _lpHexPad(token0) + _lpHexPad(token1);
+    const result = await _lpRpcCall('eth_call', [{ to: _LP_FACTORY, data }, 'latest']);
+    if (!result || result === '0x' || /^0x0+$/.test(result)) return null;
+    return '0x' + result.slice(26);
+}
+
+async function _lpGetReserves(pairAddr) {
+    const result = await _lpRpcCall('eth_call', [{ to: pairAddr, data: '0x0902f1ac' }, 'latest']);
+    if (!result || result === '0x') return null;
+    const r0 = BigInt('0x' + result.slice(2, 66));
+    const r1 = BigInt('0x' + result.slice(66, 130));
+    return { r0, r1 };
+}
+
+async function _lpGetDecimals(token) {
+    const result = await _lpRpcCall('eth_call', [{ to: token, data: '0x313ce567' }, 'latest']);
+    if (!result || result === '0x') return 18;
+    return Number(BigInt(result));
+}
+
+app.get('/api/lp-widget/pool-stats', async (req, res) => {
+    try {
+        const pairParam = (req.query.pair || 'KENO-BNB').toUpperCase().replace('/', '-');
+        const tokenAddr = req.query.token ? req.query.token.toLowerCase() : _LP_KENO;
+        const cacheKey  = `${pairParam}:${tokenAddr}`;
+
+        // Check cache
+        const cached = _lpPoolStatsCache.get(cacheKey);
+        if (cached && Date.now() - cached.ts < _LP_CACHE_TTL) {
+            return res.json(cached.data);
+        }
+
+        // Fetch pair address
+        const pairAddress = await _lpGetPairAddress(tokenAddr, _LP_WBNB);
+        if (!pairAddress) {
+            return res.json({ ok: false, error: 'Pool not found on PancakeSwap V2', pair: pairParam });
+        }
+
+        // Get reserves
+        const reserves = await _lpGetReserves(pairAddress);
+        if (!reserves) {
+            return res.json({ ok: false, error: 'Could not read pool reserves', pair: pairParam });
+        }
+
+        // Get decimals
+        const decimals = await _lpGetDecimals(tokenAddr);
+
+        const reserve0 = Number(reserves.r0) / (10 ** decimals); // token0
+        const reserve1 = Number(reserves.r1) / 1e18;              // WBNB
+
+        // Approximate BNB price from Binance public API (best-effort)
+        let bnbUsd = 600; // fallback
+        try {
+            const priceRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT', { signal: AbortSignal.timeout(3000) });
+            if (priceRes.ok) {
+                const priceData = await priceRes.json();
+                bnbUsd = parseFloat(priceData.price) || 600;
+            }
+        } catch (_) {}
+
+        const tokenPriceUsd = reserve1 > 0 && reserve0 > 0
+            ? (reserve1 / reserve0) * bnbUsd
+            : 0;
+        const tvlUsd = (reserve0 * tokenPriceUsd) + (reserve1 * bnbUsd);
+
+        const data = {
+            ok: true,
+            pair: pairParam,
+            pairAddress,
+            reserve0: reserve0.toFixed(4),
+            reserve1: reserve1.toFixed(6),
+            price:    tokenPriceUsd.toFixed(6),
+            tvl:      tvlUsd.toFixed(2),
+            bnbUsd:   bnbUsd.toFixed(2),
+            updatedAt: new Date().toISOString(),
+        };
+
+        _lpPoolStatsCache.set(cacheKey, { data, ts: Date.now() });
+        res.json(data);
+
+    } catch (e) {
+        console.error('[LPWidget] pool-stats error:', e.message);
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
+// GET /api/lp-widget/sites — admin: list registered LP widget sites
+app.get('/api/lp-widget/sites', requireFounder, (req, res) => {
+    const sites = [];
+    for (const [siteId, s] of _lpWidgetSites) {
+        sites.push({ siteId, name: s.name, email: s.email, url: s.url, project: s.project, token: s.token, createdAt: s.createdAt });
+    }
+    res.json({ ok: true, total: sites.length, sites });
+});
+
 // ── Render Keepalive — ping sovereign-bots every 4 min so it never suspends ──
 (function startRenderKeepalive() {
     const PING_URL = (process.env.BOT_SERVER_URL || 'https://sovereign-bots.onrender.com') + '/health';
