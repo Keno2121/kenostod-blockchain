@@ -14234,8 +14234,10 @@ app.post('/api/vlat/revenue', (req, res) => {
 // Default: KENO/BNB on BSC
 // ══════════════════════════════════════════════════════════════════════════════
 
-app.get('/lp-widget',      (req, res) => res.sendFile(__dirname + '/public/lp-widget-docs.html'));
-app.get('/lp-widget-docs', (req, res) => res.sendFile(__dirname + '/public/lp-widget-docs.html'));
+app.get('/lp-widget',           (req, res) => res.sendFile(__dirname + '/public/lp-widget-docs.html'));
+app.get('/lp-widget-docs',      (req, res) => res.sendFile(__dirname + '/public/lp-widget-docs.html'));
+app.get('/keno-lp-widget',      (req, res) => res.sendFile(__dirname + '/public/keno-lp-widget-docs.html'));
+app.get('/keno-lp-widget-docs', (req, res) => res.sendFile(__dirname + '/public/keno-lp-widget-docs.html'));
 
 // In-memory LP widget site registry
 const _lpWidgetSites = new Map(); // siteId → { name, email, url, project, token, createdAt }

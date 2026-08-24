@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KENO LP Booster Widget — Become a KENO Market Maker</title>
+<meta name="description" content="Add KENO/BNB liquidity on PancakeSwap V2, earn trading fees, and automatically power KENO AutoBurn — all without leaving your site. Embed the KENO LP Booster Widget in one script tag."/>
+<style>
+  :root {
+    --bg:       #07050a;
+    --card:     #0e0b05;
+    --border:   rgba(245,158,11,0.18);
+    --gold:     #f59e0b;
+    --amber:    #d97706;
+    --text:     #fef3c7;
+    --muted:    #a8a29e;
+    --dim:      #57534e;
+    --green:    #34d399;
+    --code-bg:  #0a0803;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh; line-height: 1.6;
+  }
+
+  /* Nav */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 40px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(7,5,10,0.94); backdrop-filter: blur(10px);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 800; font-size: 17px; color: var(--text); text-decoration: none;
+  }
+  .nav-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; color: #000;
+  }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    color: #000; padding: 8px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 800; text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* Hero */
+  .hero {
+    text-align: center; padding: 90px 20px 60px;
+    max-width: 740px; margin: 0 auto;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(245,158,11,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 100px; padding: 5px 16px;
+    font-size: 12px; color: #f59e0b; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 6vw, 58px); font-weight: 900;
+    line-height: 1.08; letter-spacing: -0.03em; margin-bottom: 20px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero p { font-size: 18px; color: var(--muted); max-width: 540px; margin: 0 auto 36px; }
+  .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    color: #000; padding: 13px 28px; border-radius: 10px;
+    font-size: 15px; font-weight: 800; text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s; cursor: pointer; border: none;
+    display: inline-block;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text); padding: 13px 28px; border-radius: 10px;
+    font-size: 15px; font-weight: 600; text-decoration: none;
+    transition: border-color 0.15s, background 0.15s; display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--gold); background: rgba(245,158,11,0.06); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; justify-content: center; gap: 60px;
+    padding: 36px 20px; flex-wrap: wrap;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+  .stat { text-align: center; }
+  .stat-value { font-size: 28px; font-weight: 900; color: #f59e0b; }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* Sections */
+  section { max-width: 960px; margin: 0 auto; padding: 80px 20px; }
+  section h2 { font-size: 32px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .section-sub { color: var(--muted); font-size: 16px; margin-bottom: 48px; }
+
+  /* Flywheel diagram */
+  .flywheel {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; flex-wrap: wrap; margin-bottom: 48px;
+  }
+  .fw-step {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 18px; text-align: center;
+    min-width: 150px; flex: 1;
+  }
+  .fw-icon  { font-size: 28px; margin-bottom: 10px; }
+  .fw-title { font-size: 13px; font-weight: 700; color: #fbbf24; margin-bottom: 4px; }
+  .fw-body  { font-size: 12px; color: var(--dim); line-height: 1.45; }
+  .fw-arrow {
+    font-size: 22px; color: rgba(245,158,11,0.4);
+    padding: 0 6px; flex-shrink: 0;
+  }
+
+  /* Cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+  }
+  .card-icon { font-size: 28px; margin-bottom: 14px; }
+  .card h3  { font-size: 16px; font-weight: 700; color: #fbbf24; margin-bottom: 8px; }
+  .card p   { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  /* Math box */
+  .math-box {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px 30px; margin-bottom: 32px;
+  }
+  .math-box h3 { font-size: 14px; font-weight: 700; color: #f59e0b; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .math-row {
+    display: flex; align-items: flex-start; gap: 16px; margin-bottom: 14px; padding-bottom: 14px;
+    border-bottom: 1px solid rgba(245,158,11,0.08);
+  }
+  .math-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .math-label { font-size: 12px; color: var(--dim); min-width: 160px; padding-top: 1px; flex-shrink: 0; }
+  .math-val   { font-size: 14px; color: #fef3c7; font-family: 'Courier New', monospace; line-height: 1.5; }
+  .math-val em { color: #f59e0b; font-style: normal; font-weight: 700; }
+
+  /* Code block */
+  .code-wrap {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.015);
+  }
+  .code-header-title { font-size: 12px; color: var(--dim); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .copy-btn {
+    background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25);
+    color: #f59e0b; font-size: 12px; font-weight: 600; padding: 4px 12px;
+    border-radius: 6px; cursor: pointer; transition: background 0.15s;
+  }
+  .copy-btn:hover { background: rgba(245,158,11,0.24); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); background: rgba(52,211,153,0.1); }
+  pre {
+    padding: 22px 20px; overflow-x: auto;
+    font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+    font-size: 13px; line-height: 1.65; color: #fcd34d;
+  }
+  pre .c { color: #44403c; }
+  pre .s { color: #86efac; }
+  pre .k { color: #93c5fd; }
+  pre .a { color: #fbbf24; }
+
+  /* FAQ */
+  .faq-item {
+    border-bottom: 1px solid var(--border); padding: 24px 0;
+  }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #fbbf24; margin-bottom: 10px; }
+  .faq-a { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .faq-a a { color: #f59e0b; text-decoration: none; }
+  .faq-a a:hover { text-decoration: underline; }
+
+  /* Live demo button */
+  .demo-area {
+    background: linear-gradient(135deg, rgba(217,119,6,0.06), rgba(245,158,11,0.03));
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 48px 32px; text-align: center;
+  }
+  .demo-area h3 { font-size: 22px; font-weight: 800; color: #fbbf24; margin-bottom: 12px; }
+  .demo-area p  { color: var(--muted); font-size: 15px; margin-bottom: 24px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border); padding: 32px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--dim); font-size: 13px; flex-wrap: wrap; gap: 16px;
+  }
+  footer a { color: var(--dim); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .stats-bar { gap: 28px; }
+    section { padding: 60px 20px; }
+    .flywheel { flex-direction: column; }
+    .fw-arrow { transform: rotate(90deg); }
+    footer { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-icon">🔥</div>
+    KENO LP Booster
+  </a>
+  <div class="nav-links">
+    <a href="#flywheel">The Flywheel</a>
+    <a href="#math">Burn Math</a>
+    <a href="#embed">Embed</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <a href="#demo" class="nav-cta">Try it live →</a>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">🔥 KENO/BNB · PancakeSwap V2 · BSC</div>
+  <h1>Become a<br/><span>KENO Market Maker.</span><br/>Earn fees. Burn KENO.</h1>
+  <p>Add KENO/BNB liquidity, collect trading fees, and automatically power the KENOAutoBurn engine — your LP position does more than sit idle.</p>
+  <div class="hero-actions">
+    <a href="#demo" class="btn-primary">🔥 Try the widget live</a>
+    <a href="#flywheel" class="btn-ghost">See how it works</a>
+  </div>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-value">0.17%</div><div class="stat-label">LP fee on every trade</div></div>
+  <div class="stat"><div class="stat-value">15%</div><div class="stat-label">AutoBurn split from fees</div></div>
+  <div class="stat"><div class="stat-value">∞</div><div class="stat-label">Flywheel loops</div></div>
+  <div class="stat"><div class="stat-value">1 tag</div><div class="stat-label">To embed on any site</div></div>
+</div>
+
+<!-- Flywheel section -->
+<section id="flywheel">
+  <h2>The KENO LP Flywheel</h2>
+  <p class="section-sub">Your liquidity doesn't just sit there — it feeds a self-reinforcing loop.</p>
+
+  <div class="flywheel">
+    <div class="fw-step">
+      <div class="fw-icon">💧</div>
+      <div class="fw-title">You Add Liquidity</div>
+      <div class="fw-body">Deposit KENO + BNB to the PancakeSwap V2 pool. You receive LP tokens representing your share.</div>
+    </div>
+    <div class="fw-arrow">→</div>
+    <div class="fw-step">
+      <div class="fw-icon">📈</div>
+      <div class="fw-title">Trades Happen</div>
+      <div class="fw-body">Every KENO/BNB swap on PancakeSwap routes through the pool. Volume generates 0.17% fee income for all LPs.</div>
+    </div>
+    <div class="fw-arrow">→</div>
+    <div class="fw-step">
+      <div class="fw-icon">🔥</div>
+      <div class="fw-title">AutoBurn Activates</div>
+      <div class="fw-body">KENOAutoBurn contract claims 15% of your LP fee share and sends it to the KENO burn address permanently.</div>
+    </div>
+    <div class="fw-arrow">→</div>
+    <div class="fw-step">
+      <div class="fw-icon">🚀</div>
+      <div class="fw-title">KENO Price Rises</div>
+      <div class="fw-body">Fewer KENO in circulation + deeper pool = stronger price support. Your LP position becomes worth more.</div>
+    </div>
+    <div class="fw-arrow">→</div>
+    <div class="fw-step" style="border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.04)">
+      <div class="fw-icon">🔄</div>
+      <div class="fw-title">Loop Repeats</div>
+      <div class="fw-body">Higher KENO price → more trading activity → more fees → more burns. All paths converge.</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h3>You Earn Trading Fees</h3>
+      <p>100% of your 0.17% LP fee share accrues inside your LP position. Withdraw any time by removing liquidity on PancakeSwap.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔥</div>
+      <h3>AutoBurn Gets 15%</h3>
+      <p>KENOAutoBurn (<a href="https://bscscan.com/address/0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79" target="_blank" style="color:#f59e0b">0x9Fb4…</a>) automatically routes 15% of fee income to KENO burn. No manual action required.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏅</div>
+      <h3>KENO Market Maker Badge</h3>
+      <p>After your first successful LP add, you receive a shareable "KENO Market Maker" achievement badge with your live pool share stats.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Live Pool Share Display</h3>
+      <p>The widget shows your exact pool share %, estimated KENO burned per month, and your LP fee income projection — updated in real time as you type.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Math section -->
+<section id="math" style="padding-top:0">
+  <h2>The Burn Projection Math</h2>
+  <p class="section-sub">Transparent formulas. No black boxes.</p>
+
+  <div class="math-box">
+    <h3>Monthly KENO Burned from Your LP Position</h3>
+    <div class="math-row">
+      <div class="math-label">Monthly volume</div>
+      <div class="math-val"><em>pool_24h_volume</em> × (365 ÷ 12)</div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">Your LP fee income (USD/mo)</div>
+      <div class="math-val">monthly_volume × <em>0.0017</em> × (your_share% ÷ 100)</div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">KENO burned per month</div>
+      <div class="math-val">(your_fee_income × <em>0.15</em>) ÷ keno_price_usd</div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">Constants</div>
+      <div class="math-val"><em>0.17%</em> PancakeSwap V2 LP fee · <em>15%</em> KENOAutoBurn split</div>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <h3>Example — 1% Pool Share</h3>
+    <div class="math-row">
+      <div class="math-label">Assumed 24h volume</div>
+      <div class="math-val">$50,000</div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">Monthly volume</div>
+      <div class="math-val">$50,000 × 30.42 = <em>$1,520,833</em></div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">Your monthly LP fee (1%)</div>
+      <div class="math-val">$1,520,833 × 0.0017 × 0.01 = <em>$25.85</em></div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">KENO burned (at $0.05/KENO)</div>
+      <div class="math-val">($25.85 × 0.15) ÷ $0.05 = <em>77.55 KENO/month</em></div>
+    </div>
+  </div>
+</section>
+
+<!-- Embed section -->
+<section id="embed" style="padding-top:0">
+  <h2>Embed in One Script Tag</h2>
+  <p class="section-sub">Works on any HTML page. No build step. No dependencies.</p>
+
+  <div class="code-wrap" style="margin-bottom:28px">
+    <div class="code-header">
+      <span class="code-header-title">HTML · Minimal embed (uses KENO defaults)</span>
+      <button class="copy-btn" onclick="copyCode('basic')">Copy</button>
+    </div>
+    <pre id="code-basic"><span class="c">&lt;!-- KENO LP Booster Widget — by Kenostod --&gt;</span>
+<span class="k">&lt;script</span>
+  <span class="a">src</span>=<span class="s">"https://kenostodblockchain.com/keno-lp-booster-widget.js"</span>
+  <span class="a">data-site-id</span>=<span class="s">"your-site-id"</span>
+<span class="k">&gt;&lt;/script&gt;</span></pre>
+  </div>
+
+  <div class="code-wrap" style="margin-bottom:28px">
+    <div class="code-header">
+      <span class="code-header-title">JavaScript · Programmatic open</span>
+      <button class="copy-btn" onclick="copyCode('js')">Copy</button>
+    </div>
+    <pre id="code-js"><span class="c">// Open the widget panel from your own button:</span>
+<span class="k">KENOLPBooster</span>.open();
+
+<span class="c">// Close it:</span>
+<span class="k">KENOLPBooster</span>.close();
+
+<span class="c">// Toggle:</span>
+<span class="k">KENOLPBooster</span>.toggle();</pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-header-title">HTML · Inline trigger button</span>
+      <button class="copy-btn" onclick="copyCode('btn')">Copy</button>
+    </div>
+    <pre id="code-btn"><span class="c">&lt;!-- Trigger widget from your own button --&gt;</span>
+<span class="k">&lt;button</span> <span class="a">onclick</span>=<span class="s">"KENOLPBooster.open()"</span><span class="k">&gt;</span>
+  🔥 Provide KENO Liquidity
+<span class="k">&lt;/button&gt;</span>
+
+<span class="k">&lt;script</span>
+  <span class="a">src</span>=<span class="s">"https://kenostodblockchain.com/keno-lp-booster-widget.js"</span>
+  <span class="a">data-site-id</span>=<span class="s">"your-site-id"</span>
+<span class="k">&gt;&lt;/script&gt;</span></pre>
+  </div>
+</section>
+
+<!-- Live demo -->
+<section id="demo" style="padding-top:0">
+  <div class="demo-area">
+    <h3>🔥 Try the Widget Right Now</h3>
+    <p>Click the button below to launch the KENO LP Booster Widget. Connect your MetaMask on BSC to see your live pool share and burn projection.</p>
+    <button class="btn-primary" onclick="KENOLPBooster && KENOLPBooster.open()">
+      🔥 Open KENO LP Booster
+    </button>
+    <p style="margin-top:16px;font-size:13px;color:#57534e">
+      The floating 🔥 button in the bottom-right corner also opens the widget.
+    </p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="padding-top:0">
+  <h2>Frequently Asked Questions</h2>
+  <p class="section-sub">Everything you need to know about providing KENO liquidity.</p>
+
+  <div class="faq-item">
+    <div class="faq-q">What is impermanent loss?</div>
+    <div class="faq-a">Impermanent loss occurs when the price ratio between your two assets changes after you deposit. If KENO rises significantly relative to BNB (or vice versa), you may receive less of the gaining asset when you withdraw than if you had just held. This risk is standard across all AMM pools. LP fees and KENO burn appreciation can offset impermanent loss over time.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Does the widget hold my funds?</div>
+    <div class="faq-a">No. The widget calls PancakeSwap's official Router contract (<a href="https://bscscan.com/address/0x10ED43C718714eb63d5aA57B78B54704E256024E" target="_blank">0x10ED…</a>) directly via MetaMask. Your funds go on-chain through PancakeSwap's own contracts — Kenostod never touches them. You can verify every transaction on BscScan.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">How does the 15% AutoBurn split work?</div>
+    <div class="faq-a">KENOAutoBurn (<a href="https://bscscan.com/address/0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79" target="_blank">0x9Fb4…</a>) is a separate on-chain contract that periodically sweeps accumulated LP fees and burns 15% worth of KENO. This happens automatically — you don't need to do anything. The burn projection in the widget is an estimate based on current pool volume.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">How do I remove my liquidity?</div>
+    <div class="faq-a">Open PancakeSwap V2 → Liquidity → find KENO/BNB → click Remove. Your LP tokens are in your wallet and can be redeemed any time at your proportional share of the pool's current reserves.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">What is the KENO token contract address?</div>
+    <div class="faq-a">KENO on BSC: <a href="https://bscscan.com/token/0x48bb049afe50b050b458624dc6233acd51024ab4" target="_blank" style="word-break:break-all">0x48bb049afe50b050b458624dc6233acd51024ab4</a></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Can I embed this on my own site?</div>
+    <div class="faq-a">Yes — one script tag. The widget is self-contained and works on any HTML page. It renders a floating 🔥 button, which opens the full LP panel with live on-chain data. See the <a href="#embed">Embed section</a> for the snippet.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">What is the KENO Market Maker badge?</div>
+    <div class="faq-a">After your first successful liquidity add, the widget generates a shareable achievement card showing your pool share %, estimated KENO burned per month, and the "Powered by UTL" mark. Share it on X/Twitter to let the community know you're supporting the pool.</div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div>© 2026 Kenostod Blockchain Academy LLC · KENO LP Booster</div>
+  <div style="display:flex;gap:24px">
+    <a href="/">Kenostod Home</a>
+    <a href="/lp-widget">Generic LP Widget</a>
+    <a href="/utl-widget-docs">UTL Widget</a>
+    <a href="https://bscscan.com/token/0x48bb049afe50b050b458624dc6233acd51024ab4" target="_blank">KENO on BscScan ↗</a>
+  </div>
+</footer>
+
+<!-- Live widget embed for demo -->
+<script src="/keno-lp-booster-widget.js" data-site-id="keno-lp-docs-demo"></script>
+
+<script>
+function copyCode(id) {
+  const el  = document.getElementById('code-' + id);
+  const btn = el.closest('.code-wrap').querySelector('.copy-btn');
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
