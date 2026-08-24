@@ -951,6 +951,7 @@ app.get('/api/subscription/verify', async (req, res) => {
 const DEX_TOKENS = {
     bsc: [
         { symbol: 'BNB',  name: 'BNB',           address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', decimals: 18 },
+        { symbol: 'KENO', name: 'Kenostod',       address: '0x48bb049afe50b050b458624dc6233acd51024ab4', decimals: 18 },
         { symbol: 'USDC', name: 'USD Coin',       address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', decimals: 18 },
         { symbol: 'USDT', name: 'Tether USD',     address: '0x55d398326f99059fF775485246999027B3197955', decimals: 18 },
         { symbol: 'BUSD', name: 'Binance USD',    address: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56', decimals: 18 },
