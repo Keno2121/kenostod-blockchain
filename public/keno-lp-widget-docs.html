@@ -255,7 +255,7 @@
 <!-- Stats bar -->
 <div class="stats-bar">
   <div class="stat"><div class="stat-value">0.17%</div><div class="stat-label">LP fee on every trade</div></div>
-  <div class="stat"><div class="stat-value">15%</div><div class="stat-label">AutoBurn split from fees</div></div>
+  <div class="stat"><div class="stat-value">100%</div><div class="stat-label">Of LP fees go to LPs</div></div>
   <div class="stat"><div class="stat-value">∞</div><div class="stat-label">Flywheel loops</div></div>
   <div class="stat"><div class="stat-value">1 tag</div><div class="stat-label">To embed on any site</div></div>
 </div>
@@ -269,31 +269,31 @@
     <div class="fw-step">
       <div class="fw-icon">💧</div>
       <div class="fw-title">You Add Liquidity</div>
-      <div class="fw-body">Deposit KENO + BNB to the PancakeSwap V2 pool. You receive LP tokens representing your share.</div>
+      <div class="fw-body">Deposit KENO + BNB to the PancakeSwap V2 pool. You receive LP tokens representing your proportional share.</div>
     </div>
     <div class="fw-arrow">→</div>
     <div class="fw-step">
       <div class="fw-icon">📈</div>
-      <div class="fw-title">Trades Happen</div>
-      <div class="fw-body">Every KENO/BNB swap on PancakeSwap routes through the pool. Volume generates 0.17% fee income for all LPs.</div>
+      <div class="fw-title">Trades Generate Fees</div>
+      <div class="fw-body">Every KENO/BNB swap routes through the pool. PancakeSwap charges 0.17% per swap — 100% goes to LPs in proportion to their share.</div>
+    </div>
+    <div class="fw-arrow">→</div>
+    <div class="fw-step">
+      <div class="fw-icon">🤖</div>
+      <div class="fw-title">More Volume → More Arb</div>
+      <div class="fw-body">Deeper liquidity enables more efficient arb-bot activity between venues. Kenostod's arb bots generate profits from KENO price differences.</div>
     </div>
     <div class="fw-arrow">→</div>
     <div class="fw-step">
       <div class="fw-icon">🔥</div>
-      <div class="fw-title">AutoBurn Activates</div>
-      <div class="fw-body">KENOAutoBurn contract claims 15% of your LP fee share and sends it to the KENO burn address permanently.</div>
-    </div>
-    <div class="fw-arrow">→</div>
-    <div class="fw-step">
-      <div class="fw-icon">🚀</div>
-      <div class="fw-title">KENO Price Rises</div>
-      <div class="fw-body">Fewer KENO in circulation + deeper pool = stronger price support. Your LP position becomes worth more.</div>
+      <div class="fw-title">AutoBurn Burns KENO</div>
+      <div class="fw-body">KENOAutoBurn is funded by arb-bot profits. It uses that income to buy and permanently burn KENO, reducing circulating supply.</div>
     </div>
     <div class="fw-arrow">→</div>
     <div class="fw-step" style="border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.04)">
-      <div class="fw-icon">🔄</div>
-      <div class="fw-title">Loop Repeats</div>
-      <div class="fw-body">Higher KENO price → more trading activity → more fees → more burns. All paths converge.</div>
+      <div class="fw-icon">🚀</div>
+      <div class="fw-title">KENO Price Supported</div>
+      <div class="fw-body">Fewer KENO in circulation + deeper pool = stronger price support. Your LP position and KENO holdings both benefit.</div>
     </div>
   </div>
 
@@ -305,8 +305,8 @@
     </div>
     <div class="card">
       <div class="card-icon">🔥</div>
-      <h3>AutoBurn Gets 15%</h3>
-      <p>KENOAutoBurn (<a href="https://bscscan.com/address/0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79" target="_blank" style="color:#f59e0b">0x9Fb4…</a>) automatically routes 15% of fee income to KENO burn. No manual action required.</p>
+      <h3>AutoBurn Burns KENO</h3>
+      <p>KENOAutoBurn (<a href="https://bscscan.com/address/0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79" target="_blank" style="color:#f59e0b">0x9Fb4…</a>) is funded by arb-bot profits. Deeper KENO liquidity → more efficient arb → more AutoBurn income. Ecosystem benefit is indirect but real.</p>
     </div>
     <div class="card">
       <div class="card-icon">🏅</div>
@@ -327,22 +327,38 @@
   <p class="section-sub">Transparent formulas. No black boxes.</p>
 
   <div class="math-box">
-    <h3>Monthly KENO Burned from Your LP Position</h3>
+    <h3>Your Confirmed Pool Share (post-deposit)</h3>
+    <div class="math-row">
+      <div class="math-label">Confirmed share %</div>
+      <div class="math-val">(<em>your LP token balance</em> ÷ total LP supply) × 100</div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">Source</div>
+      <div class="math-val">Read on-chain from PancakeSwap pair contract after tx confirms</div>
+    </div>
+    <div class="math-row">
+      <div class="math-label">Note</div>
+      <div class="math-val">Pre-deposit estimates shown in the widget use <em>deposited ÷ (reserve + deposited)</em> — always approximate</div>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <h3>Estimated Monthly LP Fee Income</h3>
     <div class="math-row">
       <div class="math-label">Monthly volume</div>
       <div class="math-val"><em>pool_24h_volume</em> × (365 ÷ 12)</div>
     </div>
     <div class="math-row">
-      <div class="math-label">Your LP fee income (USD/mo)</div>
+      <div class="math-label">Your fee income (USD/mo)</div>
       <div class="math-val">monthly_volume × <em>0.0017</em> × (your_share% ÷ 100)</div>
     </div>
     <div class="math-row">
-      <div class="math-label">KENO burned per month</div>
-      <div class="math-val">(your_fee_income × <em>0.15</em>) ÷ keno_price_usd</div>
+      <div class="math-label">Constants</div>
+      <div class="math-val"><em>0.17%</em> PancakeSwap V2 LP fee — 100% goes to LPs, none withheld</div>
     </div>
     <div class="math-row">
-      <div class="math-label">Constants</div>
-      <div class="math-val"><em>0.17%</em> PancakeSwap V2 LP fee · <em>15%</em> KENOAutoBurn split</div>
+      <div class="math-label">AutoBurn note</div>
+      <div class="math-val">KENOAutoBurn is funded by <em>arb-bot profits</em>, not LP fees. Deeper liquidity → more arb volume → more AutoBurn income (indirect link).</div>
     </div>
   </div>
 
@@ -358,11 +374,11 @@
     </div>
     <div class="math-row">
       <div class="math-label">Your monthly LP fee (1%)</div>
-      <div class="math-val">$1,520,833 × 0.0017 × 0.01 = <em>$25.85</em></div>
+      <div class="math-val">$1,520,833 × 0.0017 × 0.01 = <em>$25.85 / month</em></div>
     </div>
     <div class="math-row">
-      <div class="math-label">KENO burned (at $0.05/KENO)</div>
-      <div class="math-val">($25.85 × 0.15) ÷ $0.05 = <em>77.55 KENO/month</em></div>
+      <div class="math-label">Where does it go?</div>
+      <div class="math-val">Accrues inside your LP position — withdraw any time by removing liquidity on PancakeSwap</div>
     </div>
   </div>
 </section>

@@ -1,16 +1,16 @@
 /**
  * KENO LP Booster Widget — by Kenostod
- * KENO/BNB specific liquidity widget with burn projection and pool share badge.
+ * KENO/BNB specific liquidity widget with LP fee projection and pool share badge.
  *
  * Wraps PancakeSwap V2 addLiquidityETH with KENO ecosystem context:
- *   • Live pool share %
- *   • Estimated KENO burned per month from your LP fees
+ *   • Confirmed post-tx pool share % (read from on-chain LP balance / total supply)
+ *   • Estimated monthly LP fee income (0.17% of your share of pool volume)
  *   • 24h volume + price from PancakeSwap/Binance APIs
  *   • "KENO Market Maker" achievement badge after successful LP add
  *
- * Burn projection formula:
- *   monthlyBurn = userSharePct × poolVolume24h × (365/12) × 0.0017 × 0.15 / kenoPrice
- *   (0.17% PancakeSwap LP fee × 15% KENOAutoBurn split ÷ KENO price)
+ * Note: KENOAutoBurn is funded by arb-bot profits, not directly by LP fees.
+ * Deeper KENO/BNB liquidity → more trading volume → more arb opportunities
+ * → more arb profit for the AutoBurn engine. Ecosystem benefit is indirect.
  *
  * Embed:
  *   <script src="https://kenostodblockchain.com/keno-lp-booster-widget.js"
@@ -35,8 +35,7 @@
   const FACTORY_ADDR = '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73';
   const BSC_RPC      = 'https://bsc-dataseed.binance.org';
   const BSC_CHAIN_ID = '0x38'; // 56
-  const AUTOBURN_PCT = 0.15;   // 15% of LP fee income → KENOAutoBurn
-  const LP_FEE_PCT   = 0.0017; // 0.17% of volume → LP providers
+  const LP_FEE_PCT   = 0.0017; // 0.17% of volume → LP providers (PancakeSwap V2)
 
   /* ── State ── */
   let _panelOpen    = false;
@@ -194,16 +193,19 @@
     }
   }
 
-  /* ── Burn projection ── */
-  function calcBurnProjection(userSharePct, volume24h, kenoPrice) {
-    if (!userSharePct || !volume24h || !kenoPrice || kenoPrice === 0) return null;
-    // Monthly volume = 24h × (365/12)
-    const monthlyVolume = volume24h * (365 / 12);
-    // Monthly LP fee income for this user = monthlyVolume × 0.17% × userShare%
+  /* ── LP fee income projection ──
+   * Computes estimated monthly LP fee income in USD.
+   * PancakeSwap V2 charges 0.17% per swap; that goes entirely to LPs
+   * proportional to their pool share. There is no direct on-chain routing
+   * of LP fees to KENOAutoBurn — AutoBurn is funded separately by arb-bot
+   * profits. Deeper liquidity benefits the ecosystem by enabling more
+   * arb volume, which in turn supplies AutoBurn income.
+   */
+  function calcFeeProjection(userSharePct, volume24h) {
+    if (!userSharePct || !volume24h) return null;
+    const monthlyVolume    = volume24h * (365 / 12);
     const userMonthlyFeeUsd = monthlyVolume * LP_FEE_PCT * (userSharePct / 100);
-    // KENO burned = fee income × 15% AutoBurn split ÷ KENO price
-    const kenosBurned = (userMonthlyFeeUsd * AUTOBURN_PCT) / kenoPrice;
-    return { kenosBurned, userMonthlyFeeUsd };
+    return { userMonthlyFeeUsd };
   }
 
   /* ═══════════════════════════
@@ -598,7 +600,7 @@
       </div>
 
       <div class="klp-headline">
-        Earn trading fees + power the burn 🔥
+        Earn trading fees · Deepen KENO liquidity 💧
       </div>
 
       <div class="klp-stats">
@@ -621,21 +623,17 @@
       </div>
 
       <div class="klp-burn-box">
-        <div class="klp-burn-title">🔥 AutoBurn Flywheel</div>
+        <div class="klp-burn-title">📊 Your LP Position (estimate)</div>
         <div class="klp-burn-row">
-          <div class="klp-burn-label">Your pool share</div>
+          <div class="klp-burn-label">Est. pool share</div>
           <div class="klp-burn-value" id="klp-share-pct">—</div>
         </div>
         <div class="klp-burn-row">
-          <div class="klp-burn-label">Est. KENO burned / month</div>
-          <div class="klp-burn-value" id="klp-burn-est">—</div>
-        </div>
-        <div class="klp-burn-row" id="klp-fee-row" style="display:none">
-          <div class="klp-burn-label">Your LP fee income / month</div>
+          <div class="klp-burn-label">Est. LP fee income / month</div>
           <div class="klp-burn-value" id="klp-fee-est">—</div>
         </div>
         <div class="klp-burn-note">
-          Your fees → KENOAutoBurn splits 15% to burn KENO → KENO price rises → your LP worth more. All paths converge.
+          PancakeSwap V2 LPs earn 0.17% of every trade proportional to their share. Deeper KENO liquidity also creates more arb volume, which supplies the KENOAutoBurn engine indirectly.
         </div>
       </div>
 
@@ -706,34 +704,29 @@
       const kenoVal = parseFloat(inKeno.value) || 0;
       const bnbVal  = parseFloat(inBnb.value)  || 0;
 
-      // Pool share estimate
+      // Estimated pool share before deposit (pre-tx estimate from current reserves)
       let sharePct = 0;
       if (kenoVal > 0 && reserves && reserves.r0 > 0n) {
         const r0f = Number(reserves.r0) / (10 ** _kenoDecimals);
         const r1f = Number(reserves.r1) / 1e18;
-        sharePct  = Math.min(kenoVal / r0f, bnbVal > 0 ? bnbVal / r1f : kenoVal / r0f) * 100;
+        // Estimate: deposited / (existing reserve + deposited) for each side, take min
+        const shareKeno = kenoVal / (r0f + kenoVal);
+        const shareBnb  = bnbVal > 0 ? bnbVal / (r1f + bnbVal) : shareKeno;
+        sharePct = Math.min(shareKeno, shareBnb) * 100;
       }
 
       const shareEl = document.getElementById('klp-share-pct');
-      const burnEl  = document.getElementById('klp-burn-est');
-      const feeRow  = document.getElementById('klp-fee-row');
       const feeEl   = document.getElementById('klp-fee-est');
 
       if (sharePct > 0) {
-        if (shareEl) shareEl.textContent = sharePct.toFixed(6) + '%';
-        const kenoPrice = stats.price || (ratio ? ratio * stats.bnbUsd : 0);
-        const proj = calcBurnProjection(sharePct, stats.volume24h, kenoPrice);
-        if (proj && burnEl) {
-          burnEl.textContent = proj.kenosBurned >= 0.01
-            ? proj.kenosBurned.toFixed(2) + ' KENO'
-            : proj.kenosBurned.toFixed(4) + ' KENO';
-          if (feeRow) feeRow.style.display = 'flex';
-          if (feeEl)  feeEl.textContent = '$' + proj.userMonthlyFeeUsd.toFixed(4);
+        if (shareEl) shareEl.textContent = '~' + sharePct.toFixed(6) + '% (est.)';
+        const proj = calcFeeProjection(sharePct, stats.volume24h);
+        if (proj && feeEl) {
+          feeEl.textContent = '~$' + proj.userMonthlyFeeUsd.toFixed(4);
         }
       } else {
         if (shareEl) shareEl.textContent = '—';
-        if (burnEl)  burnEl.textContent  = 'Enter an amount above';
-        if (feeRow)  feeRow.style.display = 'none';
+        if (feeEl)   feeEl.textContent   = 'Enter an amount above';
       }
     }
 
@@ -885,13 +878,27 @@
       btn.textContent = 'Add More Liquidity';
       showMsg('success', `🎉 Liquidity added! View on BscScan`);
 
-      // Compute share for badge
-      const r0f = reserves && reserves.r0 > 0n ? Number(reserves.r0) / (10 ** _kenoDecimals) : 0;
-      const sharePct = r0f > 0 ? Math.min(kenoVal / r0f, 1) * 100 : 0;
-      const kenoPrice = stats.price || 0;
-      const proj = calcBurnProjection(sharePct, stats.volume24h, kenoPrice);
+      // Fetch CONFIRMED on-chain LP share (LP balance ÷ total supply)
+      let confirmedSharePct = 0;
+      let confirmedFeeIncome = null;
+      try {
+        const [lpBal, lpTotal] = await Promise.all([
+          getLPBalance(pairAddr, _account),
+          getTotalSupplyLP(pairAddr),
+        ]);
+        if (lpTotal > 0n) {
+          // Use bigint arithmetic to avoid float overflow; multiply by 1e8 for 6 decimal places
+          confirmedSharePct = Number(lpBal * 100_000_000n / lpTotal) / 1_000_000;
+        }
+        const feeProj = calcFeeProjection(confirmedSharePct, stats.volume24h);
+        if (feeProj) confirmedFeeIncome = feeProj.userMonthlyFeeUsd;
+      } catch (_) {
+        // Fallback: estimate from pre-deposit reserves (rough)
+        const r0f = reserves && reserves.r0 > 0n ? Number(reserves.r0) / (10 ** _kenoDecimals) : 0;
+        confirmedSharePct = r0f > 0 ? (kenoVal / (r0f + kenoVal)) * 100 : 0;
+      }
 
-      showAchievementBadge(sharePct, proj, txHash);
+      showAchievementBadge(confirmedSharePct, confirmedFeeIncome, txHash);
 
     } catch (e) {
       btn.disabled = false;
@@ -900,41 +907,48 @@
     }
   }
 
-  /* ── Achievement badge ── */
-  function showAchievementBadge(sharePct, proj, txHash) {
+  /* ── Achievement badge ──
+   * sharePct: confirmed on-chain (LP balance / total supply × 100)
+   * feeIncomeUsd: estimated monthly LP fee income in USD
+   */
+  function showAchievementBadge(sharePct, feeIncomeUsd, txHash) {
     const existing = document.getElementById('klp-badge-overlay');
     if (existing) existing.remove();
 
-    const shareStr = sharePct >= 0.001 ? sharePct.toFixed(4) + '%' : '<0.001%';
-    const burnStr  = proj ? (proj.kenosBurned >= 0.01 ? proj.kenosBurned.toFixed(2) : proj.kenosBurned.toFixed(4)) + ' KENO/mo' : '—';
-    const scanLink = `https://bscscan.com/tx/${txHash}`;
-    const shareText= `🔥 I just became a KENO Market Maker! Pool Share: ${shareStr} | Powering KENO AutoBurn | @Kenostod`;
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    const shareStr   = sharePct >= 0.0001 ? sharePct.toFixed(6) + '%' : '<0.0001%';
+    const feeStr     = feeIncomeUsd != null ? '~$' + feeIncomeUsd.toFixed(4) + '/mo' : '—';
+    const scanLink   = `https://bscscan.com/tx/${txHash}`;
+    const shareText  = `💧 I just added KENO/BNB liquidity on PancakeSwap! Pool Share: ${shareStr} | Est. LP fee income: ${feeStr} | @Kenostod #DeFi`;
+    const tweetUrl   = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
 
     const overlay = document.createElement('div');
     overlay.id = 'klp-badge-overlay';
     overlay.innerHTML = `
       <div id="klp-badge-card">
         <button class="klp-badge-close" id="klp-badge-close">×</button>
-        <div class="klp-badge-crown">🔥</div>
+        <div class="klp-badge-crown">💧</div>
         <div class="klp-badge-title">Achievement Unlocked</div>
         <div class="klp-badge-name">KENO Market Maker</div>
-        <div class="klp-badge-sub">You've deepened the KENO/BNB pool and powered the burn engine.</div>
+        <div class="klp-badge-sub">You've added KENO/BNB liquidity and deepened the pool.</div>
         <div class="klp-badge-stats">
           <div class="klp-bs">
             <div class="klp-bs-val">${shareStr}</div>
             <div class="klp-bs-label">Pool Share</div>
           </div>
           <div class="klp-bs">
-            <div class="klp-bs-val">${burnStr}</div>
-            <div class="klp-bs-label">KENO Burned</div>
+            <div class="klp-bs-val">${feeStr}</div>
+            <div class="klp-bs-label">Est. LP Fees</div>
           </div>
           <div class="klp-bs">
-            <div class="klp-bs-val">15%</div>
-            <div class="klp-bs-label">AutoBurn Split</div>
+            <div class="klp-bs-val">0.17%</div>
+            <div class="klp-bs-label">Per-Trade Fee</div>
           </div>
         </div>
-        <div class="klp-badge-powered">POWERED BY UTL · KENOSTOD ECOSYSTEM</div>
+        <div style="font-size:10px;color:#57534e;margin-bottom:16px;line-height:1.5;padding:0 8px;">
+          LP fee income is earned from your proportional share of every KENO/BNB swap.<br/>
+          Deeper pool liquidity also fuels the KENOAutoBurn ecosystem indirectly.
+        </div>
+        <div class="klp-badge-powered">KENOSTOD ECOSYSTEM · PANCAKESWAP V2 · BSC</div>
         <div class="klp-badge-btns">
           <a href="${tweetUrl}" target="_blank" class="klp-share-btn x">Share on 𝕏</a>
           <button class="klp-share-btn copy" id="klp-copy-badge">Copy Badge</button>
@@ -953,7 +967,7 @@
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
     document.getElementById('klp-copy-badge').addEventListener('click', function () {
-      const text = `🔥 KENO Market Maker\nPool Share: ${shareStr} | Est. KENO Burned/mo: ${burnStr}\nPowered by UTL · @Kenostod\nhttps://kenostodblockchain.com/keno-lp-widget`;
+      const text = `💧 KENO Market Maker\nPool Share: ${shareStr} | Est. LP Fees: ${feeStr}\nKenostod Ecosystem · PancakeSwap V2 BSC\nhttps://kenostodblockchain.com/keno-lp-widget`;
       navigator.clipboard.writeText(text).then(() => {
         this.textContent = 'Copied! ✓';
         setTimeout(() => { this.textContent = 'Copy Badge'; }, 2000);
