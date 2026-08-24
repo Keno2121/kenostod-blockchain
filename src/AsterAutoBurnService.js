@@ -42,6 +42,7 @@ const AUTOBURN = '0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79'; // KENOAutoBurn (
 // Thresholds
 const BURN_THRESHOLD_BNB  = 0.005;  // minimum BNB to trigger a sweep (~$2 at $400/BNB)
 const GAS_RESERVE_BNB     = 0.003;  // BNB kept in ASTER wallet for gas (never swept)
+const MAX_SINGLE_SWEEP_BNB = 1;     // hard cap per sweep; excess stays queued for a later poll
 const KAPREKAR_BURN_SHARE = 0.15;   // 15% of Aster LP income goes to AutoBurn (Law I)
 const SWEEP_SLIPPAGE      = 0.02;   // 2% slippage on executeBurn
 const MIN_POLL_MS         = 30 * 60 * 1000; // check every 30 min
@@ -149,6 +150,7 @@ class AsterAutoBurnService {
             '🌊 <b>Source:</b> Aster LP trading fees (verified income delta only)\n' +
             `💵 <b>Burn allocation:</b> ${KAPREKAR_BURN_SHARE * 100}% of Aster LP income (Kaprekar Law I)\n` +
             `🎯 <b>Trigger threshold:</b> ${BURN_THRESHOLD_BNB} BNB of confirmed income\n` +
+            `🛡 <b>Single-sweep cap:</b> ${MAX_SINGLE_SWEEP_BNB} BNB (excess remains queued)\n` +
             `🔖 <b>Aster referral code:</b> <code>KENO</code> — register at aster.com/referrals\n` +
             `⚡ <b>Mode:</b> ${this._isLive() ? 'LIVE — will auto-sweep from ASTER wallet 🔴' : 'SCAN-ONLY — alerts only 🟡'}\n` +
             `🎯 <b>AutoBurn contract:</b> <code>${AUTOBURN}</code> (BSC)\n` +
@@ -355,15 +357,23 @@ class AsterAutoBurnService {
         this._sweepInProgress = true;
 
         // Reserve the allocation up-front so no concurrent poll can re-spend it.
+        // The cap limits a single execution; remaining verified income stays queued.
         // Any unspent amount is returned in the finally block on failure.
-        const allocatedBNB  = this.pendingBurnBNB;
-        this.pendingBurnBNB = 0; // reserved
+        const queuedBNB     = this.pendingBurnBNB;
+        const allocatedBNB  = Math.min(queuedBNB, MAX_SINGLE_SWEEP_BNB);
+        this.pendingBurnBNB = queuedBNB - allocatedBNB;
         let spentBNB        = 0; // tracks how much was actually sent
 
-        this._log(`🚀 Sweep triggered: ${allocatedBNB.toFixed(6)} BNB reserved for burn (Aster LP wallet → AutoBurn)`);
+        this._log(
+            `🚀 Sweep triggered: ${allocatedBNB.toFixed(6)} BNB reserved for burn ` +
+            `(Aster LP wallet → AutoBurn)` +
+            (queuedBNB > MAX_SINGLE_SWEEP_BNB
+                ? ` — ${this.pendingBurnBNB.toFixed(6)} BNB remains queued behind the ${MAX_SINGLE_SWEEP_BNB} BNB cap`
+                : '')
+        );
 
         if (!this._isLive()) {
-            this.pendingBurnBNB = allocatedBNB; // restore — scan-only doesn't spend
+            this.pendingBurnBNB += allocatedBNB; // restore capped allocation — preserve any queued remainder
             this._sweepInProgress = false;
             await this._sendSweepAlert(allocatedBNB, false);
             return;
@@ -585,6 +595,7 @@ class AsterAutoBurnService {
             lastAutoBurnCheck:  this.lastAutoBurnCheck,
             bnbPriceUSD:        this._bnbPriceUSD,
             burnThresholdBNB:   BURN_THRESHOLD_BNB,
+            maxSingleSweepBNB:  MAX_SINGLE_SWEEP_BNB,
             kaprekarShare:      KAPREKAR_BURN_SHARE,
             incomeBaselineUSD:  this._lastIncome,
             liveMode:           this._isLive(),
