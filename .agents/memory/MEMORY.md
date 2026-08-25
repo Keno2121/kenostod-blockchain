@@ -13,6 +13,7 @@
 - [Post-PinkSale action plan](post-pinksale-plan.md) — fund bots week 1, POL setup week 2 (if liquidity thin)
 - [Sovereign Trinity NFT Collection](sovereign-trinity-nft.md) — COMPLETE: 4 tiers + 7 Houses of Royals + Access Hierarchy + chariot-gate.html + sovereign-throne.html built and live
 - [IaaS Partnership Strategy](iaas-partnership-strategy.md) — lead with SOE/UTL/FAL/VLAT as deployable infrastructure, not KENO listing; Solar Bunker reserved for Africa
+- [Canonical Sovereign Economy terms](sovereign-economy-acronyms.md) — use UTL = Universal Transaction Layer, SOE = Sovereign Order Engine, VLAT = Volume Liquidity Adoption Time
 - [UTL BDEX Wrapper](utl-bdex-wrapper.md) — live on BOT Chain mainnet 0x829658BE065C75C174639701672dE820E4683ca7; BDEX router found by tracing WBOT logs, not at standard V3 addresses
 - [KENO BDEX Pool](keno-bdex-pool.md) — KENO/WBOT pool live on BDEX mainnet 0x0E5CDa3A501010331774B3cdB66Fa15425c5D251; fee 3000; LP NFT #1077; seeded 500 KENO + 0.5 WBOT
 - [FAL BOT Chain deployment](fal-botchain.md) — FALPool + FALFlashArbBOT live on BOT Chain mainnet + testnet; V3 flash arb via BDEX; API at /api/falp/botchain/*
