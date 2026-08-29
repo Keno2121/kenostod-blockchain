@@ -1,199 +1,275 @@
-# KENO Token Pitch Deck
-## Kenostod Blockchain Academy
+# Kenostod IaaS Partner Integration Deck
+
+## Positioning
+
+Kenostod provides modular Infrastructure as a Service for payment networks, wallets, DeFi protocols, EdTech platforms, and institutions. The partner story is infrastructure first: integrate the modules needed for settlement, liquidity, analytics, operational control, and user safety without building every system internally.
+
+This deck is a partner presentation, not an investment memorandum or token listing request.
 
 ---
 
-## Slide 1: Title
-**Kenostod Blockchain Academy**
-*The World's First Knowledge Utility Token (KUT)*
+## Slide 1 — On-chain infrastructure that is ready to integrate
 
-- KENO Token on Binance Smart Chain (BEP-20)
-- Contract: `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E`
-- Founder: Nickeo Coleman
+Kenostod IaaS gives partners modular building blocks for:
 
----
+- Stablecoin settlement and transaction routing
+- Liquidity and permissioned arbitrage execution
+- Analytics, growth-phase scoring, and reporting
+- Protocol operations, monitoring, permissions, and alerts
+- Embedded payment, staking, pool, and reversal experiences
 
-## Slide 2: The Problem
-
-1. **Crypto speculation** - 95% of tokens are bought, not earned
-2. **Education is disconnected from rewards** - Students pay to learn but don't earn
-3. **No earning opportunities for learners** - Traditional education has no financial upside
-4. **High barrier to DeFi** - Arbitrage is complex and inaccessible to beginners
+Delivery surfaces include REST APIs, SDKs, webhooks, widgets, and white-label deployments.
 
 ---
 
-## Slide 3: The Solution
+## Slide 2 — The integration gap
 
-**KENO - Knowledge Utility Token**
+Partners should not have to build five systems to launch one product.
 
-A revolutionary new asset class that:
-- Is **EARNED** through completing blockchain education (not bought)
-- **UNLOCKS** arbitrage access through Flash Arbitrage Loans (FAL™)
-- Combines **education + DeFi** in one ecosystem
+- Payment and stablecoin products need transparent settlement and safety controls.
+- DeFi protocols need liquidity, routing, monitoring, and execution tooling.
+- Institutions need unified volume, liquidity, adoption, and operational reporting.
+- Product teams need capabilities that can be embedded into an existing user flow.
 
-*"Learn to Earn, Then Earn While You Sleep"*
-
----
-
-## Slide 4: How It Works
-
-**21 Courses → 5,250 KENO → Arbitrage Access**
-
-1. Students complete 21 blockchain courses
-2. Earn 250 KENO per course (5,250 total)
-3. Use KENO in Flash Arbitrage Loan Pools (FALP)
-4. Earn token rewards from arbitrage profits
+Kenostod provides a modular stack that can be integrated through APIs, SDKs, widgets, webhooks, or a managed deployment.
 
 ---
 
-## Slide 5: Revenue Model (15+ Streams)
+## Slide 3 — The Kenostod stack
 
-**MACRO Revenue:**
-- ICO Token Sales (Presale: $0.01, DEX: $1.00)
-- Course Subscriptions ($19-49/month)
-- Corporate B2B Training
-- White-Label Licensing
-- G.I.F.T. Smart Apparel (Patent-Pending)
+### UTL — Universal Transaction Layer
 
-**MICRO Revenue:**
-- AI Chat Premium
-- Quiz Retakes
-- Featured Community Posts
-- Pool Creation/Boost Fees
-- Badge Minting
+Transaction and fee routing, settlement visibility, distributions, staking, and wallet-facing experiences.
 
-**PASSIVE Revenue:**
-- Exchange Trading Fees
-- Merchant Gateway Fees
-- FAL/FALP Platform Fees
-- NFT Royalties
+### FAL — Flash Arbitrage Loan Protocol
 
----
+Permissioned flash-arbitrage execution infrastructure across approved venues.
 
-## Slide 6: Traction & Metrics
+### FALP — Flash Arbitrage Loan Pool
 
-- **Token:** Live on BSC, verified on BscScan
-- **Platform:** Fully functional with 21 courses
-- **Features Built:**
-  - Flash Arbitrage Loan System (FAL™)
-  - Liquidity Pools (FALP)
-  - AI Customer Support
-  - Merchant Payment Gateway
-  - Corporate B2B Plans
-  - ICO Dashboard with KYC readiness
-  - Graduate Merchandise System
+Pool and staking infrastructure for structured participation around eligible FAL activity.
+
+### VLAT — Volume Liquidity Adoption Time
+
+Composite ecosystem-health and growth intelligence based on volume, liquidity, adoption, and time.
+
+### SOE — Sovereign Order Engine
+
+Operational orchestration for protocol state, monitoring, permissions, alerts, reporting, and bot workflows.
+
+### Transaction Reversal Pool
+
+Application-level pending or escrow-backed settlement for eligible transfers before finalization.
+
+### Delivery layer
+
+APIs, SDKs, wallet connectivity, webhooks, embeddable widgets, and white-label partner surfaces.
 
 ---
 
-## Slide 7: Token Economics
+## Slide 4 — UTL: Universal Transaction Layer
 
-**Total Supply:** 21,000,000 KENO
+UTL makes the transaction lifecycle visible and programmable.
 
-| Allocation | Percentage | Amount |
-|------------|------------|--------|
-| Student Rewards | 40% | 8,400,000 |
-| ICO Sale | 25% | 5,250,000 |
-| Team & Advisors | 15% | 3,150,000 |
-| Liquidity | 10% | 2,100,000 |
-| Reserve/Future | 10% | 2,100,000 |
+Capabilities:
 
-**Pricing:**
-- Presale: $0.01 (ended Dec 28, 2025)
-- DEX Launch: $1.00 (PancakeSwap - Dec 29, 2025)
-- Target 2026: $2.00+
+- Transparent transaction and service-fee flows
+- Settlement and distribution state
+- Treasury, staking, and position read APIs
+- Wallet-aware application flows
+- Embeddable UTL payment and staking experiences
+- Adaptable integration for a partner’s token or settlement design
+
+Best-fit partners include stablecoin settlement networks, wallets, merchant payment platforms, EdTech reward systems, and token economies.
 
 ---
 
-## Slide 8: Roadmap
+## Slide 5 — FAL and FALP
 
-**Q4 2025 (Current)**
-- ✅ Token deployed on BSC
-- ✅ Platform fully functional
-- ✅ ICO live
-- 🔄 PancakeSwap listing
+### FAL — Flash Arbitrage Loan Protocol
 
-**Q1 2026**
-- CoinGecko & CoinMarketCap listings
-- 1,000 active students
-- Mobile app launch
-- Corporate partnerships
+FAL monitors eligible markets and supports atomic flash-arbitrage execution across approved venues. Execution permissions, risk thresholds, and operating parameters are configured for the deployment.
 
-**Q2 2026**
-- CEX listings (Gate.io, MEXC)
-- T.D.I.R. Foundation launch
-- Solar project integration
-- 10,000 students
+Partner delivery:
 
-**Q3-Q4 2026**
-- Major CEX listings
-- Global expansion
-- 100,000 students
-- $10M+ ecosystem value
+- Opportunity, quote, status, and execution surfaces
+- Webhook-ready execution event reporting
+- Managed or white-label deployment options
+
+### FALP — Flash Arbitrage Loan Pool
+
+FALP provides a pool and staking experience around eligible FAL activity.
+
+Partner delivery:
+
+- Pool and contributor-position APIs
+- Embeddable staking and reward experience
+- Eligibility and economics disclosed per deployment
+
+FALP integration with an aggregator or partner chain requires an approved technical adapter or partner route. The deck must not imply an existing 1inch or Kaia integration.
 
 ---
 
-## Slide 9: Competitive Advantage
+## Slide 6 — Transaction reversal
 
-| Feature | KENO | Traditional Crypto | Learn-to-Earn |
-|---------|------|-------------------|---------------|
-| Earned through education | ✅ | ❌ | ✅ |
-| Arbitrage access (DeFi) | ✅ | ❌ | ❌ |
-| Real BEP-20 token | ✅ | ✅ | Rare |
-| Corporate B2B model | ✅ | ❌ | ❌ |
-| Self-funding ecosystem | ✅ | ❌ | ❌ |
+Eligible UTL transfers can enter a pending or escrow-backed state for a disclosed period before final settlement.
 
-**Unique Innovation:** Flash Arbitrage Loans (FAL™) - Patent-pending technology
+The standard flow provides:
 
----
+- A five-minute reversal window
+- Cancellation by the authorized sender before expiry
+- Transparent display of refund amount and any disclosed fee
+- Transaction status lookup by transaction hash
 
-## Slide 10: Team
+Important boundary:
 
-**Nickeo Coleman - Founder**
-- Creating innovations since 2007
-- Coding since 2020
-- Crypto enthusiast since conception
-- Vision: Democratize blockchain education and DeFi access
+The feature does not rewrite a finalized blockchain transaction. It operates at the application and settlement layer before finalization, with timing, authorization, eligibility, and fee rules enforced by the deployment.
 
-*"KENO is king, Kenostod is his kingdom — but everyone receives royalties, not just the king."*
+Current status: live in the UTL product flow; a partner-chain implementation requires an adapter, technical review, and pilot.
 
 ---
 
-## Slide 11: The Ask
+## Slide 7 — VLAT and SOE
 
-**Seeking: $250,000 - $500,000**
+### VLAT — Volume Liquidity Adoption Time
 
-**Use of Funds:**
-- 40% - Marketing & User Acquisition
-- 25% - Development & Engineering
-- 20% - Liquidity for DEX/CEX listings
-- 10% - Operations & Legal
-- 5% - Reserve
+VLAT turns volume, liquidity, adoption, and time into a shared operating view. It supports:
 
-**What We Offer:**
-- Token allocation at presale price ($0.01)
-- Advisory board seat
-- Revenue share options
-- Strategic partnership opportunities
+- Composite scores and ecosystem phases
+- Cross-venue market and adoption feeds
+- Revenue signals, snapshots, and reporting
+- Alerts on phase transitions and milestones
 
----
+### SOE — Sovereign Order Engine
 
-## Slide 12: Contact
+SOE is the operational orchestration layer. It coordinates:
 
-**Kenostod Blockchain Academy**
-
-- Email: kenostod21@gmail.com
-- Token: [BscScan](https://bscscan.com/token/0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E)
-- Platform: [Live Demo Available]
-
-*Join us in creating the world's first self-funding educational ecosystem.*
+- Unified protocol-state monitoring
+- Permissions and operational alerts
+- Bot workflows and configuration
+- Recurring reports and partner dashboards
 
 ---
 
-## Appendix: Technical Architecture
+## Slide 8 — Integration surfaces
 
-- Blockchain: Binance Smart Chain (BEP-20)
-- Backend: Node.js + Express.js
-- Database: PostgreSQL
-- AI: OpenAI GPT-4
-- Security: Multi-signature wallets, rate limiting, encryption
-- Integrations: Stripe, PayPal, Printful, CoinGecko API
+### API
+
+REST access to protocol state, pool data, analytics, reports, and eligible execution data. Permissioned write paths can be scoped per partner.
+
+### SDK
+
+Wallet-aware calls for staking, deposits, claims, transaction status, and partner-specific application flows.
+
+### Widgets
+
+UTL payment, reversal, FALP, and staking experiences through an iframe or Web Component.
+
+### Webhooks
+
+Execution, pool, phase, settlement, and operational events for keeping the partner product current.
+
+### White-label
+
+Partner branding, custom permissions, selected modules, and institution-specific reporting.
+
+### Deployment path
+
+1. Discover the use case, chain, assets, permissions, and success criteria.
+2. Provision sandbox credentials, sample data, widgets, and documentation.
+3. Test staging flows, safety rules, reporting, and partner UX.
+4. Launch with monitoring, support, and agreed commercial terms.
+
+---
+
+## Slide 9 — Partner applications
+
+### Stablecoin and payment networks
+
+UTL settlement, embedded payment flows, transparent fees, and an eligible pre-finalization reversal window for wallets, remittance products, and merchants.
+
+### Wallets and aggregators
+
+Token lifecycle, pool participation, analytics, and approved liquidity routes inside an existing wallet or aggregator experience.
+
+### DeFi protocols
+
+FAL/FALP adapters, liquidity access, execution monitoring, and chain-specific risk controls.
+
+### Education and institutions
+
+Education-gated access, branded widgets, staking, and SOE/VLAT reporting for understandable and accountable on-chain participation.
+
+Proposed partner pilots:
+
+- Kaia stablecoin settlement and payment use cases
+- 1inch Education Route and FALP integration
+
+These are partnership opportunities, not approved integrations.
+
+---
+
+## Slide 10 — Delivery status
+
+### Live foundation
+
+- UTL transaction, fee, staking, and distribution surfaces
+- FAL execution and monitoring infrastructure
+- FALP pool and participant experiences
+- VLAT and SOE dashboards
+- UTL reversal pool and status endpoints
+- Embeddable widgets and partner documentation
+- Production foundation on BSC
+
+### Partner-dependent
+
+- Kaia deployment and stablecoin pilot
+- 1inch Education Route or approved adapter
+- Partner-chain contract and security review
+- White-label branding and permissions
+- Production liquidity and operating parameters
+- Commercial, legal, and compliance approval
+
+An integration is complete only when the partner’s existing users can see and use the feature on the partner platform — not merely when a contract or separate page exists.
+
+---
+
+## Slide 11 — Partnership models
+
+- **Technical pilot:** scoped chain or product pilot with sandbox access and measurable success criteria.
+- **Developer integration:** selected APIs, SDK calls, webhooks, and widgets.
+- **Managed deployment:** branded operational environment with selected modules, permissions, monitoring, and support.
+- **Strategic infrastructure alliance:** co-designed chain, aggregator, wallet, or institutional deployment.
+
+Access, deployment, support, usage, and any revenue-sharing structure are agreed after the technical scope, risk review, and partner requirements are understood.
+
+---
+
+## Slide 12 — Next step
+
+Kenostod is seeking chains, wallets, payment networks, DeFi protocols, EdTech platforms, and institutions that want to test a real integration.
+
+The first step is a technical discovery call covering:
+
+- Partner use case and target users
+- Chain and asset requirements
+- API, SDK, widget, or white-label surface
+- Safety, permissions, monitoring, and reporting
+- Pilot scope and success criteria
+
+**Contact**
+
+- Website: https://kenostodblockchain.com
+- Email: keno@kenostodblockchain.com
+- Conversation: protocol integration and IaaS partnership
+
+---
+
+## Editorial guardrails
+
+- Use UTL = Universal Transaction Layer.
+- Use SOE = Sovereign Order Engine.
+- Use VLAT = Volume Liquidity Adoption Time.
+- Do not describe finalized blockchain transactions as reversible.
+- Do not imply Kaia, 1inch, or another partner has approved or launched an integration.
+- Do not include outdated KENO contract addresses, contradictory tokenomics, guaranteed returns, or investor-only funding language in the partner deck.
