@@ -10094,6 +10094,18 @@ app.get('/api/sovereign/bot/:id/status', (req, res) => {
     res.json(bot.getStatus());
 });
 
+// Live UTL FeeCollector balance for the founder Revenue page.
+// This is a read-only RPC call and does not alter the Pulse Bot scan state.
+app.get('/api/founder/utl-fee-collector', requireFounder, async (req, res) => {
+    try {
+        const balance = await sovereignBots.utlPulse.getLiveBalance();
+        res.json({ ok: true, ...balance });
+    } catch (e) {
+        console.error('UTL FeeCollector balance check failed:', e.message);
+        res.status(502).json({ ok: false, error: 'Unable to read the BSC FeeCollector balance' });
+    }
+});
+
 app.post('/api/sovereign/bridge/mode', (req, res) => {
     const { mode } = req.body;
     res.json(sovereignBots.setBridgeMode(mode));

@@ -1248,6 +1248,36 @@
                     </div>
                 </div>
 
+                <div class="card-section" style="border: 1px solid rgba(0, 212, 255, 0.35);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                        <div>
+                            <h3 style="margin-bottom: 0.25rem;">⚡ UTL Pulse — FeeCollector Balance</h3>
+                            <p style="color: var(--text-muted); font-size: 0.875rem;">Live USDC available for the next protocol distribution</p>
+                        </div>
+                        <button type="button" onclick="loadUtlFeeCollector()" style="background:rgba(212,175,55,0.15);border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-size:0.875rem;">↻ Refresh</button>
+                    </div>
+                    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Current Balance</div>
+                            <div id="utlFeeCollectorBalance" style="font-size: 1.8rem; font-weight: 800; color: var(--diamond);">—</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Pulse Threshold</div>
+                            <div id="utlFeeCollectorThreshold" style="font-size: 1.8rem; font-weight: 800; color: var(--accent);">$10.00</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Read At</div>
+                            <div id="utlFeeCollectorCheckedAt" style="font-size: 1rem; font-weight: 600; color: var(--text); padding-top: 0.45rem;">—</div>
+                        </div>
+                    </div>
+                    <div id="utlFeeCollectorState" style="padding: 0.8rem 1rem; border-radius: 10px; background: rgba(245, 158, 11, 0.1); color: var(--warning); font-size: 0.9rem;">
+                        Loading live BSC balance…
+                    </div>
+                    <div id="utlFeeCollectorRouting" style="margin-top: 0.8rem; color: var(--text-muted); font-size: 0.78rem; line-height: 1.6;">
+                        Checking v1.1 fee routing…
+                    </div>
+                </div>
+
                 <div class="card-section">
                     <h3 style="margin-bottom: 1rem;">Revenue Breakdown</h3>
                     <div class="chart-container">
@@ -1737,6 +1767,7 @@
                 'bots': { title: 'Bot Control Center', subtitle: '20 bots — Kaprekar 6174 governs every distribution' }
             };
             if (sectionName === 'bots') loadBots();
+            if (sectionName === 'revenue') loadUtlFeeCollector();
 
             if (titles[sectionName]) {
                 document.getElementById('pageTitle').textContent = titles[sectionName].title;
@@ -1995,6 +2026,75 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        }
+
+        function truncateAddress(address) {
+            if (!address) return '—';
+            return address.length > 14
+                ? `${address.slice(0, 6)}...${address.slice(-4)}`
+                : address;
+        }
+
+        // ==================== UTL FEE COLLECTOR ====================
+        async function loadUtlFeeCollector() {
+            const balanceEl = document.getElementById('utlFeeCollectorBalance');
+            const thresholdEl = document.getElementById('utlFeeCollectorThreshold');
+            const checkedEl = document.getElementById('utlFeeCollectorCheckedAt');
+            const stateEl = document.getElementById('utlFeeCollectorState');
+            const routingEl = document.getElementById('utlFeeCollectorRouting');
+            if (!balanceEl || !thresholdEl || !checkedEl || !stateEl || !routingEl) return;
+
+            stateEl.textContent = 'Reading BSC…';
+            stateEl.style.background = 'rgba(245, 158, 11, 0.1)';
+            stateEl.style.color = 'var(--warning)';
+
+            try {
+                const res = await fetch('/api/founder/utl-fee-collector', { credentials: 'include' });
+                if (res.status === 401) {
+                    stateEl.textContent = 'Session expired — please log in again.';
+                    return;
+                }
+                if (!res.ok) throw new Error('Balance request failed');
+
+                const data = await res.json();
+                const balance = Number(data.balanceUSDC || 0);
+                const threshold = Number(data.thresholdUSDC || 10);
+                balanceEl.textContent = `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+                thresholdEl.textContent = `$${threshold.toFixed(2)}`;
+                checkedEl.textContent = data.checkedAt
+                    ? new Date(data.checkedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                    : '—';
+
+                if (data.thresholdMet) {
+                    stateEl.textContent = 'Ready — Pulse Bot will distribute on its next scan cycle.';
+                    stateEl.style.background = 'rgba(16, 185, 129, 0.12)';
+                    stateEl.style.color = 'var(--success)';
+                } else if (balance === 0) {
+                    stateEl.textContent = 'Waiting for UTL transaction volume — the FeeCollector has no USDC yet, so Pulse Bot remains idle until at least $10.00 accumulates.';
+                } else {
+                    const remaining = Math.max(0, threshold - balance);
+                    stateEl.textContent = `Accumulating — $${remaining.toFixed(4)} more USDC is needed before Pulse Bot activates.`;
+                }
+
+                const usdcRouting = data.usdcSupported === true
+                    ? 'USDC is enabled on the v1.1 FeeCollector.'
+                    : data.usdcSupported === false
+                        ? 'Warning: USDC is not enabled on the v1.1 FeeCollector.'
+                        : 'USDC support could not be verified.';
+                const distributionRouting = data.distributionContract
+                    ? `Distribution: ${truncateAddress(data.distributionContract)}${data.distributionContract.toLowerCase() === data.expectedDistributionContract.toLowerCase() ? ' (configured)' : ' (does not match expected v1.1 contract)'}`
+                    : 'Distribution contract could not be verified.';
+                routingEl.innerHTML = `${usdcRouting} ${distributionRouting}<br>` +
+                    `FeeCollector: <a href="https://bscscan.com/address/${data.feeCollector}" target="_blank" rel="noopener" style="color: var(--diamond);">${truncateAddress(data.feeCollector)}</a>` +
+                    ` · USDC: <a href="https://bscscan.com/token/${data.usdcToken}" target="_blank" rel="noopener" style="color: var(--diamond);">${truncateAddress(data.usdcToken)}</a>`;
+            } catch (e) {
+                balanceEl.textContent = '—';
+                checkedEl.textContent = '—';
+                stateEl.textContent = 'Unable to read the live BSC balance. Tap Refresh to try again.';
+                stateEl.style.background = 'rgba(239, 68, 68, 0.12)';
+                stateEl.style.color = 'var(--danger)';
+                routingEl.textContent = '';
+            }
         }
 
         // ==================== BOTS ====================
