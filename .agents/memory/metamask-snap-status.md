@@ -10,7 +10,7 @@ Check MetaMask Snap submission status EVERY WEEK at start of session. Do not wai
 - **GitHub Issue:** https://github.com/MetaMask/snaps-directory/issues/625
 - **Issue #:** 625 (open, labeled `team-core-platform`)
 - **Submitted:** Feb 25, 2026
-- **Last follow-up posted:** August 9, 2026
+- **Last follow-up posted:** September 1, 2026
 
 ## Correct Snap Info (as of June 2026)
 - **Snap ID:** `npm:kenostod-utl-snap` (unscoped, canonical)
@@ -29,6 +29,7 @@ Check MetaMask Snap submission status EVERY WEEK at start of session. Do not wai
 - June 22, 2026 — Follow-up #3 (mentioned presale date — was incorrect, corrected July 6)
 - July 6, 2026 — Follow-up #4 (corrected presale date to July 23 – Aug 6)
 - August 9, 2026 — Follow-up #5 (presale complete, BOT Chain live, 2 chains now)
+- September 1, 2026 — Follow-up posted asking MetaMask to confirm whether the canonical unscoped package requires a new directory submission
 
 ## Weekly Check Protocol
 Run this bash check at start of each session:
