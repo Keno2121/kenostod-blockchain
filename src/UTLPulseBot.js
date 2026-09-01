@@ -37,6 +37,10 @@ const ERC20_ABI = [
     'function balanceOf(address) view returns (uint256)',
     'function decimals() view returns (uint8)',
 ];
+const FEE_COLLECTOR_ABI = [
+    'function supportedTokens(address) view returns (bool)',
+    'function distributionContract() view returns (address)',
+];
 const DISTRIBUTION_ABI = [
     'function distribute() external',
     'function pendingDistribution() view returns (uint256)',
@@ -202,6 +206,48 @@ class UTLPulseBot {
         }
     }
 
+    // Read the live on-chain balance without changing bot state or triggering
+    // a distribution. Used by the founder Revenue page for an up-to-date view.
+    async getLiveBalance() {
+        this._initProvider();
+
+        const usdc = new ethers.Contract(USDC_BSC, ERC20_ABI, this._provider);
+        const [rawBalance, decimals] = await Promise.all([
+            usdc.balanceOf(FEE_COLLECTOR_ADDR),
+            usdc.decimals(),
+        ]);
+        const balanceUSDC = parseFloat(ethers.formatUnits(rawBalance, decimals));
+
+        const collector = new ethers.Contract(FEE_COLLECTOR_ADDR, FEE_COLLECTOR_ABI, this._provider);
+        let usdcSupported = null;
+        let distributionContract = null;
+        try {
+            [usdcSupported, distributionContract] = await Promise.all([
+                collector.supportedTokens(USDC_BSC),
+                collector.distributionContract(),
+            ]);
+        } catch (_) {
+            // The balance is still useful if a legacy deployment does not
+            // expose the v1.1 routing getters.
+        }
+
+        return {
+            balanceUSDC: parseFloat(balanceUSDC.toFixed(4)),
+            rawBalance: rawBalance.toString(),
+            decimals: Number(decimals),
+            thresholdUSDC: PULSE_THRESHOLD_USDC,
+            thresholdMet: balanceUSDC >= PULSE_THRESHOLD_USDC,
+            feeCollector: FEE_COLLECTOR_ADDR,
+            usdcToken: USDC_BSC,
+            usdcSupported,
+            distributionContract,
+            expectedDistributionContract: DISTRIBUTION_ADDR,
+            botRunning: this.running,
+            lastScan: this.stats.lastScan,
+            checkedAt: new Date().toISOString(),
+        };
+    }
+
     async _distribute(balanceUSDC, daysActive) {
         this._log(`💰 Pulse threshold met — $${balanceUSDC.toFixed(2)} USDC ready for distribution`);
 
@@ -286,7 +332,9 @@ class UTLPulseBot {
                 feeCollector: FEE_COLLECTOR_ADDR,
                 staking:      STAKING_ADDR,
                 distribution: DISTRIBUTION_ADDR,
+                usdc:         USDC_BSC,
             },
+            thresholdUSDC: PULSE_THRESHOLD_USDC,
             recentLogs: this.logs.slice(0, 30),
         };
     }
