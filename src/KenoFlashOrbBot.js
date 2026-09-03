@@ -305,10 +305,22 @@ class KenoFlashOrbBot {
         tokenBal, 0n, [opp.token, WBNB], this.wallet.address, deadline,
         { gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 200_000 }
       );
-      await sellTx.wait();
+      const sellReceipt = await sellTx.wait();
+      if (!sellReceipt || sellReceipt.status !== 1) {
+        this.log('⚠️ Manual arb: sell tx failed', 'warn');
+        return;
+      }
 
       this.stats.tradesExecuted++;
       this.log(`✅ Manual arb complete: ${opp.pair} ${opp.buyDex}→${opp.sellDex} | est. +$${opp.netProfitUSD.toFixed(3)}`);
+      this.sendTelegramAlert(
+        `🔄 <b>Flash Orb Bot — Manual Arb Executed!</b>\n\n` +
+        `Pair: <b>${opp.pair}</b>\n` +
+        `Route: <b>${opp.buyDex} → ${opp.sellDex}</b>\n` +
+        `Estimated net profit: <b>+$${opp.netProfitUSD.toFixed(3)}</b>\n\n` +
+        `Buy tx: <a href="https://bscscan.com/tx/${buyReceipt.hash}">${buyReceipt.hash}</a>\n` +
+        `Sell tx: <a href="https://bscscan.com/tx/${sellReceipt.hash}">${sellReceipt.hash}</a>`
+      );
     } catch (e) {
       this.log(`⚠️ Manual arb error: ${e.message}`, 'warn');
     }
@@ -753,7 +765,7 @@ class KenoFlashOrbBot {
 
   sendTelegramAlert(msg) {
     const token  = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.FAL_ALERT_CHAT_ID;
+    const chatId = process.env.SHIELD_ALERT_CHAT_ID || process.env.FAL_ALERT_CHAT_ID;
     if (!token || !chatId) return;
     try {
       const payload = JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' });
