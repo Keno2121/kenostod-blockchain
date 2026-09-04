@@ -17,6 +17,14 @@ description: Confirmed viability and economics of flash loan arb (BSC) and Jupit
 
 **How to apply:** Trust quoteBest() as the authoritative signal. Do not lower minProfitUSD below $0.25. When market pumps/dumps, spreads widen to 0.2-0.5% and the bot will auto-execute. Keep gas reserve ≥ 0.005 BNB.
 
+## MDEX BSC router
+
+MDEX's BSC router uses `WBNB()` instead of the Uniswap-style `WETH()` accessor, but its `getAmountsOut`, `swapExactETHForTokens`, and `swapExactTokensForETH` entrypoints and `[WBNB, token]` paths are V2-compatible. A live 0.001 BNB round-trip succeeded. MDEX swaps require more gas than the old 130k manual-arb cap; estimate each leg and add a buffer.
+
+**Why:** MDEX was incorrectly blamed for incompatible routing after transactions failed. Live testing showed the interface and path were valid; the hard gas cap was the actual MDEX-specific failure.
+
+**How to apply:** Validate the router's live `WBNB()` value before enabling it, derive swap gas limits from `estimateGas`, and keep nonzero output/profit floors. Do not infer MDEX compatibility from quote success alone.
+
 ## Jupiter Round-Trip Arb (Solana)
 - SOL→USDC→SOL round-trip showed +0.0113% once, but averaged NEGATIVE across 5+ trials
 - Jupiter's internal routing already arbitrages pool imbalances — retail bots cannot reliably capture the spread

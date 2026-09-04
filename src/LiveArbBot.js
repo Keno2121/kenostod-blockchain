@@ -9,11 +9,9 @@ const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
 const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b7'; // ApeSwap V2 Router (fixed: was ...b8)
 const MDEX_ROUTER     = '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8';
 
-// quoteOnly: true — included in spread detection / logging but never selected as
-// execution router. MDEX liquidity routing differs from standard V2; getAmountsOut
-// returns real data but on-chain execution uses a different internal path that
-// reverts. Spread data appears in logs; the pre-flight estimateGas gate (already
-// present in executeArb) provides a second safety net.
+// quoteOnly: true — direct LiveArb routing does not yet use Flash Orb's MDEX
+// runtime WBNB check, dynamic gas estimates, and principal-protecting outputs.
+// MDEX remains visible here and available to the atomic flash-contract path.
 const ALL_DEXES = [
   { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
   { name: 'BiSwap',      addr: BISWAP_ROUTER  },
