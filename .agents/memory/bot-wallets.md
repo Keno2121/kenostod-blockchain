@@ -6,6 +6,8 @@ description: Correct wallet addresses, secret names, and dangerous addresses to 
 ## BSC Bot Wallet
 - Address: `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2`
 - Secret: `BOT_WALLET_PRIVATE_KEY` (64-char hex, no 0x prefix — add `0x` prefix when passing to ethers)
+- **COMPROMISED September 3, 2026 — permanently retired. Never fund or sign with this wallet.**
+- Any secret or seed that derives to this address must be treated as compromised and rotated.
 - WARNING: `KENO_WALLET_PRIVATE_KEY` secret stores the **address** not the key — useless for signing
 - Bot: FlashOrbBot / LiveArbBot in `src/`
 - Has 921.6M KENO v2; 10M staked in UTLStaking v2 as of June 15 2026
@@ -22,5 +24,6 @@ description: Correct wallet addresses, secret names, and dangerous addresses to 
 
 ## DANGER — Never Fund
 - `0xDc41cAAD2Cb3509Df595082AFB7372F0454fcEbf` — deployer wallet, compromised.
+- `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2` — former BSC bot/treasury/owner wallet, compromised September 3, 2026.
 
 **Why:** KENO_WALLET_PRIVATE_KEY was misnamed — it stores the wallet address, not the key. BOT_WALLET_PRIVATE_KEY is the correct secret for bot wallet signing. Hard-learned from real lost funds.
