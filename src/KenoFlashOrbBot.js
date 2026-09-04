@@ -42,14 +42,17 @@ const BISWAP_ROUTER   = '0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8';
 const APESWAP_ROUTER  = '0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b7'; // ApeSwap V2 Router (fixed: was ...b8)
 const MDEX_ROUTER     = '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8';
 
-// quoteOnly: true — DEX is included in spread detection / logging but never selected
-// as the execution router. Pre-flight estimateGas still guards any execution path,
-// but quoteOnly prevents false MDEX spreads from triggering trade attempts at all.
 const MANUAL_DEXES = [
   { name: 'PancakeSwap', addr: PANCAKE_ROUTER },
   { name: 'BiSwap',      addr: BISWAP_ROUTER  },
   { name: 'ApeSwap',     addr: APESWAP_ROUTER },
-  { name: 'MDEX',        addr: MDEX_ROUTER,   quoteOnly: true }, // quote scan only — liquidity routing differs from standard V2
+  // MDEX's verified BSC router uses WBNB() rather than WETH(), but its quote and
+  // swap entrypoints are standard V2-compatible. A live 0.001 BNB round-trip
+  // confirmed the [WBNB, token] path; MDEX needs ~150k-166k gas per swap, so
+  // execution below uses estimateGas + 20% instead of the old 130k hard limit.
+  // Buy: 0x299d76227476a14ce04df7b7e58a39804f35684e6114d81efa2e427561772230
+  // Sell: 0x4d37d3c99397275cc9723c2abc9caae05d753f331640eabece84d057e69a369f
+  { name: 'MDEX',        addr: MDEX_ROUTER },
 ];
 const UTL_FARM        = '0x37D320A881CcF553F6cd757f0A33743ae01A2644';
 
@@ -75,6 +78,7 @@ const FLASH_ARB_ABI = [
 ];
 
 const ROUTER_ABI = [
+  'function WBNB() view returns (address)',
   'function getAmountsOut(uint amountIn, address[] calldata path) view returns (uint[] memory amounts)',
   'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) payable returns (uint[] memory amounts)',
   'function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) returns (uint[] memory amounts)',
@@ -83,6 +87,7 @@ const ROUTER_ABI = [
 const ERC20_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function balanceOf(address account) view returns (uint256)',
+  'function allowance(address owner, address spender) view returns (uint256)',
 ];
 
 const BSC_RPC_ENDPOINTS = [
@@ -104,6 +109,8 @@ class KenoFlashOrbBot {
     this.flashArb  = null;
     this.running   = false;
     this.paused    = false;
+    this._mdexReady = false;
+    this._scanInFlight = false;
 
     // ── Law VI: Kaprekar scan interval = 10s (BSC) ─────────────────────
     this.config = {
@@ -162,9 +169,23 @@ class KenoFlashOrbBot {
         this.wallet   = new ethers.Wallet(key, this.provider);
         this.flashArb = new ethers.Contract(FLASH_ARB_LOAN2, FLASH_ARB_ABI, this.wallet);
 
+        // MDEX uses WBNB() instead of the Uniswap-style WETH() accessor.
+        // Keep it out of executable routing unless the live router confirms the
+        // configured wrapped-native token.
+        try {
+          const mdex = new ethers.Contract(MDEX_ROUTER, ROUTER_ABI, this.provider);
+          const mdexWbnb = await mdex.WBNB();
+          this._mdexReady = mdexWbnb.toLowerCase() === WBNB.toLowerCase();
+        } catch (_) {
+          this._mdexReady = false;
+        }
+
         this.log(`✅ BSC connected: ${rpc}`);
         this.log(`👛 Wallet: ${this.wallet.address}`);
         this.log(`⚡ FlashArbLoan2: ${FLASH_ARB_LOAN2}`);
+        this.log(this._mdexReady
+          ? `✅ MDEX router verified: ${MDEX_ROUTER} (WBNB path enabled)`
+          : `⚠️ MDEX router validation failed — excluded from execution`, this._mdexReady ? 'info' : 'warn');
         this.log(`📐 Law VI — Flash amounts: ${FLASH_AMOUNTS_BNB.join(' / ')} BNB`);
         this.log(`📐 Law VI — Scan interval: ${this.config.checkIntervalMs / 1000}s`);
         this.log(`📐 Law III — Min profit: $${this.config.minProfitUSD}`);
@@ -219,6 +240,7 @@ class KenoFlashOrbBot {
       { name: 'WBNB/BUSD', token: BUSD },
     ];
     const tradeWei = ethers.parseEther('0.10');
+    const dexes = MANUAL_DEXES.filter(d => d.addr !== MDEX_ROUTER || this._mdexReady);
 
     const getOut = async (dexAddr, token) => {
       try {
@@ -229,8 +251,8 @@ class KenoFlashOrbBot {
     };
 
     for (const pair of SCAN_PAIRS) {
-      const outs = await Promise.all(MANUAL_DEXES.map(d => getOut(d.addr, pair.token)));
-      const allPrices = MANUAL_DEXES
+      const outs = await Promise.all(dexes.map(d => getOut(d.addr, pair.token)));
+      const allPrices = dexes
         .map((d, i) => ({ name: d.name, addr: d.addr, usd: outs[i], quoteOnly: !!d.quoteOnly }))
         .filter(d => d.usd > 0);
       if (allPrices.length < 2) continue;
@@ -244,12 +266,15 @@ class KenoFlashOrbBot {
       const execPrices = allPrices.filter(d => !d.quoteOnly);
       if (execPrices.length < 2) continue;
 
-      const sellDex = execPrices.reduce((a, b) => a.usd > b.usd ? a : b);
-      const buyDex  = execPrices.reduce((a, b) => a.usd < b.usd ? a : b);
+      // For a fixed BNB input, the venue returning more tokens is the cheaper
+      // buy venue. The opposite venue is the sell candidate; _executeManualArb
+      // then verifies the actual token→BNB round trip before sending anything.
+      const buyDex  = execPrices.reduce((a, b) => a.usd > b.usd ? a : b);
+      const sellDex = execPrices.reduce((a, b) => a.usd < b.usd ? a : b);
       if (sellDex.addr === buyDex.addr) continue;
 
-      const gross  = sellDex.usd - buyDex.usd;
-      const spread = ((gross / buyDex.usd) * 100).toFixed(3);
+      const gross  = buyDex.usd - sellDex.usd;
+      const spread = ((gross / sellDex.usd) * 100).toFixed(3);
       if (parseFloat(spread) < 0.15) continue;
 
       const gasCostUSD  = (130_000 * 2 * 1) / 1e9 * bnbPriceEst;
@@ -268,6 +293,8 @@ class KenoFlashOrbBot {
   async _executeManualArb(opp) {
     try {
       const tradeWei  = ethers.parseEther('0.10');
+      const gasWithBuffer = estimate => estimate + (estimate / 5n);
+      const minOutput = quote => quote * 995n / 1000n; // 0.5% max slippage per leg
       const bnbBal    = await this.provider.getBalance(this.wallet.address);
       if (bnbBal < tradeWei + ethers.parseEther('0.002')) {
         this.log(`⚠️ Manual arb: insufficient BNB (${ethers.formatEther(bnbBal)} BNB)`, 'warn');
@@ -275,13 +302,29 @@ class KenoFlashOrbBot {
       }
       const buyRouter  = new ethers.Contract(opp.buyRouter,  ROUTER_ABI, this.wallet);
       const sellRouter = new ethers.Contract(opp.sellRouter, ROUTER_ABI, this.wallet);
-      const deadline   = Math.floor(Date.now() / 1000) + 60;
+      const tokenContract = new ethers.Contract(opp.token, ERC20_ABI, this.wallet);
+      const tokenBalBefore = await tokenContract.balanceOf(this.wallet.address);
+      const gasPrice = this.config.gasPrice || ethers.parseUnits('1', 'gwei');
+
+      // Requote the complete round-trip immediately before execution. The scan's
+      // one-way spread is only a signal; this check is the authoritative profit
+      // gate and includes MDEX's measured gas requirements.
+      const buyQuote = (await buyRouter.getAmountsOut(tradeWei, [WBNB, opp.token])).at(-1);
+      const buyMinOut = minOutput(buyQuote);
+      const sellQuote = (await sellRouter.getAmountsOut(buyMinOut, [opp.token, WBNB])).at(-1);
+      const allowanceBefore = await tokenContract.allowance(this.wallet.address, opp.sellRouter);
+      const approvalGasBudget = allowanceBefore < buyMinOut ? 100_000n : 0n;
+      const minProfitWei = BigInt(Math.ceil(
+        (this.config.minManualProfitUSD / this.config.bnbPriceUSD) * 1e18
+      ));
+      const buyDeadline = Math.floor(Date.now() / 1000) + 120;
 
       // ── Pre-flight simulation (mirrors flash path) ──────────────────────
       // Simulate the buy tx before submitting — zero gas wasted if it would revert.
+      let buyGasEstimate;
       try {
-        await buyRouter.swapExactETHForTokens.estimateGas(
-          0n, [WBNB, opp.token], this.wallet.address, deadline,
+        buyGasEstimate = await buyRouter.swapExactETHForTokens.estimateGas(
+          buyMinOut, [WBNB, opp.token], this.wallet.address, buyDeadline,
           { value: tradeWei }
         );
       } catch (_simErr) {
@@ -289,21 +332,84 @@ class KenoFlashOrbBot {
         return;
       }
 
+      const projectedGasWei = (
+        gasWithBuffer(buyGasEstimate) + approvalGasBudget + 220_000n
+      ) * gasPrice;
+      const requiredBnbOut = tradeWei + projectedGasWei + minProfitWei;
+      if (sellQuote < requiredBnbOut) {
+        this.log(`⛔ [Manual] Fresh round-trip quote is below principal + gas + profit floor. No trade sent.`, 'warn');
+        return;
+      }
+
       // Step 1: BNB → token on buy DEX
       const buyTx = await buyRouter.swapExactETHForTokens(
-        0n, [WBNB, opp.token], this.wallet.address, deadline,
-        { value: tradeWei, gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 200_000 }
+        buyMinOut, [WBNB, opp.token], this.wallet.address, buyDeadline,
+        { value: tradeWei, gasPrice, gasLimit: gasWithBuffer(buyGasEstimate) }
       );
       const buyReceipt = await buyTx.wait();
       if (!buyReceipt || buyReceipt.status !== 1) { this.log('⚠️ Manual arb: buy tx failed', 'warn'); return; }
+      let gasSpentWei = buyReceipt.gasUsed * (buyReceipt.gasPrice || gasPrice);
 
       // Step 2: token → BNB on sell DEX
-      const tokenContract = new ethers.Contract(opp.token, ROUTER_ABI, this.wallet);
-      const tokenBal = await new ethers.Contract(opp.token, ['function balanceOf(address) view returns (uint256)'], this.wallet).balanceOf(this.wallet.address);
-      await (new ethers.Contract(opp.token, ['function approve(address,uint256) returns (bool)'], this.wallet)).approve(opp.sellRouter, tokenBal);
+      const tokenBalAfter = await tokenContract.balanceOf(this.wallet.address);
+      const boughtAmount = tokenBalAfter - tokenBalBefore;
+      if (boughtAmount <= 0n) {
+        this.log('⛔ [Manual] Buy produced no tokens — aborting sell leg.', 'warn');
+        return;
+      }
+
+      const allowance = await tokenContract.allowance(this.wallet.address, opp.sellRouter);
+      if (allowance < boughtAmount) {
+        const approveGas = await tokenContract.approve.estimateGas(opp.sellRouter, boughtAmount);
+        const approveTx = await tokenContract.approve(opp.sellRouter, boughtAmount, {
+          gasPrice,
+          gasLimit: gasWithBuffer(approveGas),
+        });
+        const approveReceipt = await approveTx.wait();
+        if (!approveReceipt || approveReceipt.status !== 1) {
+          this.log('⚠️ Manual arb: token approval failed', 'warn');
+          return;
+        }
+        gasSpentWei += approveReceipt.gasUsed * (approveReceipt.gasPrice || gasPrice);
+      }
+
+      // MDEX's sell leg is more expensive than the other V2 routers. Estimate it
+      // independently so a valid route is not forced into an insufficient gas cap.
+      let sellGasEstimate;
+      const sellDeadline = Math.floor(Date.now() / 1000) + 120;
+      const freshSellQuote = (await sellRouter.getAmountsOut(
+        boughtAmount, [opp.token, WBNB]
+      )).at(-1);
+      const provisionalSellGasWei = 220_000n * gasPrice;
+      const provisionalBnbOut = tradeWei + gasSpentWei + provisionalSellGasWei + minProfitWei;
+      if (freshSellQuote < provisionalBnbOut) {
+        this.log(`⛔ [Manual] Sell quote no longer covers principal + gas + profit floor. Tokens retained for safe recovery.`, 'warn');
+        return;
+      }
+
+      try {
+        sellGasEstimate = await sellRouter.swapExactTokensForETH.estimateGas(
+          boughtAmount, provisionalBnbOut, [opp.token, WBNB], this.wallet.address, sellDeadline
+        );
+      } catch (_simErr) {
+        this.log(`⛔ [Manual] Sell pre-flight failed — router incompatible or spread gone. No sell gas spent.`, 'warn');
+        return;
+      }
+
+      // Final floor uses this route's actual buffered sell estimate, not the
+      // conservative pre-buy placeholder.
+      const protectedBnbOut = tradeWei
+        + gasSpentWei
+        + (gasWithBuffer(sellGasEstimate) * gasPrice)
+        + minProfitWei;
+      if (freshSellQuote < protectedBnbOut) {
+        this.log(`⛔ [Manual] Estimated sell gas consumes the profit floor. Tokens retained for safe recovery.`, 'warn');
+        return;
+      }
+
       const sellTx = await sellRouter.swapExactTokensForETH(
-        tokenBal, 0n, [opp.token, WBNB], this.wallet.address, deadline,
-        { gasPrice: ethers.parseUnits('1', 'gwei'), gasLimit: 200_000 }
+        boughtAmount, protectedBnbOut, [opp.token, WBNB], this.wallet.address, sellDeadline,
+        { gasPrice, gasLimit: gasWithBuffer(sellGasEstimate) }
       );
       const sellReceipt = await sellTx.wait();
       if (!sellReceipt || sellReceipt.status !== 1) {
@@ -431,7 +537,8 @@ class KenoFlashOrbBot {
   }
 
   async _scan() {
-    if (!this.running || this.paused) return;
+    if (!this.running || this.paused || this._scanInFlight) return;
+    this._scanInFlight = true;
     this.stats.scansRun++;
     this.stats.lastScan = new Date().toISOString();
 
@@ -475,6 +582,8 @@ class KenoFlashOrbBot {
       await this._executeFlash(opp);
     } catch (e) {
       this.log(`⚠️ Scan error: ${e.message}`, 'warn');
+    } finally {
+      this._scanInFlight = false;
     }
   }
 

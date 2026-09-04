@@ -20,6 +20,11 @@ description: Lessons learned deploying to BSC mainnet from Replit — gas, RPC, 
 - `rpc.ankr.com/bsc` requires API key auth — do NOT use without auth
 - Reliable free endpoints: `bsc-dataseed.bnbchain.org`, `bsc-dataseed1.defibit.io`, `1rpc.io/bnb`
 - Rotate through fallbacks automatically
+- A public RPC can broadcast a signed transaction and still return an HTTP error to the caller. Before retrying an ambiguous send, compare the pending nonce/balance and search recent blocks for the original sender/nonce.
+
+**Why:** Retrying an ambiguous broadcast blindly can submit a duplicate value-moving transaction even though the first call appeared to fail.
+
+**How to apply:** Treat post-broadcast transport errors as unknown outcomes, not confirmed failures. Reconcile the nonce and receipt before any retry.
 
 ### ethers.js waitForDeployment() hangs
 - `factory.deploy()` followed by `waitForDeployment()` hangs indefinitely when RPC is slow
