@@ -1,9 +1,12 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config({ path: "../.env" });
 
-// Use bot wallet (has BNB) as deployer — key is 64-char no 0x prefix
-const rawKey = process.env.BOT_WALLET_PRIVATE_KEY || process.env.NEW_WALLET_PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000001";
-const DEPLOY_KEY = rawKey.startsWith('0x') ? rawKey : '0x' + rawKey;
+// Never fall back to a deterministic private key. Compilation and local tests
+// need no configured account; network deployments must provide one explicitly.
+const rawKey = process.env.BOT_WALLET_PRIVATE_KEY || process.env.NEW_WALLET_PRIVATE_KEY;
+const configuredAccounts = rawKey
+  ? [rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`]
+  : [];
 
 module.exports = {
   solidity: {
@@ -42,6 +45,13 @@ module.exports = {
           optimizer: { enabled: true, runs: 200 },
           evmVersion: "cancun"
         }
+      },
+      "contracts/KenostodTokenV3.sol": {
+        version: "0.8.28",
+        settings: {
+          optimizer: { enabled: true, runs: 200 },
+          evmVersion: "cancun"
+        }
       }
     }
   },
@@ -49,23 +59,23 @@ module.exports = {
     bsc: {
       url: process.env.BSC_RPC_PRIMARY || "https://bsc-dataseed.binance.org/",
       chainId: 56,
-      accounts: [DEPLOY_KEY]
+      accounts: configuredAccounts
     },
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,
-      accounts: [DEPLOY_KEY]
+      accounts: configuredAccounts
     },
     botchain: {
       url: "https://rpc.botchain.ai",
       chainId: 677,
-      accounts: [DEPLOY_KEY],
+      accounts: configuredAccounts,
       gasPrice: "auto"
     },
     botchainTestnet: {
       url: "https://rpc.bohr.life",
       chainId: 968,
-      accounts: [DEPLOY_KEY],
+      accounts: configuredAccounts,
       gasPrice: "auto"
     }
   },
