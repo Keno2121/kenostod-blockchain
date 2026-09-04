@@ -9,7 +9,13 @@ description: Key facts, gotchas, and decisions from the KENO PancakeSwap listing
 - **KENO token**: `0x48bb049afe50b050b458624dc6233acd51024ab4`
 - **KENO/BNB pair**: `0xD1264cb02970cd494D9455FC8d7C889b14E23503`
 - **KenostodNode**: `0x45599c6be7321519Ad3eadc63D14B2CD8d994f5A`
-- **KENO owner**: `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2` (bot wallet, after emergency transfer)
+- **KENO owner**: `0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2` — compromised September 3, 2026; never fund or use
+
+## September 2026 security status
+- The owner/bot/treasury wallet was drained across BSC and Arbitrum. Treat its private key and every duplicate secret as compromised.
+- The deployed KENO v2 contract has no balance clawback, blacklist, or usable pause control. Owner status cannot recover tokens held by the drain address.
+- **Why:** Operational signing, treasury custody, LP custody, and contract ownership were concentrated in one hot key.
+- **How to apply:** Never restore this wallet. Separate low-balance bot signers from treasury and put ownership behind a new multisig or cold owner.
 
 ## Critical gotchas
 
