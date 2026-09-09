@@ -209,6 +209,11 @@ class DatabaseConnection {
             `);
 
             await this.query(`
+                ALTER TABLE scholarship_applications
+                ADD COLUMN IF NOT EXISTS applicant_wallet_address VARCHAR(255);
+            `);
+
+            await this.query(`
                 CREATE TABLE IF NOT EXISTS scholarship_documents (
                     id SERIAL PRIMARY KEY,
                     application_id INTEGER REFERENCES scholarship_applications(id) ON DELETE CASCADE,

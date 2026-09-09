@@ -1,21 +1,37 @@
 const { ethers } = require('ethers');
-const fs = require('fs');
 
 class BSCTokenTransfer {
     constructor() {
-        this.KENO_TOKEN_ADDRESS = '0x48BB049Afe50B050b458624Dc6233acd51024AB4'; // KENO v2
-        this.BSC_RPC_URL = 'https://bsc-dataseed.binance.org/';
+        this.KENO_TOKEN_ADDRESS = process.env.KENO_TOKEN_ADDRESS || null;
+        this.KENO_TOKEN_VERSION = process.env.KENO_TOKEN_VERSION || 'migration';
+        this.BSC_RPC_URL = process.env.BSC_RPC_PRIMARY || 'https://bsc-dataseed.binance.org/';
         this.BSC_CHAIN_ID = 56;
+        this.distributionEnabled =
+            process.env.KENO_TOKEN_DISTRIBUTION_ENABLED === 'true' &&
+            this.KENO_TOKEN_VERSION === 'v3';
         
         this.provider = null;
         this.wallet = null;
         this.kenoContract = null;
         this.initialized = false;
-        
-        this.kenoABI = JSON.parse(fs.readFileSync('./public/KENO-abi.json', 'utf8'));
+        this.kenoABI = [
+            'function balanceOf(address account) view returns (uint256)',
+            'function transfer(address to, uint256 amount) returns (bool)'
+        ];
     }
     
     initialize() {
+        if (!this.distributionEnabled) {
+            console.log('ℹ️  KENO distribution paused during v2 → v3 migration');
+            console.log('   Rewards will be recorded as pending_v3 and no signing key will be loaded');
+            return false;
+        }
+
+        if (!this.KENO_TOKEN_ADDRESS || !ethers.isAddress(this.KENO_TOKEN_ADDRESS)) {
+            console.error('❌ BSC Token Transfer: valid KENO_TOKEN_ADDRESS is required for v3');
+            return false;
+        }
+
         const privateKey = process.env.KENO_DISTRIBUTION_WALLET_KEY;
         
         if (!privateKey) {
@@ -68,7 +84,9 @@ class BSCTokenTransfer {
         if (!this.initialized) {
             return {
                 success: false,
-                error: 'BSC Token Transfer not initialized. Configure KENO_DISTRIBUTION_WALLET_KEY.',
+                error: this.distributionEnabled
+                    ? 'KENO v3 distribution is not initialized.'
+                    : 'KENO distribution is paused during the v3 migration.',
                 txHash: null
             };
         }
@@ -213,8 +231,11 @@ class BSCTokenTransfer {
     getStatus() {
         return {
             initialized: this.initialized,
+            distributionEnabled: this.distributionEnabled,
+            migrationMode: !this.distributionEnabled,
             distributionWallet: this.wallet ? this.wallet.address : null,
             tokenContract: this.KENO_TOKEN_ADDRESS,
+            tokenVersion: this.KENO_TOKEN_VERSION,
             network: 'Binance Smart Chain (BSC Mainnet)',
             chainId: this.BSC_CHAIN_ID
         };

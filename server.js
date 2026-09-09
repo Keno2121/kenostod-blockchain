@@ -1919,7 +1919,10 @@ function logICOPurchase(purchaseData) {
     }
     console.log(`📊 ICO purchase logged: ${purchaseData.tokens} KENO for $${purchaseData.amount}`);
 }
-let dbConnection, organizationManager, wealthBuilderManager, kenoVestingManager, graduateAcademyManager, securityMiddleware;
+let dbConnection, organizationManager, wealthBuilderManager, kenoVestingManager, graduateAcademyManager;
+// Public rate limits and admin authentication must remain available even when
+// database initialization is delayed or temporarily unavailable.
+let securityMiddleware = new SecurityMiddleware(null);
 let printfulIntegration, aiSupport, microMonetization, mercuryBankAPI;
 const MicroMonetization = require('./src/MicroMonetization');
 const MercuryBankAPI = require('./src/MercuryBankAPI');
@@ -2012,7 +2015,7 @@ async function initializeBlockchainSystems() {
             await graduateAcademyManager.initTables();
             wealthBuilderManager   = new WealthBuilderManager(dbConnection, bscTokenTransfer);
             wealthBuilderManager.setVestingManager(kenoVestingManager);
-            securityMiddleware = new SecurityMiddleware(dbConnection);
+            securityMiddleware.db = dbConnection;
             console.log('✅ Database initialized');
             await initializeTestGraduate();
         } catch (error) {
