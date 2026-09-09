@@ -19,16 +19,26 @@ class WealthBuilderManager {
     }
 
     async awardCourseCompletion(walletAddress, email, courseName, courseId) {
-        // Dynamic reward: 250 KENO when price ≤ $1.00 (students keep upside)
-        // Scales down to floor($250/price) when KENO > $1.00 (USD value locked at $250)
         let rewardAmount = 250.0;
-        let rewardMeta   = { kenoPriceUSD: null, isAdjusted: false };
-        try {
-            const pricing  = await getCourseRewardKeno();
-            rewardAmount   = pricing.rewardKeno;
-            rewardMeta     = pricing;
-        } catch (e) {
-            console.warn('[WealthBuilder] Reward pricing fetch failed — using 250 KENO default:', e.message);
+        let rewardMeta = {
+            rewardKeno: rewardAmount,
+            rewardUSD: null,
+            kenoPriceUSD: null,
+            isAdjusted: false,
+            migrationPending: true
+        };
+        const tokenDistributionActive = Boolean(
+            this.bscTokenTransfer && this.bscTokenTransfer.initialized
+        );
+
+        if (tokenDistributionActive) {
+            try {
+                const pricing = await getCourseRewardKeno();
+                rewardAmount = pricing.rewardKeno;
+                rewardMeta = { ...pricing, migrationPending: false };
+            } catch (e) {
+                console.warn('[WealthBuilder] Reward pricing fetch failed — using 250 KENO default:', e.message);
+            }
         }
 
         try {
@@ -78,22 +88,22 @@ class WealthBuilderManager {
                 };
             }
 
-            // Attempt real on-chain BSC transfer if available
             let bscTransferResult = null;
-            // Always set status='available' - the claim system will track actual distribution
-            let transferStatus = 'available';
+            let transferStatus = tokenDistributionActive ? 'available' : 'pending_v3';
             
-            if (this.bscTokenTransfer && this.bscTokenTransfer.initialized) {
+            if (tokenDistributionActive) {
                 console.log(`🔄 Attempting BSC transfer of ${rewardAmount} KENO to ${walletAddress}...`);
                 bscTransferResult = await this.bscTokenTransfer.transferTokens(walletAddress, rewardAmount, `course-${parsedCourseId}`);
                 
                 if (bscTransferResult.success) {
                     console.log(`✅ BSC transfer successful! TX: ${bscTransferResult.txHash}`);
+                    transferStatus = 'distributed';
                 } else {
                     console.log(`⚠️ BSC transfer failed: ${bscTransferResult.error}. Reward available for claim.`);
+                    transferStatus = 'pending';
                 }
             } else {
-                console.log(`⚠️ BSC Token Transfer not available. Reward available for user to claim.`);
+                console.log('ℹ️ KENO reward recorded for v3 distribution after migration.');
             }
 
             const result = await this.db.query(`
@@ -139,20 +149,20 @@ class WealthBuilderManager {
                 }
             }
 
-            const priceNote = rewardMeta.isAdjusted
-                ? ` (adjusted from 250 KENO — KENO is now above $1.00)`
-                : ` (worth $250 at the $1.00 peg — your upside as KENO rises)`;
+            const rewardMessage = tokenDistributionActive
+                ? `🎉 Congratulations! You earned ${rewardAmount} KENO for completing ${courseName}!`
+                : `🎉 Course completion recorded. Your ${rewardAmount} KENO reward is pending issuance on KENO v3 after the migration is complete.`;
 
             const response = {
                 success: true,
                 reward: result.rows[0],
-                message: `🎉 Congratulations! You earned ${rewardAmount} KENO for completing ${courseName}!${priceNote}`,
+                message: rewardMessage,
                 pricing: {
                     rewardKeno:    rewardAmount,
                     rewardUSD:     rewardMeta.rewardUSD || null,
                     kenoPriceUSD:  rewardMeta.kenoPriceUSD || null,
                     isAdjusted:    rewardMeta.isAdjusted,
-                    pegPrice:      1.00
+                    migrationPending: rewardMeta.migrationPending
                 }
             };
             
@@ -251,10 +261,21 @@ class WealthBuilderManager {
 
     async applyForScholarship(applicationData) {
         try {
+            const wallet = applicationData.wallet
+                ? applicationData.wallet.trim().toLowerCase()
+                : null;
+            if (wallet && !/^0x[a-f0-9]{40}$/.test(wallet)) {
+                return {
+                    success: false,
+                    error: 'Invalid wallet address. Please reconnect your wallet and try again.'
+                };
+            }
+
             const result = await this.db.query(`
                 INSERT INTO scholarship_applications (
                     applicant_name,
                     applicant_email,
+                    applicant_wallet_address,
                     country,
                     age,
                     current_income_usd,
@@ -262,11 +283,12 @@ class WealthBuilderManager {
                     motivation_statement,
                     financial_need_statement,
                     career_goals
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 RETURNING *
             `, [
                 applicationData.name,
                 applicationData.email,
+                wallet,
                 applicationData.country,
                 applicationData.age,
                 applicationData.currentIncome,
@@ -307,7 +329,7 @@ class WealthBuilderManager {
                 // Note: wallet address stored separately, grant access by email for now
                 await this.grantScholarshipAccess(
                     application.applicant_email,
-                    null, // wallet address will be retrieved separately when needed
+                    application.applicant_wallet_address,
                     applicationId
                 );
                 console.log(`✅ Scholarship access granted to ${application.applicant_email}`);
