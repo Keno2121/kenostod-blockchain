@@ -17,6 +17,11 @@ description: Key facts, gotchas, and decisions from the KENO PancakeSwap listing
 - **Why:** Operational signing, treasury custody, LP custody, and contract ownership were concentrated in one hot key.
 - **How to apply:** Never restore this wallet. Separate low-balance bot signers from treasury and put ownership behind a new multisig or cold owner.
 
+## Student rewards during the v3 migration
+- Keep scholarship enrollment and course progress open, but record KENO rewards off-chain as pending v3; do not distribute KENO v2.
+- **Why:** Students should not lose access during the migration, while automatic v2 transfers would use a compromised distribution path and an economically retired token.
+- **How to apply:** Do not enable token distribution until the v3 contract address, independent distribution signer, and explicit release approval are all in place.
+
 ## Critical gotchas
 
 ### 1. KENO flattened source ≠ deployed contract
