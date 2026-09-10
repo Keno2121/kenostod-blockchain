@@ -8237,6 +8237,94 @@ app.post('/api/graduates/scholarship/course-complete',
     }
 );
 
+// Check scholarship access and return the academy catalog for an approved wallet.
+// This endpoint intentionally returns no applicant PII.
+app.get('/api/wealth/scholarships/access', async (req, res) => {
+    if (!wealthBuilderManager || !dbConnection) {
+        return res.status(503).json({
+            success: false,
+            error: 'Wealth Builder features currently unavailable'
+        });
+    }
+
+    const walletAddress = String(req.query.walletAddress || '').trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
+        return res.status(400).json({ success: false, error: 'A valid wallet address is required' });
+    }
+
+    try {
+        const [accessCheck, applicationResult] = await Promise.all([
+            wealthBuilderManager.checkScholarshipAccess(walletAddress),
+            dbConnection.query(`
+                SELECT application_status, approved_at, rejected_at, review_notes, created_at
+                FROM scholarship_applications
+                WHERE LOWER(applicant_wallet_address) = LOWER($1)
+                ORDER BY created_at DESC
+                LIMIT 1
+            `, [walletAddress])
+        ]);
+
+        const application = applicationResult.rows[0] || null;
+        const status = accessCheck.hasAccess ? 'approved' : (application?.application_status || 'none');
+        const courseFiles = [
+            'course-1-wallet-basics.html',
+            'course-2-transactions.html',
+            'course-3-reversal.html',
+            'course-4-scheduled.html',
+            'course-5-recovery.html',
+            'course-6-messages.html',
+            'course-7-reputation.html',
+            'course-8-governance.html',
+            'course-9-pow.html',
+            'course-10-porv.html',
+            'course-11-rvt.html',
+            'course-12-enterprise.html',
+            'course-13-royalties.html',
+            'course-14-merchant.html',
+            'course-15-banking.html',
+            'course-16-exchange.html',
+            'course-17-finance.html',
+            'course-18-fal.html',
+            'course-19-falp.html',
+            'course-20-wealth.html',
+            'course-21-generational.html'
+        ];
+        const courses = accessCheck.hasAccess
+            ? Object.entries(getMergedCourses()).map(([id, course]) => ({
+                id: Number(id),
+                title: course.title,
+                duration: course.duration,
+                level: course.level,
+                icon: course.icon,
+                url: `/courses/${courseFiles[Number(id) - 1]}`
+            }))
+            : [];
+
+        res.json({
+            success: true,
+            status,
+            hasAccess: accessCheck.hasAccess,
+            application: application ? {
+                status: application.application_status,
+                submittedAt: application.created_at,
+                approvedAt: application.approved_at,
+                rejectedAt: application.rejected_at,
+                reviewNotes: application.application_status === 'rejected' ? application.review_notes : undefined
+            } : null,
+            grant: accessCheck.hasAccess ? {
+                accessLevel: accessCheck.grant.access_level,
+                coursesUnlocked: accessCheck.grant.courses_unlocked,
+                grantedAt: accessCheck.grant.granted_at,
+                expiresAt: accessCheck.grant.expires_at
+            } : null,
+            courses
+        });
+    } catch (error) {
+        console.error('Error checking scholarship access:', error.message);
+        res.status(500).json({ success: false, error: 'Could not check scholarship access' });
+    }
+});
+
 // Get scholarship student progress
 app.get('/api/graduates/scholarship/progress/:wallet', async (req, res) => {
     if (!wealthBuilderManager || !dbConnection) {

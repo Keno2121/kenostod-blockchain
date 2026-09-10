@@ -420,6 +420,7 @@
                 <button class="tab-btn" onclick="switchTab('convertKeno')">💵 Claim KENO</button>
                 <button class="tab-btn" onclick="switchTab('withdraw')">🏦 Withdraw to Bank</button>
                 <button class="tab-btn" onclick="switchTab('jobs')">💼 Career Center</button>
+                <button class="tab-btn" onclick="switchTab('myCourses')">📚 My Courses</button>
                 <button class="tab-btn" onclick="switchTab('scholarship')">🎓 Scholarships</button>
                 <button class="tab-btn" onclick="switchTab('referrals')">👥 Referrals</button>
                 <button class="tab-btn" onclick="switchTab('rvt')">🏆 My RVT NFTs</button>
@@ -433,6 +434,14 @@
                 </div>
 
                 <div id="rewardsHistory"></div>
+            </div>
+
+            <div id="myCourses" class="tab-content">
+                <h2 class="section-title">📚 My Scholarship Courses</h2>
+                <div id="scholarshipAccessStatus" class="alert alert-info">
+                    Connect the same wallet used on your scholarship application to check access.
+                </div>
+                <div id="scholarshipCourseCatalog"></div>
             </div>
 
 
@@ -1379,6 +1388,7 @@
                 await loadRVTNFTs();
                 await loadJobListings();
                 await loadReferralCode();
+                await loadScholarshipAccess();
             } catch (error) {
                 console.error('Error loading wealth dashboard:', error);
                 
@@ -1392,6 +1402,58 @@
                     console.log('✅ Using localStorage fallback:', completedCourses, 'courses =', totalKeno, 'KENO');
                 }
             }
+        }
+
+        async function loadScholarshipAccess() {
+            const statusDiv = document.getElementById('scholarshipAccessStatus');
+            const catalogDiv = document.getElementById('scholarshipCourseCatalog');
+            if (!statusDiv || !catalogDiv || !currentWallet) return;
+
+            statusDiv.className = 'alert alert-info';
+            statusDiv.textContent = 'Checking your scholarship access…';
+            catalogDiv.innerHTML = '';
+
+            try {
+                const response = await fetch(`/api/wealth/scholarships/access?walletAddress=${encodeURIComponent(currentWallet)}`);
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Could not check scholarship access');
+                }
+
+                if (data.hasAccess) {
+                    statusDiv.className = 'alert alert-success';
+                    statusDiv.innerHTML = `<strong>✅ Scholarship Approved — Full Course Access</strong><br>
+                        Your approved wallet has access to ${Number(data.grant?.coursesUnlocked || 21)} courses.
+                        Open Course 1 below to begin.`;
+                    catalogDiv.innerHTML = `<div class="courses-grid">${data.courses.map(course => `
+                        <a class="course-card" href="${course.url}">
+                            <div class="course-number">${course.icon || '📘'} ${course.id}</div>
+                            <div class="course-title">${escapeWealthHtml(course.title)}</div>
+                            <div class="course-reward">${escapeWealthHtml(course.level || 'Course')} · ${escapeWealthHtml(course.duration || '')}</div>
+                            <div class="course-action">Open Course</div>
+                        </a>
+                    `).join('')}</div>`;
+                    return;
+                }
+
+                const messages = {
+                    pending: '<strong>⏳ Scholarship Pending</strong><br>Your application is still awaiting review.',
+                    rejected: `<strong>Scholarship Not Approved</strong><br>${escapeWealthHtml(data.application?.reviewNotes || 'Contact the Founders Office if you have questions.')}`,
+                    none: '<strong>No scholarship found for this wallet.</strong><br>Connect the wallet used on your application, or apply from the Scholarships tab.'
+                };
+                statusDiv.innerHTML = messages[data.status] || messages.none;
+            } catch (error) {
+                statusDiv.className = 'alert';
+                statusDiv.style.background = '#fee2e2';
+                statusDiv.style.color = '#991b1b';
+                statusDiv.textContent = error.message;
+            }
+        }
+
+        function escapeWealthHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = String(value ?? '');
+            return div.innerHTML;
         }
 
         async function loadRVTNFTs() {
