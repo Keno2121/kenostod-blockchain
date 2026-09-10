@@ -2001,7 +2001,12 @@ async function initializeBlockchainSystems() {
         
         // Initialize utilities
         printfulIntegration = new PrintfulIntegration();
-        aiSupport = new AISupport();
+        try {
+            aiSupport = new AISupport();
+        } catch (error) {
+            aiSupport = null;
+            console.warn('⚠️ AI Support unavailable; continuing without it:', error.message);
+        }
         microMonetization = new MicroMonetization(kenostodChain);
         
         // Initialize PostgreSQL database (non-blocking - do it after blockchain loads)
@@ -9268,6 +9273,13 @@ app.put('/api/chat/conversations/:conversationId', adminAuth, async (req, res) =
 
 app.post('/api/support/chat', async (req, res) => {
     try {
+        if (!aiSupport) {
+            return res.status(503).json({
+                success: false,
+                error: 'AI support is temporarily unavailable'
+            });
+        }
+
         const { messages } = req.body;
         
         if (!messages || !Array.isArray(messages)) {
@@ -9291,6 +9303,13 @@ app.post('/api/support/chat', async (req, res) => {
 
 app.post('/api/support/quick-question', async (req, res) => {
     try {
+        if (!aiSupport) {
+            return res.status(503).json({
+                success: false,
+                error: 'AI support is temporarily unavailable'
+            });
+        }
+
         const { question } = req.body;
         
         if (!question) {
