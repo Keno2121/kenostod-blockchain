@@ -10133,6 +10133,54 @@ app.post('/api/founder/scholarships/:applicationId/review', requireFounder, asyn
     res.status(result.success ? 200 : 500).json(result);
 });
 
+app.post('/api/founder/scholarships/:applicationId/restore-course', requireFounder, async (req, res) => {
+    if (!wealthBuilderManager || !dbConnection) {
+        return res.status(503).json({
+            success: false,
+            error: 'Wealth Builder features currently unavailable'
+        });
+    }
+
+    const applicationId = Number.parseInt(req.params.applicationId, 10);
+    const courseId = Number.parseInt(req.body.courseId, 10);
+    if (!Number.isInteger(applicationId) || applicationId <= 0) {
+        return res.status(400).json({ success: false, error: 'Invalid application ID' });
+    }
+    if (!Number.isInteger(courseId) || courseId < 1 || courseId > 21) {
+        return res.status(400).json({ success: false, error: 'Course ID must be between 1 and 21' });
+    }
+
+    try {
+        const applicationResult = await dbConnection.query(`
+            SELECT applicant_email, applicant_wallet_address, application_status
+            FROM scholarship_applications
+            WHERE id = $1
+        `, [applicationId]);
+        const application = applicationResult.rows[0];
+        if (!application) {
+            return res.status(404).json({ success: false, error: 'Scholarship application not found' });
+        }
+        if (application.application_status !== 'approved') {
+            return res.status(409).json({ success: false, error: 'Only approved scholars can receive restored course credit' });
+        }
+
+        const course = getMergedCourses()[courseId];
+        const result = await wealthBuilderManager.awardCourseCompletion(
+            application.applicant_wallet_address,
+            application.applicant_email,
+            course.title,
+            courseId
+        );
+        if (!result.success && result.error?.includes('already completed')) {
+            return res.status(409).json(result);
+        }
+        res.status(result.success ? 200 : 500).json(result);
+    } catch (error) {
+        console.error('Error restoring scholar course completion:', error.message);
+        res.status(500).json({ success: false, error: 'Could not restore course completion' });
+    }
+});
+
 app.use('/api/live-arb', requireFounder);
 
 // ── SOE Post-Launch Trading Dashboard ────────────────────────────────────────
