@@ -248,6 +248,29 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
     // Submit course reward to API
     async function submitCourseReward(walletAddress, email, courseName, courseId) {
         try {
+            if (!window.ethereum) {
+                showToast('Open this course in MetaMask to securely record completion.', 'info');
+                return { success: false, reason: 'wallet_signature_required' };
+            }
+
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const signingWallet = accounts?.[0];
+            if (!signingWallet || signingWallet.toLowerCase() !== walletAddress.toLowerCase()) {
+                showToast('Connect the same wallet used for your scholarship.', 'info');
+                return { success: false, reason: 'wallet_mismatch' };
+            }
+
+            const action = `complete-course-${courseId}`;
+            const timestamp = Date.now();
+            const message = `Kenostod Blockchain Academy\nAction: ${action}\nWallet: ${walletAddress}\nTimestamp: ${timestamp}`;
+            const messageHex = '0x' + Array.from(new TextEncoder().encode(message))
+                .map(byte => byte.toString(16).padStart(2, '0'))
+                .join('');
+            const signature = await window.ethereum.request({
+                method: 'personal_sign',
+                params: [messageHex, signingWallet]
+            });
+
             const response = await fetch('/api/wealth/rewards/course-complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -255,7 +278,10 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
                     walletAddress: walletAddress,
                     email: email,
                     courseName: courseName,
-                    courseId: courseId
+                    courseId: courseId,
+                    action,
+                    timestamp,
+                    signature
                 })
             });
             
@@ -273,6 +299,10 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
             }
         } catch (error) {
             console.error('Error crediting KENO reward:', error);
+            if (error?.code === 4001) {
+                showToast('Signature cancelled. Sign to securely save course completion.', 'info');
+                return { success: false, reason: 'signature_cancelled' };
+            }
             return { success: false, reason: error.message };
         }
     }

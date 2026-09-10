@@ -2014,7 +2014,11 @@
                             <button class="review-btn approve" onclick="reviewFounderScholarship(${id}, 'approved', this)">Approve &amp; Grant Access</button>
                             <button class="review-btn reject" onclick="reviewFounderScholarship(${id}, 'rejected', this)">Reject</button>
                        </div>`
-                    : '';
+                    : status === 'approved'
+                        ? `<div class="scholarship-actions">
+                                <button class="review-btn approve" onclick="restoreFounderCourse(${id}, this)">Restore Prior Course Credit</button>
+                           </div>`
+                        : '';
                 return `
                     <article class="scholarship-card" id="scholarship-${id}">
                         <div class="scholarship-card-top">
@@ -2118,6 +2122,38 @@
             } catch (error) {
                 buttons.forEach(item => item.disabled = false);
                 showToast(error.message);
+            }
+        }
+
+        async function restoreFounderCourse(applicationId, button) {
+            const enteredCourseId = prompt('Which completed course should be restored? Enter a number from 1 to 21:', '1');
+            if (enteredCourseId === null) return;
+            const courseId = Number.parseInt(enteredCourseId, 10);
+            if (!Number.isInteger(courseId) || courseId < 1 || courseId > 21) {
+                showToast('Enter a valid course number from 1 to 21');
+                return;
+            }
+            if (!confirm(`Confirm that this scholar completed Course ${courseId}? This records the completion and its pending KENO v3 reward.`)) {
+                return;
+            }
+
+            button.disabled = true;
+            try {
+                const response = await fetch(`/api/founder/scholarships/${applicationId}/restore-course`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseId })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Could not restore course completion');
+                }
+                showToast(`Course ${courseId} completion restored`);
+            } catch (error) {
+                showToast(error.message);
+            } finally {
+                button.disabled = false;
             }
         }
 
