@@ -323,15 +323,27 @@ class WealthBuilderManager {
                 RETURNING *
             `, [status, reviewerName, notes, applicationId]);
 
+            if (!result.rows[0]) {
+                return {
+                    success: false,
+                    error: 'Scholarship application not found.'
+                };
+            }
+
             // If approved, grant scholarship access
-            if (status === 'approved' && result.rows[0]) {
+            if (status === 'approved') {
                 const application = result.rows[0];
-                // Note: wallet address stored separately, grant access by email for now
-                await this.grantScholarshipAccess(
+                const grantResult = await this.grantScholarshipAccess(
                     application.applicant_email,
                     application.applicant_wallet_address,
                     applicationId
                 );
+                if (!grantResult.success) {
+                    return {
+                        success: false,
+                        error: 'Application was approved, but course access could not be granted. Please retry.'
+                    };
+                }
                 console.log(`✅ Scholarship access granted to ${application.applicant_email}`);
             }
 

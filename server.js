@@ -9984,6 +9984,59 @@ function requireFounder(req, res, next) {
     if (req.session.isFounder) return next();
     res.status(401).json({ ok: false, msg: 'Unauthorized' });
 }
+
+app.get('/api/founder/scholarships', requireFounder, async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({
+            success: false,
+            error: 'Wealth Builder features currently unavailable'
+        });
+    }
+
+    const status = req.query.status || 'pending';
+    if (!['pending', 'approved', 'rejected', 'all'].includes(status)) {
+        return res.status(400).json({ success: false, error: 'Invalid status filter' });
+    }
+
+    const result = await wealthBuilderManager.getScholarshipApplications(
+        status === 'all' ? undefined : status
+    );
+    res.status(result.success ? 200 : 500).json(result);
+});
+
+app.post('/api/founder/scholarships/:applicationId/review', requireFounder, async (req, res) => {
+    if (!wealthBuilderManager) {
+        return res.status(503).json({
+            success: false,
+            error: 'Wealth Builder features currently unavailable'
+        });
+    }
+
+    const applicationId = Number.parseInt(req.params.applicationId, 10);
+    const { status, notes } = req.body;
+    if (!Number.isInteger(applicationId) || applicationId <= 0) {
+        return res.status(400).json({ success: false, error: 'Invalid application ID' });
+    }
+    if (!['approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ success: false, error: 'Status must be approved or rejected' });
+    }
+    if (status === 'rejected' && !String(notes || '').trim()) {
+        return res.status(400).json({ success: false, error: 'A rejection reason is required' });
+    }
+
+    const cleanNotes = securityMiddleware.sanitizeText(
+        String(notes || (status === 'approved' ? 'Approved in Founders Office' : '')),
+        1000
+    );
+    const result = await wealthBuilderManager.reviewScholarshipApplication(
+        applicationId,
+        status,
+        'Founder',
+        cleanNotes
+    );
+    res.status(result.success ? 200 : 500).json(result);
+});
+
 app.use('/api/live-arb', requireFounder);
 
 // ── SOE Post-Launch Trading Dashboard ────────────────────────────────────────
