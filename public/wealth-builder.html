@@ -1421,16 +1421,18 @@
                 }
 
                 if (data.hasAccess) {
+                    const completedCount = Number(data.progress?.coursesCompleted || 0);
+                    const nextCourse = data.courses.find(course => !course.completed);
                     statusDiv.className = 'alert alert-success';
                     statusDiv.innerHTML = `<strong>✅ Scholarship Approved — Full Course Access</strong><br>
-                        Your approved wallet has access to ${Number(data.grant?.coursesUnlocked || 21)} courses.
-                        Open Course 1 below to begin.`;
+                        ${completedCount} of ${Number(data.grant?.coursesUnlocked || 21)} courses completed.
+                        ${nextCourse ? `Continue with Course ${nextCourse.id}: ${escapeWealthHtml(nextCourse.title.replace(/^Course \d+:\s*/, ''))}.` : 'All courses are complete.'}`;
                     catalogDiv.innerHTML = `<div class="courses-grid">${data.courses.map(course => `
-                        <a class="course-card" href="${course.url}">
-                            <div class="course-number">${course.icon || '📘'} ${course.id}</div>
+                        <a class="course-card" href="${course.url}" style="${course.completed ? 'border-color:#10b981;background:#f0fdf4;' : ''}">
+                            <div class="course-number">${course.completed ? '✅' : (course.icon || '📘')} ${course.id}</div>
                             <div class="course-title">${escapeWealthHtml(course.title)}</div>
-                            <div class="course-reward">${escapeWealthHtml(course.level || 'Course')} · ${escapeWealthHtml(course.duration || '')}</div>
-                            <div class="course-action">Open Course</div>
+                            <div class="course-reward">${course.completed ? 'Completed' : `${escapeWealthHtml(course.level || 'Course')} · ${escapeWealthHtml(course.duration || '')}`}</div>
+                            <div class="course-action">${course.completed ? 'Review Course' : (nextCourse?.id === course.id ? 'Continue Here' : 'Open Course')}</div>
                         </a>
                     `).join('')}</div>`;
                     return;
