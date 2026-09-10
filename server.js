@@ -8253,7 +8253,7 @@ app.get('/api/wealth/scholarships/access', async (req, res) => {
     }
 
     try {
-        const [accessCheck, applicationResult] = await Promise.all([
+        const [accessCheck, applicationResult, progress] = await Promise.all([
             wealthBuilderManager.checkScholarshipAccess(walletAddress),
             dbConnection.query(`
                 SELECT application_status, approved_at, rejected_at, review_notes, created_at
@@ -8261,7 +8261,8 @@ app.get('/api/wealth/scholarships/access', async (req, res) => {
                 WHERE LOWER(applicant_wallet_address) = LOWER($1)
                 ORDER BY created_at DESC
                 LIMIT 1
-            `, [walletAddress])
+            `, [walletAddress]),
+            wealthBuilderManager.getScholarshipProgress(walletAddress)
         ]);
 
         const application = applicationResult.rows[0] || null;
@@ -8289,6 +8290,7 @@ app.get('/api/wealth/scholarships/access', async (req, res) => {
             'course-20-wealth.html',
             'course-21-generational.html'
         ];
+        const completedCourseIds = progress.success ? progress.completedCourseIds : [];
         const courses = accessCheck.hasAccess
             ? Object.entries(getMergedCourses()).map(([id, course]) => ({
                 id: Number(id),
@@ -8296,7 +8298,8 @@ app.get('/api/wealth/scholarships/access', async (req, res) => {
                 duration: course.duration,
                 level: course.level,
                 icon: course.icon,
-                url: `/courses/${courseFiles[Number(id) - 1]}`
+                url: `/courses/${courseFiles[Number(id) - 1]}`,
+                completed: completedCourseIds.includes(Number(id))
             }))
             : [];
 
@@ -8316,6 +8319,11 @@ app.get('/api/wealth/scholarships/access', async (req, res) => {
                 coursesUnlocked: accessCheck.grant.courses_unlocked,
                 grantedAt: accessCheck.grant.granted_at,
                 expiresAt: accessCheck.grant.expires_at
+            } : null,
+            progress: accessCheck.hasAccess ? {
+                coursesCompleted: progress.success ? progress.coursesCompleted : 0,
+                coursesRemaining: progress.success ? progress.coursesRemaining : 21,
+                completedCourseIds
             } : null,
             courses
         });

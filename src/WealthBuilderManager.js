@@ -950,17 +950,25 @@ class WealthBuilderManager {
 
             const result = await this.db.query(`
                 SELECT
-                    COUNT(*) as courses_completed,
-                    COALESCE(SUM(reward_amount), 0) as keno_locked,
+                    COUNT(DISTINCT course_id) as courses_completed,
+                    COALESCE(
+                        ARRAY_AGG(DISTINCT course_id ORDER BY course_id)
+                            FILTER (WHERE course_id IS NOT NULL),
+                        ARRAY[]::INTEGER[]
+                    ) as completed_course_ids,
+                    COALESCE(
+                        SUM(reward_amount) FILTER (WHERE status = 'locked_scholarship'),
+                        0
+                    ) as keno_locked,
                     MAX(created_at) as last_activity
                 FROM student_rewards
                 WHERE LOWER(user_wallet_address) = $1
                 AND reward_type = 'course_completion'
-                AND status = 'locked_scholarship'
             `, [normalizedWallet]);
 
             const coursesCompleted = parseInt(result.rows[0].courses_completed);
             const kenoLocked = parseFloat(result.rows[0].keno_locked);
+            const completedCourseIds = result.rows[0].completed_course_ids.map(Number);
 
             const graduated = await this.db.query(`
                 SELECT graduate_id FROM kenostod_graduates WHERE LOWER(wallet_address) = $1
@@ -970,6 +978,7 @@ class WealthBuilderManager {
                 success: true,
                 walletAddress,
                 coursesCompleted,
+                completedCourseIds,
                 coursesRemaining: Math.max(0, 21 - coursesCompleted),
                 kenoLocked,
                 kenoAtGraduation: 21 * 250,
