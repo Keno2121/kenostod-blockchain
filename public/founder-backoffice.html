@@ -819,6 +819,16 @@
             color: var(--warning);
         }
 
+        .status-badge.approved {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .status-badge.rejected {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
         .scholarship-header {
             display: flex;
             align-items: center;
@@ -839,6 +849,32 @@
             color: var(--warning);
             font-size: 0.8rem;
             font-weight: 700;
+        }
+
+        .scholarship-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.15rem;
+        }
+
+        .scholarship-filter {
+            min-height: 40px;
+            padding: 0.55rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.035);
+            color: var(--text-muted);
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .scholarship-filter.active {
+            border-color: var(--accent);
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--accent);
         }
 
         .scholarship-list {
@@ -1581,6 +1617,11 @@
                         </div>
                         <button class="review-btn refresh" onclick="loadFounderScholarships()">Refresh</button>
                     </div>
+                    <div class="scholarship-filters" role="tablist" aria-label="Scholarship application status">
+                        <button class="scholarship-filter active" data-status="pending" onclick="setScholarshipFilter('pending')">Pending <span id="pendingFilterCount">0</span></button>
+                        <button class="scholarship-filter" data-status="approved" onclick="setScholarshipFilter('approved')">Approved <span id="approvedFilterCount">0</span></button>
+                        <button class="scholarship-filter" data-status="rejected" onclick="setScholarshipFilter('rejected')">Rejected <span id="rejectedFilterCount">0</span></button>
+                    </div>
                     <div id="scholarshipApplications" class="scholarship-list">
                         <div style="color:var(--text-muted);">Open the Students tab to load applications.</div>
                     </div>
@@ -1927,13 +1968,96 @@
                 : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
         }
 
-        async function loadFounderScholarships() {
+        let founderScholarshipApplications = [];
+        let founderScholarshipFilter = 'pending';
+
+        function setScholarshipFilter(status) {
+            founderScholarshipFilter = status;
+            document.querySelectorAll('.scholarship-filter').forEach(button => {
+                button.classList.toggle('active', button.dataset.status === status);
+            });
+            renderFounderScholarships();
+        }
+
+        function renderFounderScholarships() {
             const list = document.getElementById('scholarshipApplications');
             const count = document.getElementById('pendingScholarshipCount');
-            list.innerHTML = '<div style="color:var(--text-muted);">Loading pending applications…</div>';
+            const totals = { pending: 0, approved: 0, rejected: 0 };
+            founderScholarshipApplications.forEach(application => {
+                if (totals[application.application_status] !== undefined) {
+                    totals[application.application_status] += 1;
+                }
+            });
+            count.textContent = totals.pending;
+            Object.entries(totals).forEach(([status, total]) => {
+                const filterCount = document.getElementById(`${status}FilterCount`);
+                if (filterCount) filterCount.textContent = total;
+            });
+
+            const applications = founderScholarshipApplications.filter(
+                application => application.application_status === founderScholarshipFilter
+            );
+            if (!applications.length) {
+                list.innerHTML = `<div style="color:var(--text-muted);padding:1rem 0;">No ${escapeHtml(founderScholarshipFilter)} scholarship applications.</div>`;
+                return;
+            }
+
+            list.innerHTML = applications.map(application => {
+                const id = Number(application.id);
+                const wallet = application.applicant_wallet_address || 'Not provided';
+                const status = ['approved', 'rejected'].includes(application.application_status)
+                    ? application.application_status
+                    : 'pending';
+                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                const actions = status === 'pending'
+                    ? `<div class="scholarship-actions">
+                            <button class="review-btn approve" onclick="reviewFounderScholarship(${id}, 'approved', this)">Approve &amp; Grant Access</button>
+                            <button class="review-btn reject" onclick="reviewFounderScholarship(${id}, 'rejected', this)">Reject</button>
+                       </div>`
+                    : '';
+                return `
+                    <article class="scholarship-card" id="scholarship-${id}">
+                        <div class="scholarship-card-top">
+                            <div>
+                                <h4 style="font-size:1.05rem;">${escapeHtml(application.applicant_name || 'Unnamed applicant')}</h4>
+                                <div style="color:var(--text-muted);font-size:0.82rem;overflow-wrap:anywhere;">
+                                    ${escapeHtml(application.applicant_email || 'No email')}
+                                </div>
+                            </div>
+                            <span class="status-badge ${status}">● ${escapeHtml(statusLabel)}</span>
+                        </div>
+                        <div class="scholarship-meta">
+                            <div class="scholarship-meta-item">
+                                <div class="scholarship-meta-label">Wallet</div>
+                                <div class="scholarship-meta-value">${escapeHtml(wallet)}</div>
+                            </div>
+                            <div class="scholarship-meta-item">
+                                <div class="scholarship-meta-label">Country / Education</div>
+                                <div class="scholarship-meta-value">${escapeHtml(application.country || 'Not provided')} · ${escapeHtml(application.education_level || 'Not provided')}</div>
+                            </div>
+                            <div class="scholarship-meta-item">
+                                <div class="scholarship-meta-label">Submitted</div>
+                                <div class="scholarship-meta-value">${escapeHtml(formatScholarshipDate(application.created_at))}</div>
+                            </div>
+                        </div>
+                        <details class="scholarship-details">
+                            <summary>Review application statements</summary>
+                            <div class="scholarship-statement"><strong>Motivation</strong><br>${escapeHtml(application.motivation_statement || 'Not provided')}</div>
+                            <div class="scholarship-statement"><strong>Financial need</strong><br>${escapeHtml(application.financial_need_statement || 'Not provided')}</div>
+                            <div class="scholarship-statement"><strong>Career goals</strong><br>${escapeHtml(application.career_goals || 'Not provided')}</div>
+                        </details>
+                        ${actions}
+                    </article>
+                `;
+            }).join('');
+        }
+
+        async function loadFounderScholarships() {
+            const list = document.getElementById('scholarshipApplications');
+            list.innerHTML = '<div style="color:var(--text-muted);">Loading scholarship applications…</div>';
 
             try {
-                const response = await fetch('/api/founder/scholarships?status=pending', {
+                const response = await fetch('/api/founder/scholarships?status=all', {
                     credentials: 'include'
                 });
                 const data = await response.json();
@@ -1947,54 +2071,8 @@
                     throw new Error(data.error || data.msg || 'Could not load applications');
                 }
 
-                const applications = data.applications || [];
-                count.textContent = applications.length;
-                if (!applications.length) {
-                    list.innerHTML = '<div style="color:var(--text-muted);padding:1rem 0;">No pending scholarship applications.</div>';
-                    return;
-                }
-
-                list.innerHTML = applications.map(application => {
-                    const id = Number(application.id);
-                    const wallet = application.applicant_wallet_address || 'Not provided';
-                    return `
-                        <article class="scholarship-card" id="scholarship-${id}">
-                            <div class="scholarship-card-top">
-                                <div>
-                                    <h4 style="font-size:1.05rem;">${escapeHtml(application.applicant_name || 'Unnamed applicant')}</h4>
-                                    <div style="color:var(--text-muted);font-size:0.82rem;overflow-wrap:anywhere;">
-                                        ${escapeHtml(application.applicant_email || 'No email')}
-                                    </div>
-                                </div>
-                                <span class="status-badge pending">● Pending</span>
-                            </div>
-                            <div class="scholarship-meta">
-                                <div class="scholarship-meta-item">
-                                    <div class="scholarship-meta-label">Wallet</div>
-                                    <div class="scholarship-meta-value">${escapeHtml(wallet)}</div>
-                                </div>
-                                <div class="scholarship-meta-item">
-                                    <div class="scholarship-meta-label">Country / Education</div>
-                                    <div class="scholarship-meta-value">${escapeHtml(application.country || 'Not provided')} · ${escapeHtml(application.education_level || 'Not provided')}</div>
-                                </div>
-                                <div class="scholarship-meta-item">
-                                    <div class="scholarship-meta-label">Submitted</div>
-                                    <div class="scholarship-meta-value">${escapeHtml(formatScholarshipDate(application.created_at))}</div>
-                                </div>
-                            </div>
-                            <details class="scholarship-details">
-                                <summary>Review application statements</summary>
-                                <div class="scholarship-statement"><strong>Motivation</strong><br>${escapeHtml(application.motivation_statement || 'Not provided')}</div>
-                                <div class="scholarship-statement"><strong>Financial need</strong><br>${escapeHtml(application.financial_need_statement || 'Not provided')}</div>
-                                <div class="scholarship-statement"><strong>Career goals</strong><br>${escapeHtml(application.career_goals || 'Not provided')}</div>
-                            </details>
-                            <div class="scholarship-actions">
-                                <button class="review-btn approve" onclick="reviewFounderScholarship(${id}, 'approved', this)">Approve &amp; Grant Access</button>
-                                <button class="review-btn reject" onclick="reviewFounderScholarship(${id}, 'rejected', this)">Reject</button>
-                            </div>
-                        </article>
-                    `;
-                }).join('');
+                founderScholarshipApplications = data.applications || [];
+                renderFounderScholarships();
             } catch (error) {
                 list.innerHTML = `<div style="color:var(--danger);">${escapeHtml(error.message)}</div>`;
                 showToast(error.message);
@@ -2032,6 +2110,10 @@
                     throw new Error(data.error || data.msg || 'Review failed');
                 }
                 showToast(status === 'approved' ? 'Scholarship approved and access granted' : 'Scholarship rejected');
+                founderScholarshipFilter = status;
+                document.querySelectorAll('.scholarship-filter').forEach(filterButton => {
+                    filterButton.classList.toggle('active', filterButton.dataset.status === status);
+                });
                 await loadFounderScholarships();
             } catch (error) {
                 buttons.forEach(item => item.disabled = false);
