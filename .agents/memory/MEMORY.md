@@ -20,6 +20,7 @@
 - [KENO BDEX Pool](keno-bdex-pool.md) — KENO/WBOT pool live on BDEX mainnet 0x0E5CDa3A501010331774B3cdB66Fa15425c5D251; fee 3000; LP NFT #1077; seeded 500 KENO + 0.5 WBOT
 - [FAL BOT Chain deployment](fal-botchain.md) — FALPool + FALFlashArbBOT live on BOT Chain mainnet + testnet; V3 flash arb via BDEX; API at /api/falp/botchain/*
 - [Domain DNS setup](domain-dns-setup.md) — kenostodblockchain.com registered via Replit; Replit publish OVERWRITES DNS to their IP; fix is A @ → 216.24.57.1 (Render static IP); never use Replit publish button
+- [Production startup isolation](production-startup-isolation.md) — core database services must survive optional integration failures; Render needs DATABASE_URL and deploys GitHub main
 - [PancakeSwap Infinity Permit2](pancakeswap-infinity-permit2.md) — CLPositionManager uses Permit2 (not raw ERC-20 approve); missing allowance = 0xd81b2f2e AllowanceExpired; must approve Permit2 contract first then set permit2.approve(token, spender, amount, expiry)
 - [BOT Chain Scan verification](botchain-scan-verification.md) — Scan uses Blockscout; its edge blocks large standard-input uploads, while clean flattened-source submissions verify successfully.
 - [UTL stablecoin-first staking](utl-stablecoin-staking.md) — use a separate USDC pool while KENO liquidity matures; fund rewards from realized UTL fees only.
