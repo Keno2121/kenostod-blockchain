@@ -24,3 +24,4 @@
 - [PancakeSwap Infinity Permit2](pancakeswap-infinity-permit2.md) — CLPositionManager uses Permit2 (not raw ERC-20 approve); missing allowance = 0xd81b2f2e AllowanceExpired; must approve Permit2 contract first then set permit2.approve(token, spender, amount, expiry)
 - [BOT Chain Scan verification](botchain-scan-verification.md) — Scan uses Blockscout; its edge blocks large standard-input uploads, while clean flattened-source submissions verify successfully.
 - [UTL stablecoin-first staking](utl-stablecoin-staking.md) — use a separate USDC pool while KENO liquidity matures; fund rewards from realized UTL fees only.
+- [KENOx naming and status](kenox-superfluid.md) — spell the Polygon Superfluid wrapper KENOx, not KEENOx; keep it deferred and dormant pending the KENO v3 direction.
