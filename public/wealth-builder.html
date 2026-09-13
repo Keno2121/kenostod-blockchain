@@ -1668,14 +1668,39 @@
                 currentWallet = storedWallet;
                 console.log('📱 Restored wallet from storage:', currentWallet);
                 updateScholarshipWalletStatus();
+                await loadWealthDashboard();
             }
             
             if (window.ethereum) {
+                try {
+                    const authorizedAccounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (authorizedAccounts.length > 0) {
+                        const authorizedWallet = authorizedAccounts[0];
+                        if (!currentWallet || authorizedWallet.toLowerCase() === currentWallet.toLowerCase()) {
+                            currentWallet = authorizedWallet;
+                            isMetaMaskConnected = true;
+                            localStorage.setItem('userWalletAddress', currentWallet);
+                            localStorage.setItem('walletAddress', currentWallet);
+                            localStorage.setItem('userWallet', currentWallet);
+                            updateScholarshipWalletStatus();
+                            await loadWealthDashboard();
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not restore authorized wallet session:', error);
+                }
+
                 window.ethereum.on('accountsChanged', (accounts) => {
                     if (accounts.length === 0) {
-                        location.reload();
-                    } else if (accounts[0] !== currentWallet) {
+                        isMetaMaskConnected = false;
+                        updateScholarshipWalletStatus();
+                    } else if (!currentWallet || accounts[0].toLowerCase() !== currentWallet.toLowerCase()) {
                         currentWallet = accounts[0];
+                        isMetaMaskConnected = true;
+                        localStorage.setItem('userWalletAddress', currentWallet);
+                        localStorage.setItem('walletAddress', currentWallet);
+                        localStorage.setItem('userWallet', currentWallet);
+                        updateScholarshipWalletStatus();
                         loadWealthDashboard();
                     }
                 });

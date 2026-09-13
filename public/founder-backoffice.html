@@ -1631,19 +1631,19 @@
                     <h3 style="margin-bottom: 1rem;">Student Overview</h3>
                     <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
                         <div class="stat-card">
-                            <div class="stat-value gold">12,847</div>
+                            <div class="stat-value gold" id="founderTotalStudents">0</div>
                             <div class="stat-label">Total Students</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value" style="color: var(--success);">8,234</div>
+                            <div class="stat-value" id="founderActiveStudents" style="color: var(--success);">0</div>
                             <div class="stat-label">Active</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value" style="color: var(--diamond);">342</div>
+                            <div class="stat-value" id="founderGraduatedStudents" style="color: var(--diamond);">0</div>
                             <div class="stat-label">Graduated</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value" style="color: var(--protocol-purple);">4,271</div>
+                            <div class="stat-value" id="founderWealthBuilderStudents" style="color: var(--protocol-purple);">0</div>
                             <div class="stat-label">Wealth Builder</div>
                         </div>
                     </div>
@@ -1662,31 +1662,8 @@
                                 <th>Joined</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>0x7a23...8f4a</td>
-                                <td>Wealth Builder</td>
-                                <td>12/21</td>
-                                <td>3,000</td>
-                                <td><span class="status-badge active">● Active</span></td>
-                                <td>2 days ago</td>
-                            </tr>
-                            <tr>
-                                <td>0x3b91...2c7e</td>
-                                <td>Professional</td>
-                                <td>5/21</td>
-                                <td>1,250</td>
-                                <td><span class="status-badge active">● Active</span></td>
-                                <td>1 week ago</td>
-                            </tr>
-                            <tr>
-                                <td>0x9f45...1a8d</td>
-                                <td>Wealth Builder</td>
-                                <td>21/21</td>
-                                <td>5,250</td>
-                                <td><span class="status-badge active">● Graduated</span></td>
-                                <td>2 weeks ago</td>
-                            </tr>
+                        <tbody id="founderRecentStudents">
+                            <tr><td colspan="6" style="color:var(--text-muted);">Open the Students tab to load current records.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2009,6 +1986,8 @@
                     ? application.application_status
                     : 'pending';
                 const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                const coursesCompleted = Number(application.courses_completed || 0);
+                const kenoEarned = Number(application.keno_earned || 0);
                 const actions = status === 'pending'
                     ? `<div class="scholarship-actions">
                             <button class="review-btn approve" onclick="reviewFounderScholarship(${id}, 'approved', this)">Approve &amp; Grant Access</button>
@@ -2043,6 +2022,11 @@
                                 <div class="scholarship-meta-label">Submitted</div>
                                 <div class="scholarship-meta-value">${escapeHtml(formatScholarshipDate(application.created_at))}</div>
                             </div>
+                            ${status === 'approved' ? `
+                            <div class="scholarship-meta-item">
+                                <div class="scholarship-meta-label">Course progress</div>
+                                <div class="scholarship-meta-value">${coursesCompleted}/21 · ${kenoEarned.toLocaleString()} KENO pending v3</div>
+                            </div>` : ''}
                         </div>
                         <details class="scholarship-details">
                             <summary>Review application statements</summary>
@@ -2052,6 +2036,47 @@
                         </details>
                         ${actions}
                     </article>
+                `;
+            }).join('');
+        }
+
+        function renderFounderStudentOverview() {
+            const approved = founderScholarshipApplications.filter(
+                application => application.application_status === 'approved'
+            );
+            const graduated = approved.filter(application => Number(application.courses_completed || 0) >= 21);
+            const active = approved.filter(application => Number(application.courses_completed || 0) < 21);
+
+            document.getElementById('founderTotalStudents').textContent = founderScholarshipApplications.length.toLocaleString();
+            document.getElementById('founderActiveStudents').textContent = active.length.toLocaleString();
+            document.getElementById('founderGraduatedStudents').textContent = graduated.length.toLocaleString();
+            document.getElementById('founderWealthBuilderStudents').textContent = approved.length.toLocaleString();
+
+            const rows = [...approved]
+                .sort((a, b) => new Date(b.last_activity || b.created_at) - new Date(a.last_activity || a.created_at))
+                .slice(0, 10);
+            const tableBody = document.getElementById('founderRecentStudents');
+            if (!rows.length) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);">No approved Wealth Builder students yet.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = rows.map(application => {
+                const wallet = application.applicant_wallet_address || 'Not provided';
+                const displayWallet = wallet.startsWith('0x') && wallet.length === 42
+                    ? `${wallet.slice(0, 6)}...${wallet.slice(-4)}`
+                    : wallet;
+                const completed = Number(application.courses_completed || 0);
+                const graduatedStatus = completed >= 21;
+                return `
+                    <tr>
+                        <td title="${escapeHtml(wallet)}">${escapeHtml(displayWallet)}</td>
+                        <td>Wealth Builder</td>
+                        <td>${completed}/21</td>
+                        <td>${Number(application.keno_earned || 0).toLocaleString()}</td>
+                        <td><span class="status-badge active">● ${graduatedStatus ? 'Graduated' : 'Active'}</span></td>
+                        <td>${escapeHtml(formatScholarshipDate(application.last_activity || application.created_at))}</td>
+                    </tr>
                 `;
             }).join('');
         }
@@ -2077,6 +2102,7 @@
 
                 founderScholarshipApplications = data.applications || [];
                 renderFounderScholarships();
+                renderFounderStudentOverview();
             } catch (error) {
                 list.innerHTML = `<div style="color:var(--danger);">${escapeHtml(error.message)}</div>`;
                 showToast(error.message);
@@ -2150,6 +2176,7 @@
                     throw new Error(data.error || 'Could not restore course completion');
                 }
                 showToast(`Course ${courseId} completion restored`);
+                await loadFounderScholarships();
             } catch (error) {
                 showToast(error.message);
             } finally {
