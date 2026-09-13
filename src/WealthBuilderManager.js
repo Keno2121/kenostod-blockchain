@@ -629,7 +629,15 @@ class WealthBuilderManager {
             const rewardsResult = await this.db.query(`
                 SELECT COALESCE(SUM(reward_amount), 0) as total_rewards
                 FROM student_rewards
-                WHERE LOWER(user_wallet_address) = $1 AND (status = 'available' OR status = 'claimed')
+                WHERE LOWER(user_wallet_address) = $1
+                AND status IN (
+                    'available',
+                    'claimed',
+                    'pending',
+                    'pending_v3',
+                    'locked_scholarship',
+                    'distributed'
+                )
             `, [normalizedWallet]);
 
             const rvtResult = await this.db.query(`
@@ -720,15 +728,31 @@ class WealthBuilderManager {
 
     async getScholarshipApplications(status = null) {
         try {
-            let query = 'SELECT * FROM scholarship_applications';
+            let query = `
+                SELECT
+                    sa.*,
+                    COALESCE(progress.courses_completed, 0)::INTEGER AS courses_completed,
+                    COALESCE(progress.keno_earned, 0)::NUMERIC AS keno_earned,
+                    progress.last_activity
+                FROM scholarship_applications sa
+                LEFT JOIN LATERAL (
+                    SELECT
+                        COUNT(DISTINCT sr.course_id) AS courses_completed,
+                        COALESCE(SUM(sr.reward_amount), 0) AS keno_earned,
+                        MAX(sr.created_at) AS last_activity
+                    FROM student_rewards sr
+                    WHERE LOWER(sr.user_wallet_address) = LOWER(sa.applicant_wallet_address)
+                    AND sr.reward_type = 'course_completion'
+                ) progress ON TRUE
+            `;
             let params = [];
             
             if (status) {
-                query += ' WHERE application_status = $1';
+                query += ' WHERE sa.application_status = $1';
                 params.push(status);
             }
             
-            query += ' ORDER BY created_at DESC';
+            query += ' ORDER BY sa.created_at DESC';
             
             const result = await this.db.query(query, params);
 

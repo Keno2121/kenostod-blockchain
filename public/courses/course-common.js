@@ -215,8 +215,23 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // Credit KENO reward for course completion
-    async function creditCourseReward(courseId, courseName) {
+    const pendingCourseRewards = new Map();
+
+    // Credit KENO reward for course completion once, even when a course page and
+    // the shared localStorage listener both detect the same passing exam.
+    function creditCourseReward(courseId, courseName) {
+        const completionKey = String(courseId);
+        if (pendingCourseRewards.has(completionKey)) {
+            return pendingCourseRewards.get(completionKey);
+        }
+
+        const request = creditCourseRewardOnce(courseId, courseName)
+            .finally(() => pendingCourseRewards.delete(completionKey));
+        pendingCourseRewards.set(completionKey, request);
+        return request;
+    }
+
+    async function creditCourseRewardOnce(courseId, courseName) {
         const walletAddress = getConnectedWallet();
         const enrolledStudent = getEnrolledStudent();
         
@@ -288,12 +303,16 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
             const result = await response.json();
             
             if (result.success) {
+                sessionStorage.setItem(`course${courseId}_keno_credited`, 'true');
                 showRewardSuccessModal(walletAddress, courseName);
                 return { success: true };
             } else {
                 console.warn('Reward not credited:', result.error);
                 if (result.error && result.error.includes('already')) {
+                    sessionStorage.setItem(`course${courseId}_keno_credited`, 'true');
                     showToast('Course already completed!', 'info');
+                } else {
+                    showToast(result.error || 'Course passed, but progress was not saved. Please try again.', 'error');
                 }
                 return { success: false, reason: result.error };
             }
@@ -509,7 +528,6 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
             // Check if we haven't already credited this course in this session
             const creditedKey = `course${courseId}_keno_credited`;
             if (!sessionStorage.getItem(creditedKey)) {
-                sessionStorage.setItem(creditedKey, 'true');
                 creditCourseReward(courseId, courseName);
             }
         }
