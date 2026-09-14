@@ -40,6 +40,35 @@ describe("KenostodTokenV3", function () {
     expect(await token.balanceOf(user.address)).to.equal(amount);
   });
 
+  it("lets holders burn tokens and reduces reported total supply", async function () {
+    const { token, treasury } = await deployFixture();
+    const amount = ethers.parseEther("100");
+    const initialSupply = await token.totalSupply();
+
+    await token.connect(treasury).burn(amount);
+
+    expect(await token.balanceOf(treasury.address)).to.equal(
+      initialSupply - amount
+    );
+    expect(await token.totalSupply()).to.equal(initialSupply - amount);
+  });
+
+  it("supports approved burns without giving the owner seizure power", async function () {
+    const { token, owner, treasury, user } = await deployFixture();
+    const amount = ethers.parseEther("25");
+    const initialSupply = await token.totalSupply();
+
+    await expect(
+      token.connect(owner).burnFrom(treasury.address, amount)
+    ).to.be.revertedWithCustomError(token, "ERC20InsufficientAllowance");
+
+    await token.connect(treasury).approve(user.address, amount);
+    await token.connect(user).burnFrom(treasury.address, amount);
+
+    expect(await token.totalSupply()).to.equal(initialSupply - amount);
+    expect(await token.allowance(treasury.address, user.address)).to.equal(0);
+  });
+
   it("lets only the owner pause and unpause transfers", async function () {
     const { token, owner, treasury, user } = await deployFixture();
 
@@ -70,6 +99,21 @@ describe("KenostodTokenV3", function () {
       token
         .connect(user)
         .transferFrom(treasury.address, nextOwner.address, amount)
+    ).to.be.revertedWithCustomError(token, "EnforcedPause");
+  });
+
+  it("blocks direct and allowance-based burns while paused", async function () {
+    const { token, owner, treasury, user } = await deployFixture();
+    const amount = ethers.parseEther("10");
+
+    await token.connect(treasury).approve(user.address, amount);
+    await token.connect(owner).pause();
+
+    await expect(
+      token.connect(treasury).burn(amount)
+    ).to.be.revertedWithCustomError(token, "EnforcedPause");
+    await expect(
+      token.connect(user).burnFrom(treasury.address, amount)
     ).to.be.revertedWithCustomError(token, "EnforcedPause");
   });
 

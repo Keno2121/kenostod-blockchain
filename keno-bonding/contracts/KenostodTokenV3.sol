@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {ERC20Pausable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
@@ -14,13 +15,14 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
  * - The entire fixed supply is minted once during construction.
  * - There is no external mint function.
  * - There is no blacklist, clawback, seizure, or forced-transfer function.
+ * - Holders may permanently burn their own tokens or an approved allowance.
  * - The owner may pause transfers during a documented emergency.
  * - Ownership transfers require acceptance by the proposed new owner.
  *
  * The initial owner should be a Safe multisig when one is available. The
  * deployer does not automatically receive ownership or token supply.
  */
-contract KenostodTokenV3 is ERC20, ERC20Pausable, Ownable2Step {
+contract KenostodTokenV3 is ERC20, ERC20Burnable, ERC20Pausable, Ownable2Step {
     uint256 public constant MAX_SUPPLY = 1_000_000_000 ether;
 
     error DeployerCannotBeOwner();
