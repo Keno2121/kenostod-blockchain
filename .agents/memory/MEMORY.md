@@ -25,3 +25,4 @@
 - [BOT Chain Scan verification](botchain-scan-verification.md) — Scan uses Blockscout; its edge blocks large standard-input uploads, while clean flattened-source submissions verify successfully.
 - [UTL stablecoin-first staking](utl-stablecoin-staking.md) — use a separate USDC pool while KENO liquidity matures; fund rewards from realized UTL fees only.
 - [KENOx naming and status](kenox-superfluid.md) — spell the Polygon Superfluid wrapper KENOx, not KEENOx; keep it deferred and dormant pending the KENO v3 direction.
+- [KENO v3 governance rules](keno-v3-governance.md) — fixed non-upgradeable supply with true burns and emergency pause; protected single-wallet custody is temporary pending separate multisigs.

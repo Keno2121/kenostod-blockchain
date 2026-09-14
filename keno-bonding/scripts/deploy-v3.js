@@ -4,6 +4,8 @@ const { ethers, network } = require("hardhat");
 
 const COMPROMISED_WALLET =
   "0xC20b9a51BdedBd21CBE28E68c1089438D21c8cf2";
+const TEMPORARY_PROTECTED_WALLET =
+  "0xdc063e18a9d2845ca5489086bae4a1ce3d8410b3";
 
 function requiredAddress(name) {
   const value = process.env[name];
@@ -23,8 +25,12 @@ async function main() {
   const owner = requiredAddress("KENO_V3_OWNER_ADDRESS");
   const supplyRecipient = requiredAddress("KENO_V3_SUPPLY_RECIPIENT");
   const compromised = ethers.getAddress(COMPROMISED_WALLET);
+  const temporaryProtectedWallet = ethers.getAddress(
+    TEMPORARY_PROTECTED_WALLET
+  );
   const [deployer] = await ethers.getSigners();
   const deployerAddress = await deployer.getAddress();
+  const chainId = Number((await ethers.provider.getNetwork()).chainId);
 
   for (const [role, address] of [
     ["deployer", deployerAddress],
@@ -42,6 +48,19 @@ async function main() {
     );
   }
 
+  // Mainnet launch rule approved for the initial v3 migration: the protected
+  // wallet temporarily controls ownership and receives supply. Ownership can
+  // later move through Ownable2Step when a Safe multisig is ready.
+  if (
+    chainId === 56 &&
+    (owner !== temporaryProtectedWallet ||
+      supplyRecipient !== temporaryProtectedWallet)
+  ) {
+    throw new Error(
+      "BSC mainnet owner and supply recipient must both be the approved temporary protected wallet"
+    );
+  }
+
   console.log(`Network: ${network.name}`);
   console.log(`Deployer: ${deployerAddress}`);
   console.log(`Owner: ${owner}`);
@@ -54,8 +73,6 @@ async function main() {
   const address = await token.getAddress();
   const deploymentTx = token.deploymentTransaction();
   const receipt = await deploymentTx.wait();
-  const chainId = Number((await ethers.provider.getNetwork()).chainId);
-
   const record = {
     contract: "KenostodTokenV3",
     address,
