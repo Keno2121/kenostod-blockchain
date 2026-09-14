@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const allocationPlan = require("../config/keno-v3-allocation.json");
 
 describe("KenostodTokenV3", function () {
   async function deployFixture() {
@@ -11,6 +12,52 @@ describe("KenostodTokenV3", function () {
 
     return { token, deployer, owner, treasury, user, nextOwner };
   }
+
+  it("keeps the approved allocation ledger equal to the fixed supply", async function () {
+    const allocated = allocationPlan.allocations.reduce(
+      (total, allocation) => total + allocation.amountKeno,
+      0
+    );
+    const percentage = allocationPlan.allocations.reduce(
+      (total, allocation) => total + allocation.percentage,
+      0
+    );
+
+    expect(allocated).to.equal(allocationPlan.totalSupplyKeno);
+    expect(allocated).to.equal(1_000_000_000);
+    expect(percentage).to.equal(100);
+  });
+
+  it("keeps confirmed contributor obligations within their approved bucket", async function () {
+    const contributorBucket = allocationPlan.allocations.find(
+      (allocation) => allocation.id === "marketing-contributors"
+    );
+    const confirmedObligations =
+      allocationPlan.confirmedContributorObligations.reduce(
+        (total, obligation) => total + obligation.amountKeno,
+        0
+      );
+
+    expect(contributorBucket).to.not.equal(undefined);
+    expect(confirmedObligations).to.equal(100_000);
+    expect(confirmedObligations).to.be.at.most(
+      contributorBucket.amountKeno
+    );
+  });
+
+  it("does not treat the provisional migration reserve as a completed snapshot", async function () {
+    const migrationBucket = allocationPlan.allocations.find(
+      (allocation) => allocation.id === "v2-migration"
+    );
+
+    expect(migrationBucket.amountKeno).to.equal(100_000_000);
+    expect(allocationPlan.migrationPolicy.ratio).to.equal("1:1");
+    expect(allocationPlan.migrationPolicy.claimPeriodMonths).to.equal(12);
+    expect(allocationPlan.migrationPolicy.snapshotBlock).to.equal(null);
+    expect(allocationPlan.migrationPolicy.snapshotStatus).to.equal(
+      "pending-forensic-verification"
+    );
+  });
 
   it("mints the fixed supply once to the chosen recipient", async function () {
     const { token, deployer, owner, treasury } = await deployFixture();
