@@ -1,6 +1,6 @@
 # KENO v3 Allocation and Migration Policy
 
-Approved September 13, 2026.
+Approved September 14, 2026.
 
 This document replaces conflicting v1 and v2 allocation proposals. It does not deploy KENO v3, distribute tokens, or declare the holder snapshot complete. The machine-readable source is `config/keno-v3-allocation.json`.
 
@@ -35,7 +35,19 @@ These obligations are recorded as pending KENO v3. No v2 payment should be subst
 
 - Each verified course completion earns 250 KENO.
 - The 21-course maximum is 5,250 KENO per graduate.
-- Existing database rewards remain pending v3 until distribution is authorized.
+- Rewards accumulate as courses are verified.
+- The accumulated reward becomes transferable at verified graduation and is fully unlocked at that point.
+- Existing database rewards remain pending v3 until graduation and distribution are authorized.
+
+## Release and vesting rules
+
+- Eligible v2 migration claims are fully unlocked.
+- The 70 million KENO team and development allocation has no launch unlock and vests linearly over 12 months.
+- Initial protocol-owned LP positions must remain locked for at least 12 months.
+- Confirmed contributor compensation is fully unlocked after beneficiary and payment verification.
+- The treasury wallet may release infrastructure, ecosystem and partnership, treasury and contingency, and node and security allocations at its discretion. These buckets have no fixed release schedule and do not require a fixed approval record.
+
+The discretionary treasury rule does not override the compromised-wallet prohibition, beneficiary verification, migration exclusions, or the required LP lock.
 
 ## v2 migration policy
 
@@ -68,7 +80,7 @@ An address must not be excluded merely because it received tokens after the comp
 6. Publish the proposed eligible ledger and total.
 7. Independently reproduce the Merkle root.
 8. Confirm the eligible total fits within the migration reserve.
-9. Approve vesting and custody rules for all non-migration buckets.
+9. Implement the approved 12-month team vesting and minimum 12-month LP lock before distributing those buckets.
 10. Verify beneficiary wallets without publishing private identifying information.
 
 ## Superseded proposals
