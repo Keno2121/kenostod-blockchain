@@ -59,6 +59,31 @@ describe("KenostodTokenV3", function () {
     );
   });
 
+  it("records the approved reward and release controls", async function () {
+    expect(allocationPlan.rewardPolicy.transferableAt).to.equal(
+      "verified-graduation"
+    );
+    expect(
+      allocationPlan.releasePolicy.teamDevelopment.launchUnlockPercentage
+    ).to.equal(0);
+    expect(
+      allocationPlan.releasePolicy.teamDevelopment.vestingMonths
+    ).to.equal(12);
+    expect(
+      allocationPlan.releasePolicy.initialProtocolOwnedLiquidity
+        .minimumLpLockMonths
+    ).to.equal(12);
+    expect(
+      allocationPlan.releasePolicy.confirmedContributorCompensation.release
+    ).to.equal(
+      "Fully unlocked after beneficiary and payment verification"
+    );
+    expect(
+      allocationPlan.releasePolicy.treasuryControlledProgramBuckets
+        .fixedApprovalRecordRequired
+    ).to.equal(false);
+  });
+
   it("mints the fixed supply once to the chosen recipient", async function () {
     const { token, deployer, owner, treasury } = await deployFixture();
     const supply = ethers.parseEther("1000000000");
