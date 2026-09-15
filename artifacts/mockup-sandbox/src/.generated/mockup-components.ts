@@ -2,10 +2,6 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/fal-arbitrage-loans/FalArbitrageLoans.tsx": () => import("../components/mockups/fal-arbitrage-loans/FalArbitrageLoans.tsx"),
-  "./components/mockups/keno-token/InversionPillar.tsx": () => import("../components/mockups/keno-token/InversionPillar.tsx"),
-  "./components/mockups/keno-token/KenoEmblem.tsx": () => import("../components/mockups/keno-token/KenoEmblem.tsx"),
-  "./components/mockups/keno-token/NonagonPrism.tsx": () => import("../components/mockups/keno-token/NonagonPrism.tsx"),
-  "./components/mockups/keno-token/SovereignMandala.tsx": () => import("../components/mockups/keno-token/SovereignMandala.tsx"),
   "./components/mockups/kenostod-promo/KenostodPromo.tsx": () => import("../components/mockups/kenostod-promo/KenostodPromo.tsx"),
   "./components/mockups/sagas/SagaI.tsx": () => import("../components/mockups/sagas/SagaI.tsx"),
   "./components/mockups/sagas/SagaII.tsx": () => import("../components/mockups/sagas/SagaII.tsx"),
@@ -29,5 +25,9 @@ export const modules: ModuleMap = {
   "./components/mockups/kenostod-promo/scenes/Scene3.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene3.tsx"),
   "./components/mockups/kenostod-promo/scenes/Scene4.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene4.tsx"),
   "./components/mockups/kenostod-promo/scenes/Scene5.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene5.tsx"),
-  "./components/mockups/kenostod-promo/scenes/Scene6.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene6.tsx")
+  "./components/mockups/kenostod-promo/scenes/Scene6.tsx": () => import("../components/mockups/kenostod-promo/scenes/Scene6.tsx"),
+  "./components/mockups/keno-token/InversionPillar.tsx": () => import("../components/mockups/keno-token/InversionPillar.tsx"),
+  "./components/mockups/keno-token/KenoEmblem.tsx": () => import("../components/mockups/keno-token/KenoEmblem.tsx"),
+  "./components/mockups/keno-token/NonagonPrism.tsx": () => import("../components/mockups/keno-token/NonagonPrism.tsx"),
+  "./components/mockups/keno-token/SovereignMandala.tsx": () => import("../components/mockups/keno-token/SovereignMandala.tsx")
 };
