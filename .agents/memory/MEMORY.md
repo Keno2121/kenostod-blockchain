@@ -3,6 +3,7 @@
 - [Jupiter API endpoints](jupiter-api.md) — Use api.jup.ag/swap/v1/quote not quote-api.jup.ag/v6; SOLANA_NETWORK must be "mainnet" not "mainnet-beta"
 - [KENO v2 deployment](keno-v2-deployment.md) — v2 live on BSC; old v1 wallets all pointed to compromised deployer; v2 fixes all that
 - [BSC deployment gotchas](bsc-deploy-gotchas.md) — BSC gas is ~0.05 gwei; DEPLOYER_PRIVATE_KEY = 0x074c wallet with BNB; ankr requires auth; ethers waitForDeployment hangs — use manual poll; Replit secrets NOT available in child_process unless server restarted AND secret existed before start — run deploy from bash shell directly instead
+- [BSC historical forensics](bsc-historical-forensics.md) — public RPCs may return null for valid old receipts; NodeReal archive RPC plus async holder snapshots support reproducible historical ledgers.
 - [KENOAutoBurn contract](keno-autoburn.md) — LIVE on BSC `0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79`; owner = bot wallet 0xC20b9a51...; deployed by 0x074c via DEPLOYER_PRIVATE_KEY; record at keno-bonding/deployments/bsc-autoburn.json
 - [PancakeSwap V2 vs V4 plan](pancakeswap-v2-v4.md) — Presale lists on V2; upgrade to V4 + UTL Hook after volume hits $50k/month
 - [QCT Queens Chariot](qct-deployment.md) — LIVE on Base `0x137a5Fc22a76Ec42490F2421a81935d124baE714`; use `QCT_DEPLOYER_KEY` secret for Base signing (KENO_WALLET_PRIVATE_KEY is the address not the key)

@@ -7,7 +7,7 @@ Use the approved balanced nine-bucket allocation rather than the obsolete v1 sal
 
 **Why:** Earlier tokenomics documents conflict and do not account safely for the wallet compromise or current Infrastructure-as-a-Service direction.
 
-Eligible v2 balances migrate 1:1 from the last proven safe pre-compromise block. Review legitimate later activity separately, keep claims open for 12 months, and reconcile publicly before unused reserves return to treasury.
+Eligible v2 balances migrate 1:1 from the last KENO token-balance block before the direct drain. This is not the start of the compromise because LP theft began earlier. Review legitimate later activity separately, keep claims open for 12 months, and reconcile publicly before unused reserves return to treasury.
 
 **Why:** This honors legitimate holders without allocating v3 to compromised, theft-path, dead, uncirculated reserve, or obsolete-contract balances.
 

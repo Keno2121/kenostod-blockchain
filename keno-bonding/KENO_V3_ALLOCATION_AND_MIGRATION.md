@@ -19,7 +19,7 @@ This document replaces conflicting v1 and v2 allocation proposals. It does not d
 | Node and security rewards | 20,000,000 | 2% |
 | **Total** | **1,000,000,000** | **100%** |
 
-The migration reserve is a provisional maximum bucket, not proof that 100 million v2 tokens are eligible. The final eligible amount must come from the audited snapshot. If legitimate eligible balances exceed the reserve, the allocation must be amended before deployment.
+The forensic snapshot and post-drain review established 12 eligible claims totaling 120,179.036781891396883226 KENO. The claims fit within the 100 million KENO migration reserve. Full evidence is in `migration/KENO_V2_FORENSIC_REPORT.md`.
 
 ## Confirmed contributor obligations
 
@@ -52,7 +52,7 @@ The discretionary treasury rule does not override the compromised-wallet prohibi
 ## v2 migration policy
 
 - Conversion ratio: 1 eligible KENO v2 to 1 KENO v3.
-- Primary snapshot: the last proven safe BSC block before the September 3, 2026 compromise.
+- Primary snapshot: BSC block 119,792,272, the last KENO token-balance block before the direct drain. LP theft began 25 blocks earlier, so this is not described as the start of the compromise.
 - Legitimate post-compromise purchases and transfers receive separate documented review.
 - Migration balances are fully unlocked.
 - Claims remain open for 12 months.
@@ -72,16 +72,21 @@ An address must not be excluded merely because it received tokens after the comp
 
 ## Required evidence before claims or distributions
 
-1. Identify the exact compromise transaction sequence.
-2. Prove the last safe pre-compromise block.
-3. Reconstruct v2 balances at that block.
-4. Classify project, liquidity, dead, compromised, theft-path, and externally held balances.
-5. Review legitimate post-compromise activity.
-6. Publish the proposed eligible ledger and total.
-7. Independently reproduce the Merkle root.
-8. Confirm the eligible total fits within the migration reserve.
-9. Implement the approved 12-month team vesting and minimum 12-month LP lock before distributing those buckets.
-10. Verify beneficiary wallets without publishing private identifying information.
+Completed forensic work:
+
+1. Identified the compromise transaction sequence.
+2. Proved the last safe token-balance block.
+3. Reconstructed and independently checked v2 balances.
+4. Classified project, liquidity, dead, compromised, and external balances.
+5. Reviewed post-compromise activity.
+6. Generated the eligible ledger and Merkle root.
+7. Confirmed claims fit within the migration reserve.
+
+Before distribution:
+
+1. Publish the eligible ledger, root, and dispute process.
+2. Implement the approved 12-month team vesting and minimum 12-month LP lock.
+3. Verify beneficiary wallets without publishing private identifying information.
 
 ## Superseded proposals
 

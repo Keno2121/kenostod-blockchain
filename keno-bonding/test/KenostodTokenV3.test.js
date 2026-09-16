@@ -1,6 +1,9 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const allocationPlan = require("../config/keno-v3-allocation.json");
+const forensicSnapshot = require("../migration/v2-forensic-snapshot.json");
+const rawHolderSnapshot = require("../migration/evidence/holders-119792272.json");
+const criticalEvidence = require("../migration/evidence/critical-chain-evidence.json");
 
 describe("KenostodTokenV3", function () {
   async function deployFixture() {
@@ -45,7 +48,7 @@ describe("KenostodTokenV3", function () {
     );
   });
 
-  it("does not treat the provisional migration reserve as a completed snapshot", async function () {
+  it("records the verified migration snapshot without exceeding its reserve", async function () {
     const migrationBucket = allocationPlan.allocations.find(
       (allocation) => allocation.id === "v2-migration"
     );
@@ -53,9 +56,15 @@ describe("KenostodTokenV3", function () {
     expect(migrationBucket.amountKeno).to.equal(100_000_000);
     expect(allocationPlan.migrationPolicy.ratio).to.equal("1:1");
     expect(allocationPlan.migrationPolicy.claimPeriodMonths).to.equal(12);
-    expect(allocationPlan.migrationPolicy.snapshotBlock).to.equal(null);
+    expect(allocationPlan.migrationPolicy.snapshotBlock).to.equal(
+      119_792_272
+    );
     expect(allocationPlan.migrationPolicy.snapshotStatus).to.equal(
-      "pending-forensic-verification"
+      "forensically-verified"
+    );
+    expect(allocationPlan.migrationPolicy.eligibleClaimCount).to.equal(12);
+    expect(allocationPlan.migrationPolicy.merkleRoot).to.equal(
+      forensicSnapshot.merkle.root
     );
   });
 
@@ -82,6 +91,65 @@ describe("KenostodTokenV3", function () {
       allocationPlan.releasePolicy.treasuryControlledProgramBuckets
         .fixedApprovalRecordRequired
     ).to.equal(false);
+  });
+
+  it("keeps verified v2 claims within the migration reserve", async function () {
+    const eligibleTotal = forensicSnapshot.eligibleClaims.reduce(
+      (total, claim) => total + BigInt(claim.amountRaw),
+      0n
+    );
+    const reserve = BigInt(forensicSnapshot.totals.migrationReserveRaw);
+
+    expect(eligibleTotal.toString()).to.equal(
+      forensicSnapshot.totals.eligibleMigrationRaw
+    );
+    expect(eligibleTotal).to.be.lessThan(reserve);
+    expect(forensicSnapshot.snapshot.blockNumber).to.equal(119_792_272);
+    expect(forensicSnapshot.eligibleClaims).to.have.length(12);
+  });
+
+  it("excludes compromised and project-controlled v2 balances", async function () {
+    const excludedCategories = new Set(
+      forensicSnapshot.classifications
+        .filter((holder) => !holder.eligible)
+        .map((holder) => holder.category)
+    );
+
+    expect(excludedCategories).to.include("compromised-project-wallet");
+    expect(excludedCategories).to.include(
+      "undistributed-fjord-project-inventory"
+    );
+    expect(excludedCategories).to.include(
+      "compromised-wallet-staking-position"
+    );
+    expect(excludedCategories).to.include("project-liquidity-pool");
+    expect(excludedCategories).to.include("dead-address");
+  });
+
+  it("reconciles retained primary evidence with the classified supply", async function () {
+    const rawSupply = rawHolderSnapshot.holders.reduce(
+      (total, holder) => total + BigInt(holder.balance),
+      0n
+    );
+    const classifiedSupply = forensicSnapshot.classifications.reduce(
+      (total, holder) => total + BigInt(holder.balanceRaw),
+      0n
+    );
+
+    expect(rawHolderSnapshot.blockNumber).to.equal(
+      forensicSnapshot.snapshot.blockNumber
+    );
+    expect(rawSupply.toString()).to.equal(forensicSnapshot.totalSupplyRaw);
+    expect(classifiedSupply).to.equal(rawSupply);
+    expect(
+      criticalEvidence.pinksaleCalls.purchasedOf.resultRaw
+    ).to.equal(
+      forensicSnapshot.additionalObligations[0].amountRaw
+    );
+    expect(criticalEvidence.stakingCalls.getStakerCount.result).to.equal(1);
+    expect(
+      criticalEvidence.postCompromiseTransferScan.reviewedExternalAcquisitions
+    ).to.have.length(2);
   });
 
   it("mints the fixed supply once to the chosen recipient", async function () {
