@@ -186,9 +186,17 @@ app.use(cors({
     credentials: true
 }));
 
+// Security: SESSION_SECRET is required. Never fall back to a hardcoded
+// secret — the fallback value was previously committed to a public repo.
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+    console.error('FATAL: SESSION_SECRET environment variable is not set. Refusing to start.');
+    process.exit(1);
+}
+
 // Session middleware for admin authentication
 app.use(session({
-    secret: process.env.SESSION_SECRET || process.env.ADMIN_PASSWORD || '***REMOVED***',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
