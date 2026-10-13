@@ -8449,6 +8449,71 @@ app.get('/api/course/progress/load/:identifier/:courseId', async (req, res) => {
     }
 });
 
+// Record a course visit (powers the homepage "Continue Learning" card).
+// Touches updated_at only — never overwrites section progress.
+app.post('/api/course/progress/visit', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'Database unavailable' });
+    try {
+        const { identifier, courseId } = req.body;
+        if (!identifier || !courseId) return res.status(400).json({ error: 'identifier and courseId required' });
+
+        const isEmail = identifier.includes('@');
+        const walletCol = isEmail ? null : identifier;
+        const emailCol  = isEmail ? identifier : null;
+
+        await dbConnection.query(`
+            INSERT INTO course_progress
+                (user_wallet_address, user_email, course_id, section_data, sections_completed, total_sections, time_spent_seconds, completion_verified, updated_at)
+            VALUES ($1, $2, $3, '{}'::jsonb, 0, 0, 0, false, NOW())
+            ON CONFLICT (user_wallet_address, course_id)
+            DO UPDATE SET updated_at = NOW()
+        `, [
+            walletCol || 'guest_' + emailCol,
+            emailCol,
+            courseId
+        ]);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error recording course visit:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Most recently active course for an identifier (powers the homepage "Continue Learning" card).
+app.get('/api/course/progress/last-active/:identifier', async (req, res) => {
+    if (!dbConnection) return res.status(503).json({ error: 'Database unavailable' });
+    try {
+        const { identifier } = req.params;
+        const isEmail = identifier.includes('@');
+
+        const result = await dbConnection.query(`
+            SELECT course_id, sections_completed, total_sections, time_spent_seconds, updated_at
+            FROM course_progress
+            WHERE LOWER(user_wallet_address) = LOWER($1)
+               OR LOWER(user_email) = LOWER($1)
+               OR LOWER(user_wallet_address) = LOWER($2)
+            ORDER BY updated_at DESC
+            LIMIT 1
+        `, [identifier, isEmail ? 'guest_' + identifier : identifier]);
+
+        if (result.rows.length === 0) return res.json({ found: false });
+
+        const row = result.rows[0];
+        res.json({
+            found: true,
+            courseId: row.course_id,
+            sectionsCompleted: row.sections_completed || 0,
+            totalSections: row.total_sections || 0,
+            timeSpent: row.time_spent_seconds || 0,
+            lastActive: row.updated_at
+        });
+    } catch (error) {
+        console.error('Error loading last-active course:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Trigger scholarship graduation (ADMIN ONLY — unlocks KENO + creates graduate record + flags card activation)
 app.post('/api/graduates/scholarship/graduate', async (req, res) => {
     if (!wealthBuilderManager || !dbConnection) {

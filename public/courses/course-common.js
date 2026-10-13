@@ -585,7 +585,22 @@ if (typeof window !== 'undefined' && !window.__apiRouted) {
         const courseMatch = window.location.pathname.match(/course-(\d+)/);
         if (!courseMatch) return;
         const courseId = parseInt(courseMatch[1]);
-        
+
+        // --- Continue Learning card: record last-visited course ---
+        // localStorage = instant resume on this device; server beacon = cross-device.
+        try {
+            localStorage.setItem('kenostod_last_course', JSON.stringify({ courseId: courseId, at: Date.now() }));
+        } catch(e) {}
+        (function beaconCourseVisit() {
+            const identifier = getIdentifier();
+            if (!identifier) return;
+            fetch('/api/course/progress/visit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: identifier, courseId: courseId })
+            }).catch(() => {}); // best-effort; localStorage is the fallback
+        })();
+
         const sections = document.querySelectorAll('.lesson-section, section[id]');
         if (sections.length === 0) return;
         

@@ -165,6 +165,123 @@
                 <a href="https://pancakeswap.finance/swap?outputCurrency=0x48bb049afe50b050b458624dc6233acd51024ab4&chain=bsc" target="_blank" style="background: linear-gradient(135deg, #1fc7d4 0%, #0891b2 100%); color: #000; padding: 14px 28px; border-radius: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(31, 199, 212, 0.4); transition: all 0.3s ease; display: inline-block; border: 3px solid #0e7490; font-size: 1.05rem;">🥞 Buy on PancakeSwap</a>
                 <button onclick="addKenoToMetaMask()" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 14px 28px; border-radius: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3); transition: all 0.3s ease; display: inline-block; border: 3px solid #c2410c; font-size: 1.05rem; cursor: pointer;">🦊 Add KENO to MetaMask</button>
             </div>
+
+            <!-- Continue Learning card: shown only when we know the student's last course -->
+            <div id="continue-learning-card" style="display: none; max-width: 720px; margin: 28px auto 0; padding: 0 20px;">
+                <a id="continue-learning-link" href="#" style="display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(59,130,246,0.15)); border: 2px solid #10b981; border-radius: 16px; padding: 18px 22px; text-decoration: none; box-shadow: 0 4px 20px rgba(16,185,129,0.25);">
+                    <div id="continue-learning-emoji" style="font-size: 2rem;">📍</div>
+                    <div style="flex: 1; text-align: left; min-width: 0;">
+                        <div id="continue-learning-kicker" style="color: #6ee7b7; font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px;">CONTINUE LEARNING</div>
+                        <div id="continue-learning-title" style="color: #fff; font-size: 1.15rem; font-weight: 700; margin-bottom: 6px;">Your course</div>
+                        <div id="continue-learning-bar" style="background: #1e293b; border-radius: 10px; height: 8px; overflow: hidden;">
+                            <div id="continue-learning-fill" style="height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6); border-radius: 10px; width: 0%; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div id="continue-learning-sub" style="color: #94a3b8; font-size: 12px; margin-top: 6px;"></div>
+                    </div>
+                    <div id="continue-learning-cta" style="color: #10b981; font-size: 1.1rem; font-weight: 700; white-space: nowrap;">Resume →</div>
+                </a>
+            </div>
+            <script>
+            (function initContinueLearning() {
+                // Route /api/ calls to the Node server (same routing as course pages)
+                if (!window.__apiRouted) {
+                    window.__apiRouted = true;
+                    var _origFetch = window.fetch.bind(window);
+                    window.fetch = function(url, opts) {
+                        if (typeof url === 'string' && url.startsWith('/api/')) {
+                            url = 'https://kenostod-blockchain.onrender.com' + url;
+                        }
+                        return _origFetch(url, opts);
+                    };
+                }
+
+                var COURSE_SLUGS = {1:'wallet-basics',2:'transactions',3:'reversal',4:'scheduled',5:'recovery',6:'messages',7:'reputation',8:'governance',9:'pow',10:'porv',11:'rvt',12:'enterprise',13:'royalties',14:'merchant',15:'banking',16:'exchange',17:'finance',18:'fal',19:'falp',20:'wealth',21:'generational'};
+                var COURSE_NAMES = {1:'Course 1: Wallet Management & Cryptography',2:'Course 2: Transactions & Digital Signatures',3:'Course 3: Transaction Reversal',4:'Course 4: Scheduled Transactions',5:'Course 5: Social Recovery',6:'Course 6: Encrypted Messages',7:'Course 7: Reputation System',8:'Course 8: Governance',9:'Course 9: Proof of Work',10:'Course 10: Proof of Residual Value',11:'Course 11: RVT Portfolio Management',12:'Course 12: Enterprise Integration',13:'Course 13: Royalties System',14:'Course 14: Merchant Gateway',15:'Course 15: Banking System',16:'Course 16: Exchange Platform',17:'Course 17: Financial Literacy',18:'Course 18: Investment Strategies',19:'Course 19: Wealth Building',20:'Course 20: Generational Wealth',21:'Course 21: Economic Empowerment'};
+
+                function courseUrl(id) { return '/courses/course-' + id + '-' + COURSE_SLUGS[id] + '.html'; }
+
+                function getIdentifier() {
+                    try {
+                        return localStorage.getItem('userWalletAddress') ||
+                               localStorage.getItem('walletAddress') ||
+                               localStorage.getItem('userEmail') || null;
+                    } catch(e) { return null; }
+                }
+
+                function localProgressFor(courseId) {
+                    try {
+                        var sp = JSON.parse(localStorage.getItem('course' + courseId + '_section_progress') || '{}');
+                        var keys = Object.keys(sp);
+                        var done = keys.filter(function(k){ return sp[k]; }).length;
+                        return { done: done, total: keys.length };
+                    } catch(e) { return { done: 0, total: 0 }; }
+                }
+
+                function isCompleted(courseId) {
+                    try { return localStorage.getItem('course' + courseId + '_completed') === 'true'; }
+                    catch(e) { return false; }
+                }
+
+                function showCard(opts) {
+                    document.getElementById('continue-learning-emoji').textContent = opts.emoji;
+                    document.getElementById('continue-learning-kicker').textContent = opts.kicker;
+                    document.getElementById('continue-learning-title').textContent = opts.title;
+                    document.getElementById('continue-learning-link').href = opts.href;
+                    document.getElementById('continue-learning-cta').textContent = opts.cta;
+                    var sub = document.getElementById('continue-learning-sub');
+                    var bar = document.getElementById('continue-learning-bar');
+                    if (typeof opts.pct === 'number') {
+                        document.getElementById('continue-learning-fill').style.width = opts.pct + '%';
+                        sub.textContent = opts.sub || '';
+                        bar.style.display = 'block'; sub.style.display = 'block';
+                    } else {
+                        bar.style.display = 'none'; sub.style.display = 'none';
+                    }
+                    document.getElementById('continue-learning-card').style.display = 'block';
+                }
+
+                function renderForCourse(courseId, done, total) {
+                    // Finished this course? Point at the next one — or the Graduate Club.
+                    var targetId = courseId;
+                    if (isCompleted(courseId)) {
+                        if (courseId >= 21) {
+                            showCard({ emoji: '🎓', kicker: 'ALL COURSES COMPLETE', title: 'You finished all 21 courses!', href: '/graduate-club.html', cta: 'Graduate Club →' });
+                            return;
+                        }
+                        targetId = courseId + 1;
+                        var nlp = localProgressFor(targetId);
+                        var pct = nlp.total > 0 ? Math.round(nlp.done / nlp.total * 100) : 0;
+                        showCard({ emoji: '📍', kicker: 'CONTINUE LEARNING', title: COURSE_NAMES[targetId], href: courseUrl(targetId), cta: 'Start →', pct: pct, sub: pct > 0 ? pct + '% complete' : 'Pick up where you left off' });
+                        return;
+                    }
+                    var pct2 = total > 0 ? Math.round(done / total * 100) : 0;
+                    showCard({ emoji: '📍', kicker: 'CONTINUE LEARNING', title: COURSE_NAMES[courseId], href: courseUrl(courseId), cta: 'Resume →', pct: pct2, sub: pct2 > 0 ? pct2 + '% complete — pick up where you left off' : 'Pick up where you left off' });
+                }
+
+                // 1) Instant path: last course on this device.
+                var last = null;
+                try { last = JSON.parse(localStorage.getItem('kenostod_last_course') || 'null'); } catch(e) {}
+                if (last && last.courseId && COURSE_SLUGS[last.courseId]) {
+                    var lp = localProgressFor(last.courseId);
+                    renderForCourse(last.courseId, lp.done, lp.total);
+                }
+
+                // 2) Fresher path: server last-active (cross-device). Upgrades the card if newer.
+                var identifier = getIdentifier();
+                if (identifier) {
+                    fetch('/api/course/progress/last-active/' + encodeURIComponent(identifier))
+                        .then(function(r){ return r.ok ? r.json() : null; })
+                        .then(function(data){
+                            if (!data || !data.found || !COURSE_SLUGS[data.courseId]) return;
+                            var serverAt = data.lastActive ? new Date(data.lastActive).getTime() : 0;
+                            if (!last || !last.at || serverAt > last.at) {
+                                renderForCourse(data.courseId, data.sectionsCompleted || 0, data.totalSections || 0);
+                            }
+                        })
+                        .catch(function(){ /* card keeps the local version */ });
+                }
+            })();
+            </script>
         </header>
 
         <!-- Kenostod Definition Banner -->
