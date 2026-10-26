@@ -2338,11 +2338,63 @@ app.post('/api/license-inquiry', async (req, res) => {
             console.error('Error saving license inquiry:', e);
         }
 
-        console.log(`📋 License inquiry [${inquiry.id}] from ${company} (${name}) — ${licenseType}`);
+        let notificationSent = false;
+        try {
+            const resendApiKey = process.env.RESEND_API_KEY;
+            if (!resendApiKey) {
+                throw new Error('RESEND_API_KEY is not configured');
+            }
+
+            const from = process.env.LICENSE_INQUIRY_FROM_EMAIL || 'licensing@kenostodblockchain.com';
+            const to = process.env.LICENSE_INQUIRY_NOTIFY_EMAIL || 'keno@kenostodblockchain.com';
+            const emailText = [
+                'A new licensing inquiry was submitted on kenostodblockchain.com.',
+                '',
+                `Reference: ${inquiry.id}`,
+                `Name: ${name}`,
+                `Company: ${company}`,
+                `Contact email: ${email}`,
+                `Phone: ${inquiry.phone || 'Not provided'}`,
+                `License type: ${licenseType}`,
+                `Use case: ${inquiry.useCase || 'Not provided'}`,
+                `Timeline: ${inquiry.timeline || 'Not provided'}`,
+                `Additional notes: ${inquiry.message || 'Not provided'}`,
+                `Submitted at: ${inquiry.submittedAt}`
+            ].join('\n');
+
+            const emailResponse = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${resendApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from,
+                    to: [to],
+                    reply_to: email,
+                    subject: `New licensing inquiry ${inquiry.id}`,
+                    text: emailText
+                })
+            });
+
+            if (!emailResponse.ok) {
+                const providerError = await emailResponse.text();
+                throw new Error(`Resend returned HTTP ${emailResponse.status}: ${providerError.slice(0, 300)}`);
+            }
+
+            notificationSent = true;
+        } catch (emailError) {
+            console.error(`[License inquiry] Email notification failed for ${inquiry.id}:`, emailError.message);
+        }
+
+        console.log(`📋 License inquiry ${inquiry.id} received; notificationSent=${notificationSent}`);
 
         res.json({
             success: true,
-            message: 'Thank you for your interest! Our licensing team will reach out within 1 business day.',
+            notificationSent,
+            message: notificationSent
+                ? 'Your inquiry was received and the licensing team was notified.'
+                : 'Your inquiry was recorded, but the licensing team could not be notified by email. Please email licensing@kenostodblockchain.com and include your reference ID.',
             inquiryId: inquiry.id
         });
     } catch (error) {
