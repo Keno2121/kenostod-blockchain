@@ -297,8 +297,8 @@ class AISupportWidget {
                         <p style="margin: 0; line-height: 1.6;">I'm here to help you with any questions about Kenostod Blockchain Academy, wallets, transactions, mining, or the ICO!</p>
                         
                         <div class="ai-quick-questions">
-                            <button class="ai-quick-question-btn" data-question="How do I join the KENO presale on June 26?">
-                                🔥 How do I join the KENO presale?
+                            <button class="ai-quick-question-btn" data-question="How can I check the current KENO sale status?">
+                                🔎 Check current KENO sale status
                             </button>
                             <button class="ai-quick-question-btn" data-question="What is The Sovereign Economy?">
                                 👑 What is The Sovereign Economy?
@@ -398,7 +398,7 @@ class AISupportWidget {
                     { role: 'assistant', content: data.message }
                 );
             } else {
-                this.addMessage('assistant', 'I apologize, but I encountered an error. Please try again.');
+                this.addMessage('assistant', data.error || 'Support is temporarily unavailable. Please try again later.');
             }
         } catch (error) {
             console.error('AI Support error:', error);
@@ -438,7 +438,7 @@ class AISupportWidget {
                 this.addMessage('assistant', data.message);
                 this.messages.push({ role: 'assistant', content: data.message });
             } else {
-                this.addMessage('assistant', 'I apologize, but I encountered an error. Please try again.');
+                this.addMessage('assistant', data.error || 'Support is temporarily unavailable. Please try again later.');
             }
         } catch (error) {
             console.error('AI Support error:', error);
