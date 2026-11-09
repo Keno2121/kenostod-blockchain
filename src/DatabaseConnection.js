@@ -10,7 +10,11 @@ class DatabaseConnection {
             connectionString: process.env.DATABASE_URL,
             ssl: {
                 rejectUnauthorized: false
-            }
+            },
+            // Fail fast instead of hanging forever if the DB can't be reached
+            // (a suspended free-tier DB can stall new connections indefinitely).
+            connectionTimeoutMillis: 10000,
+            idleTimeoutMillis: 10000
         });
 
         this.pool.on('error', (err) => {

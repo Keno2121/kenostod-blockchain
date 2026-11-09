@@ -6938,7 +6938,7 @@ app.post('/api/students/enroll', async (req, res) => {
         await dbConnection.query(`
             UPDATE student_rewards 
             SET user_email = $1 
-            WHERE wallet_address = $2 OR user_wallet_address = $2
+            WHERE user_wallet_address = $2
         `, [normalizedEmail, normalizedWallet]);
         
         console.log(`✅ New student enrolled: ${studentId} - ${sanitizedName} (${normalizedEmail})`);

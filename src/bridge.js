@@ -16,7 +16,7 @@ function bridgeClient(idempotencyKey) {
     if (idempotencyKey) {
         headers['Idempotency-Key'] = idempotencyKey;
     }
-    return axios.create({ baseURL: BASE_URL, headers });
+    return axios.create({ baseURL: BASE_URL, headers, timeout: 10000 });
 }
 
 async function getAccount() {
