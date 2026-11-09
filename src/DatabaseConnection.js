@@ -153,6 +153,35 @@ class DatabaseConnection {
             `);
 
             await this.query(`
+                CREATE TABLE IF NOT EXISTS students (
+                    id SERIAL PRIMARY KEY,
+                    student_id VARCHAR(255) UNIQUE NOT NULL,
+                    name VARCHAR(255),
+                    email VARCHAR(255),
+                    wallet_address VARCHAR(255) UNIQUE NOT NULL,
+                    phone VARCHAR(50),
+                    country VARCHAR(100),
+                    referral_code VARCHAR(255),
+                    enrollment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    bridge_customer_id VARCHAR(255),
+                    bridge_kyc_link TEXT,
+                    bridge_kyc_status VARCHAR(50),
+                    bridge_kyc_updated_at TIMESTAMP,
+                    bridge_liquidation_address VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_students_email ON students(email);
+            `);
+
+            await this.query(`
+                CREATE INDEX IF NOT EXISTS idx_students_wallet ON students(wallet_address);
+            `);
+
+            await this.query(`
                 CREATE TABLE IF NOT EXISTS student_rewards (
                     id SERIAL PRIMARY KEY,
                     user_wallet_address VARCHAR(255) NOT NULL,
