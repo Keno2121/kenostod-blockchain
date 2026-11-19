@@ -42,7 +42,7 @@ Kenostod Blockchain Academy introduces a revolutionary new asset class: Knowledg
 
 Students complete 21 courses covering blockchain fundamentals, cryptocurrency trading, smart contracts, DeFi, and financial literacy. Upon completion of each course, students earn 250 KENO tokens (5,250 KENO total for all 21 courses). These tokens can then be staked to access Flash Arbitrage Loans, generating real yield from market inefficiencies.
 
-The platform features patent-pending technologies including Proof-of-Residual-Value (PoRV) consensus, Flash Arbitrage Loan Pools (FALP), and G.I.F.T. (Generational Identification Fabric Technology) smart apparel for verified graduates.
+The platform features patent-pending technologies including Proof-of-Residual-Value (PoRV) consensus, Flash Arbitrage Loan Pools (FALP), and G.I.F.T. (Graduate Identity & Fellowship Technology) smart apparel for verified graduates.
 
 ### Category
 Education, DeFi, Utility Token

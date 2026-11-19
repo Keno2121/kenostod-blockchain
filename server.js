@@ -8082,7 +8082,7 @@ app.get('/api/graduates/leaderboard', async (req, res) => {
 });
 
 // ── G.I.F.T. EUREKA SYSTEM ───────────────────────────────────────────────────
-// Generational Identification Fabric Technology
+// Graduate Identity & Fellowship Technology
 // Every first meeting between two Kenostodists is recorded once — forever.
 
 // Record a Eureka first meeting (once per unique pair, immutable)
