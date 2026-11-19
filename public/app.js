@@ -280,7 +280,7 @@ const translations = {
         'features.title': '✨ Platform Features',
         'features.subtitle': 'Everything you need to master blockchain development',
         'features.cta.title': 'Ready to Start Learning?',
-        'features.cta.subtitle': 'Join thousands of students mastering the next generation of blockchain technology',
+        'features.cta.subtitle': 'Join the first learners mastering the next generation of blockchain technology',
         'features.cta.button': 'View Subscription Plans',
         'courses.title': '📚 Complete Course Curriculum',
         'courses.subtitle': 'Master 21 comprehensive courses: 16 revolutionary blockchain features + 5 financial literacy courses',
