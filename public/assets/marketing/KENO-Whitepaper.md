@@ -17,7 +17,7 @@
 4. [7 Constitutional Laws](#7-constitutional-laws)
 5. [Kenostod Academy Platform](#kenostod-academy-platform)
 6. [Live Smart Contracts](#live-smart-contracts)
-7. [Tokenomics — KENO v2](#tokenomics--keno-v2)
+7. [Tokenomics — KENO v3](#tokenomics--keno-v3)
 8. [Participant Revenue Streams](#participant-revenue-streams)
 9. [Flash Arbitrage Loan Technology](#flash-arbitrage-loan-technology)
 10. [UTL Protocol](#utl-protocol)
@@ -37,7 +37,7 @@
 
 **Kenostod Blockchain Academy LLC** has built a vertically integrated sovereign financial ecosystem with live infrastructure on BNB Smart Chain, Base, and Polygon mainnets. As of August 2026, the ecosystem includes:
 
-- ✅ **KENO v2** — Live on BSC Mainnet (`0x48bb049afe50b050b458624dc6233acd51024ab4`)
+- ✅ **KENO v3** — Live on BSC Mainnet (`0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009`), deployed Nov 22, 2026
 - ✅ **14 active bots** — Arbitrage, funding rate, burn, and arb bots running on Render
 - ✅ **UTL Protocol** — 6 live contracts on BSC Mainnet
 - ✅ **Kings Shield** — Security token with 6.174% Aegis Tax redistributing to holders
@@ -136,10 +136,11 @@ All contracts below are deployed on mainnet and actively processing transactions
 
 | Version | Network | Address | Status |
 |---------|---------|---------|--------|
-| **v2 (ACTIVE)** | BNB Smart Chain | `0x48bb049afe50b050b458624dc6233acd51024ab4` | ✅ Live |
+| **v3 (ACTIVE)** | BNB Smart Chain | `0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009` | ✅ Live — deployed Nov 22, 2026 |
+| v2 (SUPERSEDED) | BNB Smart Chain | `0x48bb049afe50b050b458624dc6233acd51024ab4` | Separate token — no migration to v3 |
 | v1 (ABANDONED) | BNB Smart Chain | `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` | ❌ Deprecated |
 
-> **v1 Deprecation Notice:** KENO v1 is fully abandoned. The deployer wallet was compromised. No mint function exists and there is no path to recovery. KENO v2 is a clean redeployment with a new deployer wallet and full supply transparency.
+> **v1 Deprecation Notice:** KENO v1 is fully abandoned. The deployer wallet was compromised. No mint function exists and there is no path to recovery. KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) is superseded by KENO v3 (`0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009`, deployed Nov 22, 2026). v2 remains a separate token; there is no holder migration from v2 to v3.
 
 ### UTL Protocol — v1.1 (Current, BSC)
 
@@ -163,19 +164,21 @@ All contracts below are deployed on mainnet and actively processing transactions
 
 ---
 
-## Tokenomics — KENO v2
+## Tokenomics — KENO v3
 
 - **Total Supply:** 1,000,000,000 KENO (fixed — no minting ever)
 - **Transfer Tax:** 0% (no hidden fee)
-- **Verification:** Sourcify exact match (June 21, 2026)
+- **Verification:** source verification pending — v3 not yet verified on BscScan/Sourcify
 
 ### Distribution
+
+KENO v3 minted the full 1,000,000,000 supply to the owner wallet on Nov 22, 2026. The allocations below are the distribution plan — tokens move from the owner wallet as each allocation is executed.
 
 | Allocation | % | Amount | Notes |
 |-----------|---|--------|-------|
 | Student Rewards (Academy) | 40% | 400,000,000 | Released on course completion — 250 per course |
-| FAL / FALP Liquidity | 25% | 250,000,000 | Locked in arbitrage pools for graduate access |
-| PinkSale Presale | 15% | 150,000,000 | Public presale June 26 – August 6, 2026 |
+| FAL / FALP Liquidity | 25% | 250,000,000 | Earmarked for arbitrage pools for graduate access |
+| Public Distribution | 15% | 150,000,000 | Public allocation — reserved; not yet distributed |
 | Protocol Operations | 10% | 100,000,000 | Ecosystem development, infrastructure, protocol liquidity |
 | Scholarship Fund | 5% | 50,000,000 | Perpetual fund — self-compounding via Euler law |
 | Reserve | 5% | 50,000,000 | Emergency + protocol upgrades |
@@ -328,6 +331,7 @@ Post-presale: KENO lists on PancakeSwap v2. 60% of raised BNB deployed into bot 
 - Wyoming SPDI Charter application filing
 
 ### Phase 4 — Planned (Q4 2026)
+- KENO v3 deployed on BSC mainnet — Nov 22, 2026 (1B supply; full supply held by owner wallet)
 - PancakeSwap v4 migration + full UTLHook activation
 - Nash equilibrium staker split goes live (55–65% auto-tune)
 - Mercury Bank USD cashout pathway for KENO graduates
@@ -380,7 +384,7 @@ KENO is designed and operated as a **utility token**:
 - **Not a security instrument** — no promise of profit, no investment in a common enterprise
 
 ### KENO v1 Deprecation — Full Disclosure
-KENO v1 (`0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E`) is fully deprecated as of Q1 2026. The deployer wallet was compromised. No v1 mint function exists. All v1 tokens are locked with no recovery path. KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) is a clean redeployment with full supply transparency.
+KENO v1 (`0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E`) is fully deprecated as of Q1 2026. The deployer wallet was compromised. No v1 mint function exists. All v1 tokens are locked with no recovery path. KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) is superseded by KENO v3 (`0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009`, deployed Nov 22, 2026). v2 remains a separate token; there is no holder migration from v2 to v3.
 
 ### Partner Disclosures
 - **Rain.xyz** — confirmed card infrastructure partner for KUTL Card
@@ -405,7 +409,7 @@ Cryptocurrency tokens involve significant risk of loss, including total loss of 
 - **GitHub:** https://github.com/Keno2121/kenostod-blockchain
 
 **Smart Contracts (BSC):**
-- KENO v2: `0x48bb049afe50b050b458624dc6233acd51024ab4`
+- KENO v3: `0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009`
 - KENOAutoBurn: `0x9Fb4f8d4798d9E484c27c6F7571DCaFc82215A79`
 
 ---
