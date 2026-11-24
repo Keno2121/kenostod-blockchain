@@ -140,8 +140,6 @@ All contracts below are deployed on mainnet and actively processing transactions
 | v2 (SUPERSEDED) | BNB Smart Chain | `0x48bb049afe50b050b458624dc6233acd51024ab4` | Separate token — no migration to v3 |
 | v1 (ABANDONED) | BNB Smart Chain | `0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E` | ❌ Deprecated |
 
-> **v1 Deprecation Notice:** KENO v1 is fully abandoned. The deployer wallet was compromised. No mint function exists and there is no path to recovery. KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) is superseded by KENO v3 (`0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009`, deployed Nov 22, 2026). v2 remains a separate token; there is no holder migration from v2 to v3.
-
 ### UTL Protocol — v1.1 (Current, BSC)
 
 | Contract | Address | Role |
@@ -383,9 +381,6 @@ KENO is designed and operated as a **utility token**:
 - **Earned, not purchased** — primary distribution is through educational course completion
 - **Utility-native** — every use case (staking, FAL access, governance, apparel) is a functional use
 - **Not a security instrument** — no promise of profit, no investment in a common enterprise
-
-### KENO v1 Deprecation — Full Disclosure
-KENO v1 (`0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E`) is fully deprecated as of Q1 2026. The deployer wallet was compromised. No v1 mint function exists. All v1 tokens are locked with no recovery path. KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) is superseded by KENO v3 (`0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009`, deployed Nov 22, 2026). v2 remains a separate token; there is no holder migration from v2 to v3.
 
 ### Partner Disclosures
 - **Rain.xyz** — confirmed card infrastructure partner for KUTL Card
