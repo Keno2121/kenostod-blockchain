@@ -43,7 +43,7 @@
 - ✅ **Kings Shield** — Security token with 6.174% Aegis Tax redistributing to holders
 - ✅ **Queens Chariot Token (QCT)** — Live on Base Mainnet
 - ✅ **KENOAutoBurn** — Automated buy-and-burn contract on BSC
-- ✅ **PinkSale Presale** — Completed August 6, 2026 (SOLD OUT)
+- ⚠️ **PinkSale Presale (v2)** — Failed August 6, 2026: 800M KENO compromised and lost; supply re-minted as KENO v3 (no v3 presale, no live sale)
 
 This is not a concept document. Every component described below is live on mainnet.
 
@@ -266,21 +266,22 @@ QCT is the ecosystem's governance and prestige layer, deployed on Base Mainnet (
 
 ## PinkSale Presale 2026
 
-The KENO v2 public presale is live on PinkSale Finance.
+The KENO v2 public presale ran on PinkSale Finance (BSC) from June 26 to August 6, 2026. It failed: 800,000,000 KENO were compromised and lost through it. The 1,000,000,000 KENO supply was re-minted as KENO v3 (deployed Nov 22, 2026 — `0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009`). There is no KENO v3 presale and no live token sale. KENO is earned through education, not sold.
 
 | Parameter | Value |
 |-----------|-------|
 | Platform | PinkSale Finance (BSC) |
 | Start Date | June 26, 2026 |
 | End Date | **August 6, 2026 23:59 UTC** |
-| Token | KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) |
+| Token | KENO v2 (`0x48bb049afe50b050b458624dc6233acd51024ab4`) — superseded |
 | Softcap | 30 BNB |
 | Hardcap | 60 BNB |
 | Currency | BNB |
+| Outcome | Failed — 800,000,000 KENO compromised and lost; supply re-minted as KENO v3 |
 
-**Presale Link:** https://www.pinksale.finance/launchpad/bsc/0x92d69213842Ee84b47221Cbba299e01853fccF2d
+**Presale Link (historical record):** https://www.pinksale.finance/launchpad/bsc/0x92d69213842Ee84b47221Cbba299e01853fccF2d
 
-Post-presale: KENO lists on PancakeSwap v2. 60% of raised BNB deployed into bot capital for immediate arbitrage operations.
+KENO v3 has no presale and no public sale. The token is earned by completing Academy courses — 250 KENO per course, 5,250 on graduation.
 
 ---
 
@@ -321,7 +322,7 @@ Post-presale: KENO lists on PancakeSwap v2. 60% of raised BNB deployed into bot 
 - ✅ KENOAutoBurn contract deployed and active
 
 ### Phase 3 — Active (June–September 2026)
-- **June 26 – August 6:** PinkSale presale (30–60 BNB target)
+- **June 26 – August 6:** PinkSale presale (30–60 BNB target) — FAILED; 800M KENO compromised and lost
 - PancakeSwap v2 listing post-presale
 - Bot capital deployed — milestone 1 ($500) → milestone 2 ($2,000)
 - Kaprekar split active on every arb profit
@@ -389,7 +390,7 @@ KENO v1 (`0x65791E0B5Cbac5F40c76cDe31bf4F074D982FD0E`) is fully deprecated as of
 ### Partner Disclosures
 - **Rain.xyz** — confirmed card infrastructure partner for KUTL Card
 - **OpenAI** — AI Customer Support integration
-- **PinkSale** — presale launchpad (June 26 – August 6, 2026)
+- **PinkSale** — presale launchpad for the failed v2 presale (June 26 – August 6, 2026)
 - **PancakeSwap** — primary DEX liquidity venue (v2 launch, v4 upgrade planned)
 - **Hyperliquid** — HL Builder Registry + KENOAutoBurn + QCT HIP-1 listing
 
@@ -405,7 +406,7 @@ Cryptocurrency tokens involve significant risk of loss, including total loss of 
 - **Website:** https://kenostodblockchain.com
 - **IaaS Services:** https://kenostodblockchain.com/iaas.html
 - **Kings Shield:** https://kings-shield.com
-- **PinkSale Presale:** https://www.pinksale.finance/launchpad/bsc/0x92d69213842Ee84b47221Cbba299e01853fccF2d
+- **PinkSale Presale (v2, failed):** https://www.pinksale.finance/launchpad/bsc/0x92d69213842Ee84b47221Cbba299e01853fccF2d
 - **GitHub:** https://github.com/Keno2121/kenostod-blockchain
 
 **Smart Contracts (BSC):**
