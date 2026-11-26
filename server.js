@@ -13045,6 +13045,8 @@ mercuryBankAPI = new MercuryBankAPI();
 
 app.post('/api/bank-details/save', async (req, res) => {
     try {
+        // Withdrawals are not live yet — bank details are not collected until they open.
+        return res.status(503).json({ success: false, error: 'Withdrawals are not enabled yet' });
         const { email, walletAddress, bankName, accountHolderName, routingNumber, accountNumber, accountType } = req.body;
         
         if (!email || !bankName || !accountHolderName || !routingNumber || !accountNumber) {
@@ -13109,6 +13111,8 @@ app.get('/api/bank-details/check', async (req, res) => {
 
 app.post('/api/usd-withdrawal/request', async (req, res) => {
     try {
+        // Withdrawals are not live yet — requests are not accepted until they open.
+        return res.status(503).json({ success: false, error: 'Withdrawals are not enabled yet' });
         const { email, walletAddress, kenoAmount } = req.body;
         
         if (!email || !kenoAmount || kenoAmount <= 0) {

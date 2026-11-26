@@ -27,7 +27,7 @@ function escapeHtml(str) {
 
 // KENO Token Contract Details
 const KENO_TOKEN = {
-    address: '0x48bb049afe50b050b458624dc6233acd51024ab4',
+    address: '0x95A1F51256b5CCD8F642C821780cdCbc5D0A0009',
     symbol: 'KENO',
     decimals: 18,
     image: 'https://kenostod-blockchain.replit.app/keno-logo.png'
